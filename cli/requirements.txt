@@ -1,0 +1,7 @@
+typer
+PyYAML
+requests
+yaspin
+pexpect
+colorama
+tabulate
