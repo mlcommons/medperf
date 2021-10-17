@@ -120,7 +120,6 @@ class BenchmarkDetail(GenericAPIView):
     queryset = ""
 
     def get_serializer_class(self):
-        print(self.request.method)
         if self.request.method == "PUT" or self.request.method == "DELETE":
             return BenchmarkApprovalSerializer
         return BenchmarkSerializer
