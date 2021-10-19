@@ -37,3 +37,11 @@ def test_get_benchmark_retrieves_models_from_server(mocker, server):
     # Assert
     spy.assert_called_once_with(uid)
 
+
+def test_get_benchmark_includes_reference_model_in_models(server):
+    # Act
+    uid = 1
+    benchmark = Benchmark.get(uid, server)
+
+    # Assert
+    assert benchmark.reference_model in benchmark.models
