@@ -1,45 +1,39 @@
-from medperf.entities import Benchmark
-from medperf.entities import Server
-from medperf.config import config
-from medperf.tests.mocks import requests as mock_requests
+from medperf.entities import Benchmark, Server
+from medperf.tests.mocks.requests import benchmark_body
 import medperf
 
-benchmark_uid = 1
+import pytest
 
 
-def mocked_get_responses(*args, **kwargs):
-    base_url = f"{config['server']}/benchmarks"
-    if args[0] == f"{base_url}/{benchmark_uid}":
-        body = mock_requests.benchmark_body(benchmark_uid)
-        return mock_requests.MockResponse(body, 200)
-    elif args[0] == f"{base_url}/{benchmark_uid}/models":
-        body = [mock_requests.cube_body(4)]
-        return mock_requests.MockResponse(body, 200)
+@pytest.fixture()
+def server(mocker):
+    server = Server("mock.url")
+    patch_server = "medperf.entities.benchmark.Server.{}"
+    mocker.patch(patch_server.format("get_benchmark"), side_effect=benchmark_body)
+    mocker.patch(patch_server.format("get_benchmark_models"), return_value=[])
+    return server
 
 
-def test_get(mocker):
-    """Can retrieve benchmarks from the server, and all get calls are authenticated
-    """
-    server = Server(config["server"])
-    server.token = "123"
-    mocker.patch(
-        "medperf.entities.server.requests.get", side_effect=mocked_get_responses
-    )
-    get_spy = mocker.spy(medperf.entities.server.requests, "get")
-    auth_spy = mocker.spy(Server, "_Server__auth_req")
-    benchmark = Benchmark.get(benchmark_uid, server)
-    assert type(benchmark) is Benchmark and benchmark.uid == benchmark_uid
-    assert get_spy.call_count > 0
-    assert get_spy.call_count == auth_spy.call_count
+def test_get_benchmark_retrieves_benchmark_from_server(mocker, server):
+    # Arrange
+    spy = mocker.spy(medperf.entities.benchmark.Server, "get_benchmark")
+
+    # Act
+    uid = 1
+    Benchmark.get(uid, server)
+
+    # Assert
+    spy.assert_called_once_with(uid)
 
 
-def test_models_uids(mocker):
-    """Retrieves a list of model uids related to the benchmark
-    """
-    server = Server(config["server"])
-    server.token = "123"
-    mocker.patch(
-        "medperf.entities.server.requests.get", side_effect=mocked_get_responses
-    )
-    uids = Benchmark.get_models_uids(benchmark_uid, server)
-    assert len(uids) == 1 and uids[0] == 4
+def test_get_benchmark_retrieves_models_from_server(mocker, server):
+    # Arrange
+    spy = mocker.spy(medperf.entities.benchmark.Server, "get_benchmark_models")
+
+    # Act
+    uid = 1
+    Benchmark.get(uid, server)
+
+    # Assert
+    spy.assert_called_once_with(uid)
+
