@@ -6,6 +6,12 @@ class MockResponse:
     def json(self):
         return self.json_data
 
+    @property
+    def content(self):
+        strings = [f"{k}: {v}" for k, v in self.json_data]
+        text = "\n".join(strings)
+        return text.encode()
+
 
 def benchmark_body(benchmark_uid):
     return {
@@ -26,10 +32,10 @@ def cube_body(cube_uid):
     return {
         "id": cube_uid,
         "name": "test_cube",
-        "git_mlcube_url": "mock_git_mlcube_url",
-        "git_parameters_url": "mock_git_parameters_url",
-        "tarball_url": "mock_tarball_url",
-        "tarball_hash": "mock_tarball_hash",
+        "git_mlcube_url": "mlcube_url",
+        "git_parameters_url": "parameters_url",
+        "tarball_url": "tarball_url",
+        "tarball_hash": "tarball_hash",
         "metadata": {},
         "created_at": "timestamp",
         "modified_at": "timestamp",
