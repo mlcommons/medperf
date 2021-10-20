@@ -28,17 +28,35 @@ def benchmark_body(benchmark_uid):
     }
 
 
-def cube_body(cube_uid):
-    return {
-        "id": cube_uid,
-        "name": "test_cube",
-        "git_mlcube_url": "mlcube_url",
-        "git_parameters_url": "parameters_url",
-        "tarball_url": "tarball_url",
-        "tarball_hash": "tarball_hash",
-        "metadata": {},
-        "created_at": "timestamp",
-        "modified_at": "timestamp",
-        "owner": 1,
-    }
+def cube_metadata_generator(with_params=False, with_tarball=False):
+    """Provides an interface for generating mocked cube_metadata responses,
+    with the possibility of changing some of the variables that affect the
+    workflow
+
+    Args:
+        with_params (bool, optional): Wether the mocked cube has parameters. Defaults to False.
+        with_tarball (bool, optional): Wether the mocked cube has a tarball. Defaults to False.
+
+    Returns:
+        [type]: [description]
+    """
+    params = "parameters_url" if with_params else ""
+    tarball = "tarball_url" if with_tarball else ""
+    hash = "tarball_hash" if with_tarball else ""
+
+    def cube_metadata_body(cube_uid):
+        return {
+            "id": cube_uid,
+            "name": "test_cube",
+            "git_mlcube_url": "mlcube_url",
+            "git_parameters_url": params,
+            "tarball_url": tarball,
+            "tarball_hash": hash,
+            "metadata": {},
+            "created_at": "timestamp",
+            "modified_at": "timestamp",
+            "owner": 1,
+        }
+
+    return cube_metadata_body
 
