@@ -202,8 +202,9 @@ def test_cube_runs_command_with_pexpect(mocker, server, basic_body):
 
 def test_cube_runs_command_with_extra_args(mocker, server, basic_body):
     # Arrange
-    mocker.patch(patch_cube.format("pexpect.spawn"), side_effect=MockPexpect.spawn)
-    spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+    spy = mocker.patch(
+        patch_cube.format("pexpect.spawn"), side_effect=MockPexpect.spawn
+    )
     sp = yaspin()
     task = "task"
     expected_cmd = f"mlcube run --mlcube={cube_path} --task={task} test=test"
