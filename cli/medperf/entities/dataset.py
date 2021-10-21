@@ -56,7 +56,7 @@ class Dataset:
         Returns:
             bool: Wether the dataset matches the expected hash
         """
-        regfile_path = os.path.join(self.dataset_path, "registration-info.yaml")
+        regfile_path = os.path.join(self.dataset_path, config["reg_file"])
         return get_file_sha1(regfile_path) == self.data_uid
 
     def __full_uid(self, uid_hint: str) -> str:
@@ -86,7 +86,7 @@ class Dataset:
         Returns:
             dict: registration information as key-value pairs.
         """
-        regfile = os.path.join(self.dataset_path, "registration-info.yaml")
+        regfile = os.path.join(self.dataset_path, config["reg_file"])
         with open(regfile, "r") as f:
             reg = yaml.full_load(f)
         return reg
