@@ -22,9 +22,9 @@ class Server:
         res = requests.post(f"{self.server_url}/auth-token/", json=body)
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("Unable to authentica user with provided credentials")
-
-        self.token = res.json()["token"]
+            pretty_error("Unable to authenticate user with provided credentials")
+        else:
+            self.token = res.json()["token"]
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
