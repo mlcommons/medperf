@@ -1,16 +1,18 @@
 from medperf.entities import Benchmark, Server
 from medperf.tests.mocks.requests import benchmark_body
+from medperf.tests.utils import rand_l
 import medperf
 
 import pytest
+
+patch_server = "medperf.entities.benchmark.Server.{}"
 
 
 @pytest.fixture()
 def server(mocker):
     server = Server("mock.url")
-    patch_server = "medperf.entities.benchmark.Server.{}"
     mocker.patch(patch_server.format("get_benchmark"), side_effect=benchmark_body)
-    mocker.patch(patch_server.format("get_benchmark_models"), return_value=[5, 6, 7])
+    mocker.patch(patch_server.format("get_benchmark_models"), return_value=[])
     return server
 
 
@@ -26,12 +28,12 @@ def test_get_benchmark_retrieves_benchmark_from_server(mocker, server):
     spy.assert_called_once_with(uid)
 
 
-def test_get_benchmark_retrieves_models_from_server(mocker, server):
+@pytest.mark.parametrize("uid", rand_l(1, 5000, 10))
+def test_get_benchmark_retrieves_models_from_server(mocker, server, uid):
     # Arrange
     spy = mocker.spy(medperf.entities.benchmark.Server, "get_benchmark_models")
 
     # Act
-    uid = 1
     Benchmark.get(uid, server)
 
     # Assert
@@ -47,10 +49,14 @@ def test_benchmark_includes_reference_model_in_models(server):
     assert benchmark.reference_model in benchmark.models
 
 
-def test_benchmark_includes_additional_models_in_modles(server):
+@pytest.mark.parametrize("models", [rand_l(1, 5000, 4) for _ in range(5)])
+def test_benchmark_includes_additional_models_in_modles(mocker, server, models):
+    # Arrange
+    mocker.patch(patch_server.format("get_benchmark_models"), return_value=models)
+
     # Act
     uid = 1
     benchmark = Benchmark.get(uid, server)
 
     # Assert
-    assert set([5, 6, 7]).issubset(set(benchmark.models))
+    assert set(models).issubset(set(benchmark.models))
