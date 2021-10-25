@@ -167,14 +167,14 @@ class Server:
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error("There was a problem retrieving the specified file at " + url)
-
-        c_path = cube_path(cube_uid)
-        path = os.path.join(c_path, path)
-        if not os.path.isdir(path):
-            os.makedirs(path)
-        filepath = os.path.join(path, filename)
-        open(filepath, "wb+").write(res.content)
-        return filepath
+        else:
+            c_path = cube_path(cube_uid)
+            path = os.path.join(c_path, path)
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            filepath = os.path.join(path, filename)
+            open(filepath, "wb+").write(res.content)
+            return filepath
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
