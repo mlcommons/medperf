@@ -75,9 +75,7 @@ def get_dsets() -> List[str]:
     Returns:
         List[str]: UIDs of prepared datasets.
     """
-    data = config["data_storage"]
-    dsets_path = os.path.join(config["storage"], data)
-    dsets = next(os.walk(dsets_path))[1]
+    dsets = next(os.walk(config["data_storage"]))[1]
     return dsets
 
 
@@ -113,7 +111,7 @@ def cube_path(uid: int) -> str:
     Returns:
         str: Location of the cube folder structure.
     """
-    return os.path.join(config["storage"], "cubes", str(uid))
+    return os.path.join(config["cubes_storage"], str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
@@ -123,10 +121,10 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         str: General temporary folder location
         str: Specific data path for the temporary dataset
     """
-    dt = datetime.now()
+    dt = datetime.utcnow()
     ts = str(int(datetime.timestamp(dt)))
     tmp = config["tmp_reg_prefix"] + ts
-    out_path = os.path.join(config["storage"], "data", tmp)
+    out_path = os.path.join(config["data_storage"], tmp)
     out_path = os.path.abspath(out_path)
     out_datapath = os.path.join(out_path, "data")
     if not os.path.isdir(out_datapath):

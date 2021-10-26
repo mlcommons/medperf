@@ -5,3 +5,4 @@ yaspin
 tabulate
 pexpect
 colorama
+time-machine
