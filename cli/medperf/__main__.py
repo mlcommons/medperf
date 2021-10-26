@@ -5,17 +5,15 @@ import logging
 import getpass
 from tabulate import tabulate
 
-from medperf import DataPreparation
-from medperf import BenchmarkExecution
-from medperf import DatasetBenchmarkAssociation
+from medperf.commands import DataPreparation
+from medperf.commands import BenchmarkExecution
+from medperf.commands import DatasetBenchmarkAssociation
 from medperf.entities import Server, Dataset
 from medperf.config import config
 from medperf.decorators import clean_except
-from medperf.commands import dataset
 
 
 app = typer.Typer()
-app.add_typer(dataset.app, name="dataset")
 
 
 @app.command("login")

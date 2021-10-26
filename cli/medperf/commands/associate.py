@@ -1,4 +1,3 @@
-import yaspin
 import typer
 
 from medperf.entities import Server, Dataset, Benchmark
