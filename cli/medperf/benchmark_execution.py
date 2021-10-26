@@ -58,7 +58,7 @@ class BenchmarkExecution:
             sp.text = "Running model inference on dataset"
             out_path = config["model_output"]
             model_cube.run(
-                sp, task="whatever", data_path=dataset.data_path, output_path=out_path
+                sp, task="infer", data_path=dataset.data_path, output_path=out_path
             )
             sp.write("> Model execution complete")
 
