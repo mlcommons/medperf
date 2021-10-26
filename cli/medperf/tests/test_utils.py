@@ -1,9 +1,9 @@
 from medperf import utils
 from medperf.config import config
 from medperf.tests.utils import rand_l
+from medperf.tests.mocks import MockCube, MockTar
 
 from unittest.mock import MagicMock, mock_open, call, ANY
-from tarfile import TarFile
 from yaspin import yaspin
 from pathlib import Path
 import datetime as dt
@@ -26,23 +26,6 @@ def init_mock_isdir(existing_dirs):
         return dir in existing_dirs
 
     return isdir
-
-
-class MockCube:
-    def __init__(self, is_valid):
-        self.name = "Test"
-        self.valid = is_valid
-
-    def is_valid(self):
-        return self.valid
-
-
-class MockTar:
-    def extractall(self, path):
-        pass
-
-    def close(self):
-        pass
 
 
 @pytest.fixture
@@ -400,7 +383,6 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
 
     # Act
     hash = utils.get_folder_sha1("test")
-    print(hash)
 
     # Assert
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
