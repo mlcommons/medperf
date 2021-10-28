@@ -18,9 +18,11 @@ from medperf.entities import Server, Dataset
 app = typer.Typer()
 
 
-@app.command("login")
 @clean_except
+@app.command("login")
 def login():
+    """Login to the medperf server. Must be done only once.
+    """
     cred_path = config["credentials_path"]
     user = input("username: ")
     pwd = getpass.getpass("password: ")
@@ -85,8 +87,8 @@ def execute(
     typer.echo("✅ Done!")
 
 
-@app.command("associate")
 @clean_except
+@app.command("associate")
 def associate(
     data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
@@ -95,6 +97,8 @@ def associate(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
 ):
+    """Associate a registered dataset with a specific benchmark. The dataset and benchmark must share the same data preparation cube.
+    """
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
     typer.echo("✅ Done!")
 
@@ -109,9 +113,9 @@ def main(log: str = "INFO", log_file: str = config["log_file"]):
     typer.echo(f"MedPerf {config['version']}")
 
 
-@app.command("datasets")
 @clean_except
-def ls():
+@app.command("datasets")
+def datasets():
     """Lists all local datasets
 	"""
     dsets = Dataset.all()
