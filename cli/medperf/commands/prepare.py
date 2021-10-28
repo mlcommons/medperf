@@ -76,7 +76,9 @@ class DataPreparation:
                 if approved:
                     registration.retrieve_additional_data()
                 else:
-                    pretty_error("Registration operation cancelled")
+                    pretty_error(
+                        "Registration operation cancelled", add_instructions=False
+                    )
 
             registration.write(out_path)
             sp.write("Uploading")

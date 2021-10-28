@@ -26,3 +26,7 @@ class DatasetBenchmarkAssociation:
         if approval:
             typer.echo("Generating dataset benchmark association")
             server.associate_dset_benchmark(data_uid, benchmark_uid)
+        else:
+            pretty_error(
+                "Dataset association operation cancelled", add_instructions=False
+            )

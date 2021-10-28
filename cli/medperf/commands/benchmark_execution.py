@@ -88,6 +88,8 @@ class BenchmarkExecution:
                 typer.echo("Uploading")
                 result.upload(server)
             else:
-                pretty_error("Results upload operation cancelled")
+                pretty_error(
+                    "Results upload operation cancelled", add_instructions=False
+                )
             cleanup()
 
