@@ -52,11 +52,6 @@ def prepare(
     ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
-
-    Args:
-        benchmark_uid (int): UID of the desired benchmark.
-        data_path (str): Location of the data to be prepared.
-        labels_path (str): Labels file location.
     """
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path)
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
@@ -77,11 +72,6 @@ def execute(
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
-
-    Args:
-        benchmark_uid (int): UID of the desired benchmark.
-        data_uid (int): Registered Dataset UID.
-        model_uid (int): UID of model to execute.
     """
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
     typer.echo("✅ Done!")
