@@ -3,19 +3,19 @@ import typer
 from medperf.entities import Server, Dataset, Benchmark
 from medperf.utils import pretty_error
 from medperf.config import config
+from medperf.decorators import authenticate
 
 
 class DatasetBenchmarkAssociation:
     @staticmethod
-    def run(data_uid: int, benchmark_uid: int):
+    @authenticate
+    def run(data_uid: int, benchmark_uid: int, server: Server):
         """Associates a registered dataset with a benchmark
 
         Args:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
         """
-        server = Server(config["server"])
-        server.login("testdataowner", "test")
         dset = Dataset(data_uid)
         benchmark = Benchmark.get(benchmark_uid, server)
 
