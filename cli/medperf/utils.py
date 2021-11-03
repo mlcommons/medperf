@@ -1,6 +1,5 @@
 from pexpect import spawn
 import logging
-from yaspin.core import Yaspin
 from typing import List, Tuple
 from datetime import datetime
 import hashlib
@@ -14,6 +13,7 @@ from colorama import Fore, Style
 import re
 
 from medperf.config import config
+from medperf.ui import UI
 
 
 def get_file_sha1(path: str) -> str:
@@ -81,7 +81,7 @@ def get_dsets() -> List[str]:
     return dsets
 
 
-def pretty_error(msg: str, clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, ui: UI, clean: bool = True, add_instructions=True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
@@ -94,11 +94,9 @@ def pretty_error(msg: str, clean: bool = True, add_instructions=True):
     )
     if msg[-1] != ".":
         msg = msg + "."
-    msg = f"❌ {msg}"
     if add_instructions:
         msg += f" See logs at {config['log_file']} for more information"
-    msg = typer.style(msg, fg=typer.colors.RED, bold=True)
-    typer.echo(msg)
+    ui.print_error(msg)
     if clean:
         cleanup()
     exit()
@@ -135,19 +133,19 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     return out_path, out_datapath
 
 
-def check_cube_validity(cube: "Cube", sp: Yaspin):
+def check_cube_validity(cube: "Cube", ui: UI):
     """Helper function for pretty printing the cube validity process.
 
     Args:
         cube (Cube): Cube to check for validity
-        sp (Yaspin): yaspin instance being used
+        ui (UI): Instance of an UI implementation
     """
     logging.info(f"Checking cube {cube.name} validity")
-    sp.text = "Checking cube MD5 hash..."
+    ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
         pretty_error("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
-    sp.write(f"> {cube.name} MD5 hash check complete")
+    ui.print(f"> {cube.name} MD5 hash check complete")
 
 
 def untar_additional(add_filepath: str) -> str:
@@ -168,7 +166,7 @@ def untar_additional(add_filepath: str) -> str:
     return addpath
 
 
-def approval_prompt(msg: str) -> bool:
+def approval_prompt(msg: str, ui: UI) -> bool:
     """Helper function for prompting the user for things they have to explicitly approve.
 
     Args:
@@ -180,26 +178,26 @@ def approval_prompt(msg: str) -> bool:
     logging.info("Prompting for user's approval")
     approval = None
     while approval is None or approval not in "yn":
-        approval = input(msg.strip() + " ").lower()
+        approval = ui.prompt(msg.strip() + " ").lower()
     logging.info(f"User answered approval with {approval}")
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict):
+def dict_pretty_print(in_dict: dict, ui: UI):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
         in_dict (dict): dictionary to print
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    typer.echo()
-    typer.echo("=" * 20)
+    ui.print()
+    ui.print("=" * 20)
     in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
-    typer.echo(yaml.dump(in_dict))
-    typer.echo("=" * 20)
+    ui.print(yaml.dump(in_dict))
+    ui.print("=" * 20)
 
 
-def combine_proc_sp_text(proc: spawn, sp: Yaspin) -> str:
+def combine_proc_sp_text(proc: spawn, ui: UI) -> str:
     """Combines the output of a process and the spinner. 
     Joins any string captured from the process with the 
     spinner current text. Any strings ending with any other 
@@ -207,12 +205,12 @@ def combine_proc_sp_text(proc: spawn, sp: Yaspin) -> str:
 
     Args:
         proc (spawn): a pexpect spawned child
-        sp (Yaspin): a Yaspin spinner
+        ui (UI): An instance of an UI implementation
 
     Returns:
         str: all non-carriage-return-ending string captured from proc
     """
-    static_text = sp.text
+    static_text = ui.text
     proc_out = ""
     while proc.isalive():
         line = byte = proc.read(1)
@@ -225,7 +223,7 @@ def combine_proc_sp_text(proc: spawn, sp: Yaspin) -> str:
         if line:
             # add to proc_out list for logging
             proc_out += line
-        sp.text = (
+        ui.text = (
             f"{static_text} {Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
         )
 

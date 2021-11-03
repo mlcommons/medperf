@@ -1,21 +1,21 @@
-import os
-import stat
 import typer
 import logging
-import getpass
-from tabulate import tabulate
 
 from medperf.commands import (
     DataPreparation,
     BenchmarkExecution,
     DatasetBenchmarkAssociation,
+    Login,
+    Datasets,
 )
 from medperf.config import config
 from medperf.decorators import clean_except
-from medperf.entities import Server, Dataset
+from medperf.comms import CommsFactory
+from medperf.ui import UIFactory
 
 
 app = typer.Typer()
+state = {"comms": None, "ui": None}
 
 
 @clean_except
@@ -23,19 +23,7 @@ app = typer.Typer()
 def login():
     """Login to the medperf server. Must be done only once.
     """
-    cred_path = config["credentials_path"]
-    user = input("username: ")
-    pwd = getpass.getpass("password: ")
-    server = Server(config["server"])
-    server.login(user, pwd)
-    token = server.token
-
-    if os.path.exists(cred_path):
-        os.remove(cred_path)
-    with open(cred_path, "w") as f:
-        f.write(token)
-
-    os.chmod(cred_path, stat.S_IREAD)
+    Login.run(state["comms"])
 
 
 @clean_except
@@ -53,9 +41,12 @@ def prepare(
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
-    data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path)
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
-    typer.echo("✅ Done!")
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
+    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    ui.print("✅ Done!")
 
 
 @clean_except
@@ -73,8 +64,11 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
-    typer.echo("✅ Done!")
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
 
 
 @clean_except
@@ -89,18 +83,11 @@ def associate(
 ):
     """Associate a registered dataset with a specific benchmark. The dataset and benchmark must share the same data preparation cube.
     """
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
-    typer.echo("✅ Done!")
-
-
-@app.callback()
-def main(log: str = "INFO", log_file: str = config["log_file"]):
-    log = log.upper()
-    log_lvl = getattr(logging, log)
-    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
-    logging.info(f"Running MedPerf v{config['version']} on {log} logging level")
-    typer.echo(f"MedPerf {config['version']}")
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms)
+    ui.print("✅ Done!")
 
 
 @clean_except
@@ -108,13 +95,27 @@ def main(log: str = "INFO", log_file: str = config["log_file"]):
 def datasets():
     """Lists all local datasets
 	"""
-    dsets = Dataset.all()
-    headers = ["UID", "Name", "Data Preparation Cube UID"]
-    dsets_data = [
-        [dset.data_uid, dset.name, dset.preparation_cube_uid] for dset in dsets
-    ]
-    tab = tabulate(dsets_data, headers=headers)
-    typer.echo(tab)
+    ui = state["ui"]
+    Datasets.run(ui)
+
+
+@app.callback()
+def main(
+    log: str = "INFO",
+    log_file: str = config["log_file"],
+    comms: str = config["default_comms"],
+    ui: str = config["default_ui"],
+):
+    log = log.upper()
+    log_lvl = getattr(logging, log)
+    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
+    logging.info(f"Running MedPerf v{config['version']} on {log} logging level")
+
+    state["comms"] = CommsFactory.createComms(comms)
+    state["ui"] = UIFactory.createUI(ui)
+
+    state["ui"].print(f"MedPerf {config['version']}")
 
 
 if __name__ == "__main__":

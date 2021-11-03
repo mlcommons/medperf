@@ -1,9 +1,10 @@
+from typing import Type
 from collections.abc import Callable
 import logging
 import os
 
 from medperf.utils import cleanup, pretty_error
-from medperf.entities import Server
+from medperf.comms import Comms
 from medperf.config import config
 
 
@@ -31,7 +32,7 @@ def clean_except(func: Callable) -> Callable:
     return wrapper
 
 
-def authenticate(func: Callable) -> Callable:
+def authenticate(comms_class: Type[Comms]) -> Callable:
     """Decorator for exeuting a command as an authenticated user. For this, the
     decorator initializes and authenticates a server instance with the already
     saved credentials token in ~/.medperf/credentials
@@ -42,25 +43,28 @@ def authenticate(func: Callable) -> Callable:
         medperf login
 
     Args:
-        func (Callable): command to run as an authenticated user
+        comms_class (Comms): communications class to use. Not an instance of the class
 
     Returns:
         Callable: command wrapped with the authentication layer
     """
 
-    def wrapper(*args, **kwargs):
-        cred_path = config["credentials_path"]
-        if os.path.exists(cred_path):
-            with open(cred_path) as f:
-                token = f.readline()
-        else:
-            pretty_error(
-                "Couldn't find credentials file. Did you run 'medperf login' before?"
-            )
+    def authenticated_comms_layer(func: Callable):
+        def wrapper(*args, **kwargs):
+            cred_path = config["credentials_path"]
+            if os.path.exists(cred_path):
+                with open(cred_path) as f:
+                    token = f.readline()
+            else:
+                pretty_error(
+                    "Couldn't find credentials file. Did you run 'medperf login' before?"
+                )
 
-        server = Server(config["server"], token)
+            server = comms_class(config["server"], token)
 
-        kwargs["server"] = server
-        return func(*args, **kwargs)
+            kwargs["server"] = server
+            return func(*args, **kwargs)
 
-    return wrapper
+        return wrapper
+
+    return authenticated_comms_layer

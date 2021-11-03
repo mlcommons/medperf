@@ -4,9 +4,10 @@ import os
 from medperf.utils import pretty_error, cube_path
 from medperf.config import config
 from medperf.enums import Role
+from medperf.comms import Comms
 
 
-class Server:
+class REST(Comms):
     def __init__(self, server_url: str, token=None):
         self.server_url = server_url
         self.token = token
@@ -25,6 +26,16 @@ class Server:
             pretty_error("Unable to authentica user with provided credentials")
 
         self.token = res.json()["token"]
+
+    def authenticate(self):
+        cred_path = config["credentials_path"]
+        if os.path.exists(cred_path):
+            with open(cred_path) as f:
+                self.token = f.readline()
+        else:
+            pretty_error(
+                "Couldn't find credentials file. Did you run 'medperf login' before?"
+            )
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)

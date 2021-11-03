@@ -3,9 +3,9 @@ import yaml
 import os
 from pathlib import Path
 import pexpect
-from yaspin import yaspin
 
-from medperf.entities import Server
+from medperf.comms import Comms
+from medperf.ui import UI
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
@@ -40,28 +40,28 @@ class Cube(object):
         self.additional_hash = additional_hash
 
     @classmethod
-    def get(cls, cube_uid: str, server: Server) -> "Cube":
-        """Retrieves and creates a Cube instance from the server
+    def get(cls, cube_uid: str, comms: Comms) -> "Cube":
+        """Retrieves and creates a Cube instance from the comms
 
         Args:
             cube_uid (str): UID of the cube.
-            server (Server): Instance of the server interface.
+            comms (Comms): Instance of the server interface.
 
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
         cube_uid = cube_uid
-        meta = server.get_cube_metadata(cube_uid)
-        cube_path = server.get_cube(meta["git_mlcube_url"], cube_uid)
+        meta = comms.get_cube_metadata(cube_uid)
+        cube_path = comms.get_cube(meta["git_mlcube_url"], cube_uid)
         params_path = None
         additional_path = None
         additional_hash = None
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
-            params_path = server.get_cube_params(url, cube_uid)
+            params_path = comms.get_cube_params(url, cube_uid)
         if "tarball_url" in meta and meta["tarball_url"]:
             url = meta["tarball_url"]
-            additional_path = server.get_cube_additional(url, cube_uid)
+            additional_path = comms.get_cube_additional(url, cube_uid)
             additional_hash = get_file_sha1(additional_path)
             untar_additional(additional_path)
 
@@ -80,10 +80,11 @@ class Cube(object):
             valid_additional = True
         return valid_additional
 
-    def run(self, sp: yaspin, task: str, **kwargs):
+    def run(self, ui: UI, task: str, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
+            ui (UI): an instance of an UI implementation
             task (str): task to run
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
@@ -92,12 +93,12 @@ class Cube(object):
             cmd_arg = f"{k}={v}"
             cmd = " ".join([cmd, cmd_arg])
         proc = pexpect.spawn(cmd)
-        proc_out = combine_proc_sp_text(proc, sp)
+        proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
         if proc.exitstatus != 0:
             logging.error(proc_out)
-            sp.text = "\n"
-            pretty_error("There was an error while executing the cube")
+            ui.text = "\n"
+            pretty_error("There was an error while executing the cube", ui)
         return proc
 
     def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
