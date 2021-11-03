@@ -3,6 +3,7 @@ import yaml
 import os
 import logging
 
+from medperf.ui import UI
 from medperf.config import config
 from medperf.utils import get_file_sha1, get_dsets, approval_prompt
 
@@ -82,7 +83,7 @@ class Dataset:
             reg = yaml.full_load(f)
         return reg
 
-    def request_association_approval(self, benchmark: "Benchmark") -> bool:
+    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
         """Prompts the user for aproval regarding the association of the dataset
         with a given benchmark.
 
@@ -96,6 +97,7 @@ class Dataset:
             return True
 
         approved = approval_prompt(
-            f"Please confirm that you would like to associate the dataset '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
+            f"Please confirm that you would like to associate the dataset '{self.name}' with the benchmark '{benchmark.name}' [Y/n]",
+            ui,
         )
         return approved

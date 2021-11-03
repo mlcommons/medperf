@@ -1,16 +1,16 @@
 import yaml
 from datetime import datetime
 from pathlib import Path
-import typer
 import os
 
-from medperf.config import config
+from medperf.ui import UI
 from medperf.utils import (
     approval_prompt,
     dict_pretty_print,
     get_folder_sha1,
 )
-from medperf.entities import Server, Cube, Dataset
+from medperf.comms import Comms
+from medperf.entities import Cube, Dataset
 
 
 class Registration:
@@ -93,8 +93,8 @@ class Registration:
         self.description = input("Provide a description:  ")
         self.location = input("Provide a location:     ")
 
-    def request_approval(self) -> bool:
-        """Prompts the user for approval concerning uploading the registration to the server.
+    def request_approval(self, ui: UI) -> bool:
+        """Prompts the user for approval concerning uploading the registration to the comms.
 
         Returns:
             bool: Wether the user gave consent or not.
@@ -102,12 +102,13 @@ class Registration:
         if self.status == "APPROVED":
             return True
 
-        dict_pretty_print(self.todict())
-        typer.echo(
+        dict_pretty_print(self.todict(), ui)
+        ui.print(
             "Above is the information and statistics that will be registered to the database"
         )
         approved = approval_prompt(
-            "Do you approve the registration of the presented data to the MLCommons server? [Y/n] "
+            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
+            ui,
         )
         return approved
 
@@ -117,7 +118,7 @@ class Registration:
 
         Args:
             out_path (str): current temporary location of the data
-            uid (int): UID of registered dataset. Obtained after uploading to server
+            uid (int): UID of registered dataset. Obtained after uploading to comms
 
         Returns:
             str: renamed location of the data.
@@ -145,16 +146,16 @@ class Registration:
         self.path = filepath
         return filepath
 
-    def upload(self, server: Server) -> int:
-        """Uploads the registration information to the server.
+    def upload(self, comms: Comms) -> int:
+        """Uploads the registration information to the comms.
 
         Args:
-            server (Server): Instance of the server interface.
+            comms (Comms): Instance of the comms interface.
         
         Returns:
             int: UID of registered dataset
         """
-        dataset_uid = server.upload_dataset(self.todict())
+        dataset_uid = comms.upload_dataset(self.todict())
         return dataset_uid
 
     def is_registered(self) -> bool:
