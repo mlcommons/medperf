@@ -4,6 +4,16 @@ from medperf.entities import Server
 
 
 class Benchmark:
+    """
+    Class representing a Benchmark
+
+    a benchmark is a bundle of assets that enables quantitative 
+    measurement of the performance of AI models for a specific 
+    clinical problem. A Benchmark instance contains information
+    regarding how to prepare datasets for execution, as well as
+    what models to run and how to evaluate them.
+    """
+
     def __init__(self, uid: str, benchmark_dict: dict):
         """Creates a new benchmark instance
 
