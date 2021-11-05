@@ -4,7 +4,7 @@ from .ui import UI
 
 class UIFactory:
     @staticmethod
-    def createUI(name: str) -> UI:
+    def create_ui(name: str) -> UI:
         name = name.lower()
         if name == "cli":
             return CLI()
