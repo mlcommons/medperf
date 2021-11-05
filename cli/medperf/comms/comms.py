@@ -1,16 +1,18 @@
-from medperf.enums import Role
-
 from abc import ABC, abstractmethod
 
+from medperf.ui import UI
+from medperf.enums import Role
 
-class Comms:
+
+class Comms(ABC):
     @abstractmethod
-    def __init__(self, source: str, token: str):
+    def __init__(self, source: str, ui: UI, token: str = None):
         """Create an instance of a communication object.
 
         Args:
-            source (str): location of the communication source. Where messages are going to be sent
-            token ([type]): authentication token to be used throughout communication.
+            source (str): location of the communication source. Where messages are going to be sent.
+            ui (UI): Implementation of the UI interface.
+            token (str, Optional): authentication token to be used throughout communication. Defaults to None.
         """
         pass
 
