@@ -4,14 +4,14 @@ from contextlib import contextmanager
 
 class UI(ABC):
     @abstractmethod
-    def print(msg: str):
+    def print(self, msg: str):
         """Display a message to the interface. If on interactive session overrides
         previous message
         """
         pass
 
     @abstractmethod
-    def print_error(msg: str):
+    def print_error(self, msg: str):
         """Display an error message to the interface"""
         pass
 
