@@ -27,7 +27,7 @@ class Comms(ABC):
         pass
 
     @abstractmethod
-    def authenticat(self):
+    def authenticate(self):
         """Retrieve a token stored locally for authentication
         """
         pass
