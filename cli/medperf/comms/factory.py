@@ -5,7 +5,7 @@ from medperf.config import config
 
 class CommsFactory:
     @staticmethod
-    def createComms(name: str) -> Comms:
+    def create_comms(name: str) -> Comms:
         name = name.lower()
         if name == "rest":
             return REST(config["server"])
