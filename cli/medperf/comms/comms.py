@@ -133,6 +133,7 @@ class Comms(ABC):
         """
         pass
 
+    @abstractmethod
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 
