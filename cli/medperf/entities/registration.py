@@ -10,6 +10,7 @@ from medperf.utils import (
     get_folder_sha1,
 )
 from medperf.comms import Comms
+from medperf.config import config
 from medperf.entities import Cube, Dataset
 
 
