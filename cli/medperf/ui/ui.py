@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 class UI(ABC):
     @abstractmethod
-    def print(self, msg: str):
+    def print(self, msg: str = ""):
         """Display a message to the interface. If on interactive session overrides
         previous message
         """
