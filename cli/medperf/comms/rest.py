@@ -1,16 +1,19 @@
 import requests
 import logging
 import os
+
 from medperf.utils import pretty_error, cube_path
 from medperf.config import config
-from medperf.enums import Role
 from medperf.comms import Comms
+from medperf.enums import Role
+from medperf.ui import UI
 
 
 class REST(Comms):
-    def __init__(self, server_url: str, token=None):
+    def __init__(self, ui: UI, server_url: str, token=None):
         self.server_url = server_url
         self.token = token
+        self.ui = ui
 
     def login(self, username: str, password: str):
         """Authenticates the user with the server. Required for most endpoints
@@ -44,7 +47,8 @@ class REST(Comms):
                 self.token = f.readline()
         else:
             pretty_error(
-                "Couldn't find credentials file. Did you run 'medperf login' before?"
+                "Couldn't find credentials file. Did you run 'medperf login' before?",
+                self.ui,
             )
 
     def __auth_get(self, url, **kwargs):
@@ -55,7 +59,7 @@ class REST(Comms):
 
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
-            pretty_error("Must be authenticated")
+            pretty_error("Must be authenticated", self.ui)
         return req_func(url, headers={"Authorization": f"Token {self.token}"}, **kwargs)
 
     def benchmark_association(self, benchmark_uid: int) -> Role:
@@ -70,7 +74,9 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/benchmarks")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("there was an error retrieving the current user's benchmarks")
+            pretty_error(
+                "there was an error retrieving the current user's benchmarks", self.ui
+            )
 
         benchmarks = res.json()
         bm_dict = {bm["benchmark"]: bm for bm in benchmarks}
@@ -105,7 +111,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("the specified benchmark doesn't exist")
+            pretty_error("the specified benchmark doesn't exist", self.ui)
         benchmark = res.json()
         return benchmark
 
@@ -121,7 +127,9 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve models for the specified benchmark")
+            pretty_error(
+                "couldn't retrieve models for the specified benchmark", self.ui
+            )
         models = res.json()
         model_uids = [model["id"] for model in models]
         return model_uids
@@ -138,7 +146,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/{cube_uid}/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("the specified cube doesn't exist")
+            pretty_error("the specified cube doesn't exist", self.ui)
         metadata = res.json()
         return metadata
 
@@ -187,7 +195,9 @@ class REST(Comms):
         res = requests.get(url)
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("There was a problem retrieving the specified file at " + url)
+            pretty_error(
+                "There was a problem retrieving the specified file at " + url, self.ui
+            )
         else:
             c_path = cube_path(cube_uid)
             path = os.path.join(c_path, path)
@@ -209,7 +219,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/datasets/", json=reg_dict)
         if res.status_code != 201:
             logging.error(res.json())
-            pretty_error("Could not upload the dataset")
+            pretty_error("Could not upload the dataset", self.ui)
         return res.json()["id"]
 
     def upload_results(self, results_dict: dict) -> int:
@@ -224,7 +234,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/results/", json=results_dict)
         if res.status_code != 201:
             logging.error(res.json())
-            pretty_error("Could not upload the results")
+            pretty_error("Could not upload the results", self.ui)
         return res.json()["id"]
 
     def associate_dset_benchmark(self, data_uid: int, benchmark_uid: int):
@@ -238,4 +248,4 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
-            pretty_error("Could not associate dataset to benchmark")
+            pretty_error("Could not associate dataset to benchmark", self.ui)

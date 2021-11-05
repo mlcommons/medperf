@@ -112,8 +112,8 @@ def main(
     logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
     logging.info(f"Running MedPerf v{config['version']} on {log} logging level")
 
-    state["comms"] = CommsFactory.create_comms(comms)
-    state["ui"] = UIFactory.createUI(ui)
+    state["ui"] = UIFactory.create_ui(ui)
+    state["comms"] = CommsFactory.create_comms(comms, ui)
 
     state["ui"].print(f"MedPerf {config['version']}")
 
