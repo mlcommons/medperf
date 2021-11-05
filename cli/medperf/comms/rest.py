@@ -37,6 +37,16 @@ class REST(Comms):
                 "Couldn't find credentials file. Did you run 'medperf login' before?"
             )
 
+    def authenticate(self):
+        cred_path = config["credentials_path"]
+        if os.path.exists(cred_path):
+            with open(cred_path) as f:
+                self.token = f.readline()
+        else:
+            pretty_error(
+                "Couldn't find credentials file. Did you run 'medperf login' before?"
+            )
+
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
 
