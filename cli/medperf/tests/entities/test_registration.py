@@ -1,10 +1,12 @@
-import medperf
-from medperf.entities import Registration, Cube, Server
-
-from unittest.mock import MagicMock
 import os
-from pathlib import Path
 import pytest
+from unittest.mock import MagicMock
+from pathlib import Path
+
+from medperf.ui import UI
+from medperf.comms import Comms
+from medperf.entities import Registration, Cube
+
 
 out_path = "out_path"
 patch_registration = "medperf.entities.registration.{}"
@@ -19,6 +21,18 @@ reg_dict_keys = [
     "metadata",
     "status",
 ]
+
+
+@pytest.fixture
+def comms(mocker):
+    comms = mocker.create_autospec(spec=Comms)
+    return comms
+
+
+@pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
 
 
 class MockedDataset:
@@ -129,7 +143,9 @@ def test_request_approval_skips_if_approved(mocker, reg_mocked_with_params):
 
 
 @pytest.mark.parametrize("approval", [True, False])
-def test_request_approval_returns_users_input(mocker, approval, reg_mocked_with_params):
+def test_request_approval_returns_users_input(
+    mocker, ui, approval, reg_mocked_with_params
+):
     # Arrange
     mocker.patch(patch_registration.format("approval_prompt"), return_value=approval)
     mocker.patch(patch_registration.format("dict_pretty_print"))
@@ -137,7 +153,7 @@ def test_request_approval_returns_users_input(mocker, approval, reg_mocked_with_
     reg = Registration(*reg_mocked_with_params)
 
     # Act
-    approved = reg.request_approval()
+    approved = reg.request_approval(ui)
 
     # Assert
     assert approved == approval
@@ -194,20 +210,19 @@ def test_write_writes_to_desired_file(mocker, filepath, reg_mocked_with_params):
     assert path == filepath
 
 
-@pytest.mark.parametrize("server_uid", [1, 4, 834, 12])
-def test_upload_returns_uid_from_server(mocker, server_uid, reg_mocked_with_params):
+@pytest.mark.parametrize("comms_uid", [1, 4, 834, 12])
+def test_upload_returns_uid_from_comms(
+    mocker, comms_uid, comms, reg_mocked_with_params
+):
     # Arrange
-    server = Server("")
-    mocker.patch(
-        patch_registration.format("Server.upload_dataset"), return_value=server_uid
-    )
+    mocker.patch.object(comms, "upload_dataset", return_value=comms_uid)
     reg = Registration(*reg_mocked_with_params)
 
     # Act
-    uid = reg.upload(server)
+    uid = reg.upload(comms)
 
     # Assert
-    assert uid == server_uid
+    assert uid == comms_uid
 
 
 def test_is_registered_fails_when_uid_not_generated(mocker, reg_mocked_with_params):

@@ -1,10 +1,11 @@
-import medperf
-from medperf.entities import Dataset
-from medperf.config import config
-from medperf.tests.mocks import Benchmark
-
-from unittest.mock import MagicMock
 import pytest
+from unittest.mock import MagicMock
+
+import medperf
+from medperf.config import config
+from medperf.entities import Dataset
+from medperf.ui import UI
+from medperf.tests.mocks import Benchmark
 
 registration_mock = {
     "name": "name",
@@ -19,6 +20,12 @@ registration_mock = {
 
 patch_dataset = "medperf.entities.dataset.{}"
 tmp_prefix = config["tmp_reg_prefix"]
+
+
+@pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
 
 
 @pytest.fixture
@@ -117,7 +124,7 @@ def test_get_registration_loads_yaml_file(mocker, all_uids):
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
-def test_association_approval_skips_when_already_approved(mocker, all_uids):
+def test_association_approval_skips_when_already_approved(mocker, ui, all_uids):
     # Arrange
     uid = "1"
     dset = Dataset(uid)
@@ -126,14 +133,14 @@ def test_association_approval_skips_when_already_approved(mocker, all_uids):
     spy = mocker.patch(patch_dataset.format("approval_prompt"), return_value=True)
 
     # Act
-    dset.request_association_approval(mock_benchmark)
+    dset.request_association_approval(mock_benchmark, ui)
 
     # Assert
     spy.assert_not_called()
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
-def test_association_approval_prompts_user(mocker, all_uids):
+def test_association_approval_prompts_user(mocker, ui, all_uids):
     # Arrange
     uid = "1"
     dset = Dataset(uid)
@@ -141,7 +148,7 @@ def test_association_approval_prompts_user(mocker, all_uids):
     spy = mocker.patch(patch_dataset.format("approval_prompt"), return_value=True)
 
     # Act
-    dset.request_association_approval(mock_benchmark)
+    dset.request_association_approval(mock_benchmark, ui)
 
     # Assert
     spy.assert_called_once()
@@ -149,7 +156,7 @@ def test_association_approval_prompts_user(mocker, all_uids):
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
 @pytest.mark.parametrize("exp_return", [True, False])
-def test_association_approval_returns_prompt_value(mocker, all_uids, exp_return):
+def test_association_approval_returns_prompt_value(mocker, ui, all_uids, exp_return):
     # Arrange
     uid = "1"
     dset = Dataset(uid)
@@ -157,7 +164,7 @@ def test_association_approval_returns_prompt_value(mocker, all_uids, exp_return)
     mocker.patch(patch_dataset.format("approval_prompt"), return_value=exp_return)
 
     # Act
-    approved = dset.request_association_approval(mock_benchmark)
+    approved = dset.request_association_approval(mock_benchmark, ui)
 
     # Assert
     assert approved == exp_return

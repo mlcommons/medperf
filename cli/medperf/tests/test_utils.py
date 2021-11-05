@@ -1,16 +1,17 @@
-from medperf import utils
-from medperf.config import config
-from medperf.tests.utils import rand_l
-from medperf.tests.mocks import MockCube, MockTar
-
 from unittest.mock import MagicMock, mock_open, call, ANY
-from yaspin import yaspin
 from pathlib import Path
 import datetime as dt
 import time_machine
 import random
 import pytest
 import os
+
+from medperf import utils
+from medperf.ui import UI
+from medperf.config import config
+from medperf.tests.utils import rand_l
+from medperf.tests.mocks import MockCube, MockTar
+
 
 parent = config["storage"]
 data = config["data_storage"]
@@ -46,6 +47,12 @@ def dict_with_nones(request):
     keys = rand_l(1, 5000, num_keys)
     vals = [random.choice([None, x]) for x in keys]
     return {k: v for k, v in zip(keys, vals)}
+
+
+@pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
 
 
 @pytest.fixture
@@ -157,14 +164,14 @@ def test_get_dsets_returns_uids_of_datasets(mocker, datasets):
 
 
 @pytest.mark.parametrize("msg", ["test", "error message", "can't find cube"])
-def test_pretty_error_displays_message(mocker, msg):
+def test_pretty_error_displays_message(mocker, ui, msg):
     # Arrange
-    spy = mocker.patch("typer.echo")
+    spy = mocker.patch.object(ui, "print_error")
     mocker.patch(patch_utils.format("cleanup"))
     mocker.patch(patch_utils.format("exit"))
 
     # Act
-    utils.pretty_error(msg)
+    utils.pretty_error(msg, ui)
 
     # Assert
     printed_msg = spy.call_args_list[0][0][0]
@@ -172,14 +179,14 @@ def test_pretty_error_displays_message(mocker, msg):
 
 
 @pytest.mark.parametrize("clean", [True, False])
-def test_pretty_error_runs_cleanup_when_requested(mocker, clean):
+def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
     # Arrange
     spy = mocker.patch(patch_utils.format("cleanup"))
     mocker.patch("typer.echo")
     mocker.patch(patch_utils.format("exit"))
 
     # Act
-    utils.pretty_error("test", clean)
+    utils.pretty_error("test", ui, clean)
 
     # Assert
     if clean:
@@ -188,14 +195,14 @@ def test_pretty_error_runs_cleanup_when_requested(mocker, clean):
         spy.assert_not_called()
 
 
-def test_pretty_error_exits_program(mocker):
+def test_pretty_error_exits_program(mocker, ui):
     # Arrange
     mocker.patch(patch_utils.format("cleanup"))
     mocker.patch("typer.echo")
     spy = mocker.patch(patch_utils.format("exit"))
 
     # Act
-    utils.pretty_error("test")
+    utils.pretty_error("test", ui)
 
     # Assert
     spy.assert_called_once()
@@ -222,15 +229,13 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
 
 
 @pytest.mark.parametrize("is_valid", [True, False])
-def test_cube_validity_fails_when_invalid(mocker, is_valid):
+def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
     # Arrange
     spy = mocker.patch(patch_utils.format("pretty_error"))
     cube = MockCube(is_valid)
-    sp = yaspin()
-    sp.write = MagicMock()
 
     # Act
-    utils.check_cube_validity(cube, sp)
+    utils.check_cube_validity(cube, ui)
 
     # Assert
     if not is_valid:
@@ -284,12 +289,12 @@ def test_untar_additional_removes_tarfile(mocker, file):
     spy.assert_called_once_with(file)
 
 
-def test_approval_prompt_asks_for_user_input(mocker):
+def test_approval_prompt_asks_for_user_input(mocker, ui):
     # Arrange
-    spy = mocker.patch("builtins.input", return_value="y")
+    spy = mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
-    utils.approval_prompt("test")
+    utils.approval_prompt("test", ui)
 
     # Assert
     spy.assert_called_once()
@@ -305,40 +310,40 @@ def test_approval_prompt_asks_for_user_input(mocker):
         (["No", "y"], 2),
     ],
 )
-def test_approval_prompt_repeats_until_valid_answer(mocker, inputted_strs):
+def test_approval_prompt_repeats_until_valid_answer(mocker, ui, inputted_strs):
     # Arrange
     str_list = inputted_strs[0]
     exp_repeats = inputted_strs[1]
-    spy = mocker.patch("builtins.input", side_effect=str_list)
+    spy = mocker.patch.object(ui, "prompt", side_effect=str_list)
 
     # Act
-    utils.approval_prompt("test prompt")
+    utils.approval_prompt("test prompt", ui)
 
     # Assert
     spy.call_count == exp_repeats
 
 
 @pytest.mark.parametrize("input_val", random.choices("YyNn", k=6))
-def test_approval_prompt_returns_approved_boolean(mocker, input_val):
+def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     # Arrange
-    mocker.patch("builtins.input", return_value=input_val)
+    mocker.patch.object(ui, "prompt", return_value=input_val)
 
     # Act
-    approved = utils.approval_prompt("test approval return")
+    approved = utils.approval_prompt("test approval return", ui)
 
     # Assert
     assert approved == (input_val in "yY")
 
 
 @pytest.mark.parametrize("dict_with_nones", rand_l(0, 100, 5), indirect=True)
-def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, dict_with_nones):
+def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones):
     # Arrange
     mocker.patch("typer.echo")
     spy = mocker.patch("yaml.dump", return_value="")
     exp_dict = {k: v for k, v in dict_with_nones.items() if v is not None}
 
     # Act
-    utils.dict_pretty_print(dict_with_nones)
+    utils.dict_pretty_print(dict_with_nones, ui)
 
     # Assert
     spy.assert_called_once_with(exp_dict)

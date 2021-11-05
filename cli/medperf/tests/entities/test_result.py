@@ -1,17 +1,23 @@
-import medperf
-from medperf.entities import Result, Server
-
 import pytest
 from unittest.mock import MagicMock
+
+from medperf.ui import UI
+from medperf.comms import Comms
+from medperf.entities import Result
 
 patch_result = "medperf.entities.result.{}"
 
 
 @pytest.fixture
-def server(mocker):
-    server = Server("mock.url")
+def comms(mocker):
+    comms = mocker.create_autospec(spec=Comms)
+    return comms
 
-    return server
+
+@pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
 
 
 @pytest.mark.parametrize(
@@ -53,21 +59,21 @@ def test_todict_returns_expected_keys(mocker):
     assert set(result_dict.keys()) == expected_keys
 
 
-def test_request_approval_skips_if_already_approved(mocker):
+def test_request_approval_skips_if_already_approved(mocker, ui):
     # Arrange
     spy = mocker.patch(patch_result.format("approval_prompt"))
     result = Result("", 1, 1, 1)
     result.status = "APPROVED"
 
     # Act
-    result.request_approval()
+    result.request_approval(ui)
 
     # Assert
     spy.assert_not_called()
 
 
 @pytest.mark.parametrize("exp_approved", [True, False])
-def test_request_approval_returns_user_approval(mocker, exp_approved):
+def test_request_approval_returns_user_approval(mocker, ui, exp_approved):
     # Arrange
     mocker.patch("typer.echo")
     mocker.patch(patch_result.format("dict_pretty_print"))
@@ -76,20 +82,20 @@ def test_request_approval_returns_user_approval(mocker, exp_approved):
     result = Result("", 1, 1, 1)
 
     # Act
-    approved = result.request_approval()
+    approved = result.request_approval(ui)
 
     # Assert
     assert approved == exp_approved
 
 
-def test_upload_calls_server_method(mocker, server):
+def test_upload_calls_server_method(mocker, comms):
     # Arrange
-    spy = mocker.patch(patch_result.format("Server.upload_results"))
+    spy = mocker.patch.object(comms, "upload_results")
     mocker.patch(patch_result.format("Result.todict"), return_value={})
     result = Result("", 1, 1, 1)
 
     # Act
-    result.upload(server)
+    result.upload(comms)
 
     # Assert
     spy.assert_called_once()
