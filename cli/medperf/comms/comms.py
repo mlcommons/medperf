@@ -14,7 +14,6 @@ class Comms(ABC):
             ui (UI): Implementation of the UI interface.
             token (str, Optional): authentication token to be used throughout communication. Defaults to None.
         """
-        pass
 
     @abstractmethod
     def login(self, username: str, password: str):
@@ -24,13 +23,11 @@ class Comms(ABC):
             username (str): registered username
             password (str): user's password
         """
-        pass
 
     @abstractmethod
     def authenticate(self):
         """Retrieve a token stored locally for authentication
         """
-        pass
 
     @abstractmethod
     def benchmark_association(self, benchmark_uid: int) -> Role:
@@ -42,7 +39,6 @@ class Comms(ABC):
         Returns:
             Role: the association type between current user and benchmark
         """
-        pass
 
     @abstractmethod
     def authorized_by_role(self, benchmark_uid: int, role: str) -> bool:
@@ -56,7 +52,6 @@ class Comms(ABC):
         Returns:
             bool: Wether the user has the specified role for that benchmark
         """
-        pass
 
     @abstractmethod
     def get_benchmark(self, benchmark_uid: int) -> dict:
@@ -68,7 +63,6 @@ class Comms(ABC):
         Returns:
             dict: benchmark specification
         """
-        pass
 
     @abstractmethod
     def get_benchmark_models(self, benchmark_uid: int) -> list[int]:
@@ -80,7 +74,6 @@ class Comms(ABC):
         Returns:
             list[int]: List of model UIDS
         """
-        pass
 
     @abstractmethod
     def get_cube_metadata(self, cube_uid: int) -> dict:
@@ -92,7 +85,6 @@ class Comms(ABC):
         Returns:
             dict: Dictionary containing url and hashes for the cube files
         """
-        pass
 
     @abstractmethod
     def get_cube(self, url: str, cube_uid: int) -> str:
@@ -105,7 +97,6 @@ class Comms(ABC):
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
-        pass
 
     @abstractmethod
     def get_cube_params(self, url: str, cube_uid: int) -> str:
@@ -118,7 +109,6 @@ class Comms(ABC):
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
-        pass
 
     @abstractmethod
     def get_cube_additional(self, url: str, cube_uid: int) -> str:
@@ -131,7 +121,6 @@ class Comms(ABC):
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
-        pass
 
     @abstractmethod
     def upload_dataset(self, reg_dict: dict) -> int:
@@ -143,7 +132,6 @@ class Comms(ABC):
         Returns:
             int: id of the created dataset registration.
         """
-        pass
 
     @abstractmethod
     def upload_results(self, results_dict: dict) -> int:
@@ -155,7 +143,6 @@ class Comms(ABC):
         Returns:
             int: id of the generated results entry
         """
-        pass
 
     @abstractmethod
     def associate_dset_benchmark(self, data_uid: int, benchmark_uid: int):
@@ -165,4 +152,3 @@ class Comms(ABC):
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
         """
-        pass

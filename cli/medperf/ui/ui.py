@@ -8,26 +8,22 @@ class UI(ABC):
         """Display a message to the interface. If on interactive session overrides
         previous message
         """
-        pass
 
     @abstractmethod
     def print_error(self, msg: str):
         """Display an error message to the interface"""
-        pass
 
     @abstractmethod
     def start_interactive(self):
         """Initialize an interactive session for animations or overriding messages.
         If the UI doesn't support this, the function can be left empty.
         """
-        pass
 
     @abstractmethod
     def stop_interactive(self):
         """Terminate an interactive session.
         If the UI doesn't support this, the function can be left empty.
         """
-        pass
 
     @abstractmethod
     @contextmanager
@@ -49,4 +45,3 @@ class UI(ABC):
     @abstractmethod
     def prompt(msg: str) -> str:
         """Displays a prompt to the user and waits for an answer"""
-        pass
