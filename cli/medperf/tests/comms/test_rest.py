@@ -1,7 +1,7 @@
 import os
 import pytest
 import requests
-from unittest.mock import MagicMock, mock_open
+from unittest.mock import mock_open
 
 from medperf.ui import UI
 from medperf.comms import REST
