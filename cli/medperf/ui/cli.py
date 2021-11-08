@@ -99,4 +99,4 @@ class CLI(UI):
         Returns:
             str: user input
         """
-        getpass(msg)
+        return getpass(msg)
