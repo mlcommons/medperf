@@ -74,9 +74,7 @@ class CLI(UI):
         Args:
             msg (str): message to display
         """
-        if self.is_interactive:
-            self.spinner.text = msg
-        else:
+        if not self.is_interactive:
             self.print(msg)
 
         self.spinner.text = msg
