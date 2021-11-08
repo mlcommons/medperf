@@ -5,22 +5,26 @@ import logging
 import getpass
 from tabulate import tabulate
 
-from medperf import DataPreparation
-from medperf import BenchmarkExecution
-from medperf import DatasetBenchmarkAssociation
+
+from medperf.commands import (
+    DataPreparation,
+    BenchmarkExecution,
+    DatasetBenchmarkAssociation,
+)
 from medperf.entities import Server, Dataset
 from medperf.config import config
 from medperf.decorators import clean_except
-from medperf.commands import dataset
+from medperf.entities import Server, Dataset
 
 
 app = typer.Typer()
-app.add_typer(dataset.app, name="dataset")
 
 
 @app.command("login")
 @clean_except
 def login():
+    """Login to the medperf server. Must be done only once.
+    """
     cred_path = config["credentials_path"]
     user = input("username: ")
     pwd = getpass.getpass("password: ")
@@ -95,6 +99,8 @@ def associate(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
 ):
+    """Associate a registered dataset with a specific benchmark. The dataset and benchmark must share the same data preparation cube.
+    """
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
     typer.echo("✅ Done!")
 

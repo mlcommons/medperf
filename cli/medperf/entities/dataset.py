@@ -50,6 +50,7 @@ class Dataset:
         dsets = [cls(uid) for uid in uids if not uid.startswith(tmp_prefix)]
         return dsets
 
+
     def __full_uid(self, uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
 
@@ -77,6 +78,7 @@ class Dataset:
         Returns:
             dict: registration information as key-value pairs.
         """
+
         regfile = os.path.join(self.dataset_path, config["reg_file"])
         with open(regfile, "r") as f:
             reg = yaml.full_load(f)

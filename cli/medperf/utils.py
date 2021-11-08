@@ -75,6 +75,7 @@ def get_dsets() -> List[str]:
     Returns:
         List[str]: UIDs of prepared datasets.
     """
+
     dsets = next(os.walk(config["data_storage"]))[1]
     return dsets
 
@@ -121,6 +122,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         str: General temporary folder location
         str: Specific data path for the temporary dataset
     """
+
     dt = datetime.utcnow()
     ts = str(int(datetime.timestamp(dt)))
     tmp = config["tmp_reg_prefix"] + ts

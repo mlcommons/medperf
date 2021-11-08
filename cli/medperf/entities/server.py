@@ -25,6 +25,7 @@ class Server:
             pretty_error("Unable to authenticate user with provided credentials")
         else:
             self.token = res.json()["token"]
+            
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
@@ -175,6 +176,7 @@ class Server:
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
+
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
