@@ -16,6 +16,7 @@ class Result:
     results themselves. This class provides methods for working with
     benchmark results and how to upload them to the backend.
     """
+
     def __init__(
         self, result_path: str, benchmark_uid: int, dataset_uid: int, model_uid: int
     ):
