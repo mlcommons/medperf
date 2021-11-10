@@ -237,7 +237,7 @@ def test_is_registered_fails_when_uid_not_generated(mocker, ui, reg_mocked_with_
     with pytest.raises(SystemExit):
         reg.is_registered(ui)
 
-    # Act & Assert
+    # Assert
     spy.assert_called_once()
 
 
