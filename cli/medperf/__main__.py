@@ -86,7 +86,7 @@ def associate(
     comms = state["comms"]
     ui = state["ui"]
     comms.authenticate()
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms)
+    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
 
 
