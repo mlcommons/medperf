@@ -1,5 +1,6 @@
 from .cli import CLI
 from .ui import UI
+from medperf.utils import pretty_error
 
 
 class UIFactory:
@@ -9,4 +10,4 @@ class UIFactory:
         if name == "cli":
             return CLI()
         else:
-            raise NameError(f"{name}: the indicated UI interface doesn't exist")
+            pretty_error(f"{name}: the indicated UI interface doesn't exist")

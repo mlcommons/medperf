@@ -8,6 +8,7 @@ from medperf.utils import (
     approval_prompt,
     dict_pretty_print,
     get_folder_sha1,
+    pretty_error,
 )
 from medperf.comms import Comms
 from medperf.config import config
@@ -167,8 +168,10 @@ class Registration:
             bool: Wether the generated UID is already present in the registered datasets.
         """
         if self.uid is None:
-            raise KeyError(
-                "The registration doesn't have an uid yet. Generate it before running this method."
+            pretty_error(
+                "The registration doesn't have an uid yet. Generate it before running this method.",
+                ui,
+                add_instructions=False,
             )
 
         dsets = Dataset.all(ui)
