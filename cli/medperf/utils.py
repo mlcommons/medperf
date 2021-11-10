@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pexpect import spawn
 import logging
 from typing import List, Tuple
@@ -13,7 +14,6 @@ from colorama import Fore, Style
 import re
 
 from medperf.config import config
-from medperf.ui import UI
 
 
 def get_file_sha1(path: str) -> str:
@@ -79,7 +79,7 @@ def get_dsets() -> List[str]:
     return dsets
 
 
-def pretty_error(msg: str, ui: UI, clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
@@ -131,7 +131,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     return out_path, out_datapath
 
 
-def check_cube_validity(cube: "Cube", ui: UI):
+def check_cube_validity(cube: "Cube", ui: "UI"):
     """Helper function for pretty printing the cube validity process.
 
     Args:
@@ -164,7 +164,7 @@ def untar_additional(add_filepath: str) -> str:
     return addpath
 
 
-def approval_prompt(msg: str, ui: UI) -> bool:
+def approval_prompt(msg: str, ui: "UI") -> bool:
     """Helper function for prompting the user for things they have to explicitly approve.
 
     Args:
@@ -181,7 +181,7 @@ def approval_prompt(msg: str, ui: UI) -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict, ui: UI):
+def dict_pretty_print(in_dict: dict, ui: "UI"):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -195,7 +195,7 @@ def dict_pretty_print(in_dict: dict, ui: UI):
     ui.print("=" * 20)
 
 
-def combine_proc_sp_text(proc: spawn, ui: UI) -> str:
+def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     """Combines the output of a process and the spinner. 
     Joins any string captured from the process with the 
     spinner current text. Any strings ending with any other 
