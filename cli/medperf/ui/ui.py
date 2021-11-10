@@ -45,3 +45,14 @@ class UI(ABC):
     @abstractmethod
     def prompt(msg: str) -> str:
         """Displays a prompt to the user and waits for an answer"""
+
+    @abstractmethod
+    def hidden_prompt(self, msg: str) -> str:
+        """Displays a prompt to the user and waits for an aswer. User input is not displayed
+
+        Args:
+            msg (str): message to use for the prompt
+
+        Returns:
+            str: user input
+        """
