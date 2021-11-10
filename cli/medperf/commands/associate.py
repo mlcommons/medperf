@@ -1,5 +1,3 @@
-import typer
-
 from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
