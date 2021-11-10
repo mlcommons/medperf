@@ -21,7 +21,7 @@ def ui(mocker):
 
 @pytest.fixture
 def server(mocker, ui):
-    server = REST(ui, url)
+    server = REST(url, ui)
     return server
 
 

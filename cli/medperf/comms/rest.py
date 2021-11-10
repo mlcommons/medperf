@@ -10,8 +10,8 @@ from medperf.ui import UI
 
 
 class REST(Comms):
-    def __init__(self, ui: UI, server_url: str, token=None):
-        self.server_url = server_url
+    def __init__(self, source: str, ui: UI, token=None):
+        self.server_url = source
         self.token = token
         self.ui = ui
 
