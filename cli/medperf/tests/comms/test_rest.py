@@ -120,28 +120,32 @@ def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
 
 @pytest.mark.parametrize("uname", ["test", "admin", "user"])
 @pytest.mark.parametrize("pwd", ["test", "admin", "123456"])
-def test_login_with_user_and_pwd(mocker, server, uname, pwd):
+def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     # Arrange
     res = MockResponse({"token": ""}, 200)
     spy = mocker.patch("requests.post", return_value=res)
+    mocker.patch.object(ui, "prompt", return_value=uname)
+    mocker.patch.object(ui, "hidden_prompt", return_value=pwd)
     exp_body = {"username": uname, "password": pwd}
     exp_path = f"{url}/auth-token/"
 
     # Act
-    server.login(uname, pwd)
+    server.login(ui)
 
     # Assert
     spy.assert_called_once_with(exp_path, json=exp_body)
 
 
 @pytest.mark.parametrize("token", ["test", "token"])
-def test_login_stores_token(mocker, server, token):
+def test_login_stores_token(mocker, ui, server, token):
     # Arrange
     res = MockResponse({"token": token}, 200)
     mocker.patch("requests.post", return_value=res)
+    mocker.patch.object(ui, "prompt", return_value="testuser")
+    mocker.patch.object(ui, "hidden_prompt", return_value="testpwd")
 
     # Act
-    server.login("testuser", "testpwd")
+    server.login(ui)
 
     # Assert
     assert server.token == token
