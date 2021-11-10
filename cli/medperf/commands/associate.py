@@ -16,7 +16,7 @@ class DatasetBenchmarkAssociation:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
         """
-        dset = Dataset(data_uid)
+        dset = Dataset(data_uid, ui)
         benchmark = Benchmark.get(benchmark_uid, comms)
 
         if dset.preparation_cube_uid != benchmark.data_preparation:

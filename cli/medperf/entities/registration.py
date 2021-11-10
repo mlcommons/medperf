@@ -159,7 +159,7 @@ class Registration:
         dataset_uid = comms.upload_dataset(self.todict())
         return dataset_uid
 
-    def is_registered(self) -> bool:
+    def is_registered(self, ui: UI) -> bool:
         """Checks if the entry has already been registered as a dataset. Uses the
         generated UID for comparison.
 
@@ -171,6 +171,6 @@ class Registration:
                 "The registration doesn't have an uid yet. Generate it before running this method."
             )
 
-        dsets = Dataset.all()
+        dsets = Dataset.all(ui)
         registered_uids = [dset.registration["generated_uid"] for dset in dsets]
         return self.uid in registered_uids

@@ -31,7 +31,7 @@ class BenchmarkExecution:
             pretty_error("You're not associated to the benchmark as a data owner")
         benchmark = Benchmark.get(benchmark_uid, comms)
         ui.print(f"Benchmark Execution: {benchmark.name}")
-        dataset = Dataset(data_uid)
+        dataset = Dataset(data_uid, ui)
 
         # Validate Execution
         if dataset.preparation_cube_uid != benchmark.data_preparation:

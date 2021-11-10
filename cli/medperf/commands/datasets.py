@@ -10,7 +10,7 @@ class Datasets:
     def run(ui: UI):
         """Lists all local datasets
 	    """
-        dsets = Dataset.all()
+        dsets = Dataset.all(ui)
         headers = ["UID", "Name", "Data Preparation Cube UID"]
         dsets_data = [
             [dset.data_uid, dset.name, dset.preparation_cube_uid] for dset in dsets

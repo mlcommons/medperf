@@ -36,7 +36,7 @@ def ui(mocker):
 
 
 class MockedDataset:
-    def __init__(self, uid):
+    def __init__(self, uid, ui):
         self.registration = {"generated_uid": uid}
 
 
@@ -225,23 +225,23 @@ def test_upload_returns_uid_from_comms(
     assert uid == comms_uid
 
 
-def test_is_registered_fails_when_uid_not_generated(mocker, reg_mocked_with_params):
+def test_is_registered_fails_when_uid_not_generated(mocker, ui, reg_mocked_with_params):
     # Arrange
     reg = Registration(*reg_mocked_with_params)
 
     # Act & Assert
     with pytest.raises(KeyError):
-        reg.is_registered()
+        reg.is_registered(ui)
 
 
-def test_is_registered_retrieves_local_datasets(mocker, reg_mocked_with_params):
+def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_params):
     # Arrange
     spy = mocker.patch(patch_registration.format("Dataset.all"), return_values=[])
     reg = Registration(*reg_mocked_with_params)
     reg.uid = 1
 
     # Act
-    reg.is_registered()
+    reg.is_registered(ui)
 
     # Assert
     spy.assert_called_once()
@@ -250,16 +250,16 @@ def test_is_registered_retrieves_local_datasets(mocker, reg_mocked_with_params):
 @pytest.mark.parametrize("dset_uids", [[1, 2, 3], [], [23, 5, 12]])
 @pytest.mark.parametrize("uid", [1, 2, 3, 4, 5, 6])
 def test_is_registered_finds_uid_in_dsets(
-    mocker, dset_uids, uid, reg_mocked_with_params
+    mocker, ui, dset_uids, uid, reg_mocked_with_params
 ):
     # Arrange
-    dsets = [MockedDataset(dset_uid) for dset_uid in dset_uids]
+    dsets = [MockedDataset(dset_uid, ui) for dset_uid in dset_uids]
     mocker.patch(patch_registration.format("Dataset.all"), return_value=dsets)
     reg = Registration(*reg_mocked_with_params)
     reg.uid = uid
 
     # Act
-    registered = reg.is_registered()
+    registered = reg.is_registered(ui)
 
     # Assert
     assert registered == (uid in dset_uids)
