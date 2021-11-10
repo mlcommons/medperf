@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import MagicMock
 from pathlib import Path
 
+import medperf
 from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Registration, Cube
@@ -227,11 +228,17 @@ def test_upload_returns_uid_from_comms(
 
 def test_is_registered_fails_when_uid_not_generated(mocker, ui, reg_mocked_with_params):
     # Arrange
+    spy = mocker.spy(medperf.entities.registration, "pretty_error")
+    mocker.patch.object(ui, "print_error")
+    mocker.patch("medperf.utils.cleanup")
     reg = Registration(*reg_mocked_with_params)
 
-    # Act & Assert
-    with pytest.raises(KeyError):
+    # Act
+    with pytest.raises(SystemExit):
         reg.is_registered(ui)
+
+    # Act & Assert
+    spy.assert_called_once()
 
 
 def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_params):

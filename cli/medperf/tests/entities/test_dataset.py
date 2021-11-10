@@ -46,6 +46,7 @@ def all_uids(mocker, basic_arrange, request):
 
 @pytest.mark.parametrize("all_uids", [[]], indirect=True)
 def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
+    # Arrange
     walk_out = iter([("", [], [])])
     spy = mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
 
@@ -54,6 +55,22 @@ def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
 
     # Assert
     spy.assert_called_once_with(config["data_storage"])
+
+
+def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
+    # Arrange
+    walk_out = iter([])
+    mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
+    spy = mocker.patch(
+        patch_dataset.format("pretty_error"), side_effect=lambda *args, **kwargs: exit()
+    )
+
+    # Act
+    with pytest.raises(SystemExit):
+        Dataset.all(ui)
+
+    # Assert
+    spy.assert_called_once()
 
 
 @pytest.mark.parametrize("all_uids", [[], ["1", "2", "3"]], indirect=True)
