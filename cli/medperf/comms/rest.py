@@ -26,8 +26,7 @@ class REST(Comms):
         body = {"username": user, "password": pwd}
         res = requests.post(f"{self.server_url}/auth-token/", json=body)
         if res.status_code != 200:
-            logging.error(res.json())
-            pretty_error("Unable to authenticate user with provided credentials")
+            pretty_error("Unable to authenticate user with provided credentials", ui)
         else:
             self.token = res.json()["token"]
 

@@ -23,7 +23,7 @@ state = {"comms": None, "ui": None}
 def login():
     """Login to the medperf server. Must be done only once.
     """
-    Login.run(state["comms"])
+    Login.run(state["comms"], state["ui"])
 
 
 @clean_except
