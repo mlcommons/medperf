@@ -131,13 +131,14 @@ def test_retrieve_additional_data_prompts_user_correctly(
     assert vals == inputs
 
 
-def test_request_approval_skips_if_approved(mocker, reg_mocked_with_params):
+def test_request_approval_skips_if_approved(mocker, ui, reg_mocked_with_params):
     # Arrange
     spy = mocker.patch(patch_registration.format("approval_prompt"), return_value=True)
     reg = Registration(*reg_mocked_with_params)
+    reg.status = "APPROVED"
 
     # Act
-    reg.status = "APPROVED"
+    reg.request_approval(ui)
 
     # Assert
     spy.assert_not_called()
