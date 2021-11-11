@@ -15,6 +15,24 @@ from medperf.entities import Result
 
 
 class BenchmarkExecution:
+    @classmethod
+    def run(
+        cls, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
+    ):
+        """Benchmark execution flow.
+
+        Args:
+            benchmark_uid (int): UID of the desired benchmark
+            data_uid (int): Registered Dataset UID
+            model_uid (int): UID of model to execute
+        """
+        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
+        execution.validate()
+        with execution.ui.interactive():
+            execution.get_cubes()
+            execution.run_cubes()
+        execution.upload_results()
+
     def __init__(
         self, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
     ):
@@ -97,21 +115,3 @@ class BenchmarkExecution:
         out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
         out_path = os.path.join(out_path, "results.yaml")
         return out_path
-
-    @classmethod
-    def run(
-        cls, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
-    ):
-        """Benchmark execution flow.
-
-        Args:
-            benchmark_uid (int): UID of the desired benchmark
-            data_uid (int): Registered Dataset UID
-            model_uid (int): UID of model to execute
-        """
-        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
-        execution.validate()
-        with execution.ui.interactive():
-            execution.get_cubes()
-            execution.run_cubes()
-        execution.upload_results()
