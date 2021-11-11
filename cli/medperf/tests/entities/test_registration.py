@@ -116,15 +116,15 @@ def test_todict_returns_expected_keys(mocker, reg_mocked_with_params):
     "inputs", [["name", "desc", "loc"], ["chex", "chex dset", "col"]]
 )
 def test_retrieve_additional_data_prompts_user_correctly(
-    mocker, inputs, reg_mocked_with_params
+    mocker, ui, inputs, reg_mocked_with_params
 ):
     # Arrange
     m = MagicMock(side_effect=inputs)
-    mocker.patch("builtins.input", m)
+    mocker.patch.object(ui, "prompt", m)
     reg = Registration(*reg_mocked_with_params)
 
     # Act
-    reg.retrieve_additional_data()
+    reg.retrieve_additional_data(ui)
     vals = [reg.name, reg.description, reg.location]
 
     # Assert
