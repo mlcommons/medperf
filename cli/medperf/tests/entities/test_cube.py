@@ -1,8 +1,8 @@
 import pytest
-from yaspin import yaspin
 from unittest.mock import MagicMock
 
 import medperf
+from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Cube
 from medperf.tests.mocks.pexpect import MockPexpect
@@ -19,6 +19,12 @@ out_key = "out_key"
 value = "value"
 param_key = "param_key"
 param_value = "param_value"
+
+
+@pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
 
 
 @pytest.fixture
@@ -183,39 +189,56 @@ def test_cube_is_invalid_with_incorrect_hash(mocker, comms, tar_body):
     assert not cube.is_valid()
 
 
-def test_cube_runs_command_with_pexpect(mocker, comms, basic_body):
+def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body):
     # Arrange
-    mocker.patch(patch_cube.format("pexpect.spawn"), side_effect=MockPexpect.spawn)
+    mpexpect = MockPexpect(0)
+    mocker.patch(patch_cube.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-    sp = yaspin()
     task = "task"
     expected_cmd = f"mlcube run --mlcube={cube_path} --task={task}"
 
     # Act
     uid = 1
     cube = Cube.get(uid, comms)
-    cube.run(sp, "task")
+    cube.run(ui, "task")
 
     # Assert
     spy.assert_called_once_with(expected_cmd)
 
 
-def test_cube_runs_command_with_extra_args(mocker, comms, basic_body):
+def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body):
     # Arrange
-    spy = mocker.patch(
-        patch_cube.format("pexpect.spawn"), side_effect=MockPexpect.spawn
-    )
-    sp = yaspin()
+    mpexpect = MockPexpect(0)
+    spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
     task = "task"
     expected_cmd = f"mlcube run --mlcube={cube_path} --task={task} test=test"
 
     # Act
     uid = 1
     cube = Cube.get(uid, comms)
-    cube.run(sp, "task", test="test")
+    cube.run(ui, task, test="test")
 
     # Assert
     spy.assert_called_once_with(expected_cmd)
+
+
+def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body):
+    # Arrange
+    mpexpect = MockPexpect(1)
+    mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+    spy = mocker.patch(
+        patch_cube.format("pretty_error"), side_effect=lambda *args, **kwargs: exit()
+    )
+    task = "task"
+
+    # Act
+    uid = 1
+    cube = Cube.get(uid, comms)
+    with pytest.raises(SystemExit):
+        cube.run(ui, task)
+
+    # Assert
+    spy.assert_called_once()
 
 
 def test_default_output_reads_cube_manifest(mocker, comms, basic_body):
