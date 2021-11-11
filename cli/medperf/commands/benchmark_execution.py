@@ -32,6 +32,7 @@ class BenchmarkExecution:
             execution.get_cubes()
             execution.run_cubes()
         execution.upload_results()
+        cleanup()
 
     def __init__(
         self, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
