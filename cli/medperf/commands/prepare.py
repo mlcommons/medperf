@@ -63,7 +63,7 @@ class DataPreparation:
             ui.text = "Starting registration procedure"
             registration = Registration(cube)
             registration.generate_uid(out_datapath)
-            if registration.is_registered():
+            if registration.is_registered(ui):
                 pretty_error(
                     "This dataset has already been registered. Cancelling submission",
                     ui,
@@ -71,7 +71,7 @@ class DataPreparation:
 
         approved = registration.request_approval(ui)
         if approved:
-            registration.retrieve_additional_data()
+            registration.retrieve_additional_data(ui)
         else:
             pretty_error("Registration operation cancelled", ui, add_instructions=False)
 
