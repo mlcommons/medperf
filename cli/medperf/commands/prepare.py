@@ -23,7 +23,9 @@ class DataPreparation:
             preparation.get_prep_cube()
             preparation.run_cube_tasks()
             preparation.create_registration()
-        return preparation.register()
+        data_uid = preparation.register()
+        cleanup()
+        return data_uid
 
     def __init__(
         self, benchmark_uid: str, data_path: str, labels_path: str, comms: Comms, ui: UI
@@ -89,5 +91,4 @@ class DataPreparation:
         self.ui.print("Uploading")
         data_uid = self.registration.upload(self.comms)
         self.registration.to_permanent_path(self.out_path, data_uid)
-        cleanup()
         return data_uid
