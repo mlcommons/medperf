@@ -19,17 +19,17 @@ class Dataset:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
         data_uid = self.__full_uid(data_uid, ui)
-        self.data_uid = data_uid
+        self.generated_uid = data_uid
         self.dataset_path = os.path.join(config["data_storage"], str(data_uid))
         self.data_path = os.path.join(self.dataset_path, "data")
         self.registration = self.get_registration()
+        self.uid = self.registration["uid"]
         self.name = self.registration["name"]
         self.description = self.registration["description"]
         self.location = self.registration["location"]
         self.preparation_cube_uid = self.registration["data_preparation_mlcube"]
         self.split_seed = self.registration["split_seed"]
         self.metadata = self.registration["metadata"]
-        self.generated_uid = self.registration["generated_uid"]
         self.status = self.registration["status"]
 
     @classmethod
@@ -40,13 +40,20 @@ class Dataset:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
+        data_storage = config["data_storage"]
         try:
-            uids = next(os.walk(config["data_storage"]))[1]
+            uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory")
         tmp_prefix = config["tmp_reg_prefix"]
-        dsets = [cls(uid, ui) for uid in uids if not uid.startswith(tmp_prefix)]
+        dsets = []
+        for uid in uids:
+            not_tmp = not uid.startswith(tmp_prefix)
+            reg_path = os.path.join(data_storage, uid, config["reg_file"])
+            registered = os.path.exists(os.path.join(reg_path))
+            if not_tmp and registered:
+                dsets.append(cls(uid, ui))
         return dsets
 
     def __full_uid(self, uid_hint: str, ui: UI) -> str:

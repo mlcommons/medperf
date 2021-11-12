@@ -63,6 +63,7 @@ def test_fails_if_dataset_incompatible_with_benchmark(
 def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
     # Arrange
     spy = mocker.patch.object(dataset, req_func, return_value=True)
+    dataset.uid = 1
 
     # Act
     DatasetBenchmarkAssociation.run(1, 1, comms, ui)
@@ -73,7 +74,7 @@ def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-@pytest.mark.parametrize("data_uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("data_uid", [str(rand_l(1, 5000, 5))])
 @pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 5))
 def test_associates_if_approved(
     mocker, comms, ui, dataset, data_uid, benchmark_uid, benchmark
@@ -82,6 +83,7 @@ def test_associates_if_approved(
     assoc_func = "associate_dset_benchmark"
     mocker.patch.object(dataset, req_func, return_value=True)
     spy = mocker.patch.object(comms, assoc_func)
+    dataset.uid = data_uid
 
     # Act
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)

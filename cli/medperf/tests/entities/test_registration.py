@@ -170,9 +170,10 @@ def test_to_permanent_path_returns_expected_path(
     mocker.patch("os.rename")
     expected_path = os.path.join(str(Path(out_path).parent), str(uid))
     reg = Registration(*reg_mocked_with_params)
+    reg.generated_uid = uid
 
     # Act
-    new_path = reg.to_permanent_path(out_path, uid)
+    new_path = reg.to_permanent_path(out_path)
 
     # Assert
     assert new_path == expected_path
@@ -189,9 +190,10 @@ def test_to_permanent_path_renames_folder_correctly(
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.join", return_value=new_path)
     reg = Registration(*reg_mocked_with_params)
+    reg.generated_uid = 0
 
     # Act
-    reg.to_permanent_path(out_path, 0)
+    reg.to_permanent_path(out_path)
 
     # Assert
     spy.assert_called_once_with(out_path, new_path)
@@ -246,7 +248,7 @@ def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_para
     # Arrange
     spy = mocker.patch(patch_registration.format("Dataset.all"), return_values=[])
     reg = Registration(*reg_mocked_with_params)
-    reg.uid = 1
+    reg.generated_uid = 1
 
     # Act
     reg.is_registered(ui)
@@ -264,7 +266,7 @@ def test_is_registered_finds_uid_in_dsets(
     dsets = [MockedDataset(dset_uid, ui) for dset_uid in dset_uids]
     mocker.patch(patch_registration.format("Dataset.all"), return_value=dsets)
     reg = Registration(*reg_mocked_with_params)
-    reg.uid = uid
+    reg.generated_uid = uid
 
     # Act
     registered = reg.is_registered(ui)

@@ -79,6 +79,7 @@ class DataPreparation:
         if self.registration.is_registered(self.ui):
             msg = "This dataset has already been registered. Cancelling submission"
             pretty_error(msg, self.ui)
+        self.registration.to_permanent_path(self.out_path)
 
     def register(self):
         approved = self.registration.request_approval(self.ui)
@@ -87,8 +88,7 @@ class DataPreparation:
             pretty_error(msg, self.ui, add_instructions=False)
 
         self.registration.retrieve_additional_data(self.ui)
-        self.registration.write(self.out_path)
         self.ui.print("Uploading")
-        data_uid = self.registration.upload(self.comms)
-        self.registration.to_permanent_path(self.out_path, data_uid)
-        return data_uid
+        self.registration.upload(self.comms)
+        self.registration.write()
+        return self.registration.generated_uid

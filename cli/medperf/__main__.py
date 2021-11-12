@@ -74,7 +74,7 @@ def execute(
 @clean_except
 @app.command("associate")
 def associate(
-    data_uid: int = typer.Option(
+    data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(

@@ -40,6 +40,7 @@ class Registration:
         self.description = description
         self.location = location
         self.status = "PENDING"
+        self.generated_uid = None
         self.uid = None
         self.path = None
 
@@ -51,8 +52,8 @@ class Registration:
         Returns:
             str: generated UID
         """
-        self.uid = get_folder_sha1(out_path)
-        return self.uid
+        self.generated_uid = get_folder_sha1(out_path)
+        return self.generated_uid
 
     def __get_stats(self) -> dict:
         """Unwinds the cube output statistics location and retrieves the statistics data
@@ -78,7 +79,7 @@ class Registration:
             "location": self.location,
             "split_seed": 0,
             "data_preparation_mlcube": self.cube.uid,
-            "generated_uid": self.uid,
+            "generated_uid": self.generated_uid,
             "metadata": self.stats,
             "status": self.status,
         }
@@ -89,8 +90,7 @@ class Registration:
         return registration
 
     def retrieve_additional_data(self, ui: UI):
-        """Prompts the user for the name, description and location
-        """
+        """Prompts the user for the name, description and location"""
         self.name = ui.prompt("Provide a dataset name: ")
         self.description = ui.prompt("Provide a description:  ")
         self.location = ui.prompt("Provide a location:     ")
@@ -114,7 +114,7 @@ class Registration:
         )
         return approved
 
-    def to_permanent_path(self, out_path: str, uid: int) -> str:
+    def to_permanent_path(self, out_path: str) -> str:
         """Renames the temporary data folder to permanent one using the hash of
         the registration file
 
@@ -125,12 +125,13 @@ class Registration:
         Returns:
             str: renamed location of the data.
         """
+        uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
         os.rename(out_path, new_path)
         self.path = new_path
         return new_path
 
-    def write(self, out_path: str, filename: str = config["reg_file"]) -> str:
+    def write(self, filename: str = config["reg_file"]) -> str:
         """Writes the registration into disk
 
         Args:
@@ -141,24 +142,22 @@ class Registration:
             str: path to the created registration file
         """
         data = self.todict()
-        filepath = os.path.join(out_path, filename)
+        filepath = os.path.join(self.path, filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)
 
         self.path = filepath
         return filepath
 
-    def upload(self, comms: Comms) -> int:
+    def upload(self, comms: Comms):
         """Uploads the registration information to the comms.
 
         Args:
             comms (Comms): Instance of the comms interface.
-        
-        Returns:
-            int: UID of registered dataset
         """
         dataset_uid = comms.upload_dataset(self.todict())
-        return dataset_uid
+        self.uid = dataset_uid
+        return self.uid
 
     def is_registered(self, ui: UI) -> bool:
         """Checks if the entry has already been registered as a dataset. Uses the
@@ -167,7 +166,7 @@ class Registration:
         Returns:
             bool: Wether the generated UID is already present in the registered datasets.
         """
-        if self.uid is None:
+        if self.generated_uid is None:
             pretty_error(
                 "The registration doesn't have an uid yet. Generate it before running this method.",
                 ui,
@@ -176,4 +175,4 @@ class Registration:
 
         dsets = Dataset.all(ui)
         registered_uids = [dset.registration["generated_uid"] for dset in dsets]
-        return self.uid in registered_uids
+        return self.generated_uid in registered_uids

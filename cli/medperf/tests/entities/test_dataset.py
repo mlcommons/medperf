@@ -16,6 +16,7 @@ registration_mock = {
     "metadata": {},
     "generated_uid": "generated_uid",
     "status": "status",
+    "uid": "uid",
 }
 
 patch_dataset = "medperf.entities.dataset.{}"
@@ -86,7 +87,7 @@ def test_all_returns_list_of_expected_size(mocker, ui, all_uids):
 def test_all_ignores_temporary_datasets(mocker, ui, all_uids):
     # Act
     dsets = Dataset.all(ui)
-    uids = [dset.data_uid for dset in dsets]
+    uids = [dset.generated_uid for dset in dsets]
 
     # Assert
     assert f"{tmp_prefix}3" not in uids
@@ -114,7 +115,7 @@ def test_full_uid_finds_expected_match(mocker, ui, all_uids):
     dset = Dataset(uid, ui)
 
     # Assert
-    assert dset.data_uid == "12"
+    assert dset.generated_uid == "12"
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
