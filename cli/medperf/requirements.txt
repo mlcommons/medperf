@@ -1,9 +1,0 @@
-typer==0.4.0
-PyYAML==5.3.1
-requests==2.26.0
-yaspin==2.1.0
-tabulate==0.8.9
-pexpect==4.8.0
-colorama==0.4.4
-time-machine==2.4.0
-
