@@ -3,6 +3,7 @@ import logging
 
 from medperf.commands import (
     DataPreparation,
+    DatasetRegistration,
     BenchmarkExecution,
     DatasetBenchmarkAssociation,
     Login,
@@ -45,6 +46,7 @@ def prepare(
     ui = state["ui"]
     comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
+    DatasetRegistration.run(data_uid, comms, ui)
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
 
@@ -87,6 +89,22 @@ def associate(
     ui = state["ui"]
     comms.authenticate()
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    ui.print("✅ Done!")
+
+
+@clean_except
+@app.command("register")
+def register(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Unregistered Dataset UID"
+    )
+):
+    """Registers an unregistered Dataset instance to the backend
+    """
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    DatasetRegistration.run(data_uid, comms, ui)
     ui.print("✅ Done!")
 
 

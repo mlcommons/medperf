@@ -1,6 +1,6 @@
 import yaml
-from datetime import datetime
 from pathlib import Path
+from typing import Dict
 import os
 
 from medperf.ui import UI
@@ -34,10 +34,9 @@ class Registration:
         """
         self.cube = cube
         self.stats = self.__get_stats()
-        dt = datetime.now()
-        self.reg_time = int(datetime.timestamp(dt))
         self.name = name
         self.description = description
+        self.split_seed = 0
         self.location = location
         self.status = "PENDING"
         self.generated_uid = None
@@ -77,15 +76,13 @@ class Registration:
             "name": self.name,
             "description": self.description,
             "location": self.location,
-            "split_seed": 0,
+            "split_seed": self.split_seed,
             "data_preparation_mlcube": self.cube.uid,
             "generated_uid": self.generated_uid,
             "metadata": self.stats,
             "status": self.status,
+            "uid": self.uid,
         }
-
-        if self.uid is not None:
-            registration.update({"uid": self.uid})
 
         return registration
 
@@ -94,25 +91,6 @@ class Registration:
         self.name = ui.prompt("Provide a dataset name: ")
         self.description = ui.prompt("Provide a description:  ")
         self.location = ui.prompt("Provide a location:     ")
-
-    def request_approval(self, ui: UI) -> bool:
-        """Prompts the user for approval concerning uploading the registration to the comms.
-
-        Returns:
-            bool: Wether the user gave consent or not.
-        """
-        if self.status == "APPROVED":
-            return True
-
-        dict_pretty_print(self.todict(), ui)
-        ui.print(
-            "Above is the information and statistics that will be registered to the database"
-        )
-        approved = approval_prompt(
-            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
-            ui,
-        )
-        return approved
 
     def to_permanent_path(self, out_path: str) -> str:
         """Renames the temporary data folder to permanent one using the hash of
@@ -148,16 +126,6 @@ class Registration:
 
         self.path = filepath
         return filepath
-
-    def upload(self, comms: Comms):
-        """Uploads the registration information to the comms.
-
-        Args:
-            comms (Comms): Instance of the comms interface.
-        """
-        dataset_uid = comms.upload_dataset(self.todict())
-        self.uid = dataset_uid
-        return self.uid
 
     def is_registered(self, ui: UI) -> bool:
         """Checks if the entry has already been registered as a dataset. Uses the

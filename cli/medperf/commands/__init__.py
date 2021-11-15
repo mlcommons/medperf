@@ -3,6 +3,7 @@ from .prepare import DataPreparation
 from .associate import DatasetBenchmarkAssociation
 from .login import Login
 from .datasets import Datasets
+from .register import DatasetRegistration
 
 __all__ = [
     BenchmarkExecution,
@@ -10,4 +11,5 @@ __all__ = [
     DatasetBenchmarkAssociation,
     Login,
     Datasets,
+    DatasetRegistration,
 ]

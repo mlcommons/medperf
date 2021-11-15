@@ -22,8 +22,7 @@ class DataPreparation:
         with preparation.ui.interactive():
             preparation.get_prep_cube()
             preparation.run_cube_tasks()
-            preparation.create_registration()
-        data_uid = preparation.register()
+        data_uid = preparation.create_registration()
         cleanup()
         return data_uid
 
@@ -73,22 +72,23 @@ class DataPreparation:
         self.ui.print("> Statistics complete")
 
     def create_registration(self):
-        self.ui.text = "Starting registration procedure"
         self.registration = Registration(self.cube)
         self.registration.generate_uid(self.out_datapath)
         if self.registration.is_registered(self.ui):
-            msg = "This dataset has already been registered. Cancelling submission"
+            msg = "This dataset has already been prepared. No changes made"
             pretty_error(msg, self.ui)
+        self.registration.retrieve_additional_data(self.ui)
         self.registration.to_permanent_path(self.out_path)
+        self.registration.write()
+        return self.registration.generated_uid
 
     def register(self):
+        self.ui.text = "Starting registration procedure"
         approved = self.registration.request_approval(self.ui)
         if not approved:
             msg = "Registration operation cancelled"
             pretty_error(msg, self.ui, add_instructions=False)
 
-        self.registration.retrieve_additional_data(self.ui)
         self.ui.print("Uploading")
         self.registration.upload(self.comms)
-        self.registration.write()
         return self.registration.generated_uid
