@@ -5,7 +5,6 @@ from pathlib import Path
 
 import medperf
 from medperf.ui import UI
-from medperf.comms import Comms
 from medperf.entities import Registration, Cube
 
 
@@ -21,13 +20,8 @@ reg_dict_keys = [
     "generated_uid",
     "metadata",
     "status",
+    "uid",
 ]
-
-
-@pytest.fixture
-def comms(mocker):
-    comms = mocker.create_autospec(spec=Comms)
-    return comms
 
 
 @pytest.fixture
@@ -131,36 +125,6 @@ def test_retrieve_additional_data_prompts_user_correctly(
     assert vals == inputs
 
 
-def test_request_approval_skips_if_approved(mocker, ui, reg_mocked_with_params):
-    # Arrange
-    spy = mocker.patch(patch_registration.format("approval_prompt"), return_value=True)
-    reg = Registration(*reg_mocked_with_params)
-    reg.status = "APPROVED"
-
-    # Act
-    reg.request_approval(ui)
-
-    # Assert
-    spy.assert_not_called()
-
-
-@pytest.mark.parametrize("approval", [True, False])
-def test_request_approval_returns_users_input(
-    mocker, ui, approval, reg_mocked_with_params
-):
-    # Arrange
-    mocker.patch(patch_registration.format("approval_prompt"), return_value=approval)
-    mocker.patch(patch_registration.format("dict_pretty_print"))
-    mocker.patch("typer.echo")
-    reg = Registration(*reg_mocked_with_params)
-
-    # Act
-    approved = reg.request_approval(ui)
-
-    # Assert
-    assert approved == approval
-
-
 @pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
 @pytest.mark.parametrize("uid", [0, 12, 432])
 def test_to_permanent_path_returns_expected_path(
@@ -212,21 +176,6 @@ def test_write_writes_to_desired_file(mocker, filepath, reg_mocked_with_params):
 
     # Assert
     assert path == filepath
-
-
-@pytest.mark.parametrize("comms_uid", [1, 4, 834, 12])
-def test_upload_returns_uid_from_comms(
-    mocker, comms_uid, comms, reg_mocked_with_params
-):
-    # Arrange
-    mocker.patch.object(comms, "upload_dataset", return_value=comms_uid)
-    reg = Registration(*reg_mocked_with_params)
-
-    # Act
-    uid = reg.upload(comms)
-
-    # Assert
-    assert uid == comms_uid
 
 
 def test_is_registered_fails_when_uid_not_generated(mocker, ui, reg_mocked_with_params):

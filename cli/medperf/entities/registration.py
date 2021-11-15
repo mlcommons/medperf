@@ -5,8 +5,6 @@ import os
 
 from medperf.ui import UI
 from medperf.utils import (
-    approval_prompt,
-    dict_pretty_print,
     get_folder_sha1,
     pretty_error,
 )
