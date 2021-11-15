@@ -4,6 +4,7 @@ from .associate import DatasetBenchmarkAssociation
 from .login import Login
 from .datasets import Datasets
 from .register import DatasetRegistration
+from .submit import ResultSubmission
 
 __all__ = [
     BenchmarkExecution,
@@ -12,4 +13,5 @@ __all__ = [
     Login,
     Datasets,
     DatasetRegistration,
+    ResultSubmission,
 ]

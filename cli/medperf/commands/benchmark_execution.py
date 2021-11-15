@@ -31,7 +31,6 @@ class BenchmarkExecution:
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
-        execution.upload_results()
         cleanup()
 
     def __init__(
@@ -97,22 +96,3 @@ class BenchmarkExecution:
             labels_csv=labels_path,
             output_path=out_path,
         )
-
-    def upload_results(self):
-        out_path = self.__results_path()
-        result = Result(out_path, self.benchmark_uid, self.data_uid, self.model_uid)
-        approved = result.request_approval(self.ui)
-        if not approved:
-            msg = "Results upload operation cancelled"
-            pretty_error(msg, self.ui, add_instructions=False)
-
-        result.upload(self.comms)
-
-    def __results_path(self):
-        out_path = config["results_storage"]
-        bmark_uid = str(self.benchmark_uid)
-        model_uid = str(self.model_uid)
-        data_uid = str(self.data_uid)
-        out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-        out_path = os.path.join(out_path, "results.yaml")
-        return out_path
