@@ -96,3 +96,13 @@ class BenchmarkExecution:
             labels_csv=labels_path,
             output_path=out_path,
         )
+
+    def __results_path(self):
+        out_path = config["results_storage"]
+        out_path = os.path.join(
+            out_path,
+            str(self.benchmark.uid),
+            str(self.model_uid),
+            str(self.dataset.generated_uid),
+        )
+        out_path = os.path.join(out_path, "results.yaml")

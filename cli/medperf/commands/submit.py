@@ -16,7 +16,7 @@ class ResultSubmission:
     @classmethod
     def run(cls, benchmark_uid, data_uid, model_uid, comms, ui):
         dset = Dataset(data_uid, ui)
-        sub = cls(benchmark_uid, dset.uid, model_uid, comms, ui)
+        sub = cls(benchmark_uid, dset.generated_uid, model_uid, comms, ui)
         sub.upload_results()
 
     def upload_results(self):
