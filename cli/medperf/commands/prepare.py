@@ -81,14 +81,3 @@ class DataPreparation:
         self.registration.to_permanent_path(self.out_path)
         self.registration.write()
         return self.registration.generated_uid
-
-    def register(self):
-        self.ui.text = "Starting registration procedure"
-        approved = self.registration.request_approval(self.ui)
-        if not approved:
-            msg = "Registration operation cancelled"
-            pretty_error(msg, self.ui, add_instructions=False)
-
-        self.ui.print("Uploading")
-        self.registration.upload(self.comms)
-        return self.registration.generated_uid
