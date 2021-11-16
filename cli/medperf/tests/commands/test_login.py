@@ -8,12 +8,6 @@ import pytest
 from unittest.mock import mock_open
 
 
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
 @pytest.fixture(params=["token123"])
 def comms(mocker, request):
     comms = mocker.create_autospec(spec=Comms)

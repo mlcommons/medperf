@@ -8,18 +8,6 @@ from medperf.entities import Result
 patch_result = "medperf.entities.result.{}"
 
 
-@pytest.fixture
-def comms(mocker):
-    comms = mocker.create_autospec(spec=Comms)
-    return comms
-
-
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
 @pytest.mark.parametrize(
     "results_path", ["./results.yaml", "~/.medperf/results/1/results.yaml"]
 )

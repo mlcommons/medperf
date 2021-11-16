@@ -50,12 +50,6 @@ def dict_with_nones(request):
 
 
 @pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
 def filesystem():
     fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs")),])
     files = ["/foo/baz", "/foo/bar/spam", "/foo/bar/eggs"]

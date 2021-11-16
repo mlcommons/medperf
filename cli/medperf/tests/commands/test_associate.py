@@ -1,10 +1,10 @@
-from medperf.commands.associate import DatasetBenchmarkAssociation
 import pytest
 
 from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.entities import Dataset, Benchmark
 from medperf.tests.utils import rand_l
+from medperf.entities import Dataset, Benchmark
+from medperf.commands.associate import DatasetBenchmarkAssociation
 
 patch_associate = "medperf.commands.associate.{}"
 req_func = "request_association_approval"
@@ -25,18 +25,6 @@ def benchmark(mocker, request):
     mocker.patch(patch_associate.format("Benchmark.get"), return_value=bm)
     bm.data_preparation = request.param
     return bm
-
-
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
-def comms(mocker):
-    comms = mocker.create_autospec(spec=Comms)
-    return comms
 
 
 @pytest.mark.parametrize("dataset", [1, 4, 381], indirect=True)

@@ -24,12 +24,6 @@ reg_dict_keys = [
 ]
 
 
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
 class MockedDataset:
     def __init__(self, uid, ui):
         self.registration = {"generated_uid": uid}

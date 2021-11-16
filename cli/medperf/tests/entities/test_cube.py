@@ -22,12 +22,6 @@ param_value = "param_value"
 
 
 @pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
 def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
     mocker.patch.object(comms, "get_cube", return_value=cube_path)
