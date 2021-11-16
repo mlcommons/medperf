@@ -5,3 +5,6 @@ class MockCube:
 
     def is_valid(self):
         return self.valid
+
+    def run(self):
+        pass
