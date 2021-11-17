@@ -4,7 +4,7 @@ from medperf.entities import Result, Server
 import pytest
 from unittest.mock import MagicMock
 
-patch_result = "medperf.entities.result.{}"
+PATCH_RESULT = "medperf.entities.result.{}"
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def test_todict_returns_expected_keys(mocker):
 
 def test_request_approval_skips_if_already_approved(mocker):
     # Arrange
-    spy = mocker.patch(patch_result.format("approval_prompt"))
+    spy = mocker.patch(PATCH_RESULT.format("approval_prompt"))
     result = Result("", 1, 1, 1)
     result.status = "APPROVED"
 
@@ -70,9 +70,9 @@ def test_request_approval_skips_if_already_approved(mocker):
 def test_request_approval_returns_user_approval(mocker, exp_approved):
     # Arrange
     mocker.patch("typer.echo")
-    mocker.patch(patch_result.format("dict_pretty_print"))
-    mocker.patch(patch_result.format("Result.todict"), return_value={})
-    mocker.patch(patch_result.format("approval_prompt"), return_value=exp_approved)
+    mocker.patch(PATCH_RESULT.format("dict_pretty_print"))
+    mocker.patch(PATCH_RESULT.format("Result.todict"), return_value={})
+    mocker.patch(PATCH_RESULT.format("approval_prompt"), return_value=exp_approved)
     result = Result("", 1, 1, 1)
 
     # Act
@@ -84,8 +84,8 @@ def test_request_approval_returns_user_approval(mocker, exp_approved):
 
 def test_upload_calls_server_method(mocker, server):
     # Arrange
-    spy = mocker.patch(patch_result.format("Server.upload_results"))
-    mocker.patch(patch_result.format("Result.todict"), return_value={})
+    spy = mocker.patch(PATCH_RESULT.format("Server.upload_results"))
+    mocker.patch(PATCH_RESULT.format("Result.todict"), return_value={})
     result = Result("", 1, 1, 1)
 
     # Act

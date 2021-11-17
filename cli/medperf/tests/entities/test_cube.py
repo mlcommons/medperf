@@ -7,28 +7,28 @@ from yaspin import yaspin
 import pytest
 from unittest.mock import MagicMock
 
-patch_server = "medperf.entities.benchmark.Server.{}"
-patch_cube = "medperf.entities.cube.{}"
-cube_path = "cube_path"
-params_path = "params_path"
-tarball_path = "tarball_path"
-tarball_hash = "tarball_hash"
+PATCH_SERVER = "medperf.entities.benchmark.Server.{}"
+PATCH_CUBE = "medperf.entities.cube.{}"
+CUBE_PATH = "cube_path"
+PARAMS_PATH = "params_path"
+TARBALL_PATH = "tarball_path"
+TARBALL_HASH = "tarball_hash"
 
-task = "task"
-out_key = "out_key"
-value = "value"
-param_key = "param_key"
-param_value = "param_value"
+TASK = "task"
+OUT_KEY = "out_key"
+VALUE = "value"
+PARAM_KEY = "param_key"
+PARAM_VALUE = "param_value"
 
 
 @pytest.fixture
 def server(mocker):
     server = Server("mock.url")
-    mocker.patch(patch_server.format("get_cube"), return_value=cube_path)
-    mocker.patch(patch_server.format("get_cube_params"), return_value=params_path)
-    mocker.patch(patch_server.format("get_cube_additional"), return_value=tarball_path)
-    mocker.patch(patch_cube.format("get_file_sha1"), return_value=tarball_hash)
-    mocker.patch(patch_cube.format("untar_additional"))
+    mocker.patch(PATCH_SERVER.format("get_cube"), return_value=CUBE_PATH)
+    mocker.patch(PATCH_SERVER.format("get_cube_params"), return_value=PARAMS_PATH)
+    mocker.patch(PATCH_SERVER.format("get_cube_additional"), return_value=TARBALL_PATH)
+    mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=TARBALL_HASH)
+    mocker.patch(PATCH_CUBE.format("untar_additional"))
 
     return server
 
@@ -36,21 +36,21 @@ def server(mocker):
 @pytest.fixture
 def basic_body(mocker):
     body_gen = cube_metadata_generator()
-    mocker.patch(patch_server.format("get_cube_metadata"), side_effect=body_gen)
+    mocker.patch(PATCH_SERVER.format("get_cube_metadata"), side_effect=body_gen)
     return body_gen
 
 
 @pytest.fixture
 def params_body(mocker):
     body_gen = cube_metadata_generator(with_params=True)
-    mocker.patch(patch_server.format("get_cube_metadata"), side_effect=body_gen)
+    mocker.patch(PATCH_SERVER.format("get_cube_metadata"), side_effect=body_gen)
     return body_gen
 
 
 @pytest.fixture
 def tar_body(mocker):
     body_gen = cube_metadata_generator(with_tarball=True)
-    mocker.patch(patch_server.format("get_cube_metadata"), side_effect=body_gen)
+    mocker.patch(PATCH_SERVER.format("get_cube_metadata"), side_effect=body_gen)
     return body_gen
 
 
@@ -129,7 +129,7 @@ def test_get_cube_with_tarball_retrieves_tarball(mocker, server, tar_body):
     spy.assert_called_once_with(body["tarball_url"], uid)
 
 
-def test_get_cube_with_tarball_generates_tarball_hash(mocker, server, tar_body):
+def test_get_cube_with_tarball_generates_TARBALL_HASH(mocker, server, tar_body):
     # Arrange
     spy = mocker.spy(medperf.entities.cube, "get_file_sha1")
 
@@ -138,7 +138,7 @@ def test_get_cube_with_tarball_generates_tarball_hash(mocker, server, tar_body):
     Cube.get(uid, server)
 
     # Assert
-    spy.assert_called_once_with(tarball_path)
+    spy.assert_called_once_with(TARBALL_PATH)
 
 
 def test_get_cube_with_tarball_untars_files(mocker, server, tar_body):
@@ -150,7 +150,7 @@ def test_get_cube_with_tarball_untars_files(mocker, server, tar_body):
     Cube.get(uid, server)
 
     # Assert
-    spy.assert_called_once_with(tarball_path)
+    spy.assert_called_once_with(TARBALL_PATH)
 
 
 def test_cube_is_valid_if_no_tarball(mocker, server, basic_body):
@@ -173,7 +173,7 @@ def test_cube_is_valid_with_correct_hash(mocker, server, tar_body):
 
 def test_cube_is_invalid_with_incorrect_hash(mocker, server, tar_body):
     # Arrange
-    mocker.patch(patch_cube.format("get_file_sha1"), return_value="incorrect_hash")
+    mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="incorrect_hash")
 
     # Act
     uid = 1
@@ -185,16 +185,16 @@ def test_cube_is_invalid_with_incorrect_hash(mocker, server, tar_body):
 
 def test_cube_runs_command_with_pexpect(mocker, server, basic_body):
     # Arrange
-    mocker.patch(patch_cube.format("pexpect.spawn"), side_effect=MockPexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=MockPexpect.spawn)
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
     sp = yaspin()
-    task = "task"
-    expected_cmd = f"mlcube run --mlcube={cube_path} --task={task}"
+    TASK = "TASK"
+    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={TASK}"
 
     # Act
     uid = 1
     cube = Cube.get(uid, server)
-    cube.run(sp, "task")
+    cube.run(sp, "TASK")
 
     # Assert
     spy.assert_called_once_with(expected_cmd)
@@ -203,16 +203,16 @@ def test_cube_runs_command_with_pexpect(mocker, server, basic_body):
 def test_cube_runs_command_with_extra_args(mocker, server, basic_body):
     # Arrange
     spy = mocker.patch(
-        patch_cube.format("pexpect.spawn"), side_effect=MockPexpect.spawn
+        PATCH_CUBE.format("pexpect.spawn"), side_effect=MockPexpect.spawn
     )
     sp = yaspin()
-    task = "task"
-    expected_cmd = f"mlcube run --mlcube={cube_path} --task={task} test=test"
+    TASK = "TASK"
+    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={TASK} test=test"
 
     # Act
     uid = 1
     cube = Cube.get(uid, server)
-    cube.run(sp, "task", test="test")
+    cube.run(sp, "TASK", test="test")
 
     # Assert
     spy.assert_called_once_with(expected_cmd)
@@ -220,33 +220,33 @@ def test_cube_runs_command_with_extra_args(mocker, server, basic_body):
 
 def test_default_output_reads_cube_manifest(mocker, server, basic_body):
     # Arrange
-    cube_contents = {"tasks": {task: {"parameters": {"outputs": {out_key: value}}}}}
+    cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
     spy = mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(patch_cube.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
 
     # Act
     uid = 1
     cube = Cube.get(uid, server)
-    cube.get_default_output(task, out_key)
+    cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
-    spy.assert_called_once_with(cube_path, "r")
+    spy.assert_called_once_with(CUBE_PATH, "r")
 
 
 def test_default_output_returns_specified_path(mocker, server, basic_body):
     # Arrange
-    cube_contents = {"tasks": {task: {"parameters": {"outputs": {out_key: value}}}}}
+    cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(patch_cube.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
 
-    exp_path = f"./workspace/{value}"
+    exp_path = f"./workspace/{VALUE}"
 
     # Act
     uid = 1
     cube = Cube.get(uid, server)
-    out_path = cube.get_default_output(task, out_key)
+    out_path = cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
     assert out_path == exp_path
@@ -255,18 +255,18 @@ def test_default_output_returns_specified_path(mocker, server, basic_body):
 def test_default_output_returns_specified_dict_path(mocker, server, basic_body):
     # Arrange
     cube_contents = {
-        "tasks": {task: {"parameters": {"outputs": {out_key: {"default": value}}}}}
+        "tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: {"default": VALUE}}}}}
     }
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(patch_cube.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
 
-    exp_path = f"./workspace/{value}"
+    exp_path = f"./workspace/{VALUE}"
 
     # Act
     uid = 1
     cube = Cube.get(uid, server)
-    out_path = cube.get_default_output(task, out_key)
+    out_path = cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
     assert out_path == exp_path
@@ -274,18 +274,18 @@ def test_default_output_returns_specified_dict_path(mocker, server, basic_body):
 
 def test_default_output_returns_path_with_params(mocker, server, params_body):
     # Arrange
-    cube_contents = {"tasks": {task: {"parameters": {"outputs": {out_key: value}}}}}
-    params_contents = {param_key: param_value}
+    cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
+    params_contents = {PARAM_KEY: PARAM_VALUE}
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents, params_contents])
-    mocker.patch(patch_cube.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
 
-    exp_path = f"./workspace/{value}/{param_value}"
+    exp_path = f"./workspace/{VALUE}/{PARAM_VALUE}"
 
     # Act
     uid = 1
     cube = Cube.get(uid, server)
-    out_path = cube.get_default_output(task, out_key, param_key)
+    out_path = cube.get_default_output(TASK, OUT_KEY, PARAM_KEY)
 
     # Assert
     assert out_path == exp_path

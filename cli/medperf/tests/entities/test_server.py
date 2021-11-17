@@ -9,32 +9,32 @@ from unittest.mock import MagicMock, mock_open
 import requests
 import os
 
-url = "mock.url"
-patch_server = "medperf.entities.server.{}"
+URL = "mock.url"
+PATCH_SERVER = "medperf.entities.server.{}"
 
 
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {}),
-        ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
+        ("benchmark_association", "get", 200, [1], [], (f"{URL}/me/benchmarks",), {}),
+        ("get_benchmark", "get", 200, [1], {}, (f"{URL}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
             "get",
             200,
             [1],
             [],
-            (f"{url}/benchmarks/1/models",),
+            (f"{URL}/benchmarks/1/models",),
             {},
         ),
-        ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
+        ("get_cube_metadata", "get", 200, [1], {}, (f"{URL}/mlcubes/1/",), {}),
         (
             "upload_dataset",
             "post",
             201,
             [{}],
             {"id": 1},
-            (f"{url}/datasets/",),
+            (f"{URL}/datasets/",),
             {"json": {}},
         ),
         (
@@ -43,7 +43,7 @@ patch_server = "medperf.entities.server.{}"
             201,
             [{}],
             {"id": 1},
-            (f"{url}/results/",),
+            (f"{URL}/results/",),
             {"json": {}},
         ),
         (
@@ -52,20 +52,20 @@ patch_server = "medperf.entities.server.{}"
             201,
             [1, 1],
             {},
-            (f"{url}/datasets/benchmarks/",),
+            (f"{URL}/datasets/benchmarks/",),
             {"json": {"benchmark": 1, "dataset": 1}},
         ),
     ],
 )
 def test_methods_run_authorized_method(mocker, method_params):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     method, type, status, args, body, out_args, kwargs = method_params
     res = MockResponse(body, status)
     if type == "get":
-        patch_method = patch_server.format("Server._Server__auth_get")
+        patch_method = PATCH_SERVER.format("Server._Server__auth_get")
     else:
-        patch_method = patch_server.format("Server._Server__auth_post")
+        patch_method = PATCH_SERVER.format("Server._Server__auth_post")
     spy = mocker.patch(patch_method, return_value=res)
     method = getattr(server, method)
 
@@ -92,13 +92,13 @@ def test_methods_run_authorized_method(mocker, method_params):
 )
 def test_methods_exit_if_status_not_200(mocker, status, method_params):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     method, args, body = method_params
     res = MockResponse(body, status)
     mocker.patch("requests.get", return_value=res)
     mocker.patch("requests.post", return_value=res)
-    mocker.patch(patch_server.format("Server._Server__auth_req"), return_value=res)
-    spy = mocker.patch(patch_server.format("pretty_error"))
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_req"), return_value=res)
+    spy = mocker.patch(PATCH_SERVER.format("pretty_error"))
     method = getattr(server, method)
 
     # Act
@@ -112,11 +112,11 @@ def test_methods_exit_if_status_not_200(mocker, status, method_params):
 @pytest.mark.parametrize("pwd", ["test", "admin", "123456"])
 def test_login_with_user_and_pwd(mocker, uname, pwd):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     res = MockResponse({"token": ""}, 200)
     spy = mocker.patch("requests.post", return_value=res)
     exp_body = {"username": uname, "password": pwd}
-    exp_path = f"{url}/auth-token/"
+    exp_path = f"{URL}/auth-token/"
 
     # Act
     server.login(uname, pwd)
@@ -128,7 +128,7 @@ def test_login_with_user_and_pwd(mocker, uname, pwd):
 @pytest.mark.parametrize("token", ["test", "token"])
 def test_login_stores_token(mocker, token):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     res = MockResponse({"token": token}, 200)
     mocker.patch("requests.post", return_value=res)
 
@@ -141,38 +141,38 @@ def test_login_stores_token(mocker, token):
 
 def test_auth_get_calls_authorized_request(mocker):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     mocker.patch("requests.get")
-    spy = mocker.patch(patch_server.format("Server._Server__auth_req"))
+    spy = mocker.patch(PATCH_SERVER.format("Server._Server__auth_req"))
 
     # Act
-    server._Server__auth_get(url)
+    server._Server__auth_get(URL)
 
     # Assert
-    spy.called_once_with(url, requests.get)
+    spy.called_once_with(URL, requests.get)
 
 
 def test_auth_post_calls_authorized_request(mocker):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     mocker.patch("requests.post")
-    spy = mocker.patch(patch_server.format("Server._Server__auth_req"))
+    spy = mocker.patch(PATCH_SERVER.format("Server._Server__auth_req"))
 
     # Act
-    server._Server__auth_post(url)
+    server._Server__auth_post(URL)
 
     # Assert
-    spy.called_once_with(url, requests.post)
+    spy.called_once_with(URL, requests.post)
 
 
 def test_auth_req_fails_if_token_missing(mocker):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     mocker.patch("requests.post")
-    spy = mocker.patch(patch_server.format("pretty_error"))
+    spy = mocker.patch(PATCH_SERVER.format("pretty_error"))
 
     # Act
-    server._Server__auth_req(url, requests.post)
+    server._Server__auth_req(URL, requests.post)
 
     # Assert
     spy.assert_called()
@@ -182,7 +182,7 @@ def test_auth_req_fails_if_token_missing(mocker):
 @pytest.mark.parametrize("token", ["test", "token", "auth_token"])
 def test_auth_get_adds_token_to_request(mocker, token, req_type):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     server.token = token
 
     if req_type == "get":
@@ -195,22 +195,22 @@ def test_auth_get_adds_token_to_request(mocker, token, req_type):
     exp_headers = {"Authorization": f"Token {token}"}
 
     # Act
-    server._Server__auth_req(url, func)
+    server._Server__auth_req(URL, func)
 
     # Assert
-    spy.assert_called_once_with(url, headers=exp_headers)
+    spy.assert_called_once_with(URL, headers=exp_headers)
 
 
 @pytest.mark.parametrize("exp_role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
 def test_benchmark_association_returns_expected_role(mocker, exp_role):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     benchmarks = [
         {"benchmark": 1, "role": exp_role},
         {"benchmark": 2, "role": "DataOwner"},
     ]
     res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("Server._Server__auth_get"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_get"), return_value=res)
 
     # Act
     role = server.benchmark_association(1)
@@ -221,9 +221,9 @@ def test_benchmark_association_returns_expected_role(mocker, exp_role):
 
 def test_benchmark_association_returns_none_if_not_found(mocker):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     res = MockResponse([], 200)
-    mocker.patch(patch_server.format("Server._Server__auth_get"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_get"), return_value=res)
 
     # Act
     role = server.benchmark_association(1)
@@ -235,9 +235,9 @@ def test_benchmark_association_returns_none_if_not_found(mocker):
 @pytest.mark.parametrize("benchmark_uid", rand_l(1, 500, 5))
 def test_authorized_by_role_calls_benchmark_association(mocker, benchmark_uid):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     spy = mocker.patch(
-        patch_server.format("Server.benchmark_association"), return_value=Role(None)
+        PATCH_SERVER.format("Server.benchmark_association"), return_value=Role(None)
     )
 
     # Act
@@ -254,13 +254,13 @@ def test_authorized_by_role_returns_true_when_authorized(
     mocker, role, exp_role, benchmark_uid
 ):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     benchmarks = [
         {"benchmark": benchmark_uid, "role": role},
         {"benchmark": 501, "role": "DataOwner"},
     ]
     res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("Server._Server__auth_get"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_get"), return_value=res)
 
     # Act
     authorized = server.authorized_by_role(benchmark_uid, exp_role)
@@ -272,9 +272,9 @@ def test_authorized_by_role_returns_true_when_authorized(
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmark_returns_benchmark_body(mocker, body):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     res = MockResponse(body, 200)
-    mocker.patch(patch_server.format("Server._Server__auth_get"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_get"), return_value=res)
 
     # Act
     benchmark_body = server.get_benchmark(1)
@@ -286,10 +286,10 @@ def test_get_benchmark_returns_benchmark_body(mocker, body):
 @pytest.mark.parametrize("exp_uids", [rand_l(1, 500, 5) for _ in range(5)])
 def test_get_benchmark_models_return_uids(mocker, exp_uids):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     body = [{"id": uid} for uid in exp_uids]
     res = MockResponse(body, 200)
-    mocker.patch(patch_server.format("Server._Server__auth_get"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_get"), return_value=res)
 
     # Act
     uids = server.get_benchmark_models(1)
@@ -301,9 +301,9 @@ def test_get_benchmark_models_return_uids(mocker, exp_uids):
 @pytest.mark.parametrize("exp_body", [{"test": "test"}, {}, {"cube": "body"}])
 def test_get_cube_metadata_returns_retrieved_body(mocker, exp_body):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     res = MockResponse(exp_body, 200)
-    mocker.patch(patch_server.format("Server._Server__auth_get"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_get"), return_value=res)
 
     # Act
     body = server.get_cube_metadata(1)
@@ -317,14 +317,14 @@ def test_get_cube_metadata_returns_retrieved_body(mocker, exp_body):
 )
 def test_get_cube_methods_run_get_cube_file(mocker, method):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     spy = mocker.patch(
-        patch_server.format("Server._Server__get_cube_file"), return_value=""
+        PATCH_SERVER.format("Server._Server__get_cube_file"), return_value=""
     )
     method = getattr(server, method)
 
     # Act
-    method(url, 1)
+    method(URL, 1)
 
     # Assert
     spy.assert_called_once()
@@ -332,19 +332,19 @@ def test_get_cube_methods_run_get_cube_file(mocker, method):
 
 def test_get_cube_file_writes_to_file(mocker):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     cube_uid = 1
     path = "path"
     filename = "filename"
     res = MockResponse({}, 200)
     mocker.patch("requests.get", return_value=res)
-    mocker.patch(patch_server.format("cube_path"), return_value="")
+    mocker.patch(PATCH_SERVER.format("cube_path"), return_value="")
     mocker.patch("os.path.isdir", return_value=True)
     filepath = os.path.join(path, filename)
     spy = mocker.patch("builtins.open", mock_open())
 
     # Act
-    server._Server__get_cube_file(url, cube_uid, path, filename)
+    server._Server__get_cube_file(URL, cube_uid, path, filename)
 
     # Assert
     spy.assert_called_once_with(filepath, "wb+")
@@ -353,10 +353,10 @@ def test_get_cube_file_writes_to_file(mocker):
 @pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
 def test_upload_dataset_returns_dataset_uid(mocker, exp_id):
     # Arrange
-    server = Server(url)
+    server = Server(URL)
     body = {"id": exp_id}
     res = MockResponse(body, 201)
-    mocker.patch(patch_server.format("Server._Server__auth_post"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_post"), return_value=res)
 
     # Act
     id = server.upload_dataset({})
@@ -367,10 +367,10 @@ def test_upload_dataset_returns_dataset_uid(mocker, exp_id):
 
 @pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
 def test_upload_results_returns_result_uid(mocker, exp_id):
-    server = Server(url)
+    server = Server(URL)
     body = {"id": exp_id}
     res = MockResponse(body, 201)
-    mocker.patch(patch_server.format("Server._Server__auth_post"), return_value=res)
+    mocker.patch(PATCH_SERVER.format("Server._Server__auth_post"), return_value=res)
 
     # Act
     id = server.upload_results({})

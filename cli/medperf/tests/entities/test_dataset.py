@@ -6,7 +6,7 @@ from medperf.tests.mocks import Benchmark
 from unittest.mock import MagicMock
 import pytest
 
-registration_mock = {
+REGISTRATION_MOCK = {
     "name": "name",
     "description": "description",
     "location": "location",
@@ -17,30 +17,30 @@ registration_mock = {
     "status": "status",
 }
 
-patch_dataset = "medperf.entities.dataset.{}"
-tmp_prefix = config["tmp_reg_prefix"]
+PATCH_DATASET = "medperf.entities.dataset.{}"
+TMP_PREFIX = config["tmp_reg_prefix"]
 
 
 @pytest.fixture
 def basic_arrange(mocker):
     mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_dataset.format("yaml.full_load"), return_value=registration_mock)
-    mocker.patch(patch_dataset.format("os.path.exists"), return_value=True)
+    mocker.patch(PATCH_DATASET.format("yaml.full_load"), return_value=REGISTRATION_MOCK)
+    mocker.patch(PATCH_DATASET.format("os.path.exists"), return_value=True)
 
 
 @pytest.fixture
 def all_uids(mocker, basic_arrange, request):
     uids = request.param
     walk_out = iter([("", uids, [])])
-    mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
-    mocker.patch(patch_dataset.format("get_dsets"), return_value=uids)
+    mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
+    mocker.patch(PATCH_DATASET.format("get_dsets"), return_value=uids)
     return uids
 
 
 @pytest.mark.parametrize("all_uids", [[]], indirect=True)
 def test_all_looks_for_dsets_in_data_storage(mocker, all_uids):
     walk_out = iter([("", [], [])])
-    spy = mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
+    spy = mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
 
     # Act
     Dataset.all()
@@ -58,14 +58,14 @@ def test_all_returns_list_of_expected_size(mocker, all_uids):
     assert len(dsets) == len(all_uids)
 
 
-@pytest.mark.parametrize("all_uids", [["1", "2", f"{tmp_prefix}3"]], indirect=True)
+@pytest.mark.parametrize("all_uids", [["1", "2", f"{TMP_PREFIX}3"]], indirect=True)
 def test_all_ignores_temporary_datasets(mocker, all_uids):
     # Act
     dsets = Dataset.all()
     uids = [dset.data_uid for dset in dsets]
 
     # Assert
-    assert f"{tmp_prefix}3" not in uids
+    assert f"{TMP_PREFIX}3" not in uids
 
 
 @pytest.mark.parametrize(
@@ -123,7 +123,7 @@ def test_association_approval_skips_when_already_approved(mocker, all_uids):
     dset = Dataset(uid)
     dset.status = "APPROVED"
     mock_benchmark = Benchmark()
-    spy = mocker.patch(patch_dataset.format("approval_prompt"), return_value=True)
+    spy = mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=True)
 
     # Act
     dset.request_association_approval(mock_benchmark)
@@ -138,7 +138,7 @@ def test_association_approval_prompts_user(mocker, all_uids):
     uid = "1"
     dset = Dataset(uid)
     mock_benchmark = Benchmark()
-    spy = mocker.patch(patch_dataset.format("approval_prompt"), return_value=True)
+    spy = mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=True)
 
     # Act
     dset.request_association_approval(mock_benchmark)
@@ -154,7 +154,7 @@ def test_association_approval_returns_prompt_value(mocker, all_uids, exp_return)
     uid = "1"
     dset = Dataset(uid)
     mock_benchmark = Benchmark()
-    mocker.patch(patch_dataset.format("approval_prompt"), return_value=exp_return)
+    mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=exp_return)
 
     # Act
     approved = dset.request_association_approval(mock_benchmark)

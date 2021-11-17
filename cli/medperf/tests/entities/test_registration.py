@@ -6,10 +6,10 @@ import os
 from pathlib import Path
 import pytest
 
-out_path = "out_path"
-patch_registration = "medperf.entities.registration.{}"
-patch_cube = "medperf.entities.cube.{}"
-reg_dict_keys = [
+OUT_PATH = "out_path"
+PATCH_REGISTRATION = "medperf.entities.registration.{}"
+PATCH_CUBE = "medperf.entities.cube.{}"
+REG_DICT_KEYS = [
     "name",
     "description",
     "location",
@@ -38,7 +38,7 @@ def reg_init_params():
 @pytest.fixture
 def reg_mocked_with_params(mocker, reg_init_params):
     mocker.patch(
-        patch_registration.format("Registration._Registration__get_stats"),
+        PATCH_REGISTRATION.format("Registration._Registration__get_stats"),
         return_value={},
     )
     return reg_init_params
@@ -47,15 +47,15 @@ def reg_mocked_with_params(mocker, reg_init_params):
 @pytest.mark.parametrize("mock_hash", ["hash1", "hash2", "hash3"])
 def test_generate_uid_returns_folder_hash(mocker, mock_hash, reg_init_params):
     # Arrange
-    mocker.patch(patch_registration.format("get_folder_sha1"), return_value=mock_hash)
+    mocker.patch(PATCH_REGISTRATION.format("get_folder_sha1"), return_value=mock_hash)
     mocker.patch(
-        patch_registration.format("Registration._Registration__get_stats"),
+        PATCH_REGISTRATION.format("Registration._Registration__get_stats"),
         return_value={},
     )
 
     # Act
     registration = Registration(*reg_init_params)
-    gen_hash = registration.generate_uid(out_path)
+    gen_hash = registration.generate_uid(OUT_PATH)
 
     # Assert
     assert gen_hash == mock_hash
@@ -65,8 +65,8 @@ def test_generate_uid_returns_folder_hash(mocker, mock_hash, reg_init_params):
 def test_get_stats_opens_stats_path(mocker, path, reg_init_params):
     # Arrange
     spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_cube.format("Cube.get_default_output"), return_value=path)
-    mocker.patch(patch_registration.format("yaml.full_load"), return_value={})
+    mocker.patch(PATCH_CUBE.format("Cube.get_default_output"), return_value=path)
+    mocker.patch(PATCH_REGISTRATION.format("yaml.full_load"), return_value={})
 
     # Act
     Registration(*reg_init_params)
@@ -79,8 +79,8 @@ def test_get_stats_opens_stats_path(mocker, path, reg_init_params):
 def test_get_stats_returns_stats(mocker, stats, reg_init_params):
     # Arrange
     mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_cube.format("Cube.get_default_output"), return_value="")
-    mocker.patch(patch_registration.format("yaml.full_load"), return_value=stats)
+    mocker.patch(PATCH_CUBE.format("Cube.get_default_output"), return_value="")
+    mocker.patch(PATCH_REGISTRATION.format("yaml.full_load"), return_value=stats)
 
     # Act
     registration = Registration(*reg_init_params)
@@ -94,7 +94,7 @@ def test_todict_returns_expected_keys(mocker, reg_mocked_with_params):
     registration = Registration(*reg_mocked_with_params)
 
     # Assert
-    assert set(registration.todict().keys()) == set(reg_dict_keys)
+    assert set(registration.todict().keys()) == set(REG_DICT_KEYS)
 
 
 @pytest.mark.parametrize(
@@ -118,7 +118,7 @@ def test_retrieve_additional_data_prompts_user_correctly(
 
 def test_request_approval_skips_if_approved(mocker, reg_mocked_with_params):
     # Arrange
-    spy = mocker.patch(patch_registration.format("approval_prompt"), return_value=True)
+    spy = mocker.patch(PATCH_REGISTRATION.format("approval_prompt"), return_value=True)
     reg = Registration(*reg_mocked_with_params)
 
     # Act
@@ -131,8 +131,8 @@ def test_request_approval_skips_if_approved(mocker, reg_mocked_with_params):
 @pytest.mark.parametrize("approval", [True, False])
 def test_request_approval_returns_users_input(mocker, approval, reg_mocked_with_params):
     # Arrange
-    mocker.patch(patch_registration.format("approval_prompt"), return_value=approval)
-    mocker.patch(patch_registration.format("dict_pretty_print"))
+    mocker.patch(PATCH_REGISTRATION.format("approval_prompt"), return_value=approval)
+    mocker.patch(PATCH_REGISTRATION.format("dict_pretty_print"))
     mocker.patch("typer.echo")
     reg = Registration(*reg_mocked_with_params)
 
@@ -143,29 +143,29 @@ def test_request_approval_returns_users_input(mocker, approval, reg_mocked_with_
     assert approved == approval
 
 
-@pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
+@pytest.mark.parametrize("OUT_PATH", ["./test", "~/.medperf", "./workspace"])
 @pytest.mark.parametrize("uid", [0, 12, 432])
 def test_to_permanent_path_returns_expected_path(
-    mocker, out_path, uid, reg_mocked_with_params
+    mocker, OUT_PATH, uid, reg_mocked_with_params
 ):
     # Arrange
     mocker.patch("os.rename")
-    expected_path = os.path.join(str(Path(out_path).parent), str(uid))
+    expected_path = os.path.join(str(Path(OUT_PATH).parent), str(uid))
     reg = Registration(*reg_mocked_with_params)
 
     # Act
-    new_path = reg.to_permanent_path(out_path, uid)
+    new_path = reg.to_permanent_path(OUT_PATH, uid)
 
     # Assert
     assert new_path == expected_path
 
 
 @pytest.mark.parametrize(
-    "out_path", ["test", "out", "out_path", "~/.medperf/data/tmp_0"]
+    "OUT_PATH", ["test", "out", "out_path", "~/.medperf/data/tmp_0"]
 )
 @pytest.mark.parametrize("new_path", ["test", "new", "new_path", "~/.medperf/data/34"])
 def test_to_permanent_path_renames_folder_correctly(
-    mocker, out_path, new_path, reg_mocked_with_params
+    mocker, OUT_PATH, new_path, reg_mocked_with_params
 ):
     # Arrange
     spy = mocker.patch("os.rename")
@@ -173,10 +173,10 @@ def test_to_permanent_path_renames_folder_correctly(
     reg = Registration(*reg_mocked_with_params)
 
     # Act
-    reg.to_permanent_path(out_path, 0)
+    reg.to_permanent_path(OUT_PATH, 0)
 
     # Assert
-    spy.assert_called_once_with(out_path, new_path)
+    spy.assert_called_once_with(OUT_PATH, new_path)
 
 
 @pytest.mark.parametrize("filepath", ["filepath"])
@@ -199,7 +199,7 @@ def test_upload_returns_uid_from_server(mocker, server_uid, reg_mocked_with_para
     # Arrange
     server = Server("")
     mocker.patch(
-        patch_registration.format("Server.upload_dataset"), return_value=server_uid
+        PATCH_REGISTRATION.format("Server.upload_dataset"), return_value=server_uid
     )
     reg = Registration(*reg_mocked_with_params)
 
@@ -221,7 +221,7 @@ def test_is_registered_fails_when_uid_not_generated(mocker, reg_mocked_with_para
 
 def test_is_registered_retrieves_local_datasets(mocker, reg_mocked_with_params):
     # Arrange
-    spy = mocker.patch(patch_registration.format("Dataset.all"), return_values=[])
+    spy = mocker.patch(PATCH_REGISTRATION.format("Dataset.all"), return_values=[])
     reg = Registration(*reg_mocked_with_params)
     reg.uid = 1
 
@@ -239,7 +239,7 @@ def test_is_registered_finds_uid_in_dsets(
 ):
     # Arrange
     dsets = [MockedDataset(dset_uid) for dset_uid in dset_uids]
-    mocker.patch(patch_registration.format("Dataset.all"), return_value=dsets)
+    mocker.patch(PATCH_REGISTRATION.format("Dataset.all"), return_value=dsets)
     reg = Registration(*reg_mocked_with_params)
     reg.uid = uid
 

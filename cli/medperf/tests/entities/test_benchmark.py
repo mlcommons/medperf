@@ -5,14 +5,14 @@ import medperf
 
 import pytest
 
-patch_server = "medperf.entities.benchmark.Server.{}"
+PATCH_SERVER = "medperf.entities.benchmark.Server.{}"
 
 
 @pytest.fixture()
 def server(mocker):
     server = Server("mock.url")
-    mocker.patch(patch_server.format("get_benchmark"), side_effect=benchmark_body)
-    mocker.patch(patch_server.format("get_benchmark_models"), return_value=[])
+    mocker.patch(PATCH_SERVER.format("get_benchmark"), side_effect=benchmark_body)
+    mocker.patch(PATCH_SERVER.format("get_benchmark_models"), return_value=[])
     return server
 
 
@@ -52,7 +52,7 @@ def test_benchmark_includes_reference_model_in_models(server):
 @pytest.mark.parametrize("models", [rand_l(1, 5000, 4) for _ in range(5)])
 def test_benchmark_includes_additional_models_in_modles(mocker, server, models):
     # Arrange
-    mocker.patch(patch_server.format("get_benchmark_models"), return_value=models)
+    mocker.patch(PATCH_SERVER.format("get_benchmark_models"), return_value=models)
 
     # Act
     uid = 1
