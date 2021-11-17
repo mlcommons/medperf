@@ -1,3 +1,6 @@
+# Code adapted and extended from Dane Hillard's article on Effective Python Testing With Pytest
+# https://realpython.com/pytest-python-testing/
+
 import pytest
 import requests
 import builtins
