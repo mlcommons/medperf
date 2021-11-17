@@ -105,4 +105,5 @@ class BenchmarkExecution:
             str(self.model_uid),
             str(self.dataset.generated_uid),
         )
-        out_path = os.path.join(out_path, "results.yaml")
+        out_path = os.path.join(out_path, config["results_filename"])
+        return out_path
