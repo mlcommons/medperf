@@ -385,3 +385,17 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
 
     # Assert
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
+
+
+@pytest.mark.parametrize("bmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("model_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("generated_uid", rand_l(1, 5000, 2))
+def test__results_path_returns_expected_path(bmark_uid, model_uid, generated_uid):
+    # Arrange
+    expected_path = f"{config['results_storage']}/{bmark_uid}/{model_uid}/{generated_uid}/{config['results_filename']}"
+
+    # Act
+    path = utils.results_path(bmark_uid, model_uid, generated_uid)
+
+    # Assert
+    assert path == expected_path

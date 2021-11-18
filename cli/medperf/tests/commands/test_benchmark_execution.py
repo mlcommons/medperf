@@ -138,8 +138,7 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
     eval_spy = mocker.patch.object(execution.evaluator, "run")
     mocker.patch("os.path.join", return_value="")
     mocker.patch(
-        PATCH_EXECUTION.format("BenchmarkExecution._BenchmarkExecution__results_path"),
-        return_value="",
+        PATCH_EXECUTION.format("results_path"), return_value="",
     )
 
     # Act
@@ -150,25 +149,6 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
     assert model_spy.call_args_list[0][1]["task"] == "infer"
     assert eval_spy.call_count == 1
     assert eval_spy.call_args_list[0][1]["task"] == "evaluate"
-
-
-@pytest.mark.parametrize("bmark_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("generated_uid", rand_l(1, 5000, 2))
-def test__results_path_returns_expected_path(
-    execution, bmark_uid, model_uid, generated_uid
-):
-    # Arrange
-    execution.benchmark_uid = bmark_uid
-    execution.model_uid = model_uid
-    execution.dataset.generated_uid = generated_uid
-    expected_path = f"{config['results_storage']}/{bmark_uid}/{model_uid}/{generated_uid}/{config['results_filename']}"
-
-    # Act
-    path = execution._BenchmarkExecution__results_path()
-
-    # Assert
-    assert path == expected_path
 
 
 def test_run_executes_expected_flow(mocker, comms, ui, execution):
