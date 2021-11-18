@@ -58,7 +58,7 @@ def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: int = typer.Option(
+    data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     model_uid: int = typer.Option(
