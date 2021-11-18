@@ -2,7 +2,7 @@ import os
 
 from medperf.config import config
 from medperf.entities import Result, Dataset
-from medperf.utils import pretty_error
+from medperf.utils import pretty_error, results_path
 
 
 class ResultSubmission:
@@ -20,7 +20,7 @@ class ResultSubmission:
         sub.upload_results()
 
     def upload_results(self):
-        out_path = self.__results_path()
+        out_path = results_path(self.benchmark_uid, self.model_uid, self.data_uid)
         result = Result(out_path, self.benchmark_uid, self.data_uid, self.model_uid)
         approved = result.request_approval(self.ui)
         if not approved:
@@ -28,12 +28,3 @@ class ResultSubmission:
             pretty_error(msg, self.ui, add_instructions=False)
 
         result.upload(self.comms)
-
-    def __results_path(self):
-        out_path = config["results_storage"]
-        bmark_uid = str(self.benchmark_uid)
-        model_uid = str(self.model_uid)
-        data_uid = str(self.data_uid)
-        out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-        out_path = os.path.join(out_path, "results.yaml")
-        return out_path
