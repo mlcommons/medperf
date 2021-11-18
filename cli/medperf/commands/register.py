@@ -1,6 +1,6 @@
 from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.entities import Dataset, Registration
+from medperf.entities import Dataset
 from medperf.utils import pretty_error
 
 
