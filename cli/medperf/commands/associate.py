@@ -15,6 +15,7 @@ class DatasetBenchmarkAssociation:
         Args:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
+            server (Server): Server instance for communication with backend
         """
         dset = Dataset(data_uid)
         benchmark = Benchmark.get(benchmark_uid, server)
