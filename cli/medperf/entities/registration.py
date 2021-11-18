@@ -127,12 +127,13 @@ class Registration:
         self.path = new_path
         return new_path
 
-    def write(self, out_path: str, filename: str = "registration-info.yaml") -> str:
+
+    def write(self, out_path: str, filename: str = config["reg_file"]) -> str:
         """Writes the registration into disk
 
         Args:
             out_path (str): path where the file will be created
-            filename (str, optional): name of the file. Defaults to "registration-info.csv".
+            filename (str, optional): name of the file. Defaults to config["reg_file"].
 
         Returns:
             str: path to the created registration file

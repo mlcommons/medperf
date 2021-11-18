@@ -5,11 +5,13 @@ import logging
 import getpass
 from tabulate import tabulate
 
+
 from medperf.commands import (
     DataPreparation,
     BenchmarkExecution,
     DatasetBenchmarkAssociation,
 )
+from medperf.entities import Server, Dataset
 from medperf.config import config
 from medperf.decorators import clean_except
 from medperf.entities import Server, Dataset
@@ -18,8 +20,8 @@ from medperf.entities import Server, Dataset
 app = typer.Typer()
 
 
-@clean_except
 @app.command("login")
+@clean_except
 def login():
     """Login to the medperf server. Must be done only once.
     """
@@ -52,6 +54,11 @@ def prepare(
     ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
+
+    Args:
+        benchmark_uid (int): UID of the desired benchmark.
+        data_path (str): Location of the data to be prepared.
+        labels_path (str): Labels file location.
     """
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path)
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
@@ -72,13 +79,18 @@ def execute(
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
+
+    Args:
+        benchmark_uid (int): UID of the desired benchmark.
+        data_uid (int): Registered Dataset UID.
+        model_uid (int): UID of model to execute.
     """
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
     typer.echo("✅ Done!")
 
 
-@clean_except
 @app.command("associate")
+@clean_except
 def associate(
     data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
@@ -103,9 +115,9 @@ def main(log: str = "INFO", log_file: str = config["log_file"]):
     typer.echo(f"MedPerf {config['version']}")
 
 
-@clean_except
 @app.command("datasets")
-def datasets():
+@clean_except
+def ls():
     """Lists all local datasets
 	"""
     dsets = Dataset.all()

@@ -50,14 +50,6 @@ class Dataset:
         dsets = [cls(uid) for uid in uids if not uid.startswith(tmp_prefix)]
         return dsets
 
-    def is_valid(self) -> bool:
-        """Checks the validity of the dataset instances by comparing it to its hash
-
-        Returns:
-            bool: Wether the dataset matches the expected hash
-        """
-        regfile_path = os.path.join(self.dataset_path, "registration-info.yaml")
-        return get_file_sha1(regfile_path) == self.data_uid
 
     def __full_uid(self, uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
@@ -86,7 +78,8 @@ class Dataset:
         Returns:
             dict: registration information as key-value pairs.
         """
-        regfile = os.path.join(self.dataset_path, "registration-info.yaml")
+
+        regfile = os.path.join(self.dataset_path, config["reg_file"])
         with open(regfile, "r") as f:
             reg = yaml.full_load(f)
         return reg
