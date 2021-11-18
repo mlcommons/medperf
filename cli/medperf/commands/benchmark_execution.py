@@ -18,13 +18,13 @@ from medperf.entities import Result
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
+        cls, benchmark_uid: int, data_uid: str, model_uid: int, comms: Comms, ui: UI
     ):
         """Benchmark execution flow.
 
         Args:
             benchmark_uid (int): UID of the desired benchmark
-            data_uid (int): Registered Dataset UID
+            data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
         execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
@@ -56,10 +56,12 @@ class BenchmarkExecution:
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
-            pretty_error(msg)
+            pretty_error(msg, self.ui)
 
         if self.model_uid not in self.benchmark.models:
-            pretty_error("The provided model is not part of the specified benchmark.")
+            pretty_error(
+                "The provided model is not part of the specified benchmark.", self.ui
+            )
 
     def get_cubes(self):
         evaluator_uid = self.benchmark.evaluator
