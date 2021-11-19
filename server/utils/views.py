@@ -2,8 +2,8 @@ from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
 from result.serializers import ModelResultSerializer
-from benchmarkuser.serializers import BenchmarkRoleSerializer
-from benchmarkuser.models import BenchmarkUser
+from benchmark.serializers import BenchmarkSerializer
+from benchmark.models import Benchmark
 from dataset.models import Dataset
 from mlcube.models import MlCube
 from result.models import ModelResult
@@ -26,21 +26,21 @@ class User(GenericAPIView):
 
 
 class BenchmarkList(GenericAPIView):
-    serializer_class = BenchmarkRoleSerializer
+    serializer_class = BenchmarkSerializer
     queryset = ""
 
     def get_object(self, pk):
         try:
-            return BenchmarkUser.objects.filter(user__id=pk)
-        except BenchmarkUser.DoesNotExist:
+            return Benchmark.objects.filter(owner__id=pk)
+        except Benchmark.DoesNotExist:
             raise Http404
 
     def get(self, request, format=None):
         """
-        Retrieve all benchmarks associated with the current user
+        Retrieve all benchmarks owned by the current user
         """
         user = self.get_object(request.user.id)
-        serializer = BenchmarkRoleSerializer(user, many=True)
+        serializer = BenchmarkSerializer(user, many=True)
         return Response(serializer.data)
 
 

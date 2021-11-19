@@ -16,7 +16,7 @@ class ModelResult(models.Model):
     )
     model = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
     dataset = models.ForeignKey("dataset.Dataset", on_delete=models.PROTECT)
-    results = models.JSONField(default=dict)
+    results = models.JSONField()
     metadata = models.JSONField(default=dict)
     approval_status = models.CharField(
         choices=MODEL_RESULT_STATUS, max_length=100, default="PENDING"
