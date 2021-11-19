@@ -40,6 +40,10 @@ def prepare(
     ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
+    Args:
+        benchmark_uid (int): UID of the desired benchmark.
+        data_path (str): Location of the data to be prepared.
+        labels_path (str): Labels file location.
     """
     comms = state["comms"]
     ui = state["ui"]
@@ -63,6 +67,11 @@ def execute(
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
+
+    Args:
+        benchmark_uid (int): UID of the desired benchmark.
+        data_uid (int): Registered Dataset UID.
+        model_uid (int): UID of model to execute.
     """
     comms = state["comms"]
     ui = state["ui"]

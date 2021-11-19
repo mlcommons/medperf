@@ -29,7 +29,7 @@ class Benchmark:
 
         Args:
             benchmark_uid (str): UID of the benchmark.
-            comms (Server): Instance of a communication interface.
+            comms (Comms): Instance of a communication interface.
 
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
@@ -46,7 +46,7 @@ class Benchmark:
 
         Args:
             benchmark_uid (str): UID of the benchmark.
-            comms (Server): Instance of the communications interface.
+            comms (Comms): Instance of the communications interface.
 
         Returns:
             List[str]: List of mlcube uids
