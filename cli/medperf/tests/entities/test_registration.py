@@ -1,11 +1,12 @@
 import medperf
 from medperf.entities import Registration, Cube, Server
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 import os
 from pathlib import Path
 import pytest
 
+IN_PATH = "in_path"
 OUT_PATH = "out_path"
 PATCH_REGISTRATION = "medperf.entities.registration.{}"
 PATCH_CUBE = "medperf.entities.cube.{}"
@@ -16,6 +17,7 @@ REG_DICT_KEYS = [
     "split_seed",
     "data_preparation_mlcube",
     "generated_uid",
+    "input_data_hash",
     "metadata",
     "status",
 ]
@@ -45,7 +47,7 @@ def reg_mocked_with_params(mocker, reg_init_params):
 
 
 @pytest.mark.parametrize("mock_hash", ["hash1", "hash2", "hash3"])
-def test_generate_uid_returns_folder_hash(mocker, mock_hash, reg_init_params):
+def test_generate_uids_returns_folder_hash(mocker, mock_hash, reg_init_params):
     # Arrange
     mocker.patch(PATCH_REGISTRATION.format("get_folder_sha1"), return_value=mock_hash)
     mocker.patch(
@@ -55,10 +57,31 @@ def test_generate_uid_returns_folder_hash(mocker, mock_hash, reg_init_params):
 
     # Act
     registration = Registration(*reg_init_params)
-    gen_hash = registration.generate_uid(OUT_PATH)
+    gen_hash = registration.generate_uids(IN_PATH, OUT_PATH)
 
     # Assert
     assert gen_hash == mock_hash
+
+
+@pytest.mark.parametrize("in_path", ["data_path", "input_path", "/usr/data/path"])
+@pytest.mark.parametrize("out_path", ["out_path", "~/.medperf/data/123"])
+def test_generate_uids_assigns_uids_to_obj_properties(
+    mocker, in_path, out_path, reg_init_params
+):
+    # Arrange
+    mocker.patch(PATCH_REGISTRATION.format("get_folder_sha1"), side_effect=lambda x: x)
+    mocker.patch(
+        PATCH_REGISTRATION.format("Registration._Registration__get_stats"),
+        return_value={},
+    )
+
+    # Act
+    registration = Registration(*reg_init_params)
+    registration.generate_uids(in_path, out_path)
+
+    # Assert
+    assert registration.in_uid == in_path
+    assert registration.uid == out_path
 
 
 @pytest.mark.parametrize("path", ["stats_path", "./workspace/outputs/statistics.yaml"])
