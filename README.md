@@ -31,7 +31,7 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    - SIIM_Pneumothorax
    - VinBrain
    - NLMTB
-   - 
+
    As an example, we're going to use the CheXpert Dataset for the rest of this guide. You can get it [here](https://stanfordmlgroup.github.io/competitions/chexpert/). Once you retrieve it, keep track of where it is located on your system. For this demonstration, we're going to assume the dataset was unpacked to this location: 
    
    ```
