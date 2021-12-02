@@ -72,4 +72,4 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    - 4: ResNet Model
    - 5: NIH DenseNet Model
 
-    During model execution, you will be ask for confirmation of uploading the metrics results to the server.
+    During model execution, you will be asked for confirmation of uploading the metrics results to the server.
