@@ -8,7 +8,7 @@ from medperf.entities import Cube
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 
-PATCH_SERVER = "medperf.entities.benchmark.Server.{}"
+PATCH_SERVER = "medperf.entities.benchmark.Comms.{}"
 PATCH_CUBE = "medperf.entities.cube.{}"
 CUBE_PATH = "cube_path"
 PARAMS_PATH = "params_path"
@@ -25,9 +25,9 @@ PARAM_VALUE = "param_value"
 @pytest.fixture
 def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
-    mocker.patch(PATCH_SERVER.format("get_cube"), return_value=CUBE_PATH)
-    mocker.patch(PATCH_SERVER.format("get_cube_params"), return_value=PARAMS_PATH)
-    mocker.patch(PATCH_SERVER.format("get_cube_additional"), return_value=TARBALL_PATH)
+    mocker.patch.object(comms, "get_cube", return_value=CUBE_PATH)
+    mocker.patch.object(comms, "get_cube_params", return_value=PARAMS_PATH)
+    mocker.patch.object(comms, "get_cube_additional", return_value=TARBALL_PATH)
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=TARBALL_HASH)
     mocker.patch(PATCH_CUBE.format("untar_additional"))
 
