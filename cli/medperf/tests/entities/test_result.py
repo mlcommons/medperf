@@ -5,7 +5,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Result
 
-patch_result = "medperf.entities.result.{}"
+PATCH_RESULT = "medperf.entities.result.{}"
 
 
 @pytest.mark.parametrize(
@@ -49,7 +49,7 @@ def test_todict_returns_expected_keys(mocker):
 
 def test_request_approval_skips_if_already_approved(mocker, ui):
     # Arrange
-    spy = mocker.patch(patch_result.format("approval_prompt"))
+    spy = mocker.patch(PATCH_RESULT.format("approval_prompt"))
     result = Result("", 1, 1, 1)
     result.status = "APPROVED"
 
@@ -64,9 +64,9 @@ def test_request_approval_skips_if_already_approved(mocker, ui):
 def test_request_approval_returns_user_approval(mocker, ui, exp_approved):
     # Arrange
     mocker.patch("typer.echo")
-    mocker.patch(patch_result.format("dict_pretty_print"))
-    mocker.patch(patch_result.format("Result.todict"), return_value={})
-    mocker.patch(patch_result.format("approval_prompt"), return_value=exp_approved)
+    mocker.patch(PATCH_RESULT.format("dict_pretty_print"))
+    mocker.patch(PATCH_RESULT.format("Result.todict"), return_value={})
+    mocker.patch(PATCH_RESULT.format("approval_prompt"), return_value=exp_approved)
     result = Result("", 1, 1, 1)
 
     # Act
@@ -79,7 +79,7 @@ def test_request_approval_returns_user_approval(mocker, ui, exp_approved):
 def test_upload_calls_server_method(mocker, comms):
     # Arrange
     spy = mocker.patch.object(comms, "upload_results")
-    mocker.patch(patch_result.format("Result.todict"), return_value={})
+    mocker.patch(PATCH_RESULT.format("Result.todict"), return_value={})
     result = Result("", 1, 1, 1)
 
     # Act

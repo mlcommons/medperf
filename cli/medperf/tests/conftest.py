@@ -21,51 +21,38 @@ def disable_network_calls(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def disable_fs_IO_operations(monkeypatch):
-    def stuned_walk():
+    def stunted_walk():
         raise Exception("There was an attempt at walking through the filesystem")
 
-    def stuned_open():
+    def stunted_open():
         raise Exception("There was an attempt at opening a file for IO")
 
-    def stuned_exists():
+    def stunted_exists():
         raise Exception("There was an attempt at checking the existence of a fs object")
 
-    def stuned_remove():
+    def stunted_remove():
         raise Exception("There was an attempt at removing a fs object")
 
-    def stuned_chmod():
+    def stunted_chmod():
         raise Exception("There was an attempt at modifying a fs object permissions")
 
-    def stuned_isdir():
+    def stunted_isdir():
         raise Exception(
             "There was an attempt at checking if a fs object is a directory"
         )
 
-    def stuned_abspath():
+    def stunted_abspath():
         raise Exception("There was an attempt at converting a path to absolute")
 
-    def stuned_mkdir():
+    def stunted_mkdir():
         raise Exception("There was an attempt at creating a directory")
 
-    monkeypatch.setattr(os, "walk", lambda *args, **kwargs: stuned_walk())
-    monkeypatch.setattr(os, "remove", lambda *args, **kwargs: stuned_remove())
-    monkeypatch.setattr(os, "chmod", lambda *args, **kwargs: stuned_chmod())
-    monkeypatch.setattr(os, "mkdir", lambda *args, **kwargs: stuned_mkdir())
-    monkeypatch.setattr(os, "makedirs", lambda *args, **kwargs: stuned_mkdir())
-    monkeypatch.setattr(os.path, "isdir", lambda *args, **kwargs: stuned_isdir())
-    # monkeypatch.setattr(os.path, "abspath", lambda *args, **kwargs: stuned_abspath())
-    # monkeypatch.setattr(os.path, "exists", lambda *args, **kwargs: stuned_exists())
-    monkeypatch.setattr(builtins, "open", lambda *args, **kwargs: stuned_open())
-
-
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
-def comms(mocker):
-    comms = mocker.create_autospec(spec=Comms)
-    return comms
-
+    monkeypatch.setattr(os, "walk", lambda *args, **kwargs: stunted_walk())
+    monkeypatch.setattr(os, "remove", lambda *args, **kwargs: stunted_remove())
+    monkeypatch.setattr(os, "chmod", lambda *args, **kwargs: stunted_chmod())
+    monkeypatch.setattr(os, "mkdir", lambda *args, **kwargs: stunted_mkdir())
+    monkeypatch.setattr(os, "makedirs", lambda *args, **kwargs: stunted_mkdir())
+    monkeypatch.setattr(os.path, "isdir", lambda *args, **kwargs: stunted_isdir())
+    # monkeypatch.setattr(os.path, "abspath", lambda *args, **kwargs: stunted_abspath())
+    # monkeypatch.setattr(os.path, "exists", lambda *args, **kwargs: stunted_exists())
+    monkeypatch.setattr(builtins, "open", lambda *args, **kwargs: stunted_open())

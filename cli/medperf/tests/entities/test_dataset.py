@@ -8,7 +8,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.tests.mocks import Benchmark
 
-registration_mock = {
+REGISTRATION_MOCK = {
     "name": "name",
     "description": "description",
     "location": "location",
@@ -20,16 +20,16 @@ registration_mock = {
     "uid": "uid",
 }
 
-patch_dataset = "medperf.entities.dataset.{}"
-tmp_prefix = config["tmp_reg_prefix"]
+PATCH_DATASET = "medperf.entities.dataset.{}"
+TMP_PREFIX = config["tmp_reg_prefix"]
 
 
 @pytest.fixture
 def basic_arrange(mocker):
     m = mock_open()
     mocker.patch("builtins.open", m, create=True)
-    mocker.patch(patch_dataset.format("yaml.full_load"), return_value=registration_mock)
-    mocker.patch(patch_dataset.format("os.path.exists"), return_value=True)
+    mocker.patch(PATCH_DATASET.format("yaml.full_load"), return_value=REGISTRATION_MOCK)
+    mocker.patch(PATCH_DATASET.format("os.path.exists"), return_value=True)
     return m
 
 
@@ -46,13 +46,13 @@ def all_uids(mocker, basic_arrange, request):
         # Get the uid by extracting second-to-last path element
         uid = path.split("/")[-2]
         # Assign the uid to the mocked registration dictionary
-        reg = registration_mock.copy()
+        reg = REGISTRATION_MOCK.copy()
         reg["generated_uid"] = uid
         return reg
 
-    mocker.patch(patch_dataset.format("yaml.full_load"), side_effect=mock_reg_file)
-    mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
-    mocker.patch(patch_dataset.format("get_dsets"), return_value=uids)
+    mocker.patch(PATCH_DATASET.format("yaml.full_load"), side_effect=mock_reg_file)
+    mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
+    mocker.patch(PATCH_DATASET.format("get_dsets"), return_value=uids)
     return uids
 
 
@@ -60,7 +60,7 @@ def all_uids(mocker, basic_arrange, request):
 def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
     # Arrange
     walk_out = iter([("", [], [])])
-    spy = mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
+    spy = mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
 
     # Act
     Dataset.all(ui)
@@ -72,9 +72,9 @@ def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
 def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
     # Arrange
     walk_out = iter([])
-    mocker.patch(patch_dataset.format("os.walk"), return_value=walk_out)
+    mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
     spy = mocker.patch(
-        patch_dataset.format("pretty_error"), side_effect=lambda *args, **kwargs: exit()
+        PATCH_DATASET.format("pretty_error"), side_effect=lambda *args, **kwargs: exit()
     )
 
     # Act
@@ -94,14 +94,14 @@ def test_all_returns_list_of_expected_size(mocker, ui, all_uids):
     assert len(dsets) == len(all_uids)
 
 
-@pytest.mark.parametrize("all_uids", [["1", "2", f"{tmp_prefix}3"]], indirect=True)
+@pytest.mark.parametrize("all_uids", [["1", "2", f"{TMP_PREFIX}3"]], indirect=True)
 def test_all_ignores_temporary_datasets(mocker, ui, all_uids):
     # Act
     dsets = Dataset.all(ui)
     uids = [dset.generated_uid for dset in dsets]
 
     # Assert
-    assert f"{tmp_prefix}3" not in uids
+    assert f"{TMP_PREFIX}3" not in uids
 
 
 @pytest.mark.parametrize(
@@ -109,7 +109,7 @@ def test_all_ignores_temporary_datasets(mocker, ui, all_uids):
 )
 def test_full_uid_fails_when_single_match_not_found(mocker, ui, all_uids):
     # Arrange
-    spy = mocker.patch(patch_dataset.format("pretty_error"))
+    spy = mocker.patch(PATCH_DATASET.format("pretty_error"))
 
     # Act
     uid = "1"
@@ -163,7 +163,7 @@ def test_association_approval_prompts_user(mocker, ui, all_uids):
     uid = "1"
     dset = Dataset(uid, ui)
     mock_benchmark = Benchmark()
-    spy = mocker.patch(patch_dataset.format("approval_prompt"), return_value=True)
+    spy = mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=True)
 
     # Act
     dset.request_association_approval(mock_benchmark, ui)
@@ -179,7 +179,7 @@ def test_association_approval_returns_prompt_value(mocker, all_uids, ui, exp_ret
     uid = "1"
     dset = Dataset(uid, ui)
     mock_benchmark = Benchmark()
-    mocker.patch(patch_dataset.format("approval_prompt"), return_value=exp_return)
+    mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=exp_return)
 
     # Act
     approved = dset.request_association_approval(mock_benchmark, ui)
@@ -192,7 +192,7 @@ def test_association_approval_returns_prompt_value(mocker, all_uids, ui, exp_ret
 def test_request_registration_approval_skips_if_approved(mocker, all_uids, ui):
     # Arrange
     uid = "1"
-    spy = mocker.patch(patch_dataset.format("approval_prompt"), return_value=True)
+    spy = mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=True)
     reg = Dataset(uid, ui)
     reg.status = "APPROVED"
 
@@ -210,8 +210,8 @@ def test_request_registration_approval_returns_users_input(
 ):
     # Arrange
     uid = "1"
-    mocker.patch(patch_dataset.format("approval_prompt"), return_value=approval)
-    mocker.patch(patch_dataset.format("dict_pretty_print"))
+    mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=approval)
+    mocker.patch(PATCH_DATASET.format("dict_pretty_print"))
     mocker.patch("typer.echo")
     dset = Dataset(uid, ui)
 

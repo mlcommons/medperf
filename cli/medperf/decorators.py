@@ -1,11 +1,7 @@
-from typing import Type
 from collections.abc import Callable
 import logging
-import os
 
-from medperf.utils import cleanup, pretty_error
-from medperf.comms import Comms
-from medperf.config import config
+from medperf.utils import cleanup
 
 
 def clean_except(func: Callable) -> Callable:
