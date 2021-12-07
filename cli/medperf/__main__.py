@@ -14,6 +14,7 @@ from medperf.config import config
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
+from medperf.utils import init_storage
 
 
 app = typer.Typer()
@@ -146,6 +147,7 @@ def main(
     comms: str = config["default_comms"],
     ui: str = config["default_ui"],
 ):
+    init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
