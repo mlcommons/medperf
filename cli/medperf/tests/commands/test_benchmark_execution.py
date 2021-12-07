@@ -27,6 +27,7 @@ def execution(mocker, comms, ui, cube):
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
     exec = BenchmarkExecution(0, 0, 0, comms, ui)
+    exec.dataset.uid = 1
     exec.dataset.preparation_cube_uid = "prep_cube"
     exec.benchmark.data_preparation = "prep_cube"
     exec.benchmark.models = [0]

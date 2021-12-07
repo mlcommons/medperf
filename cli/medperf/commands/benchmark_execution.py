@@ -12,7 +12,6 @@ from medperf.utils import (
     results_path,
 )
 from medperf.config import config
-from medperf.entities import Result
 
 
 class BenchmarkExecution:
@@ -91,7 +90,7 @@ class BenchmarkExecution:
         labels_path = os.path.join(data_path, "data.csv")
 
         self.ui.text = "Evaluating results"
-        out_path = results_path(self.benchmark_uid, self.model_uid, self.data_uid)
+        out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
         self.evaluator.run(
             self.ui,
             task="evaluate",
