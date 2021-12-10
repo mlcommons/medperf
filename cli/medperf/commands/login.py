@@ -15,9 +15,8 @@ class Login:
         cred_path = config["credentials_path"]
         user = ui.prompt("username: ")
         pwd = ui.hidden_prompt("password: ")
-        server = comms(config["server"])
-        server.login(user, pwd)
-        token = server.token
+        comms.login(user, pwd)
+        token = comms.token
 
         if os.path.exists(cred_path):
             os.remove(cred_path)
