@@ -114,6 +114,7 @@ def main(
     log_file: str = config["log_file"],
     comms: str = config["default_comms"],
     ui: str = config["default_ui"],
+    host: str = config["server"],
 ):
     log = log.upper()
     log_lvl = getattr(logging, log)
@@ -122,7 +123,7 @@ def main(
     logging.info(f"Running MedPerf v{config['version']} on {log} logging level")
 
     state["ui"] = UIFactory.create_ui(ui)
-    state["comms"] = CommsFactory.create_comms(comms, state["ui"])
+    state["comms"] = CommsFactory.create_comms(comms, state["ui"], host)
 
     state["ui"].print(f"MedPerf {config['version']}")
 
