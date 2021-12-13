@@ -3,28 +3,18 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
+
+from .permissions import IsAdmin, IsDatasetOwner, IsBenchmarkOwner
 from .serializers import (
     BenchmarkDatasetListSerializer,
-    BenchmarkDatasetApprovalSerializer,
     DatasetApprovalSerializer,
 )
 
 
 class BenchmarkDatasetList(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
     serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
-
-    @swagger_auto_schema(operation_id="datasets_benchmarks_list_all")
-    def get(self, request, format=None):
-        """
-        List all datasets associated across benchmarks
-        """
-        benchmarkdatasets = BenchmarkDataset.objects.all()
-        serializer = BenchmarkDatasetListSerializer(
-            benchmarkdatasets, many=True
-        )
-        return Response(serializer.data)
 
     def post(self, request, format=None):
         """
@@ -38,7 +28,7 @@ class BenchmarkDatasetList(GenericAPIView):
 
 
 class BenchmarkDatasetApproval(GenericAPIView):
-    serializer_class = BenchmarkDatasetApprovalSerializer
+    serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -52,13 +42,14 @@ class BenchmarkDatasetApproval(GenericAPIView):
         Retrieve all benchmarks associated with a dataset
         """
         benchmarkdataset = self.get_object(pk)
-        serializer = BenchmarkDatasetApprovalSerializer(
+        serializer = BenchmarkDatasetListSerializer(
             benchmarkdataset, many=True
         )
         return Response(serializer.data)
 
 
 class DatasetApproval(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
     serializer_class = DatasetApprovalSerializer
     queryset = ""
 
@@ -84,7 +75,7 @@ class DatasetApproval(GenericAPIView):
         """
         benchmarkdataset = self.get_object(pk, bid)
         serializer = DatasetApprovalSerializer(
-            benchmarkdataset, data=request.data
+            benchmarkdataset, data=request.data, context={"request": request}
         )
         if serializer.is_valid():
             serializer.save()

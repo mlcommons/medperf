@@ -19,11 +19,6 @@ DATA_OWNER=$(curl -s -X POST "http://127.0.0.1:8000/users/" -H  "accept: applica
 
 echo "Data Owner User Created(by Admin User). ID: $DATA_OWNER"
 
-# Assign testbenchmarkowner(Benchmark owner) a role of Benchmark Owner by admin user
-#BENCHMARK_OWNER_ROLE=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $BENCHMARK_OWNER,  \"role\": \"BenchmarkOwner\"}")
-
-#echo "Benchmark Owner User Id: $BENCHMARK_OWNER assigned role of BenchmarkOwner(by Admin User)"
-
 echo "##########################BENCHMARK OWNER##########################"
 # Get Benchmark Owner API token(token of testbenchmarkowner user)
 BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
@@ -51,20 +46,9 @@ BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/benchmarks/" -H  "accept: app
 
 echo "Benchmark Created(by Benchmark Owner). ID: $BENCHMARK"
 
-# Associate the testbenchmarkowner(Benchmark owner) to the created benchmark by admin user
-BENCHMARK_OWNER_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $BENCHMARK_OWNER,  \"benchmark\": $BENCHMARK,  \"role\": \"BenchmarkOwner\"}")
+BENCHMARK_STATUS=$(curl -s -X PUT "http://127.0.0.1:8000/benchmarks/$BENCHMARK/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"| jq -r '.approval_status')
 
-echo "Benchmark Owner User Id: $BENCHMARK_OWNER associated to Benchmark Id: $BENCHMARK (by Admin User)"
-
-# Associate the testmodelowner(Model owner) to the created benchmark by Benchmark owner user
-MODEL_OWNER_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $MODEL_OWNER,  \"benchmark\": $BENCHMARK,  \"role\": \"ModelOwner\"}")
-
-echo "Model Owner User Id: $MODEL_OWNER associated to Benchmark Id: $BENCHMARK (by Benchmark Owner)"
-
-# Associate the testdataowner(Data owner) to the created benchmark by Benchmark owner user
-DATASET_OWNER_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $DATA_OWNER,  \"benchmark\": $BENCHMARK,  \"role\": \"DataOwner\"}")
-
-echo "Data Owner User Id: $DATA_OWNER associated to Benchmark Id: $BENCHMARK (by Benchmark Owner)"
+echo "Benchmark Id: $BENCHMARK is marked $BENCHMARK_STATUS (by Admin)"
 
 echo "##########################MODEL OWNER##########################"
 # Model Owner Interaction

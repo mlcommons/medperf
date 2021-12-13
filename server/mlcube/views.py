@@ -5,6 +5,8 @@ from rest_framework import status
 from .models import MlCube
 from .serializers import MlCubeSerializer
 
+from .permissions import IsAdmin, IsMlCubeOwner
+
 
 class MlCubeList(GenericAPIView):
     serializer_class = MlCubeSerializer
@@ -32,6 +34,13 @@ class MlCubeList(GenericAPIView):
 class MlCubeDetail(GenericAPIView):
     serializer_class = MlCubeSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsMlCubeOwner]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:
