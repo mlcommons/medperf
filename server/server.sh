@@ -84,7 +84,7 @@ MODEL_EXECUTOR2_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  "a
 echo "Model MLCube Created(by Model Owner). ID: $MODEL_EXECUTOR2_MLCUBE"
 
 # Associate the model-executor1 mlcube to the created benchmark by model owner user
-MODEL_EXECUTOR1_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR1_MLCUBE,  \"benchmark\": $BENCHMARK}")
+MODEL_EXECUTOR1_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR1_MLCUBE,  \"benchmark\": $BENCHMARK, \"results\": {\"key1\":\"value1\", \"key2\":\"value2\"} }")
 
 echo "Model MlCube Id: $MODEL_EXECUTOR1_MLCUBE associated to Benchmark Id: $BENCHMARK (by Model Owner)"
 
@@ -94,7 +94,7 @@ MODEL_EXECUTOR1_IN_BENCHMARK_STATUS=$(curl -s -X PUT "http://127.0.0.1:8000/mlcu
 echo "Model MlCube Id: $MODEL_EXECUTOR1_MLCUBE associated to Benchmark Id: $BENCHMARK is marked $MODEL_EXECUTOR1_IN_BENCHMARK_STATUS (by Benchmark Owner)" 
 
 # Associate the model-executor2 mlcube to the created benchmark by model owner user
-MODEL_EXECUTOR2_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR2_MLCUBE,  \"benchmark\": $BENCHMARK}")
+MODEL_EXECUTOR2_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR2_MLCUBE,  \"benchmark\": $BENCHMARK, \"results\": {\"key1\":\"value1\", \"key2\":\"value2\"} }")
 
 echo "Model MlCube Id: $MODEL_EXECUTOR2_MLCUBE associated to Benchmark Id: $BENCHMARK (by Model Owner)"
 
