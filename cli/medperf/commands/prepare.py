@@ -28,9 +28,6 @@ class DataPreparation:
         out_path, out_datapath = generate_tmp_datapath()
         init_storage()
 
-        # Ensure user can access the uiecified benchmark
-        if not comms.authorized_by_role(benchmark_uid, "DATA_OWNER"):
-            pretty_error("You're not associated to the benchmark as a data owner", ui)
         benchmark = Benchmark.get(benchmark_uid, comms)
         ui.print(f"Benchmark Data Preparation: {benchmark.name}")
 

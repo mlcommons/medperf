@@ -79,6 +79,7 @@ class Registration:
             "split_seed": 0,
             "data_preparation_mlcube": self.cube.uid,
             "generated_uid": self.uid,
+            "input_data_hash": self.uid,
             "metadata": self.stats,
             "status": self.status,
         }

@@ -9,6 +9,17 @@ class BenchmarkSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["owner", "approved_at", "approval_status"]
 
+    def validate(self, data):
+        owner = self.context["request"].user
+        pending_benchmarks = Benchmark.objects.filter(
+            owner=owner, approval_status="PENDING"
+        )
+        if len(pending_benchmarks) > 0:
+            raise serializers.ValidationError(
+                "User can own at most one pending benchmark"
+            )
+        return data
+
 
 class BenchmarkApprovalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,3 +38,15 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
             instance.approved_at = timezone.now()
         instance.save()
         return instance
+
+    def validate(self, data):
+        owner = self.instance.owner
+        if data["approval_status"] == "PENDING":
+            pending_benchmarks = Benchmark.objects.filter(
+                owner=owner, approval_status="PENDING"
+            )
+            if len(pending_benchmarks) > 0:
+                raise serializers.ValidationError(
+                    "User can own at most one pending benchmark"
+                )
+        return data

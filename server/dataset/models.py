@@ -7,13 +7,15 @@ class Dataset(models.Model):
     description = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    generated_uid = models.CharField(max_length=128)
+    input_data_hash = models.CharField(max_length=128, unique=True)
+    generated_uid = models.CharField(max_length=128, unique=True)
     split_seed = models.IntegerField()
     data_preparation_mlcube = models.ForeignKey(
         "mlcube.MlCube",
         on_delete=models.PROTECT,
         related_name="benchmark_preprocessor_mlcube",
     )
+    is_valid = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

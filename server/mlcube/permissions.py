@@ -1,5 +1,5 @@
 from rest_framework.permissions import BasePermission
-from .models import Benchmark
+from .models import MlCube
 
 
 class IsAdmin(BasePermission):
@@ -7,21 +7,21 @@ class IsAdmin(BasePermission):
         return request.user.is_superuser
 
 
-class IsBenchmarkOwner(BasePermission):
+class IsMlCubeOwner(BasePermission):
     def get_object(self, pk):
         try:
-            return Benchmark.objects.get(pk=pk)
-        except Benchmark.DoesNotExist:
+            return MlCube.objects.get(pk=pk)
+        except MlCube.DoesNotExist:
             return None
 
     def has_permission(self, request, view):
         pk = view.kwargs.get("pk", None)
         if not pk:
             return False
-        benchmark = self.get_object(pk)
-        if not benchmark:
+        mlcube = self.get_object(pk)
+        if not mlcube:
             return False
-        if benchmark.owner.id == request.user.id:
+        if mlcube.owner.id == request.user.id:
             return True
         else:
             return False

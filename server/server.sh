@@ -18,12 +18,6 @@ DATA_OWNER=$(curl -s -X POST "http://127.0.0.1:8000/users/" -H  "accept: applica
 
 echo "Data Owner User Created(by Admin User). ID: $DATA_OWNER"
 
-# Assign testbenchmarkowner(Benchmark owner) a role of Benchmark Owner by admin user
-#BENCHMARK_OWNER_ROLE=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $BENCHMARK_OWNER,  \"role\": \"BenchmarkOwner\"}")
-
-#echo "Benchmark Owner User Id: $BENCHMARK_OWNER assigned role of BenchmarkOwner(by Admin User)"
-
-
 echo "##########################BENCHMARK OWNER##########################"
 # Get Benchmark Owner API token(token of testbenchmarkowner user)
 BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
@@ -51,20 +45,9 @@ BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/benchmarks/" -H  "accept: app
 
 echo "Benchmark Created(by Benchmark Owner). ID: $BENCHMARK"
 
-# Associate the testbenchmarkowner(Benchmark owner) to the created benchmark by admin user
-BENCHMARK_OWNER_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $BENCHMARK_OWNER,  \"benchmark\": $BENCHMARK,  \"role\": \"BenchmarkOwner\"}")
+BENCHMARK_STATUS=$(curl -s -X PUT "http://127.0.0.1:8000/benchmarks/$BENCHMARK/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"| jq -r '.approval_status')
 
-echo "Benchmark Owner User Id: $BENCHMARK_OWNER associated to Benchmark Id: $BENCHMARK (by Admin User)"
-
-# Associate the testmodelowner(Model owner) to the created benchmark by Benchmark owner user
-MODEL_OWNER_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $MODEL_OWNER,  \"benchmark\": $BENCHMARK,  \"role\": \"ModelOwner\"}")
-
-echo "Model Owner User Id: $MODEL_OWNER associated to Benchmark Id: $BENCHMARK (by Benchmark Owner)"
-
-# Associate the testdataowner(Data owner) to the created benchmark by Benchmark owner user
-DATASET_OWNER_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/users/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"user\": $DATA_OWNER,  \"benchmark\": $BENCHMARK,  \"role\": \"DataOwner\"}")
-
-echo "Data Owner User Id: $DATA_OWNER associated to Benchmark Id: $BENCHMARK (by Benchmark Owner)"
+echo "Benchmark Id: $BENCHMARK is marked $BENCHMARK_STATUS (by Admin)"
 
 echo "##########################MODEL OWNER##########################"
 # Model Owner Interaction
@@ -84,7 +67,7 @@ MODEL_EXECUTOR2_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  "a
 echo "Model MLCube Created(by Model Owner). ID: $MODEL_EXECUTOR2_MLCUBE"
 
 # Associate the model-executor1 mlcube to the created benchmark by model owner user
-MODEL_EXECUTOR1_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR1_MLCUBE,  \"benchmark\": $BENCHMARK}")
+MODEL_EXECUTOR1_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR1_MLCUBE,  \"benchmark\": $BENCHMARK, \"results\": {\"key1\":\"value1\", \"key2\":\"value2\"} }")
 
 echo "Model MlCube Id: $MODEL_EXECUTOR1_MLCUBE associated to Benchmark Id: $BENCHMARK (by Model Owner)"
 
@@ -94,7 +77,7 @@ MODEL_EXECUTOR1_IN_BENCHMARK_STATUS=$(curl -s -X PUT "http://127.0.0.1:8000/mlcu
 echo "Model MlCube Id: $MODEL_EXECUTOR1_MLCUBE associated to Benchmark Id: $BENCHMARK is marked $MODEL_EXECUTOR1_IN_BENCHMARK_STATUS (by Benchmark Owner)" 
 
 # Associate the model-executor2 mlcube to the created benchmark by model owner user
-MODEL_EXECUTOR2_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR2_MLCUBE,  \"benchmark\": $BENCHMARK}")
+MODEL_EXECUTOR2_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR2_MLCUBE,  \"benchmark\": $BENCHMARK, \"results\": {\"key1\":\"value1\", \"key2\":\"value2\"} }")
 
 echo "Model MlCube Id: $MODEL_EXECUTOR2_MLCUBE associated to Benchmark Id: $BENCHMARK (by Model Owner)"
 
@@ -111,7 +94,7 @@ DATASET_OWNER_TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth-token/" -H  "a
 echo "Data Owner Token: $MODEL_OWNER_TOKEN"
 
 # Create a dataset by data owner
-DATASET=$(curl -s -X POST "http://127.0.0.1:8000/datasets/" -H  "accept: application/json" -H  "Authorization: Token $DATASET_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"name\": \"dataset\",  \"description\": \"dataset-sample\",  \"location\": \"string\",  \"generated_uid\": \"string\",  \"split_seed\": 0,  \"metadata\": {}, \"data_preparation_mlcube\": $DATA_PREPROCESSOR_MLCUBE}" | jq -r '.id') 
+DATASET=$(curl -s -X POST "http://127.0.0.1:8000/datasets/" -H  "accept: application/json" -H  "Authorization: Token $DATASET_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"name\": \"dataset\",  \"description\": \"dataset-sample\",  \"location\": \"string\",  \"input_data_hash\": \"string\", \"generated_uid\": \"string\",  \"split_seed\": 0,  \"metadata\": {}, \"data_preparation_mlcube\": $DATA_PREPROCESSOR_MLCUBE}" | jq -r '.id') 
 
 echo "Dataset Created(by Data Owner). Id: $DATASET"
 
