@@ -16,6 +16,7 @@ REG_DICT_KEYS = [
     "split_seed",
     "data_preparation_mlcube",
     "generated_uid",
+    "input_data_hash",
     "metadata",
     "status",
 ]
