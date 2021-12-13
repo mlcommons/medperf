@@ -11,8 +11,8 @@ from medperf.commands import (
     BenchmarkExecution,
     DatasetBenchmarkAssociation,
 )
-from medperf.entities import Server, Dataset
 from medperf.config import config
+from medperf.utils import init_storage
 from medperf.decorators import clean_except
 from medperf.entities import Server, Dataset
 
@@ -107,6 +107,7 @@ def associate(
 
 @app.callback()
 def main(log: str = "INFO", log_file: str = config["log_file"]):
+    init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"

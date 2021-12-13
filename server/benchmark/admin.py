@@ -9,6 +9,7 @@ class BenchmarkAdmin(admin.ModelAdmin):
         "description",
         "docs_url",
         "owner",
+        "is_valid",
         "data_preparation_mlcube",
         "reference_model_mlcube",
         "data_evaluator_mlcube",

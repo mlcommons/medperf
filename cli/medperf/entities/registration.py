@@ -77,6 +77,7 @@ class Registration:
             "split_seed": 0,
             "data_preparation_mlcube": self.cube.uid,
             "generated_uid": self.uid,
+            "input_data_hash": self.uid,
             "metadata": self.stats,
             "status": self.status,
         }
@@ -126,7 +127,6 @@ class Registration:
         os.rename(out_path, new_path)
         self.path = new_path
         return new_path
-
 
     def write(self, out_path: str, filename: str = config["reg_file"]) -> str:
         """Writes the registration into disk

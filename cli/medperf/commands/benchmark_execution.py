@@ -29,9 +29,6 @@ class BenchmarkExecution:
         """
         init_storage()
 
-        # Ensure user can access the specified benchmark
-        if not server.authorized_by_role(benchmark_uid, "DATA_OWNER"):
-            pretty_error("You're not associated to the benchmark as a data owner")
         benchmark = Benchmark.get(benchmark_uid, server)
         typer.echo(f"Benchmark Execution: {benchmark.name}")
         dataset = Dataset(data_uid)

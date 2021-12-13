@@ -10,6 +10,7 @@ class MlCubeAdmin(admin.ModelAdmin):
         "tarball_url",
         "tarball_hash",
         "owner",
+        "is_valid",
         "metadata",
         "created_at",
         "modified_at",
