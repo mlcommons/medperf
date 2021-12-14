@@ -13,7 +13,7 @@ Inside this repo you can find all important pieces for running MedPerf. In its c
 In order to run MedPerf locally, you must host the server in your machine, and install the CLI.
 
 1. ## Install dependencies
-   MedPerf has some dependencies that must be installed by the user before being able to run. This are mlcube and the required runners (right now there's docker and singularity runners)
+   MedPerf has some dependencies that must be installed by the user before being able to run. This are mlcube and the required runners (right now there's docker and singularity runners). Depending on the runner you're going to use, you also need to download the runner engine. For this demo, we will be using Docker, so make sure to get the [Docker Engine](https://docs.docker.com/get-docker/)
 
    ```
    pip install mlcube mlcube-docker mlcube-singularity
