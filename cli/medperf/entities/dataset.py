@@ -3,8 +3,9 @@ import yaml
 import os
 import logging
 
+from medperf.ui import UI
 from medperf.config import config
-from medperf.utils import get_file_sha1, get_dsets, approval_prompt
+from medperf.utils import get_dsets, approval_prompt, pretty_error
 
 
 class Dataset:
@@ -17,7 +18,7 @@ class Dataset:
     data preparation output.
     """
 
-    def __init__(self, data_uid: int):
+    def __init__(self, data_uid: int, ui: UI):
         """Creates a new dataset instance
 
         Args:
@@ -26,11 +27,9 @@ class Dataset:
         Raises:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
-        data_uid = self.__full_uid(data_uid)
+        data_uid = self.__full_uid(data_uid, ui)
         self.data_uid = data_uid
         self.dataset_path = os.path.join(config["data_storage"], str(data_uid))
-        if not os.path.exists(self.dataset_path):
-            raise NameError("the dataset with provided UID couldn't be found")
         self.data_path = os.path.join(self.dataset_path, "data")
         self.registration = self.get_registration()
         self.name = self.registration["name"]
@@ -43,7 +42,7 @@ class Dataset:
         self.status = self.registration["status"]
 
     @classmethod
-    def all(cls) -> List["Dataset"]:
+    def all(cls, ui: UI) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Returns:
@@ -54,21 +53,12 @@ class Dataset:
             uids = next(os.walk(config["data_storage"]))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            exit()
+            pretty_error("Couldn't iterate over the dataset directory")
         tmp_prefix = config["tmp_reg_prefix"]
-        dsets = [cls(uid) for uid in uids if not uid.startswith(tmp_prefix)]
+        dsets = [cls(uid, ui) for uid in uids if not uid.startswith(tmp_prefix)]
         return dsets
 
-    def is_valid(self) -> bool:
-        """Checks the validity of the dataset instances by comparing it to its hash
-
-        Returns:
-            bool: Wether the dataset matches the expected hash
-        """
-        regfile_path = os.path.join(self.dataset_path, "registration-info.yaml")
-        return get_file_sha1(regfile_path) == self.data_uid
-
-    def __full_uid(self, uid_hint: str) -> str:
+    def __full_uid(self, uid_hint: str, ui: UI) -> str:
         """Returns the found UID that starts with the provided UID hint
 
         Args:
@@ -84,10 +74,11 @@ class Dataset:
         dsets = get_dsets()
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            raise NameError("No dataset was found with provided uid hint.")
-        if len(match) > 1:
-            raise NameError("Multiple datasets were found with provided uid hint.")
-        return match[0]
+            pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
+        elif len(match) > 1:
+            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.", ui)
+        else:
+            return match[0]
 
     def get_registration(self) -> dict:
         """Retrieves the registration information.
@@ -95,12 +86,12 @@ class Dataset:
         Returns:
             dict: registration information as key-value pairs.
         """
-        regfile = os.path.join(self.dataset_path, "registration-info.yaml")
+        regfile = os.path.join(self.dataset_path, config["reg_file"])
         with open(regfile, "r") as f:
             reg = yaml.full_load(f)
         return reg
 
-    def request_association_approval(self, benchmark: "Benchmark") -> bool:
+    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
         """Prompts the user for aproval regarding the association of the dataset
         with a given benchmark.
 
@@ -114,6 +105,7 @@ class Dataset:
             return True
 
         approved = approval_prompt(
-            f"Please confirm that you would like to associate the dataset '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
+            f"Please confirm that you would like to associate the dataset '{self.name}' with the benchmark '{benchmark.name}' [Y/n]",
+            ui,
         )
         return approved

@@ -22,9 +22,10 @@ class Server:
         res = requests.post(f"{self.server_url}/auth-token/", json=body)
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("Unable to authentica user with provided credentials")
-
-        self.token = res.json()["token"]
+            pretty_error("Unable to authenticate user with provided credentials")
+        else:
+            self.token = res.json()["token"]
+            
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
@@ -167,14 +168,15 @@ class Server:
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error("There was a problem retrieving the specified file at " + url)
+        else:
+            c_path = cube_path(cube_uid)
+            path = os.path.join(c_path, path)
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            filepath = os.path.join(path, filename)
+            open(filepath, "wb+").write(res.content)
+            return filepath
 
-        c_path = cube_path(cube_uid)
-        path = os.path.join(c_path, path)
-        if not os.path.isdir(path):
-            os.makedirs(path)
-        filepath = os.path.join(path, filename)
-        open(filepath, "wb+").write(res.content)
-        return filepath
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
