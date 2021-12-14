@@ -1,3 +1,4 @@
+from typing import List
 import requests
 import logging
 import os
@@ -105,7 +106,7 @@ class REST(Comms):
         benchmark = res.json()
         return benchmark
 
-    def get_benchmark_models(self, benchmark_uid: int) -> list[int]:
+    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
         """Retrieves all the models associated with a benchmark. reference model not included
 
         Args:
