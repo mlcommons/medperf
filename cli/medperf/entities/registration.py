@@ -16,6 +16,14 @@ from medperf.entities import Cube, Dataset
 
 
 class Registration:
+    """
+    Class representing a Dataset Registration
+
+    A Registration object represents a prepared dataset that hasn't
+    yet been registered on the platform. It contains the procedures
+    required to successfully submit a dataset entry.
+    """
+
     def __init__(
         self,
         cube: Cube,
