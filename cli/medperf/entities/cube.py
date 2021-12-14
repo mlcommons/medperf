@@ -92,7 +92,7 @@ class Cube(object):
         for k, v in kwargs.items():
             cmd_arg = f"{k}={v}"
             cmd = " ".join([cmd, cmd_arg])
-        proc = pexpect.spawn(cmd)
+        proc = pexpect.spawn(cmd, timeout=None)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
         if proc.exitstatus != 0:
