@@ -41,16 +41,19 @@ class Registration:
         self.location = location
         self.status = "PENDING"
         self.uid = None
+        self.in_uid = None
         self.path = None
 
-    def generate_uid(self, out_path: str) -> str:
-        """Auto-generates an UID based on the contents of the registration
+    def generate_uids(self, in_path: str, out_path: str) -> str:
+        """Auto-generates dataset UIDs for both input and output paths
 
         Args:
+            in_path (str): location of the raw dataset
             out_path (str): location of the prepared dataset
         Returns:
             str: generated UID
         """
+        self.in_uid = get_folder_sha1(in_path)
         self.uid = get_folder_sha1(out_path)
         return self.uid
 
@@ -79,7 +82,7 @@ class Registration:
             "split_seed": 0,
             "data_preparation_mlcube": self.cube.uid,
             "generated_uid": self.uid,
-            "input_data_hash": self.uid,
+            "input_data_hash": self.in_uid,
             "metadata": self.stats,
             "status": self.status,
         }
