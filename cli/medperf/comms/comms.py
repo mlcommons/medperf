@@ -1,3 +1,4 @@
+from typing import List
 from abc import ABC, abstractmethod
 
 from medperf.ui import UI
@@ -65,7 +66,7 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_benchmark_models(self, benchmark_uid: int) -> list[int]:
+    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
         """Retrieves all the models associated with a benchmark. reference model not included
 
         Args:
