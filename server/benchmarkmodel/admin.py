@@ -7,6 +7,7 @@ class BenchmarkModelAdmin(admin.ModelAdmin):
         "model_mlcube",
         "benchmark",
         "initiated_by",
+        "results",
         "approval_status",
         "approved_at",
         "created_at",

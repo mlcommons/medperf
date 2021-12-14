@@ -1,10 +1,9 @@
 import os
-import typer
-from yaspin import yaspin
 
-from medperf.entities import Benchmark, Cube, Registration, Server
+from medperf.ui import UI
+from medperf.comms import Comms
+from medperf.entities import Benchmark, Cube, Registration
 from medperf.config import config
-from medperf.decorators import authenticate
 from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,
@@ -16,8 +15,7 @@ from medperf.utils import (
 
 class DataPreparation:
     @staticmethod
-    @authenticate
-    def run(benchmark_uid: str, data_path: str, labels_path: str, server: Server):
+    def run(benchmark_uid: str, data_path: str, labels_path: str, comms: Comms, ui: UI):
         """Data Preparation flow.
 
         Args:
@@ -30,59 +28,54 @@ class DataPreparation:
         out_path, out_datapath = generate_tmp_datapath()
         init_storage()
 
-        # Ensure user can access the specified benchmark
-        if not server.authorized_by_role(benchmark_uid, "DATA_OWNER"):
-            pretty_error("You're not associated to the benchmark as a data owner")
-        benchmark = Benchmark.get(benchmark_uid, server)
-        typer.echo(f"Benchmark Data Preparation: {benchmark.name}")
+        benchmark = Benchmark.get(benchmark_uid, comms)
+        ui.print(f"Benchmark Data Preparation: {benchmark.name}")
 
         cube_uid = benchmark.data_preparation
-        with yaspin(
-            text=f"Retrieving data preparation cube: '{cube_uid}'", color="green"
-        ) as sp:
-            cube = Cube.get(cube_uid, server)
-            sp.write("> Preparation cube download complete")
+        with ui.interactive() as ui:
+            ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
+            cube = Cube.get(cube_uid, comms)
+            ui.print("> Preparation cube download complete")
 
-            check_cube_validity(cube, sp)
+            check_cube_validity(cube, ui)
 
-            sp.text = f"Running preparation step..."
+            ui.text = f"Running preparation step..."
             cube.run(
-                sp,
+                ui,
                 task="prepare",
                 data_path=data_path,
                 labels_path=labels_path,
                 output_path=out_datapath,
             )
-            sp.write("> Cube execution complete")
+            ui.print("> Cube execution complete")
 
-            sp.text = "Running sanity check..."
-            cube.run(sp, task="sanity_check", data_path=out_datapath)
-            sp.write("> Sanity checks complete")
+            ui.text = "Running sanity check..."
+            cube.run(ui, task="sanity_check", data_path=out_datapath)
+            ui.print("> Sanity checks complete")
 
-            sp.text = "Generating statistics..."
-            cube.run(sp, task="statistics", data_path=out_datapath)
-            sp.write("> Statistics complete")
+            ui.text = "Generating statistics..."
+            cube.run(ui, task="statistics", data_path=out_datapath)
+            ui.print("> Statistics complete")
 
-            sp.text = "Starting registration procedure"
+            ui.text = "Starting registration procedure"
             registration = Registration(cube)
             registration.generate_uids(data_path, out_datapath)
-            if registration.is_registered():
+            if registration.is_registered(ui):
                 pretty_error(
-                    "This dataset has already been registered. Cancelling submission"
+                    "This dataset has already been registered. Cancelling submission",
+                    ui,
                 )
 
-            with sp.hidden():
-                approved = registration.request_approval()
-                if approved:
-                    registration.retrieve_additional_data()
-                else:
-                    pretty_error(
-                        "Registration operation cancelled", add_instructions=False
-                    )
+        approved = registration.request_approval(ui)
+        if approved:
+            registration.retrieve_additional_data(ui)
+        else:
+            pretty_error("Registration operation cancelled", ui, add_instructions=False)
 
+        with ui.interactive() as ui:
             registration.write(out_path)
-            sp.write("Uploading")
-            data_uid = registration.upload(server)
+            ui.print("Uploading")
+            data_uid = registration.upload(comms)
             registration.to_permanent_path(out_path, data_uid)
             cleanup()
             return data_uid

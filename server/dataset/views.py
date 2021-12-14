@@ -5,6 +5,8 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from .permissions import IsAdmin, IsDatasetOwner
+
 
 class DatasetList(GenericAPIView):
     serializer_class = DatasetSerializer
@@ -32,6 +34,13 @@ class DatasetList(GenericAPIView):
 class DatasetDetail(GenericAPIView):
     serializer_class = DatasetSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsDatasetOwner]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:

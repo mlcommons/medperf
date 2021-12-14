@@ -32,3 +32,9 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Set server environment vars
+      working-directory: ./server
+      run: cp .env.example .env
+    - name: Run server unit tests
+      working-directory: ./server
+      run: python manage.py test
