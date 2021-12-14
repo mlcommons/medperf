@@ -1,12 +1,12 @@
 import os
 import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import medperf
 from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.entities import Registration, Cube, Server
+from medperf.entities import Registration, Cube
 
 
 IN_PATH = "in_path"
