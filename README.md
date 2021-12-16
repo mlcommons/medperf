@@ -80,3 +80,19 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    - 5: NIH DenseNet Model
 
     During model execution, you will be asked for confirmation of uploading the metrics results to the server.
+
+## Automated Test
+A `test.sh` script is provided for automatically running the whole demo on a public mock dataset.
+
+### Requirements for running the test
+- It is assumed that the `medperf` command is already installed (See instructions on `cli/README.md`) and that all dependencies for the server are also installed (See instructions on `server/README.md`).
+- `mlcube` command is also required (See instructions on `cli/README.md`)
+- The docker engine must be running
+- A connection to internet is required for retrieving the demo dataset and mlcubes
+
+Once all the requirements are met, running `sh test.sh` will:
+- cleanup any leftover medperf-related files (WARNING! Running this will delete the medperf workspace, along with prepared datasets, cubes and results!)
+- Instantiate and seed the server using `server/server.sh`
+- Retrieve the demo dataset
+- Run the CLI demo using `cli/cli.sh`
+- cleanup temporary files
