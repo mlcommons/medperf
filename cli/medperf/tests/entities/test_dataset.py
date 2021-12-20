@@ -25,6 +25,12 @@ TMP_PREFIX = config["tmp_reg_prefix"]
 
 
 @pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
+
+
+@pytest.fixture
 def basic_arrange(mocker):
     m = mock_open()
     mocker.patch("builtins.open", m, create=True)

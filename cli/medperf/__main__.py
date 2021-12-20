@@ -11,6 +11,7 @@ from medperf.commands import (
     Datasets,
 )
 from medperf.config import config
+from medperf.utils import init_storage
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory

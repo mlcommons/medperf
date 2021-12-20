@@ -28,6 +28,7 @@ class Benchmark(models.Model):
         on_delete=models.PROTECT,
         related_name="data_evaluator_mlcube",
     )
+    is_valid = models.BooleanField(default=True)
     approval_status = models.CharField(
         choices=BENCHMARK_STATUS, max_length=100, default="PENDING"
     )

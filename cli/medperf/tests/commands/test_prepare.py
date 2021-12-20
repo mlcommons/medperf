@@ -6,18 +6,18 @@ from medperf.tests.mocks import Benchmark, MockCube
 from medperf.commands import DataPreparation
 from medperf.entities import Registration
 
-patch_dataprep = "medperf.commands.prepare.{}"
-out_path = "out_path"
-out_datapath = "out_datapath"
-benchmark_uid = "benchmark_uid"
-data_path = "data_path"
-labels_path = "labels_path"
+PATCH_DATAPREP = "medperf.commands.prepare.{}"
+OUT_PATH = "out_path"
+OUT_DATAPATH = "out_datapath"
+BENCHMARK_UID = "benchmark_uid"
+DATA_PATH = "data_path"
+LABELS_PATH = "labels_path"
 
 
 @pytest.fixture
 def registration(mocker, request):
     mock_reg = mocker.create_autospec(spec=Registration)
-    mocker.patch.object(mock_reg, "generate_uid")
+    mocker.patch.object(mock_reg, "generate_uids")
     mocker.patch.object(mock_reg, "is_registered", return_value=False)
     mocker.patch.object(mock_reg, "retrieve_additional_data")
     mocker.patch.object(mock_reg, "to_permanent_path")
@@ -29,15 +29,15 @@ def registration(mocker, request):
 @pytest.fixture
 def preparation(mocker, comms, ui, registration):
     mocker.patch("os.path.abspath", side_effect=lambda x: x)
-    mocker.patch(patch_dataprep.format("init_storage"))
+    mocker.patch(PATCH_DATAPREP.format("init_storage"))
     mocker.patch(
-        patch_dataprep.format("generate_tmp_datapath"),
-        return_value=(out_path, out_datapath),
+        PATCH_DATAPREP.format("generate_tmp_datapath"),
+        return_value=(OUT_PATH, OUT_DATAPATH),
     )
-    mocker.patch(patch_dataprep.format("Benchmark.get"), return_value=Benchmark())
-    preparation = DataPreparation(benchmark_uid, data_path, labels_path, comms, ui)
-    mocker.patch(patch_dataprep.format("Registration"), return_value=registration)
-    mocker.patch(patch_dataprep.format("Cube.get"), return_value=MockCube(True))
+    mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
+    preparation = DataPreparation(BENCHMARK_UID, DATA_PATH, LABELS_PATH, comms, ui)
+    mocker.patch(PATCH_DATAPREP.format("Registration"), return_value=registration)
+    mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()
     return preparation
 
@@ -49,7 +49,7 @@ class TestWithDefaultUID:
         # Arrange
         preparation.benchmark.data_preparation = cube_uid
         spy = mocker.patch(
-            patch_dataprep.format("Cube.get"), return_value=MockCube(True)
+            PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
         )
 
         # Act
@@ -62,8 +62,8 @@ class TestWithDefaultUID:
     def test_get_prep_cube_checks_validity(self, mocker, preparation, cube_uid):
         # Arrange
         preparation.benchmark.data_preparation = cube_uid
-        mocker.patch(patch_dataprep.format("Cube.get"), return_value=MockCube(True))
-        spy = mocker.patch(patch_dataprep.format("check_cube_validity"))
+        mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
+        spy = mocker.patch(PATCH_DATAPREP.format("check_cube_validity"))
 
         # Act
         preparation.get_prep_cube()
@@ -78,12 +78,12 @@ class TestWithDefaultUID:
         prepare = call(
             ui,
             task="prepare",
-            data_path=data_path,
-            labels_path=labels_path,
-            output_path=out_datapath,
+            data_path=DATA_PATH,
+            labels_path=LABELS_PATH,
+            output_path=OUT_DATAPATH,
         )
-        check = call(ui, task="sanity_check", data_path=out_datapath)
-        stats = call(ui, task="statistics", data_path=out_datapath)
+        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH)
+        stats = call(ui, task="statistics", data_path=OUT_DATAPATH)
         calls = [prepare, check, stats]
 
         # Act
@@ -96,13 +96,13 @@ class TestWithDefaultUID:
         self, mocker, preparation, registration
     ):
         # Arrange
-        spy = mocker.patch.object(registration, "generate_uid")
+        spy = mocker.patch.object(registration, "generate_uids")
 
         # Act
         preparation.create_registration()
 
         # Assert
-        spy.assert_called_once_with(out_datapath)
+        spy.assert_called_once_with(DATA_PATH, OUT_DATAPATH)
 
     def test_create_registration_fails_if_already_registered(
         self, mocker, preparation, registration
@@ -110,7 +110,7 @@ class TestWithDefaultUID:
         # Arrange
         spy = mocker.patch.object(registration, "is_registered", return_value=True)
         mocker.patch(
-            patch_dataprep.format("pretty_error"),
+            PATCH_DATAPREP.format("pretty_error"),
             side_effect=lambda *args, **kwargs: exit(),
         )
 
@@ -127,7 +127,7 @@ class TestWithDefaultUID:
         # Arrange
         mocker.patch.object(registration, "is_registered", return_value=True)
         spy = mocker.patch(
-            patch_dataprep.format("pretty_error"),
+            PATCH_DATAPREP.format("pretty_error"),
             side_effect=lambda *args, **kwargs: exit(),
         )
 
@@ -161,7 +161,7 @@ class TestWithDefaultUID:
         preparation.create_registration()
 
         # Assert
-        spy.assert_called_once_with(out_path)
+        spy.assert_called_once_with(OUT_PATH)
 
     def test_create_registration_writes_reg_file(
         self, mocker, preparation, registration
@@ -191,16 +191,16 @@ class TestWithDefaultUID:
     def test_run_executes_expected_flow(self, mocker, comms, ui, preparation):
         # Arrange
         get_cube_spy = mocker.patch(
-            patch_dataprep.format("DataPreparation.get_prep_cube")
+            PATCH_DATAPREP.format("DataPreparation.get_prep_cube")
         )
         run_cube_spy = mocker.patch(
-            patch_dataprep.format("DataPreparation.run_cube_tasks")
+            PATCH_DATAPREP.format("DataPreparation.run_cube_tasks")
         )
         create_reg_spy = mocker.patch(
-            patch_dataprep.format("DataPreparation.create_registration"),
+            PATCH_DATAPREP.format("DataPreparation.create_registration"),
             return_value="",
         )
-        mocker.patch(patch_dataprep.format("cleanup"))
+        mocker.patch(PATCH_DATAPREP.format("cleanup"))
 
         # Act
         DataPreparation.run("", "", "", comms, ui)
@@ -219,7 +219,7 @@ def test_run_returns_registration_generated_uid(
 ):
     # Arrange
     mocker.patch.object(preparation.cube, "run")
-    mocker.patch(patch_dataprep.format("cleanup"))
+    mocker.patch(PATCH_DATAPREP.format("cleanup"))
 
     # Act
     returned_uid = DataPreparation.run("", "", "", comms, ui)

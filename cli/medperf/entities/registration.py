@@ -7,6 +7,8 @@ from medperf.ui import UI
 from medperf.utils import (
     get_folder_sha1,
     pretty_error,
+    approval_prompt,
+    dict_pretty_print,
 )
 from medperf.comms import Comms
 from medperf.config import config
@@ -14,6 +16,14 @@ from medperf.entities import Cube, Dataset
 
 
 class Registration:
+    """
+    Class representing a Dataset Registration
+
+    A Registration object represents a prepared dataset that hasn't
+    yet been registered on the platform. It contains the procedures
+    required to successfully submit a dataset entry.
+    """
+
     def __init__(
         self,
         cube: Cube,
@@ -39,18 +49,21 @@ class Registration:
         self.status = "PENDING"
         self.generated_uid = None
         self.uid = None
+        self.in_uid = None
         self.path = None
 
-    def generate_uid(self, out_path: str) -> str:
-        """Auto-generates an UID based on the contents of the registration
+    def generate_uids(self, in_path: str, out_path: str) -> str:
+        """Auto-generates dataset UIDs for both input and output paths
 
         Args:
+            in_path (str): location of the raw dataset
             out_path (str): location of the prepared dataset
         Returns:
             str: generated UID
         """
-        self.generated_uid = get_folder_sha1(out_path)
-        return self.generated_uid
+        self.in_uid = get_folder_sha1(in_path)
+        self.uid = get_folder_sha1(out_path)
+        return self.uid
 
     def __get_stats(self) -> dict:
         """Unwinds the cube output statistics location and retrieves the statistics data
@@ -76,7 +89,8 @@ class Registration:
             "location": self.location,
             "split_seed": self.split_seed,
             "data_preparation_mlcube": self.cube.uid,
-            "generated_uid": self.generated_uid,
+            "generated_uid": self.uid,
+            "input_data_hash": self.in_uid,
             "metadata": self.stats,
             "status": self.status,
             "uid": self.uid,
@@ -85,10 +99,30 @@ class Registration:
         return registration
 
     def retrieve_additional_data(self, ui: UI):
-        """Prompts the user for the name, description and location"""
+        """Prompts the user for the name, description and location
+        """
         self.name = ui.prompt("Provide a dataset name: ")
         self.description = ui.prompt("Provide a description:  ")
         self.location = ui.prompt("Provide a location:     ")
+
+    def request_approval(self, ui: UI) -> bool:
+        """Prompts the user for approval concerning uploading the registration to the comms.
+
+        Returns:
+            bool: Wether the user gave consent or not.
+        """
+        if self.status == "APPROVED":
+            return True
+
+        dict_pretty_print(self.todict(), ui)
+        ui.print(
+            "Above is the information and statistics that will be registered to the database"
+        )
+        approved = approval_prompt(
+            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
+            ui,
+        )
+        return approved
 
     def to_permanent_path(self, out_path: str) -> str:
         """Renames the temporary data folder to permanent one using the hash of
@@ -107,7 +141,7 @@ class Registration:
         self.path = new_path
         return new_path
 
-    def write(self, filename: str = config["reg_file"]) -> str:
+    def write(self, out_path: str, filename: str = config["reg_file"]) -> str:
         """Writes the registration into disk
 
         Args:
@@ -125,6 +159,18 @@ class Registration:
         self.path = filepath
         return filepath
 
+    def upload(self, comms: Comms) -> int:
+        """Uploads the registration information to the comms.
+
+        Args:
+            comms (Comms): Instance of the comms interface.
+        
+        Returns:
+            int: UID of registered dataset
+        """
+        dataset_uid = comms.upload_dataset(self.todict())
+        return dataset_uid
+
     def is_registered(self, ui: UI) -> bool:
         """Checks if the entry has already been registered as a dataset. Uses the
         generated UID for comparison.
@@ -132,7 +178,7 @@ class Registration:
         Returns:
             bool: Wether the generated UID is already present in the registered datasets.
         """
-        if self.generated_uid is None:
+        if self.uid is None:
             pretty_error(
                 "The registration doesn't have an uid yet. Generate it before running this method.",
                 ui,

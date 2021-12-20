@@ -14,6 +14,12 @@ patch_server = "medperf.comms.rest.{}"
 
 
 @pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
+
+
+@pytest.fixture
 def server(mocker, ui):
     server = REST(url, ui)
     return server

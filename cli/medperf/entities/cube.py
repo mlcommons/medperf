@@ -15,6 +15,15 @@ from medperf.utils import (
 
 
 class Cube(object):
+    """
+    Class representing an MLCube Container
+
+    Medperf platform uses the MLCube container for components such as
+    Dataset Preparation, Evaluation, and the Registered Models. MLCube 
+    containers are software containers (e.g., Docker and Singularity) 
+    with standard metadata and a consistent file-system level interface. 
+    """
+
     def __init__(
         self,
         uid: str,
@@ -92,7 +101,7 @@ class Cube(object):
         for k, v in kwargs.items():
             cmd_arg = f"{k}={v}"
             cmd = " ".join([cmd, cmd_arg])
-        proc = pexpect.spawn(cmd)
+        proc = pexpect.spawn(cmd, timeout=None)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
         if proc.exitstatus != 0:
