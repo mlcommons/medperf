@@ -51,6 +51,7 @@ class Dataset:
             "description": self.description,
             "location": self.location,
             "data_preparation_mlcube": self.preparation_cube_uid,
+            "input_data_hash": self.generated_uid,
             "generated_uid": self.generated_uid,
             "split_seed": self.split_seed,
             "metadata": self.metadata,

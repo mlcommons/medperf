@@ -62,8 +62,8 @@ class Registration:
             str: generated UID
         """
         self.in_uid = get_folder_sha1(in_path)
-        self.uid = get_folder_sha1(out_path)
-        return self.uid
+        self.generated_uid = get_folder_sha1(out_path)
+        return self.generated_uid
 
     def __get_stats(self) -> dict:
         """Unwinds the cube output statistics location and retrieves the statistics data
@@ -89,7 +89,7 @@ class Registration:
             "location": self.location,
             "split_seed": self.split_seed,
             "data_preparation_mlcube": self.cube.uid,
-            "generated_uid": self.uid,
+            "generated_uid": self.generated_uid,
             "input_data_hash": self.in_uid,
             "metadata": self.stats,
             "status": self.status,
@@ -130,7 +130,6 @@ class Registration:
 
         Args:
             out_path (str): current temporary location of the data
-            uid (int): UID of registered dataset. Obtained after uploading to comms
 
         Returns:
             str: renamed location of the data.
@@ -141,7 +140,7 @@ class Registration:
         self.path = new_path
         return new_path
 
-    def write(self, out_path: str, filename: str = config["reg_file"]) -> str:
+    def write(self, filename: str = config["reg_file"]) -> str:
         """Writes the registration into disk
 
         Args:
@@ -178,7 +177,7 @@ class Registration:
         Returns:
             bool: Wether the generated UID is already present in the registered datasets.
         """
-        if self.uid is None:
+        if self.generated_uid is None:
             pretty_error(
                 "The registration doesn't have an uid yet. Generate it before running this method.",
                 ui,
@@ -186,5 +185,5 @@ class Registration:
             )
 
         dsets = Dataset.all(ui)
-        registered_uids = [dset.registration["generated_uid"] for dset in dsets]
-        return self.generated_uid in registered_uids
+        registered_uids = [dset.registration["uid"] for dset in dsets]
+        return self.uid in registered_uids
