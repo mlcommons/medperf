@@ -90,6 +90,7 @@ def submit(
         ..., "--model_uid", "-m", help="UID of the executed model"
     ),
 ):
+    """Submits already obtained results to the server"""
     comms = state["comms"]
     ui = state["ui"]
     comms.authenticate()
