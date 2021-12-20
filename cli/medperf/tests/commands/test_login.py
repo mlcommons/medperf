@@ -35,6 +35,7 @@ def test_removes_previous_credentials(mocker, comms, ui):
     creds_path = config["credentials_path"]
     spy = mocker.patch("os.remove")
     mocker.patch("builtins.open", mock_open())
+    mocker.patch("os.path.exists", return_value=True)
 
     # Act
     Login.run(comms, ui)
