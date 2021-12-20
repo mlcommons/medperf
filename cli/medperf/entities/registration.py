@@ -185,5 +185,5 @@ class Registration:
             )
 
         dsets = Dataset.all(ui)
-        registered_uids = [dset.registration["uid"] for dset in dsets]
-        return self.uid in registered_uids
+        registered_uids = [dset.registration["generated_uid"] for dset in dsets]
+        return self.generated_uid in registered_uids

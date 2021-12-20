@@ -42,7 +42,7 @@ def ui(mocker):
 
 class MockedDataset:
     def __init__(self, uid, ui):
-        self.registration = {"generated_uid": uid}
+        self.registration = {"uid": uid, "generated_uid": uid}
 
 
 @pytest.fixture
@@ -98,7 +98,7 @@ def test_generate_uids_assigns_uids_to_obj_properties(
 
     # Assert
     assert registration.in_uid == in_path
-    assert registration.uid == out_path
+    assert registration.generated_uid == out_path
 
 
 @pytest.mark.parametrize("path", ["stats_path", "./workspace/outputs/statistics.yaml"])
@@ -273,7 +273,7 @@ def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_para
     # Arrange
     spy = mocker.patch(PATCH_REGISTRATION.format("Dataset.all"), return_values=[])
     reg = Registration(*reg_mocked_with_params)
-    reg.uid = 1
+    reg.generated_uid = 1
 
     # Act
     reg.is_registered(ui)
@@ -291,7 +291,7 @@ def test_is_registered_finds_uid_in_dsets(
     dsets = [MockedDataset(dset_uid, ui) for dset_uid in dset_uids]
     mocker.patch(PATCH_REGISTRATION.format("Dataset.all"), return_value=dsets)
     reg = Registration(*reg_mocked_with_params)
-    reg.uid = uid
+    reg.generated_uid = uid
 
     # Act
     registered = reg.is_registered(ui)
