@@ -1,9 +1,9 @@
+from typing import Type
 from collections.abc import Callable
 import logging
 import os
 
 from medperf.utils import cleanup, pretty_error
-from medperf.entities import Server
 from medperf.config import config
 
 

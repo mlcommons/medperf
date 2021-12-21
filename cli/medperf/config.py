@@ -21,4 +21,6 @@ config = {
     "tarball_filename": "tmp.tar.gz",
     "reg_file": "registration-info.yaml",
     "log_file": os.path.join(storage, "medperf.log"),
+    "default_comms": "REST",
+    "default_ui": "CLI",
 }

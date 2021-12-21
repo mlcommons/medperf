@@ -1,9 +1,19 @@
 from typing import List
 
-from medperf.entities import Server
+from medperf.comms import Comms
 
 
 class Benchmark:
+    """
+    Class representing a Benchmark
+
+    a benchmark is a bundle of assets that enables quantitative 
+    measurement of the performance of AI models for a specific 
+    clinical problem. A Benchmark instance contains information
+    regarding how to prepare datasets for execution, as well as
+    what models to run and how to evaluate them.
+    """
+
     def __init__(self, uid: str, benchmark_dict: dict):
         """Creates a new benchmark instance
 
@@ -24,31 +34,31 @@ class Benchmark:
         self.evaluator = benchmark_dict["data_evaluator_mlcube"]
 
     @classmethod
-    def get(cls, benchmark_uid: str, server: Server) -> "Benchmark":
+    def get(cls, benchmark_uid: str, comms: Comms) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server
 
         Args:
             benchmark_uid (str): UID of the benchmark.
-            server (Server): Instance of the server interface.
+            comms (Comms): Instance of a communication interface.
 
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
         """
-        benchmark_dict = server.get_benchmark(benchmark_uid)
+        benchmark_dict = comms.get_benchmark(benchmark_uid)
         ref_model = benchmark_dict["reference_model_mlcube"]
-        add_models = cls.get_models_uids(benchmark_uid, server)
+        add_models = cls.get_models_uids(benchmark_uid, comms)
         benchmark_dict["models"] = [ref_model] + add_models
         return cls(benchmark_uid, benchmark_dict)
 
     @classmethod
-    def get_models_uids(cls, benchmark_uid: str, server: Server) -> List[str]:
+    def get_models_uids(cls, benchmark_uid: str, comms: Comms) -> List[str]:
         """Retrieves the list of models associated to the benchmark
 
         Args:
             benchmark_uid (str): UID of the benchmark.
-            server (Server): Instance of the server interface.
+            comms (Comms): Instance of the communications interface.
 
         Returns:
             List[str]: List of mlcube uids
         """
-        return server.get_benchmark_models(benchmark_uid)
+        return comms.get_benchmark_models(benchmark_uid)
