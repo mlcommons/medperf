@@ -61,7 +61,7 @@ class MlCubeDetail(GenericAPIView):
         Update a mlcube instance.
         """
         mlcube = self.get_object(pk)
-        serializer = MlCubeDetailSerializer(mlcube, data=request.data)
+        serializer = MlCubeDetailSerializer(mlcube, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

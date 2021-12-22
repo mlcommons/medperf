@@ -37,18 +37,14 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         owner = self.instance.owner
-        if data["approval_status"] == "PENDING" and self.instance.approval_status != 'PENDING':
-            pending_benchmarks = Benchmark.objects.filter(
-                owner=owner, approval_status="PENDING"
-            )
-            if len(pending_benchmarks) > 0:
-                raise serializers.ValidationError(
-                    "User can own at most one pending benchmark"
-                )
-        if data["approval_status"] != "PENDING" and self.instance.state == "DEVELOPMENT":
-            raise serializers.ValidationError(
-                    "User cannot approve or reject when benchmark is in development stage"
-                    )
+        if "approval_status" in data:
+            if data["approval_status"] == "PENDING" and self.instance.approval_status != 'PENDING':
+                pending_benchmarks = Benchmark.objects.filter(
+                    owner=owner, approval_status="PENDING")
+                if len(pending_benchmarks) > 0:
+                    raise serializers.ValidationError("User can own at most one pending benchmark")
+            if data["approval_status"] != "PENDING" and self.instance.state == "DEVELOPMENT":
+                raise serializers.ValidationError("User cannot approve or reject when benchmark is in development stage")
         if self.instance.state == "OPERATION":
             editable_fields = ['is_valid', 'is_active', 'user_metadata', 'approval_status']
             for k, v in data.items():

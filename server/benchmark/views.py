@@ -110,11 +110,6 @@ class BenchmarkDetail(GenericAPIView):
             self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()
 
-    #def get_serializer_class(self):
-    #    if self.request.method == "PUT" or self.request.method == "DELETE":
-    #        return BenchmarkApprovalSerializer
-    #    return BenchmarkSerializer
-
     def get_object(self, pk):
         try:
             return Benchmark.objects.get(pk=pk)
@@ -134,7 +129,7 @@ class BenchmarkDetail(GenericAPIView):
         Update a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        serializer = BenchmarkApprovalSerializer(benchmark, data=request.data)
+        serializer = BenchmarkApprovalSerializer(benchmark, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

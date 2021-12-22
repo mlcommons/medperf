@@ -13,9 +13,9 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate(self, data):
-        bid = self.context["request"].data.get('benchmark')
-        mlcube = self.context["request"].data.get('model_mlcube')
-        approval_status =  self.context["request"].data.get('approval_status')
+        bid = self.context["request"].data.get("benchmark")
+        mlcube = self.context["request"].data.get("model_mlcube")
+        approval_status =  self.context["request"].data.get("approval_status", "PENDING")
         benchmark = Benchmark.objects.get(pk=bid)
         benchmark_state = benchmark.state 
         if benchmark_state != "OPERATION":
