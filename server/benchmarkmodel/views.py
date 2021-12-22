@@ -20,7 +20,9 @@ class BenchmarkModelList(GenericAPIView):
         """
         Associate a model to a benchmark
         """
-        serializer = BenchmarkModelListSerializer(data=request.data, context={"request": request})
+        serializer = BenchmarkModelListSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -71,7 +73,9 @@ class ModelApproval(GenericAPIView):
         """
         Update approval status of the last benchmark model association
         """
-        benchmarkmodel = self.get_object(pk, bid).order_by('-created_at').first()
+        benchmarkmodel = (
+            self.get_object(pk, bid).order_by("-created_at").first()
+        )
         serializer = ModelApprovalSerializer(
             benchmarkmodel, data=request.data, context={"request": request}
         )

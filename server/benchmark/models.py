@@ -11,7 +11,7 @@ class Benchmark(models.Model):
 
     BENCHMARK_STATE = (
         ("DEVELOPMENT", "DEVELOPMENT"),
-        ("OPERATION", "OPERATION"), 
+        ("OPERATION", "OPERATION"),
     )
 
     name = models.CharField(max_length=20, unique=True)

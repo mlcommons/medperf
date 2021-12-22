@@ -20,7 +20,9 @@ class BenchmarkDatasetList(GenericAPIView):
         """
         Associate a dataset to a benchmark
         """
-        serializer = BenchmarkDatasetListSerializer(data=request.data, context={"request": request})
+        serializer = BenchmarkDatasetListSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -73,7 +75,9 @@ class DatasetApproval(GenericAPIView):
         """
         Update approval status of the last benchmark dataset association
         """
-        benchmarkdataset = self.get_object(pk, bid).order_by('-created_at').first()
+        benchmarkdataset = (
+            self.get_object(pk, bid).order_by("-created_at").first()
+        )
         serializer = DatasetApprovalSerializer(
             benchmarkdataset, data=request.data, context={"request": request}
         )
