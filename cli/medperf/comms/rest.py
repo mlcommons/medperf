@@ -235,7 +235,11 @@ class REST(Comms):
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
         """
-        data = {"dataset": data_uid, "benchmark": benchmark_uid}
+        data = {
+            "dataset": data_uid,
+            "benchmark": benchmark_uid,
+            "approval_status": "PENDING",
+        }
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
