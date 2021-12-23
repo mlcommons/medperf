@@ -23,6 +23,7 @@ REG_DICT_KEYS = [
     "input_data_hash",
     "metadata",
     "status",
+    "state",
 ]
 
 
