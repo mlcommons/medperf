@@ -20,7 +20,7 @@ from google.cloud import secretmanager
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-env = environ.Env(DEBUG=(bool, False), LOCAL=(bool, False))
+env = environ.Env()
 env_file = os.path.join(BASE_DIR, ".env")
 
 if os.path.isfile(env_file):
@@ -39,7 +39,7 @@ else:
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
     client = secretmanager.SecretManagerServiceClient()
-    settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
+    settings_name = os.environ.get("SETTINGS_SECRETS_NAME", "django-dev-settings")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
     payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
 
@@ -49,14 +49,18 @@ else:
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("DEBUG")
+DEBUG = env("DEBUG", default=False)
 
-LOCAL = env("LOCAL")
+ADMIN_USERNAME = env("ADMIN_USERNAME")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+ADMIN_PASSWORD = env("ADMIN_PASSWORD")
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # TODO Change later to list of allowed domains
 CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
 # Application definition
 
@@ -163,7 +167,7 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 GS_BUCKET_NAME = env("GS_BUCKET_NAME", default=None)
 
-GS_DEFAULT_ACL = env("GS_DEFAULT_ACL", default="publicRead")
+GS_DEFAULT_ACL = "publicRead"
 
 if GS_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
@@ -191,3 +195,8 @@ SWAGGER_SETTINGS = {
     },
     "JSON_EDITOR": True,
 }
+
+# Setup support for proxy headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+

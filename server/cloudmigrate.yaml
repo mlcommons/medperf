@@ -5,7 +5,9 @@ steps:
       [
       "build", 
       "-t", 
-      "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}", 
+      "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}",
+      "-f",
+      "Dockerfile.cloudbuild", 
       "."
       ]
 
@@ -14,7 +16,7 @@ steps:
     args: 
       [
         "push", 
-        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}"
+        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}"
       ]
 
   - id: "apply migrations"
@@ -22,11 +24,11 @@ steps:
     args:
       [
         "-i",
-        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}",
+        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}",
         "-s",
         "${PROJECT_ID}:${_REGION}:${_INSTANCE_NAME}",
         "-e",
-        "SETTINGS_NAME=${_SECRET_SETTINGS_NAME}",
+        "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
         "--",
         "python",
         "manage.py",
@@ -38,11 +40,11 @@ steps:
     args:
       [
         "-i",
-        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}",
+        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}",
         "-s",
         "${PROJECT_ID}:${_REGION}:${_INSTANCE_NAME}",
         "-e",
-        "SETTINGS_NAME=${_SECRET_SETTINGS_NAME}",
+        "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
         "--",
         "python",
         "manage.py",
@@ -64,7 +66,7 @@ steps:
         "--region", 
         "${_REGION}", 
         "--image", 
-        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:latest", 
+        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:latest", 
         "--add-cloudsql-instances", 
         "${PROJECT_ID}:${_REGION}:${_INSTANCE_NAME}", 
         "--allow-unauthenticated"
@@ -74,6 +76,7 @@ substitutions:
   _REGION: us-west1
   _ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
   _REPO_NAME: medperf-repo
-  _SERVICE_NAME: api-service
-  _SECRET_SETTINGS_NAME: django_settings
+  _IMAGE_NAME: medperf-api-dev
+  _SERVICE_NAME: medperf-api-dev-service
+  _SECRET_SETTINGS_NAME: django-dev-settings
   _INSTANCE_NAME: medperf-dev
