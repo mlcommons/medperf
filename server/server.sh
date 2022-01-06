@@ -30,21 +30,41 @@ DATA_PREPROCESSOR_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  
 
 echo "Data Preprocessor MLCube Created(by Benchmark Owner). ID: $DATA_PREPROCESSOR_MLCUBE"
 
+# Update state of the Data preprocessor MLCube to OPERATION
+DATA_PREPROCESSOR_MLCUBE_STATE=$(curl -s -X PUT "http://127.0.0.1:8000/mlcubes/$DATA_PREPROCESSOR_MLCUBE/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"state\": \"OPERATION\"}" | jq -r '.state')
+
+echo "Data Preprocessor MlCube state updated to $DATA_PREPROCESSOR_MLCUBE_STATE by Benchmark Owner"
+
 # Create a reference model executor mlcube by Benchmark Owner
 REFERENCE_MODEL_EXECUTOR_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{ \"name\": \"xrv_chex_densenet\", \"git_mlcube_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_chex_densenet/mlcube.yaml\", \"git_parameters_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_chex_densenet/parameters.yaml\", \"tarball_url\": \"https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz\", \"tarball_hash\": \"c5c408b5f9ef8b1da748e3b1f2d58b8b3eebf96e\", \"metadata\": {}}" | jq -r '.id')
 
 
 echo "Reference Model Executor MlCube Created(by Benchmark Owner). ID: $REFERENCE_MODEL_EXECUTOR_MLCUBE"
 
+# Update state of the Reference Model Executor MLCube to OPERATION
+REFERENCE_MODEL_EXECUTOR_MLCUBE_STATE=$(curl -s -X PUT "http://127.0.0.1:8000/mlcubes/$REFERENCE_MODEL_EXECUTOR_MLCUBE/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"state\": \"OPERATION\"}" | jq -r '.state')
+
+echo "Reference Model Executor MlCube state updated to $REFERENCE_MODEL_EXECUTOR_MLCUBE_STATE by Benchmark Owner"
+
 # Create a Data evalutor MLCube by Benchmark Owner 
 DATA_EVALUATOR_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{ \"name\": \"xrv_metrics\", \"git_mlcube_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_metrics/mlcube.yaml\", \"git_parameters_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_metrics/parameters.yaml\", \"metadata\": {}}" | jq -r '.id')
 
 echo "Data Evaluator MlCube Created(by Benchmark Owner). ID: $DATA_EVALUATOR_MLCUBE"
 
+# Update state of the Data Evaluator MLCube to OPERATION
+DATA_EVALUATOR_MLCUBE_STATE=$(curl -s -X PUT "http://127.0.0.1:8000/mlcubes/$DATA_EVALUATOR_MLCUBE/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"state\": \"OPERATION\"}" | jq -r '.state')
+
+echo "Data Evaluator MlCube state updated to $DATA_EVALUATOR_MLCUBE_STATE by Benchmark Owner"
+
 # Create a new benchmark by Benchmark owner
 BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"name\": \"xrv\",  \"description\": \"benchmark-sample\",  \"docs_url\": \"string\",  \"data_preparation_mlcube\": $DATA_PREPROCESSOR_MLCUBE,  \"reference_model_mlcube\": $REFERENCE_MODEL_EXECUTOR_MLCUBE,  \"data_evaluator_mlcube\": $DATA_EVALUATOR_MLCUBE}" | jq -r '.id')
 
 echo "Benchmark Created(by Benchmark Owner). ID: $BENCHMARK"
+
+# Update the benchmark state to OPERATION
+BENCHMARK_STATE=$(curl -s -X PUT "http://127.0.0.1:8000/benchmarks/$BENCHMARK/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"state\": \"OPERATION\"}" | jq -r '.state')
+
+echo "Benchmark state updated to $BENCHMARK_STATE by Benchmark owner"
 
 BENCHMARK_STATUS=$(curl -s -X PUT "http://127.0.0.1:8000/benchmarks/$BENCHMARK/" -H  "accept: application/json" -H  "Authorization: Token $ADMIN_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"| jq -r '.approval_status')
 
@@ -62,10 +82,21 @@ MODEL_EXECUTOR1_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  "a
 
 echo "Model MLCube Created(by Model Owner). ID: $MODEL_EXECUTOR1_MLCUBE"
 
+# Update state of the Model MLCube to OPERATION
+MODEL_EXECUTOR1_MLCUBE_STATE=$(curl -s -X PUT "http://127.0.0.1:8000/mlcubes/$MODEL_EXECUTOR1_MLCUBE/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"state\": \"OPERATION\"}" | jq -r '.state')
+
+echo "Model MlCube state updated to $MODEL_EXECUTOR1_MLCUBE_STATE by Model Owner"
+
+
 # Create another model mlcube by Model Owner
 MODEL_EXECUTOR2_MLCUBE=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{ \"name\": \"xrv_nih_densenet\", \"git_mlcube_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_nih_densenet/mlcube.yaml\", \"git_parameters_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_nih_densenet/parameters.yaml\", \"tarball_url\": \"https://storage.googleapis.com/medperf-storage/xrv_nih_densenet.tar.gz\", \"tarball_hash\": \"2cbba4d29292ca4eadce46070478050503cd9621\", \"metadata\": {}}" | jq -r '.id')
 
 echo "Model MLCube Created(by Model Owner). ID: $MODEL_EXECUTOR2_MLCUBE"
+
+# Update state of the Model MLCube to OPERATION
+MODEL_EXECUTOR2_MLCUBE_STATE=$(curl -s -X PUT "http://127.0.0.1:8000/mlcubes/$MODEL_EXECUTOR2_MLCUBE/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"state\": \"OPERATION\"}" | jq -r '.state')
+
+echo "Model MlCube state updated to $MODEL_EXECUTOR2_MLCUBE_STATE by Model Owner"
 
 # Associate the model-executor1 mlcube to the created benchmark by model owner user
 MODEL_EXECUTOR1_IN_BENCHMARK=$(curl -s -X POST "http://127.0.0.1:8000/mlcubes/benchmarks/" -H  "accept: application/json" -H  "Authorization: Token $MODEL_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"model_mlcube\": $MODEL_EXECUTOR1_MLCUBE,  \"benchmark\": $BENCHMARK, \"results\": {\"key1\":\"value1\", \"key2\":\"value2\"} }")

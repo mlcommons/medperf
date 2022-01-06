@@ -94,6 +94,7 @@ class Registration:
             "metadata": self.stats,
             "status": self.status,
             "uid": self.uid,
+            "state": "OPERATION",
         }
 
         return registration

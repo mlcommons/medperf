@@ -65,7 +65,7 @@ def server(mocker, ui):
             [1, 1],
             {},
             (f"{url}/datasets/benchmarks/",),
-            {"json": {"benchmark": 1, "dataset": 1}},
+            {"json": {"benchmark": 1, "dataset": 1, "approval_status": "PENDING"}},
         ),
     ],
 )
