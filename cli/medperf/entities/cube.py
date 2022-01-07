@@ -3,6 +3,7 @@ import yaml
 import os
 from pathlib import Path
 import pexpect
+import time
 
 from medperf.comms import Comms
 from medperf.ui import UI
@@ -75,6 +76,21 @@ class Cube(object):
             untar_additional(additional_path)
 
         return cls(cube_uid, meta, cube_path, params_path, additional_hash)
+
+    @classmethod
+    def get_local(cls, cube_path: str, params_path: str = None) -> "Cube":
+        """Create an instance of a cube based on a local implementation.
+
+        Args:
+            cube_path (str): path to the mlcube.yaml file associated with this cube.
+            params_path (str, optional): Location of the parameters.yaml file. if exists. Defaults to None.
+        
+        Returns:
+            Cube: a Cube instance pointing to the local mlcube.
+        """
+        cube_uid = f"local_{int(time.time())}"
+        meta = {"name": "local_mlcube"}
+        return cls(cube_uid, meta, cube_path, params_path)
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
