@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     "mlcube",
     "benchmarkmodel",
     "user",
-    "benchmarkuser",
     "result",
     "crispy_forms",
     "rest_framework",

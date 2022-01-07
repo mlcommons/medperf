@@ -28,9 +28,6 @@ class DataPreparation:
         out_path, out_datapath = generate_tmp_datapath()
         init_storage()
 
-        # Ensure user can access the uiecified benchmark
-        if not comms.authorized_by_role(benchmark_uid, "DATA_OWNER"):
-            pretty_error("You're not associated to the benchmark as a data owner", ui)
         benchmark = Benchmark.get(benchmark_uid, comms)
         ui.print(f"Benchmark Data Preparation: {benchmark.name}")
 
@@ -62,7 +59,7 @@ class DataPreparation:
 
             ui.text = "Starting registration procedure"
             registration = Registration(cube)
-            registration.generate_uid(out_datapath)
+            registration.generate_uids(data_path, out_datapath)
             if registration.is_registered(ui):
                 pretty_error(
                     "This dataset has already been registered. Cancelling submission",

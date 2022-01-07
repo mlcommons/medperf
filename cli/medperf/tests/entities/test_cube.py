@@ -204,7 +204,7 @@ def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body):
     cube.run(ui, "task")
 
     # Assert
-    spy.assert_called_once_with(expected_cmd)
+    spy.assert_called_once_with(expected_cmd, timeout=None)
 
 
 def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body):
@@ -220,7 +220,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body):
     cube.run(ui, task, test="test")
 
     # Assert
-    spy.assert_called_once_with(expected_cmd)
+    spy.assert_called_once_with(expected_cmd, timeout=None)
 
 
 def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body):

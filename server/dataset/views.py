@@ -1,9 +1,11 @@
-from .models import Dataset
-from .serializers import DatasetSerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from .models import Dataset
+from .permissions import IsAdmin, IsDatasetOwner
+from .serializers import DatasetSerializer, DatasetDetailSerializer
 
 
 class DatasetList(GenericAPIView):
@@ -30,8 +32,15 @@ class DatasetList(GenericAPIView):
 
 
 class DatasetDetail(GenericAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetDetailSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsDatasetOwner]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:
@@ -44,7 +53,7 @@ class DatasetDetail(GenericAPIView):
         Retrieve a dataset instance.
         """
         dataset = self.get_object(pk)
-        serializer = DatasetSerializer(dataset)
+        serializer = DatasetDetailSerializer(dataset)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
@@ -52,7 +61,9 @@ class DatasetDetail(GenericAPIView):
         Update a dataset instance.
         """
         dataset = self.get_object(pk)
-        serializer = DatasetSerializer(dataset, data=request.data)
+        serializer = DatasetDetailSerializer(
+            dataset, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

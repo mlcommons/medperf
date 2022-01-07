@@ -3,34 +3,26 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
+
+from .permissions import IsAdmin, IsDatasetOwner, IsBenchmarkOwner
 from .serializers import (
     BenchmarkDatasetListSerializer,
-    BenchmarkDatasetApprovalSerializer,
     DatasetApprovalSerializer,
 )
 
 
 class BenchmarkDatasetList(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
     serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
-
-    @swagger_auto_schema(operation_id="datasets_benchmarks_list_all")
-    def get(self, request, format=None):
-        """
-        List all datasets associated across benchmarks
-        """
-        benchmarkdatasets = BenchmarkDataset.objects.all()
-        serializer = BenchmarkDatasetListSerializer(
-            benchmarkdatasets, many=True
-        )
-        return Response(serializer.data)
 
     def post(self, request, format=None):
         """
         Associate a dataset to a benchmark
         """
-        serializer = BenchmarkDatasetListSerializer(data=request.data)
+        serializer = BenchmarkDatasetListSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -38,7 +30,7 @@ class BenchmarkDatasetList(GenericAPIView):
 
 
 class BenchmarkDatasetApproval(GenericAPIView):
-    serializer_class = BenchmarkDatasetApprovalSerializer
+    serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -52,19 +44,20 @@ class BenchmarkDatasetApproval(GenericAPIView):
         Retrieve all benchmarks associated with a dataset
         """
         benchmarkdataset = self.get_object(pk)
-        serializer = BenchmarkDatasetApprovalSerializer(
+        serializer = BenchmarkDatasetListSerializer(
             benchmarkdataset, many=True
         )
         return Response(serializer.data)
 
 
 class DatasetApproval(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
     serializer_class = DatasetApprovalSerializer
     queryset = ""
 
     def get_object(self, dataset_id, benchmark_id):
         try:
-            return BenchmarkDataset.objects.get(
+            return BenchmarkDataset.objects.filter(
                 dataset__id=dataset_id, benchmark__id=benchmark_id
             )
         except BenchmarkDataset.DoesNotExist:
@@ -72,19 +65,21 @@ class DatasetApproval(GenericAPIView):
 
     def get(self, request, pk, bid, format=None):
         """
-        Retrieve approval status of benchmark dataset association
+        Retrieve approval status of benchmark dataset associations
         """
         benchmarkdataset = self.get_object(pk, bid)
-        serializer = DatasetApprovalSerializer(benchmarkdataset)
+        serializer = DatasetApprovalSerializer(benchmarkdataset, many=True)
         return Response(serializer.data)
 
     def put(self, request, pk, bid, format=None):
         """
-        Update approval status of benchmark dataset association
+        Update approval status of the last benchmark dataset association
         """
-        benchmarkdataset = self.get_object(pk, bid)
+        benchmarkdataset = (
+            self.get_object(pk, bid).order_by("-created_at").first()
+        )
         serializer = DatasetApprovalSerializer(
-            benchmarkdataset, data=request.data
+            benchmarkdataset, data=request.data, context={"request": request}
         )
         if serializer.is_valid():
             serializer.save()
