@@ -27,6 +27,7 @@ class BenchmarkExecution:
             model_uid (int): UID of model to execute
         """
         execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
+        execution.prepare()
         execution.validate()
         with execution.ui.interactive():
             execution.get_cubes()
@@ -44,10 +45,11 @@ class BenchmarkExecution:
         self.evaluator = None
         self.model_cube = None
 
+    def prepare(self):
         init_storage()
-        self.benchmark = Benchmark.get(benchmark_uid, comms)
-        ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset(data_uid, ui)
+        self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+        self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
+        self.dataset = Dataset(self.data_uid, self.ui)
 
     def validate(self):
         dset_prep_cube = self.dataset.preparation_cube_uid
