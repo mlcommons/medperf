@@ -1,22 +1,32 @@
 #! /bin/bash
-while getopts u:p:s:d: flag
+while getopts u:p:s:d:c flag
 do
     case "${flag}" in
         u) USERNAME=${OPTARG};;
         p) PASS=${OPTARG};;
         s) SERVER_URL=${OPTARG};;
         d) DIRECTORY=${OPTARG};;
+        c) CLEANUP="true";;
     esac
 done
 USERNAME="${USERNAME:-testdataowner}"
 PASS="${PASS:-test}"
 SERVER_URL="${SERVER_URL:-http://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
+CLEANUP="${CLEANUP:-false}"
 
 echo "username: $USERNAME"
 echo "password: $PASS"
 echo "Server URL: $SERVER_URL"
 
+if ${CLEANUP}; then
+  echo "====================================="
+  echo "Cleaning up medperf tmp files"
+  echo "====================================="
+  rm $DIRECTORY/mock_chexpert.tar.gz
+  rm -fr $DIRECTORY/mock_chexpert
+  rm -fr ~/.medperf
+fi
 echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
@@ -53,9 +63,11 @@ if [ "$?" -ne "0" ]; then
   cat ~/.medperf/medperf.log
   exit 3
 fi
-echo "====================================="
-echo "Cleaning up medperf tmp files"
-echo "====================================="
-rm $DIRECTORY/mock_chexpert.tar.gz
-rm -fr $DIRECTORY/mock_chexpert
-rm -fr ~/.medperf
+if ${CLEANUP}; then
+  echo "====================================="
+  echo "Cleaning up medperf tmp files"
+  echo "====================================="
+  rm $DIRECTORY/mock_chexpert.tar.gz
+  rm -fr $DIRECTORY/mock_chexpert
+  rm -fr ~/.medperf
+fi
