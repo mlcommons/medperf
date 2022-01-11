@@ -48,6 +48,13 @@ jobs:
       working-directory: ./server
       run: sh server.sh -s ${{ env.DEPLOY_URL }}
 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f cli/requirements.txt ]; then pip install -e cli; fi
+
     - name: Run client integration tests
       working-directory: ./cli
       run: sh cli.sh -s ${{ env.DEPLOY_URL }}
