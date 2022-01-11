@@ -93,6 +93,7 @@ class Registration:
             "input_data_hash": self.in_uid,
             "metadata": self.stats,
             "status": self.status,
+            "state": "OPERATION",
         }
 
         if self.uid is not None:
