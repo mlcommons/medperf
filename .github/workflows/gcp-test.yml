@@ -48,5 +48,9 @@ jobs:
       working-directory: ./server
       run: sh server.sh -s ${{ env.DEPLOY_URL }}
 
+    - name: Run client integration tests
+      working-directory: ./cli
+      run: sh cli.sh -s ${{ env.DEPLOY_URL }}
+
     - name: Delete service
       run: gcloud run services delete ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --quiet
