@@ -11,7 +11,7 @@ done
 USERNAME="${USERNAME:-testdataowner}"
 PASS="${PASS:-test}"
 SERVER_URL="${SERVER_URL:-http://127.0.0.1:8000}"
-DIRECTORY="${DIRECTORY:-$DIRECTORY}"
+DIRECTORY="${DIRECTORY:-/tmp}"
 
 echo "username: $USERNAME"
 echo "password: $PASS"
@@ -20,8 +20,9 @@ echo "Server URL: $SERVER_URL"
 echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz &> /dev/null
-tar -xzvf $DIRECTORY/mock_chexpert_dset.tar.gz -C $DIRECTORY &> /dev/null
+wget -P "${DIRECTORY}" https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
+tar -xzvf "${DIRECTORY}/mock_chexpert_dset.tar.gz" -C $DIRECTORY
+chmod a+w "${DIRECTORY}/mock_chexpert"
 echo "====================================="
 echo "Logging the user to medperf"
 echo "====================================="
