@@ -24,9 +24,9 @@ wget -P "${DIRECTORY}" https://storage.googleapis.com/medperf-storage/mock_chexp
 tar -xzvf "${DIRECTORY}/mock_chexpert_dset.tar.gz" -C $DIRECTORY
 chmod a+w "${DIRECTORY}/mock_chexpert"
 echo "====================================="
-echo "Logging the user to medperf"
+echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
-echo -e "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL login
+echo "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL login
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
   exit 1
@@ -35,7 +35,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo -e "Y\nname\ndescription\nlocation\nY\n" | medperf --host=$SERVER_URL prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
+echo "Y\nname\ndescription\nlocation\nY\n" | medperf --host=$SERVER_URL prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
   exit 2
@@ -45,7 +45,7 @@ DSET_UID=$(medperf datasets | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-echo -e "Y\n" | medperf --host=$SERVER_URL execute -b 1 -d $DSET_UID -m 2
+echo "Y\n" | medperf --host=$SERVER_URL execute -b 1 -d $DSET_UID -m 2
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
   exit 3
