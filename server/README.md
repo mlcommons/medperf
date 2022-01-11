@@ -12,19 +12,7 @@ Code is tested on latest python 3.9
 
 ## Create tables and existing models
 
-    python manage.py migrate --run-syncdb 
-
-## Create a superuser
-   
-    python manage.py createsuperuser
-    
-You can assign any username and password. To use [example script](https://github.com/johnugeorge/medperf/blob/main/server.sh) , enter `admin` as username and `admin` as password.
-
-    Username (leave blank to use 'johnu.george'): admin
-    Email address:
-    Password: admin
-    Password (again): admin 
-    Superuser created successfully. 
+    python manage.py migrate
 
 ## Start the server
 
