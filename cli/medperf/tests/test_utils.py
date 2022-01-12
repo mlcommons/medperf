@@ -8,16 +8,16 @@ import os
 
 from medperf import utils
 from medperf.ui import UI
-from medperf.config import config
+import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockCube, MockTar
 
 
-parent = config["storage"]
-data = config["data_storage"]
-cubes = config["cubes_storage"]
-results = config["results_storage"]
-tmp = config["tmp_storage"]
+parent = config.storage
+data = config.data_storage
+cubes = config.cubes_storage
+results = config.results_storage
+tmp = config.tmp_storage
 config_dirs = [parent, data, cubes, results, tmp]
 patch_utils = "medperf.utils.{}"
 
@@ -36,7 +36,7 @@ def datasets(request):
     uids = [str(x) for x in uids]
     for i in range(size):
         if random.randint(0, 1):
-            uids[i] = config["tmp_reg_prefix"] + uids[i]
+            uids[i] = config.tmp_reg_prefix + uids[i]
 
     return uids
 
@@ -131,7 +131,7 @@ def test_cleanup_removes_temporary_storage(mocker):
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
-    prefix = config["tmp_reg_prefix"]
+    prefix = config.tmp_reg_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
     mocker.patch(patch_utils.format("get_dsets"), return_value=datasets)

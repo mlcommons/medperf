@@ -4,7 +4,7 @@ import logging
 import os
 
 from medperf.utils import pretty_error, cube_path
-from medperf.config import config
+import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
 from medperf.ui import UI
@@ -32,7 +32,7 @@ class REST(Comms):
             self.token = res.json()["token"]
 
     def authenticate(self):
-        cred_path = config["credentials_path"]
+        cred_path = config.credentials_path
         if os.path.exists(cred_path):
             with open(cred_path) as f:
                 self.token = f.readline()
@@ -151,7 +151,7 @@ class REST(Comms):
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
-        cube_file = config["cube_filename"]
+        cube_file = config.cube_filename
         return self.__get_cube_file(url, cube_uid, "", cube_file)
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
@@ -164,8 +164,8 @@ class REST(Comms):
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
-        ws = config["workspace_path"]
-        params_file = config["params_filename"]
+        ws = config.workspace_path
+        params_file = config.params_filename
         return self.__get_cube_file(url, cube_uid, ws, params_file)
 
     def get_cube_additional(self, url: str, cube_uid: int) -> str:
@@ -178,8 +178,8 @@ class REST(Comms):
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
-        add_path = config["additional_path"]
-        tball_file = config["tarball_filename"]
+        add_path = config.additional_path
+        tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
 
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):

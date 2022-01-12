@@ -2,7 +2,7 @@ import requests
 import logging
 import os
 from medperf.utils import pretty_error, cube_path
-from medperf.config import config
+import medperf.config as config
 from medperf.enums import Role
 
 
@@ -25,7 +25,6 @@ class Server:
             pretty_error("Unable to authenticate user with provided credentials")
         else:
             self.token = res.json()["token"]
-            
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
@@ -132,7 +131,7 @@ class Server:
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
-        cube_file = config["cube_filename"]
+        cube_file = config.cube_filename
         return self.__get_cube_file(url, cube_uid, "", cube_file)
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
@@ -145,8 +144,8 @@ class Server:
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
-        ws = config["workspace_path"]
-        params_file = config["params_filename"]
+        ws = config.workspace_path
+        params_file = config.params_filename
         return self.__get_cube_file(url, cube_uid, ws, params_file)
 
     def get_cube_additional(self, url: str, cube_uid: int) -> str:
@@ -159,8 +158,8 @@ class Server:
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
-        add_path = config["additional_path"]
-        tball_file = config["tarball_filename"]
+        add_path = config.additional_path
+        tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
 
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
@@ -176,7 +175,6 @@ class Server:
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
-
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.

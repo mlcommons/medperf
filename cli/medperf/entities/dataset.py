@@ -4,7 +4,7 @@ import os
 import logging
 
 from medperf.ui import UI
-from medperf.config import config
+import medperf.config as config
 from medperf.utils import get_dsets, approval_prompt, pretty_error
 
 
@@ -29,7 +29,7 @@ class Dataset:
         """
         data_uid = self.__full_uid(data_uid, ui)
         self.data_uid = data_uid
-        self.dataset_path = os.path.join(config["data_storage"], str(data_uid))
+        self.dataset_path = os.path.join(config.data_storage, str(data_uid))
         self.data_path = os.path.join(self.dataset_path, "data")
         self.registration = self.get_registration()
         self.name = self.registration["name"]
@@ -50,11 +50,11 @@ class Dataset:
         """
         logging.info("Retrieving all datasets")
         try:
-            uids = next(os.walk(config["data_storage"]))[1]
+            uids = next(os.walk(config.data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory")
-        tmp_prefix = config["tmp_reg_prefix"]
+        tmp_prefix = config.tmp_reg_prefix
         dsets = [cls(uid, ui) for uid in uids if not uid.startswith(tmp_prefix)]
         return dsets
 
@@ -86,7 +86,7 @@ class Dataset:
         Returns:
             dict: registration information as key-value pairs.
         """
-        regfile = os.path.join(self.dataset_path, config["reg_file"])
+        regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "r") as f:
             reg = yaml.full_load(f)
         return reg

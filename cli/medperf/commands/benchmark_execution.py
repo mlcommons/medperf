@@ -10,7 +10,7 @@ from medperf.utils import (
     pretty_error,
     cleanup,
 )
-from medperf.config import config
+import medperf.config as config
 from medperf.entities import Result
 
 
@@ -53,7 +53,7 @@ class BenchmarkExecution:
             check_cube_validity(model_cube, ui)
 
             ui.text = "Running model inference on dataset"
-            out_path = config["model_output"]
+            out_path = config.model_output
             model_cube.run(
                 ui, task="infer", data_path=dataset.data_path, output_path=out_path
             )
@@ -65,7 +65,7 @@ class BenchmarkExecution:
             labels_path = os.path.join(dataset.data_path, "data.csv")
 
             ui.text = "Evaluating results"
-            out_path = config["results_storage"]
+            out_path = config.results_storage
             out_path = os.path.join(
                 out_path, str(benchmark.uid), str(model_uid), str(dataset.data_uid)
             )
