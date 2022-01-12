@@ -120,6 +120,7 @@ def main(
 ):
     # Set configuration variables
     config.storage = storage
+
     init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
