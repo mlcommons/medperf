@@ -3,7 +3,7 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path
+from medperf.utils import pretty_error, cube_path, storage_path
 import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
@@ -32,7 +32,7 @@ class REST(Comms):
             self.token = res.json()["token"]
 
     def authenticate(self):
-        cred_path = config.credentials_path
+        cred_path = storage_path(config.credentials_path)
         if os.path.exists(cred_path):
             with open(cred_path) as f:
                 self.token = f.readline()

@@ -5,6 +5,7 @@ import getpass
 from medperf.ui import UI
 from medperf.comms import Comms
 import medperf.config as config
+from medperf.utils import storage_path
 
 
 class Login:
@@ -12,7 +13,7 @@ class Login:
     def run(comms: Comms, ui: UI):
         """Login to the medperf server. Must be done only once.
         """
-        cred_path = config.credentials_path
+        cred_path = storage_path(config.credentials_path)
         user = ui.prompt("username: ")
         pwd = ui.hidden_prompt("password: ")
         comms.login(user, pwd, ui)
