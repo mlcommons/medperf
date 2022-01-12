@@ -93,7 +93,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     if msg[-1] != ".":
         msg = msg + "."
     if add_instructions:
-        msg += f" See logs at {config['log_file']} for more information"
+        msg += f" See logs at {config.log_file} for more information"
     ui.print_error(msg)
     if clean:
         cleanup()

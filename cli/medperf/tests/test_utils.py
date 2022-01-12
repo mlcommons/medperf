@@ -217,7 +217,7 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
     spy = mocker.patch("os.makedirs")
-    tmp_path = f"{config['tmp_reg_prefix']}{int(timestamp)}"
+    tmp_path = f"{config.tmp_reg_prefix}{int(timestamp)}"
     exp_out_path = os.path.join(data, tmp_path, "data")
 
     # Act

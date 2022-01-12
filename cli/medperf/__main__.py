@@ -8,7 +8,7 @@ from medperf.commands import (
     Login,
     Datasets,
 )
-from medperf.config import config
+import medperf.config as config
 from medperf.utils import init_storage
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
@@ -112,22 +112,25 @@ def datasets():
 @app.callback()
 def main(
     log: str = "INFO",
-    log_file: str = config["log_file"],
-    comms: str = config["default_comms"],
-    ui: str = config["default_ui"],
-    host: str = config["server"],
+    log_file: str = config.log_file,
+    comms: str = config.default_comms,
+    ui: str = config.default_ui,
+    host: str = config.server,
+    storage: str = config.storage,
 ):
+    # Set configuration variables
+    config.storage = storage
     init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
-    logging.info(f"Running MedPerf v{config['version']} on {log} logging level")
+    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
     state["ui"] = UIFactory.create_ui(ui)
     state["comms"] = CommsFactory.create_comms(comms, state["ui"], host)
 
-    state["ui"].print(f"MedPerf {config['version']}")
+    state["ui"].print(f"MedPerf {config.version}")
 
 
 if __name__ == "__main__":
