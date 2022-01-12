@@ -3,7 +3,7 @@ import os
 
 version = "0.0.0"
 server = "http://localhost:8000"
-storage = os.path.join(str(Path.home(), ".medperf"))
+storage = os.path.join(str(Path.home()), ".medperf")
 tmp_reg_prefix = "tmp_"
 tmp_storage = "tmp"
 data_storage = "data"
