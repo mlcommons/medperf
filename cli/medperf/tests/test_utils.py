@@ -14,10 +14,10 @@ from medperf.tests.mocks import MockCube, MockTar
 
 
 parent = config.storage
-data = config.data_storage
-cubes = config.cubes_storage
-results = config.results_storage
-tmp = config.tmp_storage
+data = utils.storage_path(config.data_storage)
+cubes = utils.storage_path(config.cubes_storage)
+results = utils.storage_path(config.results_storage)
+tmp = utils.storage_path(config.tmp_storage)
 config_dirs = [parent, data, cubes, results, tmp]
 patch_utils = "medperf.utils.{}"
 

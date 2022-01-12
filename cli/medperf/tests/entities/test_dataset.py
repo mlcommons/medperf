@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 
 import medperf
+from medperf import utils
 import medperf.config as config
 from medperf.entities import Dataset
 from medperf.ui import UI
@@ -54,7 +55,7 @@ def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
     Dataset.all(ui)
 
     # Assert
-    spy.assert_called_once_with(config.data_storage)
+    spy.assert_called_once_with(utils.storage_path(config.data_storage))
 
 
 def test_all_fails_if_cant_iterate_data_storage(mocker, ui):

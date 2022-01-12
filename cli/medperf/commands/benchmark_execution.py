@@ -9,6 +9,7 @@ from medperf.utils import (
     init_storage,
     pretty_error,
     cleanup,
+    storage_path,
 )
 import medperf.config as config
 from medperf.entities import Result
@@ -65,7 +66,7 @@ class BenchmarkExecution:
             labels_path = os.path.join(dataset.data_path, "data.csv")
 
             ui.text = "Evaluating results"
-            out_path = config.results_storage
+            out_path = storage_path(config.results_storage)
             out_path = os.path.join(
                 out_path, str(benchmark.uid), str(model_uid), str(dataset.data_uid)
             )

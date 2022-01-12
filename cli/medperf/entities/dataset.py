@@ -5,7 +5,7 @@ import logging
 
 from medperf.ui import UI
 import medperf.config as config
-from medperf.utils import get_dsets, approval_prompt, pretty_error
+from medperf.utils import get_dsets, approval_prompt, pretty_error, storage_path
 
 
 class Dataset:
@@ -29,7 +29,9 @@ class Dataset:
         """
         data_uid = self.__full_uid(data_uid, ui)
         self.data_uid = data_uid
-        self.dataset_path = os.path.join(config.data_storage, str(data_uid))
+        self.dataset_path = os.path.join(
+            storage_path(config.data_storage), str(data_uid)
+        )
         self.data_path = os.path.join(self.dataset_path, "data")
         self.registration = self.get_registration()
         self.name = self.registration["name"]
@@ -50,7 +52,7 @@ class Dataset:
         """
         logging.info("Retrieving all datasets")
         try:
-            uids = next(os.walk(config.data_storage))[1]
+            uids = next(os.walk(storage_path(config.data_storage)))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory")

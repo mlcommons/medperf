@@ -16,6 +16,11 @@ import re
 import medperf.config as config
 
 
+def storage_path(subpath: str):
+    """Helper funciton that converts a path to storage-related path"""
+    return os.path.join(config.storage, subpath)
+
+
 def get_file_sha1(path: str) -> str:
     """Calculates the sha1 hash for a given file.
 
@@ -41,10 +46,10 @@ def init_storage():
     """Builds the general medperf folder structure.
     """
     parent = config.storage
-    data = config.data_storage
-    cubes = config.cubes_storage
-    results = config.results_storage
-    tmp = config.tmp_storage
+    data = storage_path(config.data_storage)
+    cubes = storage_path(config.cubes_storage)
+    results = storage_path(config.results_storage)
+    tmp = storage_path(config.tmp_storage)
 
     dirs = [parent, data, cubes, results, tmp]
     for dir in dirs:
@@ -56,15 +61,15 @@ def init_storage():
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
-    if os.path.exists(config.tmp_storage):
+    if os.path.exists(storage_path(config.tmp_storage)):
         logging.info("Removing temporary data storage")
-        rmtree(config.tmp_storage, ignore_errors=True)
+        rmtree(storage_path(config.tmp_storage), ignore_errors=True)
     dsets = get_dsets()
     prefix = config.tmp_reg_prefix
     unreg_dsets = [dset for dset in dsets if dset.startswith(prefix)]
     for dset in unreg_dsets:
         logging.info("Removing unregistered dataset")
-        dset_path = os.path.join(config.data_storage, dset)
+        dset_path = os.path.join(storage_path(config.data_storage), dset)
         if os.path.exists(dset_path):
             rmtree(dset_path, ignore_errors=True)
 
@@ -75,7 +80,7 @@ def get_dsets() -> List[str]:
     Returns:
         List[str]: UIDs of prepared datasets.
     """
-    dsets = next(os.walk(config.data_storage))[1]
+    dsets = next(os.walk(storage_path(config.data_storage)))[1]
     return dsets
 
 
@@ -109,7 +114,7 @@ def cube_path(uid: int) -> str:
     Returns:
         str: Location of the cube folder structure.
     """
-    return os.path.join(config.cubes_storage, str(uid))
+    return os.path.join(storage_path(config.cubes_storage), str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
@@ -122,7 +127,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     dt = datetime.utcnow()
     ts = str(int(datetime.timestamp(dt)))
     tmp = config.tmp_reg_prefix + ts
-    out_path = os.path.join(config.data_storage, tmp)
+    out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
     out_datapath = os.path.join(out_path, "data")
     if not os.path.isdir(out_datapath):
