@@ -1,14 +1,14 @@
 import yaml
-from datetime import datetime
 from pathlib import Path
+from typing import Dict
 import os
 
 from medperf.ui import UI
 from medperf.utils import (
-    approval_prompt,
-    dict_pretty_print,
     get_folder_sha1,
     pretty_error,
+    approval_prompt,
+    dict_pretty_print,
 )
 from medperf.comms import Comms
 import medperf.config as config
@@ -42,12 +42,12 @@ class Registration:
         """
         self.cube = cube
         self.stats = self.__get_stats()
-        dt = datetime.now()
-        self.reg_time = int(datetime.timestamp(dt))
         self.name = name
         self.description = description
+        self.split_seed = 0
         self.location = location
         self.status = "PENDING"
+        self.generated_uid = None
         self.uid = None
         self.in_uid = None
         self.path = None
@@ -62,8 +62,8 @@ class Registration:
             str: generated UID
         """
         self.in_uid = get_folder_sha1(in_path)
-        self.uid = get_folder_sha1(out_path)
-        return self.uid
+        self.generated_uid = get_folder_sha1(out_path)
+        return self.generated_uid
 
     def __get_stats(self) -> dict:
         """Unwinds the cube output statistics location and retrieves the statistics data
@@ -87,17 +87,15 @@ class Registration:
             "name": self.name,
             "description": self.description,
             "location": self.location,
-            "split_seed": 0,
+            "split_seed": self.split_seed,
             "data_preparation_mlcube": self.cube.uid,
-            "generated_uid": self.uid,
+            "generated_uid": self.generated_uid,
             "input_data_hash": self.in_uid,
             "metadata": self.stats,
             "status": self.status,
+            "uid": self.uid,
             "state": "OPERATION",
         }
-
-        if self.uid is not None:
-            registration.update({"uid": self.uid})
 
         return registration
 
@@ -127,17 +125,17 @@ class Registration:
         )
         return approved
 
-    def to_permanent_path(self, out_path: str, uid: int) -> str:
+    def to_permanent_path(self, out_path: str) -> str:
         """Renames the temporary data folder to permanent one using the hash of
         the registration file
 
         Args:
             out_path (str): current temporary location of the data
-            uid (int): UID of registered dataset. Obtained after uploading to comms
 
         Returns:
             str: renamed location of the data.
         """
+        uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
         os.rename(out_path, new_path)
         self.path = new_path
@@ -154,7 +152,7 @@ class Registration:
             str: path to the created registration file
         """
         data = self.todict()
-        filepath = os.path.join(out_path, filename)
+        filepath = os.path.join(self.path, filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)
 
@@ -180,7 +178,7 @@ class Registration:
         Returns:
             bool: Wether the generated UID is already present in the registered datasets.
         """
-        if self.uid is None:
+        if self.generated_uid is None:
             pretty_error(
                 "The registration doesn't have an uid yet. Generate it before running this method.",
                 ui,
@@ -189,4 +187,4 @@ class Registration:
 
         dsets = Dataset.all(ui)
         registered_uids = [dset.registration["generated_uid"] for dset in dsets]
-        return self.uid in registered_uids
+        return self.generated_uid in registered_uids

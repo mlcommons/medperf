@@ -9,85 +9,92 @@ from medperf.utils import (
     init_storage,
     pretty_error,
     cleanup,
-    storage_path,
+    results_path,
 )
 import medperf.config as config
-from medperf.entities import Result
 
 
 class BenchmarkExecution:
-    @staticmethod
-    def run(benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI):
+    @classmethod
+    def run(
+        cls, benchmark_uid: int, data_uid: str, model_uid: int, comms: Comms, ui: UI
+    ):
         """Benchmark execution flow.
 
         Args:
             benchmark_uid (int): UID of the desired benchmark
-            data_uid (int): Registered Dataset UID
+            data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
+        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
+        execution.validate()
+        with execution.ui.interactive():
+            execution.get_cubes()
+            execution.run_cubes()
+        cleanup()
+
+    def __init__(
+        self, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
+    ):
+        self.benchmark_uid = benchmark_uid
+        self.data_uid = data_uid
+        self.model_uid = model_uid
+        self.comms = comms
+        self.ui = ui
+        self.evaluator = None
+        self.model_cube = None
+
         init_storage()
+        self.benchmark = Benchmark.get(benchmark_uid, comms)
+        ui.print(f"Benchmark Execution: {self.benchmark.name}")
+        self.dataset = Dataset(data_uid, ui)
 
-        benchmark = Benchmark.get(benchmark_uid, comms)
-        ui.print(f"Benchmark Execution: {benchmark.name}")
-        dataset = Dataset(data_uid, ui)
+    def validate(self):
+        dset_prep_cube = self.dataset.preparation_cube_uid
+        bmark_prep_cube = self.benchmark.data_preparation
 
-        # Validate Execution
-        if dataset.preparation_cube_uid != benchmark.data_preparation:
+        if dset_prep_cube != bmark_prep_cube:
+            msg = "The provided dataset is not compatible with the specified benchmark."
+            pretty_error(msg, self.ui)
+
+        if self.model_uid not in self.benchmark.models:
             pretty_error(
-                "The provided dataset is not compatible with the specified benchmark."
+                "The provided model is not part of the specified benchmark.", self.ui
             )
 
-        if model_uid not in benchmark.models:
-            pretty_error("The provided model is not part of the specified benchmark.")
+    def get_cubes(self):
+        evaluator_uid = self.benchmark.evaluator
+        self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
+        self.model_cube = self.__get_cube(self.model_uid, "Model")
 
-        cube_uid = benchmark.evaluator
-        with ui.interactive() as ui:
-            ui.text = "Retrieving evaluator cube"
-            # Get cubes
-            evaluator = Cube.get(cube_uid, comms)
-            ui.print("> Evaluator cube download complete")
+    def __get_cube(self, uid: int, name: str) -> Cube:
+        self.ui.text = f"Retrieving {name} cube"
+        cube = Cube.get(uid, self.comms)
+        self.ui.print(f"> {name} cube download complete")
+        check_cube_validity(cube, self.ui)
+        return cube
 
-            check_cube_validity(evaluator, ui)
+    def run_cubes(self):
+        self.ui.text = "Running model inference on dataset"
+        out_path = config.model_output
+        data_path = self.dataset.data_path
+        self.model_cube.run(
+            self.ui, task="infer", data_path=data_path, output_path=out_path
+        )
+        self.ui.print("> Model execution complete")
 
-            ui.text = "Retrieving model cube. This could take a while..."
-            model_cube = Cube.get(model_uid, comms)
-            check_cube_validity(model_cube, ui)
+        cube_path = self.model_cube.cube_path
+        cube_root = str(Path(cube_path).parent)
+        workspace_path = os.path.join(cube_root, "workspace")
+        abs_preds_path = os.path.join(workspace_path, out_path)
+        labels_path = os.path.join(data_path, "data.csv")
 
-            ui.text = "Running model inference on dataset"
-            out_path = config.model_output
-            model_cube.run(
-                ui, task="infer", data_path=dataset.data_path, output_path=out_path
-            )
-            ui.print("> Model execution complete")
-
-            cube_root = str(Path(model_cube.cube_path).parent)
-            workspace_path = os.path.join(cube_root, "workspace")
-            abs_preds_path = os.path.join(workspace_path, out_path)
-            labels_path = os.path.join(dataset.data_path, "data.csv")
-
-            ui.text = "Evaluating results"
-            out_path = storage_path(config.results_storage)
-            out_path = os.path.join(
-                out_path, str(benchmark.uid), str(model_uid), str(dataset.data_uid)
-            )
-            out_path = os.path.join(out_path, "results.yaml")
-            evaluator.run(
-                ui,
-                task="evaluate",
-                preds_csv=abs_preds_path,
-                labels_csv=labels_path,
-                output_path=out_path,
-            )
-
-            result = Result(out_path, benchmark.uid, dataset.data_uid, model_uid)
-        approved = result.request_approval(ui)
-        with ui.interactive() as ui:
-            if approved:
-                ui.print("Uploading")
-                result.upload(comms)
-            else:
-                pretty_error(
-                    "Results upload operation cancelled", ui, add_instructions=False
-                )
-            cleanup()
-
+        self.ui.text = "Evaluating results"
+        out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
+        self.evaluator.run(
+            self.ui,
+            task="evaluate",
+            preds_csv=abs_preds_path,
+            labels_csv=labels_path,
+            output_path=out_path,
+        )

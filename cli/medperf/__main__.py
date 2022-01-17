@@ -3,8 +3,10 @@ import logging
 
 from medperf.commands import (
     DataPreparation,
+    DatasetRegistration,
     BenchmarkExecution,
     DatasetBenchmarkAssociation,
+    ResultSubmission,
     Login,
     Datasets,
 )
@@ -13,6 +15,7 @@ from medperf.utils import init_storage
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
+from medperf.utils import init_storage
 
 
 app = typer.Typer()
@@ -41,15 +44,12 @@ def prepare(
     ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
-    Args:
-        benchmark_uid (int): UID of the desired benchmark.
-        data_path (str): Location of the data to be prepared.
-        labels_path (str): Labels file location.
     """
     comms = state["comms"]
     ui = state["ui"]
     comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
+    DatasetRegistration.run(data_uid, comms, ui)
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
 
@@ -60,7 +60,7 @@ def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: int = typer.Option(
+    data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     model_uid: int = typer.Option(
@@ -68,23 +68,40 @@ def execute(
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
-
-    Args:
-        benchmark_uid (int): UID of the desired benchmark.
-        data_uid (int): Registered Dataset UID.
-        model_uid (int): UID of model to execute.
     """
     comms = state["comms"]
     ui = state["ui"]
     comms.authenticate()
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
+
+
+@clean_except
+@app.command("submit")
+def submit(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the executed benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="UID of the dataset used for results"
+    ),
+    model_uid: int = typer.Option(
+        ..., "--model_uid", "-m", help="UID of the executed model"
+    ),
+):
+    """Submits already obtained results to the server"""
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
 
 
 @clean_except
 @app.command("associate")
 def associate(
-    data_uid: int = typer.Option(
+    data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
@@ -97,6 +114,22 @@ def associate(
     ui = state["ui"]
     comms.authenticate()
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    ui.print("✅ Done!")
+
+
+@clean_except
+@app.command("register")
+def register(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Unregistered Dataset UID"
+    )
+):
+    """Registers an unregistered Dataset instance to the backend
+    """
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    DatasetRegistration.run(data_uid, comms, ui)
     ui.print("✅ Done!")
 
 

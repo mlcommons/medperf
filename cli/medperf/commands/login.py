@@ -1,6 +1,5 @@
 import os
 import stat
-import getpass
 
 from medperf.ui import UI
 from medperf.comms import Comms
@@ -14,9 +13,7 @@ class Login:
         """Login to the medperf server. Must be done only once.
         """
         cred_path = storage_path(config.credentials_path)
-        user = ui.prompt("username: ")
-        pwd = ui.hidden_prompt("password: ")
-        comms.login(user, pwd, ui)
+        comms.login(ui)
         token = comms.token
 
         if os.path.exists(cred_path):

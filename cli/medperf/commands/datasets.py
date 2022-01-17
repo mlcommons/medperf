@@ -1,4 +1,3 @@
-import typer
 from tabulate import tabulate
 
 from medperf.entities import Dataset
@@ -11,9 +10,15 @@ class Datasets:
         """Lists all local datasets
 	    """
         dsets = Dataset.all(ui)
-        headers = ["UID", "Name", "Data Preparation Cube UID"]
+        headers = ["UID", "Name", "Data Preparation Cube UID", "Registered"]
         dsets_data = [
-            [dset.data_uid, dset.name, dset.preparation_cube_uid] for dset in dsets
+            [
+                dset.generated_uid,
+                dset.name,
+                dset.preparation_cube_uid,
+                dset.uid is not None,
+            ]
+            for dset in dsets
         ]
         tab = tabulate(dsets_data, headers=headers)
         ui.print(tab)

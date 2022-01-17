@@ -13,68 +13,70 @@ from medperf.utils import (
 
 
 class DataPreparation:
-    @staticmethod
-    def run(benchmark_uid: str, data_path: str, labels_path: str, comms: Comms, ui: UI):
-        """Data Preparation flow.
+    @classmethod
+    def run(
+        cls, benchmark_uid: str, data_path: str, labels_path: str, comms: Comms, ui: UI
+    ):
+        preparation = cls(benchmark_uid, data_path, labels_path, comms, ui)
+        with preparation.ui.interactive():
+            preparation.get_prep_cube()
+            preparation.run_cube_tasks()
+        data_uid = preparation.create_registration()
+        cleanup()
+        return data_uid
 
-        Args:
-            benchmark_uid (str): UID of the desired benchmark.
-            data_path (str): Location of the data to be prepared.
-            labels_path (str): Labels file location.
-        """
-        data_path = os.path.abspath(data_path)
-        labels_path = os.path.abspath(labels_path)
+    def __init__(
+        self, benchmark_uid: str, data_path: str, labels_path: str, comms: Comms, ui: UI
+    ):
+        self.comms = comms
+        self.ui = ui
+        self.data_path = os.path.abspath(data_path)
+        self.labels_path = os.path.abspath(labels_path)
         out_path, out_datapath = generate_tmp_datapath()
+        self.out_path = out_path
+        self.out_datapath = out_datapath
         init_storage()
 
-        benchmark = Benchmark.get(benchmark_uid, comms)
-        ui.print(f"Benchmark Data Preparation: {benchmark.name}")
+        self.benchmark = Benchmark.get(benchmark_uid, comms)
+        self.ui.print(f"Benchmark Data Preparation: {self.benchmark.name}")
 
-        cube_uid = benchmark.data_preparation
-        with ui.interactive() as ui:
-            ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
-            cube = Cube.get(cube_uid, comms)
-            ui.print("> Preparation cube download complete")
+    def get_prep_cube(self):
+        cube_uid = self.benchmark.data_preparation
+        self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
+        self.cube = Cube.get(cube_uid, self.comms)
+        self.ui.print("> Preparation cube download complete")
+        check_cube_validity(self.cube, self.ui)
 
-            check_cube_validity(cube, ui)
+    def run_cube_tasks(self):
+        data_path = self.data_path
+        labels_path = self.labels_path
+        out_datapath = self.out_datapath
 
-            ui.text = f"Running preparation step..."
-            cube.run(
-                ui,
-                task="prepare",
-                data_path=data_path,
-                labels_path=labels_path,
-                output_path=out_datapath,
-            )
-            ui.print("> Cube execution complete")
+        self.ui.text = f"Running preparation step..."
+        self.cube.run(
+            self.ui,
+            task="prepare",
+            data_path=data_path,
+            labels_path=labels_path,
+            output_path=out_datapath,
+        )
+        self.ui.print("> Cube execution complete")
 
-            ui.text = "Running sanity check..."
-            cube.run(ui, task="sanity_check", data_path=out_datapath)
-            ui.print("> Sanity checks complete")
+        self.ui.text = "Running sanity check..."
+        self.cube.run(self.ui, task="sanity_check", data_path=out_datapath)
+        self.ui.print("> Sanity checks complete")
 
-            ui.text = "Generating statistics..."
-            cube.run(ui, task="statistics", data_path=out_datapath)
-            ui.print("> Statistics complete")
+        self.ui.text = "Generating statistics..."
+        self.cube.run(self.ui, task="statistics", data_path=out_datapath)
+        self.ui.print("> Statistics complete")
 
-            ui.text = "Starting registration procedure"
-            registration = Registration(cube)
-            registration.generate_uids(data_path, out_datapath)
-            if registration.is_registered(ui):
-                pretty_error(
-                    "This dataset has already been registered. Cancelling submission",
-                    ui,
-                )
-
-        approved = registration.request_approval(ui)
-        if approved:
-            registration.retrieve_additional_data(ui)
-        else:
-            pretty_error("Registration operation cancelled", ui, add_instructions=False)
-
-        with ui.interactive() as ui:
-            registration.write(out_path)
-            ui.print("Uploading")
-            data_uid = registration.upload(comms)
-            registration.to_permanent_path(out_path, data_uid)
-            cleanup()
-            return data_uid
+    def create_registration(self):
+        self.registration = Registration(self.cube)
+        self.registration.generate_uids(self.data_path, self.out_datapath)
+        if self.registration.is_registered(self.ui):
+            msg = "This dataset has already been prepared. No changes made"
+            pretty_error(msg, self.ui)
+        self.registration.retrieve_additional_data(self.ui)
+        self.registration.to_permanent_path(self.out_path)
+        self.registration.write()
+        return self.registration.generated_uid

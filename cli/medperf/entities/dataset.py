@@ -4,8 +4,15 @@ import os
 import logging
 
 from medperf.ui import UI
+from medperf.comms import Comms
 import medperf.config as config
-from medperf.utils import get_dsets, approval_prompt, pretty_error, storage_path
+from medperf.utils import (
+    get_dsets,
+    approval_prompt,
+    pretty_error,
+    storage_path,
+    dict_pretty_print,
+)
 
 
 class Dataset:
@@ -33,15 +40,31 @@ class Dataset:
             storage_path(config.data_storage), str(data_uid)
         )
         self.data_path = os.path.join(self.dataset_path, "data")
-        self.registration = self.get_registration()
-        self.name = self.registration["name"]
-        self.description = self.registration["description"]
-        self.location = self.registration["location"]
-        self.preparation_cube_uid = self.registration["data_preparation_mlcube"]
-        self.split_seed = self.registration["split_seed"]
-        self.metadata = self.registration["metadata"]
-        self.generated_uid = self.registration["generated_uid"]
-        self.status = self.registration["status"]
+        registration = self.get_registration()
+        self.uid = registration["uid"]
+        self.name = registration["name"]
+        self.description = registration["description"]
+        self.location = registration["location"]
+        self.preparation_cube_uid = registration["data_preparation_mlcube"]
+        self.generated_uid = registration["generated_uid"]
+        self.split_seed = registration["split_seed"]
+        self.metadata = registration["metadata"]
+        self.status = registration["status"]
+
+    @property
+    def registration(self):
+        return {
+            "uid": self.uid,
+            "name": self.name,
+            "description": self.description,
+            "location": self.location,
+            "data_preparation_mlcube": self.preparation_cube_uid,
+            "input_data_hash": self.generated_uid,
+            "generated_uid": self.generated_uid,
+            "split_seed": self.split_seed,
+            "metadata": self.metadata,
+            "status": self.status,
+        }
 
     @classmethod
     def all(cls, ui: UI) -> List["Dataset"]:
@@ -51,13 +74,20 @@ class Dataset:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
+        data_storage = config["data_storage"]
         try:
             uids = next(os.walk(storage_path(config.data_storage)))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory")
         tmp_prefix = config.tmp_reg_prefix
-        dsets = [cls(uid, ui) for uid in uids if not uid.startswith(tmp_prefix)]
+        dsets = []
+        for uid in uids:
+            not_tmp = not uid.startswith(tmp_prefix)
+            reg_path = os.path.join(data_storage, uid, config["reg_file"])
+            registered = os.path.exists(reg_path)
+            if not_tmp and registered:
+                dsets.append(cls(uid, ui))
         return dsets
 
     def __full_uid(self, uid_hint: str, ui: UI) -> str:
@@ -93,6 +123,11 @@ class Dataset:
             reg = yaml.full_load(f)
         return reg
 
+    def set_registration(self):
+        regfile = os.path.join(self.dataset_path, config["reg_file"])
+        with open(regfile, "w") as f:
+            yaml.dump(self.registration, f)
+
     def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
         """Prompts the user for aproval regarding the association of the dataset
         with a given benchmark.
@@ -103,11 +138,38 @@ class Dataset:
         Returns:
             bool: Wether the user approved the association or not
         """
-        if self.status == "APPROVED":
-            return True
-
         approved = approval_prompt(
             f"Please confirm that you would like to associate the dataset '{self.name}' with the benchmark '{benchmark.name}' [Y/n]",
             ui,
         )
         return approved
+
+    def request_registration_approval(self, ui: UI) -> bool:
+        """Prompts the user for approval concerning uploading the registration to the backend.
+
+        Returns:
+            bool: Wether the user gave consent or not.
+        """
+        if self.status == "APPROVED":
+            return True
+
+        dict_pretty_print(self.registration, ui)
+        ui.print(
+            "Above is the information and statistics that will be registered to the database"
+        )
+        approved = approval_prompt(
+            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
+            ui,
+        )
+        self.status = "APPROVED"
+        return approved
+
+    def upload(self, comms: Comms):
+        """Uploads the registration information to the comms.
+
+        Args:
+            comms (Comms): Instance of the comms interface.
+        """
+        dataset_uid = comms.upload_dataset(self.registration)
+        self.uid = dataset_uid
+        return self.uid

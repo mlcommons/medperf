@@ -255,3 +255,12 @@ def get_folder_sha1(path: str) -> str:
         sha1.update(hash.encode("utf-8"))
     return sha1.hexdigest()
 
+
+def results_path(benchmark_uid, model_uid, data_uid):
+    out_path = config["results_storage"]
+    bmark_uid = str(benchmark_uid)
+    model_uid = str(model_uid)
+    data_uid = str(data_uid)
+    out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
+    out_path = os.path.join(out_path, config["results_filename"])
+    return out_path
