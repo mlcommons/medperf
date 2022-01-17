@@ -11,15 +11,7 @@ class UserTest(TestCase):
 
     def setUp(self):
         username = "admin"
-        password = "".join(
-            random.choice(string.ascii_letters) for m in range(10)
-        )
-        user = User.objects.create_user(
-            username=username,
-            password=password,
-            is_superuser=True,
-        )
-        user.save()
+        password = "admin"
         self.client = APIClient()
         response = self.client.post(
             "/auth-token/",
