@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import medperf
 from medperf.ui import UI
 from medperf.comms import Comms
+from medperf.tests.utils import rand_l
 from medperf.entities import Registration, Cube
 
 
@@ -23,6 +24,7 @@ REG_DICT_KEYS = [
     "input_data_hash",
     "metadata",
     "status",
+    "uid",
     "state",
 ]
 
@@ -41,7 +43,7 @@ def ui(mocker):
 
 class MockedDataset:
     def __init__(self, uid, ui):
-        self.registration = {"generated_uid": uid}
+        self.registration = {"uid": uid, "generated_uid": uid}
 
 
 @pytest.fixture
@@ -97,7 +99,7 @@ def test_generate_uids_assigns_uids_to_obj_properties(
 
     # Assert
     assert registration.in_uid == in_path
-    assert registration.uid == out_path
+    assert registration.generated_uid == out_path
 
 
 @pytest.mark.parametrize("path", ["stats_path", "./workspace/outputs/statistics.yaml"])
@@ -185,18 +187,19 @@ def test_request_approval_returns_users_input(
     assert approved == approval
 
 
-@pytest.mark.parametrize("OUT_PATH", ["./test", "~/.medperf", "./workspace"])
-@pytest.mark.parametrize("uid", [0, 12, 432])
+@pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
+@pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
 def test_to_permanent_path_returns_expected_path(
-    mocker, OUT_PATH, uid, reg_mocked_with_params
+    mocker, out_path, uid, reg_mocked_with_params
 ):
     # Arrange
     mocker.patch("os.rename")
-    expected_path = os.path.join(str(Path(OUT_PATH).parent), str(uid))
+    expected_path = os.path.join(str(Path(out_path).parent), str(uid))
     reg = Registration(*reg_mocked_with_params)
+    reg.generated_uid = uid
 
     # Act
-    new_path = reg.to_permanent_path(OUT_PATH, uid)
+    new_path = reg.to_permanent_path(out_path)
 
     # Assert
     assert new_path == expected_path
@@ -213,9 +216,10 @@ def test_to_permanent_path_renames_folder_correctly(
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.join", return_value=new_path)
     reg = Registration(*reg_mocked_with_params)
+    reg.generated_uid = 0
 
     # Act
-    reg.to_permanent_path(out_path, 0)
+    reg.to_permanent_path(out_path)
 
     # Assert
     spy.assert_called_once_with(out_path, new_path)
@@ -270,7 +274,7 @@ def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_para
     # Arrange
     spy = mocker.patch(PATCH_REGISTRATION.format("Dataset.all"), return_values=[])
     reg = Registration(*reg_mocked_with_params)
-    reg.uid = 1
+    reg.generated_uid = 1
 
     # Act
     reg.is_registered(ui)
@@ -279,8 +283,8 @@ def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_para
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("dset_uids", [[1, 2, 3], [], [23, 5, 12]])
-@pytest.mark.parametrize("uid", [1, 2, 3, 4, 5, 6])
+@pytest.mark.parametrize("dset_uids", [rand_l(1, 5000, 3) for _ in range(3)])
+@pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
 def test_is_registered_finds_uid_in_dsets(
     mocker, ui, dset_uids, uid, reg_mocked_with_params
 ):
@@ -288,7 +292,7 @@ def test_is_registered_finds_uid_in_dsets(
     dsets = [MockedDataset(dset_uid, ui) for dset_uid in dset_uids]
     mocker.patch(PATCH_REGISTRATION.format("Dataset.all"), return_value=dsets)
     reg = Registration(*reg_mocked_with_params)
-    reg.uid = uid
+    reg.generated_uid = uid
 
     # Act
     registered = reg.is_registered(ui)
