@@ -14,7 +14,7 @@ PASS="${PASS:-test}"
 SERVER_URL="${SERVER_URL:-http://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
-MEDPERF_STORAGE="~/.medperf-test"
+MEDPERF_STORAGE="~/.medperf"
 
 echo "username: $USERNAME"
 echo "password: $PASS"
