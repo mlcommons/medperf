@@ -7,7 +7,7 @@ from medperf.utils import pretty_error, results_path
 
 class ResultSubmission:
     def __init__(self, benchmark_uid, data_uid, model_uid, comms, ui):
-        self.benchmark_uid = benchamrk_uid
+        self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
         self.model_uid = model_uid
         self.comms = comms
