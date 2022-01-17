@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import call
 
-from medperf.config import config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark
 from medperf.commands import BenchmarkExecution

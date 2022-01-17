@@ -74,7 +74,7 @@ class Dataset:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
-        data_storage = config["data_storage"]
+        data_storage = config.data_storage
         try:
             uids = next(os.walk(storage_path(config.data_storage)))[1]
         except StopIteration:
@@ -84,7 +84,7 @@ class Dataset:
         dsets = []
         for uid in uids:
             not_tmp = not uid.startswith(tmp_prefix)
-            reg_path = os.path.join(data_storage, uid, config["reg_file"])
+            reg_path = os.path.join(data_storage, uid, config.reg_file)
             registered = os.path.exists(reg_path)
             if not_tmp and registered:
                 dsets.append(cls(uid, ui))
@@ -124,7 +124,7 @@ class Dataset:
         return reg
 
     def set_registration(self):
-        regfile = os.path.join(self.dataset_path, config["reg_file"])
+        regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)
 
