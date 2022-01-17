@@ -14,6 +14,7 @@ PASS="${PASS:-test}"
 SERVER_URL="${SERVER_URL:-http://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
+MEDPERF_STORAGE="~/.medperf-test"
 
 echo "username: $USERNAME"
 echo "password: $PASS"
@@ -25,7 +26,7 @@ if ${CLEANUP}; then
   echo "====================================="
   rm $DIRECTORY/mock_chexpert.tar.gz
   rm -fr $DIRECTORY/mock_chexpert
-  rm -fr ~/.medperf
+  rm -fr $MEDPERF_STORAGE
 fi
 echo "====================================="
 echo "Retrieving mock dataset"
@@ -39,17 +40,17 @@ echo "====================================="
 echo "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL login
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
-  cat ~/.medperf/medperf.log
+  cat $MEDPERF_STORAGE/medperf.log
   exit 1
 fi
 echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo "Y\nname\ndescription\nlocation\nY\n" | medperf --host=$SERVER_URL prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
+echo "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
-  cat ~/.medperf/medperf.log
+  cat $MEDPERF_STORAGE/medperf.log
   exit 2
 fi
 echo "\n"
@@ -60,7 +61,7 @@ echo "====================================="
 echo "Y\n" | medperf --host=$SERVER_URL execute -b 1 -d $DSET_UID -m 2
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
-  cat ~/.medperf/medperf.log
+  cat $MEDPERF_STORAGE/medperf.log
   exit 3
 fi
 if ${CLEANUP}; then
@@ -69,5 +70,5 @@ if ${CLEANUP}; then
   echo "====================================="
   rm $DIRECTORY/mock_chexpert.tar.gz
   rm -fr $DIRECTORY/mock_chexpert
-  rm -fr ~/.medperf
+  rm -fr $MEDPERF_STORAGE
 fi
