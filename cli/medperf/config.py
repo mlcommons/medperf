@@ -17,6 +17,7 @@ config = {
     "workspace_path": "workspace",
     "cube_filename": "mlcube.yaml",
     "params_filename": "parameters.yaml",
+    "results_filename": "results.yaml",
     "additional_path": "workspace/additional_files",
     "tarball_filename": "tmp.tar.gz",
     "reg_file": "registration-info.yaml",

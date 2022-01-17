@@ -6,3 +6,9 @@ class Role(Enum):
     DATA_OWNER = "DataOwner"
     MODEL_OWNER = "ModelOwner"
     NONE = None
+
+
+class Status(Enum):
+    APPROVED = "APPROVED"
+    PENDING = "PENDING"
+    REJECTED = "REJECTED"
