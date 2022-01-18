@@ -54,7 +54,7 @@ if [ "$?" -ne "0" ]; then
   exit 2
 fi
 echo "\n"
-DSET_UID=$(medperf datasets | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+DSET_UID=$(medperf datasets | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
