@@ -25,6 +25,7 @@ REG_DICT_KEYS = [
     "metadata",
     "status",
     "uid",
+    "state",
 ]
 
 

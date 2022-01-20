@@ -20,7 +20,9 @@ class BenchmarkModelList(GenericAPIView):
         """
         Associate a model to a benchmark
         """
-        serializer = BenchmarkModelListSerializer(data=request.data)
+        serializer = BenchmarkModelListSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -53,7 +55,7 @@ class ModelApproval(GenericAPIView):
 
     def get_object(self, model_id, benchmark_id):
         try:
-            return BenchmarkModel.objects.get(
+            return BenchmarkModel.objects.filter(
                 model_mlcube__id=model_id, benchmark__id=benchmark_id
             )
         except BenchmarkModel.DoesNotExist:
@@ -61,17 +63,19 @@ class ModelApproval(GenericAPIView):
 
     def get(self, request, pk, bid, format=None):
         """
-        Retrieve approval status of benchmark model association
+        Retrieve approval status of benchmark model associations
         """
         benchmarkmodel = self.get_object(pk, bid)
-        serializer = ModelApprovalSerializer(benchmarkmodel)
+        serializer = ModelApprovalSerializer(benchmarkmodel, many=True)
         return Response(serializer.data)
 
     def put(self, request, pk, bid, format=None):
         """
-        Update approval status of benchmark model association
+        Update approval status of the last benchmark model association
         """
-        benchmarkmodel = self.get_object(pk, bid)
+        benchmarkmodel = (
+            self.get_object(pk, bid).order_by("-created_at").first()
+        )
         serializer = ModelApprovalSerializer(
             benchmarkmodel, data=request.data, context={"request": request}
         )
@@ -82,7 +86,7 @@ class ModelApproval(GenericAPIView):
 
     def delete(self, request, pk, bid, format=None):
         """
-        Delete a benchmark model association
+        Delete benchmark model associations
         """
         benchmarkmodel = self.get_object(pk, bid)
         benchmarkmodel.delete()

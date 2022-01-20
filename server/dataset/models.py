@@ -3,6 +3,11 @@ from django.contrib.auth.models import User
 
 
 class Dataset(models.Model):
+    DATASET_STATE = (
+        ("DEVELOPMENT", "DEVELOPMENT"),
+        ("OPERATION", "OPERATION"),
+    )
+
     name = models.CharField(max_length=20)
     description = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=100, blank=True)
@@ -16,7 +21,11 @@ class Dataset(models.Model):
         related_name="benchmark_preprocessor_mlcube",
     )
     is_valid = models.BooleanField(default=True)
-    metadata = models.JSONField(default=dict, blank=True, null=True)
+    state = models.CharField(
+        choices=DATASET_STATE, max_length=100, default="DEVELOPMENT"
+    )
+    generated_metadata = models.JSONField(default=dict, blank=True, null=True)
+    user_metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
