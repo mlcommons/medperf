@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from medperf.ui import UI
 from medperf.comms import Comms
@@ -31,8 +32,8 @@ class DataPreparation:
     ):
         self.comms = comms
         self.ui = ui
-        self.data_path = os.path.abspath(data_path)
-        self.labels_path = os.path.abspath(labels_path)
+        self.data_path = str(Path(data_path).resolve())
+        self.labels_path = str(Path(labels_path).resolve())
         out_path, out_datapath = generate_tmp_datapath()
         self.out_path = out_path
         self.out_datapath = out_datapath
@@ -44,7 +45,7 @@ class DataPreparation:
     def get_prep_cube(self):
         cube_uid = self.benchmark.data_preparation
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
-        self.cube = Cube.get(cube_uid, self.comms)
+        self.cube = Cube.get(cube_uid, self.comms, self.ui)
         self.ui.print("> Preparation cube download complete")
         check_cube_validity(self.cube, self.ui)
 
