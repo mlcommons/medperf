@@ -17,7 +17,13 @@ from medperf.config import config
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls, benchmark_uid: int, data_uid: str, model_uid: int, comms: Comms, ui: UI
+        cls,
+        benchmark_uid: int,
+        data_uid: str,
+        model_uid: int,
+        comms: Comms,
+        ui: UI,
+        run_test=False,
     ):
         """Benchmark execution flow.
 
@@ -26,7 +32,7 @@ class BenchmarkExecution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
+        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui, run_test)
         execution.prepare()
         execution.validate()
         with execution.ui.interactive():
@@ -35,7 +41,13 @@ class BenchmarkExecution:
         cleanup()
 
     def __init__(
-        self, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
+        self,
+        benchmark_uid: int,
+        data_uid: int,
+        model_uid: int,
+        comms: Comms,
+        ui: UI,
+        run_test=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -44,6 +56,7 @@ class BenchmarkExecution:
         self.ui = ui
         self.evaluator = None
         self.model_cube = None
+        self.run_test = run_test
 
     def prepare(self):
         init_storage()
@@ -53,13 +66,14 @@ class BenchmarkExecution:
 
     def validate(self):
         dset_prep_cube = self.dataset.preparation_cube_uid
-        bmark_prep_cube = self.benchmark.data_preparation
+        bmark_prep_cube = str(self.benchmark.data_preparation)
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             pretty_error(msg, self.ui)
 
-        if self.model_uid not in self.benchmark.models:
+        in_assoc_cubes = self.model_uid in self.benchmark.models
+        if not self.run_test and not in_assoc_cubes:
             pretty_error(
                 "The provided model is not part of the specified benchmark.", self.ui
             )
@@ -71,7 +85,7 @@ class BenchmarkExecution:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
-        cube = Cube.get(uid, self.comms)
+        cube = Cube.get(uid, self.comms, self.ui)
         self.ui.print(f"> {name} cube download complete")
         check_cube_validity(cube, self.ui)
         return cube
