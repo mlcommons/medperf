@@ -5,6 +5,7 @@ from .login import Login
 from .datasets import Datasets
 from .register import DatasetRegistration
 from .submit import ResultSubmission
+from .test import TestExecution
 
 __all__ = [
     BenchmarkExecution,
@@ -14,4 +15,5 @@ __all__ = [
     Datasets,
     DatasetRegistration,
     ResultSubmission,
+    TestExecution,
 ]

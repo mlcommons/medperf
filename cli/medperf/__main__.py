@@ -9,6 +9,7 @@ from medperf.commands import (
     ResultSubmission,
     Login,
     Datasets,
+    TestExecution,
 )
 from medperf.config import config
 from medperf.utils import init_storage
@@ -74,6 +75,39 @@ def execute(
     comms.authenticate()
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
+
+
+@clean_except
+@app.command("test")
+def execute(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    data_uid: str = typer.Option(
+        None,
+        "--data_uid",
+        "-d",
+        help="Registered Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
+    ),
+    model_uid: int = typer.Option(
+        None,
+        "--model_uid",
+        "-m",
+        help="UID of model to execute. Used for model testing. Optional. defaults to benchmark reference cube.",
+    ),
+    cube_path: str = typer.Option(
+        None,
+        "--cube_path",
+        "-c",
+        help="Path to a local implementation of an mlcube. Used for local model testing. Optional. defaults to None.",
+    ),
+):
+    """Executes a compatibility test for a determined benchmark. Can test prepared datasets, remote and local models independently."""
+    comms = state["comms"]
+    ui = state["ui"]
+    comms.authenticate()
+    TestExecution.run(benchmark_uid, comms, ui, data_uid, model_uid, cube_path)
     ui.print("✅ Done!")
 
 

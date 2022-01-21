@@ -1,14 +1,17 @@
+import os
 import logging
 from time import time
+from medperf.commands.prepare import DataPreparation
 
 from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.entities import Dataset, Benchmark, Cube
+from medperf.entities import Dataset, Benchmark, Cube, benchmark
 from medperf.commands import BenchmarkExecution
 from medperf.utils import pretty_error, init_storage
+from medperf.config import config
 
 
-class TestExecution(BenchmarkExecution):
+class TestExecution:
     @classmethod
     def run(
         cls,
@@ -18,7 +21,6 @@ class TestExecution(BenchmarkExecution):
         data_uid: str = None,
         model_uid: int = None,
         cube_path: str = None,
-        params_path: str = None,
     ):
         """Execute a test workflow for a specific benchmark
 
@@ -30,28 +32,12 @@ class TestExecution(BenchmarkExecution):
                 If none provided, it defaults to benchmark reference model.
             cube_path (str, optional): Location of local model mlcube. Must be
                 provided if no dataset or model uid is provided.
-            params_path (str, optional): Location of local mlcube parameters file.
-                Must be provided if no dataset or model uid is provided.
         """
-        # PSEUDOCODE
-        # # ensures that the provided params are valid. if not it explains why
-        # validate_params_combination()
-        #
-        # if data_uid is None:
-        #   # Download demo dataset. Would be great if it was a dataset object on server
-        #   # plus a download link (maybe on benchmark? maybe on dataset object itself?)
-        #   # Returns a data_uid.
-        #   data_uid = retrieve_demo_data()
-        #
-        # if model_uid is None:
-        #   # Use reference model from benchmark
-        #   model_uid = get_reference_model()
-        # if cube_path is not None:
-        #   # local unregistered cube should be built and used.
-        #   # TODO: determine how to do this
-        #   # My initial guess would be that this class should inherit from BenchmarkExecution
-        #   # so that we can modify the relevant methods
-        pass
+        test_exec = cls(benchmark_uid, data_uid, model_uid, comms, ui, cube_path)
+        test_exec.validate()
+        test_exec.set_model_uid()
+        test_exec.set_data_uid()
+        test_exec.execute_benchmark()
 
     def __init__(
         self,
@@ -61,29 +47,68 @@ class TestExecution(BenchmarkExecution):
         comms: Comms,
         ui: UI,
         cube_path: str,
-        params_path: str,
     ):
-        super().__init__(benchmark_uid, data_uid, data_uid, model_uid, comms, ui)
+        self.benchmark_uid = benchmark_uid
+        self.data_uid = data_uid
+        self.model_uid = model_uid
+        self.comms = comms
+        self.ui = ui
         self.cube_path = cube_path
-        self.params_path = params_path
+        self.benchmark = Benchmark.get(benchmark_uid, comms)
 
-    def prepare(self):
-        init_storage()
-        self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
-        self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
+    def set_model_uid(self):
+        """Assigns the model_uid used for testing according to the initialization parameters.
+        If a cube_path is provided, it will create a temporary uid and link the cube path to
+        the medperf storage path.
+        """
         if self.model_uid is None:
             self.model_uid = self.benchmark.reference_model
-        if self.cube_path is not None:
-            self.model_cube = Cube.get_local(self.cube_path, self.params_path)
+
+        if self.cube_path:
+            self.model_uid = config["local_cube_prefix"] + str(int(time()))
+            dst = os.path.join(config["cubes_storage"], self.model_uid)
+            os.symlink(self.cube_path, dst)
+
+    def set_data_uid(self):
+        """Assigns the data_uid used for testing according to the initialization parameters.
+        If no data_uid is provided, it will retrieve the demo data and execute the data 
+        preparation flow.
+        """
         if self.data_uid is None:
-            # Maybe we could add a get method to Dataset, that either
-            # creates an instance with a local dataset or attempts to download
-            # a dataset from the server
-            self.data_uid = self.retrieve_demo_data()
-        self.dataset = Dataset(self.data_uid, self.ui)
+            data_path, labels_path = self.download_demo_data()
+            self.data_uid = DataPreparation.run(
+                self.benchmark_uid, data_path, labels_path, self.comms, self.ui
+            )
+
+    def execute_benchmark(self):
+        """Runs the benchmark execution flow given the specified testing parameters
+        """
+        BenchmarkExecution.run(
+            self.benchmark_uid,
+            self.data_uid,
+            self.model_uid,
+            self.comms,
+            self.ui,
+            run_test=True,
+        )
+
+    def download_demo_data(self):
+        """Retrieves the demo dataset associated to the specified benchmark
+
+        Returns:
+            data_path (str): Location of the downloaded data
+            labels_path (str): Location of the downloaded labels
+        """
+        # TODO: implement this
+        return (
+            "/Users/aristizabal-factored/Documents/mlcommons_p0/local_workspace/CheXpert-v1.0-small",
+            "/Users/aristizabal-factored/Documents/mlcommons_p0/local_workspace/CheXpert-v1.0-small/valid.csv",
+        )
 
     def validate(self):
-        data_provided = self.data_uid != self.benchmark.demo_data_uid
+        self.benchmark.demo_data_uid = "test"
+        # TODO Remove fallback
+        data_provided = False and self.data_uid != self.benchmark.demo_data_uid
         local_model_provided = self.cube_path is not None
         model_provided = (
             self.model_uid != self.benchmark.reference_model
@@ -95,9 +120,19 @@ class TestExecution(BenchmarkExecution):
 
         if variables_provided > 1:
             pretty_error(
-                "Too many testing parameters were set. Please only test one element at a time"
+                "Too many testing parameters were set. Please only test one element at a time",
+                self.ui,
             )
         if variables_provided == 0:
-            pretty_error("At least one testing element must be passed")
+            pretty_error("At least one testing element must be passed", self.ui)
 
-        super().validate()
+        # Ensure the cube_path is a directory pointing to an mlcube
+        cube_path_specified = self.cube_path is not None
+        cube_path_isdir = os.path.isdir(self.cube_path)
+        manifest_file = os.path.join(self.cube_path, config["cube_filename"])
+        cube_path_contains_manifest_file = os.path.exists(manifest_file)
+        valid_cube_path = cube_path_isdir and cube_path_contains_manifest_file
+        if cube_path_specified and not valid_cube_path:
+            pretty_error(
+                "The specified cube_path is invalid. Must point to a directory containing an mlcube.yaml manifest file"
+            )
