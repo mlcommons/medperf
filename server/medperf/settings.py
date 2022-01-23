@@ -40,7 +40,7 @@ else:
 
     client = secretmanager.SecretManagerServiceClient()
     settings_name = os.environ.get("SETTINGS_SECRETS_NAME", None)
-    print("Settings_name", settings_name)
+    print("SETTINGS_SECRETS_NAME", settings_name)
     if settings_name is None:
         raise Exception("SETTINGS_SECRETS_NAME var is not set")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
@@ -124,11 +124,10 @@ WSGI_APPLICATION = "medperf.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-print("GCP_CI_CLOUDBUILD", os.environ.get("GCP_CI_CLOUDBUILD", False))
-if os.environ.get("GCP_CI_CLOUDBUILD", False):
-    DATABASE_URL=os.environ.get("GCP_CI_DATABASE_URL")
-    print("GCP_CI_CLOUDBUILD",DATABASE_URL)
 DATABASES = {"default": env.db()}
+if os.environ.get("GCP_CI_CLOUDBUILD", False):
+    print("CI Build environment")
+    DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
 print(DATABASES)
 
 # If the flag as been set, configure to use proxy
