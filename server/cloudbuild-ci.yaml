@@ -91,7 +91,7 @@ steps:
         "--image", 
         "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}", 
         "--add-cloudsql-instances", 
-        "${PROJECT_ID}:${_REGION}:${_INSTANCE_NAME}",
+        "${PROJECT_ID}:${_REGION}:${_SQL_INSTANCE_NAME}",
         "--set-env-vars",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
         "--set-env-vars",
