@@ -106,7 +106,7 @@ substitutions:
   _ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
   _REPO_NAME: medperf-repo
   _IMAGE_NAME: medperf-api
-  _SERVICE_NAME: medperf-api-dev-service-{$_PR_NUMBER}
+  _SERVICE_NAME: medperf-api-dev-service-${_PR_NUMBER}
   _SECRET_SETTINGS_NAME: django-dev-settings
   _SQL_INSTANCE_NAME: medperf-dev
 
