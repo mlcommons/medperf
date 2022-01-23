@@ -123,8 +123,8 @@ WSGI_APPLICATION = "medperf.wsgi.application"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 if os.environ.get("GCP_CI_CLOUDBUILD", False):
     DATABASE_URL=os.environ.get("GCP_CI_DATABASE_URL")
-print(DATABASE_URL)
 DATABASES = {"default": env.db()}
+print(DATABASES)
 
 # If the flag as been set, configure to use proxy
 if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
