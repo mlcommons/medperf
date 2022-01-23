@@ -44,7 +44,7 @@ steps:
         "-e",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
         "-e",
-        "GCP_CI_CLOUDBUILD=True",
+        "GCP_CI_CLOUDBUILD=${_GCP_CI_CLOUDBUILD}",
         "-e",
         "GCP_CI_DATABASE_URL=${_GCP_CI_DATABASE_URL}",
         "--",
@@ -65,7 +65,7 @@ steps:
         "-e",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
         "-e",
-        "GCP_CI_CLOUDBUILD=True",
+        "GCP_CI_CLOUDBUILD=${_GCP_CI_CLOUDBUILD}",
         "-e",
         "GCP_CI_DATABASE_URL=${_GCP_CI_DATABASE_URL}",
         "--",
@@ -95,7 +95,7 @@ steps:
         "--set-env-vars",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
         "--set-env-vars",
-        "GCP_CI_CLOUDBUILD=True",
+        "GCP_CI_CLOUDBUILD=${_GCP_CI_CLOUDBUILD}",
         "--set-env-vars",
         "GCP_CI_DATABASE_URL=${_GCP_CI_DATABASE_URL}",
         "--allow-unauthenticated"
@@ -106,9 +106,13 @@ substitutions:
   _ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
   _REPO_NAME: medperf-repo
   _IMAGE_NAME: medperf-api
-  _SERVICE_NAME: medperf-api-dev-service-${_PR_NUMBER}
+  _SERVICE_NAME: medperf-api-ci-PR-${_PR_NUMBER}
   _SECRET_SETTINGS_NAME: django-dev-settings
   _SQL_INSTANCE_NAME: medperf-dev
+  ##settings specific for CI trigger##
+  _GCP_CI_CLOUDBUILD: True
+  _GCP_CI_DATABASE_NAME: db-ci-PR-${_PR_NUMBER}
+  #_GCP_CI_DATABASE_URL var is set in Cloud build trigger configuration 
 
 options:
     dynamic_substitutions: true

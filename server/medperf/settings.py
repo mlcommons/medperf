@@ -39,7 +39,10 @@ else:
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
     client = secretmanager.SecretManagerServiceClient()
-    settings_name = os.environ.get("SETTINGS_SECRETS_NAME", "django-dev-settings")
+    settings_name = os.environ.get("SETTINGS_SECRETS_NAME", None)
+    print("Settings_name", settings_name)
+    if settings_name is None:
+        raise Exception("SETTINGS_SECRETS_NAME var is not set")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
     payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
 
@@ -121,8 +124,10 @@ WSGI_APPLICATION = "medperf.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+print("GCP_CI_CLOUDBUILD", os.environ.get("GCP_CI_CLOUDBUILD", False))
 if os.environ.get("GCP_CI_CLOUDBUILD", False):
     DATABASE_URL=os.environ.get("GCP_CI_DATABASE_URL")
+    print("GCP_CI_CLOUDBUILD",DATABASE_URL)
 DATABASES = {"default": env.db()}
 print(DATABASES)
 
