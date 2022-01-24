@@ -84,6 +84,10 @@ class TestExecution:
                 self.ui,
                 run_test=True,
             )
+            # Dataset will not be registered, so we must mock its uid
+            dset = Dataset(self.data_uid, self.ui)
+            dset.uid = self.data_uid
+            dset.set_registration()
 
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
