@@ -24,5 +24,6 @@ config = {
     "log_file": os.path.join(storage, "medperf.log"),
     "default_comms": "REST",
     "default_ui": "CLI",
-    "local_cube_prefix": "local_",
+    "test_cube_prefix": "test_",
+    "test_dset_prefix": "test_",
 }
