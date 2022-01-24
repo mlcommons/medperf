@@ -33,6 +33,7 @@ class TestExecution:
             cube_path (str, optional): Location of local model mlcube. Must be
                 provided if no dataset or model uid is provided.
         """
+        logging.info("Starting test execution")
         test_exec = cls(benchmark_uid, data_uid, model_uid, comms, ui, cube_path)
         test_exec.validate()
         test_exec.set_model_uid()
@@ -62,20 +63,26 @@ class TestExecution:
         If a cube_path is provided, it will create a temporary uid and link the cube path to
         the medperf storage path.
         """
+        logging.info("Establishing model_uid for test execution")
         if self.model_uid is None:
+            logging.info("model_uid not provided. Using reference cube")
             self.model_uid = self.benchmark.reference_model
 
         if self.cube_path:
+            logging.info("local cube path provided. Creating symbolic link")
             self.model_uid = config["test_cube_prefix"] + str(int(time()))
             dst = os.path.join(config["cubes_storage"], self.model_uid)
             os.symlink(self.cube_path, dst)
+            logging.info(f"local cube will linked to path: {dst}")
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
         If no data_uid is provided, it will retrieve the demo data and execute the data 
         preparation flow.
         """
+        logging.info("Establishing data_uid for test execution")
         if self.data_uid is None:
+            logging.info("Data uid not provided. Using benchmark demo dataset")
             data_path, labels_path = self.download_demo_data()
             self.data_uid = DataPreparation.run(
                 self.benchmark_uid,
@@ -86,6 +93,7 @@ class TestExecution:
                 run_test=True,
             )
             # Dataset will not be registered, so we must mock its uid
+            logging.info("Defining local data uid")
             dset = Dataset(self.data_uid, self.ui)
             dset.uid = self.data_uid
             dset.set_registration()
@@ -116,17 +124,22 @@ class TestExecution:
         )
 
     def validate(self):
-        # TODO Remove fallback
+        logging.info("Validating test execution")
         self.benchmark.demo_data_uid = "test"
+        # TODO Remove fallback
         data_provided = False and self.data_uid != self.benchmark.demo_data_uid
+        logging.debug(f"Data_uid provided? {data_provided}")
         local_model_provided = self.cube_path is not None
+        logging.debug(f"Local cube provided? {data_provided}")
         model_provided = (
             self.model_uid != self.benchmark.reference_model
             and not local_model_provided
         )
+        logging.debug(f"Model provided? {model_provided}")
 
         # We should only be testing one of the three possibilities
         variables_provided = sum([data_provided, model_provided, local_model_provided])
+        logging.debug(f"Number of testing values provided: {variables_provided}")
 
         if variables_provided > 1:
             pretty_error(
@@ -137,8 +150,8 @@ class TestExecution:
             pretty_error("At least one testing element must be passed", self.ui)
 
         # Ensure the cube_path is a directory pointing to an mlcube
-        cube_path_specified = self.cube_path is not None
-        if cube_path_specified:
+        if local_model_provided:
+            logging.info("Ensuring local cube is valid")
             cube_path_isdir = os.path.isdir(self.cube_path)
             manifest_file = os.path.join(self.cube_path, config["cube_filename"])
             cube_path_contains_manifest_file = os.path.exists(manifest_file)
