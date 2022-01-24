@@ -8,7 +8,7 @@ from medperf.entities import Cube
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 
-PATCH_SERVER = "medperf.entities.benchmark.Server.{}"
+PATCH_SERVER = "medperf.entities.benchmark.Comms.{}"
 PATCH_CUBE = "medperf.entities.cube.{}"
 CUBE_PATH = "cube_path"
 PARAMS_PATH = "params_path"

@@ -17,12 +17,11 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def login(self, username: str, password: str):
+    def login(self, ui: UI):
         """Authenticate the comms instance for further interactions
 
         Args:
-            username (str): registered username
-            password (str): user's password
+            ui (UI): instance of an implementation of the UI interface.
         """
 
     @abstractmethod

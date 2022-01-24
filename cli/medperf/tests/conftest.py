@@ -1,10 +1,10 @@
-# Code adapted and extended from Dane Hillard's article on Effective Python Testing With Pytest
-# https://realpython.com/pytest-python-testing/
-
 import pytest
 import requests
 import builtins
 import os
+
+from medperf.ui import UI
+from medperf.comms import Comms
 
 
 @pytest.fixture(autouse=True)
@@ -56,3 +56,16 @@ def disable_fs_IO_operations(monkeypatch):
     # monkeypatch.setattr(os.path, "abspath", lambda *args, **kwargs: stunted_abspath())
     # monkeypatch.setattr(os.path, "exists", lambda *args, **kwargs: stunted_exists())
     monkeypatch.setattr(builtins, "open", lambda *args, **kwargs: stunted_open())
+
+
+@pytest.fixture
+def ui(mocker):
+    ui = mocker.create_autospec(spec=UI)
+    return ui
+
+
+@pytest.fixture
+def comms(mocker):
+    comms = mocker.create_autospec(spec=Comms)
+    return comms
+
