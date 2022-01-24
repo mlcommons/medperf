@@ -59,24 +59,54 @@ def cleanup():
     if os.path.exists(config["tmp_storage"]):
         logging.info("Removing temporary data storage")
         rmtree(config["tmp_storage"], ignore_errors=True)
-    dsets = get_dsets()
-    prefix = config["tmp_reg_prefix"]
-    unreg_dsets = [dset for dset in dsets if dset.startswith(prefix)]
-    for dset in unreg_dsets:
-        logging.info("Removing unregistered dataset")
-        dset_path = os.path.join(config["data_storage"], dset)
+
+    cleanup_dsets()
+    cleanup_cubes()
+
+
+def cleanup_dsets():
+    """Removes clutter related to datsets
+    """
+    dsets_path = config["data_storage"]
+    dsets = get_uids(dsets_path)
+    tmp_prefix = config["tmp_reg_prefix"]
+    test_prefix = config["test_dset_prefix"]
+    clutter_dsets = [
+        dset
+        for dset in dsets
+        if dset.startswith(tmp_prefix) or dset.startswith(test_prefix)
+    ]
+
+    for dset in clutter_dsets:
+        logging.info(f"Removing clutter dataset: {dset}")
+        dset_path = os.path.join(dsets_path, dset)
         if os.path.exists(dset_path):
             rmtree(dset_path, ignore_errors=True)
 
 
-def get_dsets() -> List[str]:
-    """Retrieves the UID of all the datasets stored locally.
+def cleanup_cubes():
+    """Removes clutter related to cubes
+    """
+    cubes_path = config["cubes_storage"]
+    cubes = get_uids(cubes_path)
+    test_prefix = config["test_cube_prefix"]
+    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
+
+    for cube in clutter_cubes:
+        logging.info(f"Removing clutter cube: {cube}")
+        cube_path = os.path.join(cubes_path, cube)
+        if os.path.exists(cube_path):
+            rmtree(cube_path, ignore_errors=True)
+
+
+def get_uids(path: str) -> List[str]:
+    """Retrieves the UID of all the elements in the specified path.
 
     Returns:
-        List[str]: UIDs of prepared datasets.
+        List[str]: UIDs of objects in path.
     """
-    dsets = next(os.walk(config["data_storage"]))[1]
-    return dsets
+    uids = next(os.walk(path))[1]
+    return uids
 
 
 def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):

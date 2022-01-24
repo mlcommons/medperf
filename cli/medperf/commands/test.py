@@ -7,7 +7,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark, Cube, benchmark
 from medperf.commands import BenchmarkExecution
-from medperf.utils import pretty_error, init_storage
+from medperf.utils import pretty_error, get_uids
 from medperf.config import config
 
 
@@ -65,7 +65,7 @@ class TestExecution:
             self.model_uid = self.benchmark.reference_model
 
         if self.cube_path:
-            self.model_uid = config["local_cube_prefix"] + str(int(time()))
+            self.model_uid = config["test_cube_prefix"] + str(int(time()))
             dst = os.path.join(config["cubes_storage"], self.model_uid)
             os.symlink(self.cube_path, dst)
 
@@ -77,7 +77,12 @@ class TestExecution:
         if self.data_uid is None:
             data_path, labels_path = self.download_demo_data()
             self.data_uid = DataPreparation.run(
-                self.benchmark_uid, data_path, labels_path, self.comms, self.ui
+                self.benchmark_uid,
+                data_path,
+                labels_path,
+                self.comms,
+                self.ui,
+                run_test=True,
             )
 
     def execute_benchmark(self):
@@ -106,8 +111,8 @@ class TestExecution:
         )
 
     def validate(self):
-        self.benchmark.demo_data_uid = "test"
         # TODO Remove fallback
+        self.benchmark.demo_data_uid = "test"
         data_provided = False and self.data_uid != self.benchmark.demo_data_uid
         local_model_provided = self.cube_path is not None
         model_provided = (
@@ -134,5 +139,6 @@ class TestExecution:
         valid_cube_path = cube_path_isdir and cube_path_contains_manifest_file
         if cube_path_specified and not valid_cube_path:
             pretty_error(
-                "The specified cube_path is invalid. Must point to a directory containing an mlcube.yaml manifest file"
+                "The specified cube_path is invalid. Must point to a directory containing an mlcube.yaml manifest file",
+                self.ui,
             )

@@ -8,7 +8,6 @@ from medperf.utils import (
     check_cube_validity,
     init_storage,
     pretty_error,
-    cleanup,
     results_path,
 )
 from medperf.config import config
@@ -38,7 +37,6 @@ class BenchmarkExecution:
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
-        cleanup()
 
     def __init__(
         self,
@@ -65,7 +63,7 @@ class BenchmarkExecution:
         self.dataset = Dataset(self.data_uid, self.ui)
 
     def validate(self):
-        dset_prep_cube = self.dataset.preparation_cube_uid
+        dset_prep_cube = str(self.dataset.preparation_cube_uid)
         bmark_prep_cube = str(self.benchmark.data_preparation)
 
         if dset_prep_cube != bmark_prep_cube:
@@ -107,6 +105,7 @@ class BenchmarkExecution:
 
         self.ui.text = "Evaluating results"
         out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
+        print(out_path)
         self.evaluator.run(
             self.ui,
             task="evaluate",
