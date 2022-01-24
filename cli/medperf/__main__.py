@@ -80,8 +80,8 @@ def execute(
     cleanup()
 
 
-@app.command("test")
 @clean_except
+@app.command("test")
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
