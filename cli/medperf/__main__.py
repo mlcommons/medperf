@@ -12,7 +12,7 @@ from medperf.commands import (
     TestExecution,
 )
 from medperf.config import config
-from medperf.utils import init_storage
+from medperf.utils import init_storage, cleanup
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
@@ -53,6 +53,7 @@ def prepare(
     DatasetRegistration.run(data_uid, comms, ui)
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
+    cleanup()
 
 
 @clean_except
@@ -76,10 +77,11 @@ def execute(
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
+    cleanup()
 
 
-@clean_except
 @app.command("test")
+@clean_except
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -109,6 +111,7 @@ def execute(
     comms.authenticate()
     TestExecution.run(benchmark_uid, comms, ui, data_uid, model_uid, cube_path)
     ui.print("✅ Done!")
+    cleanup()
 
 
 @clean_except
@@ -130,6 +133,7 @@ def submit(
     comms.authenticate()
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
+    cleanup()
 
 
 @clean_except
