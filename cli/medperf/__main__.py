@@ -19,16 +19,16 @@ app = typer.Typer()
 state = {"comms": None, "ui": None}
 
 
-@clean_except
 @app.command("login")
+@clean_except
 def login():
     """Login to the medperf server. Must be done only once.
     """
     Login.run(state["comms"], state["ui"])
 
 
-@clean_except
 @app.command("prepare")
+@clean_except
 def prepare(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -54,8 +54,8 @@ def prepare(
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("execute")
+@clean_except
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -81,8 +81,8 @@ def execute(
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("associate")
+@clean_except
 def associate(
     data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
@@ -100,8 +100,8 @@ def associate(
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("datasets")
+@clean_except
 def datasets():
     """Lists all local datasets
 	"""
