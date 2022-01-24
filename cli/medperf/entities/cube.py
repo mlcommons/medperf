@@ -97,7 +97,9 @@ class Cube(object):
             Cube : a Cube instance with the retrieved data.
         """
         "Retrieve from local storage if cube already there"
-        local_cube = list(filter(lambda cube: cube.uid == str(cube_uid), cls.all(ui)))
+        local_cube = list(
+            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all(ui))
+        )
         if len(local_cube) == 1:
             return local_cube[0]
 
