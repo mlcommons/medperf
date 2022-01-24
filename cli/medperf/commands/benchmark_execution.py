@@ -105,7 +105,6 @@ class BenchmarkExecution:
 
         self.ui.text = "Evaluating results"
         out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
-        print(out_path)
         self.evaluator.run(
             self.ui,
             task="evaluate",
