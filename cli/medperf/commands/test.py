@@ -38,6 +38,7 @@ class TestExecution:
         test_exec.set_model_uid()
         test_exec.set_data_uid()
         test_exec.execute_benchmark()
+        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model_uid
 
     def __init__(
         self,
