@@ -137,12 +137,13 @@ class TestExecution:
 
         # Ensure the cube_path is a directory pointing to an mlcube
         cube_path_specified = self.cube_path is not None
-        cube_path_isdir = os.path.isdir(self.cube_path)
-        manifest_file = os.path.join(self.cube_path, config["cube_filename"])
-        cube_path_contains_manifest_file = os.path.exists(manifest_file)
-        valid_cube_path = cube_path_isdir and cube_path_contains_manifest_file
-        if cube_path_specified and not valid_cube_path:
-            pretty_error(
-                "The specified cube_path is invalid. Must point to a directory containing an mlcube.yaml manifest file",
-                self.ui,
-            )
+        if cube_path_specified:
+            cube_path_isdir = os.path.isdir(self.cube_path)
+            manifest_file = os.path.join(self.cube_path, config["cube_filename"])
+            cube_path_contains_manifest_file = os.path.exists(manifest_file)
+            valid_cube_path = cube_path_isdir and cube_path_contains_manifest_file
+            if not valid_cube_path:
+                pretty_error(
+                    "The specified cube_path is invalid. Must point to a directory containing an mlcube.yaml manifest file",
+                    self.ui,
+                )
