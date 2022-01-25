@@ -39,14 +39,14 @@ jobs:
       run: docker push ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}
     
     - name: Deploy service to cloud run
-      run: gcloud run deploy ${{ env.SERVICE_NAME }} --image ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }} --region ${{ env.REGION }} --platform managed --allow-unauthenticated
+      run: gcloud run deploy ${{ env.SERVICE_NAME }} --image ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }} --region ${{ env.REGION }} --platform managed --allow-unauthenticated --min-instances 1
 
     - name: Get service url
       run: echo "DEPLOY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')"  >> $GITHUB_ENV
 
     - name: Run integration tests
       working-directory: ./server
-      run: sh server.sh -s ${{ env.DEPLOY_URL }}
+      run: python seed.py --server ${{ env.DEPLOY_URL }}
 
     - name: Delete service
       run: gcloud run services delete ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --quiet
