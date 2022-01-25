@@ -2,6 +2,7 @@ import sys
 import argparse
 import requests
 import json
+import curlify
 
 def send_request(endpoint, method, headers, data, out_field=None):
     headers.update({"accept": "application/json", "Content-Type": "application/json"})
@@ -10,7 +11,7 @@ def send_request(endpoint, method, headers, data, out_field=None):
     except requests.exceptions.RequestException as e:
         raise SystemExit(e)
     if resp.status_code != 200 and resp.status_code != 201:
-        sys.exit("Response code is " + str(resp.status_code) + " : " + resp.text)
+        sys.exit("Response code is " + str(resp.status_code) + " : " + resp.text + " curl request " + curlify.to_curl(resp.request))
     res = json.loads(resp.text)
     if out_field:
         if out_field not in res:
