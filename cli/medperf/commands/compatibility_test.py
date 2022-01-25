@@ -5,13 +5,13 @@ from medperf.commands.prepare import DataPreparation
 
 from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.entities import Dataset, Benchmark, Cube, benchmark
+from medperf.entities import Dataset, Benchmark
 from medperf.commands import BenchmarkExecution
-from medperf.utils import pretty_error, get_uids
+from medperf.utils import pretty_error
 from medperf.config import config
 
 
-class TestExecution:
+class CompatibilityTestExecution:
     @classmethod
     def run(
         cls,
@@ -132,7 +132,8 @@ class TestExecution:
         local_model_provided = self.cube_path is not None
         logging.debug(f"Local cube provided? {data_provided}")
         model_provided = (
-            self.model_uid != self.benchmark.reference_model
+            self.model_uid is not None
+            and self.model_uid != self.benchmark.reference_model
             and not local_model_provided
         )
         logging.debug(f"Model provided? {model_provided}")
