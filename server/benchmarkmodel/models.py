@@ -13,6 +13,7 @@ class BenchmarkModel(models.Model):
         "benchmark.Benchmark", on_delete=models.CASCADE
     )
     initiated_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    results = models.JSONField()
     approval_status = models.CharField(
         choices=MODEL_STATUS, max_length=100, default="PENDING"
     )
@@ -21,5 +22,4 @@ class BenchmarkModel(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = (("model_mlcube", "benchmark"),)
         ordering = ["modified_at"]

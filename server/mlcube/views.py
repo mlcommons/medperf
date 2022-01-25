@@ -3,7 +3,9 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import MlCube
-from .serializers import MlCubeSerializer
+from .serializers import MlCubeSerializer, MlCubeDetailSerializer
+
+from .permissions import IsAdmin, IsMlCubeOwner
 
 
 class MlCubeList(GenericAPIView):
@@ -30,8 +32,15 @@ class MlCubeList(GenericAPIView):
 
 
 class MlCubeDetail(GenericAPIView):
-    serializer_class = MlCubeSerializer
+    serializer_class = MlCubeDetailSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsMlCubeOwner]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:
@@ -44,7 +53,7 @@ class MlCubeDetail(GenericAPIView):
         Retrieve a mlcube instance.
         """
         mlcube = self.get_object(pk)
-        serializer = MlCubeSerializer(mlcube)
+        serializer = MlCubeDetailSerializer(mlcube)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
@@ -52,7 +61,9 @@ class MlCubeDetail(GenericAPIView):
         Update a mlcube instance.
         """
         mlcube = self.get_object(pk)
-        serializer = MlCubeSerializer(mlcube, data=request.data)
+        serializer = MlCubeDetailSerializer(
+            mlcube, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

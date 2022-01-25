@@ -12,17 +12,15 @@ class IsBenchmarkOwner(BasePermission):
         try:
             return Benchmark.objects.get(pk=pk)
         except Benchmark.DoesNotExist:
-            raise None
+            return None
 
     def has_permission(self, request, view):
-        print("Benchmark Owner perms", request.user, "view", view)
-        print(view.kwargs)
         pk = view.kwargs.get("pk", None)
-
+        if not pk:
+            return False
         benchmark = self.get_object(pk)
         if not benchmark:
             return False
-        print(benchmark, request.user.id, benchmark.owner.id)
         if benchmark.owner.id == request.user.id:
             return True
         else:

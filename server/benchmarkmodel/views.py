@@ -3,32 +3,26 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
+
+from .permissions import IsAdmin, IsMlCubeOwner, IsBenchmarkOwner
 from .serializers import (
     BenchmarkModelListSerializer,
-    BenchmarkModelApprovalSerializer,
     ModelApprovalSerializer,
 )
 
 
 class BenchmarkModelList(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
-
-    @swagger_auto_schema(operation_id="models_benchmarks_list_all")
-    def get(self, request, format=None):
-        """
-        List all models associated across benchmarks
-        """
-        benchmarkmodels = BenchmarkModel.objects.all()
-        serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
-        return Response(serializer.data)
 
     def post(self, request, format=None):
         """
         Associate a model to a benchmark
         """
-        serializer = BenchmarkModelListSerializer(data=request.data)
+        serializer = BenchmarkModelListSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -36,7 +30,7 @@ class BenchmarkModelList(GenericAPIView):
 
 
 class BenchmarkModelApproval(GenericAPIView):
-    serializer_class = BenchmarkModelApprovalSerializer
+    serializer_class = BenchmarkModelListSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -50,30 +44,18 @@ class BenchmarkModelApproval(GenericAPIView):
         Retrieve all benchmarks associated with a model
         """
         benchmarkmodel = self.get_object(pk)
-        serializer = BenchmarkModelApprovalSerializer(
-            benchmarkmodel, many=True
-        )
+        serializer = BenchmarkModelListSerializer(benchmarkmodel, many=True)
         return Response(serializer.data)
-
-    # def put(self, request, pk, format=None):
-    #    """
-    #    Update the benchmark association with a model
-    #    """
-    #    if serializer.is_valid():
-
-    # def delete(self, request, pk, format=None):
-    #    """
-    #    Delete a benchmark association with a model
-    #    """
 
 
 class ModelApproval(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
     serializer_class = ModelApprovalSerializer
     queryset = ""
 
     def get_object(self, model_id, benchmark_id):
         try:
-            return BenchmarkModel.objects.get(
+            return BenchmarkModel.objects.filter(
                 model_mlcube__id=model_id, benchmark__id=benchmark_id
             )
         except BenchmarkModel.DoesNotExist:
@@ -81,18 +63,22 @@ class ModelApproval(GenericAPIView):
 
     def get(self, request, pk, bid, format=None):
         """
-        Retrieve approval status of benchmark model association
+        Retrieve approval status of benchmark model associations
         """
         benchmarkmodel = self.get_object(pk, bid)
-        serializer = ModelApprovalSerializer(benchmarkmodel)
+        serializer = ModelApprovalSerializer(benchmarkmodel, many=True)
         return Response(serializer.data)
 
     def put(self, request, pk, bid, format=None):
         """
-        Update approval status of benchmark model association
+        Update approval status of the last benchmark model association
         """
-        benchmarkmodel = self.get_object(pk, bid)
-        serializer = ModelApprovalSerializer(benchmarkmodel, data=request.data)
+        benchmarkmodel = (
+            self.get_object(pk, bid).order_by("-created_at").first()
+        )
+        serializer = ModelApprovalSerializer(
+            benchmarkmodel, data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -100,7 +86,7 @@ class ModelApproval(GenericAPIView):
 
     def delete(self, request, pk, bid, format=None):
         """
-        Delete a benchmark model association
+        Delete benchmark model associations
         """
         benchmarkmodel = self.get_object(pk, bid)
         benchmarkmodel.delete()

@@ -1,6 +1,5 @@
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
-from benchmarkuser.serializers import BenchmarkUserListSerializer
 from result.serializers import ModelResultSerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
@@ -9,6 +8,7 @@ from rest_framework import status
 
 from .models import Benchmark
 from .serializers import BenchmarkSerializer, BenchmarkApprovalSerializer
+from .permissions import IsAdmin, IsBenchmarkOwner
 
 
 class BenchmarkList(GenericAPIView):
@@ -27,7 +27,9 @@ class BenchmarkList(GenericAPIView):
         """
         Create a new benchmark
         """
-        serializer = BenchmarkSerializer(data=request.data)
+        serializer = BenchmarkSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -76,27 +78,8 @@ class BenchmarkDatasetList(GenericAPIView):
         return Response(serializer.data)
 
 
-class BenchmarkUserList(GenericAPIView):
-    serializer_class = BenchmarkUserListSerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            return Benchmark.objects.get(pk=pk)
-        except Benchmark.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        """
-        Retrieve users associated with a benchmark instance.
-        """
-        benchmark = self.get_object(pk)
-        usergroups = benchmark.benchmarkuser_set.all()
-        serializer = BenchmarkUserListSerializer(usergroups, many=True)
-        return Response(serializer.data)
-
-
 class BenchmarkResultList(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner]
     serializer_class = ModelResultSerializer
     queryset = ""
 
@@ -117,12 +100,15 @@ class BenchmarkResultList(GenericAPIView):
 
 
 class BenchmarkDetail(GenericAPIView):
+    serializer_class = BenchmarkApprovalSerializer
     queryset = ""
 
-    def get_serializer_class(self):
-        if self.request.method == "PUT" or self.request.method == "DELETE":
-            return BenchmarkApprovalSerializer
-        return BenchmarkSerializer
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsBenchmarkOwner]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:
@@ -143,7 +129,9 @@ class BenchmarkDetail(GenericAPIView):
         Update a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        serializer = BenchmarkApprovalSerializer(benchmark, data=request.data)
+        serializer = BenchmarkApprovalSerializer(
+            benchmark, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
