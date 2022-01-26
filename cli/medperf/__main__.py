@@ -9,7 +9,7 @@ from medperf.commands import (
     ResultSubmission,
     Login,
     Datasets,
-    TestExecution,
+    CompatibilityTestExecution,
 )
 from medperf.config import config
 from medperf.utils import init_storage, cleanup
@@ -109,7 +109,9 @@ def execute(
     comms = state["comms"]
     ui = state["ui"]
     comms.authenticate()
-    TestExecution.run(benchmark_uid, comms, ui, data_uid, model_uid, cube_path)
+    CompatibilityTestExecution.run(
+        benchmark_uid, comms, ui, data_uid, model_uid, cube_path
+    )
     ui.print("✅ Done!")
     cleanup()
 
