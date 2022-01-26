@@ -34,7 +34,7 @@ class CompatibilityTestExecution:
                 provided if no dataset or model uid is provided.
         """
         logging.info("Starting test execution")
-        test_exec = cls(benchmark_uid, data_uid, model_uid, comms, ui, cube_path)
+        test_exec = cls(benchmark_uid, data_uid, model_uid, cube_path, comms, ui)
         test_exec.validate()
         test_exec.set_model_uid()
         test_exec.set_data_uid()
@@ -46,9 +46,9 @@ class CompatibilityTestExecution:
         benchmark_uid: int,
         data_uid: int,
         model_uid: int,
+        cube_path: str,
         comms: Comms,
         ui: UI,
-        cube_path: str,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -127,6 +127,7 @@ class CompatibilityTestExecution:
         logging.info("Validating test execution")
         self.benchmark.demo_data_uid = "test"
         # TODO Remove fallback
+        # TODO this comparison should be done between input hashes
         data_provided = False and self.data_uid != self.benchmark.demo_data_uid
         logging.debug(f"Data_uid provided? {data_provided}")
         local_model_provided = self.cube_path is not None
@@ -134,7 +135,6 @@ class CompatibilityTestExecution:
         model_provided = (
             self.model_uid is not None
             and self.model_uid != self.benchmark.reference_model
-            and not local_model_provided
         )
         logging.debug(f"Model provided? {model_provided}")
 
