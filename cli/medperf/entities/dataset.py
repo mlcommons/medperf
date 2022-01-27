@@ -74,9 +74,9 @@ class Dataset:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
-        data_storage = config.data_storage
+        data_storage = storage_path(config.data_storage)
         try:
-            uids = next(os.walk(storage_path(config.data_storage)))[1]
+            uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory")
