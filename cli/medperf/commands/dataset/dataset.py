@@ -17,7 +17,9 @@ def datasets():
     """Lists all local datasets
 	"""
     ui = config.ui
-    DatasetsList.run(ui)
+    comms = config.comms
+    comms.authenticate()
+    DatasetsList.run(comms, ui)
 
 
 @clean_except
