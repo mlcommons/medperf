@@ -1,7 +1,7 @@
 from tabulate import tabulate
 
-from medperf.entities import Dataset
 from medperf.ui import UI
+from medperf.entities import Dataset
 
 
 class DatasetsList:
