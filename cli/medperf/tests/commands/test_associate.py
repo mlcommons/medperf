@@ -4,7 +4,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.tests.utils import rand_l
 from medperf.entities import Dataset, Benchmark
-from medperf.commands.associate import DatasetBenchmarkAssociation
+from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
 
 patch_associate = "medperf.commands.associate.{}"
 req_func = "request_association_approval"

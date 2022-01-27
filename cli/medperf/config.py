@@ -21,3 +21,5 @@ reg_file = "registration-info.yaml"
 log_file = "medperf.log"
 default_comms = "REST"
 default_ui = "CLI"
+ui = None
+comms = None

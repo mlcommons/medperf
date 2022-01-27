@@ -3,7 +3,7 @@ import pytest
 from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
-from medperf.commands.datasets import Datasets
+from medperf.commands.dataset.list import Datasets
 
 patch_datasets = "medperf.commands.datasets.{}"
 
