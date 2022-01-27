@@ -198,6 +198,18 @@ class REST(Comms):
             open(filepath, "wb+").write(res.content)
             return filepath
 
+    def get_user_datasets(self) -> dict:
+        """Retrieves all datasets registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve datasets from server", self.ui)
+        return res.json()
+
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 
