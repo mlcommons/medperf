@@ -141,7 +141,7 @@ class Registration:
         self.path = new_path
         return new_path
 
-    def write(self, out_path: str, filename: str = config.reg_file) -> str:
+    def write(self, filename: str = config.reg_file) -> str:
         """Writes the registration into disk
 
         Args:
