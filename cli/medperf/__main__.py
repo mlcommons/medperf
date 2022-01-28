@@ -16,7 +16,7 @@ from medperf.commands.dataset import dataset
 
 
 app = typer.Typer()
-app.add_typer(dataset.app, name="dataset")
+app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 
 
 @clean_except
