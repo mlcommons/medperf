@@ -1,15 +1,16 @@
+from medperf.entities import benchmark
 import typer
 import logging
 
 from medperf.commands import (
     DataPreparation,
     DatasetRegistration,
-    BenchmarkExecution,
     DatasetBenchmarkAssociation,
-    ResultSubmission,
     Login,
     Datasets,
 )
+from medperf.commands.result import BenchmarkExecution
+from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage
 from medperf.decorators import clean_except
@@ -19,6 +20,7 @@ from medperf.utils import init_storage
 
 
 app = typer.Typer()
+app.add_typer(result.app, name="result", help="Manage results")
 
 
 @clean_except
@@ -54,8 +56,8 @@ def prepare(
 
 
 @clean_except
-@app.command("execute")
-def execute(
+@app.command("run")
+def run(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
@@ -68,33 +70,7 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ui.print("✅ Done!")
-
-
-@clean_except
-@app.command("submit")
-def submit(
-    benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the executed benchmark"
-    ),
-    data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="UID of the dataset used for results"
-    ),
-    model_uid: int = typer.Option(
-        ..., "--model_uid", "-m", help="UID of the executed model"
-    ),
-):
-    """Submits already obtained results to the server"""
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ui.print("✅ Done!")
+    result.create(benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid)
 
 
 @clean_except
