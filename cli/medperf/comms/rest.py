@@ -213,6 +213,10 @@ class REST(Comms):
             pretty_error("Could not upload the dataset", self.ui)
         return res.json()["id"]
 
+    def get_user_results(self):
+        """Retrieves results information uploaded by the user
+        """
+
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
 
