@@ -58,5 +58,4 @@ def list():
     comms = config.comms
     ui = config.ui
     comms.authenticate()
-    ResultsList.run(ui)
-    ui.print("✅ Done!")
+    ResultsList.run(comms, ui)
