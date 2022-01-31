@@ -2,7 +2,7 @@ import typer
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.result import BenchmarkExecution, ResultSubmission
+from medperf.commands.result import BenchmarkExecution, ResultSubmission, ResultsList
 
 app = typer.Typer()
 
@@ -50,3 +50,13 @@ def submit(
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
 
+
+@clean_except
+@app.command("ls")
+def list():
+    """List results stored locally and remotely from the user"""
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    ResultsList.run(ui)
+    ui.print("✅ Done!")

@@ -13,6 +13,7 @@ from colorama import Fore, Style
 import re
 
 import medperf.config as config
+from medperf.ui import UI
 
 
 def storage_path(subpath: str):
@@ -263,3 +264,28 @@ def results_path(benchmark_uid, model_uid, data_uid):
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
     out_path = os.path.join(out_path, config.results_filename)
     return out_path
+
+
+def results_ids(ui: UI):
+    results_storage = storage_path(config.results_storage)
+    results_ids = []
+    try:
+        bmk_uids = next(os.walk(results_storage))[1]
+        for bmk_uid in bmk_uids:
+            bmk_storage = os.path.join(results_storage, bmk_uid)
+            model_uids = next(os.walk(bmk_storage))[1]
+            for model_uid in model_uids:
+                bmk_model_storage = os.path.join(bmk_storage, model_uid)
+                data_uids = next(os.walk(bmk_model_storage))[1]
+                bmk_model_data_list = [
+                    (bmk_uid, model_uid, data_uid) for data_uid in data_uids
+                ]
+                results_ids += bmk_model_data_list
+
+    except:
+        msg = "Couldn't iterate over the results directory"
+        logging.warning(msg)
+        pretty_error(msg, ui)
+
+    return results_ids
+
