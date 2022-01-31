@@ -11,7 +11,7 @@ from medperf.commands import (
     Datasets,
 )
 import medperf.config as config
-from medperf.utils import init_storage
+from medperf.utils import init_storage, storage_path
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
@@ -144,7 +144,7 @@ def datasets():
 @app.callback()
 def main(
     log: str = "INFO",
-    log_file: str = config.log_file,
+    log_file: str = storage_path(config.log_file),
     comms: str = config.default_comms,
     ui: str = config.default_ui,
     host: str = config.server,
