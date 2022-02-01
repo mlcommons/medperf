@@ -107,6 +107,5 @@ class Result:
             yaml.dump(self.results, f)
 
     def get_results(self):
-        print(self.path)
         with open(self.path, "r") as f:
             self.results = yaml.full_load(f)
