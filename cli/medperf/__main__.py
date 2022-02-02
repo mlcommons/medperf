@@ -1,6 +1,7 @@
 from medperf.entities import benchmark
 import typer
 import logging
+from os.path import abspath, expanduser
 
 from medperf.commands import (
     DataPreparation,
@@ -120,14 +121,18 @@ def datasets():
 @app.callback()
 def main(
     log: str = "INFO",
-    log_file: str = storage_path(config.log_file),
+    log_file: str = None,
     comms: str = config.default_comms,
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
 ):
     # Set configuration variables
-    config.storage = storage
+    config.storage = abspath(expanduser(storage))
+    if log_file is None:
+        log_file = storage_path(config.log_file)
+    else:
+        log_file = abspath(expanduser(log_file))
 
     init_storage()
     log = log.upper()
