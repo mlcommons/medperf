@@ -256,7 +256,7 @@ def get_folder_sha1(path: str) -> str:
 
 
 def results_path(benchmark_uid, model_uid, data_uid):
-    out_path = config.results_storage
+    out_path = storage_path(config.results_storage)
     bmark_uid = str(benchmark_uid)
     model_uid = str(model_uid)
     data_uid = str(data_uid)
