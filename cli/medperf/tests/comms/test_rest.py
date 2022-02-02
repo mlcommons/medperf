@@ -330,6 +330,22 @@ def test_get_cube_methods_run_get_cube_file(mocker, server, method):
     spy.assert_called_once()
 
 
+def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    cubes = [
+        {"id": 1, "name": "name1", "state": "OPERATION"},
+        {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
+    ]
+    res = MockResponse(cubes, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    server.get_user_cubes()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/me/mlcubes/")
+
+
 def test_get_cube_file_writes_to_file(mocker, server):
     # Arrange
     cube_uid = 1
