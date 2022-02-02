@@ -17,9 +17,11 @@ from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
 from medperf.utils import init_storage
+from medperf.commands.mlcube import mlcube
 
 
 app = typer.Typer()
+app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 
 
 @clean_except

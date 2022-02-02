@@ -98,6 +98,13 @@ class Comms(ABC):
             str: location where the mlcube.yaml file is stored locally.
         """
 
+    def get_user_cubes(self) -> List[dict]:
+        """Retrieves metadata from all cubes registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the mlcubes registration information
+        """
+
     @abstractmethod
     def get_cube_params(self, url: str, cube_uid: int) -> str:
         """Retrieves the cube parameters.yaml file from the server

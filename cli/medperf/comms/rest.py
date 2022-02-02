@@ -154,6 +154,19 @@ class REST(Comms):
         cube_file = config.cube_filename
         return self.__get_cube_file(url, cube_uid, "", cube_file)
 
+    def get_user_cubes(self) -> List[dict]:
+        """Retrieves metadata from all cubes registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the mlcubes registration information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't retrieve mlcubes created by the user")
+        data = res.json()
+        return data
+
     def get_cube_params(self, url: str, cube_uid: int) -> str:
         """Retrieves the cube parameters.yaml file from the server
 
