@@ -50,6 +50,7 @@ class Dataset:
         self.split_seed = registration["split_seed"]
         self.metadata = registration["metadata"]
         self.status = registration["status"]
+        self.state = registration["state"]
 
     @property
     def registration(self):
@@ -64,6 +65,7 @@ class Dataset:
             "split_seed": self.split_seed,
             "metadata": self.metadata,
             "status": self.status,
+            "state": self.state,
         }
 
     @classmethod

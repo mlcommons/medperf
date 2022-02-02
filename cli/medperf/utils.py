@@ -101,7 +101,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     ui.print_error(msg)
     if clean:
         cleanup()
-    exit()
+    exit(1)
 
 
 def cube_path(uid: int) -> str:
