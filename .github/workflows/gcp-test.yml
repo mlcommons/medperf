@@ -48,5 +48,30 @@ jobs:
       working-directory: ./server
       run: pip install -r test-requirements.txt --user && python seed.py --server ${{ env.DEPLOY_URL }}
 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f cli/requirements.txt ]; then pip install -e cli; fi
+
+    - name: Install Docker
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release -y
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get install moby-engine moby-cli containerd.io
+
+
+    - name: Run client integration tests
+      working-directory: ./cli
+      run: sh cli.sh -s ${{ env.DEPLOY_URL }} -d ~ -u admin -p admin
+
     - name: Delete service
       run: gcloud run services delete ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --quiet
