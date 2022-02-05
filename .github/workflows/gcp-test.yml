@@ -46,7 +46,7 @@ jobs:
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt && python seed.py --server ${{ env.DEPLOY_URL }}
+      run: pip install -r test-requirements.txt --user && python seed.py --server ${{ env.DEPLOY_URL }}
 
     - name: Delete service
       run: gcloud run services delete ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --quiet
