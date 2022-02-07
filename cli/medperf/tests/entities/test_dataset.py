@@ -18,6 +18,7 @@ REGISTRATION_MOCK = {
     "generated_uid": "generated_uid",
     "status": "status",
     "uid": "uid",
+    "state": "state",
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
