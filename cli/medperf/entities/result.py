@@ -59,7 +59,7 @@ class Result:
 
     def todict(self):
         with open(self.path, "r") as f:
-            results = yaml.full_load(f)
+            results = yaml.safe_load(f)
 
         result_dict = {
             "name": f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}",
@@ -108,4 +108,4 @@ class Result:
 
     def get_results(self):
         with open(self.path, "r") as f:
-            self.results = yaml.full_load(f)
+            self.results = yaml.safe_load(f)

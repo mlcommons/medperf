@@ -123,7 +123,7 @@ class Cube(object):
                 output for the desired task
         """
         with open(self.cube_path, "r") as f:
-            cube = yaml.full_load(f)
+            cube = yaml.safe_load(f)
 
         out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
         if type(out_path) == dict:
@@ -134,7 +134,7 @@ class Cube(object):
 
         if self.params_path is not None and param_key is not None:
             with open(self.params_path, "r") as f:
-                params = yaml.full_load(f)
+                params = yaml.safe_load(f)
 
             out_path = os.path.join(out_path, params[param_key])
 

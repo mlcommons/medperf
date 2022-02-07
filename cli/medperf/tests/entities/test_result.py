@@ -13,7 +13,7 @@ MOCK_RESULTS_CONTENT = {"id": "1", "results": {}}
 def result(mocker):
     mocker.patch(PATCH_RESULT.format("Result.get_results"))
     mocker.patch("builtins.open", MagicMock())
-    mocker.patch("yaml.full_load", return_value={})
+    mocker.patch("yaml.safe_load", return_value={})
     result = Result("", 1, 1, 1)
     result.results = MOCK_RESULTS_CONTENT
     result.uid = result.results["id"]
@@ -26,7 +26,7 @@ def result(mocker):
 def test_results_open_results_file_on_init(mocker, results_path):
     # Arrange
     open_spy = mocker.patch("builtins.open", MagicMock())
-    yaml_spy = mocker.patch("yaml.full_load", return_value={})
+    yaml_spy = mocker.patch("yaml.safe_load", return_value={})
     get_spy = mocker.spy(Result, "get_results")
 
     # Act
@@ -73,7 +73,7 @@ def test_all_creates_result_objects_with_correct_info(
 def test_todict_opens_results_file_as_yaml(mocker, result, results_path):
     # Arrange
     open_spy = mocker.patch("builtins.open", MagicMock())
-    yaml_spy = mocker.patch("yaml.full_load", return_value={})
+    yaml_spy = mocker.patch("yaml.safe_load", return_value={})
     result = Result(results_path, 1, 1, 1)
 
     # Act
@@ -87,7 +87,7 @@ def test_todict_opens_results_file_as_yaml(mocker, result, results_path):
 def test_todict_returns_expected_keys(mocker, result):
     # Arrange
     mocker.patch("builtins.open", MagicMock())
-    mocker.patch("yaml.full_load", return_value={})
+    mocker.patch("yaml.safe_load", return_value={})
     expected_keys = {
         "name",
         "results",

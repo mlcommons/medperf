@@ -247,7 +247,7 @@ def test_default_output_reads_cube_manifest(mocker, comms, basic_body):
     cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
     spy = mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     # Act
     uid = 1
@@ -263,7 +263,7 @@ def test_default_output_returns_specified_path(mocker, comms, basic_body):
     cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     exp_path = f"./workspace/{VALUE}"
 
@@ -283,7 +283,7 @@ def test_default_output_returns_specified_dict_path(mocker, comms, basic_body):
     }
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     exp_path = f"./workspace/{VALUE}"
 
@@ -302,7 +302,7 @@ def test_default_output_returns_path_with_params(mocker, comms, params_body):
     params_contents = {PARAM_KEY: PARAM_VALUE}
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents, params_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     exp_path = f"./workspace/{VALUE}/{PARAM_VALUE}"
 
