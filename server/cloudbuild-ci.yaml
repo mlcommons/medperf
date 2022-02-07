@@ -132,6 +132,16 @@ steps:
        "pip install -r test-requirements.txt && python seed.py --server $(cat /workspace/service-${_PR_NUMBER}.txt) --username $(cat /workspace/username-${_PR_NUMBER}.txt) --password $(cat /workspace/password-${_PR_NUMBER}.txt)"
       ]
 
+  - id: "run CLI integration tests"
+    name: "python"
+    entrypoint: "/bin/sh"
+    dir: "cli"
+    args:
+      [
+        "-c",
+        "pip install -r medperf/requirements.txt && sh cli.sh"
+      ]
+
   - id: "delete cloud run"
     name: "gcr.io/cloud-builders/gcloud"
     args:
