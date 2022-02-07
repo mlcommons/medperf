@@ -37,7 +37,7 @@ chmod a+w "${DIRECTORY}/mock_chexpert"
 echo "====================================="
 echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
-echo "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL login
+echo -e "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL login
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
   cat $MEDPERF_STORAGE/medperf.log
@@ -47,7 +47,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
+echo -e "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
   cat $MEDPERF_STORAGE/medperf.log
@@ -58,7 +58,7 @@ DSET_UID=$(medperf datasets | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-echo "Y\n" | medperf --host=$SERVER_URL execute -b 1 -d $DSET_UID -m 2
+echo -e "Y\n" | medperf --host=$SERVER_URL execute -b 1 -d $DSET_UID -m 2
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
   cat $MEDPERF_STORAGE/medperf.log

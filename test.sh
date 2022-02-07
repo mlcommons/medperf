@@ -1,15 +1,17 @@
 #! /bin/bash
 rm -fr ~/.medperf
-rm -f server/db.sqlite3
+rm -f db.sqlite3
 python server/manage.py migrate
 python server/manage.py runserver >& /dev/null &
 SERVER_PID=$(jobs | grep "python server/manage.py runserver" | tr -s ' ' | cut -d ' ' -f 1 | tr -dc '0-9')
 sleep 2
-sh server/server.sh
+pip install -r server/test-requirements.txt
+python server/seed.py
 bash cli/cli.sh
-if [ "$?" -ne "0" ]; then
+EXIT_CODE=$?
+if [ "$EXIT_CODE" -ne "0" ]; then
   echo "CLI test failed"
-  exit "$?"
 fi
 kill %$SERVER_PID
-echo "Success"
+echo "Test finished with status $EXIT_CODE"
+exit $EXIT_CODE
