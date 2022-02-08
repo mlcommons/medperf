@@ -21,5 +21,6 @@ reg_file = "registration-info.yaml"
 log_file = "medperf.log"
 default_comms = "REST"
 default_ui = "CLI"
+git_file_domain = "https://raw.githubusercontent.com"
 comms = None
 ui = None

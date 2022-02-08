@@ -98,6 +98,7 @@ class Comms(ABC):
             str: location where the mlcube.yaml file is stored locally.
         """
 
+    @abstractmethod
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
@@ -127,6 +128,17 @@ class Comms(ABC):
 
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
+        """
+
+    @abstractmethod
+    def upload_mlcube(self, mlcube_body: dict) -> int:
+        """Uploads an MLCube instance to the platform
+
+        Args:
+            mlcube_body (dict): Dictionary containing all the relevant data for creating mlcubes
+
+        Returns:
+            int: id of the created mlcube instance on the platform
         """
 
     @abstractmethod

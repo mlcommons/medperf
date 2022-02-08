@@ -211,6 +211,21 @@ class REST(Comms):
             open(filepath, "wb+").write(res.content)
             return filepath
 
+    def upload_mlcube(self, mlcube_body: dict) -> int:
+        """Uploads an MLCube instance to the platform
+
+        Args:
+            mlcube_body (dict): Dictionary containing all the relevant data for creating mlcubes
+
+        Returns:
+            int: id of the created mlcube instance on the platform
+        """
+        res = self.__auth_post(f"{self.server_url}/mlcubes/", json=mlcube_body)
+        if res.status_code != 201:
+            logging.error(res.json())
+            pretty_error("Could not upload the mlcube", self.ui)
+        return res.json()["id"]
+
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 
