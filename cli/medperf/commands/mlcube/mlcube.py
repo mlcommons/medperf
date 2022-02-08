@@ -1,10 +1,9 @@
-from medperf.commands.mlcube.submit import SubmitCube
 import typer
 
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
-from medperf.commands.mlcube import CubesList
+from medperf.commands.mlcube import *
 
 app = typer.Typer()
 
@@ -28,4 +27,18 @@ def submit():
     comms.authenticate()
     SubmitCube.run(comms, ui)
     cleanup()
+    ui.print("✅ Done!")
+
+
+@clean_except
+@app.command("associate")
+def associate(
+    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
+):
+    """Associates an MLCube to a benchmark"""
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    AssociateCube.run(model_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")

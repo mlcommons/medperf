@@ -171,3 +171,12 @@ class Comms(ABC):
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
         """
+
+    @abstractmethod
+    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+        """Create an MLCube-Benchmark association
+
+        Args:
+            cube_uid (str): MLCube UID
+            benchmark_uid (int): Benchmark UID
+        """

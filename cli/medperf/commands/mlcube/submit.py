@@ -1,5 +1,4 @@
 import validators
-import requests
 
 from medperf.ui import UI
 from medperf import config
