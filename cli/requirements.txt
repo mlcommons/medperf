@@ -10,3 +10,4 @@ pytest-mock==1.13.0
 mlcube==0.0.4
 mlcube-docker==0.0.4
 mlcube-singularity==0.0.4
+validators==0.18.2
