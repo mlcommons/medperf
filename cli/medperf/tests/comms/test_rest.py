@@ -300,6 +300,22 @@ def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     assert set(uids) == set(exp_uids)
 
 
+def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    benchmarks = [
+        {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
+        {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
+    ]
+    res = MockResponse(benchmarks, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    server.get_user_benchmarks()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/me/benchmarks")
+
+
 @pytest.mark.parametrize("exp_body", [{"test": "test"}, {}, {"cube": "body"}])
 def test_get_cube_metadata_returns_retrieved_body(mocker, server, exp_body):
     # Arrange
