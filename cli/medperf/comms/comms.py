@@ -76,6 +76,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_user_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks created by the user
+
+        Returns:
+            List[dict]: Benchmarks data
+        """
+
+    @abstractmethod
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
 

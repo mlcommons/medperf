@@ -17,9 +17,11 @@ from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
 from medperf.utils import init_storage
+from medperf.commands.benchmark import benchmark
 
 
 app = typer.Typer()
+app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 
 
 @clean_except

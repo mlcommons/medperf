@@ -125,6 +125,18 @@ class REST(Comms):
         model_uids = [model["id"] for model in models]
         return model_uids
 
+    def get_user_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks created by the user
+
+        Returns:
+            List[dict]: Benchmarks data
+        """
+        res = self.__auth_get(f"{self.server_url}/me/benchmarks/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("wasn't able to retrieve user benchmarks", self.ui)
+        return res.json()
+
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
 
