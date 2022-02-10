@@ -210,6 +210,21 @@ class REST(Comms):
             open(filepath, "wb+").write(res.content)
             return filepath
 
+    def upload_benchmark(self, benchmark_dict: dict) -> int:
+        """Uploads a new benchmark to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        res = self.__auth_post(f"{self.server_url}/benchmarks/", json=benchmark_dict)
+        if res.status_code != 201:
+            logging.error(res.json())
+            pretty_error("Could not upload benchmark", self.ui)
+        return res.json()["id"]
+
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 
