@@ -90,6 +90,19 @@ class REST(Comms):
         assoc_role = self.benchmark_association(benchmark_uid)
         return assoc_role.name == role
 
+    def get_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks in the platform.
+
+        Returns:
+            List[dict]: all benchmarks information.
+        """
+        res = self.__auth_get(f"{self.server_url}/benchmarks/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't retrieve benchmarks", self.ui)
+        benchmarks = res.json()
+        return benchmarks
+
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
 

@@ -274,6 +274,20 @@ def test_authorized_by_role_returns_true_when_authorized(
 
 
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
+def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
+    # Arrange
+    res = MockResponse([body], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    bmarks = server.get_benchmarks()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/benchmarks/")
+    assert bmarks == [body]
+
+
+@pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmark_returns_benchmark_body(mocker, server, body):
     # Arrange
     res = MockResponse(body, 200)
@@ -313,7 +327,7 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/benchmarks")
+    spy.assert_called_once_with(f"{url}/me/benchmarks/")
 
 
 @pytest.mark.parametrize("exp_body", [{"test": "test"}, {}, {"cube": "body"}])

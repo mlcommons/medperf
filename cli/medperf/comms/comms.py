@@ -54,6 +54,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks in the platform.
+
+        Returns:
+            List[dict]: all benchmarks information.
+        """
+
+    @abstractmethod
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
 

@@ -7,14 +7,19 @@ from medperf.entities import Benchmark
 
 class BenchmarksList:
     @staticmethod
-    def run(comms: Comms, ui: UI):
-        """Lists all benchmarks created by the user
+    def run(comms: Comms, ui: UI, all: bool = False):
+        """Lists all benchmarks created by the user by default.
+        Usel "all" to display all benchmarks in the platform
 
         Args:
             comms (Comms): Communications instance
             ui (UI): UI instance
+            all (bool): Display all benchmarks in the platform. Defaults to False.
         """
-        benchmarks = comms.get_user_benchmarks()
+        if all:
+            benchmarks = comms.get_benchmarks()
+        else:
+            benchmarks = comms.get_user_benchmarks()
         headers = ["UID", "Name", "Description", "State"]
         formatted_bmarks = []
         desc_max_len = 20

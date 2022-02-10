@@ -10,12 +10,16 @@ app = typer.Typer()
 
 @clean_except
 @app.command("ls")
-def list():
-    """Lists all benchmarks created by the user"""
+def list(
+    all: bool = typer.Option(False, help="Display all benchmarks in the platform")
+):
+    """Lists all benchmarks created by the user
+    If --all is used, displays all benchmarks in the platform
+    """
     ui = config.ui
     comms = config.comms
     comms.authenticate()
-    BenchmarksList.run(comms, ui)
+    BenchmarksList.run(comms, ui, all)
 
 
 @clean_except
