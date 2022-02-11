@@ -123,6 +123,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_datasets(self) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+
+    @abstractmethod
     def get_user_datasets(self) -> dict:
         """Retrieves all datasets registered by the user
 

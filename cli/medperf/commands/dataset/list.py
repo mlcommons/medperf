@@ -7,12 +7,21 @@ from medperf.entities import Dataset
 
 class DatasetsList:
     @staticmethod
-    def run(comms: Comms, ui: UI):
-        """Lists all local datasets
-	    """
+    def run(comms: Comms, ui: UI, all: bool = False):
+        """List all local and remote users created by user.
+        Use "all" to list all remote datasets in the platform
+
+        Args:
+            comms (Comms): Communications instance
+            ui (UI): UI instance
+            all (bool, optional): List all datasets in the platform. Defaults to False.
+        """
         # Get local and remote datasets
         local_dsets = Dataset.all(ui)
-        remote_dsets = comms.get_user_datasets()
+        if all:
+            remote_dsets = comms.get_datasets()
+        else:
+            remote_dsets = comms.get_user_datasets()
 
         local_uids = set([dset.generated_uid for dset in local_dsets])
         remote_uids = set([dset["generated_uid"] for dset in remote_dsets])

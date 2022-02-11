@@ -13,8 +13,11 @@ app = typer.Typer()
 
 @clean_except
 @app.command("ls")
-def datasets():
-    """Lists all local datasets
+def datasets(
+    all: bool = typer.Option(False, help="Get all datasets from the platform")
+):
+    """Lists all datasets from the user by default.
+    Use all to get all datasets in the platform 
 	"""
     ui = config.ui
     comms = config.comms

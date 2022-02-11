@@ -198,6 +198,18 @@ class REST(Comms):
             open(filepath, "wb+").write(res.content)
             return filepath
 
+    def get_datasets(self) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+        res = self.__auth_get(f"{self.server_url}/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("could not retrieve datasets from server", self.ui)
+        return res.json()
+
     def get_user_datasets(self) -> dict:
         """Retrieves all datasets registered by the user
 
