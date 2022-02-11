@@ -125,6 +125,18 @@ class REST(Comms):
         model_uids = [model["id"] for model in models]
         return model_uids
 
+    def get_cubes(self) -> List[dict]:
+        """Retrieves all MLCubes in the platform
+
+        Returns:
+            List[dict]: List containing the data of all MLCubes
+        """
+        res = self.__auth_get(f"{self.server_url}/mlcubes/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't retrieve mlcubes from the platform")
+        return res.json()
+
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
 

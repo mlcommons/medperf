@@ -300,6 +300,20 @@ def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     assert set(uids) == set(exp_uids)
 
 
+@pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
+def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
+    # Arrange
+    res = MockResponse([body], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    cubes = server.get_cubes()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/mlcubes/")
+    assert cubes == [body]
+
+
 @pytest.mark.parametrize("exp_body", [{"test": "test"}, {}, {"cube": "body"}])
 def test_get_cube_metadata_returns_retrieved_body(mocker, server, exp_body):
     # Arrange

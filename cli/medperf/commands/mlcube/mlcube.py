@@ -10,12 +10,14 @@ app = typer.Typer()
 
 @clean_except
 @app.command("ls")
-def list():
-    """List mlcubes registered by the user"""
+def list(all: bool = typer.Option(False, help="Display all mlcubes")):
+    """List mlcubes registered by the user by default.
+    Use "all" to display all mlcubes in the platform
+    """
     comms = config.comms
     ui = config.ui
     comms.authenticate()
-    CubesList.run(comms, ui)
+    CubesList.run(comms, ui, all)
 
 
 @clean_except

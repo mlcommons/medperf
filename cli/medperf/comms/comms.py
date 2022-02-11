@@ -76,6 +76,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_cubes(self) -> List[dict]:
+        """Retrieves all MLCubes in the platform
+
+        Returns:
+            List[dict]: List containing the data of all MLCubes
+        """
+
+    @abstractmethod
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
 
