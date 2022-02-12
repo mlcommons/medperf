@@ -152,7 +152,7 @@ steps:
     args:
       [
         "-c",
-        "pip install -r medperf/requirements.txt && sh cli.sh"
+        "pip install -e . && sh cli.sh"
       ]
 
   - id: "delete cloud run"
