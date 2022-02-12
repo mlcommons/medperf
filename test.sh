@@ -7,7 +7,7 @@ SERVER_PID=$(jobs | grep "python server/manage.py runserver" | tr -s ' ' | cut -
 sleep 2
 pip install -r server/test-requirements.txt
 python server/seed.py
-bash cli/cli.sh
+bash cli/cli.sh -l
 EXIT_CODE=$?
 if [ "$EXIT_CODE" -ne "0" ]; then
   echo "CLI test failed"
