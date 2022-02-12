@@ -19,7 +19,20 @@ steps:
         "push", 
         "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}"
       ]
-  
+
+  - id: "delete sql database if already present"
+    name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "sql",
+        "databases",
+        "delete",
+        "${_GCP_CI_DATABASE_NAME}",
+        "--instance",
+        "${_SQL_INSTANCE_NAME}",
+        "--quiet"
+      ]
+
   - id: "create sql database"
     name: "gcr.io/cloud-builders/gcloud"
     args:
