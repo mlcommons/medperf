@@ -11,7 +11,7 @@ jobs:
       ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
       REPO_NAME: medperf-repo
       IMAGE_NAME: medperf-api-gha-ci
-      SERVICE_NAME: medperf-api-gha-ci-service
+      SERVICE_NAME: medperf-api-gha-ci
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -42,10 +42,10 @@ jobs:
       run: docker push ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }}
     
     - name: Deploy service to cloud run
-      run: gcloud run deploy ${{ env.SERVICE_NAME }}-${{ github.event.number }} --image ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }} --region ${{ env.REGION }} --platform managed --allow-unauthenticated --min-instances 1
+      run: gcloud run deploy ${{ env.SERVICE_NAME }}-pr-${{ github.event.number }} --image ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }} --region ${{ env.REGION }} --platform managed --allow-unauthenticated --min-instances 1
 
     - name: Get service url
-      run: echo "DEPLOY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-${{ github.event.number }} --region ${{ env.REGION }} --format 'value(status.url)')"  >> $GITHUB_ENV
+      run: echo "DEPLOY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-pr-${{ github.event.number }} --region ${{ env.REGION }} --format 'value(status.url)')"  >> $GITHUB_ENV
 
     - name: Run integration tests
       working-directory: ./server
@@ -77,4 +77,4 @@ jobs:
       run: sh cli.sh -s ${{ env.DEPLOY_URL }} -d ~ -u admin -p admin
 
     - name: Delete service
-      run: gcloud run services delete ${{ env.SERVICE_NAME }}-${{ github.event.number }} --region ${{ env.REGION }} --quiet
+      run: gcloud run services delete ${{ env.SERVICE_NAME }}-pr-${{ github.event.number }} --region ${{ env.REGION }} --quiet

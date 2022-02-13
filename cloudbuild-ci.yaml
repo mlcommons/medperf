@@ -186,13 +186,13 @@ substitutions:
   _ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
   _REPO_NAME: medperf-repo
   _IMAGE_NAME: medperf-api
-  _CLOUD_RUN_SERVICE_NAME: medperf-api-ci-pr-${_PR_NUMBER}
+  _CLOUD_RUN_SERVICE_NAME: medperf-api-cb-ci-pr-${_PR_NUMBER}
   _CLOUD_RUN_MIN_INSTANCES: '1'
   _SECRET_SETTINGS_NAME: django-dev-settings
   _SQL_INSTANCE_NAME: medperf-dev
   ##settings specific for CI trigger##
   _GCP_CI_CLOUDBUILD: 'True'
-  _GCP_CI_DATABASE_NAME: db-ci-pr-${_PR_NUMBER}
+  _GCP_CI_DATABASE_NAME: db-cb-ci-pr-${_PR_NUMBER}
   #_GCP_CI_DATABASE_URL var is set in Cloud build trigger configuration 
 
 options:
