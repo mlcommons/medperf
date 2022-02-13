@@ -1,4 +1,4 @@
-name: Integration workflow(GCP)
+name: Integration-workflow-GCP-gha
 
 on: pull_request  
 
@@ -10,8 +10,8 @@ jobs:
       REGION: us-west1
       ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
       REPO_NAME: medperf-repo
-      IMAGE_NAME: medperf-api-ci
-      SERVICE_NAME: medperf-api-ci-service
+      IMAGE_NAME: medperf-api-gha-ci
+      SERVICE_NAME: medperf-api-gha-ci-service
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -31,18 +31,23 @@ jobs:
       working-directory: ./server
       run: cp .env.example .env
 
+    - name: Set SHORT_SHA env property with commit short sha
+      run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+    - name:
+
     - name: Build container image
       working-directory: ./server
-      run: docker build -t ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }} -f Dockerfile .
+      run: docker build -t ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }} -f Dockerfile.gha .
 
     - name: Push container image
-      run: docker push ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}
+      run: docker push ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }}
     
     - name: Deploy service to cloud run
-      run: gcloud run deploy ${{ env.SERVICE_NAME }} --image ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }} --region ${{ env.REGION }} --platform managed --allow-unauthenticated --min-instances 1
+      run: gcloud run deploy ${{ env.SERVICE_NAME }}-${{ github.event.number }} --image ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }} --region ${{ env.REGION }} --platform managed --allow-unauthenticated --min-instances 1
 
     - name: Get service url
-      run: echo "DEPLOY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')"  >> $GITHUB_ENV
+      run: echo "DEPLOY_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-${{ github.event.number }} --region ${{ env.REGION }} --format 'value(status.url)')"  >> $GITHUB_ENV
 
     - name: Run integration tests
       working-directory: ./server
@@ -74,4 +79,4 @@ jobs:
       run: sh cli.sh -s ${{ env.DEPLOY_URL }} -d ~ -u admin -p admin
 
     - name: Delete service
-      run: gcloud run services delete ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --quiet
+      run: gcloud run services delete ${{ env.SERVICE_NAME }}-${{ github.event.number }} --region ${{ env.REGION }} --quiet
