@@ -135,7 +135,7 @@ steps:
        "apt-get update && apt install jq -y && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_USERNAME)> /workspace/username-${_PR_NUMBER}.txt && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_PASSWORD) > /workspace/password-${_PR_NUMBER}.txt"
       ]
 
-  - id: "run integration tests"
+  - id: "add seed values to the server"
     name: "python"
     entrypoint: "/bin/sh"
     dir: "server"
@@ -152,7 +152,7 @@ steps:
     args:
       [
         "-c",
-        "pip install -e . && sh cli.sh"
+        "pip install -e . && sh cli.sh -s $(cat /workspace/service-${_PR_NUMBER}.txt) -d ~ -u $(cat /workspace/username-${_PR_NUMBER}.txt) -p $(cat /workspace/password-${_PR_NUMBER}.txt)"
       ]
 
   - id: "delete cloud run"

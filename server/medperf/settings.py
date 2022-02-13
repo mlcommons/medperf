@@ -127,7 +127,6 @@ DATABASES = {"default": env.db()}
 if os.environ.get("GCP_CI_CLOUDBUILD", False):
     print("CI Build environment")
     DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
-print(DATABASES)
 
 # If the flag as been set, configure to use proxy
 if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
