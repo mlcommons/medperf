@@ -34,8 +34,6 @@ jobs:
     - name: Set SHORT_SHA env property with commit short sha
       run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
-    - name:
-
     - name: Build container image
       working-directory: ./server
       run: docker build -t ${{ env.REGION }}-${{ env.ARTIFACT_REGISTRY_DOMAIN }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }} -f Dockerfile.gha .
