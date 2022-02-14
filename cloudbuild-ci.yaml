@@ -152,8 +152,8 @@ steps:
     args: 
       [
        "-c",
-       "sudo apt-get update -y
-        sudo apt-get install \
+       "apt-get update -y
+        apt-get install \
         ca-certificates \
         sudo \
         curl \
