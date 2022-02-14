@@ -146,14 +146,19 @@ steps:
       ]
 
   - id: "run CLI integration tests"
-    name: "gcr.io/cloud-builders/docker"
+    name: "ubuntu"
     entrypoint: "/bin/sh"
     dir: "cli"
     args: 
       [
        "-c",
        "apt-get update && \
-       apt-get install python3.8 python3-pip wget -y && \
+       apt-get install python3.8 python3-pip wget ca-certificates curl gnupg lsb-release -y && \
+       curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+       echo \
+       \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu && \
+       $(lsb_release -cs) stable\" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+       apt-get update && apt-get install docker-ce docker-ce-cli containerd.io && \
        pip3 install -e . && \
        sh cli.sh -s $(cat /workspace/service-${_PR_NUMBER}.txt) -d ~ -u $(cat /workspace/username-${_PR_NUMBER}.txt) -p $(cat /workspace/password-${_PR_NUMBER}.txt)"
       ]
