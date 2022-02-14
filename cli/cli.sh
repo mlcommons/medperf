@@ -34,9 +34,10 @@ fi
 echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
-wget -P "${DIRECTORY}" https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
-tar -xzvf "${DIRECTORY}/mock_chexpert_dset.tar.gz" -C $DIRECTORY
-chmod a+w "${DIRECTORY}/mock_chexpert"
+echo "downloading files to $DIRECTORY"
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
+tar -xzvf $DIRECTORY/mock_chexpert_dset.tar.gz -C $DIRECTORY
+chmod a+w $DIRECTORY/mock_chexpert
 echo "====================================="
 echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
