@@ -146,7 +146,7 @@ steps:
       ]
 
   - id: "run CLI integration tests"
-    name: "python"
+    name: gcr.io/cloud-builders/docker"
     entrypoint: "/bin/sh"
     dir: "cli"
     args:
