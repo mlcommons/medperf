@@ -146,7 +146,7 @@ steps:
       ]
 
   - id: "run CLI integration tests"
-    name: "ubuntu-latest"
+    name: "ubuntu"
     entrypoint: "/bin/sh"
     dir: "cli"
     args: 
