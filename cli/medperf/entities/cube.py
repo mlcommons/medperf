@@ -107,8 +107,8 @@ class Cube(object):
         proc = pexpect.spawn(cmd, timeout=None)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
+        logging.debug(proc_out)
         if proc.exitstatus != 0:
-            logging.error(proc_out)
             ui.text = "\n"
             pretty_error("There was an error while executing the cube", ui)
 
