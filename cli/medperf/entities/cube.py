@@ -100,10 +100,10 @@ class Cube(object):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
-        logging.info(f"Running MLCube command: {cmd}")
         for k, v in kwargs.items():
             cmd_arg = f"{k}={v}"
             cmd = " ".join([cmd, cmd_arg])
+        logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=None)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
