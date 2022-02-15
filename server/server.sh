@@ -72,7 +72,7 @@ else
 fi
 
 # Create a Data preprocessor MLCube by Benchmark Owner 
-DATA_PREPROCESSOR_MLCUBE=$(curl -s -X POST "$SERVER_URL/mlcubes/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{ \"name\": \"xrv_prep\", \"git_mlcube_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_prep/mlcube.yaml\", \"git_parameters_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_prep/parameters.yaml\", \"metadata\": {}}" | jq -r '.id')
+DATA_PREPROCESSOR_MLCUBE=$(curl -s -X POST "$SERVER_URL/mlcubes/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{ \"name\": \"xrv_prep\", \"git_mlcube_url\": \"https://raw.githubusercontent.com/aristizabal95/medical/d7fbc8f476b03577a9fc66ea7bd9119a60e95e8c/cubes/xrv_prep/mlcube/mlcube.yaml\", \"git_parameters_url\": \"https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_prep/parameters.yaml\", \"metadata\": {}}" | jq -r '.id')
 
 if [ -z $DATA_PREPROCESSOR_MLCUBE ]
 then

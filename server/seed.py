@@ -8,7 +8,9 @@ import curlify
 def send_request(endpoint, method, headers, data, out_field=None):
     headers.update({"accept": "application/json", "Content-Type": "application/json"})
     try:
-        resp = requests.request(method=method, headers=headers, url=endpoint, data=json.dumps(data))
+        resp = requests.request(
+            method=method, headers=headers, url=endpoint, data=json.dumps(data)
+        )
     except requests.exceptions.RequestException as e:
         raise SystemExit(e)
     if resp.status_code != 200 and resp.status_code != 201:
@@ -113,8 +115,7 @@ def seed(args):
         {
             "name": "xrv_prep",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_prep/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medical/d7fbc8f476b03577a9fc66ea7bd9119a60e95e8c/cubes/xrv_prep/mlcube/mlcube.yaml"
             ),
             "git_parameters_url": (
                 "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
@@ -203,8 +204,7 @@ def seed(args):
         "id",
     )
     print(
-        "Data Evaluator MlCube Created(by Benchmark Owner). ID:",
-        data_evaluator_mlcube,
+        "Data Evaluator MlCube Created(by Benchmark Owner). ID:", data_evaluator_mlcube,
     )
 
     # Update state of the Data Evaluator MLCube to OPERATION
@@ -302,9 +302,7 @@ def seed(args):
         "state",
     )
     print(
-        "Model MlCube state updated to",
-        model_executor1_mlcube_state,
-        "by Model Owner",
+        "Model MlCube state updated to", model_executor1_mlcube_state, "by Model Owner",
     )
 
     # Create another model mlcube by Model Owner
@@ -339,9 +337,7 @@ def seed(args):
         "state",
     )
     print(
-        "Model MlCube state updated to",
-        model_executor2_mlcube_state,
-        "by Model Owner",
+        "Model MlCube state updated to", model_executor2_mlcube_state, "by Model Owner",
     )
 
     # Associate the model-executor1 mlcube to the created benchmark by model owner user
@@ -369,7 +365,12 @@ def seed(args):
 
     # Mark the model-executor1 association with created benchmark as approved by benchmark owner
     model_executor1_in_benchmark_status = send_request(
-        args.server + "/mlcubes/" + str(model_executor1_mlcube) + "/benchmarks/" + str(benchmark) + "/",
+        args.server
+        + "/mlcubes/"
+        + str(model_executor1_mlcube)
+        + "/benchmarks/"
+        + str(benchmark)
+        + "/",
         "PUT",
         header(benchmark_owner_token),
         {"approval_status": "APPROVED"},
@@ -409,7 +410,12 @@ def seed(args):
 
     # Mark the model-executor2 association with created benchmark as approved by benchmark owner
     model_executor2_in_benchmark_status = send_request(
-        args.server + "/mlcubes/" + str(model_executor2_mlcube) + "/benchmarks/" + str(benchmark) + "/",
+        args.server
+        + "/mlcubes/"
+        + str(model_executor2_mlcube)
+        + "/benchmarks/"
+        + str(benchmark)
+        + "/",
         "PUT",
         header(benchmark_owner_token),
         {"approval_status": "APPROVED"},

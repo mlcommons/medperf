@@ -39,6 +39,7 @@ wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert_
 tar -xzvf $DIRECTORY/mock_chexpert_dset.tar.gz -C $DIRECTORY
 chmod a+w $DIRECTORY/mock_chexpert
 ls $DIRECTORY/mock_chexpert
+ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
 echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
