@@ -169,7 +169,7 @@ steps:
         sudo apt update && \
         sudo apt install docker-ce -y && \ 
         sudo apt-get install docker-ce docker-ce-cli containerd.io -y && \
-        sudo apt-get install python3.8 python3-pip
+        sudo apt-get install python3.8 python3-pip && \
         pip install -e . && \
         sh cli.sh -s $(cat /workspace/service-${_PR_NUMBER}.txt) -d ~ -u $(cat /workspace/username-${_PR_NUMBER}.txt) -p $(cat /workspace/password-${_PR_NUMBER}.txt)"
       ]
