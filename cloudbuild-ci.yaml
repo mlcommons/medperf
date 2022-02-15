@@ -155,6 +155,7 @@ steps:
        "apt-get update -y && \
         apt-get install \
         ca-certificates \
+        wget \
         sudo \
         curl \
         gnupg \
