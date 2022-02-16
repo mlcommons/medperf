@@ -2,7 +2,6 @@ from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
 from medperf.utils import pretty_error
-from medperf.config import config
 
 
 class DatasetBenchmarkAssociation:

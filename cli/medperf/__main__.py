@@ -1,5 +1,6 @@
 import typer
 import logging
+from os.path import abspath, expanduser
 
 from medperf.commands import (
     DataPreparation,
@@ -10,8 +11,8 @@ from medperf.commands import (
     Login,
     Datasets,
 )
-from medperf.config import config
-from medperf.utils import init_storage
+import medperf.config as config
+from medperf.utils import init_storage, storage_path
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
@@ -19,7 +20,6 @@ from medperf.utils import init_storage
 
 
 app = typer.Typer()
-state = {"comms": None, "ui": None}
 
 
 @clean_except
@@ -27,7 +27,7 @@ state = {"comms": None, "ui": None}
 def login():
     """Login to the medperf server. Must be done only once.
     """
-    Login.run(state["comms"], state["ui"])
+    Login.run(config.comms, config.ui)
 
 
 @clean_except
@@ -45,11 +45,11 @@ def prepare(
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
+    comms = config.comms
+    ui = config.ui
     logging.info(
         f"Running prepare with arguments: benchmark_uid={benchmark_uid}, data_path={data_path}, labels_path={labels_path}"
     )
-    comms = state["comms"]
-    ui = state["ui"]
     comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
     DatasetRegistration.run(data_uid, comms, ui)
@@ -72,8 +72,8 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = state["comms"]
-    ui = state["ui"]
+    comms = config.comms
+    ui = config.ui
     comms.authenticate()
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
@@ -94,8 +94,8 @@ def submit(
     ),
 ):
     """Submits already obtained results to the server"""
-    comms = state["comms"]
-    ui = state["ui"]
+    comms = config.comms
+    ui = config.ui
     comms.authenticate()
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
@@ -113,8 +113,8 @@ def associate(
 ):
     """Associate a registered dataset with a specific benchmark. The dataset and benchmark must share the same data preparation cube.
     """
-    comms = state["comms"]
-    ui = state["ui"]
+    comms = config.comms
+    ui = config.ui
     comms.authenticate()
     DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
@@ -129,8 +129,8 @@ def register(
 ):
     """Registers an unregistered Dataset instance to the backend
     """
-    comms = state["comms"]
-    ui = state["ui"]
+    comms = config.comms
+    ui = config.ui
     comms.authenticate()
     DatasetRegistration.run(data_uid, comms, ui)
     ui.print("✅ Done!")
@@ -141,29 +141,37 @@ def register(
 def datasets():
     """Lists all local datasets
 	"""
-    ui = state["ui"]
+    ui = config.ui
     Datasets.run(ui)
 
 
 @app.callback()
 def main(
     log: str = "INFO",
-    log_file: str = config["log_file"],
-    comms: str = config["default_comms"],
-    ui: str = config["default_ui"],
-    host: str = config["server"],
+    log_file: str = None,
+    comms: str = config.default_comms,
+    ui: str = config.default_ui,
+    host: str = config.server,
+    storage: str = config.storage,
 ):
+    # Set configuration variables
+    config.storage = abspath(expanduser(storage))
+    if log_file is None:
+        log_file = storage_path(config.log_file)
+    else:
+        log_file = abspath(expanduser(log_file))
+
     init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
-    logging.info(f"Running MedPerf v{config['version']} on {log} logging level")
+    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
-    state["ui"] = UIFactory.create_ui(ui)
-    state["comms"] = CommsFactory.create_comms(comms, state["ui"], host)
+    config.ui = UIFactory.create_ui(ui)
+    config.comms = CommsFactory.create_comms(comms, config.ui, host)
 
-    state["ui"].print(f"MedPerf {config['version']}")
+    config.ui.print(f"MedPerf {config.version}")
 
 
 if __name__ == "__main__":

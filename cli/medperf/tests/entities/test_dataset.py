@@ -2,7 +2,8 @@ import pytest
 from unittest.mock import MagicMock, mock_open
 
 import medperf
-from medperf.config import config
+from medperf import utils
+import medperf.config as config
 from medperf.entities import Dataset
 from medperf.ui import UI
 from medperf.comms import Comms
@@ -22,7 +23,7 @@ REGISTRATION_MOCK = {
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
-TMP_PREFIX = config["tmp_reg_prefix"]
+TMP_PREFIX = config.tmp_reg_prefix
 
 
 @pytest.fixture
@@ -73,7 +74,7 @@ def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
     Dataset.all(ui)
 
     # Assert
-    spy.assert_called_once_with(config["data_storage"])
+    spy.assert_called_once_with(utils.storage_path(config.data_storage))
 
 
 def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
@@ -147,7 +148,7 @@ def test_get_registration_looks_for_registration_file(mocker, ui, all_uids):
     dset.get_registration()
 
     # Assert
-    spy.assert_called_once_with(dset.dataset_path, config["reg_file"])
+    spy.assert_called_once_with(dset.dataset_path, config.reg_file)
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
