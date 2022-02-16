@@ -6,7 +6,7 @@ import pexpect
 
 from medperf.comms import Comms
 from medperf.ui import UI
-from medperf.config import config
+from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
@@ -112,7 +112,7 @@ class Cube(object):
             ui.text = "\n"
             pretty_error("There was an error while executing the cube", ui)
 
-        logging.debug(list_files(config["storage"]))
+        logging.debug(list_files(config.storage))
         return proc
 
     def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
