@@ -97,7 +97,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     ui.print_error(msg)
     if clean:
         cleanup()
-    exit()
+    exit(1)
 
 
 def cube_path(uid: int) -> str:
@@ -259,3 +259,24 @@ def results_path(benchmark_uid, model_uid, data_uid):
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
     out_path = os.path.join(out_path, config["results_filename"])
     return out_path
+
+
+def setup_logger(logger, log_lvl):
+    fh = logging.FileHandler(config["log_file"])
+    fh.setLevel(log_lvl)
+    logger.addHandler(fh)
+
+
+def list_files(startpath):
+    tree_str = ""
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, "").count(os.sep)
+        indent = " " * 4 * (level)
+
+        tree_str += "{}{}/\n".format(indent, os.path.basename(root))
+        subindent = " " * 4 * (level + 1)
+        for f in files:
+            tree_str += "{}{}\n".format(subindent, f)
+
+    return tree_str
+

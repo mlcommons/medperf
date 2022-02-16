@@ -45,6 +45,9 @@ def prepare(
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
+    logging.info(
+        f"Running prepare with arguments: benchmark_uid={benchmark_uid}, data_path={data_path}, labels_path={labels_path}"
+    )
     comms = state["comms"]
     ui = state["ui"]
     comms.authenticate()

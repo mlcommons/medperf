@@ -25,16 +25,12 @@ class BenchmarkAdmin(admin.ModelAdmin):
     )
 
     def dataset_list(self, obj):
-        return ",".join(
-            [gp.dataset.name for gp in obj.benchmarkdataset_set.all()]
-        )
+        return ",".join([gp.dataset.name for gp in obj.benchmarkdataset_set.all()])
 
     dataset_list.short_description = "Registered Datasets"
 
     def model_list(self, obj):
-        return ",".join(
-            [gp.model_mlcube.name for gp in obj.benchmarkmodel_set.all()]
-        )
+        return ",".join([gp.model_mlcube.name for gp in obj.benchmarkmodel_set.all()])
 
     model_list.short_description = "Registered Models"
 

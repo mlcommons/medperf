@@ -11,9 +11,7 @@ class DatasetTest(TestCase):
 
     def setUp(self):
         username = "dataowner"
-        password = "".join(
-            random.choice(string.ascii_letters) for m in range(10)
-        )
+        password = "".join(random.choice(string.ascii_letters) for m in range(10))
         user = User.objects.create_user(
             username=username,
             password=password,
@@ -37,9 +35,7 @@ class DatasetTest(TestCase):
             "metadata": {"key": "value"},
         }
 
-        response = self.client.post(
-            "/mlcubes/", data_preproc_mlcube, format="json"
-        )
+        response = self.client.post("/mlcubes/", data_preproc_mlcube, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.data_preproc_mlcube_id = response.data["id"]
 
@@ -93,9 +89,7 @@ class DatasetTest(TestCase):
             "data_preparation_mlcube": self.data_preproc_mlcube_id,
         }
 
-        response = self.client.put(
-            "/datasets/{0}/".format(uid), newtestdataset, format="json"
-        )
+        response = self.client.put("/datasets/{0}/".format(uid), newtestdataset, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get("/datasets/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
