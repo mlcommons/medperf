@@ -61,7 +61,7 @@ if [ "$?" -ne "0" ]; then
   exit 2
 fi
 echo "\n"
-DSET_UID=$(medperf --storage=$MEDPERF_STORAGE dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
