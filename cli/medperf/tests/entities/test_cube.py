@@ -194,6 +194,7 @@ def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body):
     # Arrange
     mpexpect = MockPexpect(0)
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
     task = "task"
     expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task}"
@@ -211,6 +212,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body):
     # Arrange
     mpexpect = MockPexpect(0)
     spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
     expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task} test=test"
 

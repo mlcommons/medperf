@@ -9,32 +9,75 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('mlcube', '0001_initial'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("mlcube", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Dataset',
+            name="Dataset",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=20)),
-                ('description', models.CharField(blank=True, max_length=20)),
-                ('location', models.CharField(blank=True, max_length=100)),
-                ('input_data_hash', models.CharField(max_length=128, unique=True)),
-                ('generated_uid', models.CharField(max_length=128, unique=True)),
-                ('split_seed', models.IntegerField()),
-                ('is_valid', models.BooleanField(default=True)),
-                ('state', models.CharField(choices=[('DEVELOPMENT', 'DEVELOPMENT'), ('OPERATION', 'OPERATION')], default='DEVELOPMENT', max_length=100)),
-                ('generated_metadata', models.JSONField(blank=True, default=dict, null=True)),
-                ('user_metadata', models.JSONField(blank=True, default=dict, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('data_preparation_mlcube', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='benchmark_preprocessor_mlcube', to='mlcube.mlcube')),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='auth.user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=20)),
+                ("description", models.CharField(blank=True, max_length=20)),
+                ("location", models.CharField(blank=True, max_length=100)),
+                (
+                    "input_data_hash",
+                    models.CharField(max_length=128, unique=True),
+                ),
+                (
+                    "generated_uid",
+                    models.CharField(max_length=128, unique=True),
+                ),
+                ("split_seed", models.IntegerField()),
+                ("is_valid", models.BooleanField(default=True)),
+                (
+                    "state",
+                    models.CharField(
+                        choices=[
+                            ("DEVELOPMENT", "DEVELOPMENT"),
+                            ("OPERATION", "OPERATION"),
+                        ],
+                        default="DEVELOPMENT",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "generated_metadata",
+                    models.JSONField(blank=True, default=dict, null=True),
+                ),
+                (
+                    "user_metadata",
+                    models.JSONField(blank=True, default=dict, null=True),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                (
+                    "data_preparation_mlcube",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="benchmark_preprocessor_mlcube",
+                        to="mlcube.mlcube",
+                    ),
+                ),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="auth.user",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['modified_at'],
+                "ordering": ["modified_at"],
             },
         ),
     ]
