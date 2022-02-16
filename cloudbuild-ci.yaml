@@ -145,36 +145,6 @@ steps:
        "pip install -r test-requirements.txt --user && python seed.py --server $(cat /workspace/service-${_PR_NUMBER}.txt) --username $(cat /workspace/username-${_PR_NUMBER}.txt) --password $(cat /workspace/password-${_PR_NUMBER}.txt)"
       ]
 
-  - id: "run CLI integration tests"
-    name: "ubuntu"
-    entrypoint: "/bin/sh"
-    dir: "cli"
-    args: 
-      [
-       "-c",
-       "apt-get update -y && \
-        apt-get install \
-        ca-certificates \
-        wget \
-        sudo \
-        curl \
-        gnupg \
-        lsb-release -y && \
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-        echo \
-        \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-        sudo apt install apt-transport-https ca-certificates curl software-properties-common -y && \
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
-        sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` test\" && \
-        sudo apt update && \
-        sudo apt install docker-ce -y && \ 
-        sudo apt-get install docker-ce docker-ce-cli containerd.io -y && \
-        sudo apt-get install python3.8 python3-pip -y && \
-        pip install -e . && \
-        sh cli.sh -s $(cat /workspace/service-${_PR_NUMBER}.txt) -u $(cat /workspace/username-${_PR_NUMBER}.txt) -p $(cat /workspace/password-${_PR_NUMBER}.txt)"
-      ]
-      
   - id: "delete cloud run"
     name: "gcr.io/cloud-builders/gcloud"
     args:
