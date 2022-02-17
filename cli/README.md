@@ -36,4 +36,16 @@ The CLI provides the following commands:
   ```
   medperf execute -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
   ```
+- `mlcube ls`: Lists all mlcubes created by the user. Lists all mlcubes if `--all` is passed
+  ```
+  medperf mlcube ls [--all]
+  ``` 
+- `mlcube submit`: Submits a new mlcube to the platform
+  ```
+  medperf mlcube submit
+  ```   
+- `mlcube associate`: Associates an MLCube to a benchmark
+  ```
+  medperf mlcube associate -b <BENCHMARK_UID> -m <MODEL_UID>
+  ``` 
 The CLI runs MLCubes behind the scene. This cubes require a container engine like docker, and so that engine must be running before running commands like `prepare` and `execute`
