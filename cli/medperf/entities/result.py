@@ -106,12 +106,10 @@ class Result:
         write_access = os.access(self.path, os.W_OK)
         logging.debug(f"file has write access? {write_access}")
         if not write_access:
-            os.chmod(self.path, 644)
-            write_access = os.access(self.path, os.W_OK)
-            logging.debug(f"file has write access? {write_access}")
+            logging.debug(f"removing outdated and inaccessible results")
+            os.remove(self.path)
         with open(self.path, "w") as f:
             yaml.dump(self.results, f)
-        os.chmod(self.path, 444)
 
     def get_results(self):
         with open(self.path, "r") as f:
