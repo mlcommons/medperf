@@ -7,6 +7,15 @@ from medperf.commands.result import BenchmarkExecution, ResultSubmission, Result
 app = typer.Typer()
 
 
+def run_benchmark(benchmark_uid, data_uid, model_uid):
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
+
+
 @clean_except
 @app.command("create")
 def create(
@@ -22,12 +31,7 @@ def create(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ui.print("✅ Done!")
+    run_benchmark(benchmark_uid, data_uid, model_uid)
 
 
 @clean_except

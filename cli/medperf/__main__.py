@@ -10,7 +10,6 @@ from medperf.commands import (
     Login,
     Datasets,
 )
-from medperf.commands.result import BenchmarkExecution
 from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage, storage_path
@@ -49,6 +48,9 @@ def prepare(
     """
     comms = config.comms
     ui = config.ui
+    logging.info(
+        f"Running prepare with arguments: benchmark_uid={benchmark_uid}, data_path={data_path}, labels_path={labels_path}"
+    )
     comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
     DatasetRegistration.run(data_uid, comms, ui)
@@ -71,7 +73,9 @@ def run(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    result.create(benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid)
+    result.run_benchmark(
+        benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
+    )
 
 
 @clean_except

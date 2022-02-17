@@ -9,32 +9,75 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('benchmark', '0001_initial'),
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('mlcube', '0001_initial'),
-        ('dataset', '0001_initial'),
+        ("benchmark", "0001_initial"),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("mlcube", "0001_initial"),
+        ("dataset", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ModelResult',
+            name="ModelResult",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, max_length=20)),
-                ('results', models.JSONField()),
-                ('metadata', models.JSONField(default=dict)),
-                ('approval_status', models.CharField(choices=[('PENDING', 'PENDING'), ('APPROVED', 'APPROVED'), ('REJECTED', 'REJECTED')], default='PENDING', max_length=100)),
-                ('approved_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('benchmark', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='benchmark.benchmark')),
-                ('dataset', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='dataset.dataset')),
-                ('model', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='mlcube.mlcube')),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='auth.user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(blank=True, max_length=20)),
+                ("results", models.JSONField()),
+                ("metadata", models.JSONField(default=dict)),
+                (
+                    "approval_status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "PENDING"),
+                            ("APPROVED", "APPROVED"),
+                            ("REJECTED", "REJECTED"),
+                        ],
+                        default="PENDING",
+                        max_length=100,
+                    ),
+                ),
+                ("approved_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                (
+                    "benchmark",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="benchmark.benchmark",
+                    ),
+                ),
+                (
+                    "dataset",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="dataset.dataset",
+                    ),
+                ),
+                (
+                    "model",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="mlcube.mlcube",
+                    ),
+                ),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="auth.user",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['modified_at'],
-                'unique_together': {('benchmark', 'model', 'dataset')},
+                "ordering": ["modified_at"],
+                "unique_together": {("benchmark", "model", "dataset")},
             },
         ),
     ]

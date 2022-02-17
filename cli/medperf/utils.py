@@ -289,3 +289,23 @@ def results_ids(ui: UI):
 
     return results_ids
 
+
+def setup_logger(logger, log_lvl):
+    fh = logging.FileHandler(config["log_file"])
+    fh.setLevel(log_lvl)
+    logger.addHandler(fh)
+
+
+def list_files(startpath):
+    tree_str = ""
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, "").count(os.sep)
+        indent = " " * 4 * (level)
+
+        tree_str += "{}{}/\n".format(indent, os.path.basename(root))
+        subindent = " " * 4 * (level + 1)
+        for f in files:
+            tree_str += "{}{}\n".format(subindent, f)
+
+    return tree_str
+
