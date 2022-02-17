@@ -103,6 +103,7 @@ class Result:
         self.set_results()
 
     def set_results(self):
+        logging.debug(f"file has write access? {os.access(self.path, os.W_OK)}")
         with open(self.path, "w") as f:
             yaml.dump(self.results, f)
 
