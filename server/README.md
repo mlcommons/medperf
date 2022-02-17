@@ -8,7 +8,9 @@ Code is tested on latest python 3.9
 
 ## Create .env file with your environment settings
 
-    Sample .env.example is added to root. Rename `.env.example` to `.env` and modify with your env vars.
+Sample .env.example is added to root. Rename `.env.example` to `.env` and modify with your env vars.
+
+    cp .env.example .env
 
 ## Create tables and existing models
 
@@ -19,8 +21,12 @@ Code is tested on latest python 3.9
     python manage.py runserver
     
   
- API Server is running at `http://127.0.0.1:8000/` by default. You can view and experiment API docs at `http://127.0.0.1:8000/swagger`
+API Server is running at `http://127.0.0.1:8000/` by default. You can view and experiment Medperf API at `http://127.0.0.1:8000/swagger`
  
- You can run  server script to verify a sample work. See [script](https://github.com/johnugeorge/medperf/blob/main/server.sh) 
+
+## Test MedPerf API
+    
+You can run  server script to verify a sample work. See [script](https://github.com/mlcommons/medperf/blob/main/server/seed.py) 
  
-     sh server.sh
+    pip install -r test-requirements.txt
+    python seed.py
