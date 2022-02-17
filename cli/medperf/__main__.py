@@ -49,6 +49,9 @@ def prepare(
     """
     comms = config.comms
     ui = config.ui
+    logging.info(
+        f"Running prepare with arguments: benchmark_uid={benchmark_uid}, data_path={data_path}, labels_path={labels_path}"
+    )
     comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
     DatasetRegistration.run(data_uid, comms, ui)
