@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, call, ANY
 
 from medperf.ui import UI
 from medperf.comms import Comms
@@ -143,3 +143,37 @@ def test_upload_calls_server_method(mocker, result, comms):
 
     # Assert
     spy.assert_called_once()
+
+
+@pytest.mark.parametrize("write_access", [True, False])
+def test_set_results_writes_results_contents_to_file(mocker, result, write_access):
+    # Arrange
+    mocker.patch("os.access", return_value=write_access)
+    mocker.patch("os.remove")
+    open_spy = mocker.patch("builtins.open", MagicMock())
+    yaml_spy = mocker.patch("yaml.dump")
+
+    # Act
+    result.set_results()
+
+    # arrange
+    open_spy.assert_called_once_with(result.path, "w")
+    yaml_spy.assert_called_once_with(result.results, ANY)
+
+
+@pytest.mark.parametrize("write_access", [True, False])
+def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
+    # Arrange
+    mocker.patch("os.access", return_value=write_access)
+    spy = mocker.patch("os.remove")
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch("yaml.dump")
+
+    # Act
+    result.set_results()
+
+    # arrange
+    if not write_access:
+        spy.assert_called_once_with(result.path)
+    else:
+        spy.assert_not_called()
