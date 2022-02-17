@@ -15,11 +15,13 @@ class ModelResultSerializer(serializers.ModelSerializer):
         benchmark = data["benchmark"]
         mlcube = data["model"]
         dataset = data["dataset"]
-        if data["benchmark"].state != "OPERATION":
+        if benchmark.approval_status != "APPROVED":
+            raise serializers.ValidationError("Benchmark must be approved by admin")
+        if benchmark.state != "OPERATION":
             raise serializers.ValidationError("Benchmark state must be in operation")
-        if data["model"].state != "OPERATION":
+        if model.state != "OPERATION":
             raise serializers.ValidationError("MlCube state must be in operation")
-        if data["dataset"].state != "OPERATION":
+        if dataset.state != "OPERATION":
             raise serializers.ValidationError("Dataset state must be in operation")
         last_benchmarkmodel = (
             BenchmarkModel.objects.filter(benchmark__id=benchmark.id, model_mlcube__id=mlcube.id)
