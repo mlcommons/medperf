@@ -3,10 +3,10 @@ from unittest.mock import call, Mock
 
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark, MockCube
-from medperf.commands import DataPreparation
+from medperf.commands.dataset import DataPreparation
 from medperf.entities import Registration
 
-PATCH_DATAPREP = "medperf.commands.prepare.{}"
+PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
 OUT_PATH = "out_path"
 OUT_DATAPATH = "out_datapath"
 BENCHMARK_UID = "benchmark_uid"
