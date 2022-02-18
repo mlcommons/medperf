@@ -123,6 +123,22 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_datasets(self) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+
+    @abstractmethod
+    def get_user_datasets(self) -> dict:
+        """Retrieves all datasets registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+
+    @abstractmethod
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 

@@ -3,13 +3,7 @@ import typer
 import logging
 from os.path import abspath, expanduser
 
-from medperf.commands import (
-    DataPreparation,
-    DatasetRegistration,
-    DatasetBenchmarkAssociation,
-    Login,
-    Datasets,
-)
+from medperf.commands import Login
 from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage, storage_path
@@ -17,10 +11,12 @@ from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
 from medperf.utils import init_storage
+from medperf.commands.dataset import dataset
 
 
 app = typer.Typer()
 app.add_typer(result.app, name="result", help="Manage results")
+app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 
 
 @clean_except
@@ -32,35 +28,8 @@ def login():
 
 
 @clean_except
-@app.command("prepare")
-def prepare(
-    benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
-    ),
-    data_path: str = typer.Option(
-        ..., "--data_path", "-d", help="Location of the data to be prepared"
-    ),
-    labels_path: str = typer.Option(
-        ..., "--labels_path", "-l", help="Labels file location"
-    ),
-):
-    """Runs the Data preparation step for a specified benchmark and raw dataset
-    """
-    comms = config.comms
-    ui = config.ui
-    logging.info(
-        f"Running prepare with arguments: benchmark_uid={benchmark_uid}, data_path={data_path}, labels_path={labels_path}"
-    )
-    comms.authenticate()
-    data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
-    DatasetRegistration.run(data_uid, comms, ui)
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
-    ui.print("✅ Done!")
-
-
-@clean_except
 @app.command("run")
-def run(
+def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
@@ -76,50 +45,6 @@ def run(
     result.run_benchmark(
         benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
     )
-
-
-@clean_except
-@app.command("associate")
-def associate(
-    data_uid: str = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
-    ),
-    benchmark_uid: int = typer.Option(
-        ..., "-benchmark_uid", "-b", help="Benchmark UID"
-    ),
-):
-    """Associate a registered dataset with a specific benchmark. The dataset and benchmark must share the same data preparation cube.
-    """
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
-    ui.print("✅ Done!")
-
-
-@clean_except
-@app.command("register")
-def register(
-    data_uid: str = typer.Option(
-        ..., "--data_uid", "-d", help="Unregistered Dataset UID"
-    )
-):
-    """Registers an unregistered Dataset instance to the backend
-    """
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    DatasetRegistration.run(data_uid, comms, ui)
-    ui.print("✅ Done!")
-
-
-@clean_except
-@app.command("datasets")
-def datasets():
-    """Lists all local datasets
-	"""
-    ui = config.ui
-    Datasets.run(ui)
 
 
 @app.callback()

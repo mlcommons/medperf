@@ -21,14 +21,19 @@ The CLI provides the following commands:
   ```
   medperf login
   ```
-- `datasets`: Lists all registered datasets stored locally
+- `dataset ls`: Lists all registered datasets by the user
   ```
-  medperf datasets
+  medperf dataset ls
   ```
-- `prepare`: Prepares a raw dataset for a specific benchmark
+- `dataset create`: Prepares a raw dataset for a specific benchmark
   ```
-  medperf prepare -b <BENCHMARK_UID> -d <DATA_PATH> -l <LABELS_PATH>
-- `associate`: Associates a prepared dataset with a specific benchmark
+  medperf dataset create -b <BENCHMARK_UID> -d <DATA_PATH> -l <LABELS_PATH>
+  ```
+- `dataset submit`: Submits a prepared local dataset to the platform.
+  ```
+  medperf dataset submit -d <DATASET_UID> 
+  ```
+- `dataset associate`: Associates a prepared dataset with a specific benchmark
   ```
   medperf associate -b <BENCHMARK_UID> -d <DATASET_UID>
   ```

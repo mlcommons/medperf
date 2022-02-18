@@ -2,9 +2,9 @@ import pytest
 
 from medperf.entities import Dataset
 from medperf.tests.utils import rand_l
-from medperf.commands import DatasetRegistration
+from medperf.commands.dataset import DatasetRegistration
 
-PATCH_REGISTER = "medperf.commands.register.{}"
+PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 
 
 @pytest.fixture
