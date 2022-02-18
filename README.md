@@ -92,7 +92,7 @@ A `test.sh` script is provided for automatically running the whole demo on a pub
 
 Once all the requirements are met, running `sh test.sh` will:
 - cleanup any leftover medperf-related files (WARNING! Running this will delete the medperf workspace, along with prepared datasets, cubes and results!)
-- Instantiate and seed the server using `server/server.sh`
+- Instantiate and seed the server using `server/seed.py`
 - Retrieve the demo dataset
 - Run the CLI demo using `cli/cli.sh`
 - cleanup temporary files
