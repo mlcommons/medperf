@@ -54,11 +54,11 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
 3. ## Run the data preparation step
    Benchmarks will usually require a data owner to generate a new version of the dataset that has been preprocessed for a specific benchmark. The command to do that has the following structure
    ```
-   medperf prepare -b <BENCHMARK_UID> -d <PATH_TO_DATASET> -l <PATH_TO_LABELS>
+   medperf dataset create -b <BENCHMARK_UID> -d <PATH_TO_DATASET> -l <PATH_TO_LABELS>
    ```
    for the CheXpert dataset, this would be the command to execute:
    ```
-   medperf prepare -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small/valid.csv
+   medperf dataset create -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small/valid.csv
    ```
    Where we're executing the benchmark with UID `1`, since is the first and only benchmark in the server. By doing this, the CLI retrieves the data preparation cube from the benchmark and processes the raw dataset. You will be prompted for additional information and confirmations for the dataset to be prepared and registered onto the server.
 4. ## Run the benchmark execution step
@@ -72,7 +72,7 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    ```
    Given that the prepared dataset was assigned the UID of 1. You can find out what UID your prepared dataset has with the following command:
    ```
-   medperf datasets
+   medperf dataset ls
    ```
    Additional models have been provided to the benchmark, this is the list of models you can execute:
    - 2: CheXpert DenseNet Model
