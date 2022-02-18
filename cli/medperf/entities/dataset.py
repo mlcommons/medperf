@@ -5,8 +5,14 @@ import logging
 
 from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.config import config
-from medperf.utils import get_dsets, approval_prompt, pretty_error, dict_pretty_print
+import medperf.config as config
+from medperf.utils import (
+    get_dsets,
+    approval_prompt,
+    pretty_error,
+    storage_path,
+    dict_pretty_print,
+)
 
 
 class Dataset:
@@ -29,8 +35,10 @@ class Dataset:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
         data_uid = self.__full_uid(data_uid, ui)
-        self.generated_uid = data_uid
-        self.dataset_path = os.path.join(config["data_storage"], str(data_uid))
+        self.data_uid = data_uid
+        self.dataset_path = os.path.join(
+            storage_path(config.data_storage), str(data_uid)
+        )
         self.data_path = os.path.join(self.dataset_path, "data")
         registration = self.get_registration()
         self.uid = registration["uid"]
@@ -68,17 +76,17 @@ class Dataset:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
-        data_storage = config["data_storage"]
+        data_storage = storage_path(config.data_storage)
         try:
             uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory")
-        tmp_prefix = config["tmp_reg_prefix"]
+        tmp_prefix = config.tmp_reg_prefix
         dsets = []
         for uid in uids:
             not_tmp = not uid.startswith(tmp_prefix)
-            reg_path = os.path.join(data_storage, uid, config["reg_file"])
+            reg_path = os.path.join(data_storage, uid, config.reg_file)
             registered = os.path.exists(reg_path)
             if not_tmp and registered:
                 dsets.append(cls(uid, ui))
@@ -112,13 +120,13 @@ class Dataset:
         Returns:
             dict: registration information as key-value pairs.
         """
-        regfile = os.path.join(self.dataset_path, config["reg_file"])
+        regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "r") as f:
             reg = yaml.full_load(f)
         return reg
 
     def set_registration(self):
-        regfile = os.path.join(self.dataset_path, config["reg_file"])
+        regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)
 

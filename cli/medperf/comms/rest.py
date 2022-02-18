@@ -3,8 +3,8 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path
-from medperf.config import config
+from medperf.utils import pretty_error, cube_path, storage_path
+import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
 from medperf.ui import UI
@@ -32,7 +32,7 @@ class REST(Comms):
             self.token = res.json()["token"]
 
     def authenticate(self):
-        cred_path = config["credentials_path"]
+        cred_path = storage_path(config.credentials_path)
         if os.path.exists(cred_path):
             with open(cred_path) as f:
                 self.token = f.readline()
@@ -151,7 +151,7 @@ class REST(Comms):
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
-        cube_file = config["cube_filename"]
+        cube_file = config.cube_filename
         return self.__get_cube_file(url, cube_uid, "", cube_file)
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
@@ -164,8 +164,8 @@ class REST(Comms):
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
-        ws = config["workspace_path"]
-        params_file = config["params_filename"]
+        ws = config.workspace_path
+        params_file = config.params_filename
         return self.__get_cube_file(url, cube_uid, ws, params_file)
 
     def get_cube_additional(self, url: str, cube_uid: int) -> str:
@@ -178,8 +178,8 @@ class REST(Comms):
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
-        add_path = config["additional_path"]
-        tball_file = config["tarball_filename"]
+        add_path = config.additional_path
+        tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
 
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
@@ -197,6 +197,30 @@ class REST(Comms):
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
+
+    def get_datasets(self) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+        res = self.__auth_get(f"{self.server_url}/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("could not retrieve datasets from server", self.ui)
+        return res.json()
+
+    def get_user_datasets(self) -> dict:
+        """Retrieves all datasets registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve datasets from server", self.ui)
+        return res.json()
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.

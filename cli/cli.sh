@@ -15,12 +15,13 @@ PASS="${PASS:-test}"
 SERVER_URL="${SERVER_URL:-http://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
+MEDPERF_STORAGE="~/.medperf_test"
 LOCAL="${LOCAL:-""}"
-MEDPERF_STORAGE=~/.medperf
 
 echo "username: $USERNAME"
 echo "password: $PASS"
 echo "Server URL: $SERVER_URL"
+echo "Storage location: $MEDPERF_STORAGE"
 echo "Running local config: $LOCAL"
 
 if ${CLEANUP}; then
@@ -43,7 +44,7 @@ ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
 echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
-echo ${LOCAL:+'-e'} "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL --log=DEBUG login
+echo ${LOCAL:+'-e'} "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE login 
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
   cat "$MEDPERF_STORAGE/medperf.log"
@@ -53,18 +54,18 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL --log=DEBUG prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
+echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
   exit 2
 fi
 echo "\n"
-DSET_UID=$(medperf datasets | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG execute -b 1 -d $DSET_UID -m 2
+echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE execute -b 1 -d $DSET_UID -m 2
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
   cat $MEDPERF_STORAGE/medperf.log

@@ -7,13 +7,17 @@ import hashlib
 import os
 from shutil import rmtree
 import tarfile
-import typer
 import yaml
 from pathlib import Path
 from colorama import Fore, Style
 import re
 
-from medperf.config import config
+import medperf.config as config
+
+
+def storage_path(subpath: str):
+    """Helper funciton that converts a path to storage-related path"""
+    return os.path.join(config.storage, subpath)
 
 
 def get_file_sha1(path: str) -> str:
@@ -40,11 +44,11 @@ def get_file_sha1(path: str) -> str:
 def init_storage():
     """Builds the general medperf folder structure.
     """
-    parent = config["storage"]
-    data = config["data_storage"]
-    cubes = config["cubes_storage"]
-    results = config["results_storage"]
-    tmp = config["tmp_storage"]
+    parent = config.storage
+    data = storage_path(config.data_storage)
+    cubes = storage_path(config.cubes_storage)
+    results = storage_path(config.results_storage)
+    tmp = storage_path(config.tmp_storage)
 
     dirs = [parent, data, cubes, results, tmp]
     for dir in dirs:
@@ -56,15 +60,15 @@ def init_storage():
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
-    if os.path.exists(config["tmp_storage"]):
+    if os.path.exists(storage_path(config.tmp_storage)):
         logging.info("Removing temporary data storage")
-        rmtree(config["tmp_storage"], ignore_errors=True)
+        rmtree(storage_path(config.tmp_storage), ignore_errors=True)
     dsets = get_dsets()
-    prefix = config["tmp_reg_prefix"]
+    prefix = config.tmp_reg_prefix
     unreg_dsets = [dset for dset in dsets if dset.startswith(prefix)]
     for dset in unreg_dsets:
         logging.info("Removing unregistered dataset")
-        dset_path = os.path.join(config["data_storage"], dset)
+        dset_path = os.path.join(storage_path(config.data_storage), dset)
         if os.path.exists(dset_path):
             rmtree(dset_path, ignore_errors=True)
 
@@ -75,7 +79,7 @@ def get_dsets() -> List[str]:
     Returns:
         List[str]: UIDs of prepared datasets.
     """
-    dsets = next(os.walk(config["data_storage"]))[1]
+    dsets = next(os.walk(storage_path(config.data_storage)))[1]
     return dsets
 
 
@@ -93,7 +97,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     if msg[-1] != ".":
         msg = msg + "."
     if add_instructions:
-        msg += f" See logs at {config['log_file']} for more information"
+        msg += f" See logs at {config.log_file} for more information"
     ui.print_error(msg)
     if clean:
         cleanup()
@@ -109,7 +113,7 @@ def cube_path(uid: int) -> str:
     Returns:
         str: Location of the cube folder structure.
     """
-    return os.path.join(config["cubes_storage"], str(uid))
+    return os.path.join(storage_path(config.cubes_storage), str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
@@ -121,8 +125,8 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     """
     dt = datetime.utcnow()
     ts = str(int(datetime.timestamp(dt)))
-    tmp = config["tmp_reg_prefix"] + ts
-    out_path = os.path.join(config["data_storage"], tmp)
+    tmp = config.tmp_reg_prefix + ts
+    out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
     out_datapath = os.path.join(out_path, "data")
     if not os.path.isdir(out_datapath):
@@ -252,12 +256,12 @@ def get_folder_sha1(path: str) -> str:
 
 
 def results_path(benchmark_uid, model_uid, data_uid):
-    out_path = config["results_storage"]
+    out_path = storage_path(config.results_storage)
     bmark_uid = str(benchmark_uid)
     model_uid = str(model_uid)
     data_uid = str(data_uid)
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-    out_path = os.path.join(out_path, config["results_filename"])
+    out_path = os.path.join(out_path, config.results_filename)
     return out_path
 
 
