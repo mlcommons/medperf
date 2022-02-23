@@ -153,8 +153,8 @@ def seed(args):
         {
             "name": "xrv_chex_densenet",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_chex_densenet/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medical/"
+                "02e142f9a83250a0108e73f955bf4cb6c72f5a0f/cubes/xrv_chex_densenet/mlcube/mlcube.yaml"
             ),
             "git_parameters_url": (
                 "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
@@ -309,41 +309,6 @@ def seed(args):
         "Model MlCube state updated to", model_executor1_mlcube_state, "by Model Owner",
     )
 
-    # Create another model mlcube by Model Owner
-    model_executor2_mlcube = send_request(
-        args.server + "/mlcubes/",
-        "POST",
-        header(model_owner_token),
-        {
-            "name": "xrv_nih_densenet",
-            "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_nih_densenet/mlcube.yaml"
-            ),
-            "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_nih_densenet/parameters.yaml"
-            ),
-            "tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_nih_densenet.tar.gz",
-            "tarball_hash": "2cbba4d29292ca4eadce46070478050503cd9621",
-            "metadata": {},
-        },
-        "id",
-    )
-    print("Model MLCube Created(by Model Owner). ID:", model_executor2_mlcube)
-
-    # Update state of the Model MLCube to OPERATION
-    model_executor2_mlcube_state = send_request(
-        args.server + "/mlcubes/" + str(model_executor2_mlcube) + "/",
-        "PUT",
-        header(model_owner_token),
-        {"state": "OPERATION"},
-        "state",
-    )
-    print(
-        "Model MlCube state updated to", model_executor2_mlcube_state, "by Model Owner",
-    )
-
     # Associate the model-executor1 mlcube to the created benchmark by model owner user
     model_executor1_in_benchmark = send_request(
         args.server + "/mlcubes/benchmarks/",
@@ -387,51 +352,6 @@ def seed(args):
         benchmark,
         "is marked",
         model_executor1_in_benchmark_status,
-        "(by Benchmark Owner)",
-    )
-
-    # Associate the model-executor2 mlcube to the created benchmark by model owner user
-    model_executor2_in_benchmark = send_request(
-        args.server + "/mlcubes/benchmarks/",
-        "POST",
-        header(model_owner_token),
-        {
-            "model_mlcube": model_executor2_mlcube,
-            "benchmark": benchmark,
-            "results": {"key1": "value1", "key2": "value2"},
-        },
-        "approval_status",
-    )
-    print(
-        "Model MlCube Id:",
-        model_executor2_mlcube,
-        "associated to Benchmark Id:",
-        benchmark,
-        "(by Model Owner) which is in",
-        model_executor2_in_benchmark,
-        "state",
-    )
-
-    # Mark the model-executor2 association with created benchmark as approved by benchmark owner
-    model_executor2_in_benchmark_status = send_request(
-        args.server
-        + "/mlcubes/"
-        + str(model_executor2_mlcube)
-        + "/benchmarks/"
-        + str(benchmark)
-        + "/",
-        "PUT",
-        header(benchmark_owner_token),
-        {"approval_status": "APPROVED"},
-        "approval_status",
-    )
-    print(
-        "Model MlCube Id:",
-        model_executor2_mlcube,
-        "associated to Benchmark Id:",
-        benchmark,
-        "is marked",
-        model_executor2_in_benchmark_status,
         "(by Benchmark Owner)",
     )
 
