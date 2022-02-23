@@ -193,8 +193,8 @@ def seed(args):
         {
             "name": "xrv_metrics",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_metrics/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medical/"
+                "e33a7329d188048eaa279481f67cc478abe72779/cubes/metrics/mlcube/mlcube.yaml"
             ),
             "git_parameters_url": (
                 "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
