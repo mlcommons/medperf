@@ -87,14 +87,14 @@ class BenchmarkExecution:
         cube_root = str(Path(cube_path).parent)
         workspace_path = os.path.join(cube_root, "workspace")
         abs_preds_path = os.path.join(workspace_path, out_path)
-        labels_path = os.path.join(data_path, "data.csv")
+        labels_path = data_path
 
         self.ui.text = "Evaluating results"
         out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
         self.evaluator.run(
             self.ui,
             task="evaluate",
-            preds_csv=abs_preds_path,
-            labels_csv=labels_path,
+            predictions=abs_preds_path,
+            labels=labels_path,
             output_path=out_path,
         )

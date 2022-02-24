@@ -116,11 +116,11 @@ def seed(args):
             "name": "xrv_prep",
             "git_mlcube_url": (
                 "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "d7fbc8f476b03577a9fc66ea7bd9119a60e95e8c/cubes/xrv_prep/mlcube/mlcube.yaml"
+                "65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_prep/mlcube/mlcube.yaml"
             ),
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_prep/parameters.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medical/"
+                "65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_prep/mlcube/workspace/parameters.yaml"
             ),
             "metadata": {},
         },
