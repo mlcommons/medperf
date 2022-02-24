@@ -3,11 +3,16 @@ from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
 from result.serializers import ModelResultSerializer
 from benchmark.serializers import BenchmarkSerializer
+from benchmarkdataset.serializers import BenchmarkDatasetListSerializer
+from benchmarkmodel.serializers import BenchmarkModelListSerializer
 from benchmark.models import Benchmark
 from dataset.models import Dataset
 from mlcube.models import MlCube
 from result.models import ModelResult
+from benchmarkmodel.models import BenchmarkModel
+from benchmarkdataset.models import BenchmarkDataset
 from django.http import Http404
+from django.db.models import Q
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
@@ -98,4 +103,42 @@ class ModelResultList(GenericAPIView):
         """
         results = self.get_object(request.user.id)
         serializer = ModelResultSerializer(results, many=True)
+        return Response(serializer.data)
+
+
+class DatasetAssociationList(GenericAPIView):
+    serializer_class = BenchmarkDatasetListSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return BenchmarkDataset.objects.filter(Q(dataset__owner__id=pk) | Q(benchmark__owner__id=pk))
+        except BenchmarkDataset.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all dataset associations involving an asset of mine
+        """
+        benchmarkdatasets = self.get_object(request.user.id)
+        serializer = BenchmarkDatasetListSerializer(benchmarkdatasets, many=True)
+        return Response(serializer.data)
+
+
+class MlCubeAssociationList(GenericAPIView):
+    serializer_class = BenchmarkModelListSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return BenchmarkModel.objects.filter(Q(model_mlcube__owner__id=pk) | Q(benchmark__owner__id=pk))
+        except BenchmarkModel.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all mlcube associations involving an asset of mine
+        """
+        benchmarkmodels = self.get_object(request.user.id)
+        serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
         return Response(serializer.data)
