@@ -10,7 +10,7 @@ from medperf.utils import (
     pretty_error,
     results_path,
 )
-from medperf.config import config
+import medperf.config as config
 
 
 class BenchmarkExecution:
@@ -90,7 +90,7 @@ class BenchmarkExecution:
 
     def run_cubes(self):
         self.ui.text = "Running model inference on dataset"
-        out_path = config["model_output"]
+        out_path = config.model_output
         data_path = self.dataset.data_path
         self.model_cube.run(
             self.ui, task="infer", data_path=data_path, output_path=out_path

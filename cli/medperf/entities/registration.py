@@ -11,7 +11,7 @@ from medperf.utils import (
     dict_pretty_print,
 )
 from medperf.comms import Comms
-from medperf.config import config
+import medperf.config as config
 from medperf.entities import Cube, Dataset
 
 
@@ -141,12 +141,12 @@ class Registration:
         self.path = new_path
         return new_path
 
-    def write(self, filename: str = config["reg_file"]) -> str:
+    def write(self, filename: str = config.reg_file) -> str:
         """Writes the registration into disk
 
         Args:
             out_path (str): path where the file will be created
-            filename (str, optional): name of the file. Defaults to config["reg_file"].
+            filename (str, optional): name of the file. Defaults to config.reg_file.
 
         Returns:
             str: path to the created registration file

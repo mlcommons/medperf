@@ -8,16 +8,16 @@ import os
 
 from medperf import utils
 from medperf.ui import UI
-from medperf.config import config
+import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockCube, MockTar
 
 
-parent = config["storage"]
-data = config["data_storage"]
-cubes = config["cubes_storage"]
-results = config["results_storage"]
-tmp = config["tmp_storage"]
+parent = config.storage
+data = utils.storage_path(config.data_storage)
+cubes = utils.storage_path(config.cubes_storage)
+results = utils.storage_path(config.results_storage)
+tmp = utils.storage_path(config.tmp_storage)
 config_dirs = [parent, data, cubes, results, tmp]
 patch_utils = "medperf.utils.{}"
 
@@ -36,7 +36,7 @@ def datasets(request):
     uids = [str(x) for x in uids]
     for i in range(size):
         if random.randint(0, 1):
-            uids[i] = config["tmp_reg_prefix"] + uids[i]
+            uids[i] = config.tmp_reg_prefix + uids[i]
 
     return uids
 
@@ -131,7 +131,7 @@ def test_cleanup_removes_temporary_storage(mocker):
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
-    prefix = config["tmp_reg_prefix"]
+    prefix = config.tmp_reg_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
     mocker.patch(patch_utils.format("get_dsets"), return_value=datasets)
@@ -217,7 +217,7 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
     spy = mocker.patch("os.makedirs")
-    tmp_path = f"{config['tmp_reg_prefix']}{int(timestamp)}"
+    tmp_path = f"{config.tmp_reg_prefix}{int(timestamp)}"
     exp_out_path = os.path.join(data, tmp_path, "data")
 
     # Act
@@ -398,7 +398,7 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
 @pytest.mark.parametrize("generated_uid", rand_l(1, 5000, 2))
 def test__results_path_returns_expected_path(bmark_uid, model_uid, generated_uid):
     # Arrange
-    expected_path = f"{config['results_storage']}/{bmark_uid}/{model_uid}/{generated_uid}/{config['results_filename']}"
+    expected_path = f"{config.storage}/{config.results_storage}/{bmark_uid}/{model_uid}/{generated_uid}/{config.results_filename}"
 
     # Act
     path = utils.results_path(bmark_uid, model_uid, generated_uid)

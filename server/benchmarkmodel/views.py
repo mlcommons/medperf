@@ -20,9 +20,7 @@ class BenchmarkModelList(GenericAPIView):
         """
         Associate a model to a benchmark
         """
-        serializer = BenchmarkModelListSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = BenchmarkModelListSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -55,9 +53,7 @@ class ModelApproval(GenericAPIView):
 
     def get_object(self, model_id, benchmark_id):
         try:
-            return BenchmarkModel.objects.filter(
-                model_mlcube__id=model_id, benchmark__id=benchmark_id
-            )
+            return BenchmarkModel.objects.filter(model_mlcube__id=model_id, benchmark__id=benchmark_id)
         except BenchmarkModel.DoesNotExist:
             raise Http404
 
@@ -73,12 +69,8 @@ class ModelApproval(GenericAPIView):
         """
         Update approval status of the last benchmark model association
         """
-        benchmarkmodel = (
-            self.get_object(pk, bid).order_by("-created_at").first()
-        )
-        serializer = ModelApprovalSerializer(
-            benchmarkmodel, data=request.data, context={"request": request}
-        )
+        benchmarkmodel = self.get_object(pk, bid).order_by("-created_at").first()
+        serializer = ModelApprovalSerializer(benchmarkmodel, data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

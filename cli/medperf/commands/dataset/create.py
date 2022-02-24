@@ -4,7 +4,6 @@ from pathlib import Path
 from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Benchmark, Cube, Registration
-from medperf.config import config
 from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,

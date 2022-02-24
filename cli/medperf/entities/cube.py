@@ -8,12 +8,13 @@ import time
 
 from medperf.comms import Comms
 from medperf.ui import UI
-from medperf.config import config
+from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
     untar_additional,
     combine_proc_sp_text,
+    list_files,
 )
 
 
@@ -144,14 +145,16 @@ class Cube(object):
         for k, v in kwargs.items():
             cmd_arg = f"{k}={v}"
             cmd = " ".join([cmd, cmd_arg])
-        logging.info(f"Executing command: {cmd}")
+        logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=None)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
+        logging.debug(proc_out)
         if proc.exitstatus != 0:
-            logging.error(proc_out)
             ui.text = "\n"
             pretty_error("There was an error while executing the cube", ui)
+
+        logging.debug(list_files(config.storage))
         return proc
 
     def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:

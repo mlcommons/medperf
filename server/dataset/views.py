@@ -61,9 +61,7 @@ class DatasetDetail(GenericAPIView):
         Update a dataset instance.
         """
         dataset = self.get_object(pk)
-        serializer = DatasetDetailSerializer(
-            dataset, data=request.data, partial=True
-        )
+        serializer = DatasetDetailSerializer(dataset, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

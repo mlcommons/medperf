@@ -18,6 +18,9 @@ class Benchmark(models.Model):
     description = models.CharField(max_length=100, blank=True)
     docs_url = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
+    demo_dataset_tarball_url = models.CharField(max_length=256)
+    demo_dataset_tarball_hash = models.CharField(max_length=100)
+    demo_dataset_generated_uid = models.CharField(max_length=128)
     data_preparation_mlcube = models.ForeignKey(
         "mlcube.MlCube",
         on_delete=models.PROTECT,
@@ -34,14 +37,10 @@ class Benchmark(models.Model):
         related_name="data_evaluator_mlcube",
     )
     metadata = models.JSONField(default=dict, blank=True, null=True)
-    state = models.CharField(
-        choices=BENCHMARK_STATE, max_length=100, default="DEVELOPMENT"
-    )
+    state = models.CharField(choices=BENCHMARK_STATE, max_length=100, default="DEVELOPMENT")
     is_valid = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
-    approval_status = models.CharField(
-        choices=BENCHMARK_STATUS, max_length=100, default="PENDING"
-    )
+    approval_status = models.CharField(choices=BENCHMARK_STATUS, max_length=100, default="PENDING")
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
