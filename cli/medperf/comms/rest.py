@@ -238,6 +238,30 @@ class REST(Comms):
             pretty_error("Could not upload the mlcube", self.ui)
         return res.json()["id"]
 
+    def get_datasets(self) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+        res = self.__auth_get(f"{self.server_url}/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("could not retrieve datasets from server", self.ui)
+        return res.json()
+
+    def get_user_datasets(self) -> dict:
+        """Retrieves all datasets registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve datasets from server", self.ui)
+        return res.json()
+
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 

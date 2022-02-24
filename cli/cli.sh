@@ -54,14 +54,14 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE prepare -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
+echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert/valid.csv
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
   exit 2
 fi
 echo "\n"
-DSET_UID=$(medperf --storage=$MEDPERF_STORAGE datasets | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
