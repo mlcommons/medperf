@@ -32,3 +32,26 @@ def submit():
     SubmitBenchmark.run(comms, ui)
     cleanup()
     ui.print("✅ Done!")
+
+
+@clean_except
+@app.command("associate")
+def associate(
+    benchmark_uid: str = typer.Option(
+        ..., "--benchmark_uid", "-b", help="UID of benchmark to associate with"
+    ),
+    model_uid: str = typer.Option(
+        None, "--model_uid", "-m", help="UID of model MLCube to associate"
+    ),
+    dataset_uid: str = typer.Option(
+        None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
+    ),
+):
+    """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
+    """
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, comms, ui)
+    ui.print("✅ Done!")
+
