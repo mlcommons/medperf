@@ -277,6 +277,18 @@ class REST(Comms):
             pretty_error("Could not upload the dataset", self.ui)
         return res.json()["id"]
 
+    def get_user_results(self) -> dict:
+        """Retrieves all results registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        res = self.__auth_get(f"{self.server_url}/me/results/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve results from server", self.ui)
+        return res.json()
+
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
 

@@ -177,6 +177,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_user_results(self) -> dict:
+        """Retrieves all results registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+
+    @abstractmethod
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
 

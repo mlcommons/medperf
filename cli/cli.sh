@@ -24,6 +24,9 @@ echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_STORAGE"
 echo "Running local config: $LOCAL"
 
+mkdir MEDPERF_STORAGE
+chmod a+w MEDPERF_STORAGE
+
 if ${CLEANUP}; then
   echo "====================================="
   echo "Cleaning up medperf tmp files"
@@ -65,7 +68,7 @@ DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | ta
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE execute -b 1 -d $DSET_UID -m 2
+echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE result create -b 1 -d $DSET_UID -m 2
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
   cat $MEDPERF_STORAGE/medperf.log
