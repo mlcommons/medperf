@@ -3,10 +3,10 @@ from unittest.mock import call
 
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark
-from medperf.commands import BenchmarkExecution
+from medperf.commands.result import BenchmarkExecution
 from medperf.entities import Dataset, Benchmark, Cube
 
-PATCH_EXECUTION = "medperf.commands.benchmark_execution.{}"
+PATCH_EXECUTION = "medperf.commands.result.create.{}"
 
 
 @pytest.fixture

@@ -37,8 +37,20 @@ The CLI provides the following commands:
   ```
   medperf associate -b <BENCHMARK_UID> -d <DATASET_UID>
   ```
-- `execute`: Runs a specific model from a benchmark with a specified prepared dataset
+- `run`: Alias for `result create`. Runs a specific model from a benchmark with a specified prepared dataset
   ```
-  medperf execute -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
+  medperf run -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
+  ```
+- `result ls`: Displays all results created by the user
+  ```
+  medperf result ls
+  ```
+- `result create`: Runs a specific model from a benchmark with a specified prepared dataset
+  ```
+  medperf result create -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
+  ```
+- `result submit`: Submits already obtained results to the platform
+  ```
+  medperf result submit -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
   ```
 The CLI runs MLCubes behind the scene. This cubes require a container engine like docker, and so that engine must be running before running commands like `prepare` and `execute`

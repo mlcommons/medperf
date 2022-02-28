@@ -2,12 +2,8 @@ import typer
 import logging
 from os.path import abspath, expanduser
 
-from medperf.commands import (
-    BenchmarkExecution,
-    ResultSubmission,
-    Login,
-    CompatibilityTestExecution,
-)
+from medperf.commands import Login, CompatibilityTestExecution
+from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage, storage_path, cleanup
 from medperf.decorators import clean_except
@@ -18,6 +14,7 @@ from medperf.commands.dataset import dataset
 
 
 app = typer.Typer()
+app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 
 
@@ -30,7 +27,7 @@ def login():
 
 
 @clean_except
-@app.command("execute")
+@app.command("run")
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -44,13 +41,9 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ui.print("✅ Done!")
-    cleanup()
+    result.run_benchmark(
+        benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
+    )
 
 
 @clean_except
@@ -85,28 +78,6 @@ def execute(
     CompatibilityTestExecution.run(
         benchmark_uid, comms, ui, data_uid, model_uid, cube_path
     )
-    ui.print("✅ Done!")
-    cleanup()
-
-
-@clean_except
-@app.command("submit")
-def submit(
-    benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the executed benchmark"
-    ),
-    data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="UID of the dataset used for results"
-    ),
-    model_uid: int = typer.Option(
-        ..., "--model_uid", "-m", help="UID of the executed model"
-    ),
-):
-    """Submits already obtained results to the server"""
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
     cleanup()
 

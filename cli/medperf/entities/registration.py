@@ -73,7 +73,7 @@ class Registration:
         """
         stats_path = self.cube.get_default_output("statistics", "output_path")
         with open(stats_path, "r") as f:
-            stats = yaml.full_load(f)
+            stats = yaml.safe_load(f)
 
         return stats
 

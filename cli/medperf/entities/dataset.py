@@ -122,7 +122,7 @@ class Dataset:
         """
         regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "r") as f:
-            reg = yaml.full_load(f)
+            reg = yaml.safe_load(f)
         return reg
 
     def set_registration(self):

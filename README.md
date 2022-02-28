@@ -64,11 +64,11 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
 4. ## Run the benchmark execution step
    Once the dataset is prepared and registered, you can execute the benchmark with a given model mlcube. The command to do this has the following structure
    ```
-   medperf execute -b <BENCHMARK_UID> -d <DATA_UID> -m <MODEL_UID>
+   medperf run -b <BENCHMARK_UID> -d <DATA_UID> -m <MODEL_UID>
    ```
    For this demonstration, you would execute the following command:
    ```
-   medperf execute -b 1 -d 1 -m 2
+   medperf run -b 1 -d 1 -m 2
    ```
    Given that the prepared dataset was assigned the UID of 1. You can find out what UID your prepared dataset has with the following command:
    ```
