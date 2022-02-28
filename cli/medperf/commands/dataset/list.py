@@ -27,16 +27,24 @@ class DatasetsList:
         remote_uids = set([dset["generated_uid"] for dset in remote_dsets])
 
         # Build data table
-        headers = ["UID", "Name", "Data Preparation Cube UID", "Registered", "Local"]
+        headers = [
+            "UID",
+            "Server UID",
+            "Name",
+            "Data Preparation Cube UID",
+            "Registered",
+            "Local",
+        ]
 
         # Get local dsets information
         local_dsets_data = [
             [
                 dset.generated_uid,
+                dset.uid,
                 dset.name,
                 dset.preparation_cube_uid,
                 dset.uid is not None,
-                dset.generated_uid in remote_uids,
+                True,
             ]
             for dset in local_dsets
         ]
