@@ -2,9 +2,9 @@ import pytest
 
 from medperf.tests.utils import rand_l
 from medperf.entities import Result, Dataset
-from medperf.commands import ResultSubmission
+from medperf.commands.result import ResultSubmission
 
-PATCH_SUBMISSION = "medperf.commands.submit.{}"
+PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 
 
 @pytest.fixture
