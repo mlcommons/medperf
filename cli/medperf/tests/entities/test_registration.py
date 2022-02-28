@@ -107,7 +107,7 @@ def test_get_stats_opens_stats_path(mocker, path, reg_init_params):
     # Arrange
     spy = mocker.patch("builtins.open", MagicMock())
     mocker.patch(PATCH_CUBE.format("Cube.get_default_output"), return_value=path)
-    mocker.patch(PATCH_REGISTRATION.format("yaml.full_load"), return_value={})
+    mocker.patch(PATCH_REGISTRATION.format("yaml.safe_load"), return_value={})
 
     # Act
     Registration(*reg_init_params)
@@ -121,7 +121,7 @@ def test_get_stats_returns_stats(mocker, stats, reg_init_params):
     # Arrange
     mocker.patch("builtins.open", MagicMock())
     mocker.patch(PATCH_CUBE.format("Cube.get_default_output"), return_value="")
-    mocker.patch(PATCH_REGISTRATION.format("yaml.full_load"), return_value=stats)
+    mocker.patch(PATCH_REGISTRATION.format("yaml.safe_load"), return_value=stats)
 
     # Act
     registration = Registration(*reg_init_params)
