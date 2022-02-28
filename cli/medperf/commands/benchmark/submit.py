@@ -2,6 +2,7 @@ import validators
 
 from medperf.ui import UI
 from medperf.comms import Comms
+from medperf.utils import get_file_sha1
 
 
 class SubmitBenchmark:
@@ -18,6 +19,9 @@ class SubmitBenchmark:
             submission.get_information()
 
         with ui.interactive():
+            ui.text = "Getting hash from demo dataset"
+            submission.get_demo_data_information()
+            ui.print("> Completed benchmark registration information")
             ui.text = "Submitting Benchmark to MedPerf"
             submission.submit()
         ui.print("Uploaded")
@@ -29,6 +33,8 @@ class SubmitBenchmark:
         self.description = None
         self.docs_url = None
         self.demo_url = None
+        self.demo_hash = None
+        self.demo_uid = None
         self.data_preparation_mlcube = None
         self.reference_model_mlcube = None
         self.data_evaluator_mlcube = None
@@ -108,12 +114,25 @@ class SubmitBenchmark:
 
         return valid
 
+    def get_demo_data_information(self):
+        """Retrieves information from the demo dataset, like hash and
+        generated uid
+        """
+        demo_dset_path = self.comms.get_benchmark_demo_dataset(self.demo_url)
+        self.demo_hash = get_file_sha1(demo_dset_path)
+        # TODO: This depends on the logic of compatibility testing
+        # Must be able to run the preparation step with mocked
+        # benchmark
+        self.demo_uid = "demo_uid"
+
     def todict(self):
         return {
             "name": self.name,
             "description": self.description,
             "docs_url": self.docs_url,
             "demo_dataset_tarball_url": self.demo_url,
+            "demo_dataset_tarball_hash": self.demo_hash,
+            "demo_dataset_generated_uid": self.demo_uid,
             "data_preparation_mlcube": int(self.data_preparation_mlcube),
             "reference_model_mlcube": int(self.reference_model_mlcube),
             "data_evaluator_mlcube": int(self.data_evaluator_mlcube),

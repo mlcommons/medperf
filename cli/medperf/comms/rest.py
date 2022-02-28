@@ -3,7 +3,7 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path, storage_path
+from medperf.utils import pretty_error, cube_path, storage_path, generate_tmp_uid
 import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
@@ -137,6 +137,26 @@ class REST(Comms):
         models = res.json()
         model_uids = [model["id"] for model in models]
         return model_uids
+
+    def get_benchmark_demo_dataset(self, demo_data_url: str) -> str:
+        """Downloads the benchmark demo dataset and stores it in the user's machine
+
+        Args:
+            demo_data_url (str): location of demo data for download
+
+        Returns:
+            str: path where the downloaded demo dataset can be found
+        """
+        demo_data_path = storage_path(config.tmp_storage)
+        uid = generate_tmp_uid()
+        tball_file = f"{uid}_{config.tarball_filename}"
+        filepath = os.path.join(demo_data_path, tball_file)
+        res = requests.get(demo_data_url)
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't download the demo dataset", self.ui)
+        open(filepath, "wb+").write(res.content)
+        return filepath
 
     def get_user_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks created by the user

@@ -84,6 +84,17 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_benchmark_demo_dataset(self, demo_data_url: str) -> str:
+        """Downloads the benchmark demo dataset and stores it in the user's machine
+
+        Args:
+            demo_data_url (str): location of demo data for download
+
+        Returns:
+            str: path where the downloaded demo dataset can be found
+        """
+
+    @abstractmethod
     def get_user_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks created by the user
 

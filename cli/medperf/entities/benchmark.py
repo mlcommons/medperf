@@ -40,9 +40,12 @@ class Benchmark:
         self.reference_model = benchmark_dict["reference_model_mlcube"]
         self.models = benchmark_dict["models"]
         self.evaluator = benchmark_dict["data_evaluator_mlcube"]
+        self.approval_status = benchmark_dict["approval_status"]
 
     @classmethod
-    def get(cls, benchmark_uid: str, comms: Comms) -> "Benchmark":
+    def get(
+        cls, benchmark_uid: str, comms: Comms, force_update: bool = False
+    ) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -50,6 +53,7 @@ class Benchmark:
         Args:
             benchmark_uid (str): UID of the benchmark.
             comms (Comms): Instance of a communication interface.
+            force_update (bool): Wether to download the benchmark regardless of cache. Defaults to False
 
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
@@ -57,7 +61,7 @@ class Benchmark:
         # Get local benchmarks
         bmk_storage = storage_path(config.benchmarks_storage)
         local_bmks = os.listdir(bmk_storage)
-        if str(benchmark_uid) in local_bmks:
+        if str(benchmark_uid) in local_bmks and not force_update:
             benchmark_dict = cls.__get_local_dict(benchmark_uid)
         else:
             # Download benchmark
@@ -122,6 +126,7 @@ class Benchmark:
             "reference_model_mlcube": self.reference_model,
             "models": self.models,
             "data_evaluator_mlcube": self.evaluator,
+            "approval_status": self.approval_status,
         }
 
     def write(self, filename: str = config.benchmarks_filename) -> str:

@@ -124,9 +124,8 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         str: General temporary folder location
         str: Specific data path for the temporary dataset
     """
-    dt = datetime.utcnow()
-    ts = str(int(datetime.timestamp(dt)))
-    tmp = config.tmp_reg_prefix + ts
+    uid = generate_tmp_uid()
+    tmp = config.tmp_reg_prefix + uid
     out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
     out_datapath = os.path.join(out_path, "data")
@@ -134,6 +133,17 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         logging.info(f"Creating temporary dataset path: {out_datapath}")
         os.makedirs(out_datapath)
     return out_path, out_datapath
+
+
+def generate_tmp_uid() -> str:
+    """Generates a temporary uid by means of getting the current timestamp
+
+    Returns:
+        str: generated temporary uid
+    """
+    dt = datetime.utcnow()
+    ts = str(int(datetime.timestamp(dt)))
+    return ts
 
 
 def check_cube_validity(cube: "Cube", ui: "UI"):
