@@ -9,7 +9,7 @@ class BenchmarksList:
     @staticmethod
     def run(comms: Comms, ui: UI, all: bool = False):
         """Lists all benchmarks created by the user by default.
-        Usel "all" to display all benchmarks in the platform
+        Use "all" to display all benchmarks in the platform
 
         Args:
             comms (Comms): Communications instance
