@@ -36,7 +36,7 @@ def ui(mocker):
 def basic_arrange(mocker):
     m = mock_open()
     mocker.patch("builtins.open", m, create=True)
-    mocker.patch(PATCH_DATASET.format("yaml.full_load"), return_value=REGISTRATION_MOCK)
+    mocker.patch(PATCH_DATASET.format("yaml.safe_load"), return_value=REGISTRATION_MOCK)
     mocker.patch(PATCH_DATASET.format("os.path.exists"), return_value=True)
     return m
 
@@ -58,7 +58,7 @@ def all_uids(mocker, basic_arrange, request):
         reg["generated_uid"] = uid
         return reg
 
-    mocker.patch(PATCH_DATASET.format("yaml.full_load"), side_effect=mock_reg_file)
+    mocker.patch(PATCH_DATASET.format("yaml.safe_load"), side_effect=mock_reg_file)
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
     mocker.patch(PATCH_DATASET.format("get_dsets"), return_value=uids)
     return uids
@@ -156,7 +156,7 @@ def test_get_registration_loads_yaml_file(mocker, ui, all_uids):
     # Arrange
     uid = "1"
     dset = Dataset(uid, ui)
-    spy = mocker.spy(medperf.entities.dataset.yaml, "full_load")
+    spy = mocker.spy(medperf.entities.dataset.yaml, "safe_load")
 
     # Act
     dset.get_registration()
