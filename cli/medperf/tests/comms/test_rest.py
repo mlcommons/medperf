@@ -379,6 +379,36 @@ def test_get_cube_file_writes_to_file(mocker, server):
     spy.assert_called_once_with(filepath, "wb+")
 
 
+@pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
+def test_get_datasets_calls_datasets_path(mocker, server, body):
+    # Arrange
+    res = MockResponse([body], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    cubes = server.get_datasets()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/datasets/")
+    assert cubes == [body]
+
+
+def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    cubes = [
+        {"id": 1, "name": "name1", "state": "OPERATION"},
+        {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
+    ]
+    res = MockResponse(cubes, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    server.get_user_datasets()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/me/datasets/")
+
+
 @pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
 def test_upload_dataset_returns_dataset_uid(mocker, server, exp_id):
     # Arrange

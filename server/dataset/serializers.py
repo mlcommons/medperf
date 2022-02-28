@@ -21,7 +21,5 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
             for k, v in data.items():
                 if k not in editable_fields:
                     if v != getattr(self.instance, k):
-                        raise serializers.ValidationError(
-                            "User cannot update non editable fields in Operation mode"
-                        )
+                        raise serializers.ValidationError("User cannot update non editable fields in Operation mode")
         return data

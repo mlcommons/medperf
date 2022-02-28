@@ -13,6 +13,9 @@ class BenchmarkAdmin(admin.ModelAdmin):
         "is_active",
         "metadata",
         "user_metadata",
+        "demo_dataset_tarball_url",
+        "demo_dataset_tarball_hash",
+        "demo_dataset_generated_uid",
         "data_preparation_mlcube",
         "reference_model_mlcube",
         "data_evaluator_mlcube",
@@ -25,16 +28,12 @@ class BenchmarkAdmin(admin.ModelAdmin):
     )
 
     def dataset_list(self, obj):
-        return ",".join(
-            [gp.dataset.name for gp in obj.benchmarkdataset_set.all()]
-        )
+        return ",".join([gp.dataset.name for gp in obj.benchmarkdataset_set.all()])
 
     dataset_list.short_description = "Registered Datasets"
 
     def model_list(self, obj):
-        return ",".join(
-            [gp.model_mlcube.name for gp in obj.benchmarkmodel_set.all()]
-        )
+        return ",".join([gp.model_mlcube.name for gp in obj.benchmarkmodel_set.all()])
 
     model_list.short_description = "Registered Models"
 
