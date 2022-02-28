@@ -71,7 +71,7 @@ def cleanup():
 def cleanup_dsets():
     """Removes clutter related to datsets
     """
-    dsets_path = config.data_storage
+    dsets_path = storage_path(config.data_storage)
     dsets = get_uids(dsets_path)
     tmp_prefix = config.tmp_reg_prefix
     test_prefix = config.test_dset_prefix

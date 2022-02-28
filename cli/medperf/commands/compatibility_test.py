@@ -1,14 +1,14 @@
 import os
 import logging
 from time import time
-from medperf.commands.prepare import DataPreparation
+from medperf.commands.dataset import DataPreparation
 
 from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
 from medperf.commands import BenchmarkExecution
 from medperf.utils import pretty_error
-from medperf.config import config
+from medperf import config
 
 
 class CompatibilityTestExecution:
@@ -70,8 +70,8 @@ class CompatibilityTestExecution:
 
         if self.cube_path:
             logging.info("local cube path provided. Creating symbolic link")
-            self.model_uid = config["test_cube_prefix"] + str(int(time()))
-            dst = os.path.join(config["cubes_storage"], self.model_uid)
+            self.model_uid = config.test_cube_prefix + str(int(time()))
+            dst = os.path.join(config.cubes_storage, self.model_uid)
             os.symlink(self.cube_path, dst)
             logging.info(f"local cube will linked to path: {dst}")
 
@@ -154,7 +154,7 @@ class CompatibilityTestExecution:
         if local_model_provided:
             logging.info("Ensuring local cube is valid")
             cube_path_isdir = os.path.isdir(self.cube_path)
-            manifest_file = os.path.join(self.cube_path, config["cube_filename"])
+            manifest_file = os.path.join(self.cube_path, config.cube_filename)
             cube_path_contains_manifest_file = os.path.exists(manifest_file)
             valid_cube_path = cube_path_isdir and cube_path_contains_manifest_file
             if not valid_cube_path:

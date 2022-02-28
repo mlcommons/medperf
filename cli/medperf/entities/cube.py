@@ -15,6 +15,7 @@ from medperf.utils import (
     untar_additional,
     combine_proc_sp_text,
     list_files,
+    storage_path,
 )
 
 
@@ -63,7 +64,7 @@ class Cube(object):
             List[Cube]: List containing all cubes found locally
         """
         logging.info("Retrieving all local cubes")
-        cubes_storage = config["cubes_storage"]
+        cubes_storage = storage_path(config.cubes_storage)
         try:
             uids = next(os.walk(cubes_storage))[1]
         except StopIteration:
@@ -72,11 +73,11 @@ class Cube(object):
 
         cubes = []
         for uid in uids:
-            cube_path = os.path.join(cubes_storage, uid, config["cube_filename"])
+            cube_path = os.path.join(cubes_storage, uid, config.cube_filename)
             with open(cube_path, "r") as f:
                 meta = yaml.full_load(f)
 
-            params_path = os.path.join(cubes_storage, uid, config["params_filename"])
+            params_path = os.path.join(cubes_storage, uid, config.params_filename)
             if not os.path.exists(params_path):
                 params_path = None
             cube = cls(uid, meta, cube_path, params_path)
