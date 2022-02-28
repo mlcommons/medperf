@@ -20,7 +20,7 @@ class BenchmarksList:
             benchmarks = comms.get_benchmarks()
         else:
             benchmarks = comms.get_user_benchmarks()
-        headers = ["UID", "Name", "Description", "State"]
+        headers = ["UID", "Name", "Description", "State", "Approval Status"]
         formatted_bmarks = []
         desc_max_len = 20
         for bmark in benchmarks:
@@ -30,7 +30,13 @@ class BenchmarksList:
             formatted_bmarks.append(bmark)
 
         data = [
-            [bmark["id"], bmark["name"], bmark["description"], bmark["state"]]
+            [
+                bmark["id"],
+                bmark["name"],
+                bmark["description"],
+                bmark["state"],
+                bmark["approval_status"],
+            ]
             for bmark in formatted_bmarks
         ]
         tab = tabulate(data, headers=headers)
