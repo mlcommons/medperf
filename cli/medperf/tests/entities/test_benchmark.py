@@ -20,7 +20,7 @@ def test_get_benchmark_retrieves_benchmark_from_comms(mocker, comms):
 
     # Act
     uid = 1
-    print(Benchmark.get(uid, comms))
+    Benchmark.get(uid, comms)
 
     # Assert
     spy.assert_called_once_with(uid)

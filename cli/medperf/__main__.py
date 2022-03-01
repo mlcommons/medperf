@@ -2,13 +2,10 @@ import typer
 import logging
 from os.path import abspath, expanduser
 
-from medperf.commands import (
-    BenchmarkExecution,
-    ResultSubmission,
-    Login,
-)
+from medperf.commands import Login, CompatibilityTestExecution
+from medperf.commands.result import result
 import medperf.config as config
-from medperf.utils import init_storage, storage_path
+from medperf.utils import init_storage, storage_path, cleanup
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
@@ -18,6 +15,7 @@ from medperf.commands.benchmark import benchmark
 
 
 app = typer.Typer()
+app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 
@@ -31,7 +29,7 @@ def login():
 
 
 @clean_except
-@app.command("execute")
+@app.command("run")
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -45,33 +43,45 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = config.comms
-    ui = config.ui
-    comms.authenticate()
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ui.print("✅ Done!")
+    result.run_benchmark(
+        benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
+    )
 
 
 @clean_except
-@app.command("submit")
-def submit(
+@app.command("test")
+def execute(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the executed benchmark"
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="UID of the dataset used for results"
+    data_uid: str = typer.Option(
+        None,
+        "--data_uid",
+        "-d",
+        help="Registered Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
     ),
     model_uid: int = typer.Option(
-        ..., "--model_uid", "-m", help="UID of the executed model"
+        None,
+        "--model_uid",
+        "-m",
+        help="UID of model to execute. Used for model testing. Optional. defaults to benchmark reference cube.",
+    ),
+    cube_path: str = typer.Option(
+        None,
+        "--cube_path",
+        "-c",
+        help="Path to a local implementation of an mlcube. Used for local model testing. Optional. defaults to None.",
     ),
 ):
-    """Submits already obtained results to the server"""
+    """Executes a compatibility test for a determined benchmark. Can test prepared datasets, remote and local models independently."""
     comms = config.comms
     ui = config.ui
     comms.authenticate()
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    CompatibilityTestExecution.run(
+        benchmark_uid, comms, ui, data_uid, model_uid, cube_path
+    )
     ui.print("✅ Done!")
+    cleanup()
 
 
 @app.callback()

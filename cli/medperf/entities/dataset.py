@@ -7,7 +7,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 import medperf.config as config
 from medperf.utils import (
-    get_dsets,
+    get_uids,
     approval_prompt,
     pretty_error,
     storage_path,
@@ -81,7 +81,7 @@ class Dataset:
             uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory")
+            pretty_error("Couldn't iterate over the dataset directory", ui)
         tmp_prefix = config.tmp_reg_prefix
         dsets = []
         for uid in uids:
@@ -105,7 +105,7 @@ class Dataset:
         Returns:
             str: the complete UID
         """
-        dsets = get_dsets()
+        dsets = get_uids(config["data_storage"])
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
             pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
@@ -122,10 +122,12 @@ class Dataset:
         """
         regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "r") as f:
-            reg = yaml.full_load(f)
+            reg = yaml.safe_load(f)
         return reg
 
     def set_registration(self):
+        logging.info(f"Updating registration information for dataset: {self.uid}")
+        logging.debug(f"registration information: {self.registration}")
         regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)

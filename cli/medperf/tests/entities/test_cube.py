@@ -67,7 +67,7 @@ def test_get_basic_cube_retrieves_metadata_from_comms(mocker, comms, basic_body)
 
     # Act
     uid = 1
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(uid)
@@ -80,7 +80,7 @@ def test_get_basic_cube_retrieves_cube_manifest(mocker, comms, basic_body):
     # Act
     uid = 1
     body = basic_body(uid)
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(body["git_mlcube_url"], uid)
@@ -92,7 +92,7 @@ def test_get_basic_cube_doesnt_retrieve_parameters(mocker, comms, basic_body):
 
     # Act
     uid = 1
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_not_called()
@@ -104,7 +104,7 @@ def test_get_basic_cube_doesnt_retrieve_tarball(mocker, comms, basic_body):
 
     # Act
     uid = 1
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_not_called()
@@ -117,7 +117,7 @@ def test_get_cube_with_parameters_retrieves_parameters(mocker, comms, params_bod
     # Act
     uid = 1
     body = params_body(uid)
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(body["git_parameters_url"], uid)
@@ -130,7 +130,7 @@ def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body):
     # Act
     uid = 1
     body = tar_body(uid)
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(body["tarball_url"], uid)
@@ -142,7 +142,7 @@ def test_get_cube_with_tarball_generates_tarball_hash(mocker, comms, tar_body):
 
     # Act
     uid = 1
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(TARBALL_PATH)
@@ -154,7 +154,7 @@ def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body):
 
     # Act
     uid = 1
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(TARBALL_PATH)
@@ -163,7 +163,7 @@ def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body):
 def test_cube_is_valid_if_no_tarball(mocker, comms, basic_body):
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
 
     # Assert
     assert cube.is_valid()
@@ -172,7 +172,7 @@ def test_cube_is_valid_if_no_tarball(mocker, comms, basic_body):
 def test_cube_is_valid_with_correct_hash(mocker, comms, tar_body):
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
 
     # Assert
     assert cube.is_valid()
@@ -184,7 +184,7 @@ def test_cube_is_invalid_with_incorrect_hash(mocker, comms, tar_body):
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
 
     # Assert
     assert not cube.is_valid()
@@ -201,7 +201,7 @@ def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body):
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     cube.run(ui, "task")
 
     # Assert
@@ -218,7 +218,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body):
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     cube.run(ui, task, test="test")
 
     # Assert
@@ -236,7 +236,7 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body):
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     with pytest.raises(SystemExit):
         cube.run(ui, task)
 
@@ -249,11 +249,11 @@ def test_default_output_reads_cube_manifest(mocker, comms, basic_body):
     cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
     spy = mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
@@ -265,13 +265,13 @@ def test_default_output_returns_specified_path(mocker, comms, basic_body):
     cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     exp_path = f"./workspace/{VALUE}"
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     out_path = cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
@@ -285,13 +285,13 @@ def test_default_output_returns_specified_dict_path(mocker, comms, basic_body):
     }
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     exp_path = f"./workspace/{VALUE}"
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     out_path = cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
@@ -304,13 +304,13 @@ def test_default_output_returns_path_with_params(mocker, comms, params_body):
     params_contents = {PARAM_KEY: PARAM_VALUE}
     mocker.patch("builtins.open", MagicMock())
     m = MagicMock(side_effect=[cube_contents, params_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.full_load"), m)
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
 
     exp_path = f"./workspace/{VALUE}/{PARAM_VALUE}"
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
     out_path = cube.get_default_output(TASK, OUT_KEY, PARAM_KEY)
 
     # Assert

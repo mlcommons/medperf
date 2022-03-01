@@ -13,6 +13,7 @@ from colorama import Fore, Style
 import re
 
 import medperf.config as config
+from medperf.ui import UI
 
 
 def storage_path(subpath: str):
@@ -63,25 +64,55 @@ def cleanup():
     """
     if os.path.exists(storage_path(config.tmp_storage)):
         logging.info("Removing temporary data storage")
-        rmtree(storage_path(config.tmp_storage), ignore_errors=True)
-    dsets = get_dsets()
-    prefix = config.tmp_reg_prefix
-    unreg_dsets = [dset for dset in dsets if dset.startswith(prefix)]
-    for dset in unreg_dsets:
-        logging.info("Removing unregistered dataset")
-        dset_path = os.path.join(storage_path(config.data_storage), dset)
+        rmtree(config.tmp_storage, ignore_errors=True)
+
+    cleanup_dsets()
+    cleanup_cubes()
+
+
+def cleanup_dsets():
+    """Removes clutter related to datsets
+    """
+    dsets_path = storage_path(config.data_storage)
+    dsets = get_uids(dsets_path)
+    tmp_prefix = config.tmp_reg_prefix
+    test_prefix = config.test_dset_prefix
+    clutter_dsets = [
+        dset
+        for dset in dsets
+        if dset.startswith(tmp_prefix) or dset.startswith(test_prefix)
+    ]
+
+    for dset in clutter_dsets:
+        logging.info(f"Removing clutter dataset: {dset}")
+        dset_path = os.path.join(dsets_path, dset)
         if os.path.exists(dset_path):
             rmtree(dset_path, ignore_errors=True)
 
 
-def get_dsets() -> List[str]:
-    """Retrieves the UID of all the datasets stored locally.
+def cleanup_cubes():
+    """Removes clutter related to cubes
+    """
+    cubes_path = config["cubes_storage"]
+    cubes = get_uids(cubes_path)
+    test_prefix = config["test_cube_prefix"]
+    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
+
+    for cube in clutter_cubes:
+        logging.info(f"Removing clutter cube: {cube}")
+        cube_path = os.path.join(cubes_path, cube)
+        if os.path.exists(cube_path):
+            rmtree(cube_path, ignore_errors=True)
+
+
+def get_uids(path: str) -> List[str]:
+    """Retrieves the UID of all the elements in the specified path.
 
     Returns:
-        List[str]: UIDs of prepared datasets.
+        List[str]: UIDs of objects in path.
     """
-    dsets = next(os.walk(storage_path(config.data_storage)))[1]
-    return dsets
+    uids = next(os.walk(path))[1]
+    return uids
 
 
 def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
@@ -274,6 +305,30 @@ def results_path(benchmark_uid, model_uid, data_uid):
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
     out_path = os.path.join(out_path, config.results_filename)
     return out_path
+
+
+def results_ids(ui: UI):
+    results_storage = storage_path(config.results_storage)
+    results_ids = []
+    try:
+        bmk_uids = next(os.walk(results_storage))[1]
+        for bmk_uid in bmk_uids:
+            bmk_storage = os.path.join(results_storage, bmk_uid)
+            model_uids = next(os.walk(bmk_storage))[1]
+            for model_uid in model_uids:
+                bmk_model_storage = os.path.join(bmk_storage, model_uid)
+                data_uids = next(os.walk(bmk_model_storage))[1]
+                bmk_model_data_list = [
+                    (bmk_uid, model_uid, data_uid) for data_uid in data_uids
+                ]
+                results_ids += bmk_model_data_list
+
+    except:
+        msg = "Couldn't iterate over the results directory"
+        logging.warning(msg)
+        pretty_error(msg, ui)
+
+    return results_ids
 
 
 def setup_logger(logger, log_lvl):
