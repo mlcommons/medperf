@@ -52,7 +52,10 @@ def execute(
 @app.command("test")
 def execute(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        None,
+        "--benchmark",
+        "-b",
+        help="UID of the benchmark to test. If not passed, a temporary benchmark is created.",
     ),
     data_uid: str = typer.Option(
         None,
@@ -60,17 +63,22 @@ def execute(
         "-d",
         help="Registered Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
     ),
-    model_uid: int = typer.Option(
+    data_prep: str = typer.Option(
         None,
-        "--model_uid",
-        "-m",
-        help="UID of model to execute. Used for model testing. Optional. defaults to benchmark reference cube.",
+        "--data_preparation",
+        "-p",
+        help="UID or local path to the data preparation mlcube. Optional. Defaults to benchmark data preparation mlcube.",
     ),
-    cube_path: str = typer.Option(
+    model: str = typer.Option(
         None,
-        "--cube_path",
-        "-c",
-        help="Path to a local implementation of an mlcube. Used for local model testing. Optional. defaults to None.",
+        "--model",
+        "-m",
+        help="UID or local path to the model mlcube. Optional. Defaults to benchmark reference mlcube.",
+    ),
+    evaluator: str = typer.Option(
+        "--evaluator",
+        "-e",
+        help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
 ):
     """Executes a compatibility test for a determined benchmark. Can test prepared datasets, remote and local models independently."""
@@ -78,7 +86,7 @@ def execute(
     ui = config.ui
     comms.authenticate()
     CompatibilityTestExecution.run(
-        benchmark_uid, comms, ui, data_uid, model_uid, cube_path
+        benchmark_uid, comms, ui, data_uid, data_prep, model, evaluator
     )
     ui.print("✅ Done!")
     cleanup()

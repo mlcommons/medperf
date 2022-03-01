@@ -4,7 +4,7 @@ from os.path import expanduser, abspath
 version = "0.0.0"
 server = "http://localhost:8000"
 storage = abspath(expanduser("~/.medperf"))
-tmp_reg_prefix = "tmp_"
+tmp_prefix = "tmp_"
 tmp_storage = "tmp"
 data_storage = "data"
 cubes_storage = "cubes"

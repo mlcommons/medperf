@@ -68,6 +68,7 @@ def cleanup():
 
     cleanup_dsets()
     cleanup_cubes()
+    cleanup_benchmarks()
 
 
 def cleanup_dsets():
@@ -75,7 +76,7 @@ def cleanup_dsets():
     """
     dsets_path = storage_path(config.data_storage)
     dsets = get_uids(dsets_path)
-    tmp_prefix = config.tmp_reg_prefix
+    tmp_prefix = config.tmp_prefix
     test_prefix = config.test_dset_prefix
     clutter_dsets = [
         dset
@@ -103,6 +104,20 @@ def cleanup_cubes():
         cube_path = os.path.join(cubes_path, cube)
         if os.path.exists(cube_path):
             rmtree(cube_path, ignore_errors=True)
+
+
+def cleanup_benchmarks():
+    """Removes clutter related to benchmarks
+    """
+    bmks_path = storage_path(config.benchmarks_storage)
+    bmks = os.listdir(bmks_path)
+    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
+
+    for bmk in clutter_bmks:
+        logging.info(f"Removing clutter benchmark: {bmk}")
+        bmk_path = os.path.join(bmks_path, bmk)
+        if os.path.exists(bmk_path):
+            rmtree(bmk_path, ignore_errors=True)
 
 
 def get_uids(path: str) -> List[str]:
@@ -156,7 +171,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         str: Specific data path for the temporary dataset
     """
     uid = generate_tmp_uid()
-    tmp = config.tmp_reg_prefix + uid
+    tmp = config.tmp_prefix + uid
     out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
     out_datapath = os.path.join(out_path, "data")

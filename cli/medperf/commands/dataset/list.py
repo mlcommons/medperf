@@ -51,7 +51,7 @@ class DatasetsList:
 
         # Get remote dsets information filtered by local
         remote_dsets_data = [
-            [dset["generated_uid"], dset["name"], "-", True, False,]
+            [dset["generated_uid"], dset["id"], dset["name"], "-", True, False,]
             for dset in remote_dsets
             if dset["generated_uid"] not in local_uids
         ]

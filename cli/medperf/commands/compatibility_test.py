@@ -2,14 +2,15 @@ import os
 import yaml
 import logging
 from time import time
-from medperf.commands.dataset import DataPreparation
+from pathlib import Path
 
 from medperf.ui import UI
+from medperf import config
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
+from medperf.commands.dataset import DataPreparation
 from medperf.commands.result import BenchmarkExecution
 from medperf.utils import pretty_error, untar, get_file_sha1
-from medperf import config
 
 
 class CompatibilityTestExecution:
@@ -20,8 +21,9 @@ class CompatibilityTestExecution:
         comms: Comms,
         ui: UI,
         data_uid: str = None,
-        model_uid: int = None,
-        cube_path: str = None,
+        data_prep: str = None,
+        model: str = None,
+        evaluator: str = None,
     ):
         """Execute a test workflow for a specific benchmark
 
@@ -29,51 +31,103 @@ class CompatibilityTestExecution:
             benchmark_uid (int): Benchmark to run the test workflow for
             data_uid (str, optional): registered dataset uid. 
                 If none provided, it defaults to benchmark test dataset.
-            model_uid (int, optional): model mlcube uid. 
+            data_prep (str, optional): data prep mlcube uid or local path. 
+                If none provided, it defaults to benchmark data prep mlcube.
+            model (str, optional): model mlcube uid or local path. 
                 If none provided, it defaults to benchmark reference model.
-            cube_path (str, optional): Location of local model mlcube. Must be
-                provided if no dataset or model uid is provided.
+            evaluator (str, optional): evaluator mlcube uid or local path.
+                If none provided, it defaults to benchmark evaluator mlcube.
         """
         logging.info("Starting test execution")
-        test_exec = cls(benchmark_uid, data_uid, model_uid, cube_path, comms, ui)
-        # test_exec.validate()
-        test_exec.set_model_uid()
+        test_exec = cls(benchmark_uid, data_uid, data_prep, model, evaluator, comms, ui)
+        test_exec.validate()
+        test_exec.prepare_test()
         test_exec.set_data_uid()
         test_exec.execute_benchmark()
-        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model_uid
+        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model
 
     def __init__(
         self,
         benchmark_uid: int,
         data_uid: int,
-        model_uid: int,
-        cube_path: str,
+        data_prep: str,
+        model: str,
+        evaluator: str,
         comms: Comms,
         ui: UI,
     ):
         self.benchmark_uid = benchmark_uid
+        self.benchmark = None
         self.data_uid = data_uid
-        self.model_uid = model_uid
+        self.data_prep = data_prep
+        self.model = model
+        self.evaluator = evaluator
         self.comms = comms
         self.ui = ui
-        self.cube_path = cube_path
-        self.benchmark = Benchmark.get(benchmark_uid, comms)
 
-    def set_model_uid(self):
-        """Assigns the model_uid used for testing according to the initialization parameters.
-        If a cube_path is provided, it will create a temporary uid and link the cube path to
+    def validate(self):
+        """Ensures test has been passed a valid combination of parameters.
+        Specifically, a benchmark must be passed if any other workflow 
+        parameter is not passed.
+        """
+        params = [self.data_uid, self.data_prep, self.model, self.evaluator]
+        none_params = [param is None for param in params]
+        if self.benchmark_uid is None and any(none_params):
+            pretty_error(
+                "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow",
+                self.ui,
+            )
+
+    def prepare_test(self):
+        """Prepares all parameters so a test can be executed. Paths to cubes are
+        transformed to cube uids and benchmark is mocked/obtained.
+        """
+        if self.benchmark_uid:
+            self.benchmark = Benchmark.get(self.benchmark_uid, self.comms, self.ui)
+            self.set_cube_uid("data_prep", self.benchmark.data_preparation)
+            self.set_cube_uid("model", self.benchmark.reference_model)
+            self.set_cube_uid("evaluator", self.benchmark.evaluator)
+        else:
+            self.set_cube_uid("data_prep")
+            self.set_cube_uid("model")
+            self.set_cube_uid("evaluator")
+            self.benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
+            self.benchmark_uid = self.benchmark.uid
+
+    def execute_benchmark(self):
+        """Runs the benchmark execution flow given the specified testing parameters
+        """
+        BenchmarkExecution.run(
+            self.benchmark_uid,
+            self.data_uid,
+            self.model,
+            self.comms,
+            self.ui,
+            run_test=True,
+        )
+
+    def set_cube_uid(self, attr: str, fallback: any = None):
+        """Assigns the attr used for testing according to the initialization parameters.
+        If the value is a path, it will create a temporary uid and link the cube path to
         the medperf storage path.
+        
+        Arguments:
+            attr (str): Attribute to check and/or reassign.
+            fallback (any): Value to assign if attribute is empty. Defaults to None.
         """
         logging.info("Establishing model_uid for test execution")
-        if self.model_uid is None:
-            logging.info("model_uid not provided. Using reference cube")
-            self.model_uid = self.benchmark.reference_model
+        val = getattr(self, attr)
+        if val is None:
+            logging.info(f"Empty attribute: {attr}. Assigning fallback: {fallback}")
+            setattr(self, attr, fallback)
+            return
 
-        if self.cube_path:
-            logging.info("local cube path provided. Creating symbolic link")
-            self.model_uid = config.test_cube_prefix + str(int(time()))
-            dst = os.path.join(config.cubes_storage, self.model_uid)
-            os.symlink(self.cube_path, dst)
+        # Check if value is a server UID
+        if os.path.exists(val):
+            logging.info("local path provided. Creating symbolic link")
+            self.cube_uid = config.test_cube_prefix + str(int(time()))
+            dst = os.path.join(config.cubes_storage, self.cube_uid)
+            os.symlink(val, dst)
             logging.info(f"local cube will linked to path: {dst}")
 
     def set_data_uid(self):
@@ -99,18 +153,6 @@ class CompatibilityTestExecution:
             dset.uid = self.data_uid
             dset.set_registration()
 
-    def execute_benchmark(self):
-        """Runs the benchmark execution flow given the specified testing parameters
-        """
-        BenchmarkExecution.run(
-            self.benchmark_uid,
-            self.data_uid,
-            self.model_uid,
-            self.comms,
-            self.ui,
-            run_test=True,
-        )
-
     def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark
 
@@ -123,7 +165,9 @@ class CompatibilityTestExecution:
 
         # Check demo dataset integrity
         file_hash = get_file_sha1(file_path)
-        if file_hash != self.benchmark.demo_dataset_hash:
+        dset_hash = self.benchmark.demo_dataset_hash
+        # Alllow for empty datset hashes for benchmark registration purposes
+        if dset_hash and file_hash != dset_hash:
             pretty_error("Demo dataset hash doesn't match expected hash", self.ui)
 
         untar_path = untar(file_path, remove=False)
@@ -137,42 +181,3 @@ class CompatibilityTestExecution:
         data_path = os.path.join(untar_path, paths["data_path"])
         labels_path = os.path.join(untar_path, paths["labels_path"])
         return data_path, labels_path
-
-    def validate(self):
-        logging.info("Validating test execution")
-        demo_data_uid = self.benchmark.demo_dataset_generated_uid
-        data_provided = self.data_uid != demo_data_uid
-
-        logging.debug(f"Data_uid provided? {data_provided}")
-        local_model_provided = self.cube_path is not None
-        logging.debug(f"Local cube provided? {data_provided}")
-        model_provided = (
-            self.model_uid is not None
-            and self.model_uid != self.benchmark.reference_model
-        )
-        logging.debug(f"Model provided? {model_provided}")
-
-        # We should only be testing one of the three possibilities
-        variables_provided = sum([data_provided, model_provided, local_model_provided])
-        logging.debug(f"Number of testing values provided: {variables_provided}")
-
-        if variables_provided > 1:
-            pretty_error(
-                "Too many testing parameters were set. Please only test one element at a time",
-                self.ui,
-            )
-        if variables_provided == 0:
-            pretty_error("At least one testing element must be passed", self.ui)
-
-        # Ensure the cube_path is a directory pointing to an mlcube
-        if local_model_provided:
-            logging.info("Ensuring local cube is valid")
-            cube_path_isdir = os.path.isdir(self.cube_path)
-            manifest_file = os.path.join(self.cube_path, config.cube_filename)
-            cube_path_contains_manifest_file = os.path.exists(manifest_file)
-            valid_cube_path = cube_path_isdir and cube_path_contains_manifest_file
-            if not valid_cube_path:
-                pretty_error(
-                    "The specified cube_path is invalid. Must point to a directory containing an mlcube.yaml manifest file",
-                    self.ui,
-                )

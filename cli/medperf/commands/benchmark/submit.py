@@ -19,7 +19,7 @@ class SubmitBenchmark:
             submission.get_information()
 
         with ui.interactive():
-            ui.text = "Getting hash from demo dataset"
+            ui.text = "Getting demo dataset additional data"
             submission.get_demo_data_information()
             ui.print("> Completed benchmark registration information")
             ui.text = "Submitting Benchmark to MedPerf"

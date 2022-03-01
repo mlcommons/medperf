@@ -27,20 +27,23 @@ class Benchmark:
             benchmark_dict (dict): key-value representation of the benchmark.
         """
         self.uid = uid
-        self.name = benchmark_dict["name"]
-        self.description = benchmark_dict["description"]
-        self.docs_url = benchmark_dict["docs_url"]
-        self.created_at = benchmark_dict["created_at"]
-        self.modified_at = benchmark_dict["modified_at"]
-        self.owner = benchmark_dict["owner"]
-        self.demo_dataset_url = benchmark_dict["demo_dataset_tarball_url"]
-        self.demo_dataset_hash = benchmark_dict["demo_dataset_tarball_hash"]
-        self.demo_dataset_generated_uid = benchmark_dict["demo_dataset_generated_uid"]
-        self.data_preparation = benchmark_dict["data_preparation_mlcube"]
-        self.reference_model = benchmark_dict["reference_model_mlcube"]
-        self.models = benchmark_dict["models"]
-        self.evaluator = benchmark_dict["data_evaluator_mlcube"]
-        self.approval_status = benchmark_dict["approval_status"]
+        # Getting None by default allows creating empty benchmarks for tests
+        self.name = benchmark_dict.get("name", None)
+        self.description = benchmark_dict.get("description", None)
+        self.docs_url = benchmark_dict.get("docs_url", None)
+        self.created_at = benchmark_dict.get("created_at", None)
+        self.modified_at = benchmark_dict.get("modified_at", None)
+        self.owner = benchmark_dict.get("owner", None)
+        self.demo_dataset_url = benchmark_dict.get("demo_dataset_tarball_url", None)
+        self.demo_dataset_hash = benchmark_dict.get("demo_dataset_tarball_hash", None)
+        self.demo_dataset_generated_uid = benchmark_dict.get(
+            "demo_dataset_generated_uid", None
+        )
+        self.data_preparation = benchmark_dict.get("data_preparation_mlcube", None)
+        self.reference_model = benchmark_dict.get("reference_model_mlcube", None)
+        self.models = benchmark_dict.get("models", None)
+        self.evaluator = benchmark_dict.get("data_evaluator_mlcube", None)
+        self.approval_status = benchmark_dict.get("approval_status", None)
 
     @classmethod
     def get(
@@ -91,6 +94,30 @@ class Benchmark:
             data = yaml.safe_load(f)
 
         return data
+
+    @classmethod
+    def tmp(cls, data_preparator: str, model: str, evaluator: str) -> "Benchmark":
+        """Creates a temporary instance of the benchmark
+
+        Args:
+            data_preparator (str): UID of the data preparator cube to use.
+            model (str): UID of the model cube to use.
+            evaluator (str): UID of the evaluator cube to use.
+
+        Returns:
+            Benchmark: a benchmark instance
+        """
+        benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
+        benchmark_dict = {
+            "name": benchmark_uid,
+            "data_preparation_mlcube": data_preparator,
+            "reference_model_mlcube": model,
+            "data_evaluator_mlcube": evaluator,
+            "models": [model],
+        }
+        benchmark = Benchmark(benchmark_uid, benchmark_dict)
+        benchmark.write()
+        return benchmark
 
     @classmethod
     def get_models_uids(cls, benchmark_uid: str, comms: Comms) -> List[str]:
