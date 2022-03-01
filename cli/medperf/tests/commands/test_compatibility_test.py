@@ -111,7 +111,7 @@ def test_set_model_uid_sets_local_id_for_cube_path(mocker, default_setup, comms,
     exec.set_model_uid()
 
     # Assert
-    assert exec.model_uid.startswith(config["test_cube_prefix"])
+    assert exec.model_uid.startswith(config.test_cube_prefix)
 
 
 def test_set_model_uid_symlinks_local_cube(mocker, default_setup, comms, ui):

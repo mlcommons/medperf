@@ -1,14 +1,13 @@
-import os
 from pathlib import Path
 
 from medperf.ui import UI
+from medperf import config
 from medperf.comms import Comms
 from medperf.entities import Benchmark, Cube, Registration
 from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,
     init_storage,
-    cleanup,
     pretty_error,
 )
 
@@ -88,10 +87,10 @@ class DataPreparation:
         self.registration.generate_uids(self.data_path, self.out_datapath)
         if self.run_test:
             self.registration.in_uid = (
-                config["test_dset_prefix"] + self.registration.in_uid
+                config.test_dset_prefix + self.registration.in_uid
             )
             self.registration.generated_uid = (
-                config["test_dset_prefix"] + self.registration.generated_uid
+                config.test_dset_prefix + self.registration.generated_uid
             )
         if self.registration.is_registered(self.ui):
             msg = "This dataset has already been prepared. No changes made"

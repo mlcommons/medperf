@@ -147,14 +147,18 @@ class REST(Comms):
         Returns:
             str: path where the downloaded demo dataset can be found
         """
-        demo_data_path = storage_path(config.tmp_storage)
-        uid = generate_tmp_uid()
-        tball_file = f"{uid}_{config.tarball_filename}"
-        filepath = os.path.join(demo_data_path, tball_file)
         res = requests.get(demo_data_url)
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error("couldn't download the demo dataset", self.ui)
+
+        tmp_dir = storage_path(config.tmp_storage)
+        uid = generate_tmp_uid()
+        tball_file = config.tarball_filename
+        demo_data_path = os.path.join(tmp_dir, uid)
+        os.mkdir(demo_data_path)
+        filepath = os.path.join(demo_data_path, tball_file)
+
         open(filepath, "wb+").write(res.content)
         return filepath
 
@@ -230,6 +234,7 @@ class REST(Comms):
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
         res = requests.get(url)
         if res.status_code != 200:
+            logging.error(f"Retrieving cube file failed with: {res.status_code}")
             logging.error(res.json())
             pretty_error(
                 "There was a problem retrieving the specified file at " + url, self.ui

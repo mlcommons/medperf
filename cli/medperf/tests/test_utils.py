@@ -245,7 +245,7 @@ def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
 
 
 @pytest.mark.parametrize("file", ["test.tar.bz", "path/to/file.tar.bz"])
-def test_untar_additional_opens_specified_file(mocker, file):
+def test_untar_opens_specified_file(mocker, file):
     # Arrange
     spy = mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
@@ -253,14 +253,14 @@ def test_untar_additional_opens_specified_file(mocker, file):
     mocker.patch("os.remove")
 
     # Act
-    utils.untar_additional(file)
+    utils.untar(file)
 
     # Assert
     spy.assert_called_once_with(file)
 
 
 @pytest.mark.parametrize("file", ["./test.tar.bz", "path/to/file.tar.bz"])
-def test_untar_additional_extracts_to_parent_directory(mocker, file):
+def test_untar_extracts_to_parent_directory(mocker, file):
     # Arrange
     parent_path = str(Path(file).parent)
     mocker.patch("tarfile.open", return_value=MockTar())
@@ -268,14 +268,14 @@ def test_untar_additional_extracts_to_parent_directory(mocker, file):
     mocker.patch("os.remove")
 
     # Act
-    utils.untar_additional(file)
+    utils.untar(file)
 
     # Assert
     spy.assert_called_once_with(ANY, parent_path)
 
 
 @pytest.mark.parametrize("file", ["./test.tar.bz", "path/to/file.tar.bz"])
-def test_untar_additional_removes_tarfile(mocker, file):
+def test_untar_removes_tarfile(mocker, file):
     # Arrange
     mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
@@ -283,7 +283,7 @@ def test_untar_additional_removes_tarfile(mocker, file):
     spy = mocker.patch("os.remove")
 
     # Act
-    utils.untar_additional(file)
+    utils.untar(file)
 
     # Assert
     spy.assert_called_once_with(file)

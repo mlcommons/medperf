@@ -231,8 +231,8 @@ def seed(args):
             "name": "xrv",
             "description": "benchmark-sample",
             "docs_url": "string",
-            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz",
-            "demo_dataset_tarball_hash": "59ad2f17cd8f62ae1728cefb4d64d736503e8ed3",
+            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_demo.tar.gz",
+            "demo_dataset_tarball_hash": "e91195739bf17eafd11e6d77d699b13170d11f1a",
             "demo_dataset_generated_uid": "string",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,
@@ -286,7 +286,7 @@ def seed(args):
                 "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/mlcube.yaml"
             ),
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/ "
+                "https://raw.githubusercontent.com/aristizabal95/medical/"
                 "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/workspace/parameters.yaml"
             ),
             "tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",

@@ -4,8 +4,8 @@ import os
 import logging
 
 from medperf.ui import UI
+from medperf import config
 from medperf.comms import Comms
-import medperf.config as config
 from medperf.utils import (
     get_uids,
     approval_prompt,
@@ -105,7 +105,8 @@ class Dataset:
         Returns:
             str: the complete UID
         """
-        dsets = get_uids(config["data_storage"])
+        data_storage = storage_path(config.data_storage)
+        dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
             pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)

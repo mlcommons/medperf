@@ -1,4 +1,5 @@
 import os
+import yaml
 import logging
 from time import time
 from medperf.commands.dataset import DataPreparation
@@ -7,7 +8,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
 from medperf.commands.result import BenchmarkExecution
-from medperf.utils import pretty_error
+from medperf.utils import pretty_error, untar, get_file_sha1
 from medperf import config
 
 
@@ -35,7 +36,7 @@ class CompatibilityTestExecution:
         """
         logging.info("Starting test execution")
         test_exec = cls(benchmark_uid, data_uid, model_uid, cube_path, comms, ui)
-        test_exec.validate()
+        # test_exec.validate()
         test_exec.set_model_uid()
         test_exec.set_data_uid()
         test_exec.execute_benchmark()
@@ -117,18 +118,31 @@ class CompatibilityTestExecution:
             data_path (str): Location of the downloaded data
             labels_path (str): Location of the downloaded labels
         """
-        # TODO: implement this
-        return (
-            "/Users/aristizabal-factored/Documents/mlcommons_p0/local_workspace/CheXpert-v1.0-small",
-            "/Users/aristizabal-factored/Documents/mlcommons_p0/local_workspace/CheXpert-v1.0-small/valid.csv",
-        )
+        demo_data_url = self.benchmark.demo_dataset_url
+        file_path = self.comms.get_benchmark_demo_dataset(demo_data_url)
+
+        # Check demo dataset integrity
+        file_hash = get_file_sha1(file_path)
+        if file_hash != self.benchmark.demo_dataset_hash:
+            pretty_error("Demo dataset hash doesn't match expected hash", self.ui)
+
+        untar_path = untar(file_path, remove=False)
+
+        # It is assumed that all demo datasets contain a file
+        # which specifies the input of the data preparation step
+        paths_file = os.path.join(untar_path, config.demo_dset_paths_file)
+        with open(paths_file, "r") as f:
+            paths = yaml.safe_load(f)
+
+        data_path = os.path.join(untar_path, paths["data_path"])
+        labels_path = os.path.join(untar_path, paths["labels_path"])
+        return data_path, labels_path
 
     def validate(self):
         logging.info("Validating test execution")
-        self.benchmark.demo_data_uid = "test"
-        # TODO Remove fallback
-        # TODO this comparison should be done between input hashes
-        data_provided = False and self.data_uid != self.benchmark.demo_data_uid
+        demo_data_uid = self.benchmark.demo_dataset_generated_uid
+        data_provided = self.data_uid != demo_data_uid
+
         logging.debug(f"Data_uid provided? {data_provided}")
         local_model_provided = self.cube_path is not None
         logging.debug(f"Local cube provided? {data_provided}")

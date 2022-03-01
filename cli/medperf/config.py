@@ -23,6 +23,7 @@ reg_file = "registration-info.yaml"
 log_file = "medperf.log"
 test_cube_prefix = "test_"
 test_dset_prefix = "test_"
+demo_dset_paths_file = "paths.yaml"
 default_comms = "REST"
 default_ui = "CLI"
 comms = None

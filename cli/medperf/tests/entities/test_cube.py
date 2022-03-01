@@ -35,7 +35,7 @@ def comms(mocker):
     mocker.patch.object(comms, "get_cube_params", return_value=PARAMS_PATH)
     mocker.patch.object(comms, "get_cube_additional", return_value=TARBALL_PATH)
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=TARBALL_HASH)
-    mocker.patch(PATCH_CUBE.format("untar_additional"))
+    mocker.patch(PATCH_CUBE.format("untar"))
 
     return comms
 
@@ -150,7 +150,7 @@ def test_get_cube_with_tarball_generates_tarball_hash(mocker, comms, tar_body):
 
 def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body):
     # Arrange
-    spy = mocker.spy(medperf.entities.cube, "untar_additional")
+    spy = mocker.spy(medperf.entities.cube, "untar")
 
     # Act
     uid = 1

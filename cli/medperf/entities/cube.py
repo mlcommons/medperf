@@ -12,7 +12,7 @@ from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
-    untar_additional,
+    untar,
     combine_proc_sp_text,
     list_files,
     storage_path,
@@ -117,7 +117,7 @@ class Cube(object):
             url = meta["tarball_url"]
             additional_path = comms.get_cube_additional(url, cube_uid)
             additional_hash = get_file_sha1(additional_path)
-            untar_additional(additional_path)
+            untar(additional_path)
 
         return cls(cube_uid, meta, cube_path, params_path, additional_hash)
 

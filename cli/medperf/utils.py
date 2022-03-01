@@ -12,12 +12,12 @@ from pathlib import Path
 from colorama import Fore, Style
 import re
 
-import medperf.config as config
+from medperf import config
 from medperf.ui import UI
 
 
 def storage_path(subpath: str):
-    """Helper funciton that converts a path to storage-related path"""
+    """Helper function that converts a path to storage-related path"""
     return os.path.join(config.storage, subpath)
 
 
@@ -93,9 +93,9 @@ def cleanup_dsets():
 def cleanup_cubes():
     """Removes clutter related to cubes
     """
-    cubes_path = config["cubes_storage"]
+    cubes_path = storage_path(config.cubes_storage)
     cubes = get_uids(cubes_path)
-    test_prefix = config["test_cube_prefix"]
+    test_prefix = config.test_cube_prefix
     clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
 
     for cube in clutter_cubes:
@@ -192,21 +192,24 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     ui.print(f"> {cube.name} MD5 hash check complete")
 
 
-def untar_additional(add_filepath: str) -> str:
-    """Untars and removes the additional_files.tar.gz file
+def untar(filepath: str, remove: bool = True) -> str:
+    """Untars and optionally removes the tar.gz file
 
     Args:
-        add_filepath (str): Path where the additional_files.tar.gz file can be found.
+        filepath (str): Path where the tar.gz file can be found.
+        remove (bool): Wether to delete the tar.gz file. Defaults to True.
 
     Returns:
         str: location where the untared files can be found.
     """
-    logging.info(f"Uncompressing additional_files.tar.gz at {add_filepath}")
-    addpath = str(Path(add_filepath).parent)
-    tar = tarfile.open(add_filepath)
+    logging.info(f"Uncompressing tar.gz at {filepath}")
+    addpath = str(Path(filepath).parent)
+    tar = tarfile.open(filepath)
     tar.extractall(addpath)
     tar.close()
-    os.remove(add_filepath)
+    if remove:
+        logging.info(f"Deleting {filepath}")
+        os.remove(filepath)
     return addpath
 
 
@@ -332,7 +335,7 @@ def results_ids(ui: UI):
 
 
 def setup_logger(logger, log_lvl):
-    fh = logging.FileHandler(config["log_file"])
+    fh = logging.FileHandler(config.log_file)
     fh.setLevel(log_lvl)
     logger.addHandler(fh)
 
