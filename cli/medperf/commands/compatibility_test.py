@@ -6,7 +6,7 @@ from medperf.commands.dataset import DataPreparation
 from medperf.ui import UI
 from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark
-from medperf.commands import BenchmarkExecution
+from medperf.commands.result import BenchmarkExecution
 from medperf.utils import pretty_error
 from medperf import config
 
