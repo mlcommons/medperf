@@ -119,7 +119,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     # Arrange
     mocker.patch("os.path.exists", return_value=True)
     spy = mocker.patch(patch_utils.format("rmtree"))
-    mocker.patch(patch_utils.format("get_dsets"), return_value=[])
+    mocker.patch(patch_utils.format("get_uids"), return_value=[])
 
     # Act
     utils.cleanup()
@@ -134,7 +134,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     prefix = config.tmp_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
-    mocker.patch(patch_utils.format("get_dsets"), return_value=datasets)
+    mocker.patch(patch_utils.format("get_uids"), return_value=datasets)
     spy = mocker.patch(patch_utils.format("rmtree"))
 
     invalid_dsets = [dset for dset in datasets if dset.startswith(prefix)]
@@ -150,17 +150,19 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     assert spy.call_count == len(exp_calls)
 
 
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
-def test_get_dsets_returns_uids_of_datasets(mocker, datasets):
+@pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
+@pytest.mark.parametrize("datasets", rand_l(1, 1000, 2), indirect=True)
+def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
     mock_walk_return = iter([(data, datasets, ())])
-    mocker.patch("os.walk", return_value=mock_walk_return)
+    spy = mocker.patch("os.walk", return_value=mock_walk_return)
 
     # Act
-    dsets = utils.get_dsets()
+    dsets = utils.get_uids(path)
 
     # Assert
     assert dsets == datasets
+    spy.assert_called_once_with(path)
 
 
 @pytest.mark.parametrize("msg", ["test", "error message", "can't find cube"])
