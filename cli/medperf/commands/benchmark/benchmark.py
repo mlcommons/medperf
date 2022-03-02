@@ -55,3 +55,46 @@ def associate(
     AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, comms, ui)
     ui.print("✅ Done!")
 
+
+@clean_except
+@app.command("test")
+def test(
+    benchmark_uid: int = typer.Option(
+        None,
+        "--benchmark",
+        "-b",
+        help="UID of the benchmark to test. If not passed, a temporary benchmark is created.",
+    ),
+    data_uid: str = typer.Option(
+        None,
+        "--data_uid",
+        "-d",
+        help="Registered Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
+    ),
+    data_prep: str = typer.Option(
+        None,
+        "--data_preparation",
+        "-p",
+        help="UID or local path to the data preparation mlcube. Optional. Defaults to benchmark data preparation mlcube.",
+    ),
+    model: str = typer.Option(
+        None,
+        "--model",
+        "-m",
+        help="UID or local path to the model mlcube. Optional. Defaults to benchmark reference mlcube.",
+    ),
+    evaluator: str = typer.Option(
+        "--evaluator",
+        "-e",
+        help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
+    ),
+):
+    """Executes a compatibility test for a determined benchmark. Can test prepared datasets, remote and local models independently."""
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    CompatibilityTestExecution.run(
+        benchmark_uid, comms, ui, data_uid, data_prep, model, evaluator
+    )
+    ui.print("✅ Done!")
+    cleanup()

@@ -96,13 +96,22 @@ class Benchmark:
         return data
 
     @classmethod
-    def tmp(cls, data_preparator: str, model: str, evaluator: str) -> "Benchmark":
+    def tmp(
+        cls,
+        data_preparator: str,
+        model: str,
+        evaluator: str,
+        demo_url: str = None,
+        demo_hash: str = None,
+    ) -> "Benchmark":
         """Creates a temporary instance of the benchmark
 
         Args:
             data_preparator (str): UID of the data preparator cube to use.
             model (str): UID of the model cube to use.
             evaluator (str): UID of the evaluator cube to use.
+            demo_url (str, optional): URL to obtain the demo dataset. Defaults to None.
+            demo_hash (str, optional): Hash of the demo dataset tarball file. Defaults to None.
 
         Returns:
             Benchmark: a benchmark instance
@@ -113,6 +122,8 @@ class Benchmark:
             "data_preparation_mlcube": data_preparator,
             "reference_model_mlcube": model,
             "data_evaluator_mlcube": evaluator,
+            "demo_dataset_tarball_url": demo_url,
+            "demo_dataset_tarball_hash": demo_hash,
             "models": [model],
         }
         benchmark = Benchmark(benchmark_uid, benchmark_dict)

@@ -2,7 +2,9 @@ import validators
 
 from medperf.ui import UI
 from medperf.comms import Comms
+from medperf.entities import Benchmark
 from medperf.utils import get_file_sha1
+from medperf.commands.benchmark.compatibility_test import CompatibilityTestExecution
 
 
 class SubmitBenchmark:
@@ -19,8 +21,8 @@ class SubmitBenchmark:
             submission.get_information()
 
         with ui.interactive():
-            ui.text = "Getting demo dataset additional data"
-            submission.get_demo_data_information()
+            ui.text = "Getting additional information"
+            submission.get_extra_information()
             ui.print("> Completed benchmark registration information")
             ui.text = "Submitting Benchmark to MedPerf"
             submission.submit()
@@ -38,6 +40,7 @@ class SubmitBenchmark:
         self.data_preparation_mlcube = None
         self.reference_model_mlcube = None
         self.data_evaluator_mlcube = None
+        self.results = None
 
     def get_information(self):
         name_prompt = "Name: "
@@ -114,16 +117,31 @@ class SubmitBenchmark:
 
         return valid
 
-    def get_demo_data_information(self):
-        """Retrieves information from the demo dataset, like hash and
-        generated uid
+    def get_extra_information(self):
+        """Retrieves information that must be populated automatically, 
+        like hash, generated uid and test results
         """
         demo_dset_path = self.comms.get_benchmark_demo_dataset(self.demo_url)
         self.demo_hash = get_file_sha1(demo_dset_path)
-        # TODO: This depends on the logic of compatibility testing
-        # Must be able to run the preparation step with mocked
-        # benchmark
-        self.demo_uid = "demo_uid"
+        demo_uid, results = self.run_compatibility_test()
+        self.demo_uid = demo_uid
+        self.results = results
+
+    def run_compatibility_test(self):
+        """Runs a compatibility test to ensure elements are compatible, and 
+        to extract additional information required for submission
+        """
+        self.ui.print("Running compatibility test")
+        data_prep = self.data_preparation_mlcube
+        model = self.reference_model_mlcube
+        evaluator = self.data_evaluator_mlcube
+        demo_url = self.demo_url
+        demo_hash = self.demo_hash
+        benchmark = Benchmark.tmp(data_prep, model, evaluator, demo_url, demo_hash)
+        _, data_uid, _, results = CompatibilityTestExecution.run(
+            benchmark.uid, self.comms, self.ui
+        )
+        return data_uid, results
 
     def todict(self):
         return {
@@ -139,6 +157,7 @@ class SubmitBenchmark:
             "state": "OPERATION",
             "is_valid": True,
             "approval_status": "PENDING",
+            "metadata": {"results": self.results.todict()},
         }
 
     def submit(self):

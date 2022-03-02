@@ -138,26 +138,33 @@ class REST(Comms):
         model_uids = [model["id"] for model in models]
         return model_uids
 
-    def get_benchmark_demo_dataset(self, demo_data_url: str) -> str:
+    def get_benchmark_demo_dataset(
+        self, demo_data_url: str, uid: str = generate_tmp_uid()
+    ) -> str:
         """Downloads the benchmark demo dataset and stores it in the user's machine
 
         Args:
             demo_data_url (str): location of demo data for download
+            uid (str): UID to use for storing the demo dataset. Defaults to generate_tmp_uid().
 
         Returns:
             str: path where the downloaded demo dataset can be found
         """
+        tmp_dir = storage_path(config.tmp_storage)
+        demo_data_path = os.path.join(tmp_dir, uid)
+        tball_file = config.tarball_filename
+        filepath = os.path.join(demo_data_path, tball_file)
+
+        # Don't re-download if something already exists with same uid
+        if os.path.exists(filepath):
+            return filepath
+
         res = requests.get(demo_data_url)
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error("couldn't download the demo dataset", self.ui)
 
-        tmp_dir = storage_path(config.tmp_storage)
-        uid = generate_tmp_uid()
-        tball_file = config.tarball_filename
-        demo_data_path = os.path.join(tmp_dir, uid)
         os.mkdir(demo_data_path)
-        filepath = os.path.join(demo_data_path, tball_file)
 
         open(filepath, "wb+").write(res.content)
         return filepath

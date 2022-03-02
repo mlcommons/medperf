@@ -7,10 +7,10 @@ from pathlib import Path
 from medperf.ui import UI
 from medperf import config
 from medperf.comms import Comms
-from medperf.entities import Dataset, Benchmark
+from medperf.entities import Dataset, Benchmark, Result
 from medperf.commands.dataset import DataPreparation
 from medperf.commands.result import BenchmarkExecution
-from medperf.utils import pretty_error, untar, get_file_sha1
+from medperf.utils import pretty_error, untar, get_file_sha1, results_path
 
 
 class CompatibilityTestExecution:
@@ -43,8 +43,8 @@ class CompatibilityTestExecution:
         test_exec.validate()
         test_exec.prepare_test()
         test_exec.set_data_uid()
-        test_exec.execute_benchmark()
-        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model
+        result = test_exec.execute_benchmark()
+        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model, result
 
     def __init__(
         self,
@@ -83,7 +83,7 @@ class CompatibilityTestExecution:
         transformed to cube uids and benchmark is mocked/obtained.
         """
         if self.benchmark_uid:
-            self.benchmark = Benchmark.get(self.benchmark_uid, self.comms, self.ui)
+            self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
             self.set_cube_uid("data_prep", self.benchmark.data_preparation)
             self.set_cube_uid("model", self.benchmark.reference_model)
             self.set_cube_uid("evaluator", self.benchmark.evaluator)
@@ -105,6 +105,7 @@ class CompatibilityTestExecution:
             self.ui,
             run_test=True,
         )
+        return Result(self.benchmark_uid, self.data_uid, self.model)
 
     def set_cube_uid(self, attr: str, fallback: any = None):
         """Assigns the attr used for testing according to the initialization parameters.
@@ -160,12 +161,12 @@ class CompatibilityTestExecution:
             data_path (str): Location of the downloaded data
             labels_path (str): Location of the downloaded labels
         """
-        demo_data_url = self.benchmark.demo_dataset_url
-        file_path = self.comms.get_benchmark_demo_dataset(demo_data_url)
+        dset_url = self.benchmark.demo_dataset_url
+        dset_hash = self.benchmark.demo_dataset_hash
+        file_path = self.comms.get_benchmark_demo_dataset(dset_url, dset_hash)
 
         # Check demo dataset integrity
         file_hash = get_file_sha1(file_path)
-        dset_hash = self.benchmark.demo_dataset_hash
         # Alllow for empty datset hashes for benchmark registration purposes
         if dset_hash and file_hash != dset_hash:
             pretty_error("Demo dataset hash doesn't match expected hash", self.ui)

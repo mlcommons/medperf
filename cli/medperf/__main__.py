@@ -2,7 +2,8 @@ import typer
 import logging
 from os.path import abspath, expanduser
 
-from medperf.commands import Login, CompatibilityTestExecution
+from medperf.commands import Login
+from medperf.commands.benchmark import CompatibilityTestExecution
 from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage, storage_path, cleanup
@@ -50,7 +51,7 @@ def execute(
 
 @clean_except
 @app.command("test")
-def execute(
+def test(
     benchmark_uid: int = typer.Option(
         None,
         "--benchmark",

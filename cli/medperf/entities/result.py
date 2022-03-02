@@ -6,7 +6,13 @@ from typing import List
 from medperf.ui import UI
 from medperf import config
 from medperf.comms import Comms
-from medperf.utils import storage_path, approval_prompt, dict_pretty_print, results_ids
+from medperf.utils import (
+    storage_path,
+    approval_prompt,
+    dict_pretty_print,
+    results_ids,
+    results_path,
+)
 
 
 class Result:
@@ -21,17 +27,16 @@ class Result:
     """
 
     def __init__(
-        self, result_path: str, benchmark_uid: str, dataset_uid: str, model_uid: str,
+        self, benchmark_uid: str, dataset_uid: str, model_uid: str,
     ):
         """Creates a new result instance
 
         Args:
-            result_path (str): Location of the reuslts.yaml file.
             benchmark_uid (str): UID of the executed benchmark.
             dataset_uid (str): UID of the dataset used.
             model_uid (str): UID of the model used.
         """
-        self.path = result_path
+        self.path = results_path(benchmark_uid, model_uid, dataset_uid)
         self.benchmark_uid = benchmark_uid
         self.dataset_uid = dataset_uid
         self.model_uid = model_uid

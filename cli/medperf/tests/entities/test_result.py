@@ -14,7 +14,7 @@ def result(mocker):
     mocker.patch(PATCH_RESULT.format("Result.get_results"))
     mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.safe_load", return_value={})
-    result = Result("", 1, 1, 1)
+    result = Result(1, 1, 1)
     result.results = MOCK_RESULTS_CONTENT
     result.uid = result.results["id"]
     return result
@@ -30,7 +30,7 @@ def test_results_open_results_file_on_init(mocker, results_path):
     get_spy = mocker.spy(Result, "get_results")
 
     # Act
-    result = Result(results_path, 1, 1, 1)
+    result = Result(1, 1, 1)
 
     # Assert
     get_spy.assert_called_once()
@@ -74,7 +74,7 @@ def test_todict_opens_results_file_as_yaml(mocker, result, results_path):
     # Arrange
     open_spy = mocker.patch("builtins.open", MagicMock())
     yaml_spy = mocker.patch("yaml.safe_load", return_value={})
-    result = Result(results_path, 1, 1, 1)
+    result = Result(1, 1, 1)
 
     # Act
     result.todict()
