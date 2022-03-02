@@ -23,7 +23,7 @@ class AssociateBenchmark:
                 ui,
             )
         if model_uid is not None:
-            # TODO: changes from mlcube subcommands are required
+            comms.associate_cube(model_uid, benchmark_uid)
             ui.print("Association request to MLCube created")
 
         if dset_uid is not None:
