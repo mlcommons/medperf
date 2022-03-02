@@ -55,10 +55,7 @@ class Result:
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
-            results_file = os.path.join(
-                results_storage, b_id, m_id, d_id, config.results_filename
-            )
-            results.append(cls(results_file, b_id, d_id, m_id))
+            results.append(cls(b_id, d_id, m_id))
 
         return results
 
