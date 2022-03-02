@@ -2,10 +2,10 @@ from tkinter import N
 import pytest
 from unittest.mock import call
 
-from medperf.config import config
+from medperf import config
 from medperf.tests.utils import rand_l
 from medperf.entities import Benchmark, Dataset
-from medperf.commands import CompatibilityTestExecution
+from medperf.commands.benchmark import CompatibilityTestExecution
 
 PATCH_TEST = "medperf.commands.compatibility_test.{}"
 
