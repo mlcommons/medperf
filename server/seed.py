@@ -233,7 +233,7 @@ def seed(args):
             "docs_url": "string",
             "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_demo.tar.gz",
             "demo_dataset_tarball_hash": "e91195739bf17eafd11e6d77d699b13170d11f1a",
-            "demo_dataset_generated_uid": "string",
+            "demo_dataset_generated_uid": "f35c2d89caf140edb78e187a54d048c0590cb3ea",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,
             "data_evaluator_mlcube": data_evaluator_mlcube,
