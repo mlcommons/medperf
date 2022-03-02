@@ -103,15 +103,17 @@ class SubmitCube:
         self.additional_hash = get_file_sha1(add_file_path)
 
     def todict(self):
-        return {
+        dict = {
             "name": self.name,
             "git_mlcube_url": self.mlcube_file,
             "git_parameters_url": self.params_file,
-            "tarball_url": self.additional_file,
-            "tarball_hash": self.additional_hash,
             "state": "OPERATION",
             "is_valid": True,
         }
+        if self.additional_file:
+            dict["tarball_url"] = self.additional_file
+            dict["tarball_hash"] = self.additional_hash
+        return dict
 
     def submit(self):
         body = self.todict()
