@@ -77,6 +77,7 @@ def test(
         help="UID or local path to the model mlcube. Optional. Defaults to benchmark reference mlcube.",
     ),
     evaluator: str = typer.Option(
+        None,
         "--evaluator",
         "-e",
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
