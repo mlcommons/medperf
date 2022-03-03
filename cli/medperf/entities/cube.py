@@ -68,14 +68,15 @@ class Cube(object):
         try:
             uids = next(os.walk(cubes_storage))[1]
         except StopIteration:
-            logging.warning("Couldn't iterate over cubes directory")
-            pretty_error("Couldln't iterate over the cubes directory", ui)
+            msg = "Couldn't iterate over cubes directory"
+            logging.warning(msg)
+            pretty_error(msg, ui)
 
         cubes = []
         for uid in uids:
             cube_path = os.path.join(cubes_storage, uid, config.cube_filename)
             with open(cube_path, "r") as f:
-                meta = yaml.full_load(f)
+                meta = yaml.safe_load(f)
 
             params_path = os.path.join(cubes_storage, uid, config.params_filename)
             if not os.path.exists(params_path):
