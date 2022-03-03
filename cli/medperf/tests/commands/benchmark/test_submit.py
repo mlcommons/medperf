@@ -72,22 +72,34 @@ def test_get_information_promps_unassigned_fields(
 @pytest.mark.parametrize(
     "docs_url", [("", True), ("invalid", False), ("https://test.test", True)]
 )
+@pytest.mark.parametrize(
+    "demo_url", [("", True), ("invalid", False), ("https://test.test", True)]
+)
 @pytest.mark.parametrize("prep_uid", [("", False), ("1", True), ("test", False)])
 @pytest.mark.parametrize("model_uid", [("", False), ("1", True), ("test", False)])
 @pytest.mark.parametrize("eval_uid", [("", False), ("1", True), ("test", False)])
 def test_is_valid_passes_valid_fields(
-    comms, ui, name, desc, docs_url, prep_uid, model_uid, eval_uid
+    comms, ui, name, desc, docs_url, demo_url, prep_uid, model_uid, eval_uid
 ):
     # Arrange
     submission = SubmitBenchmark(comms, ui)
     submission.name = name[0]
     submission.description = desc[0]
     submission.docs_url = docs_url[0]
+    submission.demo_url = demo_url[0]
     submission.data_preparation_mlcube = prep_uid[0]
     submission.reference_model_mlcube = model_uid[0]
     submission.data_evaluator_mlcube = eval_uid[0]
     should_pass = all(
-        [name[1], desc[1], docs_url[1], prep_uid[1], model_uid[1], eval_uid[1]]
+        [
+            name[1],
+            desc[1],
+            docs_url[1],
+            demo_url[1],
+            prep_uid[1],
+            model_uid[1],
+            eval_uid[1],
+        ]
     )
 
     # Act

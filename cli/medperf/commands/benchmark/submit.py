@@ -114,7 +114,7 @@ class SubmitBenchmark:
             if not test:
                 valid = False
                 setattr(self, attr, None)
-                ui.print_error(error_msg)
+                self.ui.print_error(error_msg)
 
         return valid
 
