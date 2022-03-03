@@ -23,6 +23,23 @@ def result(mocker):
 @pytest.mark.parametrize(
     "results_path", ["./results.yaml", "~/.medperf/results/1/results.yaml"]
 )
+def test_results_looks_for_results_path_on_init(mocker, results_path):
+    # Arrange
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch("yaml.safe_load", return_value={})
+    mocker.spy(Result, "get_results")
+    spy = mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
+
+    # Act
+    result = Result(1, 1, 1)
+
+    # Assert
+    spy.assert_called_once_with(results_path)
+
+
+@pytest.mark.parametrize(
+    "results_path", ["./results.yaml", "~/.medperf/results/1/results.yaml"]
+)
 def test_results_open_results_file_on_init(mocker, results_path):
     # Arrange
     open_spy = mocker.patch("builtins.open", MagicMock())
