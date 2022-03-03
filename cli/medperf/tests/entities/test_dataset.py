@@ -60,7 +60,7 @@ def all_uids(mocker, basic_arrange, request):
 
     mocker.patch(PATCH_DATASET.format("yaml.safe_load"), side_effect=mock_reg_file)
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-    mocker.patch(PATCH_DATASET.format("get_dsets"), return_value=uids)
+    mocker.patch(PATCH_DATASET.format("get_uids"), return_value=uids)
     return uids
 
 
