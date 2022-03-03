@@ -10,7 +10,7 @@ from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark, Result
 from medperf.commands.dataset import DataPreparation
 from medperf.commands.result import BenchmarkExecution
-from medperf.utils import pretty_error, untar, get_file_sha1, results_path
+from medperf.utils import pretty_error, untar, get_file_sha1
 
 
 class CompatibilityTestExecution:
