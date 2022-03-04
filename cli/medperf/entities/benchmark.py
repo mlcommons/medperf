@@ -184,3 +184,4 @@ class Benchmark:
         filepath = os.path.join(bmk_path, filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)
+        return filepath
