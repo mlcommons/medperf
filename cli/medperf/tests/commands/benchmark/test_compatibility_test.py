@@ -1,6 +1,6 @@
 from tkinter import N
 import pytest
-from unittest.mock import call
+from unittest.mock import call, ANY
 
 from medperf import config
 from medperf.tests.utils import rand_l
@@ -39,6 +39,79 @@ def default_setup(mocker, benchmark, dataset):
     mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value="")
     mocker.patch(PATCH_TEST.format("Dataset"), return_value=dataset)
     return bmk
+
+
+@pytest.mark.parametrize(
+    "test_params",
+    [
+        ((None, "data", "prep", "model", "eval"), True),
+        ((None, None, "prep", "model", "eval"), False),
+        ((None, "data", None, "model", "eval"), False),
+        ((None, "data", "prep", None, "eval"), False),
+        ((None, "data", "prep", "model", None), False),
+    ],
+)
+def test_validate_fails_if_incomplete_tmp_benchmark_passed(
+    mocker, test_params, comms, ui
+):
+    # Arrange
+    in_params = test_params[0]
+    should_be_valid = test_params[1]
+    exec = CompatibilityTestExecution(*in_params, comms, ui)
+    spy = mocker.patch(PATCH_TEST.format("pretty_error"))
+
+    # Act
+    exec.validate()
+
+    # Assert
+    if should_be_valid:
+        spy.assert_not_called()
+    else:
+        spy.assert_called_once()
+
+
+@pytest.mark.parametrize("uid", [None, "1"])
+def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
+    # Arrange
+    bmk = benchmark(uid, 1, 2, 3)
+    data = "1"
+    prep = "2"
+    model = "3"
+    eval = "4"
+    get_spy = mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
+    tmp_spy = mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
+
+    # Act
+    exec.prepare_test()
+
+    # Assert
+    if uid:
+        get_spy.assert_called_once_with(uid, comms)
+    else:
+        tmp_spy.assert_called_once_with(prep, model, eval)
+
+
+@pytest.mark.parametrize("uid", [None, "1"])
+def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
+    # Arrange
+    bmk = benchmark(uid, 1, 2, 3)
+    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch.object(Benchmark, "write")
+    exec = CompatibilityTestExecution(uid, None, None, None, None, comms, ui)
+    spy = mocker.spy(exec, "set_cube_uid")
+    attrs = ["data_prep", "model", "evaluator"]
+    calls = [call(attr, ANY) for attr in attrs]
+    no_bmk_calls = [call(attr) for attr in attrs]
+
+    # Act
+    exec.prepare_test()
+
+    # Assert
+    if uid:
+        spy.assert_has_calls(calls)
+    else:
+        spy.assert_has_calls(no_bmk_calls)
 
 
 @pytest.mark.parametrize("attr", ["data_prep", "model", "evaluator"])
