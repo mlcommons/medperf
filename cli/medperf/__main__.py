@@ -10,12 +10,14 @@ from medperf.utils import init_storage, storage_path, cleanup
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
+from medperf.utils import init_storage
 from medperf.commands.mlcube import mlcube
 from medperf.commands.dataset import dataset
 from medperf.commands.benchmark import benchmark
 
 
 app = typer.Typer()
+app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
