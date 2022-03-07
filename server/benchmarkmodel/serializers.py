@@ -50,13 +50,15 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Invalid approval_status")
         return data
 
-    def update(self, instance, validated_data):
-        for k, v in validated_data.items():
-            setattr(instance, k, v)
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
-        instance.save()
-        return instance
+    def create(self, validated_data):
+        approval_status = validated_data.get("approval_status", "PENDING")
+        if approval_status != "PENDING":
+            validated_data["approved_at"] = timezone.now()
+        else:
+            if validated_data["model_mlcube"].owner.id == validated_data["benchmark"].owner.id:
+                validated_data["approval_status"] = "APPROVED"
+                validated_data["approved_at"] = timezone.now()
+        return BenchmarkModel.objects.create(**validated_data)
 
 
 class ModelApprovalSerializer(serializers.ModelSerializer):
