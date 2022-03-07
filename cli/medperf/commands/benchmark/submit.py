@@ -5,7 +5,7 @@ from medperf import config
 from medperf.comms import Comms
 from medperf.entities import Benchmark
 from medperf.utils import get_file_sha1
-from medperf.commands.benchmark.compatibility_test import CompatibilityTestExecution
+from medperf.commands import CompatibilityTestExecution
 
 
 class SubmitBenchmark:

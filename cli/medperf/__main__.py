@@ -3,7 +3,7 @@ import logging
 from os.path import abspath, expanduser
 
 from medperf.commands import Login
-from medperf.commands.benchmark import CompatibilityTestExecution
+from medperf.commands import CompatibilityTestExecution
 from medperf.commands.result import result
 from medperf import config
 from medperf.utils import init_storage, storage_path, cleanup
