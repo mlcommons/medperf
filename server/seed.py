@@ -286,7 +286,7 @@ def seed(args):
                 "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/mlcube.yaml"
             ),
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/ "
+                "https://raw.githubusercontent.com/aristizabal95/medical/"
                 "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/workspace/parameters.yaml"
             ),
             "tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",

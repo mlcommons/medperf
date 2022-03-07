@@ -1,7 +1,7 @@
 import os
 import pytest
 import requests
-from unittest.mock import mock_open
+from unittest.mock import mock_open, ANY
 
 from medperf.ui import UI
 from medperf.comms import REST
@@ -300,6 +300,20 @@ def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     assert set(uids) == set(exp_uids)
 
 
+@pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
+def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
+    # Arrange
+    res = MockResponse([body], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    cubes = server.get_cubes()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/mlcubes/")
+    assert cubes == [body]
+
+
 @pytest.mark.parametrize("exp_body", [{"test": "test"}, {}, {"cube": "body"}])
 def test_get_cube_metadata_returns_retrieved_body(mocker, server, exp_body):
     # Arrange
@@ -328,6 +342,22 @@ def test_get_cube_methods_run_get_cube_file(mocker, server, method):
 
     # Assert
     spy.assert_called_once()
+
+
+def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    cubes = [
+        {"id": 1, "name": "name1", "state": "OPERATION"},
+        {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
+    ]
+    res = MockResponse(cubes, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    server.get_user_cubes()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/me/mlcubes/")
 
 
 def test_get_cube_file_writes_to_file(mocker, server):
@@ -380,6 +410,20 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
 
 
 @pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
+def test_upload_mlcube_returns_cube_uid(mocker, server, exp_id):
+    # Arrange
+    body = {"id": exp_id}
+    res = MockResponse(body, 201)
+    mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
+
+    # Act
+    id = server.upload_mlcube({})
+
+    # Assert
+    assert id == exp_id
+
+
+@pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
 def test_upload_dataset_returns_dataset_uid(mocker, server, exp_id):
     # Arrange
     body = {"id": exp_id}
@@ -405,3 +449,23 @@ def test_upload_results_returns_result_uid(mocker, server, exp_id):
 
     # Assert
     assert id == exp_id
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 5))
+def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchmark_uid):
+    # Arrange
+    data = {
+        "results": {},
+        "approval_status": "PENDING",
+        "model_mlcube": cube_uid,
+        "benchmark": benchmark_uid,
+    }
+    res = MockResponse({}, 201)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
+
+    # Act
+    id = server.associate_cube(cube_uid, benchmark_uid)
+
+    # Assert
+    spy.assert_called_once_with(ANY, json=data)
