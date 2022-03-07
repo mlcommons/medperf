@@ -7,9 +7,9 @@ from unittest.mock import call, ANY, mock_open
 from medperf import config
 from medperf.tests.utils import rand_l
 from medperf.entities import Benchmark, Dataset
-from medperf.commands.benchmark import CompatibilityTestExecution
+from medperf.commands import CompatibilityTestExecution
 
-PATCH_TEST = "medperf.commands.benchmark.compatibility_test.{}"
+PATCH_TEST = "medperf.commands.compatibility_test.{}"
 
 
 @pytest.fixture
