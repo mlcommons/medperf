@@ -5,12 +5,26 @@ import pytest
 from unittest.mock import ANY, call
 
 from medperf import config
+from medperf.entities import Benchmark
 from medperf.commands.benchmark import SubmitBenchmark
 from medperf.tests.utils import rand_l
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
 NAME_MAX_LEN = 20
 DESC_MAX_LEN = 100
+
+
+@pytest.fixture
+def benchmark(mocker):
+    def benchmark_gen(uid, data_prep, reference_model, evaluator):
+        bmk = mocker.create_autospec(spec=Benchmark)
+        bmk.uid = uid
+        bmk.data_preparation = data_prep
+        bmk.reference_model = reference_model
+        bmk.evaluator = evaluator
+        return bmk
+
+    return benchmark_gen
 
 
 @pytest.mark.parametrize("name", [None, "", "name"])
@@ -122,3 +136,48 @@ def test_submit_uploads_benchmark_data(mocker, comms, ui):
     # Assert
     spy_todict.assert_called_once()
     spy_upload.assert_called_once_with(mock_body)
+
+
+@pytest.mark.parametrize("demo_hash", ["demo_hash", "437289fa3d"])
+@pytest.mark.parametrize("demo_uid", ["demo_uid", "1"])
+@pytest.mark.parametrize("results", [{}, {"result": "result_val"}])
+def test_get_extra_information_retrieves_expected_info(
+    mocker, demo_hash, demo_uid, results, comms, ui
+):
+    # Arrange
+    submission = SubmitBenchmark(comms, ui)
+    submission.demo_url = "demo_url"
+    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value="demo_path")
+    mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
+    mocker.patch(
+        PATCH_BENCHMARK.format("SubmitBenchmark.run_compatibility_test"),
+        return_value=(demo_uid, results),
+    )
+
+    # Act
+    submission.get_extra_information()
+
+    # Assert
+    assert submission.demo_hash == demo_hash
+    assert submission.demo_uid == demo_uid
+    assert submission.results == results
+
+
+def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
+    # Arrange
+    bmk = benchmark("1", "2", "3", "4")
+    submission = SubmitBenchmark(comms, ui)
+    tmp_bmk_spy = mocker.patch(
+        PATCH_BENCHMARK.format("Benchmark.tmp"), return_value=bmk
+    )
+    comp_spy = mocker.patch(
+        PATCH_BENCHMARK.format("CompatibilityTestExecution.run"),
+        return_value=("bmk_uid", "data_uid", "model_uid", {}),
+    )
+
+    # Act
+    submission.run_compatibility_test()
+
+    # Assert
+    tmp_bmk_spy.assert_called_once()
+    comp_spy.assert_called_once()
