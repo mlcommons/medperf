@@ -37,7 +37,7 @@ class UserDetail(GenericAPIView):
 
     def get_permissions(self):
         if self.request.method == "PUT" or self.request.method == "GET":
-            self.permission_classes = [IsAdmin | IsOwnOwner]
+            self.permission_classes = [IsAdmin | IsOwnUser]
         elif self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()
