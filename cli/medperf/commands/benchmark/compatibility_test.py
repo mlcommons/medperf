@@ -24,7 +24,7 @@ class CompatibilityTestExecution:
         data_prep: str = None,
         model: str = None,
         evaluator: str = None,
-    ) -> List[str, str, str, Result]:
+    ) -> List:
         """Execute a test workflow for a specific benchmark
 
         Args:
