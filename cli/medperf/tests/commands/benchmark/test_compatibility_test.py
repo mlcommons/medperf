@@ -1,6 +1,8 @@
+import os
 from tkinter import N
+from inflection import parameterize
 import pytest
-from unittest.mock import call, ANY
+from unittest.mock import call, ANY, mock_open
 
 from medperf import config
 from medperf.tests.utils import rand_l
@@ -145,10 +147,13 @@ def test_set_cube_uid_creates_symlink_if_path_provided(mocker, src, dst, comms, 
 
 
 @pytest.mark.parametrize("model_uid", rand_l(1, 500, 5))
-def test_set_cube_uid_keeps_passed_uid_intact(default_setup, model_uid, comms, ui):
+def test_set_cube_uid_keeps_passed_uid_intact(
+    mocker, default_setup, model_uid, comms, ui
+):
     # Arrange
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
     exec.model = model_uid
+    mocker.patch("os.symlink")
 
     # Act
     exec.set_cube_uid("model")
@@ -279,3 +284,70 @@ def test_run_returns_uids(mocker, bmk_uid, data_uid, model_uid, results, comms, 
 
     # Assert
     assert ret_uids == (bmk_uid, data_uid, model_uid, results)
+
+
+@pytest.mark.parametrize("hash", ["test", "invalid"])
+def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, hash, ui):
+    # Arrange
+    uid = "1"
+    data = "1"
+    prep = "2"
+    model = "3"
+    eval = "4"
+    bmk = benchmark(uid, prep, model, eval)
+    bmk.demo_dataset_url = "url"
+    bmk.demo_dataset_hash = hash
+    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
+    mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
+    exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
+    spy = mocker.patch(
+        PATCH_TEST.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
+    )
+    exec.prepare_test()
+
+    # Act
+    with pytest.raises(SystemExit):
+        exec.download_demo_data()
+
+    # Assert
+    spy.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "paths", [("data", "labels"), ("path/to/data", "path/to/labels")]
+)
+def test_download_demo_data_extracts_expected_paths(
+    mocker, benchmark, paths, comms, ui
+):
+    # Arrange
+    uid = "1"
+    data = "1"
+    prep = "2"
+    model = "3"
+    eval = "4"
+    bmk = benchmark("1", "2", "3", "4")
+    bmk.demo_dataset_url = "url"
+    bmk.demo_dataset_hash = "hash"
+    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
+    mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
+
+    untar_path = "untar/path"
+    paths_file = config.demo_dset_paths_file
+    paths_dict = {"data_path": paths[0], "labels_path": paths[1]}
+    mocker.patch("yaml.safe_load", return_value=paths_dict)
+    mocker.patch(PATCH_TEST.format("untar"), return_value=untar_path)
+    mocker.patch("builtins.open", mock_open())
+    exp_data_path = os.path.join(untar_path, paths[0])
+    exp_labels_path = os.path.join(untar_path, paths[1])
+
+    exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
+    exec.prepare_test()
+
+    # Act
+    data_path, labels_path = exec.download_demo_data()
+
+    # Assert
+    assert data_path == exp_data_path
+    assert labels_path == exp_labels_path
