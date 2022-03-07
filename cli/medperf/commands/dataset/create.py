@@ -1,9 +1,11 @@
 from pathlib import Path
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
-from medperf.entities import Benchmark, Cube, Registration
+from medperf.ui.ui import UI
+import medperf.config as config
+from medperf.comms.comms import Comms
+from medperf.entities.cube import Cube
+from medperf.entities.benchmark import Benchmark
+from medperf.entities.registration import Registration
 from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,

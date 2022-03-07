@@ -1,8 +1,8 @@
 import pytest
 
-from medperf.tests.utils import rand_l
-from medperf.entities import Result, Dataset
-from medperf.commands.result import ResultSubmission
+from medperf.entities.result import Result
+from medperf.entities.dataset import Dataset
+from medperf.commands.result.submit import ResultSubmission
 
 PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 

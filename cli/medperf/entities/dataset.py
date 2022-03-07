@@ -1,11 +1,8 @@
-from typing import List
-import yaml
 import os
+import yaml
 import logging
+from typing import List
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
 from medperf.utils import (
     get_uids,
     approval_prompt,
@@ -13,6 +10,9 @@ from medperf.utils import (
     storage_path,
     dict_pretty_print,
 )
+from medperf.ui.ui import UI
+import medperf.config as config
+from medperf.comms.comms import Comms
 
 
 class Dataset:

@@ -3,11 +3,11 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path, storage_path, generate_tmp_uid
-import medperf.config as config
-from medperf.comms import Comms
+from medperf.ui.ui import UI
 from medperf.enums import Role
-from medperf.ui import UI
+import medperf.config as config
+from medperf.comms.comms import Comms
+from medperf.utils import pretty_error, cube_path, storage_path, generate_tmp_uid
 
 
 class REST(Comms):

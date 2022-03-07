@@ -1,5 +1,5 @@
-from medperf.ui import UI
-from medperf.comms import Comms
+from medperf.ui.ui import UI
+from medperf.comms.comms import Comms
 from medperf.utils import pretty_error
 
 

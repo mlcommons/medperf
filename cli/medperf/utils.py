@@ -1,19 +1,20 @@
 from __future__ import annotations
-from pexpect import spawn
-import logging
-from typing import List, Tuple
-from datetime import datetime
-import hashlib
-import os
-from shutil import rmtree
-import tarfile
-import yaml
-from pathlib import Path
-from colorama import Fore, Style
-import re
 
-from medperf import config
-from medperf.ui import UI
+import re
+import os
+import yaml
+import hashlib
+import logging
+import tarfile
+from pathlib import Path
+from shutil import rmtree
+from pexpect import spawn
+from datetime import datetime
+from typing import List, Tuple
+from colorama import Fore, Style
+
+import medperf.config as config
+from medperf.ui.ui import UI
 
 
 def storage_path(subpath: str):

@@ -1,10 +1,9 @@
 import pytest
 
-from medperf.ui import UI
-from medperf.comms import Comms
 from medperf.tests.utils import rand_l
-from medperf.entities import Dataset, Benchmark
-from medperf.commands.dataset import DatasetBenchmarkAssociation
+from medperf.entities.dataset import Dataset
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
 
 patch_associate = "medperf.commands.dataset.associate.{}"
 req_func = "request_association_approval"

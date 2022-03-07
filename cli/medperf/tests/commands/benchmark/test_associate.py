@@ -1,7 +1,7 @@
 import pytest
 
 from medperf.tests.utils import rand_l
-from medperf.commands.benchmark import AssociateBenchmark
+from medperf.commands.benchmark.associate import AssociateBenchmark
 
 PATCH_ASSOC = "medperf.commands.benchmark.associate.{}"
 

@@ -1,6 +1,6 @@
 from .rest import REST
 from .comms import Comms
-from medperf.ui import UI
+from medperf.ui.ui import UI
 from medperf.utils import pretty_error
 
 

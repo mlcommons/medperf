@@ -1,10 +1,10 @@
 import pytest
-from unittest.mock import call, Mock
+from unittest.mock import call
 
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark, MockCube
-from medperf.commands.dataset import DataPreparation
-from medperf.entities import Registration
+from medperf.entities.registration import Registration
+from medperf.commands.dataset.create import DataPreparation
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
 OUT_PATH = "out_path"

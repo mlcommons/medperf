@@ -1,9 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, call, ANY
 
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Result
+from medperf.entities.result import Result
 
 PATCH_RESULT = "medperf.entities.result.{}"
 MOCK_RESULTS_CONTENT = {"id": "1", "results": {}}

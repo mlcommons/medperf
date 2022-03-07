@@ -2,18 +2,17 @@ import typer
 import logging
 from os.path import abspath, expanduser
 
-from medperf.commands import Login
-from medperf.commands import CompatibilityTestExecution
-from medperf.commands.result import result
-from medperf import config
-from medperf.utils import init_storage, storage_path, cleanup
+import medperf.config as config
+from medperf.ui.factory import UIFactory
+from medperf.commands.login import Login
 from medperf.decorators import clean_except
-from medperf.comms import CommsFactory
-from medperf.ui import UIFactory
-from medperf.utils import init_storage
-from medperf.commands.mlcube import mlcube
-from medperf.commands.dataset import dataset
-from medperf.commands.benchmark import benchmark
+from medperf.comms.factory import CommsFactory
+import medperf.commands.result.result as result
+import medperf.commands.mlcube.mlcube as mlcube
+import medperf.commands.dataset.dataset as dataset
+import medperf.commands.benchmark.benchmark as benchmark
+from medperf.utils import init_storage, storage_path, cleanup
+from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
 app = typer.Typer()

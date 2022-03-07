@@ -2,7 +2,9 @@ import typer
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.result import BenchmarkExecution, ResultSubmission, ResultsList
+from medperf.commands.result.list import ResultsList
+from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.result.submit import ResultSubmission
 
 app = typer.Typer()
 

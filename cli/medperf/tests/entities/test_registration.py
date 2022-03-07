@@ -4,10 +4,11 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import medperf
-from medperf.ui import UI
-from medperf.comms import Comms
+from medperf.ui.ui import UI
+from medperf.comms.comms import Comms
 from medperf.tests.utils import rand_l
-from medperf.entities import Registration, Cube
+from medperf.entities.registration import Registration
+from medperf.entities.cube import Cube
 
 
 IN_PATH = "in_path"

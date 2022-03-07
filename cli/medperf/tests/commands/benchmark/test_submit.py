@@ -1,13 +1,7 @@
-from pydoc import describe
-from pyexpat import model
-from re import sub
 import pytest
-from unittest.mock import ANY, call
 
-from medperf import config
-from medperf.entities import Benchmark
-from medperf.commands.benchmark import SubmitBenchmark
-from medperf.tests.utils import rand_l
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.benchmark.submit import SubmitBenchmark
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
 NAME_MAX_LEN = 20

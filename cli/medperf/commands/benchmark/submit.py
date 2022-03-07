@@ -1,11 +1,11 @@
 import validators
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
-from medperf.entities import Benchmark
+from medperf.ui.ui import UI
+import medperf.config as config
+from medperf.comms.comms import Comms
 from medperf.utils import get_file_sha1
-from medperf.commands import CompatibilityTestExecution
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
 class SubmitBenchmark:
