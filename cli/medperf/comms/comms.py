@@ -234,7 +234,7 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def associate_dset_benchmark(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int):
         """Create a Dataset Benchmark association
 
         Args:

@@ -27,6 +27,6 @@ class AssociateBenchmark:
             ui.print("Association request to MLCube created")
 
         if dset_uid is not None:
-            comms.associate_dset_benchmark(dset_uid, benchmark_uid)
+            comms.associate_dset(dset_uid, benchmark_uid)
             ui.print("Association request to dataset created")
 

@@ -59,7 +59,7 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "associate_dset_benchmark",
+            "associate_dset",
             "post",
             201,
             [1, 1],
@@ -98,7 +98,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("_REST__get_cube_file", ["", 1, "", ""], {}),
         ("upload_dataset", [{}], {"id": 1}),
         ("upload_results", [{}], {"id": 1}),
-        ("associate_dset_benchmark", [1, 1], {}),
+        ("associate_dset", [1, 1], {}),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):

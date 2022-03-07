@@ -11,7 +11,7 @@ def test_run_fails_if_model_and_dset_passed(mocker, model_uid, data_uid, comms, 
     # Arrange
     spy = mocker.patch(PATCH_ASSOC.format("pretty_error"))
     mocker.patch.object(comms, "associate_cube")
-    mocker.patch.object(comms, "associate_dset_benchmark")
+    mocker.patch.object(comms, "associate_dset")
 
     # Act
     AssociateBenchmark.run("1", model_uid, data_uid, comms, ui)

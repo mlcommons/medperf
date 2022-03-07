@@ -68,7 +68,7 @@ def test_associates_if_approved(
     mocker, comms, ui, dataset, data_uid, benchmark_uid, benchmark
 ):
     # Arrange
-    assoc_func = "associate_dset_benchmark"
+    assoc_func = "associate_dset"
     mocker.patch.object(dataset, req_func, return_value=True)
     spy = mocker.patch.object(comms, assoc_func)
     dataset.uid = data_uid

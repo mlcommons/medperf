@@ -22,7 +22,7 @@ class DatasetBenchmarkAssociation:
 
         if approval:
             ui.print("Generating dataset benchmark association")
-            comms.associate_dset_benchmark(dset.uid, benchmark_uid)
+            comms.associate_dset(dset.uid, benchmark_uid)
         else:
             pretty_error(
                 "Dataset association operation cancelled", ui, add_instructions=False
