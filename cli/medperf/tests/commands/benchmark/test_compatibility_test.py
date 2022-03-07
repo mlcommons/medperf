@@ -266,8 +266,12 @@ def test_run_executes_all_the_expected_steps(mocker, default_setup, comms, ui):
 @pytest.mark.parametrize("data_uid", rand_l(1, 500, 2))
 @pytest.mark.parametrize("model_uid", rand_l(1, 500, 2))
 @pytest.mark.parametrize("results", [{}, {"AUC": 0.6}])
-def test_run_returns_uids(mocker, bmk_uid, data_uid, model_uid, results, comms, ui):
+def test_run_returns_uids(
+    mocker, benchmark, bmk_uid, data_uid, model_uid, results, comms, ui
+):
     # Arrange
+    bmk = benchmark(bmk_uid, data_uid, model_uid, "3")
+    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_cube_uid"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_data_uid"))

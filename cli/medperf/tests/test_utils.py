@@ -120,6 +120,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     mocker.patch("os.path.exists", return_value=True)
     spy = mocker.patch(patch_utils.format("rmtree"))
     mocker.patch(patch_utils.format("get_uids"), return_value=[])
+    mocker.patch(patch_utils.format("cleanup_benchmarks"))
 
     # Act
     utils.cleanup()
@@ -134,6 +135,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     prefix = config.tmp_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
+    mocker.patch(patch_utils.format("cleanup_benchmarks"))
     mocker.patch(patch_utils.format("get_uids"), return_value=datasets)
     spy = mocker.patch(patch_utils.format("rmtree"))
 

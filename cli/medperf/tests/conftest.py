@@ -47,11 +47,15 @@ def disable_fs_IO_operations(monkeypatch):
     def stunted_mkdir():
         raise Exception("There was an attempt at creating a directory")
 
+    def stunted_listdir():
+        raise Exception("There was an attempt at listing a directory")
+
     monkeypatch.setattr(os, "walk", lambda *args, **kwargs: stunted_walk())
     monkeypatch.setattr(os, "remove", lambda *args, **kwargs: stunted_remove())
     monkeypatch.setattr(os, "chmod", lambda *args, **kwargs: stunted_chmod())
     monkeypatch.setattr(os, "mkdir", lambda *args, **kwargs: stunted_mkdir())
     monkeypatch.setattr(os, "makedirs", lambda *args, **kwargs: stunted_mkdir())
+    monkeypatch.setattr(os, "listdir", lambda *args, **kwargs: stunted_listdir())
     monkeypatch.setattr(os.path, "isdir", lambda *args, **kwargs: stunted_isdir())
     # monkeypatch.setattr(os.path, "abspath", lambda *args, **kwargs: stunted_abspath())
     # monkeypatch.setattr(os.path, "exists", lambda *args, **kwargs: stunted_exists())
