@@ -11,6 +11,7 @@ import yaml
 from pathlib import Path
 from colorama import Fore, Style
 import re
+from glob import glob
 
 from medperf import config
 from medperf.ui import UI
@@ -223,6 +224,12 @@ def untar(filepath: str, remove: bool = True) -> str:
     tar = tarfile.open(filepath)
     tar.extractall(addpath)
     tar.close()
+
+    # OS Specific issue: Mac Creates superfluous files with tarfile library
+    [
+        os.remove(spurious_file)
+        for spurious_file in glob(addpath + "/**/._*", recursive=True)
+    ]
     if remove:
         logging.info(f"Deleting {filepath}")
         os.remove(filepath)
