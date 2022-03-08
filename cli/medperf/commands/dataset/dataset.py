@@ -5,7 +5,7 @@ from medperf.decorators import clean_except
 from medperf.commands.dataset.list import DatasetsList
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.dataset.submit import DatasetRegistration
-from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
+from medperf.commands.dataset.associate import AssociateDataset
 
 app = typer.Typer()
 
@@ -44,7 +44,7 @@ def create(
     comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
     DatasetRegistration.run(data_uid, comms, ui)
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
 
 
@@ -79,6 +79,6 @@ def associate(
     comms = config.comms
     ui = config.ui
     comms.authenticate()
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
 

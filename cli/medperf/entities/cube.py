@@ -6,6 +6,7 @@ from typing import List
 from pathlib import Path
 
 from medperf.utils import (
+    approval_prompt,
     get_file_sha1,
     pretty_error,
     untar,
@@ -187,3 +188,21 @@ class Cube(object):
             out_path = os.path.join(out_path, params[param_key])
 
         return out_path
+
+    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
+        """Prompts the user for approval concerning associating a cube with a benchmark.
+
+        Args:
+            benchmark (Benchmark): Benchmark to be associated with
+            ui (UI): Instance of an UI interface
+
+        Returns:
+            bool: wether the user gave consent or not
+        """
+
+        approved = approval_prompt(
+            f"Please confirm that you would like to associate the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]",
+            ui,
+        )
+        return approved
+

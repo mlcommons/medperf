@@ -26,7 +26,9 @@ def benchmark(mocker):
 
 @pytest.fixture
 def dataset(mocker):
-    return mocker.create_autospec(spec=Dataset)
+    dataset = mocker.create_autospec(spec=Dataset)
+    dataset.uid = "uid"
+    return dataset
 
 
 @pytest.fixture
@@ -217,11 +219,14 @@ def test_set_data_uid_keeps_passed_data_uid(default_setup, data_uid, comms, ui):
     assert exec.data_uid == data_uid
 
 
-def test_execute_benchmark_runs_benchmark_workflow(mocker, default_setup, comms, ui):
+def test_execute_benchmark_runs_benchmark_workflow(
+    mocker, dataset, default_setup, comms, ui
+):
     # Arrange
     spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
     mocker.patch(PATCH_TEST.format("Result.get_results"), return_value=[])
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec.dataset = dataset
 
     # Act
     exec.execute_benchmark()

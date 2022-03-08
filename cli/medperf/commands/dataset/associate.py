@@ -8,7 +8,7 @@ from medperf.utils import dict_pretty_print, pretty_error
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
-class DatasetBenchmarkAssociation:
+class AssociateDataset:
     @staticmethod
     def run(data_uid: str, benchmark_uid: int, comms: Comms, ui: UI):
         """Associates a registered dataset with a benchmark

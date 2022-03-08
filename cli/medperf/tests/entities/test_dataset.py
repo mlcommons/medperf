@@ -219,7 +219,6 @@ def test_request_registration_approval_returns_users_input(
     uid = "1"
     mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=approval)
     mocker.patch(PATCH_DATASET.format("dict_pretty_print"))
-    mocker.patch("typer.echo")
     dset = Dataset(uid, ui)
 
     # Act

@@ -1,7 +1,8 @@
 from medperf.ui.interface import UI
 from medperf.utils import pretty_error
 from medperf.comms.interface import Comms
-from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
+from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.dataset.associate import AssociateDataset
 
 
 class AssociateBenchmark:
@@ -24,9 +25,8 @@ class AssociateBenchmark:
                 ui,
             )
         if model_uid is not None:
-            comms.associate_cube(model_uid, benchmark_uid)
-            ui.print("Association request to MLCube created")
+            AssociateCube.run(model_uid, benchmark_uid, comms, ui)
 
         if data_uid is not None:
-            DatasetBenchmarkAssociation.run(data_uid, benchmark_uid)
+            AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
 

@@ -9,6 +9,7 @@ from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
 from medperf.tests.utils import rand_l
+from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 
@@ -438,3 +439,28 @@ def test_default_output_returns_path_with_params(mocker, comms, params_body, no_
 
     # Assert
     assert out_path == exp_path
+
+
+@pytest.mark.parametrize("approval", [True, False])
+def test_request_registration_approval_returns_users_input(
+    mocker, comms, ui, approval, basic_body, no_local
+):
+    # Arrange
+    cube_contents = {
+        "tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: {"default": VALUE}}}}}
+    }
+    mocker.patch("builtins.open", MagicMock())
+    m = MagicMock(side_effect=[cube_contents])
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
+
+    uid = "1"
+    mock_benchmark = Benchmark()
+    mocker.patch(PATCH_CUBE.format("approval_prompt"), return_value=approval)
+    cube = Cube.get(uid, comms, ui)
+
+    # Act
+    approved = cube.request_association_approval(mock_benchmark, ui)
+
+    # Assert
+    assert approved == approval
+
