@@ -76,6 +76,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_cubes(self) -> List[dict]:
+        """Retrieves all MLCubes in the platform
+
+        Returns:
+            List[dict]: List containing the data of all MLCubes
+        """
+
+    @abstractmethod
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
 
@@ -96,6 +104,14 @@ class Comms(ABC):
 
         Returns:
             str: location where the mlcube.yaml file is stored locally.
+        """
+
+    @abstractmethod
+    def get_user_cubes(self) -> List[dict]:
+        """Retrieves metadata from all cubes registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the mlcubes registration information
         """
 
     @abstractmethod
@@ -120,6 +136,17 @@ class Comms(ABC):
 
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
+        """
+
+    @abstractmethod
+    def upload_mlcube(self, mlcube_body: dict) -> int:
+        """Uploads an MLCube instance to the platform
+
+        Args:
+            mlcube_body (dict): Dictionary containing all the relevant data for creating mlcubes
+
+        Returns:
+            int: id of the created mlcube instance on the platform
         """
 
     @abstractmethod
@@ -174,5 +201,14 @@ class Comms(ABC):
 
         Args:
             data_uid (int): Registered dataset UID
+            benchmark_uid (int): Benchmark UID
+        """
+
+    @abstractmethod
+    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+        """Create an MLCube-Benchmark association
+
+        Args:
+            cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
         """
