@@ -40,7 +40,7 @@ def submit(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the executed benchmark"
     ),
-    data_uid: int = typer.Option(
+    data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="UID of the dataset used for results"
     ),
     model_uid: int = typer.Option(
