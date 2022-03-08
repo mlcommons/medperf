@@ -1,5 +1,5 @@
-from medperf.tests.commands.benchmark.test_associate import PATCH_ASSOC
 import pytest
+from unittest.mock import ANY
 
 from medperf.tests.utils import rand_l
 from medperf.entities.result import Result
@@ -92,7 +92,7 @@ def test_associates_if_approved(
     AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
 
     # Assert
-    spy.assert_called_once_with(data_uid, benchmark_uid)
+    spy.assert_called_once_with(data_uid, benchmark_uid, ANY)
 
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)

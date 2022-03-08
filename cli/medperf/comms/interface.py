@@ -234,19 +234,21 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def associate_dset(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
 
         Args:
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
 
     @abstractmethod
-    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """

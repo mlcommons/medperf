@@ -35,7 +35,8 @@ class AssociateDataset:
 
         if approval:
             ui.print("Generating dataset benchmark association")
-            comms.associate_dset(dset.uid, benchmark_uid)
+            metadata = {"test_result": result.todict()}
+            comms.associate_dset(dset.uid, benchmark_uid, metadata)
         else:
             pretty_error(
                 "Dataset association operation cancelled", ui, add_instructions=False

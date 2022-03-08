@@ -374,35 +374,39 @@ class REST(Comms):
             pretty_error("Could not upload the results", self.ui)
         return res.json()["id"]
 
-    def associate_dset(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
 
         Args:
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
         data = {
             "dataset": data_uid,
             "benchmark": benchmark_uid,
             "approval_status": "PENDING",
+            "metadata": metadata,
         }
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not associate dataset to benchmark", self.ui)
 
-    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
         data = {
             "results": {},
             "approval_status": "PENDING",
             "model_mlcube": cube_uid,
             "benchmark": benchmark_uid,
+            "metadata": metadata,
         }
         res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
         if res.status_code != 201:

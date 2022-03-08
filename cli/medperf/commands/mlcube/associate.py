@@ -32,7 +32,8 @@ class AssociateCube:
 
         if approval:
             ui.print("Generating mlcube benchmark association")
-            comms.associate_cube(cube_uid, benchmark_uid)
+            metadata = {"test_result": result.todict()}
+            comms.associate_cube(cube_uid, benchmark_uid, metadata)
         else:
             pretty_error(
                 "MLCube association operation cancelled", ui, add_instructions=False

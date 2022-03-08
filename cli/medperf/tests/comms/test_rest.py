@@ -65,7 +65,14 @@ def server(mocker, ui):
             [1, 1],
             {},
             (f"{url}/datasets/benchmarks/",),
-            {"json": {"benchmark": 1, "dataset": 1, "approval_status": "PENDING"}},
+            {
+                "json": {
+                    "benchmark": 1,
+                    "dataset": 1,
+                    "approval_status": "PENDING",
+                    "metadata": {},
+                }
+            },
         ),
     ],
 )
@@ -490,6 +497,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
         "approval_status": "PENDING",
         "model_mlcube": cube_uid,
         "benchmark": benchmark_uid,
+        "metadata": {},
     }
     res = MockResponse({}, 201)
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
