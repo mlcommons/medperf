@@ -14,7 +14,7 @@ from typing import List, Tuple
 from colorama import Fore, Style
 
 import medperf.config as config
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 
 
 def storage_path(subpath: str):

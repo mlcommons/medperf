@@ -4,8 +4,8 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import medperf
-from medperf.ui.ui import UI
-from medperf.comms.comms import Comms
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.tests.utils import rand_l
 from medperf.entities.registration import Registration
 from medperf.entities.cube import Cube

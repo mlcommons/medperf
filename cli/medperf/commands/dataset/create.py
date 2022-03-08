@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.registration import Registration

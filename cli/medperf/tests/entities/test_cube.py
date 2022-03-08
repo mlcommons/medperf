@@ -3,9 +3,9 @@ import pytest
 from unittest.mock import MagicMock, mock_open, ANY
 
 import medperf
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
 from medperf.tests.utils import rand_l

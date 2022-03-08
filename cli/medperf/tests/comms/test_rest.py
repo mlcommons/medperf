@@ -3,7 +3,7 @@ import pytest
 import requests
 from unittest.mock import mock_open, ANY
 
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 from medperf.enums import Role
 from medperf.comms.rest import REST
 from medperf.tests.utils import rand_l

@@ -8,9 +8,9 @@ from medperf.utils import (
     approval_prompt,
     dict_pretty_print,
 )
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 

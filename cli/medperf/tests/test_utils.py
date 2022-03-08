@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockCube, MockTar

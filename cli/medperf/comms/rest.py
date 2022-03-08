@@ -3,10 +3,10 @@ import requests
 import logging
 import os
 
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 from medperf.enums import Role
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.utils import pretty_error, cube_path, storage_path, generate_tmp_uid
 
 

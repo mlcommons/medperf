@@ -13,9 +13,9 @@ from medperf.utils import (
     list_files,
     storage_path,
 )
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 
 
 class Cube(object):

@@ -4,7 +4,7 @@ import logging
 from typing import List
 
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 
 

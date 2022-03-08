@@ -1,7 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
 
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 from medperf.enums import Role
 
 

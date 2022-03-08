@@ -4,9 +4,9 @@ import logging
 from time import time
 from typing import List
 
-from medperf.ui.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
