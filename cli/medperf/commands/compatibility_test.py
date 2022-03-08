@@ -56,7 +56,7 @@ class CompatibilityTestExecution:
     def __init__(
         self,
         benchmark_uid: int,
-        data_uid: int,
+        data_uid: str,
         data_prep: str,
         model: str,
         evaluator: str,

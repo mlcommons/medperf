@@ -6,6 +6,7 @@ import yaml
 import hashlib
 import logging
 import tarfile
+from glob import glob
 from pathlib import Path
 from shutil import rmtree
 from pexpect import spawn
@@ -224,6 +225,12 @@ def untar(filepath: str, remove: bool = True) -> str:
     tar = tarfile.open(filepath)
     tar.extractall(addpath)
     tar.close()
+
+    # OS Specific issue: Mac Creates superfluous files with tarfile library
+    [
+        os.remove(spurious_file)
+        for spurious_file in glob(addpath + "/**/._*", recursive=True)
+    ]
     if remove:
         logging.info(f"Deleting {filepath}")
         os.remove(filepath)
