@@ -8,8 +8,8 @@ PATCH_ASSOC = "medperf.commands.associations.{}"
 
 def test_run_gets_dset_and_cube_associations(mocker, comms, ui):
     # Arrange
-    dset_spy = mocker.patch.object(comms, "get_dataset_associations", return_value=[])
-    cube_spy = mocker.patch.object(comms, "get_cube_associations", return_value=[])
+    dset_spy = mocker.patch.object(comms, "get_datasets_associations", return_value=[])
+    cube_spy = mocker.patch.object(comms, "get_cubes_associations", return_value=[])
 
     # Act
     Associations.run(comms, ui)
@@ -39,8 +39,8 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
             "approval_status": "REJECTED",
         }
     ]
-    mocker.patch.object(comms, "get_dataset_associations", return_value=dset_assocs)
-    mocker.patch.object(comms, "get_cube_associations", return_value=cube_assocs)
+    mocker.patch.object(comms, "get_datasets_associations", return_value=dset_assocs)
+    mocker.patch.object(comms, "get_cubes_associations", return_value=cube_assocs)
     tab_spy = mocker.patch(PATCH_ASSOC.format("tabulate"), return_value="")
 
     # Act

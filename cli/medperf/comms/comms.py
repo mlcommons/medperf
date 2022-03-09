@@ -214,7 +214,7 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_dataset_associations(self) -> List[dict]:
+    def get_datasets_associations(self) -> List[dict]:
         """Get all dataset associations related to the current user
 
         Returns:
@@ -222,7 +222,7 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_cube_associations(self) -> List[dict]:
+    def get_cubes_associations(self) -> List[dict]:
         """Get all cube associations related to the current user
 
         Returns:

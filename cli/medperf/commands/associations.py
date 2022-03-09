@@ -8,8 +8,8 @@ class Associations:
     @staticmethod
     def run(comms: Comms, ui: UI, filter: str = None):
         """Get Pending association requests"""
-        dset_assocs = comms.get_dataset_associations()
-        cube_assocs = comms.get_cube_associations()
+        dset_assocs = comms.get_datasets_associations()
+        cube_assocs = comms.get_cubes_associations()
 
         # Might be worth seeing if creating an association class that encapsulates
         # most of the logic here is useful

@@ -469,3 +469,29 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)
+
+
+def test_get_datasets_associations_gets_associations(mocker, server):
+    # Arrange
+    res = MockResponse([], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    exp_path = f"{url}/me/datasets/associations/"
+
+    # Act
+    server.get_datasets_associations()
+
+    # Assert
+    spy.assert_called_once_with(exp_path)
+
+
+def test_get_cubes_associations_gets_associations(mocker, server):
+    # Arrange
+    res = MockResponse([], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    exp_path = f"{url}/me/mlcubes/associations/"
+
+    # Act
+    server.get_cubes_associations()
+
+    # Assert
+    spy.assert_called_once_with(exp_path)

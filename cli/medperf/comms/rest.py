@@ -340,7 +340,7 @@ class REST(Comms):
             logging.error(res.json())
             pretty_error("Could not associate dataset to benchmark", self.ui)
 
-    def get_dataset_associations(self) -> List[dict]:
+    def get_datasets_associations(self) -> List[dict]:
         """Get all dataset associations related to the current user
 
         Returns:
@@ -352,7 +352,7 @@ class REST(Comms):
             pretty_error("Could not retrieve user datasets associations", self.ui)
         return res.json()
 
-    def get_cube_associations(self) -> List[dict]:
+    def get_cubes_associations(self) -> List[dict]:
         """Get all cube associations related to the current user
 
         Returns:
