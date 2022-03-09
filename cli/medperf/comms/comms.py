@@ -212,3 +212,19 @@ class Comms(ABC):
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
         """
+
+    @abstractmethod
+    def get_dataset_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+
+    @abstractmethod
+    def get_cube_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """

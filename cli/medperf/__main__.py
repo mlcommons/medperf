@@ -1,5 +1,6 @@
 import typer
 import logging
+from typing import Optional
 from os.path import abspath, expanduser
 
 from medperf.commands import Login
@@ -12,6 +13,7 @@ from medperf.ui import UIFactory
 from medperf.utils import init_storage
 from medperf.commands.mlcube import mlcube
 from medperf.commands.dataset import dataset
+from medperf.commands.associations import Associations
 
 
 app = typer.Typer()
@@ -46,6 +48,19 @@ def execute(
     result.run_benchmark(
         benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
     )
+
+
+@clean_except
+@app.command("associations")
+def associations(filter: Optional[str] = typer.Argument(None)):
+    """Display all associations related to the current user.
+
+    Args:
+        filter (str, optional): Filter associations by approval status. 
+            Defaults to displaying all associations.
+    """
+    config.comms.authenticate()
+    Associations.run(config.comms, config.ui, filter)
 
 
 @app.callback()
