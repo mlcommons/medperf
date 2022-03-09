@@ -236,3 +236,19 @@ class Comms(ABC):
             benchmark_uid (str): Benchmark UID
             status (str): Approval status to set for the association
         """
+
+    @abstractmethod
+    def get_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+
+    @abstractmethod
+    def get_cubes_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """

@@ -2,6 +2,7 @@ from typing import List
 import requests
 import logging
 import os
+from functools import cache
 
 from medperf.utils import pretty_error, cube_path, storage_path
 import medperf.config as config
@@ -398,3 +399,26 @@ class REST(Comms):
                 self.ui,
             )
 
+    def get_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/associations/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve user datasets associations", self.ui)
+        return res.json()
+
+    def get_cubes_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/mlcubes/associations/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve user mlcubes associations", self.ui)
+        return res.json()
