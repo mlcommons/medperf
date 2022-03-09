@@ -10,7 +10,7 @@ app = typer.Typer()
 
 
 @clean_except
-@app.command("list")
+@app.command("ls")
 def list(filter: Optional[str] = typer.Argument(None)):
     """Display all associations related to the current user.
 
