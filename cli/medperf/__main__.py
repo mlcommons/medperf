@@ -51,19 +51,6 @@ def execute(
     )
 
 
-@clean_except
-@app.command("associations")
-def associations(filter: Optional[str] = typer.Argument(None)):
-    """Display all associations related to the current user.
-
-    Args:
-        filter (str, optional): Filter associations by approval status. 
-            Defaults to displaying all associations.
-    """
-    config.comms.authenticate()
-    Associations.run(config.comms, config.ui, filter)
-
-
 @app.callback()
 def main(
     log: str = "INFO",
