@@ -4,11 +4,18 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import ModelResult
 from .serializers import ModelResultSerializer
-
+from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner, IsResultOwner
 
 class ModelResultList(GenericAPIView):
     serializer_class = ModelResultSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [IsAdmin]
+        elif self.request.method == "POST":
+            self.permission_classes = [IsAdmin | IsDatasetOwner]
+        return super(self.__class__, self).get_permissions()
 
     def get(self, request, format=None):
         """
@@ -32,6 +39,13 @@ class ModelResultList(GenericAPIView):
 class ModelResultDetail(GenericAPIView):
     serializer_class = ModelResultSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "PUT" or self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin | IsResultOwner ]
+        elif self.request.method == "GET":
+            self.permission_classes = [IsAdmin | IsDatasetOwner | IsBenchmarkOwner]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:
