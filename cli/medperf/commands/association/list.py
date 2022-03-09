@@ -4,7 +4,7 @@ from medperf.ui import UI
 from medperf.comms import Comms
 
 
-class Associations:
+class ListAssociations:
     @staticmethod
     def run(comms: Comms, ui: UI, filter: str = None):
         """Get Pending association requests"""

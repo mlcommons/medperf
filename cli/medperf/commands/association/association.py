@@ -1,10 +1,27 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
+from medperf.commands.association.list import ListAssociations
 from medperf.commands.association.approval import Approval
 
 app = typer.Typer()
+
+
+@clean_except
+@app.command("list")
+def list(filter: Optional[str] = typer.Argument(None)):
+    """Display all associations related to the current user.
+
+    Args:
+        filter (str, optional): Filter associations by approval status. 
+            Defaults to displaying all user associations.
+    """
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    ListAssociations.run(comms, ui, filter)
 
 
 @clean_except

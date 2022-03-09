@@ -1,9 +1,8 @@
 import pytest
-import tabulate
 
-from medperf.commands.associations import Associations
+from medperf.commands.association.list import ListAssociations
 
-PATCH_ASSOC = "medperf.commands.associations.{}"
+PATCH_ASSOC = "medperf.commands.association.list.{}"
 
 
 def test_run_gets_dset_and_cube_associations(mocker, comms, ui):
@@ -12,7 +11,7 @@ def test_run_gets_dset_and_cube_associations(mocker, comms, ui):
     cube_spy = mocker.patch.object(comms, "get_cubes_associations", return_value=[])
 
     # Act
-    Associations.run(comms, ui)
+    ListAssociations.run(comms, ui)
 
     # Assert
     dset_spy.assert_called_once()
@@ -44,7 +43,7 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
     tab_spy = mocker.patch(PATCH_ASSOC.format("tabulate"), return_value="")
 
     # Act
-    Associations.run(comms, ui, filter)
+    ListAssociations.run(comms, ui, filter)
 
     # Assert
     tab_call = tab_spy.call_args_list[0]
