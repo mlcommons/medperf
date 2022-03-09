@@ -1,50 +1,8 @@
+#The script is invoked manually with all settings provided in the secret
+#It assumes that DB is created before the script run
+#Inorder to deploy a service, pass sha-id of the already built image 
+#Command:  gcloud builds submit --config=cloudbuild-prod.yaml --substitutions=SHORT_SHA=<sha-id>
 steps:
-  - id: "build image"
-    name: "gcr.io/cloud-builders/docker"
-    dir: "server"
-    args: 
-      [
-      "build", 
-      "-t", 
-      "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}",
-      "-f",
-      "Dockerfile.cloudbuild", 
-      "."
-      ]
-
-  - id: "push image"
-    name: "gcr.io/cloud-builders/docker"
-    args: 
-      [
-        "push", 
-        "${_REGION}-${_ARTIFACT_REGISTRY_DOMAIN}/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${SHORT_SHA}"
-      ]
-
-  - id: "delete sql database if already present"
-    name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "sql",
-        "databases",
-        "delete",
-        "${_GCP_CI_DATABASE_NAME}",
-        "--instance",
-        "${_SQL_INSTANCE_NAME}",
-        "--quiet"
-      ]
-
-  - id: "create sql database"
-    name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "sql",
-        "databases",
-        "create",
-        "${_GCP_CI_DATABASE_NAME}",
-        "--instance",
-        "${_SQL_INSTANCE_NAME}"
-      ]
-
   - id: "apply migrations"
     name: "gcr.io/google-appengine/exec-wrapper"
     dir: "server"
@@ -122,7 +80,7 @@ steps:
     args:
       [
        "-c", 
-       "echo $(gcloud run services describe ${_CLOUD_RUN_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)') > /workspace/service-${_PR_NUMBER}.txt"
+       "echo $(gcloud run services describe ${_CLOUD_RUN_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)') > /workspace/service.txt"
       ]
 
   - id: "get super admin username and password"
@@ -132,7 +90,7 @@ steps:
     args:
       [
        "-c",
-       "apt-get update && apt install jq -y && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_USERNAME)> /workspace/username-${_PR_NUMBER}.txt && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_PASSWORD) > /workspace/password-${_PR_NUMBER}.txt"
+       "apt-get update && apt install jq -y && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_USERNAME)> /workspace/username.txt && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_PASSWORD) > /workspace/password.txt"
       ]
 
   - id: "add seed values to the server"
@@ -142,49 +100,23 @@ steps:
     args:
       [
        "-c",
-       "pip install -r test-requirements.txt --user && python seed.py --server $(cat /workspace/service-${_PR_NUMBER}.txt) --username $(cat /workspace/username-${_PR_NUMBER}.txt) --password $(cat /workspace/password-${_PR_NUMBER}.txt)"
+       "pip install -r test-requirements.txt --user && python seed.py --server $(cat /workspace/service.txt) --username $(cat /workspace/username.txt) --password $(cat /workspace/password.txt)"
       ]
-
-  - id: "delete cloud run"
-    name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "run",
-        "services",
-        "delete",
-        "${_CLOUD_RUN_SERVICE_NAME}",
-        "--region",
-        "${_REGION}",
-        "--quiet"
-      ]
-
-  - id: "delete sql database"
-    name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "sql",
-        "databases",
-        "delete",
-        "${_GCP_CI_DATABASE_NAME}",
-        "--instance",
-        "${_SQL_INSTANCE_NAME}",
-        "--quiet"
-      ]      
 
 substitutions:
   _REGION: us-west1
   _ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev
   _REPO_NAME: medperf-repo
   _IMAGE_NAME: medperf-api
-  _CLOUD_RUN_SERVICE_NAME: medperf-api-cb-ci-pr-${_PR_NUMBER}
+  _CLOUD_RUN_SERVICE_NAME: medperf-api-cb-prod
   _CLOUD_RUN_MIN_INSTANCES: '1'
-  _SECRET_SETTINGS_NAME: django-dev-settings
+  _SECRET_SETTINGS_NAME: django-prod-settings
   _SQL_INSTANCE_NAME: medperf-dev
-  ##Settings specific for CI trigger##
-  ##DB settings in secrets are overridden if _GCP_CI_CLOUDBUILD is set to True
-  _GCP_CI_CLOUDBUILD: 'True'
-  _GCP_CI_DATABASE_NAME: db-cb-ci-pr-${_PR_NUMBER}
-  #_GCP_CI_DATABASE_URL var is set in Cloud build trigger configuration using _GCP_CI_DATABASE_NAME
+  ##Settings specific for Prod##
+  ##All DB settings are picked from the secret if _GCP_CI_CLOUDBUILD is set to False
+  _GCP_CI_CLOUDBUILD: 'False'
+  #_GCP_CI_DATABASE_NAME: None 
+  _GCP_CI_DATABASE_URL: None
 
 options:
   dynamic_substitutions: true
