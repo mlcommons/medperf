@@ -12,12 +12,14 @@ from medperf.ui import UIFactory
 from medperf.utils import init_storage
 from medperf.commands.mlcube import mlcube
 from medperf.commands.dataset import dataset
+import medperf.commands.association.association as association
 
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
+app.add_typer(association.app, name="association", help="Manage associations")
 
 
 @clean_except

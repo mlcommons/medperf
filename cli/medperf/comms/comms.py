@@ -212,3 +212,27 @@ class Comms(ABC):
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
         """
+
+    @abstractmethod
+    def set_dataset_association_approval(
+        self, dataset_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves a dataset association
+
+        Args:
+            dataset_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+
+    @abstractmethod
+    def set_mlcube_association_approval(
+        self, mlcube_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves an mlcube association
+
+        Args:
+            mlcube_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
