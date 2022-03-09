@@ -74,35 +74,6 @@ steps:
         "${_CLOUD_RUN_MIN_INSTANCES}"
       ]
       
-  - id: "get cloud run endpoint"
-    name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "/bin/sh"
-    args:
-      [
-       "-c", 
-       "echo $(gcloud run services describe ${_CLOUD_RUN_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)') > /workspace/service.txt"
-      ]
-
-  - id: "get super admin username and password"
-    name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "/bin/sh"
-    dir: "server"
-    args:
-      [
-       "-c",
-       "apt-get update && apt install jq -y && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_USERNAME)> /workspace/username.txt && echo $(sh secret.sh -s ${_SECRET_SETTINGS_NAME} -k SUPERUSER_PASSWORD) > /workspace/password.txt"
-      ]
-
-  - id: "add seed values to the server"
-    name: "python"
-    entrypoint: "/bin/sh"
-    dir: "server"
-    args:
-      [
-       "-c",
-       "pip install -r test-requirements.txt --user && python seed.py --server $(cat /workspace/service.txt) --username $(cat /workspace/username.txt) --password $(cat /workspace/password.txt)"
-      ]
-
 substitutions:
   _REGION: us-west1
   _ARTIFACT_REGISTRY_DOMAIN: docker.pkg.dev

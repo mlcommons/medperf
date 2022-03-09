@@ -178,7 +178,7 @@ substitutions:
   _IMAGE_NAME: medperf-api
   _CLOUD_RUN_SERVICE_NAME: medperf-api-cb-ci-pr-${_PR_NUMBER}
   _CLOUD_RUN_MIN_INSTANCES: '1'
-  _SECRET_SETTINGS_NAME: django-dev-settings
+  _SECRET_SETTINGS_NAME: django-ci-settings
   _SQL_INSTANCE_NAME: medperf-dev
   ##Settings specific for CI trigger##
   ##DB settings in secrets are overridden if _GCP_CI_CLOUDBUILD is set to True
