@@ -150,7 +150,7 @@ class REST(Comms):
         Returns:
             str: path where the downloaded demo dataset can be found
         """
-        tmp_dir = storage_path(config.tmp_storage)
+        tmp_dir = storage_path(config.demo_data_storage)
         demo_data_path = os.path.join(tmp_dir, uid)
         tball_file = config.tarball_filename
         filepath = os.path.join(demo_data_path, tball_file)

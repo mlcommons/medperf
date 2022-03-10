@@ -7,6 +7,7 @@ storage = abspath(expanduser("~/.medperf"))
 tmp_prefix = "tmp_"
 tmp_storage = "tmp"
 data_storage = "data"
+demo_data_storage = "demo"
 cubes_storage = "cubes"
 results_storage = "results"
 results_filename = "result.yaml"
