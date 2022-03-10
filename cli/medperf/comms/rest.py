@@ -2,7 +2,6 @@ from typing import List
 import requests
 import logging
 import os
-from functools import cache
 
 from medperf.utils import pretty_error, cube_path, storage_path
 import medperf.config as config
