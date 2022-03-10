@@ -367,11 +367,8 @@ class REST(Comms):
             benchmark_uid (str): Benchmark UID
             status (str): Approval status to set for the association
         """
-        data = {"approval_status": "APPROVED"}
-        res = self.__auth_put(
-            f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/",
-            json=data,
-        )
+        url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+        res = self.__set_approval_status(url, status)
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error(
@@ -389,9 +386,8 @@ class REST(Comms):
             benchmark_uid (str): Benchmark UID
             status (str): Approval status to set for the association
         """
-        data = {"approval_status": "APPROVED"}
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
-        res = self.__set_approval_status(url)
+        res = self.__set_approval_status(url, status)
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error(
