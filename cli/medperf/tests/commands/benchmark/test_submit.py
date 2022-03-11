@@ -101,6 +101,7 @@ def test_is_valid_passes_valid_fields(
     submission.description = desc[0]
     submission.docs_url = docs_url[0]
     submission.demo_url = demo_url[0]
+    submission.demo_hash = "test"
     submission.data_preparation_mlcube = prep_uid[0]
     submission.reference_model_mlcube = model_uid[0]
     submission.data_evaluator_mlcube = eval_uid[0]

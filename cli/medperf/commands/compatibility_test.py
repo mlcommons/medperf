@@ -10,7 +10,7 @@ from medperf.comms import Comms
 from medperf.entities import Dataset, Benchmark, Result
 from medperf.commands.dataset import DataPreparation
 from medperf.commands.result import BenchmarkExecution
-from medperf.utils import pretty_error, untar, get_file_sha1
+from medperf.utils import pretty_error, untar, get_file_sha1, get_uids, storage_path
 
 
 class CompatibilityTestExecution:
@@ -143,9 +143,19 @@ class CompatibilityTestExecution:
         preparation flow.
         """
         logging.info("Establishing data_uid for test execution")
-        if self.data_uid is None:
-            logging.info("Data uid not provided. Using benchmark demo dataset")
-            data_path, labels_path = self.download_demo_data()
+        logging.info("Looking if dataset exists as a prepared dataset")
+        if self.data_uid is not None:
+            uid_hint = self.data_uid
+            data_storage = storage_path(config.data_storage)
+            data_uids = get_uids(data_storage)
+            match_uids = [uid for uid in data_uids if uid.startswith(str(uid_hint))]
+            if len(match_uids) > 0:
+                self.dataset = Dataset(self.data_uid, self.ui)
+        if self.dataset is None:
+            logging.info(
+                "No dataset found with provided uid. Using benchmark demo dataset"
+            )
+            data_path, labels_path = self.download_demo_data(self.data_uid)
             self.data_uid = DataPreparation.run(
                 self.benchmark_uid,
                 data_path,
@@ -159,18 +169,21 @@ class CompatibilityTestExecution:
             self.dataset = Dataset(self.data_uid, self.ui)
             self.dataset.uid = self.data_uid
             self.dataset.set_registration()
-        else:
-            self.dataset = Dataset(self.data_uid, self.ui)
 
-    def download_demo_data(self):
+    def download_demo_data(self, data_uid: str = None):
         """Retrieves the demo dataset associated to the specified benchmark
 
+        Arguments:
+            data_uid (str): Data UID to try and search locally as a demo dataset
         Returns:
             data_path (str): Location of the downloaded data
             labels_path (str): Location of the downloaded labels
         """
+        if data_uid is not None:
+            dset_hash = data_uid
+        else:
+            dset_hash = self.benchmark.demo_dataset_hash
         dset_url = self.benchmark.demo_dataset_url
-        dset_hash = self.benchmark.demo_dataset_hash
         file_path = self.comms.get_benchmark_demo_dataset(dset_url, dset_hash)
 
         # Check demo dataset integrity
