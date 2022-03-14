@@ -5,9 +5,10 @@ from rest_framework import status
 from django.contrib.auth.models import User
 
 from .serializers import UserSerializer
-
+from .permissions import IsAdmin, IsOwnUser
 
 class UserList(GenericAPIView):
+    permission_classes = [IsAdmin]
     serializer_class = UserSerializer
     queryset = ""
 
@@ -33,6 +34,13 @@ class UserList(GenericAPIView):
 class UserDetail(GenericAPIView):
     serializer_class = UserSerializer
     queryset = ""
+
+    def get_permissions(self):
+        if self.request.method == "PUT" or self.request.method == "GET":
+            self.permission_classes = [IsAdmin | IsOwnUser]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
         try:
