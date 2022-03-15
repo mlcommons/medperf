@@ -1,7 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
 
-from medperf.ui import UI
+from medperf.ui.interface import UI
 from medperf.enums import Role
 
 
@@ -54,6 +54,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks in the platform.
+
+        Returns:
+            List[dict]: all benchmarks information.
+        """
+
+    @abstractmethod
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
 
@@ -73,6 +81,25 @@ class Comms(ABC):
 
         Returns:
             list[int]: List of model UIDS
+        """
+
+    @abstractmethod
+    def get_benchmark_demo_dataset(self, demo_data_url: str) -> str:
+        """Downloads the benchmark demo dataset and stores it in the user's machine
+
+        Args:
+            demo_data_url (str): location of demo data for download
+
+        Returns:
+            str: path where the downloaded demo dataset can be found
+        """
+
+    @abstractmethod
+    def get_user_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks created by the user
+
+        Returns:
+            List[dict]: Benchmarks data
         """
 
     @abstractmethod
@@ -139,6 +166,17 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def upload_benchmark(self, benchmark_dict: dict) -> int:
+        """Uploads a new benchmark to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+
+    @abstractmethod
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
 
@@ -196,19 +234,61 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def associate_dset_benchmark(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
 
         Args:
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
 
     @abstractmethod
-    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+
+    @abstractmethod
+    def set_dataset_association_approval(
+        self, dataset_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves a dataset association
+
+        Args:
+            dataset_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+
+    @abstractmethod
+    def set_mlcube_association_approval(
+        self, mlcube_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves an mlcube association
+
+        Args:
+            mlcube_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+
+    @abstractmethod
+    def get_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+
+    @abstractmethod
+    def get_cubes_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
         """

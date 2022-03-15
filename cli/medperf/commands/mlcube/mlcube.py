@@ -3,7 +3,9 @@ import typer
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
-from medperf.commands.mlcube import *
+from medperf.commands.mlcube.list import CubesList
+from medperf.commands.mlcube.submit import SubmitCube
+from medperf.commands.mlcube.associate import AssociateCube
 
 app = typer.Typer()
 
