@@ -1,5 +1,6 @@
 import typer
 import logging
+from typing import Optional
 from os.path import abspath, expanduser
 
 import medperf.config as config
@@ -12,6 +13,7 @@ import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 import medperf.commands.benchmark.benchmark as benchmark
 from medperf.utils import init_storage, storage_path, cleanup
+import medperf.commands.association.association as association
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
@@ -22,6 +24,7 @@ app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
+app.add_typer(association.app, name="association", help="Manage associations")
 
 
 @clean_except

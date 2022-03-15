@@ -48,10 +48,27 @@ class REST(Comms):
     def __auth_post(self, url, **kwargs):
         return self.__auth_req(url, requests.post, **kwargs)
 
+    def __auth_put(self, url, **kwargs):
+        return self.__auth_req(url, requests.put, **kwargs)
+
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
             pretty_error("Must be authenticated", self.ui)
         return req_func(url, headers={"Authorization": f"Token {self.token}"}, **kwargs)
+
+    def __set_approval_status(self, url: str, status: str) -> requests.Response:
+        """Sets the approval status of a resource
+
+        Args:
+            url (str): URL to the resource to update
+            status (str): approval status to set
+
+        Returns:
+            requests.Response: Response object returned by the update
+        """
+        data = {"approval_status": "APPROVED"}
+        res = self.__auth_put(url, json=data,)
+        return res
 
     def benchmark_association(self, benchmark_uid: int) -> Role:
         """Retrieves the benchmark association
@@ -412,3 +429,65 @@ class REST(Comms):
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not associate dataset to benchmark", self.ui)
+
+    def set_dataset_association_approval(
+        self, dataset_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves a dataset association
+
+        Args:
+            dataset_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+        res = self.__set_approval_status(url, status)
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error(
+                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}",
+                self.ui,
+            )
+
+    def set_mlcube_association_approval(
+        self, mlcube_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves an mlcube association
+
+        Args:
+            mlcube_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+        res = self.__set_approval_status(url, status)
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error(
+                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}",
+                self.ui,
+            )
+
+    def get_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/associations/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve user datasets associations", self.ui)
+        return res.json()
+
+    def get_cubes_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/mlcubes/associations/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve user mlcubes associations", self.ui)
+        return res.json()
