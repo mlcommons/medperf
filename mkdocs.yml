@@ -1,12 +1,34 @@
 site_name: MedPerf
 site_url: https://medperf.com/
+repo_url: https://github.com/mlcommons/medperf
+repo_name: mlcommons/medperf
 nav:
   - Home: index.md
   - About: about.md
   - CLI: cli/index.md
   - Server: server/index.md
   - Code Reference: reference/
-theme: readthedocs
+theme: 
+  features:
+    - search.suggest
+    - search.highlight
+    - search.share
+  name: material
+  logo: assets/logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)" 
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)" 
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
 
 plugins:
   - search

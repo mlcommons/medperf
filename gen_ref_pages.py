@@ -8,31 +8,34 @@ import mkdocs_gen_files
 
 nav = mkdocs_gen_files.Nav()
 
-for path in sorted(Path("cli/medperf").rglob("*.py")):
-    module_path = path.relative_to("cli/medperf").with_suffix("")
-    doc_path = path.relative_to("cli/medperf").with_suffix(".md")
-    full_doc_path = Path("cli/reference", doc_path)
+build_params = [
+    ("cli/medperf", "cli", "cli/medperf", "reference"),
+    # ("server", "server", "", "reference"),
+]
 
-    parts = tuple(module_path.parts)
+for path, mod, doc, full_doc in build_params:
+    for path in sorted(Path(path).rglob("*.py")):
+        module_path = path.relative_to(mod).with_suffix("")
+        doc_path = path.relative_to(doc).with_suffix(".md")
+        full_doc_path = Path(full_doc, doc_path)
 
-    if parts[-1] == "__init__":
-        parts = parts[:-1]
-    elif parts[-1] == "__main__":
-        continue
-    if parts == ():
-        continue
+        parts = tuple(module_path.parts)
 
-    print(full_doc_path)
-    print(nav)
-    print(doc_path)
-    print(parts)
-    nav[parts] = str(doc_path)  #
+        if parts[-1] == "__init__":
+            parts = parts[:-1]
+            continue
+        elif parts[-1] in ["__main__", "setup"]:
+            continue
+        if parts == ():
+            continue
 
-    with mkdocs_gen_files.open(full_doc_path, "w") as fd:
-        ident = ".".join(parts)
-        fd.write(f"::: {ident}")
+        nav[parts] = str(doc_path)  #
 
-    mkdocs_gen_files.set_edit_path(full_doc_path, path)
+        with mkdocs_gen_files.open(full_doc_path, "w") as fd:
+            ident = ".".join(parts)
+            fd.write(f"::: {ident}")
+
+        mkdocs_gen_files.set_edit_path(full_doc_path, path)
 
 with mkdocs_gen_files.open("reference/SUMMARY.md", "w") as nav_file:  #
 
