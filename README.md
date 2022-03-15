@@ -4,8 +4,10 @@ Medperf is an open benchmarking platform for medical artificial intelligence usi
 
 ## What's included here
 Inside this repo you can find all important pieces for running MedPerf. In its current state, it includes:
+
 - ### MedPerf Server:
   Backend server implemented in django. Can be found inside the `server` folder
+
 - ### MedPerf CLI:
   Command Line Interface for interacting with the server. Can be found inside the `cli` folder.
 

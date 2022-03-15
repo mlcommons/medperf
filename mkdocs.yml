@@ -1,0 +1,21 @@
+site_name: MedPerf
+site_url: https://medperf.com/
+nav:
+  - Home: index.md
+  - About: about.md
+  - CLI: cli/index.md
+  - Server: server/index.md
+  - Code Reference: reference/
+theme: readthedocs
+
+plugins:
+  - search
+  - mkdocstrings:
+      watch:
+        - cli/medperf
+        - server
+  - gen-files:
+      scripts:
+        - gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
