@@ -1,1 +1,8 @@
 # About
+## Mission
+Design benchmarks and propose best practices to accelerate the development of AI and machine learning for healthcare, catalyze new markets, and ultimately improve Patient outcome and improve Providers’ experience.
+
+## Purpose
+Medical AI has tremendous potential to advance healthcare by supporting the evidence-based practice of medicine, personalizing patient treatment, reducing costs, and improving provider and patient experience. We believe that unlocking this potential requires a systematic way to measure the performance of medical AI models on large-scale heterogeneous data. To meet this need, we are building MedPerf, an open framework for benchmarking machine learning in the medical domain. MedPerf will enable federated evaluation in which models are securely distributed to different facilities for evaluation, thereby empowering healthcare organizations to assess and verify the performance of AI models in an efficient and human-supervised process, while prioritizing privacy. In our paper titled "[MedPerf: Open Benchmarking Platform for Medical Artificial Intelligence using Federated Evaluation](https://arxiv.org/abs/2110.01406)" we describe the current challenges healthcare and AI communities face, the need for an open platform, the design philosophy of MedPerf, its current implementation status, and our roadmap.
+
+Within our working group we strongly believe that these efforts will give key stakeholders the confidence to trust models and the data/processes they relied on, therefore accelerating ML adoption in the clinical settings, possibly improving patient outcomes, optimizing healthcare costs, and improving provider experiences.
