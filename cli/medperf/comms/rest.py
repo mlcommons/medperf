@@ -247,7 +247,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes created by the user")
+            pretty_error("couldn't retrieve mlcubes created by the user", self.ui)
         data = res.json()
         return data
 
