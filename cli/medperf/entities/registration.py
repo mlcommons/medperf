@@ -137,7 +137,8 @@ class Registration:
         """
         uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
-        os.rename(out_path, new_path)
+        if not os.path.exists(new_path):
+            os.rename(out_path, new_path)
         self.path = new_path
         return new_path
 
