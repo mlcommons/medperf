@@ -101,7 +101,10 @@ def cleanup_cubes():
     cubes_path = storage_path(config.cubes_storage)
     cubes = get_uids(cubes_path)
     test_prefix = config.test_cube_prefix
-    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
+    submission = config.cube_submission_id
+    clutter_cubes = [
+        cube for cube in cubes if cube.startswith(test_prefix) or cube == submission
+    ]
 
     for cube in clutter_cubes:
         logging.info(f"Removing clutter cube: {cube}")
