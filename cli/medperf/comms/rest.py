@@ -196,6 +196,7 @@ class REST(Comms):
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error("wasn't able to retrieve user benchmarks", self.ui)
+        return res.json()
 
     def get_cubes(self) -> List[dict]:
         """Retrieves all MLCubes in the platform
@@ -247,7 +248,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes created by the user")
+            pretty_error("couldn't retrieve mlcubes created by the user", self.ui)
         data = res.json()
         return data
 

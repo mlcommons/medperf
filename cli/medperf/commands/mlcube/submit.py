@@ -96,7 +96,7 @@ class SubmitCube:
         return valid
 
     def get_hash(self):
-        tmp_cube_uid = "tmp_submission"
+        tmp_cube_uid = config.cube_submission_id
         add_file_path = self.comms.get_cube_additional(
             self.additional_file, tmp_cube_uid
         )
