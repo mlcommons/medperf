@@ -66,7 +66,7 @@ class REST(Comms):
         Returns:
             requests.Response: Response object returned by the update
         """
-        data = {"approval_status": "APPROVED"}
+        data = {"approval_status": status}
         res = self.__auth_put(url, json=data,)
         return res
 

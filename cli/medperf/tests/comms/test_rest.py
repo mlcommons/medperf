@@ -83,6 +83,15 @@ def server(mocker, ui):
             (f"{url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": "APPROVED"}},
         ),
+        (
+            "_REST__set_approval_status",
+            "put",
+            200,
+            [f"{url}/mlcubes/1/benchmarks/1", "REJECTED"],
+            {},
+            (f"{url}/mlcubes/1/benchmarks/1",),
+            {"json": {"approval_status": "REJECTED"}},
+        ),
     ],
 )
 def test_methods_run_authorized_method(mocker, server, method_params):
