@@ -143,7 +143,7 @@ class Cube(object):
             task (str): task to run
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
+        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f"{k}={v}"
             cmd = " ".join([cmd, cmd_arg])
