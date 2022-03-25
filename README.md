@@ -68,9 +68,9 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    ```
    For this demonstration, you would execute the following command:
    ```
-   medperf run -b 1 -d 1 -m 2
+   medperf run -b 1 -d 63a -m 2
    ```
-   Given that the prepared dataset was assigned the UID of 1. You can find out what UID your prepared dataset has with the following command:
+   Given that the prepared dataset was assigned the UID of 63a. You can find out what UID your prepared dataset has with the following command:
    ```
    medperf dataset ls
    ```
