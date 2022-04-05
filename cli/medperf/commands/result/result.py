@@ -18,8 +18,8 @@ def run_benchmark(benchmark_uid, data_uid, model_uid):
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("create")
+@clean_except
 def create(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -36,8 +36,8 @@ def create(
     run_benchmark(benchmark_uid, data_uid, model_uid)
 
 
-@clean_except
 @app.command("submit")
+@clean_except
 def submit(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the executed benchmark"
@@ -57,8 +57,8 @@ def submit(
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("ls")
+@clean_except
 def list():
     """List results stored locally and remotely from the user"""
     comms = config.comms

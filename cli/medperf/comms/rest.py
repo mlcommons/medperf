@@ -150,7 +150,7 @@ class REST(Comms):
         Returns:
             str: path where the downloaded demo dataset can be found
         """
-        tmp_dir = storage_path(config.tmp_storage)
+        tmp_dir = storage_path(config.demo_data_storage)
         demo_data_path = os.path.join(tmp_dir, uid)
         tball_file = config.tarball_filename
         filepath = os.path.join(demo_data_path, tball_file)
@@ -179,6 +179,7 @@ class REST(Comms):
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error("wasn't able to retrieve user benchmarks", self.ui)
+        return res.json()
 
     def get_cubes(self) -> List[dict]:
         """Retrieves all MLCubes in the platform

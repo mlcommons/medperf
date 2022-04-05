@@ -53,8 +53,9 @@ def init_storage():
     results = storage_path(config.results_storage)
     tmp = storage_path(config.tmp_storage)
     bmks = storage_path(config.benchmarks_storage)
+    demo = storage_path(config.demo_data_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo]
     for dir in dirs:
         if not os.path.isdir(dir):
             logging.info(f"Creating {dir} directory")

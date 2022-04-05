@@ -124,7 +124,7 @@ WSGI_APPLICATION = "medperf.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {"default": env.db()}
-if os.environ.get("GCP_CI_CLOUDBUILD", False):
+if os.environ.get("GCP_CI_CLOUDBUILD", "False") == "True":
     print("CI Build environment")
     DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
 

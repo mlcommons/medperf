@@ -330,6 +330,22 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
     spy.assert_called_once_with(f"{url}/me/benchmarks/")
 
 
+def test_get_user_benchmarks_returns_benchmarks(mocker, server):
+    # Arrange
+    benchmarks = [
+        {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
+        {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
+    ]
+    res = MockResponse(benchmarks, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    retrieved_benchmarks = server.get_user_benchmarks()
+
+    # Assert
+    assert benchmarks == retrieved_benchmarks
+
+
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
 def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     # Arrange

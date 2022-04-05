@@ -10,8 +10,8 @@ from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
 app = typer.Typer()
 
 
-@clean_except
 @app.command("ls")
+@clean_except
 def datasets(
     all: bool = typer.Option(False, help="Get all datasets from the platform")
 ):
@@ -24,8 +24,8 @@ def datasets(
     DatasetsList.run(comms, ui)
 
 
-@clean_except
 @app.command("create")
+@clean_except
 def create(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -48,8 +48,8 @@ def create(
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("submit")
+@clean_except
 def register(
     data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Unregistered Dataset UID"
@@ -64,8 +64,8 @@ def register(
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("associate")
+@clean_except
 def associate(
     data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
