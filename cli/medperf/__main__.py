@@ -25,16 +25,16 @@ app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 
 
-@clean_except
 @app.command("login")
+@clean_except
 def login():
     """Login to the medperf server. Must be done only once.
     """
     Login.run(config.comms, config.ui)
 
 
-@clean_except
 @app.command("run")
+@clean_except
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
