@@ -1,5 +1,5 @@
 from .cli import CLI
-from .ui import UI
+from .interface import UI
 from .stdin import StdIn
 from medperf.utils import pretty_error
 

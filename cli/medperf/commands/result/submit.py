@@ -1,5 +1,6 @@
-from medperf.entities import Result, Dataset
-from medperf.utils import pretty_error, results_path
+from medperf.utils import pretty_error
+from medperf.entities.result import Result
+from medperf.entities.dataset import Dataset
 
 
 class ResultSubmission:

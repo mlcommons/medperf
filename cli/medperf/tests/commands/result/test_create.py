@@ -2,9 +2,11 @@ import pytest
 from unittest.mock import call
 
 from medperf.tests.utils import rand_l
+from medperf.entities.cube import Cube
 from medperf.tests.mocks import Benchmark
-from medperf.commands.result import BenchmarkExecution
-from medperf.entities import Dataset, Benchmark, Cube
+from medperf.entities.dataset import Dataset
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.result.create import BenchmarkExecution
 
 PATCH_EXECUTION = "medperf.commands.result.create.{}"
 

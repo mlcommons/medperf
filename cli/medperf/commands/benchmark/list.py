@@ -1,8 +1,8 @@
 from tabulate import tabulate
 
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Benchmark
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
+from medperf.entities.benchmark import Benchmark
 
 
 class BenchmarksList:

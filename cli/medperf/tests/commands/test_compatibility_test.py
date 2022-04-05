@@ -1,13 +1,12 @@
 import os
-from tkinter import N
-from inflection import parameterize
 import pytest
 from unittest.mock import call, ANY, mock_open
 
-from medperf import config
+import medperf.config as config
 from medperf.tests.utils import rand_l
-from medperf.entities import Benchmark, Dataset
-from medperf.commands import CompatibilityTestExecution
+from medperf.entities.dataset import Dataset
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 PATCH_TEST = "medperf.commands.compatibility_test.{}"
 

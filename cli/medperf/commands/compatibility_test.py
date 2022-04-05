@@ -4,12 +4,14 @@ import logging
 from time import time
 from typing import List
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
-from medperf.entities import Dataset, Benchmark, Result
-from medperf.commands.dataset import DataPreparation
-from medperf.commands.result import BenchmarkExecution
+from medperf.ui.interface import UI
+import medperf.config as config
+from medperf.comms.interface import Comms
+from medperf.entities.result import Result
+from medperf.entities.dataset import Dataset
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.dataset.create import DataPreparation
+from medperf.commands.result.create import BenchmarkExecution
 from medperf.utils import pretty_error, untar, get_file_sha1, get_uids, storage_path
 
 

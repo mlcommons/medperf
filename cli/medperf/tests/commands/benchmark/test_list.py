@@ -1,8 +1,3 @@
-import pytest
-
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Dataset, Benchmark
 from medperf.commands.benchmark.list import BenchmarksList
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.list.{}"

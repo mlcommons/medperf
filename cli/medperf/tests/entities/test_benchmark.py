@@ -1,12 +1,12 @@
 import os
 import pytest
-from unittest.mock import MagicMock, mock_open, ANY
+from unittest.mock import mock_open, ANY
 
-from medperf import config
-from medperf.comms import Comms
-from medperf.utils import storage_path
-from medperf.entities import Benchmark
+import medperf.config as config
+from medperf.comms.interface import Comms
 from medperf.tests.utils import rand_l
+from medperf.utils import storage_path
+from medperf.entities.benchmark import Benchmark
 from medperf.tests.mocks.requests import benchmark_body
 
 

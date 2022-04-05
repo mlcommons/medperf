@@ -1,13 +1,13 @@
-from unittest.mock import MagicMock, mock_open, call, ANY
-from pathlib import Path
-import datetime as dt
-import time_machine
-import random
-import pytest
 import os
+import pytest
+import random
+import time_machine
+import datetime as dt
+from pathlib import Path
+from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
-from medperf.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockCube, MockTar

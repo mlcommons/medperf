@@ -3,8 +3,8 @@ import yaml
 import logging
 from typing import List
 
-from medperf import config
-from medperf.comms import Comms
+import medperf.config as config
+from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 
 

@@ -1,14 +1,10 @@
-from typing import List
-import logging
-import yaml
 import os
-from pathlib import Path
+import yaml
 import pexpect
-import time
+import logging
+from typing import List
+from pathlib import Path
 
-from medperf.comms import Comms
-from medperf.ui import UI
-from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
@@ -17,6 +13,9 @@ from medperf.utils import (
     list_files,
     storage_path,
 )
+from medperf.ui.interface import UI
+import medperf.config as config
+from medperf.comms.interface import Comms
 
 
 class Cube(object):

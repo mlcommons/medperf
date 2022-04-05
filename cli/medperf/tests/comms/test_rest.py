@@ -3,11 +3,11 @@ import pytest
 import requests
 from unittest.mock import mock_open, ANY
 
-from medperf.ui import UI
-from medperf.comms import REST
+from medperf.ui.interface import UI
 from medperf.enums import Role
-from medperf.tests.mocks import MockResponse
+from medperf.comms.rest import REST
 from medperf.tests.utils import rand_l
+from medperf.tests.mocks import MockResponse
 
 url = "mock.url"
 patch_server = "medperf.comms.rest.{}"

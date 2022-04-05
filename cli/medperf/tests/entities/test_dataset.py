@@ -1,13 +1,12 @@
 import pytest
-from unittest.mock import MagicMock, mock_open
+from unittest.mock import mock_open
 
 import medperf
 from medperf import utils
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.entities import Dataset
-from medperf.ui import UI
-from medperf.comms import Comms
 from medperf.tests.mocks import Benchmark
+from medperf.entities.dataset import Dataset
 
 REGISTRATION_MOCK = {
     "name": "name",

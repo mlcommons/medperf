@@ -1,9 +1,11 @@
 import typer
 
-from medperf import config
-from medperf.decorators import clean_except
-from medperf.commands.benchmark import *
+import medperf.config as config
 from medperf.utils import cleanup
+from medperf.decorators import clean_except
+from medperf.commands.benchmark.list import BenchmarksList
+from medperf.commands.benchmark.submit import SubmitBenchmark
+from medperf.commands.benchmark.associate import AssociateBenchmark
 
 app = typer.Typer()
 
