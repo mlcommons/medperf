@@ -20,16 +20,16 @@ app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 
 
-@clean_except
 @app.command("login")
+@clean_except
 def login():
     """Login to the medperf server. Must be done only once.
     """
     Login.run(config.comms, config.ui)
 
 
-@clean_except
 @app.command("run")
+@clean_except
 def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
