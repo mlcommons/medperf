@@ -1,5 +1,5 @@
+import logging
 import functools
-from typing import Type
 from collections.abc import Callable
 
 from medperf.utils import cleanup
