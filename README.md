@@ -60,7 +60,7 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    ```
    for the CheXpert dataset, this would be the command to execute:
    ```
-   medperf dataset create -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small/valid.csv
+   medperf dataset create -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small
    ```
    Where we're executing the benchmark with UID `1`, since is the first and only benchmark in the server. By doing this, the CLI retrieves the data preparation cube from the benchmark and processes the raw dataset. You will be prompted for additional information and confirmations for the dataset to be prepared and registered onto the server.
 4. ## Run the benchmark execution step
@@ -70,9 +70,9 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    ```
    For this demonstration, you would execute the following command:
    ```
-   medperf run -b 1 -d 1 -m 2
+   medperf run -b 1 -d 63a -m 2
    ```
-   Given that the prepared dataset was assigned the UID of 1. You can find out what UID your prepared dataset has with the following command:
+   Given that the prepared dataset was assigned the UID of 63a. You can find out what UID your prepared dataset has with the following command:
    ```
    medperf dataset ls
    ```
