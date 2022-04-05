@@ -53,8 +53,8 @@ def execute(
     )
 
 
-@clean_except
 @app.command("test")
+@clean_except
 def test(
     benchmark_uid: int = typer.Option(
         None,

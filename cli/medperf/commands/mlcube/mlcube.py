@@ -8,8 +8,8 @@ from medperf.commands.mlcube import *
 app = typer.Typer()
 
 
-@clean_except
 @app.command("ls")
+@clean_except
 def list(all: bool = typer.Option(False, help="Display all mlcubes")):
     """List mlcubes registered by the user by default.
     Use "all" to display all mlcubes in the platform
@@ -20,8 +20,8 @@ def list(all: bool = typer.Option(False, help="Display all mlcubes")):
     CubesList.run(comms, ui, all)
 
 
-@clean_except
 @app.command("submit")
+@clean_except
 def submit():
     """Submits a new cube to the platform"""
     comms = config.comms
@@ -32,8 +32,8 @@ def submit():
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("associate")
+@clean_except
 def associate(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),

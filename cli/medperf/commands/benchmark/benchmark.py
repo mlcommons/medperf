@@ -8,8 +8,8 @@ from medperf.utils import cleanup
 app = typer.Typer()
 
 
-@clean_except
 @app.command("ls")
+@clean_except
 def list(
     all: bool = typer.Option(False, help="Display all benchmarks in the platform")
 ):
@@ -22,8 +22,8 @@ def list(
     BenchmarksList.run(comms, ui, all)
 
 
-@clean_except
 @app.command("submit")
+@clean_except
 def submit():
     """Submits a new benchmark to the platform"""
     comms = config.comms
@@ -34,8 +34,8 @@ def submit():
     ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("associate")
+@clean_except
 def associate(
     benchmark_uid: str = typer.Option(
         ..., "--benchmark_uid", "-b", help="UID of benchmark to associate with"
