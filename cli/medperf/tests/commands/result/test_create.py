@@ -13,6 +13,7 @@ PATCH_EXECUTION = "medperf.commands.result.create.{}"
 def cube(mocker):
     def cube_gen():
         cube = mocker.create_autospec(spec=Cube)
+        cube.uid = 1
         return cube
 
     return cube_gen
@@ -27,6 +28,7 @@ def execution(mocker, comms, ui, cube):
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
     exec = BenchmarkExecution(0, 0, 0, comms, ui)
     exec.dataset.uid = 1
+    exec.dataset.data_uid = "data_uid"
     exec.dataset.preparation_cube_uid = "prep_cube"
     exec.benchmark.data_preparation = "prep_cube"
     exec.benchmark.models = [0]
