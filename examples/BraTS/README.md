@@ -10,15 +10,15 @@ A data preparation MLCube of brain tumor MR scans that have ground truth annotat
 
 ### model_deepmedic
 
-A model MLCube for running inference on prepared brain tumor MR scans using [DeepMedic](https://doi.org/10.1016/j.media.2016.10.004).
+A model MLCube for running inference on prepared brain tumor MR scans using [DeepMedic](https://doi.org/10.1016/j.media.2016.10.004) trained on BraTS 2020 training data.
 
 ### model_deepscan
 
-A model MLCube for running inference on prepared brain tumor MR scans using [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) - this requires 120G RAM.
+A model MLCube for running inference on prepared brain tumor MR scans using [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) trained on BraTS 2020 training data - this requires 120G RAM.
 
 ### model_nnunet
 
-A model MLCube for running inference on prepared brain tumor MR scans using [nnUNet](https://doi.org/10.1038/s41592-020-01008-z).
+A model MLCube for running inference on prepared brain tumor MR scans using [nnUNet](https://doi.org/10.1038/s41592-020-01008-z) trained on BraTS 2020 training data.
 
 ### metrics
 
