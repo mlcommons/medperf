@@ -1,0 +1,6 @@
+PyYAML~=5.3
+pandas~=1.1
+typer
+MedPy
+SimpleITK
+numpy
