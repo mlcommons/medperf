@@ -1,0 +1,13 @@
+metrics:
+  # List of metrics to run
+  - AUC
+  - F1
+label columns:
+  # Label columns that are going to be evaluated
+ - Atelectasis
+ - Cardiomegaly
+ - Consolidation
+ - Edema
+
+# Common identifier column for labels and predictions
+id column: Path

@@ -1,0 +1,22 @@
+name: Phase Metrics
+description: MLCube evaluating frame-wise video classification
+authors:
+ - {name: "Hasan Kassem"}
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name.
+  image: hasan7/metrics:0.0.2
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  evaluate:
+  # Executes a number of metrics specified by the params file
+    parameters:
+      inputs: {predictions: predictions/, labels: data/, parameters_file: parameters.yaml}
+      outputs: {output_path: {type: "file", default: "results.yaml"}}
