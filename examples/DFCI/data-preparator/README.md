@@ -33,7 +33,7 @@ This template was built so it can work out-of-the-box. Follow the next steps:
 7. execute the `sanity_check` task
     ```bash
     mlcube run --task=sanity_check
-        ```
+    ```
 8. execute the `statistics` task
     ```bash
     mlcube run --task=statistics
