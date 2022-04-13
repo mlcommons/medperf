@@ -1,5 +1,7 @@
 # MedPerf-Study
 
+You can find medperf's primary repository here: https://github.com/mlcommons/medperf
+
 This repo consists of 5 mlcubes:
 * 1 data preparation cube
 * 3 model cubes
