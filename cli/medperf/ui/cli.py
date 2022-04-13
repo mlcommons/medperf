@@ -3,7 +3,7 @@ from getpass import getpass
 from yaspin import yaspin
 from contextlib import contextmanager
 
-from .ui import UI
+from .interface import UI
 
 
 class CLI(UI):

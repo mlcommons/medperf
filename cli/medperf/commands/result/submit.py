@@ -1,5 +1,6 @@
-from medperf.entities import Result, Dataset
-from medperf.utils import pretty_error, results_path
+from medperf.utils import pretty_error
+from medperf.entities.result import Result
+from medperf.entities.dataset import Dataset
 
 
 class ResultSubmission:
@@ -17,8 +18,7 @@ class ResultSubmission:
         sub.upload_results()
 
     def upload_results(self):
-        out_path = results_path(self.benchmark_uid, self.model_uid, self.data_uid)
-        result = Result(out_path, self.benchmark_uid, self.data_uid, self.model_uid)
+        result = Result(self.benchmark_uid, self.data_uid, self.model_uid)
         approved = result.request_approval(self.ui)
         if not approved:
             msg = "Results upload operation cancelled"

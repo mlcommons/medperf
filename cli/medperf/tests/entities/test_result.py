@@ -1,9 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, call, ANY
 
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Result
+from medperf.entities.result import Result
 
 PATCH_RESULT = "medperf.entities.result.{}"
 MOCK_RESULTS_CONTENT = {"id": "1", "results": {}}
@@ -14,10 +12,27 @@ def result(mocker):
     mocker.patch(PATCH_RESULT.format("Result.get_results"))
     mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.safe_load", return_value={})
-    result = Result("", 1, 1, 1)
+    result = Result(1, 1, 1)
     result.results = MOCK_RESULTS_CONTENT
     result.uid = result.results["id"]
     return result
+
+
+@pytest.mark.parametrize(
+    "results_path", ["./results.yaml", "~/.medperf/results/1/results.yaml"]
+)
+def test_results_looks_for_results_path_on_init(mocker, results_path):
+    # Arrange
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch("yaml.safe_load", return_value={})
+    mocker.spy(Result, "get_results")
+    mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
+
+    # Act
+    result = Result(1, 1, 1)
+
+    # Assert
+    assert result.path == results_path
 
 
 @pytest.mark.parametrize(
@@ -28,9 +43,10 @@ def test_results_open_results_file_on_init(mocker, results_path):
     open_spy = mocker.patch("builtins.open", MagicMock())
     yaml_spy = mocker.patch("yaml.safe_load", return_value={})
     get_spy = mocker.spy(Result, "get_results")
+    mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
 
     # Act
-    result = Result(results_path, 1, 1, 1)
+    result = Result(1, 1, 1)
 
     # Assert
     get_spy.assert_called_once()
@@ -64,7 +80,7 @@ def test_all_creates_result_objects_with_correct_info(
     results = Result.all(ui)
 
     # Assert
-    spy.assert_has_calls([call(mocker.ANY, mock_path, b_id, d_id, m_id)])
+    spy.assert_has_calls([call(mocker.ANY, b_id, d_id, m_id)])
 
 
 @pytest.mark.parametrize(
@@ -74,7 +90,8 @@ def test_todict_opens_results_file_as_yaml(mocker, result, results_path):
     # Arrange
     open_spy = mocker.patch("builtins.open", MagicMock())
     yaml_spy = mocker.patch("yaml.safe_load", return_value={})
-    result = Result(results_path, 1, 1, 1)
+    mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
+    result = Result(1, 1, 1)
 
     # Act
     result.todict()

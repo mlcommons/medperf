@@ -1,12 +1,11 @@
 import stat
-from medperf.ui import UI
-from medperf.comms import Comms
-import medperf.config as config
-from medperf.commands import Login
-from medperf.utils import storage_path
-
 import pytest
 from unittest.mock import mock_open
+
+import medperf.config as config
+from medperf.comms.interface import Comms
+from medperf.utils import storage_path
+from medperf.commands.login import Login
 
 
 @pytest.fixture(params=["token123"])

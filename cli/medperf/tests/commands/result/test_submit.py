@@ -1,8 +1,8 @@
 import pytest
 
-from medperf.tests.utils import rand_l
-from medperf.entities import Result, Dataset
-from medperf.commands.result import ResultSubmission
+from medperf.entities.result import Result
+from medperf.entities.dataset import Dataset
+from medperf.commands.result.submit import ResultSubmission
 
 PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 
@@ -28,25 +28,6 @@ def submission(mocker, comms, ui, result, dataset):
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
     mocker.patch(PATCH_SUBMISSION.format("Dataset"), return_value=dataset)
     return sub
-
-
-@pytest.mark.parametrize("bmark_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("data_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model_uid", rand_l(1, 5000, 2))
-def test_upload_results_looks_for_results_path(
-    mocker, submission, bmark_uid, data_uid, model_uid
-):
-    # Arrange
-    submission.benchmark_uid = bmark_uid
-    submission.model_uid = model_uid
-    submission.data_uid = data_uid
-    spy = mocker.patch(PATCH_SUBMISSION.format("results_path"), return_value="")
-
-    # Act
-    submission.upload_results()
-
-    # Assert
-    spy.assert_called_once_with(bmark_uid, model_uid, data_uid)
 
 
 def test_upload_results_requests_approval(mocker, submission, result):

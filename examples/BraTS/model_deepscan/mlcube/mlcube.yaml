@@ -1,0 +1,31 @@
+name: Medperf FeTS Inference
+description: FeTS MLCube to perform inference on brain tumor data.
+authors:
+  - {name: "Sarthak Pati"}
+  - {name: "Ujjwal Baid"}
+  - {name: "Spyridon Bakas"}
+
+platform:
+  accelerator_count: 1
+
+docker:
+  # Image name.
+  image: mlcommons/fets_inference_deepscan:latest
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  # Model MLCubes require only a single task: `infer`.
+  # This task takes input data, as well as configuration parameters
+  # and/or extra artifacts, and generates predictions on the data
+  infer:
+    parameters:
+      inputs: {
+        data_path: {type: directory, default: data}, # Required. Where to find the data to run predictions on.  MUST be a folder
+        parameters_file: parameters.yaml, # Required. Helper file to provide additional arguments. Value MUST be parameters.yaml
+      }
+      outputs: {
+        output_path: {type: directory, default: predictions} # Required. Where to store prediction artifacts. MUST be a folder
+      }
