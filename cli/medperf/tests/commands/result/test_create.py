@@ -2,11 +2,9 @@ import pytest
 from unittest.mock import call
 
 from medperf.tests.utils import rand_l
-from medperf.entities.cube import Cube
 from medperf.tests.mocks import Benchmark
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
-from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.result import BenchmarkExecution
+from medperf.entities import Dataset, Benchmark, Cube
 
 PATCH_EXECUTION = "medperf.commands.result.create.{}"
 
@@ -28,7 +26,6 @@ def execution(mocker, comms, ui, cube):
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
     exec = BenchmarkExecution(0, 0, 0, comms, ui)
-    exec.prepare()
     exec.dataset.uid = 1
     exec.dataset.preparation_cube_uid = "prep_cube"
     exec.benchmark.data_preparation = "prep_cube"
@@ -110,7 +107,6 @@ def test_get_cubes_retrieves_expected_cubes(
 def test__get_cube_retrieves_cube(mocker, execution, cube_uid, name):
     # Arrange
     comms = execution.comms
-    ui = execution.ui
     spy = mocker.patch(PATCH_EXECUTION.format("Cube.get"))
     mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
@@ -118,7 +114,7 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid, name):
     execution._BenchmarkExecution__get_cube(cube_uid, name)
 
     # Assert
-    spy.assert_called_once_with(cube_uid, comms, ui)
+    spy.assert_called_once_with(cube_uid, comms)
 
 
 def test__get_cube_checks_cube_validity(mocker, execution, cube):
@@ -160,6 +156,7 @@ def test_run_executes_expected_flow(mocker, comms, ui, execution):
     val_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.validate"))
     get_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_cubes"))
     run_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.run_cubes"))
+    mocker.patch(PATCH_EXECUTION.format("cleanup"))
 
     # Act
     BenchmarkExecution.run(1, 1, 1, comms, ui)

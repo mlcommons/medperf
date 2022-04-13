@@ -1,15 +1,14 @@
 import os
 from pathlib import Path
 
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
+from medperf.ui import UI
+from medperf.comms import Comms
+from medperf.entities import Benchmark, Dataset, Cube
 from medperf.utils import (
     check_cube_validity,
     init_storage,
     pretty_error,
+    cleanup,
     results_path,
 )
 import medperf.config as config
@@ -18,13 +17,7 @@ import medperf.config as config
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls,
-        benchmark_uid: int,
-        data_uid: str,
-        model_uid: int,
-        comms: Comms,
-        ui: UI,
-        run_test=False,
+        cls, benchmark_uid: int, data_uid: str, model_uid: int, comms: Comms, ui: UI
     ):
         """Benchmark execution flow.
 
@@ -33,21 +26,15 @@ class BenchmarkExecution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui, run_test)
-        execution.prepare()
+        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui)
         execution.validate()
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
+        cleanup()
 
     def __init__(
-        self,
-        benchmark_uid: int,
-        data_uid: int,
-        model_uid: int,
-        comms: Comms,
-        ui: UI,
-        run_test=False,
+        self, benchmark_uid: int, data_uid: int, model_uid: int, comms: Comms, ui: UI
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -56,24 +43,21 @@ class BenchmarkExecution:
         self.ui = ui
         self.evaluator = None
         self.model_cube = None
-        self.run_test = run_test
 
-    def prepare(self):
         init_storage()
-        self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
-        self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset(self.data_uid, self.ui)
+        self.benchmark = Benchmark.get(benchmark_uid, comms)
+        ui.print(f"Benchmark Execution: {self.benchmark.name}")
+        self.dataset = Dataset(data_uid, ui)
 
     def validate(self):
-        dset_prep_cube = str(self.dataset.preparation_cube_uid)
-        bmark_prep_cube = str(self.benchmark.data_preparation)
+        dset_prep_cube = self.dataset.preparation_cube_uid
+        bmark_prep_cube = self.benchmark.data_preparation
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             pretty_error(msg, self.ui)
 
-        in_assoc_cubes = self.model_uid in self.benchmark.models
-        if not self.run_test and not in_assoc_cubes:
+        if self.model_uid not in self.benchmark.models:
             pretty_error(
                 "The provided model is not part of the specified benchmark.", self.ui
             )
@@ -85,7 +69,7 @@ class BenchmarkExecution:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
-        cube = Cube.get(uid, self.comms, self.ui)
+        cube = Cube.get(uid, self.comms)
         self.ui.print(f"> {name} cube download complete")
         check_cube_validity(cube, self.ui)
         return cube
