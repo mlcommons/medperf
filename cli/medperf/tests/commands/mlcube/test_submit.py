@@ -1,9 +1,9 @@
 import pytest
-from unittest.mock import ANY, call
+from unittest.mock import ANY
 
-from medperf import config
-from medperf.commands.mlcube import SubmitCube
+import medperf.config as config
 from medperf.tests.utils import rand_l
+from medperf.commands.mlcube.submit import SubmitCube
 
 PATCH_MLCUBE = "medperf.commands.mlcube.submit.{}"
 

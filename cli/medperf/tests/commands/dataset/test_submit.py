@@ -1,8 +1,8 @@
 import pytest
 
-from medperf.entities import Dataset
 from medperf.tests.utils import rand_l
-from medperf.commands.dataset import DatasetRegistration
+from medperf.entities.dataset import Dataset
+from medperf.commands.dataset.submit import DatasetRegistration
 
 PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 

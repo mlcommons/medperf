@@ -1,8 +1,8 @@
 import validators
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
+from medperf.ui.interface import UI
+import medperf.config as config
+from medperf.comms.interface import Comms
 from medperf.utils import get_file_sha1
 
 
@@ -96,7 +96,7 @@ class SubmitCube:
         return valid
 
     def get_hash(self):
-        tmp_cube_uid = "tmp_submission"
+        tmp_cube_uid = config.cube_submission_id
         add_file_path = self.comms.get_cube_additional(
             self.additional_file, tmp_cube_uid
         )

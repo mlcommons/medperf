@@ -1,8 +1,8 @@
 from tabulate import tabulate
 
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Result
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
+from medperf.entities.result import Result
 
 
 class ResultsList:
