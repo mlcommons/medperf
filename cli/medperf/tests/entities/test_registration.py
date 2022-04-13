@@ -4,11 +4,10 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import medperf
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
+from medperf.ui import UI
+from medperf.comms import Comms
 from medperf.tests.utils import rand_l
-from medperf.entities.registration import Registration
-from medperf.entities.cube import Cube
+from medperf.entities import Registration, Cube
 
 
 IN_PATH = "in_path"
@@ -210,13 +209,11 @@ def test_to_permanent_path_returns_expected_path(
     "out_path", ["test", "out", "out_path", "~/.medperf/data/tmp_0"]
 )
 @pytest.mark.parametrize("new_path", ["test", "new", "new_path", "~/.medperf/data/34"])
-@pytest.mark.parametrize("exists", [True, False])
 def test_to_permanent_path_renames_folder_correctly(
-    mocker, out_path, new_path, reg_mocked_with_params, exists
+    mocker, out_path, new_path, reg_mocked_with_params
 ):
     # Arrange
     spy = mocker.patch("os.rename")
-    mocker.patch("os.path.exists", return_value=exists)
     mocker.patch("os.path.join", return_value=new_path)
     reg = Registration(*reg_mocked_with_params)
     reg.generated_uid = 0
@@ -225,10 +222,7 @@ def test_to_permanent_path_renames_folder_correctly(
     reg.to_permanent_path(out_path)
 
     # Assert
-    if exists:
-        spy.assert_not_called()
-    else:
-        spy.assert_called_once_with(out_path, new_path)
+    spy.assert_called_once_with(out_path, new_path)
 
 
 @pytest.mark.parametrize("filepath", ["filepath"])

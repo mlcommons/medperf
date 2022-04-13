@@ -2,7 +2,7 @@ import os
 import pytest
 from unittest.mock import MagicMock
 
-from medperf.ui.cli import CLI
+from medperf.ui import CLI
 
 
 @pytest.fixture

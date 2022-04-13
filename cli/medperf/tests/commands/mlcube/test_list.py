@@ -1,4 +1,6 @@
-from medperf.commands.mlcube.list import CubesList
+import pytest
+
+from medperf.commands.mlcube import CubesList
 
 PATCH_MLCUBE = "medperf.commands.mlcube.list.{}"
 

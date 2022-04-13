@@ -1,5 +1,7 @@
-from medperf.entities.result import Result
-from medperf.commands.result.list import ResultsList
+import pytest
+
+from medperf.entities import Result
+from medperf.commands.result import ResultsList
 
 PATCH_LIST = "medperf.commands.result.list.{}"
 

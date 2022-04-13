@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from .interface import UI
+from .ui import UI
 
 
 class StdIn(UI):
