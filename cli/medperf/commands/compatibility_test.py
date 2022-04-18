@@ -135,8 +135,9 @@ class CompatibilityTestExecution:
         # Check if value is a server UID
         if os.path.exists(val):
             logging.info("local path provided. Creating symbolic link")
-            self.cube_uid = config.test_cube_prefix + str(int(time()))
-            dst = os.path.join(config.cubes_storage, self.cube_uid)
+            self.model = config.test_cube_prefix + str(int(time()))
+            cubes_storage = storage_path(config.cubes_storage)
+            dst = os.path.join(cubes_storage, self.model)
             os.symlink(val, dst)
             logging.info(f"local cube will linked to path: {dst}")
 

@@ -134,9 +134,11 @@ def test_set_cube_uid_sets_ref_model_by_default(attr, ref_uid, comms, ui):
 @pytest.mark.parametrize("dst", ["path/to/symlink"])
 def test_set_cube_uid_creates_symlink_if_path_provided(mocker, src, dst, comms, ui):
     # Arrange
+    cubes_loc = "~/.medperf/cubes"
     mocker.patch("os.path.exists", return_value=True)
-    mocker.patch("os.path.join", return_value=dst)
-    spy = mocker.patch("os.symlink")
+    join_spy = mocker.patch("os.path.join", return_value=dst)
+    syml_spy = mocker.patch("os.symlink")
+    mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
     exec.model = src
 
@@ -144,7 +146,8 @@ def test_set_cube_uid_creates_symlink_if_path_provided(mocker, src, dst, comms, 
     exec.set_cube_uid("model")
 
     # Assert
-    spy.assert_called_once_with(src, dst)
+    syml_spy.assert_called_once_with(src, dst)
+    assert call(cubes_loc, ANY) in join_spy.mock_calls
 
 
 @pytest.mark.parametrize("model_uid", rand_l(1, 500, 5))
