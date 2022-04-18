@@ -1,3 +1,5 @@
+![image](https://user-images.githubusercontent.com/25375373/163279746-14d7902b-98ed-4fcf-a4e3-f27d4bcbd339.png)
+
 # MedPerf
 
 Medperf is an open benchmarking platform for medical artificial intelligence using Federated Evaluation.
@@ -9,7 +11,7 @@ Inside this repo you can find all important pieces for running MedPerf. In its c
 - ### MedPerf CLI:
   Command Line Interface for interacting with the server. Can be found inside the `cli` folder.
 - ### Results from our Pilots:
-  In the examples folder we have the results from the following Pilots
+  In the `examples` folder we have the results from the following Pilots
   
 ## Pilots
 In order to validate MedPerf we performed a series of pilot experiments with academic groups that are involved in multi-institutional collaborations for the purposes of research and development of medical AI models. The experiments were intentionally designed to include a diversity of domains and modalities in order to test MedPerf’s infrastructure adaptance. The experiments included public and private data highlighting the technical capabilities of MedPerf to operate on private data. We also asked participating teams to provide feedback on their experience with MedPerf (e.g., limitations, issues). 
@@ -34,7 +36,7 @@ These scans, with accompanying manually approved labels by expert neuroradiologi
 
 **Data**
 
-The BraTS 2020 challenge dataset is a retrospective collection of 2,640 brain glioma multi-parametric magnetic resonance imaging (mpMRI) scans, from 660 patients, acquired at 23 geographically-distinct institutions under routine clinical conditions, i.e., with varying equipment and acquisition protocols.The exact mpMRI scans included in the BraTS challenge dataset are a) native (T1) and b) post-contrast T1-weighted (T1Gd), c) T2-weighted (T2), and d) T2-weighted Fluid Attenuated Inversion Recovery (T2-FLAIR). Notably, the BraTS 2020 dataset was utilized in the first ever federated learning challenge, namely the Federated Tumor Segmentation (FeTS) 2021 challenge (https://miccai.fets.ai/) that ran in conjunction with the Medical Image Computing and Computer Assisted Interventions (MICCAI) conference. Standardized pre-processing has been applied to all the BraTS mpMRI scans. This includes conversion of the DICOM files to the NIfTI file format, co-registration to the same anatomical template (SRI24), resampling to a uniform isotropic resolution (1mm3), and finally skull-stripping 67. The pre-processing pipeline is publicly available through the Cancer Imaging Phenomics Toolkit (CaPTk).
+The BraTS 2020 challenge dataset is a retrospective collection of 2,640 brain glioma multi-parametric magnetic resonance imaging (mpMRI) scans, from 660 patients, acquired at 23 geographically-distinct institutions under routine clinical conditions, i.e., with varying equipment and acquisition protocols.The exact mpMRI scans included in the BraTS challenge dataset are a) native (T1) and b) post-contrast T1-weighted (T1Gd), c) T2-weighted (T2), and d) T2-weighted Fluid Attenuated Inversion Recovery (T2-FLAIR). Notably, the BraTS 2020 dataset was utilized in the first ever federated learning challenge, namely the Federated Tumor Segmentation (FeTS) 2021 challenge (https://miccai.fets.ai/) that ran in conjunction with the Medical Image Computing and Computer Assisted Interventions (MICCAI) conference. Standardized pre-processing has been applied to all the BraTS mpMRI scans. This includes conversion of the DICOM files to the NIfTI file format, co-registration to the same anatomical template (SRI24), resampling to a uniform isotropic resolution (1mm3), and finally skull-stripping. The pre-processing pipeline is publicly available through the Cancer Imaging Phenomics Toolkit (CaPTk).
 
 **Code**
 
@@ -51,14 +53,14 @@ The BraTS 2020 challenge dataset is a retrospective collection of 2,640 brain gl
 
 Precise organ segmentation using computed tomography (CT) images is an important step for medical image analysis and treatment planning. Pancreas Segmentation involves immense challenge due to the small volume and irregular shapes. Our goal is to perform federated evaluation across different sites using MedPerf for the task of pancreas segmentation.
 
-**Code**
-
-[github.com/mlcommons/medperf/tree/main/examples/DFCI](https://github.com/mlcommons/medperf/tree/main/examples/DFCI)
-
 **Data**
 
 We utilized two separate datasets for the pilot experiment. The first of which is the Multi-Atlas Labeling Beyond the Cranial Vault (BTCV) dataset. This dataset is publicly available through synapse platform. Abdominal CT images from the metastatic liver cancer patients and the postoperative ventral hernia patients were acquired at the Vanderbilt University Medical Center. Voxel size for images was 0.6 to 0.9 mm in the anterior-posterior (AP) and left-right (LR) axis and 1.5 to 7.0 mm in the inferior-superior (IS) axis were the image acquisition parameters. Abdominal CT images were registered using NiftyReg. A total of 3719 images were obtained from 40 subjects for the task. 3719 images were randomly distributed into 2916 images for training, and 803 images for testing. The data distribution was done in a subject-wise manner to avoid data leakage between the training and the testing dataset. Due to the inconsistency in the image orientation, all the images were re-oriented to a standard orientation for further analysis.
-In addition to the BTCV dataset, we also included another publicly available dataset from The Cancer Imaging Archives (TCIA). The National Institute of Health Clinical Center curated the dataset with 82 abdominal scans, from 53 male and 27 female subjects. Of which 17 patients had known kidney donations that confirmed healthy abdominal regions, and the remaining patients were selected after examination confirmed that the patients had neither pancreatic lesions nor any other significant abdominal abnormalities. These scans varied between 1.5 - 2.5 mm, with 512 x 512 pixel resolution, generating 18,782 individual scans.
+In addition to the BTCV dataset, we also included another publicly available dataset from The Cancer Imaging Archives (TCIA). The National Institute of Health Clinical Center curated the dataset with 82 abdominal scans, from 53 male and 27 female subjects. Of which 17 patients had known kidney donations that confirmed healthy abdominal regions, and the remaining patients were selected after examination confirmed that the patients had neither pancreatic lesions nor any other significant abdominal abnormalities. These scans varied between 1.5 - 2.5 mm, with 512 x 512 pixel resolution, generating 18782 individual scans.
+
+**Code**
+
+[github.com/mlcommons/medperf/tree/main/examples/DFCI](https://github.com/mlcommons/medperf/tree/main/examples/DFCI)
 
 ### Pilot 3 - Surgical Workflow Phase Recognition
 
@@ -69,7 +71,11 @@ In addition to the BTCV dataset, we also included another publicly available dat
 
 **Task**
 
-Surgical phase recognition is a classification task of each video frame from a recorded surgery to one of some predefined phases that give a coarse description of the surgical workflow. This task is a building block for context-aware systems that help in assisting surgeons for better Operating Room (OR) safety 79.
+Surgical phase recognition is a classification task of each video frame from a recorded surgery to one of some predefined phases that give a coarse description of the surgical workflow. This task is a building block for context-aware systems that help in assisting surgeons for better Operating Room (OR) safety.
+
+**Data**
+
+The data we used corresponds to Multichole2022; a multicentric dataset comprising videos of recorded laparoscopic cholecystectomy surgeries, annotated for the task of surgical phase recognition. The dataset consists of 180 videos in total, of which 56 videos were used in our pilot experiment and the rest of the videos (i.e., 124) were used to train the model. The videos were taken from five (5) different hospitals: 32 videos from the University Hospital of Strasbourg, France; which are part of the public dataset Cholec80, and 6 videos were taken from each of the following Italian hospitals: Policlinico Universitario Agostino Gemelli, Rome; Azienda Ospedaliero-Universitaria Sant’Andrea, Rome; Fondazione IRCCS Ca’ Granda Ospedale Maggiore Policlinico, Milan; and Monaldi Hospital, Naples. The data is still private for now. Videos are annotated according to the Multichole2022 annotation protocol, with 6 surgical phases: Preparation, Hepatocytic Triangle Dissection, Clipping and Cutting, Gallbladder Dissection, Gallbladder Packaging, and Cleaning / Coagulation
 
 **Code**
 
@@ -81,6 +87,10 @@ Surgical phase recognition is a classification task of each video frame from a r
 
 We proceeded to further validate MedPerf on the cloud. Towards this, we executed various parts of the MedPerf architecture across different cloud providers. Google Cloud Platform (GCP) was used across all experiments for hosting the server. The Brain Tumor Segmentation (BraTS) Benchmark (Pilot 1), as well as part of the Pancreas Segmentation Benchmark (Pilot 2), were executed inside a GCP Virtual Machine with 128GB of RAM and an Nvidia T4.
 Lastly, we created a Chest X-Ray Pathology Classification Benchmark to demonstrate the feasibility of running federated evaluation across different cloud providers. For this, the CheXpert 40 small validation dataset was partitioned into 4 splits, and executed inside Virtual Machines provided by AWS, Alibaba, Azure, and IBM. All results were retrieved by the MedPerf server, hosted on GCP. The figure below shows which cloud provider each MedPerf component (i.e., server, client) and dataset was executed on.
+
+**Data**
+
+Here we used data and processes from Pilot #1 and #2.
 
 **Code**
 
