@@ -1,0 +1,16 @@
+pyYAML
+typer
+pandas
+argparse
+pandas
+numpy
+pydicom
+conversion
+nibabel
+scikit-image
+regex
+matplotlib
+torchvision
+opencv-python
+monai
+einops
