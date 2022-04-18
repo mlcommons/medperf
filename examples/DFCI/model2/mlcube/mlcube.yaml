@@ -1,0 +1,36 @@
+name: Medperf Model MLCube - DFCI
+description: MLCommons demonstration MLCube for building models for MedPerf
+authors:
+ - {name: "MLCommons Medical Working Group - DFCI "}
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name.
+  image: mlcommons/dfci-mlcube2
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  # Model MLCubes require only a single task: `infer`.
+  # This task takes input data, as well as configuration parameters
+  # and/or extra artifacts, and generates predictions on the data
+  infer:
+    parameters:
+      inputs: {
+        data_path: data/,                                    # Required. Where to find the data to run predictions on. MUST be a folder
+        parameters_file: parameters.yaml,                   # Required. Helper file to provide additional arguments. Value MUST be parameters.yaml
+        # If you need any additional files that should 
+        # not be included inside the mlcube image, 
+        # add them inside `additional_files` folder
+        # E.g. model weights
+
+        # Toy Hello World example
+        model_info: additional_files/
+      }
+      outputs: {
+        output_path: {type: directory, default: predictions} # Required. Where to store prediction artifacts. MUST be a folder
+      }
