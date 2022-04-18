@@ -60,7 +60,11 @@ class BenchmarkExecution:
 
     def prepare(self):
         init_storage()
-        self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+        # If not running the test, redownload the benchmark
+        update_bmk = not self.run_test
+        self.benchmark = Benchmark.get(
+            self.benchmark_uid, self.comms, force_update=update_bmk
+        )
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset(self.data_uid, self.ui)
 
