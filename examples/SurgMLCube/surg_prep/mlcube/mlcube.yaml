@@ -1,0 +1,40 @@
+name: Surgical Videos Preprocessor
+description: MLCube for preprocessing surgical videos
+authors:
+ - {name: "Hasan Kassem"}
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name.
+  image: hasan7/surg-prep:0.0.1
+  # Docker build context relative to $MLCUBE_ROOT.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  prepare:
+    parameters:
+      inputs:
+        data_path: vids_files/
+        labels_path: labels_files/
+        parameters_file: parameters.yaml
+      outputs:
+        output_path: data/
+
+  sanity_check:
+    parameters:
+      inputs:
+        data_path: data/
+        parameters_file: parameters.yaml
+  statistics:
+    parameters:
+      inputs:
+        data_path: data/
+        parameters_file: parameters.yaml
+      outputs:
+        output_path:
+          type: file
+          default: statistics.yaml
