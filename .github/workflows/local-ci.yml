@@ -30,7 +30,8 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         # ignore warnings about undefined names due to using future annotations
         # W503 is no longer recommended. https://www.flake8rules.com/rules/W503.html
-        flake8 . --count --max-complexity=10 --max-line-length=127 --ignore F821,W503 --statistics
+        # Exclude examples folder as it doesn't contain code related to medperf tools
+        flake8 . --count --max-complexity=10 --max-line-length=127 --ignore F821,W503 --statistics --exclude=examples/
     - name: Test with pytest
       run: |
         pytest
