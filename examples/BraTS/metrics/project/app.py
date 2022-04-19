@@ -17,9 +17,12 @@ def run_captk(pred, gold, tmp):
     """
     cmd = [
         os.path.join("/work/CaPTk/bin/Utilities"),
-        "-i", gold,
-        "-lsb", pred,
-        "-o", tmp
+        "-i",
+        gold,
+        "-lsb",
+        pred,
+        "-o",
+        tmp,
     ]
     subprocess.check_call(cmd)
 
@@ -35,9 +38,16 @@ def extract_metrics(tmp, subject_id):
     """
     res = (
         pd.read_csv(tmp, index_col="Labels")
-        .filter(items=["Labels", "Dice", "Hausdorff95",
-                       "Sensitivity", "Specificity",
-                       "Precision"])
+        .filter(
+            items=[
+                "Labels",
+                "Dice",
+                "Hausdorff95",
+                "Sensitivity",
+                "Specificity",
+                "Precision",
+            ]
+        )
         .filter(items=["ET", "WT", "TC"], axis=0)
         .reset_index()
         .assign(subject_id=subject_id)
@@ -50,35 +60,46 @@ def extract_metrics(tmp, subject_id):
 def score(parent, preds_dir, tmp_output="tmp.csv") -> pd.DataFrame:
     """Compute and return scores for each scan."""
     # Load all files
-    with open(os.path.join(preds_dir,"config.yaml"), "r") as f:
+    with open(os.path.join(preds_dir, "config.yaml"), "r") as f:
         params = yaml.full_load(f)
-    
+
     if "model_name" not in params:
         sys.exit("'model_name' not found in config file in {}".format(preds_dir))
-    
+
     scores = []
     for subject_id in os.listdir(preds_dir):
         gold = os.path.join(parent, subject_id, subject_id + "_seg.nii.gz")
-        pred = os.path.join(preds_dir, subject_id, subject_id + "_" + params["model_name"].lower() + "_seg.nii.gz")
+        pred = os.path.join(
+            preds_dir,
+            subject_id,
+            subject_id + "_" + params["model_name"].lower() + "_seg.nii.gz",
+        )
         try:
             run_captk(pred, gold, tmp_output)
             scan_scores = extract_metrics(tmp_output, subject_id)
             os.remove(tmp_output)  # Remove file, as it's no longer needed
         except subprocess.CalledProcessError:
             # If no output found, give penalized scores.
-            scan_scores = (
-                pd.DataFrame({
+            scan_scores = pd.DataFrame(
+                {
                     "subject_id": [subject_id],
-                    "Dice_ET": [0], "Dice_TC": [0], "Dice_WT": [0],
-                    "Hausdorff95_ET": [374], "Hausdorff95_TC": [374],
-                    "Hausdorff95_WT": [374], "Sensitivity_ET": [0],
-                    "Sensitivity_TC": [0], "Sensitivity_WT": [0],
-                    "Specificity_ET": [0], "Specificity_TC": [0],
-                    "Specificity_WT": [0], "Precision_ET": [0],
-                    "Precision_TC": [0], "Precision_WT": [0]
-                })
-                .set_index("subject_id")
-            )
+                    "Dice_ET": [0],
+                    "Dice_TC": [0],
+                    "Dice_WT": [0],
+                    "Hausdorff95_ET": [374],
+                    "Hausdorff95_TC": [374],
+                    "Hausdorff95_WT": [374],
+                    "Sensitivity_ET": [0],
+                    "Sensitivity_TC": [0],
+                    "Sensitivity_WT": [0],
+                    "Specificity_ET": [0],
+                    "Specificity_TC": [0],
+                    "Specificity_WT": [0],
+                    "Precision_ET": [0],
+                    "Precision_TC": [0],
+                    "Precision_WT": [0],
+                }
+            ).set_index("subject_id")
         scores.append(scan_scores)
     return pd.concat(scores).sort_values(by="subject_id")
 

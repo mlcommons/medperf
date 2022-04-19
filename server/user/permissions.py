@@ -7,7 +7,6 @@ class IsAdmin(BasePermission):
 
 
 class IsOwnUser(BasePermission):
-
     def has_permission(self, request, view):
         pk = view.kwargs.get("pk", None)
         if not pk:

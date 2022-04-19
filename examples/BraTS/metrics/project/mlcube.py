@@ -5,7 +5,7 @@
 # commands, and input/output parameters and command-line arguments.
 # You can provide that interface to MLCube in any way you prefer.
 # Here, we show a way that requires minimal intrusion to the original code,
-# By running the application through subprocesses. 
+# By running the application through subprocesses.
 import os
 import typer
 import subprocess
