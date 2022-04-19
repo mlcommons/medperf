@@ -228,7 +228,7 @@ def test_to_permanent_path_renames_folder_correctly(
 @pytest.mark.parametrize("filepath", ["filepath"])
 def test_write_writes_to_desired_file(mocker, filepath, reg_mocked_with_params):
     # Arrange
-    spy = mocker.patch("os.path.join", return_value=filepath)
+    mocker.patch("os.path.join", return_value=filepath)
     mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.dump", MagicMock())
     reg = Registration(*reg_mocked_with_params)

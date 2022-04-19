@@ -1,4 +1,3 @@
-from pathlib import Path
 from os.path import expanduser, abspath
 
 version = "0.0.0"
