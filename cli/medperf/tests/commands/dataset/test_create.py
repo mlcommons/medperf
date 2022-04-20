@@ -1,3 +1,4 @@
+from more_itertools import side_effect
 import pytest
 from unittest.mock import call, Mock
 
@@ -44,6 +45,38 @@ def preparation(mocker, comms, ui, registration):
 
 @pytest.mark.parametrize("registration", ["uid"], indirect=True)
 class TestWithDefaultUID:
+    @pytest.mark.parametrize("data_exists", [True, False])
+    @pytest.mark.parametrize("labels_exist", [True, False])
+    def test_validate_fails_when_paths_dont_exist(
+        self, mocker, preparation, data_exists, labels_exist
+    ):
+        # Arrange
+        def exists(path):
+            if path == DATA_PATH:
+                return data_exists
+            elif path == LABELS_PATH:
+                return labels_exist
+            return False
+
+        mocker.patch("os.path.exists", side_effect=exists)
+        should_fail = not data_exists or not labels_exist
+        spy = mocker.patch(
+            PATCH_DATAPREP.format("pretty_error"), side_effect=lambda *args: exit()
+        )
+
+        # Act
+        if should_fail:
+            with pytest.raises(SystemExit):
+                preparation.validate()
+        else:
+            preparation.validate()
+
+        # Assert
+        if should_fail:
+            spy.assert_called_once()
+        else:
+            spy.asset_not_called()
+
     @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
     def test_get_prep_cube_gets_benchmark_cube(self, mocker, preparation, cube_uid):
         # Arrange
@@ -190,6 +223,7 @@ class TestWithDefaultUID:
 
     def test_run_executes_expected_flow(self, mocker, comms, ui, preparation):
         # Arrange
+        validate_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
         get_cube_spy = mocker.patch(
             PATCH_DATAPREP.format("DataPreparation.get_prep_cube")
         )
@@ -201,11 +235,13 @@ class TestWithDefaultUID:
             return_value="",
         )
         mocker.patch(PATCH_DATAPREP.format("cleanup"))
+        mocker.patch("os.path.exists", return_value=True)
 
         # Act
         DataPreparation.run("", "", "", comms, ui)
 
         # Assert
+        validate_spy.assert_called_once()
         get_cube_spy.assert_called_once()
         run_cube_spy.assert_called_once()
         create_reg_spy.assert_called_once()
@@ -220,6 +256,7 @@ def test_run_returns_registration_generated_uid(
     # Arrange
     mocker.patch.object(preparation.cube, "run")
     mocker.patch(PATCH_DATAPREP.format("cleanup"))
+    mocker.patch("os.path.exists", return_value=True)
 
     # Act
     returned_uid = DataPreparation.run("", "", "", comms, ui)
