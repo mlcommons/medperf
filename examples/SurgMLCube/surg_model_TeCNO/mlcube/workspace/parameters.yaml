@@ -1,0 +1,5 @@
+batch_size: 4
+num_stages: 2
+num_layers: 9
+num_f_maps: 64
+num_classes: 6

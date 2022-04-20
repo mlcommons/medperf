@@ -1,0 +1,27 @@
+name: TeCNO Model
+description: MLCube implementing TeCNO model
+authors:
+ - {name: "Hasan Kassem"}
+
+platform:
+  accelerator_count: 1
+
+docker:
+  # Image name.
+  image: hasan7/surg-infer-tecno:0.0.2
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+  gpu_args: --runtime=nvidia
+
+tasks:
+  infer:
+    parameters:
+      inputs:
+        data_path: data/
+        parameters_file: parameters.yaml
+        feature_extraction_weights: additional_files/feature_extraction_weights
+        mstcn_weights: additional_files/mstcn_weights
+        
+      outputs: {output_path: {type: directory, default: predictions}}
