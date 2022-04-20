@@ -1,0 +1,3 @@
+mlcube configure --mlcube=. --platform=docker -Prunner.build_strategy=auto
+
+DOCKER_BUILDKIT=1 mlcube configure -Pdocker.build_strategy=auto
