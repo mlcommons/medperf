@@ -50,8 +50,9 @@ def init_storage():
     cubes = storage_path(config.cubes_storage)
     results = storage_path(config.results_storage)
     tmp = storage_path(config.tmp_storage)
+    log = storage_path(config.logs_storage)
 
-    dirs = [parent, data, cubes, results, tmp]
+    dirs = [parent, data, cubes, results, tmp, log]
     for dir in dirs:
         if not os.path.isdir(dir):
             logging.info(f"Creating {dir} directory")
