@@ -10,6 +10,7 @@ from medperf.utils import (
     pretty_error,
     cleanup,
     results_path,
+    storage_path,
 )
 import medperf.config as config
 
@@ -76,17 +77,16 @@ class BenchmarkExecution:
 
     def run_cubes(self):
         self.ui.text = "Running model inference on dataset"
-        out_path = config.model_output
+        model_uid = str(self.model_cube.uid)
+        data_uid = str(self.dataset.data_uid)
+        preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
+        preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
         self.model_cube.run(
-            self.ui, task="infer", data_path=data_path, output_path=out_path
+            self.ui, task="infer", data_path=data_path, output_path=preds_path
         )
         self.ui.print("> Model execution complete")
 
-        cube_path = self.model_cube.cube_path
-        cube_root = str(Path(cube_path).parent)
-        workspace_path = os.path.join(cube_root, "workspace")
-        abs_preds_path = os.path.join(workspace_path, out_path)
         labels_path = data_path
 
         self.ui.text = "Evaluating results"
@@ -94,7 +94,7 @@ class BenchmarkExecution:
         self.evaluator.run(
             self.ui,
             task="evaluate",
-            predictions=abs_preds_path,
+            predictions=preds_path,
             labels=labels_path,
             output_path=out_path,
         )
