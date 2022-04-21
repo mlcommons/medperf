@@ -92,7 +92,6 @@ def test(
     """Executes a compatibility test for a determined benchmark. Can test prepared datasets, remote and local models independently."""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     CompatibilityTestExecution.run(
         benchmark_uid, comms, ui, data_uid, data_prep, model, evaluator
     )

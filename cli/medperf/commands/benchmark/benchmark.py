@@ -20,7 +20,6 @@ def list(
     """
     ui = config.ui
     comms = config.comms
-    comms.authenticate()
     BenchmarksList.run(comms, ui, all)
 
 
@@ -30,7 +29,6 @@ def submit():
     """Submits a new benchmark to the platform"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     SubmitBenchmark.run(comms, ui)
     cleanup()
     ui.print("✅ Done!")
@@ -53,6 +51,5 @@ def associate(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, comms, ui)
     ui.print("✅ Done!")
