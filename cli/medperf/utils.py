@@ -30,6 +30,7 @@ def get_file_sha1(path: str) -> str:
     Returns:
         str: Calculated hash
     """
+    logging.debug("Calculating SHA1 hash for file {}".format(path))
     BUF_SIZE = 65536
     sha1 = hashlib.sha1()
     with open(path, "rb") as f:
@@ -39,12 +40,15 @@ def get_file_sha1(path: str) -> str:
                 break
             sha1.update(data)
 
-    return sha1.hexdigest()
+    sha_val = sha1.hexdigest()
+    logging.debug(f"SHA1 hash for file {path}: {sha_val}")
+    return sha_val
 
 
 def init_storage():
     """Builds the general medperf folder structure.
     """
+    logging.info("Initializing storage")
     parent = config.storage
     data = storage_path(config.data_storage)
     cubes = storage_path(config.cubes_storage)
@@ -62,14 +66,15 @@ def init_storage():
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
-    if os.path.exists(storage_path(config.tmp_storage)):
-        logging.info("Removing temporary data storage")
+    tmp_storage = storage_path(config.tmp_storage)
+    if os.path.exists(tmp_storage):
+        logging.info("Removing temporary data storage: {}".format(tmp_storage))
         rmtree(storage_path(config.tmp_storage), ignore_errors=True)
     dsets = get_dsets()
     prefix = config.tmp_reg_prefix
     unreg_dsets = [dset for dset in dsets if dset.startswith(prefix)]
     for dset in unreg_dsets:
-        logging.info("Removing unregistered dataset")
+        logging.info("Removing unregistered dataset: {}".format(dset))
         dset_path = os.path.join(storage_path(config.data_storage), dset)
         if os.path.exists(dset_path):
             rmtree(dset_path, ignore_errors=True)
@@ -81,7 +86,10 @@ def get_dsets() -> List[str]:
     Returns:
         List[str]: UIDs of prepared datasets.
     """
+    logging.debug("Retrieving datasets")
     dsets = next(os.walk(storage_path(config.data_storage)))[1]
+    logging.debug(f"Found {len(dsets)} datasets")
+    logging.debug(f"Datasets: {dsets}")
     return dsets
 
 
@@ -198,6 +206,7 @@ def dict_pretty_print(in_dict: dict, ui: "UI"):
     ui.print("=" * 20)
     in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
     ui.print(yaml.dump(in_dict))
+    logging.debug(f"Dictionary printed to the user: {in_dict}")
     ui.print("=" * 20)
 
 
@@ -247,6 +256,7 @@ def get_folder_sha1(path: str) -> str:
     hashes = []
     for root, _, files in os.walk(path, topdown=False):
         for file in files:
+            logging.debug(f"Hashing file {file}")
             filepath = os.path.join(root, file)
             hashes.append(get_file_sha1(filepath))
 
@@ -254,7 +264,9 @@ def get_folder_sha1(path: str) -> str:
     sha1 = hashlib.sha1()
     for hash in hashes:
         sha1.update(hash.encode("utf-8"))
-    return sha1.hexdigest()
+    hash_val = sha1.hexdigest()
+    logging.debug(f"Folder hash: {hash_val}")
+    return hash_val
 
 
 def results_path(benchmark_uid, model_uid, data_uid):
@@ -269,6 +281,7 @@ def results_path(benchmark_uid, model_uid, data_uid):
 
 def results_ids(ui: UI):
     results_storage = storage_path(config.results_storage)
+    logging.debug("Getting results ids")
     results_ids = []
     try:
         bmk_uids = next(os.walk(results_storage))[1]
@@ -283,11 +296,11 @@ def results_ids(ui: UI):
                 ]
                 results_ids += bmk_model_data_list
 
-    except:
+    except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
         pretty_error(msg, ui)
-
+    logging.debug(f"Results ids: {results_ids}")
     return results_ids
 
 
@@ -309,4 +322,3 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
-
