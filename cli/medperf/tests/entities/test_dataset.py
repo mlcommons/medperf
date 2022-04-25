@@ -17,6 +17,7 @@ REGISTRATION_MOCK = {
     "split_seed": "split_seed",
     "metadata": {},
     "generated_uid": "generated_uid",
+    "input_data_hash": "input_data_hash",
     "status": "status",
     "uid": "uid",
     "state": "state",
