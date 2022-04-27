@@ -69,9 +69,9 @@ echo "====================================="
 echo "Approving dataset association"
 echo "====================================="
 # Log in as the benchmark owner
-BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
+BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "$SERVER_URL/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
 # Mark dataset-benchmark association as approved
-curl -s -X PUT "http://127.0.0.1:8000/datasets/1/benchmarks/1/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"
+curl -s -X PUT "$SERVER_URL/datasets/1/benchmarks/1/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
