@@ -52,13 +52,12 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "User cannot create an approved association request"
                 )
-            elif approval_status == "REJECTED":
+            # approval_status == "REJECTED":
+            else:
                 if last_benchmarkdataset.approval_status != "APPROVED":
                     raise serializers.ValidationError(
                         "User can reject request only if prior request is approved"
                     )
-            else:
-                raise serializers.ValidationError("Invalid approval_status")
         return data
 
     def create(self, validated_data):
