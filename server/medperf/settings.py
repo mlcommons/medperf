@@ -40,7 +40,6 @@ else:
 
     client = secretmanager.SecretManagerServiceClient()
     settings_name = os.environ.get("SETTINGS_SECRETS_NAME", None)
-    print("SETTINGS_SECRETS_NAME", settings_name)
     if settings_name is None:
         raise Exception("SETTINGS_SECRETS_NAME var is not set")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
