@@ -47,6 +47,7 @@ class Dataset:
         self.location = registration["location"]
         self.preparation_cube_uid = registration["data_preparation_mlcube"]
         self.generated_uid = registration["generated_uid"]
+        self.input_data_hash = registration["input_data_hash"]
         self.split_seed = registration["split_seed"]
         self.metadata = registration["metadata"]
         self.status = registration["status"]
@@ -60,7 +61,7 @@ class Dataset:
             "description": self.description,
             "location": self.location,
             "data_preparation_mlcube": self.preparation_cube_uid,
-            "input_data_hash": self.generated_uid,
+            "input_data_hash": self.input_data_hash,
             "generated_uid": self.generated_uid,
             "split_seed": self.split_seed,
             "metadata": self.metadata,
