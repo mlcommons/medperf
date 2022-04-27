@@ -15,16 +15,19 @@ class ModelResultSerializer(serializers.ModelSerializer):
         benchmark = data["benchmark"]
         mlcube = data["model"]
         dataset = data["dataset"]
+        is_reference_model = benchmark.reference_model_mlcube.id == mlcube.id
         last_benchmarkmodel = (
             BenchmarkModel.objects.filter(benchmark__id=benchmark.id, model_mlcube__id=mlcube.id)
             .order_by("-created_at")
             .first()
         )
-        if not last_benchmarkmodel:
-            raise serializers.ValidationError("Mlcube must be associated to the benchmark")
-        else:
-            if last_benchmarkmodel.approval_status != "APPROVED":
-                raise serializers.ValidationError("Mlcube-Benchmark association must be approved")
+        if not is_reference_model:
+            if not last_benchmarkmodel:
+                raise serializers.ValidationError("Mlcube must be associated to the benchmark")
+            else:
+                if last_benchmarkmodel.approval_status != "APPROVED":
+                    raise serializers.ValidationError("Mlcube-Benchmark association must be approved")
+
         last_benchmarkdataset = (
             BenchmarkDataset.objects.filter(benchmark__id=benchmark.id, dataset__id=dataset.id).order_by("-created_at").first()
         )
