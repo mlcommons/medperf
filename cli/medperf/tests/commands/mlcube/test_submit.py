@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import ANY, call
+from unittest.mock import ANY
 
 from medperf import config
 from medperf.commands.mlcube import SubmitCube
@@ -112,4 +112,3 @@ def test_submit_uploads_cube_data(mocker, comms, ui):
     # Assert
     spy_todict.assert_called_once()
     spy_upload.assert_called_once_with(mock_body)
-

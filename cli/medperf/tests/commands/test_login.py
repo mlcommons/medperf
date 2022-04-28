@@ -1,5 +1,4 @@
 import stat
-from medperf.ui import UI
 from medperf.comms import Comms
 import medperf.config as config
 from medperf.commands import Login
