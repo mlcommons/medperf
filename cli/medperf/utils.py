@@ -139,8 +139,10 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
 
     Args:
         msg (str): Error message to show to the user
-        clean (bool, optional): Wether to run the cleanup process before exiting. Defaults to True.
-        add_instructions (bool, optional): Wether to show additional instructions to the user. Defualts to True.
+        clean (bool, optional):
+            Run the cleanup process before exiting. Defaults to True.
+        add_instructions (bool, optional):
+            Show additional instructions to the user. Defualts to True.
     """
     logging.warning(
         "MedPerf had to stop execution. See logs above for more information"
@@ -270,9 +272,9 @@ def dict_pretty_print(in_dict: dict, ui: "UI"):
 
 
 def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
-    """Combines the output of a process and the spinner. 
-    Joins any string captured from the process with the 
-    spinner current text. Any strings ending with any other 
+    """Combines the output of a process and the spinner.
+    Joins any string captured from the process with the
+    spinner current text. Any strings ending with any other
     character from the subprocess will be returned later.
 
     Args:
@@ -351,7 +353,7 @@ def results_ids(ui: UI):
                 ]
                 results_ids += bmk_model_data_list
 
-    except:
+    except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
         pretty_error(msg, ui)
@@ -377,4 +379,3 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
-

@@ -46,7 +46,7 @@ def test_results_open_results_file_on_init(mocker, results_path):
     mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
 
     # Act
-    result = Result(1, 1, 1)
+    Result(1, 1, 1)
 
     # Assert
     get_spy.assert_called_once()
@@ -77,7 +77,7 @@ def test_all_creates_result_objects_with_correct_info(
     mocker.patch("os.path.join", return_value=mock_path)
 
     # Act
-    results = Result.all(ui)
+    Result.all(ui)
 
     # Assert
     spy.assert_has_calls([call(mocker.ANY, b_id, d_id, m_id)])

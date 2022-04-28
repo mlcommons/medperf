@@ -112,7 +112,9 @@ class DatasetAssociationList(GenericAPIView):
 
     def get_object(self, pk):
         try:
-            return BenchmarkDataset.objects.filter(Q(dataset__owner__id=pk) | Q(benchmark__owner__id=pk))
+            return BenchmarkDataset.objects.filter(
+                Q(dataset__owner__id=pk) | Q(benchmark__owner__id=pk)
+            )
         except BenchmarkDataset.DoesNotExist:
             raise Http404
 
@@ -131,7 +133,9 @@ class MlCubeAssociationList(GenericAPIView):
 
     def get_object(self, pk):
         try:
-            return BenchmarkModel.objects.filter(Q(model_mlcube__owner__id=pk) | Q(benchmark__owner__id=pk))
+            return BenchmarkModel.objects.filter(
+                Q(model_mlcube__owner__id=pk) | Q(benchmark__owner__id=pk)
+            )
         except BenchmarkModel.DoesNotExist:
             raise Http404
 

@@ -23,9 +23,9 @@ class Cube(object):
     Class representing an MLCube Container
 
     Medperf platform uses the MLCube container for components such as
-    Dataset Preparation, Evaluation, and the Registered Models. MLCube 
-    containers are software containers (e.g., Docker and Singularity) 
-    with standard metadata and a consistent file-system level interface. 
+    Dataset Preparation, Evaluation, and the Registered Models. MLCube
+    containers are software containers (e.g., Docker and Singularity)
+    with standard metadata and a consistent file-system level interface.
     """
 
     def __init__(
