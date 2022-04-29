@@ -15,7 +15,7 @@ def list(filter: Optional[str] = typer.Argument(None)):
     """Display all associations related to the current user.
 
     Args:
-        filter (str, optional): Filter associations by approval status. 
+        filter (str, optional): Filter associations by approval status.
             Defaults to displaying all user associations.
     """
     comms = config.comms
@@ -34,7 +34,7 @@ def approve(
     """Approves an association between a benchmark and a dataset or model mlcube
 
     Args:
-        benchmark_uid (int): Benchmark UID. 
+        benchmark_uid (int): Benchmark UID.
         dataset_uid (int, optional): Dataset UID.
         mlcube_uid (int, optional): Model MLCube UID.
     """
@@ -55,7 +55,7 @@ def reject(
     """Rejects an association between a benchmark and a dataset or model mlcube
 
     Args:
-        benchmark_uid (int): Benchmark UID. 
+        benchmark_uid (int): Benchmark UID.
         dataset_uid (int, optional): Dataset UID.
         mlcube_uid (int, optional): Model MLCube UID.
     """

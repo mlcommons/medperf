@@ -1,6 +1,5 @@
 import typer
 import logging
-from typing import Optional
 from os.path import abspath, expanduser
 
 from medperf.commands import Login

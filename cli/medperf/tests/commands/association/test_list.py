@@ -51,4 +51,3 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
     status_set = set([assoc[-1] for assoc in assocs_data])
     assert len(status_set) == 1
     assert filter.upper() in status_set
-
