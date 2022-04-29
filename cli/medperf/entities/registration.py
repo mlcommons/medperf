@@ -1,6 +1,5 @@
 import yaml
 from pathlib import Path
-from typing import Dict
 import os
 
 from medperf.ui import UI
@@ -164,7 +163,7 @@ class Registration:
 
         Args:
             comms (Comms): Instance of the comms interface.
-        
+
         Returns:
             int: UID of registered dataset
         """

@@ -14,7 +14,7 @@ class Result:
     Class representing a Result entry
 
     Results are obtained after successfully running a benchmark
-    execution flow. They contain information regarding the 
+    execution flow. They contain information regarding the
     components involved in obtaining metrics results, as well as the
     results themselves. This class provides methods for working with
     benchmark results and how to upload them to the backend.
@@ -42,7 +42,7 @@ class Result:
 
     @classmethod
     def all(cls, ui: UI) -> List["Result"]:
-        """Gets and creates instances of all the 
+        """Gets and creates instances of all the user's results
         """
         logging.info("Retrieving all results")
         results_ids_tuple = results_ids(ui)
@@ -106,7 +106,7 @@ class Result:
         write_access = os.access(self.path, os.W_OK)
         logging.debug(f"file has write access? {write_access}")
         if not write_access:
-            logging.debug(f"removing outdated and inaccessible results")
+            logging.debug("removing outdated and inaccessible results")
             os.remove(self.path)
         with open(self.path, "w") as f:
             yaml.dump(self.results, f)

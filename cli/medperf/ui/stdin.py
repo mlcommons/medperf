@@ -7,7 +7,7 @@ class StdIn(UI):
     """
     Class for using sys.stdin/sys.stdout exclusively. Used mainly for automating
     execution with class-like objects. Using only basic IO methods ensures that
-    piping from the command-line. Should not be used in normal execution, as 
+    piping from the command-line. Should not be used in normal execution, as
     hidden prompts and interactive prints will not work as expected.
     """
 

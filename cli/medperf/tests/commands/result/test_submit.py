@@ -115,4 +115,3 @@ def test_run_executes_upload_procedure(mocker, comms, ui, submission):
 
     # Assert
     spy.assert_called_once()
-

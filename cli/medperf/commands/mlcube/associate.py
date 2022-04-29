@@ -17,4 +17,3 @@ class AssociateCube:
             ui.text = "Creating association request"
             comms.associate_cube(cube_uid, benchmark_uid)
         ui.print("Association request created")
-
