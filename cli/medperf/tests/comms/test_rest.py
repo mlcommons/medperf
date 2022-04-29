@@ -83,6 +83,15 @@ def server(mocker, ui):
             (f"{url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": "APPROVED"}},
         ),
+        (
+            "_REST__set_approval_status",
+            "put",
+            200,
+            [f"{url}/mlcubes/1/benchmarks/1", "REJECTED"],
+            {},
+            (f"{url}/mlcubes/1/benchmarks/1",),
+            {"json": {"approval_status": "REJECTED"}},
+        ),
     ],
 )
 def test_methods_run_authorized_method(mocker, server, method_params):
@@ -530,7 +539,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    id = server.associate_cube(cube_uid, benchmark_uid)
+    server.associate_cube(cube_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)

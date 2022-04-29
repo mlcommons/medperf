@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from .serializers import UserSerializer
 from .permissions import IsAdmin, IsOwnUser
 
+
 class UserList(GenericAPIView):
     permission_classes = [IsAdmin]
     serializer_class = UserSerializer

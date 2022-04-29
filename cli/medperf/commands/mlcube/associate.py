@@ -38,4 +38,3 @@ class AssociateCube:
             pretty_error(
                 "MLCube association operation cancelled", ui, add_instructions=False
             )
-

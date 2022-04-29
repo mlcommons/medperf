@@ -14,7 +14,9 @@ class MlCube(models.Model):
     tarball_url = models.CharField(max_length=256, blank=True)
     tarball_hash = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    state = models.CharField(choices=MLCUBE_STATE, max_length=100, default="DEVELOPMENT")
+    state = models.CharField(
+        choices=MLCUBE_STATE, max_length=100, default="DEVELOPMENT"
+    )
     is_valid = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True, null=True)
     user_metadata = models.JSONField(default=dict, blank=True, null=True)

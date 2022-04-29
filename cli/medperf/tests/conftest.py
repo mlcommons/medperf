@@ -72,4 +72,3 @@ def ui(mocker):
 def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
     return comms
-

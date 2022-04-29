@@ -16,8 +16,8 @@ def datasets(
     all: bool = typer.Option(False, help="Get all datasets from the platform")
 ):
     """Lists all datasets from the user by default.
-    Use all to get all datasets in the platform 
-	"""
+    Use all to get all datasets in the platform
+    """
     ui = config.ui
     comms = config.comms
     comms.authenticate()
@@ -74,11 +74,11 @@ def associate(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
 ):
-    """Associate a registered dataset with a specific benchmark. The dataset and benchmark must share the same data preparation cube.
+    """Associate a registered dataset with a specific benchmark.
+    The dataset and benchmark must share the same data preparation cube.
     """
     comms = config.comms
     ui = config.ui
     comms.authenticate()
     AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
-

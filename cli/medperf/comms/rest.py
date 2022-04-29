@@ -66,7 +66,7 @@ class REST(Comms):
         Returns:
             requests.Response: Response object returned by the update
         """
-        data = {"approval_status": "APPROVED"}
+        data = {"approval_status": status}
         res = self.__auth_put(url, json=data,)
         return res
 
@@ -95,7 +95,7 @@ class REST(Comms):
 
     def authorized_by_role(self, benchmark_uid: int, role: str) -> bool:
         """Indicates wether the current user is authorized to access
-        a benchmark based on desired role 
+        a benchmark based on desired role
 
         Args:
             benchmark_uid (int): UID of the benchmark

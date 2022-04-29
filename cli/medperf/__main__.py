@@ -1,6 +1,5 @@
 import typer
 import logging
-from typing import Optional
 from os.path import abspath, expanduser
 
 import medperf.config as config
@@ -89,7 +88,10 @@ def test(
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
 ):
-    """Executes a compatibility test for a determined benchmark. Can test prepared datasets, remote and local models independently."""
+    """
+    Executes a compatibility test for a determined benchmark. 
+    Can test prepared datasets, remote and local models independently.
+    """
     comms = config.comms
     ui = config.ui
     comms.authenticate()

@@ -18,7 +18,7 @@ setup(
     install_requires=requires,
     python_requires=">=3.6",
     entry_points="""
-		[console_scripts]
-		medperf=medperf.__main__:app
-	""",
+        [console_scripts]
+        medperf=medperf.__main__:app
+        """,
 )
