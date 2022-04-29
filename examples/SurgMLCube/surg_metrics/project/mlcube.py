@@ -41,8 +41,9 @@ def evaluate(
 
 @app.command("dummy")
 def dummy():
-    print("This is added to avoid 'typer' throwing an error when having only one task available")
-
+    print(
+        "This is added to avoid 'typer' throwing an error when having only one task available"
+    )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 from more_itertools import side_effect
 import pytest
-from unittest.mock import call, Mock
+from unittest.mock import call
 
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark, MockCube

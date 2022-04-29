@@ -24,4 +24,3 @@ def get_image_data(img_path, data_path):
         std_val = img.std()
 
     return [w, h, min_val, max_val, mean_val, std_val]
-

@@ -24,4 +24,3 @@ class DatasetRegistration:
             ui.print("Uploading...")
             dset.upload(comms)
             dset.set_registration()
-
