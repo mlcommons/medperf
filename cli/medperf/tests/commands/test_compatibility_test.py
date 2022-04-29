@@ -2,7 +2,6 @@ import os
 import pytest
 from unittest.mock import call, ANY, mock_open
 
-import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -342,7 +341,6 @@ def test_download_demo_data_extracts_expected_paths(
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
 
     untar_path = "untar/path"
-    paths_file = config.demo_dset_paths_file
     paths_dict = {"data_path": paths[0], "labels_path": paths[1]}
     mocker.patch("yaml.safe_load", return_value=paths_dict)
     mocker.patch(PATCH_TEST.format("untar"), return_value=untar_path)

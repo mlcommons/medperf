@@ -31,11 +31,11 @@ class CompatibilityTestExecution:
 
         Args:
             benchmark_uid (int): Benchmark to run the test workflow for
-            data_uid (str, optional): registered dataset uid. 
+            data_uid (str, optional): registered dataset uid.
                 If none provided, it defaults to benchmark test dataset.
-            data_prep (str, optional): data prep mlcube uid or local path. 
+            data_prep (str, optional): data prep mlcube uid or local path.
                 If none provided, it defaults to benchmark data prep mlcube.
-            model (str, optional): model mlcube uid or local path. 
+            model (str, optional): model mlcube uid or local path.
                 If none provided, it defaults to benchmark reference model.
             evaluator (str, optional): evaluator mlcube uid or local path.
                 If none provided, it defaults to benchmark evaluator mlcube.
@@ -75,7 +75,7 @@ class CompatibilityTestExecution:
 
     def validate(self):
         """Ensures test has been passed a valid combination of parameters.
-        Specifically, a benchmark must be passed if any other workflow 
+        Specifically, a benchmark must be passed if any other workflow
         parameter is not passed.
         """
         params = [self.data_uid, self.data_prep, self.model, self.evaluator]
@@ -119,7 +119,7 @@ class CompatibilityTestExecution:
         """Assigns the attr used for testing according to the initialization parameters.
         If the value is a path, it will create a temporary uid and link the cube path to
         the medperf storage path.
-        
+
         Arguments:
             attr (str): Attribute to check and/or reassign.
             fallback (any): Value to assign if attribute is empty. Defaults to None.
@@ -141,7 +141,7 @@ class CompatibilityTestExecution:
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
-        If no data_uid is provided, it will retrieve the demo data and execute the data 
+        If no data_uid is provided, it will retrieve the demo data and execute the data
         preparation flow.
         """
         logging.info("Establishing data_uid for test execution")

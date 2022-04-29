@@ -51,7 +51,7 @@ class Result:
         """
         logging.info("Retrieving all results")
         results_ids_tuple = results_ids(ui)
-        results_storage = storage_path(config.results_storage)
+        storage_path(config.results_storage)
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
