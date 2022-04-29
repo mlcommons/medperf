@@ -39,4 +39,3 @@ class Approval:
             comms.set_mlcube_association_approval(
                 benchmark_uid, mlcube_uid, approval_status
             )
-

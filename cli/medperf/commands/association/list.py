@@ -38,4 +38,3 @@ class ListAssociations:
         ]
         tab = tabulate(assocs_info, headers=headers)
         ui.print(tab)
-

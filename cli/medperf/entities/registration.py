@@ -165,7 +165,7 @@ class Registration:
 
         Args:
             comms (Comms): Instance of the comms interface.
-        
+
         Returns:
             int: UID of registered dataset
         """

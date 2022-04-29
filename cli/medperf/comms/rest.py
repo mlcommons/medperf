@@ -95,7 +95,7 @@ class REST(Comms):
 
     def authorized_by_role(self, benchmark_uid: int, role: str) -> bool:
         """Indicates wether the current user is authorized to access
-        a benchmark based on desired role 
+        a benchmark based on desired role
 
         Args:
             benchmark_uid (int): UID of the benchmark

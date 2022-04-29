@@ -29,4 +29,3 @@ class AssociateBenchmark:
 
         if data_uid is not None:
             AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
-

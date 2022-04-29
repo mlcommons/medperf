@@ -364,7 +364,7 @@ def test_get_user_benchmarks_returns_benchmarks(mocker, server):
         {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
     ]
     res = MockResponse(benchmarks, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
 
     # Act
     retrieved_benchmarks = server.get_user_benchmarks()
@@ -539,7 +539,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    id = server.associate_cube(cube_uid, benchmark_uid)
+    server.associate_cube(cube_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)

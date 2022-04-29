@@ -63,6 +63,7 @@ class StatisticsTask(object):
         cmd = f"python3 statistics.py --data_path={data_path} --params_file={params_file} --out_path={out_path}"
         exec_python(cmd)
 
+
 @app.command("prepare")
 def prepare(
     data_path: str = typer.Option(..., "--data_path"),

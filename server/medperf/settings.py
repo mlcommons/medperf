@@ -32,7 +32,9 @@ else:
     try:
         _, os.environ["GOOGLE_CLOUD_PROJECT"] = google.auth.default()
     except google.auth.exceptions.DefaultCredentialsError:
-        raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.")
+        raise Exception(
+            "No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found."
+        )
 
     # Pull secrets from Secret Manager
     print("Loading env from GCP secrets manager")
@@ -40,7 +42,6 @@ else:
 
     client = secretmanager.SecretManagerServiceClient()
     settings_name = os.environ.get("SETTINGS_SECRETS_NAME", None)
-    print("SETTINGS_SECRETS_NAME", settings_name)
     if settings_name is None:
         raise Exception("SETTINGS_SECRETS_NAME var is not set")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
@@ -111,9 +112,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "libraries": {
-                "staticfiles": "django.templatetags.static",
-            },
+            "libraries": {"staticfiles": "django.templatetags.static",},
         },
     },
 ]
@@ -193,7 +192,9 @@ REST_FRAMEWORK = {
 
 SWAGGER_SETTINGS = {
     "USE_SESSION_AUTH": False,
-    "SECURITY_DEFINITIONS": {"api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}},
+    "SECURITY_DEFINITIONS": {
+        "api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}
+    },
     "JSON_EDITOR": True,
 }
 

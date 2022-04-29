@@ -4,6 +4,7 @@ import argparse
 import pandas as pd
 import numpy as np
 
+
 def get_statistics(trainfile: str, testfile: str, labelfile: str):
     """Computes statistics about the data. This statistics are uploaded
     to the Medperf platform under the data owner's approval. Include
@@ -26,22 +27,31 @@ def get_statistics(trainfile: str, testfile: str, labelfile: str):
             "training images": float(count1),
             "testing images": float(count1),
         },
-        "Number of Patients": {
-            "length mean": float(count3)
-    }}
+        "Number of Patients": {"length mean": float(count3)},
+    }
 
     return stats
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser("MedPerf Statistics Example")
-    parser.add_argument("--data_path", dest="data", type=str, help="directory containing the prepared data")
-    parser.add_argument("--out_file", dest="out_file", type=str, help="file to store statistics")
-    parser.add_argument("--labels_path", dest="labels", type=str, help="path containing labels")
+    parser.add_argument(
+        "--data_path",
+        dest="data",
+        type=str,
+        help="directory containing the prepared data",
+    )
+    parser.add_argument(
+        "--out_file", dest="out_file", type=str, help="file to store statistics"
+    )
+    parser.add_argument(
+        "--labels_path", dest="labels", type=str, help="path containing labels"
+    )
 
     args = parser.parse_args()
 
-    #trainfile = os.path.join(args.data, "synapse_train")
-    #testfile = os.path.join(args.data, "synapse_test")
+    # trainfile = os.path.join(args.data, "synapse_train")
+    # testfile = os.path.join(args.data, "synapse_test")
     trainfile = args.data
     testfile = args.data
     labelfile = args.labels

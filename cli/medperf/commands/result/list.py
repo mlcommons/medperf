@@ -9,7 +9,7 @@ class ResultsList:
     @staticmethod
     def run(comms: Comms, ui: UI):
         """Lists all local datasets
-	    """
+        """
         results = Result.all(ui)
         headers = ["Benchmark UID", "Model UID", "Data UID", "Submitted", "Local"]
         # Get local results data
@@ -32,5 +32,6 @@ class ResultsList:
             for result in remote_results
             if result["id"] not in local_uids
         ]
+        results_data += remote_results_data
         tab = tabulate(results_data, headers=headers)
         ui.print(tab)

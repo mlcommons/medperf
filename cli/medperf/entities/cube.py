@@ -24,9 +24,9 @@ class Cube(object):
     Class representing an MLCube Container
 
     Medperf platform uses the MLCube container for components such as
-    Dataset Preparation, Evaluation, and the Registered Models. MLCube 
-    containers are software containers (e.g., Docker and Singularity) 
-    with standard metadata and a consistent file-system level interface. 
+    Dataset Preparation, Evaluation, and the Registered Models. MLCube
+    containers are software containers (e.g., Docker and Singularity)
+    with standard metadata and a consistent file-system level interface.
     """
 
     def __init__(
@@ -200,9 +200,7 @@ class Cube(object):
             bool: wether the user gave consent or not
         """
 
-        approved = approval_prompt(
-            f"Please confirm that you would like to associate the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]",
-            ui,
-        )
+        msg = "Please confirm that you would like to associate "
+        msg += f"the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
+        approved = approval_prompt(msg, ui)
         return approved
-

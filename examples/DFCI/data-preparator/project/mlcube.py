@@ -4,6 +4,7 @@ import subprocess
 
 app = typer.Typer()
 
+
 def exec_python(cmd: str) -> None:
     """Execute a python script as a subprocess
     Args:
@@ -13,12 +14,13 @@ def exec_python(cmd: str) -> None:
     process = subprocess.Popen(splitted_cmd, cwd=".")
     process.wait()
 
+
 @app.command("prepare")
 def prepare(
     data_path: str = typer.Option(..., "--data_path"),
     labels_path: str = typer.Option(..., "--labels_path"),
     params_file: str = typer.Option(..., "--parameters_file"),
-    out_path: str = typer.Option(..., "--output_path")
+    out_path: str = typer.Option(..., "--output_path"),
 ):
     """Prepare task command. This is what gets executed when we run:
     `mlcube run --task=prepare`
@@ -31,10 +33,11 @@ def prepare(
     cmd = f"python3 prepare.py --images_path={data_path} --labels_path={labels_path} --out={out_path}"
     exec_python(cmd)
 
+
 @app.command("sanity_check")
 def sanity_check(
-    data_path: str = typer.Option(..., "--data_path"), 
-    params_file: str = typer.Option(..., "--parameters_file")
+    data_path: str = typer.Option(..., "--data_path"),
+    params_file: str = typer.Option(..., "--parameters_file"),
 ):
     """Sanity check task command. This is what gets executed when we run:
     `mlcube run --task=sanity_check`
@@ -45,11 +48,12 @@ def sanity_check(
     cmd = f"python3 sanity_check.py --data_path={data_path}"
     exec_python(cmd)
 
+
 @app.command("statistics")
 def statistics(
-    data_path: str = typer.Option(..., "--data_path"), 
+    data_path: str = typer.Option(..., "--data_path"),
     params_file: str = typer.Option(..., "--parameters_file"),
-    output_path: str = typer.Option(..., "--output_path")
+    output_path: str = typer.Option(..., "--output_path"),
 ):
     """Computes statistics about the data. This statistics are uploaded
     to the Medperf platform under the data owner's approval. Include
@@ -63,6 +67,7 @@ def statistics(
     """
     cmd = f"python3 statistics.py --data_path={data_path} --out_file={output_path}"
     exec_python(cmd)
+
 
 if __name__ == "__main__":
     app()
