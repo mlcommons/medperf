@@ -463,4 +463,3 @@ def test_request_registration_approval_returns_users_input(
 
     # Assert
     assert approved == approval
-

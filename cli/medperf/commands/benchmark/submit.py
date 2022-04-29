@@ -127,7 +127,7 @@ class SubmitBenchmark:
         return valid
 
     def get_extra_information(self):
-        """Retrieves information that must be populated automatically, 
+        """Retrieves information that must be populated automatically,
         like hash, generated uid and test results
         """
         tmp_uid = self.demo_hash if self.demo_hash else generate_tmp_uid()
@@ -138,8 +138,8 @@ class SubmitBenchmark:
         self.results = results
 
     def run_compatibility_test(self):
-        """Runs a compatibility test to ensure elements are compatible, and 
-        to extract additional information required for submission
+        """Runs a compatibility test to ensure elements are compatible,
+        and to extract additional information required for submission
         """
         self.ui.print("Running compatibility test")
         data_prep = self.data_preparation_mlcube

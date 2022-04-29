@@ -3,7 +3,6 @@ from unittest.mock import call
 
 from medperf.tests.utils import rand_l
 from medperf.entities.cube import Cube
-from medperf.tests.mocks import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.result.create import BenchmarkExecution

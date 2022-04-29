@@ -89,7 +89,7 @@ def test(
     ),
 ):
     """
-    Executes a compatibility test for a determined benchmark. 
+    Executes a compatibility test for a determined benchmark.
     Can test prepared datasets, remote and local models independently.
     """
     comms = config.comms
