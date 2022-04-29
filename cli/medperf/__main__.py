@@ -1,7 +1,7 @@
 import typer
 import logging
 import logging.handlers
-from os.path import abspath, expanduser, join
+from os.path import abspath, expanduser
 
 from medperf.commands import Login
 from medperf.commands.result import result
