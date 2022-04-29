@@ -13,7 +13,6 @@ from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.result.create import BenchmarkExecution
 from medperf.utils import pretty_error, untar, get_file_sha1, get_uids, storage_path
-from medperf.commands.result.create import BenchmarkExecution
 
 
 class CompatibilityTestExecution:
