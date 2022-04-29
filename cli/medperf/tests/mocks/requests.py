@@ -59,4 +59,3 @@ def cube_metadata_generator(with_params=False, with_tarball=False):
         }
 
     return cube_metadata_body
-

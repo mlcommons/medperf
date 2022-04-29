@@ -5,7 +5,7 @@
 # commands, and input/output parameters and command-line arguments.
 # You can provide that interface to MLCube in any way you prefer.
 # Here, we show a way that requires minimal intrusion to the original code,
-# By running the application through subprocesses. 
+# By running the application through subprocesses.
 
 import os
 import yaml
@@ -13,6 +13,7 @@ import typer
 import subprocess
 
 app = typer.Typer()
+
 
 def exec_python(cmd: str) -> None:
     """Execute a python script as a subprocess
@@ -24,8 +25,7 @@ def exec_python(cmd: str) -> None:
     process = subprocess.Popen(splitted_cmd, cwd=".")
     process.wait()
 
-    
-    
+
 @app.command("evaluate")
 def evaluate(
     labels: str = typer.Option(..., "--labels"),
@@ -38,6 +38,7 @@ def evaluate(
 
     cmd = f"python3 app.py --labels_csv={labels_csv} --preds_csv={preds_csv} --parameters_file={parameters_file} --output_file={output_path}"
     exec_python(cmd)
+
 
 """
 @app.command("infer")
@@ -68,11 +69,13 @@ def infer(
     print("exec cmd")
     exec_python(cmd)
 """
+
+
 @app.command("hotfix")
 def hotfix():
     pass
 
+
 if __name__ == "__main__":
     print("Starting app")
     app()
-

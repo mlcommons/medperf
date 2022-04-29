@@ -61,6 +61,7 @@ class IsDatasetOwner(BasePermission):
         else:
             return False
 
+
 class IsBenchmarkOwner(BasePermission):
     def get_result_object(self, pk):
         try:

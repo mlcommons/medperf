@@ -44,7 +44,7 @@ class CTScanDataset(Dataset):
         """
         self.root_dir = data_dir
         self.files = os.listdir(data_dir)
-        #print("self files:", self.files)
+        # print("self files:", self.files)
         self.transform = transform
 
     def __len__(self):
@@ -53,20 +53,20 @@ class CTScanDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        
+
         # file_path = os.path.join(self.root_dir, self.files[idx])
 
-        with open(os.path.join(self.root_dir, self.files[idx]), 'rb') as f:
+        with open(os.path.join(self.root_dir, self.files[idx]), "rb") as f:
             data = np.load(f)
-            feature = data[:-1, :, :].astype('float32')
-            label = data[-1, :, :].astype('int8')
-            #print("len label:", label)
+            feature = data[:-1, :, :].astype("float32")
+            label = data[-1, :, :].astype("int8")
+            # print("len label:", label)
 
         if self.transform:
             sample = self.transform(sample)
 
         return feature, label
-    
+
 
 def unet_model(images, model_path, output):
     """
@@ -75,23 +75,30 @@ def unet_model(images, model_path, output):
     Args:
         images: images to be predicted
         model_path: path to PyTorch model"""
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     test_dataset = images
     # define test loader
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=0)
     print("t l:", len(test_loader))
-    # load pre-trained torch model 
-    #net = torch.load(model_path, map_location=torch.device(device))
-    net = monai.networks.nets.UNETR(in_channels=3, out_channels=2, img_size=(512, 512), feature_size=16, spatial_dims=2)
+    # load pre-trained torch model
+    # net = torch.load(model_path, map_location=torch.device(device))
+    net = monai.networks.nets.UNETR(
+        in_channels=3,
+        out_channels=2,
+        img_size=(512, 512),
+        feature_size=16,
+        spatial_dims=2,
+    )
     net.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
     criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(50))
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0001)
+    optimizer = torch.optim.SGD(
+        net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0001
+    )
     # load dataset
     test_dataset = CTScanDataset(images)
-    #define test_loader
-    testloader = DataLoader(test_dataset, batch_size=8,
-                             shuffle=False, num_workers=0)
-    #print("len testloader:", len(testloader))
+    # define test_loader
+    testloader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=0)
+    # print("len testloader:", len(testloader))
 
     file_names = os.listdir(images)
     print(file_names)
@@ -100,36 +107,47 @@ def unet_model(images, model_path, output):
         print(len(testloader))
         for data in testloader:
             images, targets = data
-            images, targets = images.to(device=device, dtype=torch.float), targets.to(device=device)
+            images, targets = (
+                images.to(device=device, dtype=torch.float),
+                targets.to(device=device),
+            )
             print(images)
             targets = F.one_hot(targets.long(), num_classes=2)
             targets = torch.permute(targets, (0, 3, 1, 2))
             outputs = net(images)
             print("saving:", file_names[idx])
             for row in range(len(outputs)):
-                pred = outputs[row] 
+                pred = outputs[row]
                 torch.save(pred, os.path.join(output, file_names[idx]))
                 idx = idx + 1
-            #print(outputs)
-            #print("save:",os.path.join(output, file_names[idx]))
-            #np.save(outputs, os.path.join(output, file_names[idx]))
-            #outputs_cat = F.one_hot(torch.argmax(outputs, axis=1), num_classes=2)
-            #outputs_cat = torch.permute(outputs_cat, (0, 3, 1, 2))
+            # print(outputs)
+            # print("save:",os.path.join(output, file_names[idx]))
+            # np.save(outputs, os.path.join(output, file_names[idx]))
+            # outputs_cat = F.one_hot(torch.argmax(outputs, axis=1), num_classes=2)
+            # outputs_cat = torch.permute(outputs_cat, (0, 3, 1, 2))
 
-            #torch.save(outputs_cat, os.path.join(output, file_names[idx]))
-            #idx += 1
-            
+            # torch.save(outputs_cat, os.path.join(output, file_names[idx]))
+            # idx += 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("App")
     parser = argparse.ArgumentParser("MedPerf DFCI Example")
-    parser.add_argument('--names', dest="names", type=str, help="directory containing names")
-    parser.add_argument('--out', dest="out", type=str, help="path to store resulting predictions")
+    parser.add_argument(
+        "--names", dest="names", type=str, help="directory containing names"
+    )
+    parser.add_argument(
+        "--out", dest="out", type=str, help="path to store resulting predictions"
+    )
 
-    parser.add_argument('--model_info', dest="model_info", type=str, help="directory containing model info")
+    parser.add_argument(
+        "--model_info",
+        dest="model_info",
+        type=str,
+        help="directory containing model info",
+    )
 
-    #parser.add_argument('--data_p', dest="data", type=str, help="directory containing images")
+    # parser.add_argument('--data_p', dest="data", type=str, help="directory containing images")
 
     args = parser.parse_args()
     print(args.out)
@@ -137,6 +155,6 @@ if __name__ == '__main__':
     print(args.names)
     print("run unet model")
     unet_model(args.names, args.model_info, args.out)
-    #list_vals = [loss, dice_total_avg, dice_class0_avg, dice_class1_avg]
-    #loss, dice_total_avg, dice_class0_avg, dice_class1_avg = unet_model(args.names, args.model_info)
-    #list_vals = [loss, dice_total_avg, dice_class0_avg, dice_class1_avg]
+    # list_vals = [loss, dice_total_avg, dice_class0_avg, dice_class1_avg]
+    # loss, dice_total_avg, dice_class0_avg, dice_class1_avg = unet_model(args.names, args.model_info)
+    # list_vals = [loss, dice_total_avg, dice_class0_avg, dice_class1_avg]

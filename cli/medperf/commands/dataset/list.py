@@ -44,6 +44,7 @@ class DatasetsList:
                 dset.name,
                 dset.preparation_cube_uid,
                 dset.uid is not None,
+                dset.generated_uid in remote_uids,
                 True,
             ]
             for dset in local_dsets

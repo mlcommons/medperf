@@ -2,7 +2,8 @@ import os
 import yaml
 import argparse
 
-from .sanity_check import check_subject_validity            
+from .sanity_check import check_subject_validity
+
 
 def get_statistics(data_path: str) -> dict:
     """Computes statistics about the data. This statistics are uploaded
@@ -29,20 +30,28 @@ def get_statistics(data_path: str) -> dict:
                 number_valid_subjects += 1
             else:
                 number_of_invalid_subjects += 1
-            
+
             ## this can be expanded to get more information about the data, such as the number labels in each segmentation, and so on.
-                
+
     stats = {
         "Valid_Subjects": number_valid_subjects,
-        "Invalid_Subjects": number_of_invalid_subjects
+        "Invalid_Subjects": number_of_invalid_subjects,
     }
 
     return stats
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser("MedPerf Statistics Example")
-    parser.add_argument("--data_path", dest="data", type=str, help="directory containing the prepared data")
-    parser.add_argument("--out_file", dest="out_file", type=str, help="file to store statistics")
+    parser.add_argument(
+        "--data_path",
+        dest="data",
+        type=str,
+        help="directory containing the prepared data",
+    )
+    parser.add_argument(
+        "--out_file", dest="out_file", type=str, help="file to store statistics"
+    )
 
     args = parser.parse_args()
 
@@ -50,4 +59,3 @@ if __name__ == '__main__':
 
     with open(args.out_file, "w") as f:
         yaml.dump(stats, f)
-

@@ -13,7 +13,7 @@ class CLI(UI):
 
     def print(self, msg: str = ""):
         """Display a message on the command line
-        
+
         Args:
             msg (str): message to print
         """
@@ -21,7 +21,7 @@ class CLI(UI):
 
     def print_error(self, msg: str):
         """Display an error message on the command line
-        
+
         Args:
             msg (str): error message to display
         """
@@ -68,7 +68,7 @@ class CLI(UI):
     def text(self, msg: str = ""):
         """Displays a message that overwrites previous messages if they
         were created during an interactive ui session.
-        
+
         If not on interactive session already, then it calls the ui print function
 
         Args:
@@ -81,7 +81,7 @@ class CLI(UI):
 
     def prompt(self, msg: str) -> str:
         """Displays a prompt to the user and waits for an answer
-        
+
         Args:
             msg (str): message to use for the prompt
 

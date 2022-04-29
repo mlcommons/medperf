@@ -3,8 +3,13 @@ import csv
 from pathlib import Path
 import yaml
 import numpy as np
-from sklearn.metrics import (f1_score, accuracy_score,
-                            jaccard_score, recall_score, precision_score)
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    jaccard_score,
+    recall_score,
+    precision_score,
+)
 
 
 class MetricsClass:
@@ -29,8 +34,10 @@ class MetricsClass:
         Returns:
             float: the F1-score metric
         """
-        return f1_score(labels, preds, average='macro', labels=list(range(self.num_classes)))
-    
+        return f1_score(
+            labels, preds, average="macro", labels=list(range(self.num_classes))
+        )
+
     def precision(self, labels, preds):
         """Calculates the Precision metric using scikit-learn library
         with macro-averaging across classes.
@@ -42,8 +49,10 @@ class MetricsClass:
         Returns:
             float: the Precision metric
         """
-        return precision_score(labels, preds, average='macro', labels=list(range(self.num_classes)))
-    
+        return precision_score(
+            labels, preds, average="macro", labels=list(range(self.num_classes))
+        )
+
     def jaccard(self, labels, preds):
         """Calculates the Jaccard-score metric using scikit-learn library
         with macro-averaging across classes.
@@ -55,8 +64,10 @@ class MetricsClass:
         Returns:
             float: the Jaccard-score metric
         """
-        return jaccard_score(labels, preds, average='macro', labels=list(range(self.num_classes)))
-    
+        return jaccard_score(
+            labels, preds, average="macro", labels=list(range(self.num_classes))
+        )
+
     def recall(self, labels, preds):
         """Calculates the Recall metric using scikit-learn library
         with macro-averaging across classes.
@@ -68,8 +79,10 @@ class MetricsClass:
         Returns:
             float: the Recall metric
         """
-        return recall_score(labels, preds, average='macro', labels=list(range(self.num_classes)))
-    
+        return recall_score(
+            labels, preds, average="macro", labels=list(range(self.num_classes))
+        )
+
     def accuracy(self, labels, preds):
         """Calculates the Accuracy metric using scikit-learn library
     
@@ -113,7 +126,7 @@ class Evaluation:
 
         self.output_file = output_file
         self.preds_path = Path(preds_path)
-    
+
     def run(self):
         labels = list()
         preds = list()
@@ -129,7 +142,7 @@ class Evaluation:
                         continue
                     labels[-1].append(int(row[1]))
                     preds[-1].append(int(row[2]))
-        
+
         results = {"overall": {}, "per_video": {}}
 
         for metric_name in self.params["metrics"]:
@@ -141,9 +154,9 @@ class Evaluation:
             scores = metric(sum(labels, []), sum(preds, []))
             results["overall"][metric_name] = float(scores)
             results["per_video"][metric_name] = {
-                                            "mean": float(np.mean(scores_per_video)),
-                                            "std": float(np.std(scores_per_video))
-                                            }
+                "mean": float(np.mean(scores_per_video)),
+                "std": float(np.std(scores_per_video)),
+            }
 
         with open(self.output_file, "w") as f:
             yaml.dump(results, f)
@@ -175,9 +188,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    evaluator = Evaluation(args.preds_path, args.parameters_file, args.output_file)
 
-    evaluator = Evaluation(args.preds_path,
-                                args.parameters_file,
-                                args.output_file)
-                                
     evaluator.run()

@@ -57,7 +57,7 @@ def ui(mocker):
 
 @pytest.fixture
 def filesystem():
-    fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs")),])
+    fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs"))])
     files = ["/foo/baz", "/foo/bar/spam", "/foo/bar/eggs"]
     return [fs, files]
 
@@ -397,15 +397,18 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
 
 
-@pytest.mark.parametrize("bmark_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("generated_uid", rand_l(1, 5000, 2))
-def test__results_path_returns_expected_path(bmark_uid, model_uid, generated_uid):
+@pytest.mark.parametrize("bmk", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("model", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("gen_uid", rand_l(1, 5000, 2))
+def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
-    expected_path = f"{config.storage}/{config.results_storage}/{bmark_uid}/{model_uid}/{generated_uid}/{config.results_filename}"
+    storage = config.storage
+    res_storage = config.results_storage
+    res_file = config.results_filename
+    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}/{res_file}"
 
     # Act
-    path = utils.results_path(bmark_uid, model_uid, generated_uid)
+    path = utils.results_path(bmk, model, gen_uid)
 
     # Assert
     assert path == expected_path

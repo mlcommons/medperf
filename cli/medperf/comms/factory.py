@@ -12,4 +12,3 @@ class CommsFactory:
             return REST(host, ui)
         else:
             pretty_error("the indicated communication interface doesn't exist", ui)
-

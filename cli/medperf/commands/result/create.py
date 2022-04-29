@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
