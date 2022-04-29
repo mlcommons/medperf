@@ -41,11 +41,7 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    re_path(
-        r"^$",
-        schema_view.with_ui("redoc", cache_timeout=0),
-        name="schema-redoc",
-    ),
+    re_path(r"^$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc",),
     path("admin/", admin.site.urls),
     path("benchmarks/", include("benchmark.urls")),
     path("mlcubes/", include("mlcube.urls")),

@@ -27,7 +27,9 @@ class BenchmarkList(GenericAPIView):
         """
         Create a new benchmark
         """
-        serializer = BenchmarkSerializer(data=request.data, context={"request": request})
+        serializer = BenchmarkSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -127,7 +129,9 @@ class BenchmarkDetail(GenericAPIView):
         Update a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        serializer = BenchmarkApprovalSerializer(benchmark, data=request.data, partial=True)
+        serializer = BenchmarkApprovalSerializer(
+            benchmark, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

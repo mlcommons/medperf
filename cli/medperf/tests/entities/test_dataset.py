@@ -1,12 +1,11 @@
 import pytest
-from unittest.mock import MagicMock, mock_open
+from unittest.mock import mock_open
 
 import medperf
 from medperf import utils
 import medperf.config as config
 from medperf.entities import Dataset
 from medperf.ui import UI
-from medperf.comms import Comms
 from medperf.tests.mocks import Benchmark
 
 REGISTRATION_MOCK = {
@@ -17,6 +16,7 @@ REGISTRATION_MOCK = {
     "split_seed": "split_seed",
     "metadata": {},
     "generated_uid": "generated_uid",
+    "input_data_hash": "input_data_hash",
     "status": "status",
     "uid": "uid",
     "state": "state",

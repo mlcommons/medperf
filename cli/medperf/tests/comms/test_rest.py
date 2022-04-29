@@ -485,7 +485,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    id = server.associate_cube(cube_uid, benchmark_uid)
+    server.associate_cube(cube_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)

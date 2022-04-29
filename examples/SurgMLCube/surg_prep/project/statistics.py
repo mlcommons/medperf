@@ -5,6 +5,7 @@ import numpy as np
 
 from utils import get_file_basename
 
+
 class Statistics:
     def __init__(self, data_path, params_file, out_path):
         """A class wrapper for calculating the statistics of the prepared dataset.
@@ -38,27 +39,29 @@ class Statistics:
 
         self.data_path = data_path
         self.out_path = out_path
-    
+
     def run(self):
         frames_per_video = {}
         csv_files = os.path.join(self.data_path, "data_csv")
         for csv_file in os.listdir(csv_files):
             vid_name = get_file_basename(csv_file)
             csv_file = os.path.join(csv_files, csv_file)
-            frames_per_video[vid_name] = len(open(csv_file).read().strip().split("\n")) - 1 # header
-        
+            frames_per_video[vid_name] = (
+                len(open(csv_file).read().strip().split("\n")) - 1
+            )  # header
+
         as_list = list(frames_per_video.values())
 
         stat = {
-                "num_vids": len(as_list),
-                "num_frames": {
-                        "total": sum(as_list),
-                        "mean": float(np.mean(as_list)),
-                        "stddev": float(np.std(as_list)),
-                        "per_video": frames_per_video
-                }
-            }
-        
+            "num_vids": len(as_list),
+            "num_frames": {
+                "total": sum(as_list),
+                "mean": float(np.mean(as_list)),
+                "stddev": float(np.std(as_list)),
+                "per_video": frames_per_video,
+            },
+        }
+
         yaml.safe_dump(stat, open(self.out_path, "w"))
 
 
@@ -89,11 +92,6 @@ if __name__ == "__main__":
         help="output file to store the statistics",
     )
 
-
     args = parser.parse_args()
-    statistics_calculator = Statistics( args.data_path,
-                                 args.params_file,
-                                 args.out_path
-                                )
+    statistics_calculator = Statistics(args.data_path, args.params_file, args.out_path)
     statistics_calculator.run()
-

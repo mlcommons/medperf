@@ -10,7 +10,6 @@ from medperf.utils import init_storage, storage_path
 from medperf.decorators import clean_except
 from medperf.comms import CommsFactory
 from medperf.ui import UIFactory
-from medperf.utils import init_storage
 from medperf.commands.mlcube import mlcube
 from medperf.commands.dataset import dataset
 import medperf.commands.association.association as association
