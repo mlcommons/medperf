@@ -8,6 +8,7 @@ from tensorflow.keras.layers.experimental.preprocessing import Resizing
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
+
 @tf.function
 def preprocess_input_fn(data, preprocessor):
     """Applies a transformation function on images.
@@ -24,9 +25,12 @@ def preprocess_input_fn(data, preprocessor):
     img_as_float = tf.cast(data["image"], tf.float32)
     preprocessed_img = preprocessor(img_as_float)
 
-    new_data = {key:preprocessed_img if key=="image" else val for key,val in data.items()}
+    new_data = {
+        key: preprocessed_img if key == "image" else val for key, val in data.items()
+    }
 
     return new_data
+
 
 @tf.function
 def read_image(data):
@@ -49,6 +53,7 @@ def read_image(data):
 
     return new_data
 
+
 @tf.function
 def resize_map(data):
     """Resizes images to (224,224,3).
@@ -64,14 +69,15 @@ def resize_map(data):
 
     rescaled_img = Resizing(224, 224)(data["image"])
 
-    new_data = {key:rescaled_img if key=="image" else val for key,val in data.items()}
+    new_data = {
+        key: rescaled_img if key == "image" else val for key, val in data.items()
+    }
 
     return new_data
 
 
-def backbone_dataset(data_root,
-                     batch_size):
-    
+def backbone_dataset(data_root, batch_size):
+
     """Creates a Tensorflow dataset for each video.
 
     Args:
@@ -115,11 +121,15 @@ def backbone_dataset(data_root,
 
     csv_files = list((data_root / "data_csv").glob("*"))
     csv_files.sort()
-    
+
     datasets = list()
     csv_file_names = list()
-    
-    to_dict_fn = lambda img, label, frame_id: {"image_path":img, "label":label, "frame_id":frame_id}
+
+    to_dict_fn = lambda img, label, frame_id: {
+        "image_path": img,
+        "label": label,
+        "frame_id": frame_id,
+    }
 
     for csv_file in csv_files:
         frames = list()
@@ -136,15 +146,19 @@ def backbone_dataset(data_root,
                 frame_ids.append(frame_id)
 
         frames = list(map(lambda path: str(data_root / path), frames))
-        
+
         csv_file_names.append(csv_file.name)
-        datasets.append(tf.data.Dataset.from_tensor_slices((frames, labels, frame_ids))
-                        .map(to_dict_fn)
-                        .map(read_image, num_parallel_calls=AUTOTUNE)
-                        .batch(batch_size)
-                        .map(resize_map, num_parallel_calls=AUTOTUNE)
-                        .map(partial(preprocess_input_fn, preprocessor=preprocess_input), num_parallel_calls=AUTOTUNE)
-                        .prefetch(AUTOTUNE)
+        datasets.append(
+            tf.data.Dataset.from_tensor_slices((frames, labels, frame_ids))
+            .map(to_dict_fn)
+            .map(read_image, num_parallel_calls=AUTOTUNE)
+            .batch(batch_size)
+            .map(resize_map, num_parallel_calls=AUTOTUNE)
+            .map(
+                partial(preprocess_input_fn, preprocessor=preprocess_input),
+                num_parallel_calls=AUTOTUNE,
+            )
+            .prefetch(AUTOTUNE)
         )
-    
+
     return csv_file_names, datasets

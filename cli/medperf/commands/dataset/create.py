@@ -52,7 +52,7 @@ class DataPreparation:
         labels_path = self.labels_path
         out_datapath = self.out_datapath
 
-        self.ui.text = f"Running preparation step..."
+        self.ui.text = "Running preparation step..."
         self.cube.run(
             self.ui,
             task="prepare",

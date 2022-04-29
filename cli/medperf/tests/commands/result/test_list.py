@@ -1,5 +1,3 @@
-import pytest
-
 from medperf.entities import Result
 from medperf.commands.result import ResultsList
 

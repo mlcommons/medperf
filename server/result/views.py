@@ -6,6 +6,7 @@ from .models import ModelResult
 from .serializers import ModelResultSerializer
 from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner, IsResultOwner
 
+
 class ModelResultList(GenericAPIView):
     serializer_class = ModelResultSerializer
     queryset = ""
@@ -42,7 +43,7 @@ class ModelResultDetail(GenericAPIView):
 
     def get_permissions(self):
         if self.request.method == "PUT" or self.request.method == "DELETE":
-            self.permission_classes = [IsAdmin | IsResultOwner ]
+            self.permission_classes = [IsAdmin | IsResultOwner]
         elif self.request.method == "GET":
             self.permission_classes = [IsAdmin | IsDatasetOwner | IsBenchmarkOwner]
         return super(self.__class__, self).get_permissions()

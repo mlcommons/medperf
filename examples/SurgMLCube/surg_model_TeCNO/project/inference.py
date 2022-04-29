@@ -7,12 +7,16 @@ from dataset import backbone_dataset
 import tensorflow as tf
 from models import MultiStageModel
 
+
 class Inference:
-    def __init__(self, data_root,
-                       params_file,
-                       feature_extraction_weights_path,
-                       mstcn_weights_path,
-                       output_path):
+    def __init__(
+        self,
+        data_root,
+        params_file,
+        feature_extraction_weights_path,
+        mstcn_weights_path,
+        output_path,
+    ):
 
         """Class wrapper for executing model inference.
 
@@ -47,7 +51,9 @@ class Inference:
 
         # TODO: generalize this
         feature_extraction_weights_path = Path(feature_extraction_weights_path)
-        prefix = list(feature_extraction_weights_path.glob("*.index"))[0].name.replace(".index", "")
+        prefix = list(feature_extraction_weights_path.glob("*.index"))[0].name.replace(
+            ".index", ""
+        )
         feature_extraction_weights_path = feature_extraction_weights_path / prefix
 
         mstcn_weights_path = Path(mstcn_weights_path)
@@ -55,21 +61,26 @@ class Inference:
         mstcn_weights_path = mstcn_weights_path / prefix
         # TODO: generalize this
 
-
         with open(params_file, "r") as f:
             self.params = yaml.full_load(f)
-        
-        self.video_file_names, self.datasets = backbone_dataset(data_root=data_root, batch_size=self.params["batch_size"])
+
+        self.video_file_names, self.datasets = backbone_dataset(
+            data_root=data_root, batch_size=self.params["batch_size"]
+        )
 
         self.current_dataset = None
 
-        self.feature_extractor = tf.keras.applications.resnet50.ResNet50(include_top=False, pooling='avg', weights=None)
+        self.feature_extractor = tf.keras.applications.resnet50.ResNet50(
+            include_top=False, pooling="avg", weights=None
+        )
         self.feature_extractor.load_weights(feature_extraction_weights_path)
 
-        self.mstcn = MultiStageModel(num_stages=self.params["num_stages"],
-                                     num_layers=self.params["num_layers"],
-                                     num_f_maps=self.params["num_f_maps"],
-                                     num_classes=self.params["num_classes"])
+        self.mstcn = MultiStageModel(
+            num_stages=self.params["num_stages"],
+            num_layers=self.params["num_layers"],
+            num_f_maps=self.params["num_f_maps"],
+            num_classes=self.params["num_classes"],
+        )
 
         self.mstcn.build([None, 2048])
         self.mstcn.load_weights(mstcn_weights_path)
@@ -78,7 +89,6 @@ class Inference:
         self.out_path.mkdir(exist_ok=True)
 
         self.data_root = Path(data_root)
-
 
     @tf.function
     def one_video_inference(self, dataset):
@@ -96,10 +106,18 @@ class Inference:
         """
         num_batches = dataset.cardinality()
         num_batches = tf.cast(num_batches, tf.int32)
-        features_tensor_array = tf.TensorArray(dtype=tf.float32, element_shape=[None, 2048], size=num_batches)
-        labels_tensor_array = tf.TensorArray(dtype=tf.int32, element_shape=[None], size=num_batches)
-        frame_path_tensor_array = tf.TensorArray(dtype=tf.string, element_shape=[None], size=num_batches)
-        frame_id_tensor_array = tf.TensorArray(dtype=tf.int32, element_shape=[None], size=num_batches)
+        features_tensor_array = tf.TensorArray(
+            dtype=tf.float32, element_shape=[None, 2048], size=num_batches
+        )
+        labels_tensor_array = tf.TensorArray(
+            dtype=tf.int32, element_shape=[None], size=num_batches
+        )
+        frame_path_tensor_array = tf.TensorArray(
+            dtype=tf.string, element_shape=[None], size=num_batches
+        )
+        frame_id_tensor_array = tf.TensorArray(
+            dtype=tf.int32, element_shape=[None], size=num_batches
+        )
 
         writer_index = tf.constant(0, dtype=tf.int32)
 
@@ -116,11 +134,13 @@ class Inference:
 
             features_tensor_array = features_tensor_array.write(writer_index, features)
             labels_tensor_array = labels_tensor_array.write(writer_index, labels)
-            frame_path_tensor_array = frame_path_tensor_array.write(writer_index, images_paths)
+            frame_path_tensor_array = frame_path_tensor_array.write(
+                writer_index, images_paths
+            )
             frame_id_tensor_array = frame_id_tensor_array.write(writer_index, frame_ids)
 
             writer_index += 1
-        
+
         tf.print(f"sorting:")
         video_features = features_tensor_array.concat()
         video_labels = labels_tensor_array.concat()
@@ -155,7 +175,9 @@ class Inference:
             writer = csv.writer(f)
             writer.writerow(["frame_path", "label", "prediction"])
             for frame_path, label, pred in zip(paths, labels, preds):
-                frame_path = Path(frame_path.decode("utf-8")).relative_to(self.data_root)
+                frame_path = Path(frame_path.decode("utf-8")).relative_to(
+                    self.data_root
+                )
                 writer.writerow([frame_path, label, pred])
 
     def run(self):
@@ -164,10 +186,11 @@ class Inference:
         num_vids = len(self.datasets)
         for i in range(num_vids):
             tf.print(f"Video {i+1}/{num_vids}")
-            preds, labels, paths = self.one_video_inference( self.datasets[i])
+            preds, labels, paths = self.one_video_inference(self.datasets[i])
             out_file = self.out_path / self.video_file_names[i]
-            self.save_video_predictions(preds.numpy(), labels.numpy(), paths.numpy(), out_file)
-        
+            self.save_video_predictions(
+                preds.numpy(), labels.numpy(), paths.numpy(), out_file
+            )
 
 
 if __name__ == "__main__":
@@ -179,11 +202,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--data_path",
-        "--data-path",
-        type=str,
-        required=True,
-        help="Location of data",
+        "--data_path", "--data-path", type=str, required=True, help="Location of data",
     )
 
     parser.add_argument(
@@ -219,12 +238,12 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    inference_model = Inference(args.data_path,
-                                args.params_file,
-                                args.feature_extraction_weights_path,
-                                args.mstcn_weights_path,
-                                args.output_path
-                                )
-                                
-    inference_model.run()
+    inference_model = Inference(
+        args.data_path,
+        args.params_file,
+        args.feature_extraction_weights_path,
+        args.mstcn_weights_path,
+        args.output_path,
+    )
 
+    inference_model.run()

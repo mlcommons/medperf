@@ -66,6 +66,13 @@ fi
 echo "\n"
 DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
+echo "Approving dataset association"
+echo "====================================="
+# Log in as the benchmark owner
+BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "$SERVER_URL/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
+# Mark dataset-benchmark association as approved
+curl -s -X PUT "$SERVER_URL/datasets/1/benchmarks/1/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"
+echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
 echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE result create -b 1 -d $DSET_UID -m 2
