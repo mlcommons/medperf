@@ -94,7 +94,6 @@ def test(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     CompatibilityTestExecution.run(
         benchmark_uid, comms, ui, data_uid, data_prep, model, evaluator
     )

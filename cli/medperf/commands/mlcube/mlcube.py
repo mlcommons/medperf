@@ -18,7 +18,6 @@ def list(all: bool = typer.Option(False, help="Display all mlcubes")):
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     CubesList.run(comms, ui, all)
 
 
@@ -28,7 +27,6 @@ def submit():
     """Submits a new cube to the platform"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     SubmitCube.run(comms, ui)
     cleanup()
     ui.print("✅ Done!")
@@ -43,6 +41,5 @@ def associate(
     """Associates an MLCube to a benchmark"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     AssociateCube.run(model_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")

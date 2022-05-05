@@ -202,10 +202,10 @@ def test_auth_post_calls_authorized_request(mocker, server):
     spy.called_once_with(url, requests.post)
 
 
-def test_auth_req_fails_if_token_missing(mocker, server):
+def test_auth_req_authenticates_if_token_missing(mocker, server):
     # Arrange
     mocker.patch("requests.post")
-    spy = mocker.patch(patch_server.format("pretty_error"))
+    spy = mocker.patch(patch_server.format("REST.authenticate"))
 
     # Act
     server._REST__auth_req(url, requests.post)

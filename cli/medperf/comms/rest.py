@@ -53,7 +53,7 @@ class REST(Comms):
 
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
-            pretty_error("Must be authenticated", self.ui)
+            self.authenticate()
         return req_func(url, headers={"Authorization": f"Token {self.token}"}, **kwargs)
 
     def __set_approval_status(self, url: str, status: str) -> requests.Response:

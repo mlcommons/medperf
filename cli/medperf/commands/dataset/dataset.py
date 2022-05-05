@@ -20,7 +20,6 @@ def datasets(
     """
     ui = config.ui
     comms = config.comms
-    comms.authenticate()
     DatasetsList.run(comms, ui)
 
 
@@ -41,7 +40,6 @@ def create(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
     DatasetRegistration.run(data_uid, comms, ui)
     AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
@@ -59,7 +57,6 @@ def register(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     DatasetRegistration.run(data_uid, comms, ui)
     ui.print("✅ Done!")
 
@@ -79,6 +76,5 @@ def associate(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")

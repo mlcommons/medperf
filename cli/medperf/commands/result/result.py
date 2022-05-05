@@ -12,7 +12,6 @@ app = typer.Typer()
 def run_benchmark(benchmark_uid, data_uid, model_uid):
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
@@ -52,7 +51,6 @@ def submit(
     """Submits already obtained results to the server"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
 
@@ -63,5 +61,4 @@ def list():
     """List results stored locally and remotely from the user"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     ResultsList.run(comms, ui)
