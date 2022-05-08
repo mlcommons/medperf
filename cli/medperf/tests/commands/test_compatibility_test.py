@@ -18,6 +18,8 @@ def benchmark(mocker):
         bmk.data_preparation = data_prep
         bmk.reference_model = reference_model
         bmk.evaluator = evaluator
+        bmk.demo_dataset_url = None
+        bmk.demo_dataset_hash = None
         return bmk
 
     return benchmark_gen
@@ -34,6 +36,7 @@ def dataset(mocker):
 def default_setup(mocker, benchmark, dataset):
     bmk = benchmark(1, 1, 2, 3)
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch(
         PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
         return_value=("", ""),
@@ -46,9 +49,10 @@ def default_setup(mocker, benchmark, dataset):
 @pytest.mark.parametrize(
     "test_params",
     [
-        ((None, "data", "prep", "model", "eval"), True),
+        ((None, "data", "prep", "model", "eval"), False),
+        (("bmk", "data", None, "model", "eval"), False),
+        ((None, "data", None, "model", "eval"), True),
         ((None, None, "prep", "model", "eval"), False),
-        ((None, "data", None, "model", "eval"), False),
         ((None, "data", "prep", None, "eval"), False),
         ((None, "data", "prep", "model", None), False),
     ],
@@ -69,7 +73,7 @@ def test_validate_fails_if_incomplete_tmp_benchmark_passed(
     if should_be_valid:
         spy.assert_not_called()
     else:
-        spy.assert_called_once()
+        spy.assert_called()
 
 
 @pytest.mark.parametrize("uid", [None, "1"])
@@ -90,8 +94,8 @@ def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
     # Assert
     if uid:
         get_spy.assert_called_once_with(uid, comms)
-    else:
-        tmp_spy.assert_called_once_with(prep, model, eval)
+    tmp_spy.assert_called_once_with(prep, model, eval,
+                                        bmk.demo_dataset_url, bmk.demo_dataset_hash)
 
 
 @pytest.mark.parametrize("uid", [None, "1"])
@@ -279,6 +283,7 @@ def test_run_returns_uids(
     # Arrange
     bmk = benchmark(bmk_uid, data_uid, model_uid, "3")
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_cube_uid"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_data_uid"))
@@ -286,7 +291,6 @@ def test_run_returns_uids(
         PATCH_TEST.format("CompatibilityTestExecution.execute_benchmark"),
         return_value=results,
     )
-    mocker.patch(PATCH_TEST.format("Benchmark.write"))
 
     # Act
     ret_uids = CompatibilityTestExecution.run(
@@ -309,6 +313,7 @@ def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, ha
     bmk.demo_dataset_url = "url"
     bmk.demo_dataset_hash = hash
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
     exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
@@ -341,6 +346,7 @@ def test_download_demo_data_extracts_expected_paths(
     bmk.demo_dataset_url = "url"
     bmk.demo_dataset_hash = "hash"
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
 
@@ -361,3 +367,51 @@ def test_download_demo_data_extracts_expected_paths(
     # Assert
     assert data_path == exp_data_path
     assert labels_path == exp_labels_path
+
+@pytest.mark.parametrize("data_uid", rand_l(1, 500, 1) + [None])
+@pytest.mark.parametrize("prep_uid", rand_l(1, 500, 1) + [None])
+@pytest.mark.parametrize("model_uid", rand_l(1, 500, 1) + [None])
+@pytest.mark.parametrize("eval_uid", rand_l(1, 500, 1) + [None])
+def test_run_uses_correct_uids(
+    mocker, benchmark, dataset, data_uid, prep_uid, model_uid, eval_uid, comms, ui
+):
+    # Arrange
+    bmk_uid = "1"
+    bmk_prep_uid = "b1"
+    bmk_model_uid = "b2"
+    bmk_eval_uid = "b3"
+    demo_dataset_uid = "d1"
+    tmp_uid = "t1"
+
+    tmp_bmk = benchmark(tmp_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
+    bmk = benchmark(bmk_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
+    bmk.demo_dataset_url = "url"
+    bmk.demo_dataset_hash = "hash"
+
+    mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
+    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch("os.path.exists", return_value=False)
+    mocker.patch(PATCH_TEST.format("get_uids"), return_value=[str(data_uid)])
+    mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
+                                                                return_value=("", ""))
+    mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value=demo_dataset_uid)
+    mocker.patch(PATCH_TEST.format("Dataset"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Result"))
+
+    tmp_spy = mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=tmp_bmk)
+    exec_spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
+    
+    exp_data_uid = demo_dataset_uid if data_uid is None else data_uid
+    exp_prep_uid = bmk_prep_uid if prep_uid is None else prep_uid
+    exp_model_uid = bmk_model_uid if model_uid is None else model_uid
+    exp_eval_uid = bmk_eval_uid if eval_uid is None else eval_uid
+
+    # Act
+    CompatibilityTestExecution.run(bmk_uid, comms, ui,
+                            data_uid, prep_uid, model_uid, eval_uid)
+
+    # Assert
+    tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid,
+                                            bmk.demo_dataset_url, bmk.demo_dataset_hash)
+    exec_spy.assert_called_once_with(tmp_uid, exp_data_uid, exp_model_uid,
+                                        comms, ui, run_test=True)
