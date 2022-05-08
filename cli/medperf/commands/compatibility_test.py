@@ -78,11 +78,23 @@ class CompatibilityTestExecution:
         Specifically, a benchmark must be passed if any other workflow
         parameter is not passed.
         """
-        params = [self.data_uid, self.data_prep, self.model, self.evaluator]
+        params = [self.data_uid, self.model, self.evaluator]
         none_params = [param is None for param in params]
         if self.benchmark_uid is None and any(none_params):
             pretty_error(
                 "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow",
+                self.ui,
+            )
+        # a redundant data preparation cube
+        if self.data_uid is not None and self.data_prep is not None:
+            pretty_error(
+                "Invalid combination of arguments to test. The passed preparation cube will not be used",
+                self.ui,
+            )
+        # a redundant benchmark
+        if self.benchmark_uid is not None and not any(none_params):
+            pretty_error(
+                "Invalid combination of arguments to test. The passed benchmark will not be used",
                 self.ui,
             )
 
