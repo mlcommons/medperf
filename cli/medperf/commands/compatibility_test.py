@@ -132,6 +132,7 @@ class CompatibilityTestExecution:
             return
 
         # Check if value is a server UID
+        val = str(val)
         if os.path.exists(val):
             logging.info("local path provided. Creating symbolic link")
             self.model = config.test_cube_prefix + str(int(time()))
