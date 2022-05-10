@@ -20,7 +20,7 @@ def datasets(
     """
     ui = config.ui
     comms = config.comms
-    DatasetsList.run(comms, ui)
+    DatasetsList.run(comms, ui, all)
 
 
 @app.command("create")
@@ -41,9 +41,10 @@ def create(
     comms = config.comms
     ui = config.ui
     data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
-    DatasetRegistration.run(data_uid, comms, ui)
-    AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: register the dataset with 'medperf dataset register -d {data_uid}'"
+    )
 
 
 @app.command("submit")
@@ -59,6 +60,9 @@ def register(
     ui = config.ui
     DatasetRegistration.run(data_uid, comms, ui)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {data_uid}'"
+    )
 
 
 @app.command("associate")
@@ -78,3 +82,6 @@ def associate(
     ui = config.ui
     AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"
+    )
