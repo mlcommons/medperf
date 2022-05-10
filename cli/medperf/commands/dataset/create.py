@@ -62,6 +62,9 @@ class DataPreparation:
         check_cube_validity(self.cube, self.ui)
 
     def run_cube_tasks(self):
+        prepare_timeout = config.prepare_timeout
+        sanity_check_timeout = config.sanity_check_timeout
+        statistics_timeout = config.statistics_timeout
         data_path = self.data_path
         labels_path = self.labels_path
         out_datapath = self.out_datapath
@@ -70,6 +73,7 @@ class DataPreparation:
         self.cube.run(
             self.ui,
             task="prepare",
+            timeout=prepare_timeout,
             data_path=data_path,
             labels_path=labels_path,
             output_path=out_datapath,
@@ -77,11 +81,11 @@ class DataPreparation:
         self.ui.print("> Cube execution complete")
 
         self.ui.text = "Running sanity check..."
-        self.cube.run(self.ui, task="sanity_check", data_path=out_datapath)
+        self.cube.run(self.ui, task="sanity_check", timeout=sanity_check_timeout, data_path=out_datapath)
         self.ui.print("> Sanity checks complete")
 
         self.ui.text = "Generating statistics..."
-        self.cube.run(self.ui, task="statistics", data_path=out_datapath)
+        self.cube.run(self.ui, task="statistics", timeout=statistics_timeout, data_path=out_datapath)
         self.ui.print("> Statistics complete")
 
     def create_registration(self):
