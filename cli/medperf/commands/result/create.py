@@ -104,7 +104,11 @@ class BenchmarkExecution:
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
         self.model_cube.run(
-            self.ui, task="infer", timeout=infer_timeout, data_path=data_path, output_path=preds_path
+            self.ui,
+            task="infer",
+            timeout=infer_timeout,
+            data_path=data_path,
+            output_path=preds_path,
         )
         self.ui.print("> Model execution complete")
 

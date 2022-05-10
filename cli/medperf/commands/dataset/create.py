@@ -81,11 +81,21 @@ class DataPreparation:
         self.ui.print("> Cube execution complete")
 
         self.ui.text = "Running sanity check..."
-        self.cube.run(self.ui, task="sanity_check", timeout=sanity_check_timeout, data_path=out_datapath)
+        self.cube.run(
+            self.ui,
+            task="sanity_check",
+            timeout=sanity_check_timeout,
+            data_path=out_datapath,
+        )
         self.ui.print("> Sanity checks complete")
 
         self.ui.text = "Generating statistics..."
-        self.cube.run(self.ui, task="statistics", timeout=statistics_timeout, data_path=out_datapath)
+        self.cube.run(
+            self.ui,
+            task="statistics",
+            timeout=statistics_timeout,
+            data_path=out_datapath,
+        )
         self.ui.print("> Statistics complete")
 
     def create_registration(self):

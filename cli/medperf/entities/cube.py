@@ -135,7 +135,7 @@ class Cube(object):
             valid_additional = True
         return valid_additional
 
-    def run(self, ui: UI, task: str, timeout: int=None, **kwargs):
+    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
