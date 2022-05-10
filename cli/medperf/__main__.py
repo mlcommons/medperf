@@ -28,10 +28,18 @@ app.add_typer(association.app, name="association", help="Manage associations")
 
 @app.command("login")
 @clean_except
-def login():
+def login(
+    username: str = typer.Option(
+        None, "--username", "-u", help="Username to login with"
+    ),
+    password: str = typer.Option(
+        None, "--password", "-p", help="Password to login with"
+    ),
+):
     """Login to the medperf server. Must be done only once.
     """
-    Login.run(config.comms, config.ui)
+    Login.run(config.comms, config.ui, username=username, password=password)
+    config.ui.print("✅ Done!")
 
 
 @app.command("run")

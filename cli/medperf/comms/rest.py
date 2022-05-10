@@ -16,14 +16,14 @@ class REST(Comms):
         self.token = token
         self.ui = ui
 
-    def login(self, ui: UI):
+    def login(self, ui: UI, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
 
         Args:
             ui (UI): Instance of an implementation of the UI interface
+            user (str): Username
+            pwd (str): Password
         """
-        user = ui.prompt("username: ")
-        pwd = ui.hidden_prompt("password: ")
         body = {"username": user, "password": pwd}
         res = requests.post(f"{self.server_url}/auth-token/", json=body)
         if res.status_code != 200:
