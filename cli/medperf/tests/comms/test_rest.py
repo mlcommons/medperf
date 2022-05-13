@@ -151,13 +151,11 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     # Arrange
     res = MockResponse({"token": ""}, 200)
     spy = mocker.patch("requests.post", return_value=res)
-    mocker.patch.object(ui, "prompt", return_value=uname)
-    mocker.patch.object(ui, "hidden_prompt", return_value=pwd)
     exp_body = {"username": uname, "password": pwd}
     exp_path = f"{url}/auth-token/"
 
     # Act
-    server.login(ui)
+    server.login(ui, uname, pwd)
 
     # Assert
     spy.assert_called_once_with(exp_path, json=exp_body)
@@ -168,11 +166,9 @@ def test_login_stores_token(mocker, ui, server, token):
     # Arrange
     res = MockResponse({"token": token}, 200)
     mocker.patch("requests.post", return_value=res)
-    mocker.patch.object(ui, "prompt", return_value="testuser")
-    mocker.patch.object(ui, "hidden_prompt", return_value="testpwd")
 
     # Act
-    server.login(ui)
+    server.login(ui, "testuser", "testpwd")
 
     # Assert
     assert server.token == token

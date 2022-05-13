@@ -9,11 +9,13 @@ from medperf.utils import storage_path
 
 class Login:
     @staticmethod
-    def run(comms: Comms, ui: UI):
+    def run(comms: Comms, ui: UI, username: str = None, password: str = None):
         """Login to the medperf server. Must be done only once.
         """
         cred_path = storage_path(config.credentials_path)
-        comms.login(ui)
+        user = username if username else ui.prompt("username: ")
+        pwd = password if password else ui.hidden_prompt("password: ")
+        comms.login(ui, user, pwd)
         token = comms.token
 
         if os.path.exists(cred_path):

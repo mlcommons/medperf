@@ -20,7 +20,7 @@ def datasets(
     """
     ui = config.ui
     comms = config.comms
-    DatasetsList.run(comms, ui)
+    DatasetsList.run(comms, ui, all)
 
 
 @app.command("create")
@@ -35,15 +35,32 @@ def create(
     labels_path: str = typer.Option(
         ..., "--labels_path", "-l", help="Labels file location"
     ),
+    name: str = typer.Option(..., "--name", help="Name of the dataset"),
+    description: str = typer.Option(
+        ..., "--description", help="Description of the dataset"
+    ),
+    location: str = typer.Option(
+        ..., "--location", help="Location or Institution the data belongs to"
+    ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
     comms = config.comms
     ui = config.ui
-    data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
-    DatasetRegistration.run(data_uid, comms, ui)
-    AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
+    data_uid = DataPreparation.run(
+        benchmark_uid,
+        data_path,
+        labels_path,
+        comms,
+        ui,
+        name=name,
+        description=description,
+        location=location,
+    )
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: register the dataset with 'medperf dataset register -d {data_uid}'"
+    )
 
 
 @app.command("submit")
@@ -59,6 +76,9 @@ def register(
     ui = config.ui
     DatasetRegistration.run(data_uid, comms, ui)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {data_uid}'"
+    )
 
 
 @app.command("associate")
@@ -78,3 +98,6 @@ def associate(
     ui = config.ui
     AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"
+    )

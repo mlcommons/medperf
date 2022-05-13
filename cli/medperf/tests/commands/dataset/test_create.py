@@ -12,6 +12,9 @@ OUT_DATAPATH = "out_datapath"
 BENCHMARK_UID = "benchmark_uid"
 DATA_PATH = "data_path"
 LABELS_PATH = "labels_path"
+NAME = "name"
+DESCRIPTION = "description"
+LOCATION = "location"
 
 
 @pytest.fixture
@@ -19,7 +22,6 @@ def registration(mocker, request):
     mock_reg = mocker.create_autospec(spec=Registration)
     mocker.patch.object(mock_reg, "generate_uids")
     mocker.patch.object(mock_reg, "is_registered", return_value=False)
-    mocker.patch.object(mock_reg, "retrieve_additional_data")
     mocker.patch.object(mock_reg, "to_permanent_path")
     mocker.patch.object(mock_reg, "write")
     mock_reg.generated_uid = request.param
@@ -35,7 +37,9 @@ def preparation(mocker, comms, ui, registration):
         return_value=(OUT_PATH, OUT_DATAPATH),
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
-    preparation = DataPreparation(BENCHMARK_UID, DATA_PATH, LABELS_PATH, comms, ui)
+    preparation = DataPreparation(
+        BENCHMARK_UID, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION, comms, ui
+    )
     mocker.patch(PATCH_DATAPREP.format("Registration"), return_value=registration)
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()
@@ -140,19 +144,6 @@ class TestWithDefaultUID:
 
         # Assert
         spy.assert_called_once()
-
-    def test_create_registration_retrieves_additional_data(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        ui = preparation.ui
-        spy = mocker.patch.object(registration, "retrieve_additional_data")
-
-        # Act
-        preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once_with(ui)
 
     def test_create_registration_moves_to_permanent_path(
         self, mocker, preparation, registration
