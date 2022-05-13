@@ -8,7 +8,6 @@ from medperf.utils import (
     generate_tmp_datapath,
     init_storage,
     cleanup,
-    pretty_error,
 )
 
 
