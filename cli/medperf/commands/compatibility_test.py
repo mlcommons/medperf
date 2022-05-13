@@ -78,11 +78,23 @@ class CompatibilityTestExecution:
         Specifically, a benchmark must be passed if any other workflow
         parameter is not passed.
         """
-        params = [self.data_uid, self.data_prep, self.model, self.evaluator]
+        params = [self.data_uid, self.model, self.evaluator]
         none_params = [param is None for param in params]
         if self.benchmark_uid is None and any(none_params):
             pretty_error(
                 "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow",
+                self.ui,
+            )
+        # a redundant data preparation cube
+        if self.data_uid is not None and self.data_prep is not None:
+            pretty_error(
+                "Invalid combination of arguments to test. The passed preparation cube will not be used",
+                self.ui,
+            )
+        # a redundant benchmark
+        if self.benchmark_uid is not None and not any(none_params):
+            pretty_error(
+                "Invalid combination of arguments to test. The passed benchmark will not be used",
                 self.ui,
             )
 
@@ -91,16 +103,27 @@ class CompatibilityTestExecution:
         transformed to cube uids and benchmark is mocked/obtained.
         """
         if self.benchmark_uid:
-            self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
-            self.set_cube_uid("data_prep", self.benchmark.data_preparation)
-            self.set_cube_uid("model", self.benchmark.reference_model)
-            self.set_cube_uid("evaluator", self.benchmark.evaluator)
+            benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+            self.set_cube_uid("data_prep", benchmark.data_preparation)
+            self.set_cube_uid("model", benchmark.reference_model)
+            self.set_cube_uid("evaluator", benchmark.evaluator)
+            demo_dataset_url = benchmark.demo_dataset_url
+            demo_dataset_hash = benchmark.demo_dataset_hash
         else:
             self.set_cube_uid("data_prep")
             self.set_cube_uid("model")
             self.set_cube_uid("evaluator")
-            self.benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
-            self.benchmark_uid = self.benchmark.uid
+            demo_dataset_url = None
+            demo_dataset_hash = None
+
+        self.benchmark = Benchmark.tmp(
+            self.data_prep,
+            self.model,
+            self.evaluator,
+            demo_dataset_url,
+            demo_dataset_hash,
+        )
+        self.benchmark_uid = self.benchmark.uid
 
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
@@ -124,7 +147,7 @@ class CompatibilityTestExecution:
             attr (str): Attribute to check and/or reassign.
             fallback (any): Value to assign if attribute is empty. Defaults to None.
         """
-        logging.info("Establishing model_uid for test execution")
+        logging.info(f"Establishing {attr}_uid for test execution")
         val = getattr(self, attr)
         if val is None:
             logging.info(f"Empty attribute: {attr}. Assigning fallback: {fallback}")
@@ -132,13 +155,15 @@ class CompatibilityTestExecution:
             return
 
         # Check if value is a server UID
+        val = str(val)
         if os.path.exists(val):
             logging.info("local path provided. Creating symbolic link")
-            self.model = config.test_cube_prefix + str(int(time()))
+            temp_uid = config.test_cube_prefix + str(int(time()))
+            setattr(self, attr, temp_uid)
             cubes_storage = storage_path(config.cubes_storage)
-            dst = os.path.join(cubes_storage, self.model)
+            dst = os.path.join(cubes_storage, temp_uid)
             os.symlink(val, dst)
-            logging.info(f"local cube will linked to path: {dst}")
+            logging.info(f"local cube will be linked to path: {dst}")
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
