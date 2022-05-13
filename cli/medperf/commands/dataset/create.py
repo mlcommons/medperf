@@ -21,12 +21,12 @@ class DataPreparation:
         benchmark_uid: str,
         data_path: str,
         labels_path: str,
-        name: str,
-        description: str,
-        location: str,
         comms: Comms,
         ui: UI,
         run_test=False,
+        name: str = None,
+        description: str = None,
+        location: str = None,
     ):
         preparation = cls(
             benchmark_uid,

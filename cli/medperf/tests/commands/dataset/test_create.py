@@ -196,7 +196,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        DataPreparation.run("", "", "", "", "", "", comms, ui)
+        DataPreparation.run("", "", "", comms, ui)
 
         # Assert
         get_cube_spy.assert_called_once()
@@ -214,7 +214,7 @@ def test_run_returns_registration_generated_uid(
     mocker.patch.object(preparation.cube, "run")
 
     # Act
-    returned_uid = DataPreparation.run("", "", "", "", "", "", comms, ui)
+    returned_uid = DataPreparation.run("", "", "", comms, ui)
 
     # Assert
     assert returned_uid == registration.generated_uid

@@ -48,7 +48,14 @@ def create(
     comms = config.comms
     ui = config.ui
     data_uid = DataPreparation.run(
-        benchmark_uid, data_path, labels_path, name, description, location, comms, ui
+        benchmark_uid,
+        data_path,
+        labels_path,
+        comms,
+        ui,
+        name=name,
+        description=description,
+        location=location,
     )
     ui.print("✅ Done!")
     ui.print(
