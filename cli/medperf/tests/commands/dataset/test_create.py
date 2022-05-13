@@ -104,40 +104,6 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once_with(DATA_PATH, OUT_DATAPATH)
 
-    def test_create_registration_fails_if_already_registered(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        spy = mocker.patch.object(registration, "is_registered", return_value=True)
-        mocker.patch(
-            PATCH_DATAPREP.format("pretty_error"),
-            side_effect=lambda *args, **kwargs: exit(),
-        )
-
-        # Act
-        with pytest.raises(SystemExit):
-            preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once()
-
-    def test_create_registration_prints_error_when_prev_registered(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        mocker.patch.object(registration, "is_registered", return_value=True)
-        spy = mocker.patch(
-            PATCH_DATAPREP.format("pretty_error"),
-            side_effect=lambda *args, **kwargs: exit(),
-        )
-
-        # Act
-        with pytest.raises(SystemExit):
-            preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once()
-
     def test_create_registration_retrieves_additional_data(
         self, mocker, preparation, registration
     ):
