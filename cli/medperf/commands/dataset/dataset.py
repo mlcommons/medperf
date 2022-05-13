@@ -35,12 +35,21 @@ def create(
     labels_path: str = typer.Option(
         ..., "--labels_path", "-l", help="Labels file location"
     ),
+    name: str = typer.Option(..., "--name", help="Name of the dataset"),
+    description: str = typer.Option(
+        ..., "--description", help="Description of the dataset"
+    ),
+    location: str = typer.Option(
+        ..., "--location", help="Location or Institution the data belongs to"
+    ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
     comms = config.comms
     ui = config.ui
-    data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
+    data_uid = DataPreparation.run(
+        benchmark_uid, data_path, labels_path, name, description, location, comms, ui
+    )
     ui.print("✅ Done!")
     ui.print(
         f"Next step: register the dataset with 'medperf dataset register -d {data_uid}'"
