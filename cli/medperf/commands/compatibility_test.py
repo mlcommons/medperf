@@ -116,8 +116,13 @@ class CompatibilityTestExecution:
             demo_dataset_url = None
             demo_dataset_hash = None
 
-        self.benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator,
-                                            demo_dataset_url, demo_dataset_hash)
+        self.benchmark = Benchmark.tmp(
+            self.data_prep,
+            self.model,
+            self.evaluator,
+            demo_dataset_url,
+            demo_dataset_hash,
+        )
         self.benchmark_uid = self.benchmark.uid
 
     def execute_benchmark(self):
