@@ -47,7 +47,7 @@ ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
 echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
-echo ${LOCAL:+'-e'} "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE login 
+medperf --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=${USERNAME} --password=${PASS}
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
   cat "$MEDPERF_STORAGE/medperf.log"
@@ -57,7 +57,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert
+medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert --name="mock_chexpert" --description="mock dataset" --location="mock location"
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
@@ -66,6 +66,24 @@ fi
 echo "\n"
 DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "Dataset UID: $DSET_UID"
+echo "====================================="
+echo "Registering dataset with medperf"
+echo "====================================="
+echo ${LOCAL:+'-e'} "Y\n" | medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset submit -d $DSET_UID
+if [ "$?" -ne "0" ]; then
+  echo "Data registration step failed"
+  cat "$MEDPERF_STORAGE/medperf.log"
+  exit 2
+fi
+echo "====================================="
+echo "Creating dataset benchmark association"
+echo "====================================="
+echo ${LOCAL:+'-e'} "Y\n" | medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset associate -d $DSET_UID -b 1
+if [ "$?" -ne "0" ]; then
+  echo "Data registration step failed"
+  cat "$MEDPERF_STORAGE/medperf.log"
+  exit 2
+fi
 echo "====================================="
 echo "Approving dataset association"
 echo "====================================="
