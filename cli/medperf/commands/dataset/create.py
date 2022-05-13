@@ -73,9 +73,6 @@ class DataPreparation:
     def create_registration(self):
         self.registration = Registration(self.cube)
         self.registration.generate_uids(self.data_path, self.out_datapath)
-        if self.registration.is_registered(self.ui):
-            msg = "This dataset has already been prepared. No changes made"
-            pretty_error(msg, self.ui)
         self.registration.retrieve_additional_data(self.ui)
         self.registration.to_permanent_path(self.out_path)
         self.registration.write()

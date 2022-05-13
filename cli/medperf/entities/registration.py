@@ -1,6 +1,7 @@
 import yaml
 from pathlib import Path
 import os
+import shutil
 
 from medperf.ui import UI
 from medperf.utils import (
@@ -136,6 +137,8 @@ class Registration:
         """
         uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
+        if os.path.exists(new_path):
+            shutil.rmtree(new_path)
         os.rename(out_path, new_path)
         self.path = new_path
         return new_path
