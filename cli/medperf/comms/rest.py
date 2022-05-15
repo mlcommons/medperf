@@ -310,6 +310,7 @@ class REST(Comms):
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not upload benchmark", self.ui)
+        return res.json()["id"]
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
