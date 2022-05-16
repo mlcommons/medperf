@@ -125,10 +125,14 @@ class Cube(object):
 
         Returns:
             str: the path as specified in the mlcube.yaml file for the desired
-                output for the desired task
+                output for the desired task. Defaults to None if out_key not found
         """
         with open(self.cube_path, "r") as f:
             cube = yaml.safe_load(f)
+
+        out_params = cube["tasks"][task]["parameters"]["output"]
+        if out_key not in out_params:
+            return None
 
         out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
         if type(out_path) == dict:
