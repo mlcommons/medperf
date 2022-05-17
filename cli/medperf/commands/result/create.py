@@ -81,7 +81,6 @@ class BenchmarkExecution:
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
-        TODO # make sure evaluations are done with the labels path if the dataset contains separate labels path
         self.model_cube.run(
             self.ui, task="infer", data_path=data_path, output_path=preds_path
         )
