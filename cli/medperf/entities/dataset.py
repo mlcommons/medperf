@@ -72,6 +72,7 @@ class Dataset:
             "metadata": self.metadata,
             "status": self.status,
             "state": self.state,
+            "separate_labels": self.separate_labels,
         }
 
     @classmethod
