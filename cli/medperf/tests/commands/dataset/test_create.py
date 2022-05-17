@@ -8,7 +8,8 @@ from medperf.entities import Registration
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
 OUT_PATH = "out_path"
-OUT_DATAPATH = "out_datapath"
+OUT_DATAPATH = "out_path/data"
+OUT_LABELSPATH = "out_path/labels"
 BENCHMARK_UID = "benchmark_uid"
 DATA_PATH = "data_path"
 LABELS_PATH = "labels_path"
@@ -32,7 +33,7 @@ def preparation(mocker, comms, ui, registration):
     mocker.patch(PATCH_DATAPREP.format("init_storage"))
     mocker.patch(
         PATCH_DATAPREP.format("generate_tmp_datapath"),
-        return_value=(OUT_PATH, OUT_DATAPATH),
+        return_value=OUT_PATH,
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
     preparation = DataPreparation(BENCHMARK_UID, DATA_PATH, LABELS_PATH, comms, ui)
@@ -74,6 +75,7 @@ class TestWithDefaultUID:
     def test_run_cube_tasks_runs_required_tasks(self, mocker, preparation):
         # Arrange
         spy = mocker.patch.object(preparation.cube, "run")
+        mocker.patch.object(preparation.cube, "get_default_output", return_value=None)
         ui = preparation.ui
         prepare = call(
             ui,
@@ -84,6 +86,30 @@ class TestWithDefaultUID:
         )
         check = call(ui, task="sanity_check", data_path=OUT_DATAPATH)
         stats = call(ui, task="statistics", data_path=OUT_DATAPATH)
+        calls = [prepare, check, stats]
+
+        # Act
+        preparation.run_cube_tasks()
+
+        # Assert
+        spy.assert_has_calls(calls)
+
+    def test_run_cube_tasks_uses_labels_path_if_specified(self, mocker, preparation):
+        # Arrange
+        spy = mocker.patch.object(preparation.cube, "run")
+        # Make sure getting the labels_output returns a value
+        mocker.patch.object(preparation.cube, "get_default_output", return_value=OUT_LABELSPATH)
+        ui = preparation.ui
+        prepare = call(
+            ui,
+            task="prepare",
+            data_path=DATA_PATH,
+            labels_path=LABELS_PATH,
+            output_path=OUT_DATAPATH,
+            output_labels_path=OUT_LABELSPATH,
+        )
+        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH)
+        stats = call(ui, task="statistics", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH)
         calls = [prepare, check, stats]
 
         # Act
