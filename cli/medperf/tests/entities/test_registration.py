@@ -26,7 +26,7 @@ REG_DICT_KEYS = [
     "status",
     "uid",
     "state",
-    "separate_labels"
+    "separate_labels",
 ]
 
 

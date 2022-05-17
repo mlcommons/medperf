@@ -32,8 +32,7 @@ def preparation(mocker, comms, ui, registration):
     mocker.patch("os.path.abspath", side_effect=lambda x: x)
     mocker.patch(PATCH_DATAPREP.format("init_storage"))
     mocker.patch(
-        PATCH_DATAPREP.format("generate_tmp_datapath"),
-        return_value=OUT_PATH,
+        PATCH_DATAPREP.format("generate_tmp_datapath"), return_value=OUT_PATH,
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
     preparation = DataPreparation(BENCHMARK_UID, DATA_PATH, LABELS_PATH, comms, ui)
@@ -98,7 +97,9 @@ class TestWithDefaultUID:
         # Arrange
         spy = mocker.patch.object(preparation.cube, "run")
         # Make sure getting the labels_output returns a value
-        mocker.patch.object(preparation.cube, "get_default_output", return_value=OUT_LABELSPATH)
+        mocker.patch.object(
+            preparation.cube, "get_default_output", return_value=OUT_LABELSPATH
+        )
         ui = preparation.ui
         prepare = call(
             ui,
@@ -108,8 +109,12 @@ class TestWithDefaultUID:
             output_path=OUT_DATAPATH,
             output_labels_path=OUT_LABELSPATH,
         )
-        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH)
-        stats = call(ui, task="statistics", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH)
+        check = call(
+            ui, task="sanity_check", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH
+        )
+        stats = call(
+            ui, task="statistics", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH
+        )
         calls = [prepare, check, stats]
 
         # Act

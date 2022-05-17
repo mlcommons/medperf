@@ -101,7 +101,7 @@ class Cube(object):
         """
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
         for k, v in kwargs.items():
-            cmd_arg = f"{k}=\"{v}\""
+            cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=None)

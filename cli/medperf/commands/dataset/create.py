@@ -57,7 +57,7 @@ class DataPreparation:
 
         # Specify parameters for the tasks
         prepare_params = {
-            "data_path": data_path, 
+            "data_path": data_path,
             "labels_path": labels_path,
             "output_path": out_datapath,
         }
@@ -71,7 +71,9 @@ class DataPreparation:
         }
 
         # Check if labels_path is specified
-        self.labels_specified = self.cube.get_default_output("prepare", "output_labels_path") is not None
+        self.labels_specified = (
+            self.cube.get_default_output("prepare", "output_labels_path") is not None
+        )
         if self.labels_specified:
             # Add the labels parameter
             prepare_params["output_labels_path"] = out_labelspath
@@ -92,7 +94,9 @@ class DataPreparation:
         self.ui.print("> Statistics complete")
 
     def create_registration(self):
-        self.registration = Registration(self.cube, separate_labels=self.labels_specified)
+        self.registration = Registration(
+            self.cube, separate_labels=self.labels_specified
+        )
         self.registration.generate_uids(self.data_path, self.out_datapath)
         if self.registration.is_registered(self.ui):
             msg = "This dataset has already been prepared. No changes made"
