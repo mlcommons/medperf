@@ -130,7 +130,7 @@ class Cube(object):
         with open(self.cube_path, "r") as f:
             cube = yaml.safe_load(f)
 
-        out_params = cube["tasks"][task]["parameters"]["output"]
+        out_params = cube["tasks"][task]["parameters"]["outputs"]
         if out_key not in out_params:
             return None
 
