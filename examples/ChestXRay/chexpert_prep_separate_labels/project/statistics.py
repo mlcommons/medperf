@@ -13,9 +13,7 @@ class Stats:
         self.labels_path = labels_path
         self.data_file = os.path.join(data_path, params["output_datafile"])
         self.labels_file = os.path.join(labels_path, params["output_labelsfile"])
-        self.df = pd.read_csv(self.data_file)
-        self.labels_df = pd.read_csv(self.labels_file)
-        self.df = pd.concat([self.df, self.labels_df], axis=1)
+        self.df = pd.read_csv(self.labels_file)
         self.out_file = out_file
         self.labels = params["labels"]
 
@@ -78,6 +76,8 @@ if __name__ == "__main__":
         help="path to store statistics data",
     )
     args = parser.parse_args()
+    for arg in vars(args):
+        setattr(args, arg, getattr(args, arg).replace("'", ""))
     with open(args.params_file, "r") as f:
         params = yaml.full_load(f)
 
