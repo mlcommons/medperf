@@ -32,7 +32,10 @@ def evaluate(
     parameters_file: str = typer.Option(..., "--parameters_file"),
     output_path: str = typer.Option(..., "--output_path"),
 ):
-    labels_csv = os.path.join(labels, "data.csv")
+    files = next(os.walk(labels))[2]
+    csvs = [file for file in files if file.endswith(".csv")]
+    assert len(csvs) == 1, "Labels path must contain only one csv file"
+    labels_csv = os.path.join(labels, csvs[0])
     preds_csv = os.path.join(predictions, "predictions.csv")
     EvaluateTask.run(labels_csv, preds_csv, parameters_file, output_path)
 
