@@ -1,6 +1,9 @@
 PyYAML~=5.3
-pandas~=1.1
+pandas
 typer
 MedPy
 SimpleITK
 numpy
+scikit-learn
+synapseclient
+nibabel

@@ -31,5 +31,6 @@ tasks:
         # add them inside `additional_files` folder
         }
       outputs: {
-        output_path: {type: "file", default: "results.yaml"} # Required. Where to write the metrics results. Value MUST be results.yaml
+        output_path: {type: "file", default: "results.yaml"}, # Required. Where to write the metrics results. Value MUST be results.yaml
+        log_path: {type: "file", default: "evaluate.log"} # Where to write the evaluation logs.
         }
