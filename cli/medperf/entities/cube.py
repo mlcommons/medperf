@@ -154,6 +154,7 @@ class Cube(object):
         logging.debug(proc_out)
         if proc.exitstatus != 0:
             ui.text = "\n"
+            ui.print(proc_out)
             pretty_error("There was an error while executing the cube", ui)
 
         logging.debug(list_files(config.storage))

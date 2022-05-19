@@ -68,13 +68,14 @@ def create(
 def register(
     data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Unregistered Dataset UID"
-    )
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits an unregistered Dataset instance to the backend
     """
     comms = config.comms
     ui = config.ui
-    DatasetRegistration.run(data_uid, comms, ui)
+    DatasetRegistration.run(data_uid, comms, ui, approved=approval)
     ui.print("✅ Done!")
     ui.print(
         f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {data_uid}'"
