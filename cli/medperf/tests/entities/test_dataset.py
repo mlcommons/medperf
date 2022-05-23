@@ -17,7 +17,7 @@ REGISTRATION_MOCK = {
     "metadata": {},
     "generated_uid": "generated_uid",
     "input_data_hash": "input_data_hash",
-    "status": "status",
+    "status": "PENDING",
     "uid": "uid",
     "state": "state",
 }
