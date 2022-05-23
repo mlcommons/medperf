@@ -59,7 +59,7 @@ def create(
     )
     ui.print("✅ Done!")
     ui.print(
-        f"Next step: register the dataset with 'medperf dataset register -d {data_uid}'"
+        f"Next step: register the dataset with 'medperf dataset submit -d {data_uid}'"
     )
 
 
@@ -91,13 +91,14 @@ def associate(
     benchmark_uid: int = typer.Option(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Associate a registered dataset with a specific benchmark.
     The dataset and benchmark must share the same data preparation cube.
     """
     comms = config.comms
     ui = config.ui
-    AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
+    AssociateDataset.run(data_uid, benchmark_uid, comms, ui, approved=approval)
     ui.print("✅ Done!")
     ui.print(
         f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"
