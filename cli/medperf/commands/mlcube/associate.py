@@ -8,7 +8,9 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class AssociateCube:
     @classmethod
-    def run(cls, cube_uid: str, benchmark_uid: int, comms: Comms, ui: UI):
+    def run(
+        cls, cube_uid: str, benchmark_uid: int, comms: Comms, ui: UI, approved=False
+    ):
         """Associates a cube with a given benchmark
 
         Args:
@@ -16,6 +18,7 @@ class AssociateCube:
             benchmark_uid (int): UID of benchmark
             comms (Comms): Communication instance
             ui (UI): UI instance
+            approved (bool): Skip validation step. Defualts to False
         """
         cube = Cube.get(cube_uid, comms, ui)
         benchmark = Benchmark.get(benchmark_uid, comms)
@@ -28,9 +31,7 @@ class AssociateCube:
         ui.print("They will not be part of the benchmark.")
         dict_pretty_print(result.todict(), ui)
 
-        approval = cube.request_association_approval(benchmark, ui)
-
-        if approval:
+        if approved or cube.request_association_approval(benchmark, ui):
             ui.print("Generating mlcube benchmark association")
             metadata = {"test_result": result.todict()}
             comms.associate_cube(cube_uid, benchmark_uid, metadata)

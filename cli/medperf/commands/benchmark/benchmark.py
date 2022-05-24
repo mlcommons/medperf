@@ -46,10 +46,13 @@ def associate(
     dataset_uid: str = typer.Option(
         None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
     comms = config.comms
     ui = config.ui
-    AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, comms, ui)
+    AssociateBenchmark.run(
+        benchmark_uid, model_uid, dataset_uid, comms, ui, approved=approval
+    )
     ui.print("✅ Done!")

@@ -8,7 +8,13 @@ from medperf.commands.dataset.associate import AssociateDataset
 class AssociateBenchmark:
     @classmethod
     def run(
-        cls, benchmark_uid: str, model_uid: str, data_uid: str, comms: Comms, ui: UI
+        cls,
+        benchmark_uid: str,
+        model_uid: str,
+        data_uid: str,
+        comms: Comms,
+        ui: UI,
+        approved=False,
     ):
         """Associates a dataset or model to the given benchmark
 
@@ -18,6 +24,7 @@ class AssociateBenchmark:
             data_uid (str): UID of dataset to associate with benchmark
             comms (Comms): Instance of Communications interface
             ui (UI): Instance of UI interface
+            approved (bool): Skip approval step. Defaults to False
         """
         if model_uid and data_uid:
             pretty_error(
@@ -25,7 +32,7 @@ class AssociateBenchmark:
                 ui,
             )
         if model_uid is not None:
-            AssociateCube.run(model_uid, benchmark_uid, comms, ui)
+            AssociateCube.run(model_uid, benchmark_uid, comms, ui, approved=approved)
 
         if data_uid is not None:
-            AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
+            AssociateDataset.run(data_uid, benchmark_uid, comms, ui, approved=approved)

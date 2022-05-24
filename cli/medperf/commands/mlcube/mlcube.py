@@ -37,9 +37,10 @@ def submit():
 def associate(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Associates an MLCube to a benchmark"""
     comms = config.comms
     ui = config.ui
-    AssociateCube.run(model_uid, benchmark_uid, comms, ui)
+    AssociateCube.run(model_uid, benchmark_uid, comms, ui, approved=approval)
     ui.print("✅ Done!")
