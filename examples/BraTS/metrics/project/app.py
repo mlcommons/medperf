@@ -1,13 +1,13 @@
 # Code adapted from https://github.com/Sage-Bionetworks-Challenges/brats-dream-challenge-infra/blob/main/Docker/score.py
 
 import argparse
-import logging
 from pathlib import Path
 from typing import Dict
 import yaml
 import os
 import subprocess
 
+from loguru import logger
 import numpy as np
 import pandas as pd
 from sklearn.metrics import multilabel_confusion_matrix
@@ -104,7 +104,7 @@ def score(data_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFrame
     for subject_dir in data_dir.iterdir():
         subject_id = subject_dir.name
 
-        logging.info(f"Processing {subject_id}...")
+        logger.info(f"Processing {subject_id}...")
         gold = subject_dir / (subject_id + "_brain_seg.nii.gz")
         if not gold.exists():
             gold = subject_dir / (subject_id + "_seg.nii.gz")
@@ -165,7 +165,7 @@ def score(data_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFrame
 
         scores.append(scan_scores)
     if len(missing_preds) > 0:
-        logging.warning(
+        logger.warning(
             f"Warning: In total, {len(missing_preds)} predictions were missing. "
             f"Here is the list: {missing_preds}"
         )
@@ -205,15 +205,14 @@ def main():
     )
     args = parser.parse_args()
 
-    logging.basicConfig(filename=args.log_file, level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
-
+    logger.add(args.log_file)
     results = score(Path(args.data_path), Path(args.preds_dir))
 
     results_dict = results.to_dict(orient="index")
 
     with open(args.output_file, "w") as f:
         yaml.dump(results_dict, f)
-    logging.info(f"Results saved at {args.output_file}")
+    logger.info(f"Results saved at {args.output_file}")
 
 
 if __name__ == "__main__":

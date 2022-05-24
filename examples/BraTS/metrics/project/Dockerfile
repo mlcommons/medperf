@@ -11,8 +11,7 @@ RUN cd /work/CaPTk/bin/ && \
 ENV LANG C.UTF-8
 
 # install all python requirements
-RUN yum install python3.8 python3-pip -y
-# FIXME this does not result in python 3.8 being installed. Any idea why?
+RUN yum install python3 python3-pip -y
 
 WORKDIR /project
 COPY ./requirements.txt ./requirements.txt
