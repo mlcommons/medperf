@@ -39,7 +39,7 @@ class Registration:
             name (str, optional): Assigned name. Defaults to None.
             description (str, optional): Assigned description. Defaults to None.
             location (str, optional): Assigned location. Defaults to None.
-            separate_labels (bool, optional): Wether the labels should be separated from the data. Defaults to False.
+            separate_labels (bool, optional): Whether the labels should be separated from the data. Defaults to False.
         """
         self.cube = cube
         self.stats = self.__get_stats()
