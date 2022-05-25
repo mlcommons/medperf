@@ -1,7 +1,7 @@
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Dataset
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.utils import pretty_error
+from medperf.entities.dataset import Dataset
 
 
 class DatasetRegistration:

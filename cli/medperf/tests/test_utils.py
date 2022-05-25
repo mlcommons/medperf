@@ -1,13 +1,13 @@
-from unittest.mock import mock_open, call, ANY
-from pathlib import Path
-import datetime as dt
-import time_machine
-import random
-import pytest
 import os
+import pytest
+import random
+import time_machine
+import datetime as dt
+from pathlib import Path
+from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
-from medperf.ui import UI
+from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockCube, MockTar
@@ -36,7 +36,7 @@ def datasets(request):
     uids = [str(x) for x in uids]
     for i in range(size):
         if random.randint(0, 1):
-            uids[i] = config.tmp_reg_prefix + uids[i]
+            uids[i] = config.tmp_prefix + uids[i]
 
     return uids
 
@@ -119,7 +119,8 @@ def test_cleanup_removes_temporary_storage(mocker):
     # Arrange
     mocker.patch("os.path.exists", return_value=True)
     spy = mocker.patch(patch_utils.format("rmtree"))
-    mocker.patch(patch_utils.format("get_dsets"), return_value=[])
+    mocker.patch(patch_utils.format("get_uids"), return_value=[])
+    mocker.patch(patch_utils.format("cleanup_benchmarks"))
 
     # Act
     utils.cleanup()
@@ -131,10 +132,11 @@ def test_cleanup_removes_temporary_storage(mocker):
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
-    prefix = config.tmp_reg_prefix
+    prefix = config.tmp_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
-    mocker.patch(patch_utils.format("get_dsets"), return_value=datasets)
+    mocker.patch(patch_utils.format("cleanup_benchmarks"))
+    mocker.patch(patch_utils.format("get_uids"), return_value=datasets)
     spy = mocker.patch(patch_utils.format("rmtree"))
 
     invalid_dsets = [dset for dset in datasets if dset.startswith(prefix)]
@@ -150,17 +152,19 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     assert spy.call_count == len(exp_calls)
 
 
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
-def test_get_dsets_returns_uids_of_datasets(mocker, datasets):
+@pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
+@pytest.mark.parametrize("datasets", rand_l(1, 1000, 2), indirect=True)
+def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
     mock_walk_return = iter([(data, datasets, ())])
-    mocker.patch("os.walk", return_value=mock_walk_return)
+    spy = mocker.patch("os.walk", return_value=mock_walk_return)
 
     # Act
-    dsets = utils.get_dsets()
+    dsets = utils.get_uids(path)
 
     # Assert
     assert dsets == datasets
+    spy.assert_called_once_with(path)
 
 
 @pytest.mark.parametrize("msg", ["test", "error message", "can't find cube"])
@@ -217,7 +221,7 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
     spy = mocker.patch("os.makedirs")
-    tmp_path = f"{config.tmp_reg_prefix}{int(timestamp)}"
+    tmp_path = f"{config.tmp_prefix}{int(timestamp)}"
     exp_out_path = os.path.join(data, tmp_path, "data")
 
     # Act
@@ -245,7 +249,7 @@ def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
 
 
 @pytest.mark.parametrize("file", ["test.tar.bz", "path/to/file.tar.bz"])
-def test_untar_additional_opens_specified_file(mocker, file):
+def test_untar_opens_specified_file(mocker, file):
     # Arrange
     spy = mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
@@ -253,14 +257,14 @@ def test_untar_additional_opens_specified_file(mocker, file):
     mocker.patch("os.remove")
 
     # Act
-    utils.untar_additional(file)
+    utils.untar(file)
 
     # Assert
     spy.assert_called_once_with(file)
 
 
 @pytest.mark.parametrize("file", ["./test.tar.bz", "path/to/file.tar.bz"])
-def test_untar_additional_extracts_to_parent_directory(mocker, file):
+def test_untar_extracts_to_parent_directory(mocker, file):
     # Arrange
     parent_path = str(Path(file).parent)
     mocker.patch("tarfile.open", return_value=MockTar())
@@ -268,14 +272,14 @@ def test_untar_additional_extracts_to_parent_directory(mocker, file):
     mocker.patch("os.remove")
 
     # Act
-    utils.untar_additional(file)
+    utils.untar(file)
 
     # Assert
     spy.assert_called_once_with(ANY, parent_path)
 
 
 @pytest.mark.parametrize("file", ["./test.tar.bz", "path/to/file.tar.bz"])
-def test_untar_additional_removes_tarfile(mocker, file):
+def test_untar_removes_tarfile(mocker, file):
     # Arrange
     mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
@@ -283,7 +287,7 @@ def test_untar_additional_removes_tarfile(mocker, file):
     spy = mocker.patch("os.remove")
 
     # Act
-    utils.untar_additional(file)
+    utils.untar(file)
 
     # Assert
     spy.assert_called_once_with(file)

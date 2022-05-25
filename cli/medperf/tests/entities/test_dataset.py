@@ -3,10 +3,10 @@ from unittest.mock import mock_open
 
 import medperf
 from medperf import utils
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.entities import Dataset
-from medperf.ui import UI
 from medperf.tests.mocks import Benchmark
+from medperf.entities.dataset import Dataset
 
 REGISTRATION_MOCK = {
     "name": "name",
@@ -23,7 +23,7 @@ REGISTRATION_MOCK = {
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
-TMP_PREFIX = config.tmp_reg_prefix
+TMP_PREFIX = config.tmp_prefix
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ def all_uids(mocker, basic_arrange, request):
 
     mocker.patch(PATCH_DATASET.format("yaml.safe_load"), side_effect=mock_reg_file)
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-    mocker.patch(PATCH_DATASET.format("get_dsets"), return_value=uids)
+    mocker.patch(PATCH_DATASET.format("get_uids"), return_value=uids)
     return uids
 
 
@@ -220,7 +220,6 @@ def test_request_registration_approval_returns_users_input(
     uid = "1"
     mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=approval)
     mocker.patch(PATCH_DATASET.format("dict_pretty_print"))
-    mocker.patch("typer.echo")
     dset = Dataset(uid, ui)
 
     # Act
