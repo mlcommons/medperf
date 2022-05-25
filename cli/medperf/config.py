@@ -30,3 +30,9 @@ default_ui = "CLI"
 git_file_domain = "https://raw.githubusercontent.com"
 comms = None
 ui = None
+
+prepare_timeout = None
+sanity_check_timeout = None
+statistics_timeout = None
+infer_timeout = None
+evaluate_timeout = None

@@ -117,9 +117,19 @@ def main(
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
+    prepare_timeout: int = config.prepare_timeout,
+    sanity_check_timeout: int = config.sanity_check_timeout,
+    statistics_timeout: int = config.statistics_timeout,
+    infer_timeout: int = config.infer_timeout,
+    evaluate_timeout: int = config.evaluate_timeout,
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
+    config.prepare_timeout = prepare_timeout
+    config.sanity_check_timeout = sanity_check_timeout
+    config.statistics_timeout = statistics_timeout
+    config.infer_timeout = infer_timeout
+    config.evaluate_timeout = evaluate_timeout
     if log_file is None:
         log_file = storage_path(config.log_file)
     else:
