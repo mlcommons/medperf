@@ -2,9 +2,7 @@ import typer
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.result.list import ResultsList
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.result import BenchmarkExecution, ResultSubmission, ResultsList
 
 app = typer.Typer()
 
@@ -12,13 +10,14 @@ app = typer.Typer()
 def run_benchmark(benchmark_uid, data_uid, model_uid):
     comms = config.comms
     ui = config.ui
+    comms.authenticate()
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
 
 
-@app.command("create")
 @clean_except
+@app.command("create")
 def create(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
@@ -35,13 +34,13 @@ def create(
     run_benchmark(benchmark_uid, data_uid, model_uid)
 
 
-@app.command("submit")
 @clean_except
+@app.command("submit")
 def submit(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the executed benchmark"
     ),
-    data_uid: str = typer.Option(
+    data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="UID of the dataset used for results"
     ),
     model_uid: int = typer.Option(
@@ -51,14 +50,16 @@ def submit(
     """Submits already obtained results to the server"""
     comms = config.comms
     ui = config.ui
+    comms.authenticate()
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
     ui.print("✅ Done!")
 
 
-@app.command("ls")
 @clean_except
+@app.command("ls")
 def list():
     """List results stored locally and remotely from the user"""
     comms = config.comms
     ui = config.ui
+    comms.authenticate()
     ResultsList.run(comms, ui)
