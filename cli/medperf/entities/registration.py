@@ -1,18 +1,17 @@
-import os
 import yaml
 from pathlib import Path
+import os
 
+from medperf.ui import UI
 from medperf.utils import (
     get_folder_sha1,
     pretty_error,
     approval_prompt,
     dict_pretty_print,
 )
-from medperf.ui.interface import UI
+from medperf.comms import Comms
 import medperf.config as config
-from medperf.comms.interface import Comms
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
+from medperf.entities import Cube, Dataset
 
 
 class Registration:
@@ -137,8 +136,7 @@ class Registration:
         """
         uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
-        if not os.path.exists(new_path):
-            os.rename(out_path, new_path)
+        os.rename(out_path, new_path)
         self.path = new_path
         return new_path
 
