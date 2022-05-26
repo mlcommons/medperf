@@ -1,8 +1,42 @@
-import os, pathlib
+from pathlib import Path
 import shutil
 import argparse
 
-if __name__ == "__main__":
+
+def copy_subject(subject_dir: Path, output_dir_data: Path, output_dir_labels: Path):
+    subj_id = subject_dir.name
+    # it's possible that minor naming differences are present. Accepted options for each modality are below.
+    # input format:
+    # <subject_id>[_brain]_t1.nii.gz etc
+    # <subject_id>[_brain]_final_seg.nii.gz
+    # output format:
+    # <subject_id>_brain_t1.nii.gz etc
+    # <subject_id>_final_seg.nii.gz
+    files_to_copy = {
+        "t1": [f"{subj_id}_brain_t1.nii.gz", f"{subj_id}_t1.nii.gz"],
+        "t1ce": [f"{subj_id}_brain_t1ce.nii.gz", f"{subj_id}_t1ce.nii.gz"],
+        "t2": [f"{subj_id}_brain_t2.nii.gz", f"{subj_id}_t2.nii.gz"],
+        "flair": [f"{subj_id}_brain_flair.nii.gz", f"{subj_id}_flair.nii.gz"],
+        "seg": [
+            f"{subj_id}_final_seg.nii.gz",
+            f"{subj_id}_brain_final_seg.nii.gz",
+            f"{subj_id}_seg.nii.gz",
+            f"{subj_id}_brain_seg.nii.gz",
+        ],
+    }
+    for k, fname_options in files_to_copy.items():
+        for filename in fname_options:
+            file_path = subject_dir / filename
+            output_dir = output_dir_data / subj_id
+            if k == "seg":
+                output_dir = output_dir_labels
+            output_dir.mkdir(exist_ok=True)
+            if file_path.exists():
+                shutil.copy2(file_path, output_dir / files_to_copy[k][0])
+                break
+
+
+def main():
     parser = argparse.ArgumentParser("Medperf Data Preparator Example")
     parser.add_argument(
         "--input_dir", dest="input", type=str, help="path containing raw names"
@@ -10,9 +44,25 @@ if __name__ == "__main__":
     parser.add_argument(
         "--out", dest="out", type=str, help="path to store prepared data"
     )
+    parser.add_argument(
+        "--out_labels",
+        dest="out_labels",
+        type=str,
+        help="path to store prepared labels",
+    )
 
     args = parser.parse_args()
 
-    pathlib.Path.mkdir(args.out, parents=True, exist_ok=True)
+    output_dir = Path(args.out)
+    output_labels_dir = Path(args.out_labels)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_labels_dir.mkdir(parents=True, exist_ok=True)
 
-    shutil.copytree(args.input, args.out)
+    # TODO in federated evaluation, need to read only validation subjects, based on csv found in input_dir
+    for subject_dir in Path(args.input).iterdir():
+        if subject_dir.is_dir():
+            copy_subject(subject_dir, output_dir, output_labels_dir)
+
+
+if __name__ == "__main__":
+    main()

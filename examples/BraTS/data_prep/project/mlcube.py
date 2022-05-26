@@ -7,12 +7,12 @@
 # Here, we show a way that requires minimal intrusion to the original code,
 # By running the application through subprocesses.
 
-import yaml
 import typer
 import subprocess
 
 app = typer.Typer()
 
+# TODO why do we start a subprocess instead of importing the modules here?
 
 def exec_python(cmd: str) -> None:
     """Execute a python script as a subprocess
@@ -31,6 +31,7 @@ def prepare(
     labels_path: str = typer.Option(..., "--labels_path"),
     params_file: str = typer.Option(..., "--parameters_file"),
     out_path: str = typer.Option(..., "--output_path"),
+    out_labels_path: str = typer.Option(..., "--output_labels_path"),
 ):
     """Prepare task command. This is what gets executed when we run:
     `mlcube run --task=prepare`
@@ -41,13 +42,14 @@ def prepare(
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
         out_path (str): Location to store transformed data. Required for Medperf Data Preparation MLCubes.
     """
-    cmd = f"python3 prepare.py --input_dir={data_path} --out={out_path}"
+    cmd = f"python3 prepare.py --input_dir={data_path} --out={out_path} --out_labels={out_labels_path}"
     exec_python(cmd)
 
 
 @app.command("sanity_check")
 def sanity_check(
     data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
     params_file: str = typer.Option(..., "--parameters_file"),
 ):
     """Sanity check task command. This is what gets executed when we run:
@@ -57,13 +59,14 @@ def sanity_check(
         data_path (str): Location of the prepared data. Required for Medperf Data Preparation MLCubes.
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
     """
-    cmd = f"python3 sanity_check.py --data_path={data_path}"
+    cmd = f"python3 sanity_check.py --data_path={data_path} --labels_path={labels_path}"
     exec_python(cmd)
 
 
 @app.command("statistics")
 def statistics(
     data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
     params_file: str = typer.Option(..., "--parameters_file"),
     output_path: str = typer.Option(..., "--output_path"),
 ):
@@ -78,7 +81,7 @@ def statistics(
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
         output_path (str): File to store the statistics. Must be statistics.yaml. Required for Medperf Data Preparation MLCubes. 
     """
-    cmd = f"python3 statistics.py --data_path={data_path} --out_file={output_path}"
+    cmd = f"python3 statistics.py --data_path={data_path} --labels_path={labels_path} --out_file={output_path}"
     exec_python(cmd)
 
 

@@ -1,88 +1,89 @@
-import os
 import argparse
+from pathlib import Path
+from typing import List, Tuple
 
 import SimpleITK as sitk
 import numpy as np
 
 
-def check_subject_validity(subject_dir):
-    """Checks if a subject folder is valid.
-
-    Args:
-        subject_dir (str): The subject folder.
-
-    Returns:
-        bool: True if the subject folder is valid, False otherwise.
+def check_subject_validity(subject_dir: Path, labels_dir: Path) -> List[Path]:
+    """Runs a few checks to ensure data quality and integrity
     """
     subject_valid = True
-    strings_to_check = [
-        "_t1.nii.gz",
-        "_t1ce.nii.gz",
-        "_t2.nii.gz",
-        "_flair.nii.gz",
-        "_seg.nii.gz",
+    files_to_check = [
+        subject_dir / f"{subject_dir.name}_brain_t1.nii.gz",
+        subject_dir / f"{subject_dir.name}_brain_t1ce.nii.gz",
+        subject_dir / f"{subject_dir.name}_brain_t2.nii.gz",
+        subject_dir / f"{subject_dir.name}_brain_flair.nii.gz",
+        labels_dir / f"{subject_dir.name}_final_seg.nii.gz",
     ]
 
-    for string in strings_to_check:
-        if not os.path.isfile(
-            os.path.join(subject_dir, os.path.basename(subject_dir) + string)
-        ):
+    # check existance
+    for file_ in files_to_check:
+        if not file_.exists():
             subject_valid = False
-            break
-
+            print(f"Missing file: {file_}")
     return subject_valid
 
 
-def sanity_check(data_path):
-    """Runs a few checks to ensure data quality and integrity
+def check_subject_images(subject_dir: Path, labels_dir: Path) -> Tuple[List[Path], List[Path]]:
+    wrong_size = []
+    wrong_spacing = []
 
-    Args:
-        data_path (str): The input data folder.
-    """
-    all_files = os.listdir(data_path)
+    files_to_check = [
+        subject_dir / f"{subject_dir.name}_brain_t1.nii.gz",
+        subject_dir / f"{subject_dir.name}_brain_t1ce.nii.gz",
+        subject_dir / f"{subject_dir.name}_brain_t2.nii.gz",
+        subject_dir / f"{subject_dir.name}_brain_flair.nii.gz",
+        labels_dir / f"{subject_dir.name}_final_seg.nii.gz",
+    ]
+    # check image properties
+    BASE_SIZE = np.array([240, 240, 155])
+    BASE_SPACING = np.array([1.0, 1.0, 1.0])
+    for file_ in files_to_check:
+        image = sitk.ReadImage(str(file_))
+        size_array = np.array(image.GetSize())
+        spacing_array = np.array(image.GetSpacing())
 
-    # define base size and spacing
-    base_size = np.array([240, 240, 155])
-    base_spacing = np.array([1.0, 1.0, 1.0])
-
-    for folders in all_files:
-        current_subject = os.path.join(data_path, folders)
-        if os.path.isdir(current_subject):
-
-            assert check_subject_validity(
-                current_subject
-            ), "Subject {} does not contain all modalities or segmentation".format(
-                current_subject
-            )
-
-            for files in os.listdir(current_subject):
-                current_file = os.path.join(current_subject, files)
-                if os.path.isfile(current_file):
-                    # perform BraTS space check for all nifti images
-                    if current_file.endswith(".nii.gz"):
-                        image = sitk.ReadImage(current_file)
-                        size_array = np.array(image.GetSize())
-                        spacing_array = np.array(image.GetSpacing())
-
-                        assert (base_size == size_array).all(), (
-                            "Image size is not [240,240,155] for " + current_file
-                        )
-                        assert (base_spacing == spacing_array).all(), (
-                            "Image resolution is not [1,1,1] for " + current_file
-                        )
+        if not (BASE_SIZE == size_array).all():
+            wrong_size.append(file_)
+        if not (BASE_SPACING == spacing_array).all():
+            wrong_spacing.append(file_)
+    return wrong_size, wrong_spacing
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser("BraTS Data Sanity Check")
+def main():
+    parser = argparse.ArgumentParser("FeTS Data Sanity Check")
     parser.add_argument(
         "--data_path",
         dest="data",
         type=str,
         help="directory containing the prepared data",
     )
+    parser.add_argument(
+        "--labels_path",
+        dest="labels",
+        type=str,
+        help="directory containing the prepared labels",
+    )
 
     args = parser.parse_args()
-
-    sanity_check(args.data)
-
+    data_path = Path(args.data)
+    labels_path = Path(args.labels)
+    for curr_subject_dir in data_path.iterdir():
+        if curr_subject_dir.is_dir():
+            assert check_subject_validity(
+                curr_subject_dir, labels_path
+            ), f"Subject {curr_subject_dir.name} does not contain all modalities or segmentation."
+            wrong_size, wrong_spacing = check_subject_images(curr_subject_dir, labels_path)
+            assert len(wrong_size) == 0, (
+                f"Image size is not [240,240,155] for {wrong_size}"
+            )
+            assert len(wrong_spacing) == 0, (
+                f"Image resolution is not [1,1,1] for {wrong_spacing}"
+            )
     print("Finished")
+
+
+if __name__ == "__main__":
+    main()

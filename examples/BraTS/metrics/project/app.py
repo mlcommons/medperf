@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 from typing import Dict
+import re
 import yaml
 import os
 import subprocess
@@ -97,27 +98,23 @@ def extract_metrics(tmp, subject_id):
     return res
 
 
-def score(data_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFrame:
+def score(labels_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFrame:
     """Compute and return scores for each scan."""
     scores = []
     missing_preds = []
-    for subject_dir in data_dir.iterdir():
-        subject_id = subject_dir.name
-
+    for label_path in labels_dir.iterdir():
+        if not label_path.is_file():
+            logger.warning(f"Skipped directory {label_path}")
+            continue
+        subject_id = re.findall(r"(\w+)_final_seg\.nii\.gz", label_path.name)[0]
         logger.info(f"Processing {subject_id}...")
-        gold = subject_dir / (subject_id + "_brain_seg.nii.gz")
-        if not gold.exists():
-            gold = subject_dir / (subject_id + "_seg.nii.gz")
-        if not gold.exists():
-            raise FileNotFoundError(
-                f"Couldn't find reference segmentation in {subject_dir.absolute()}. This should not happen if the data is prepared correctly."
-            )
-        pred = preds_dir / (subject_id + ".nii.gz")
-        if not pred.exists():
+        
+        pred_path = preds_dir / (subject_id + ".nii.gz")
+        if not pred_path.exists():
             missing_preds.append(subject_id)
 
         try:
-            run_captk(str(pred.absolute()), str(gold.absolute()), tmp_output)
+            run_captk(str(pred_path.absolute()), str(label_path.absolute()), tmp_output)
         except subprocess.CalledProcessError:
             # If no output found, give penalized scores.
             scan_scores = pd.DataFrame(
@@ -157,7 +154,7 @@ def score(data_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFrame
             os.remove(tmp_output)  # Remove file, as it's no longer needed
 
             confusion_matrix = compute_confusion_matrix(
-                load_scan(pred), load_scan(gold)
+                load_scan(pred_path), load_scan(label_path)
             )
             confusion_matrix["subject_id"] = subject_id
             extra_scores = pd.DataFrame([confusion_matrix]).set_index("subject_id")
@@ -179,14 +176,14 @@ def main():
         "--preds-dir",
         type=str,
         required=True,
-        help="Folder containing the labels",
+        help="Folder containing the predicted labels",
     )
     parser.add_argument(
         "--data_path",
         "--data-path",
         type=str,
         required=True,
-        help="Folder containing the data and ground truth",
+        help="Folder containing the ground truth",
     )
     parser.add_argument(
         "--output_file",
