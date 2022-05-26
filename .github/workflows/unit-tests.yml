@@ -12,10 +12,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python python:3.10-slim(as server Dockerfile))
+    - name: Set up Python python:3.10 (as server Dockerfile))
       uses: actions/setup-python@v2
       with:
-        python-version: python:3.10-slim
+        python-version: python:3.10
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
