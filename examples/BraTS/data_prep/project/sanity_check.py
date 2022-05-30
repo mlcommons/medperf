@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 from typing import List, Tuple
 
@@ -52,30 +51,13 @@ def check_subject_images(subject_dir: Path, labels_dir: Path) -> Tuple[List[Path
     return wrong_size, wrong_spacing
 
 
-def main():
-    parser = argparse.ArgumentParser("FeTS Data Sanity Check")
-    parser.add_argument(
-        "--data_path",
-        dest="data",
-        type=str,
-        help="directory containing the prepared data",
-    )
-    parser.add_argument(
-        "--labels_path",
-        dest="labels",
-        type=str,
-        help="directory containing the prepared labels",
-    )
-
-    args = parser.parse_args()
-    data_path = Path(args.data)
-    labels_path = Path(args.labels)
-    for curr_subject_dir in data_path.iterdir():
+def run_sanity_check(data_path: str, labels_path: str):
+    for curr_subject_dir in Path(data_path).iterdir():
         if curr_subject_dir.is_dir():
             assert check_subject_validity(
-                curr_subject_dir, labels_path
+                curr_subject_dir, Path(labels_path)
             ), f"Subject {curr_subject_dir.name} does not contain all modalities or segmentation."
-            wrong_size, wrong_spacing = check_subject_images(curr_subject_dir, labels_path)
+            wrong_size, wrong_spacing = check_subject_images(curr_subject_dir, Path(labels_path))
             assert len(wrong_size) == 0, (
                 f"Image size is not [240,240,155] for {wrong_size}"
             )
@@ -83,7 +65,3 @@ def main():
                 f"Image resolution is not [1,1,1] for {wrong_spacing}"
             )
     print("Finished")
-
-
-if __name__ == "__main__":
-    main()

@@ -8,21 +8,12 @@
 # By running the application through subprocesses.
 
 import typer
-import subprocess
+from prepare import run_preparation
+from sanity_check import run_sanity_check
+from statistics import run_statistics
+
 
 app = typer.Typer()
-
-# TODO why do we start a subprocess instead of importing the modules here?
-
-def exec_python(cmd: str) -> None:
-    """Execute a python script as a subprocess
-
-    Args:
-        cmd (str): command to run as would be written inside the terminal
-    """
-    splitted_cmd = cmd.split()
-    process = subprocess.Popen(splitted_cmd, cwd=".")
-    process.wait()
 
 
 @app.command("prepare")
@@ -42,8 +33,11 @@ def prepare(
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
         out_path (str): Location to store transformed data. Required for Medperf Data Preparation MLCubes.
     """
-    cmd = f"python3 prepare.py --input_dir={data_path} --out={out_path} --out_labels={out_labels_path}"
-    exec_python(cmd)
+    run_preparation(
+        input_dir=data_path,
+        output_data_dir=out_path,
+        output_label_dir=out_labels_path
+    )
 
 
 @app.command("sanity_check")
@@ -59,8 +53,7 @@ def sanity_check(
         data_path (str): Location of the prepared data. Required for Medperf Data Preparation MLCubes.
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
     """
-    cmd = f"python3 sanity_check.py --data_path={data_path} --labels_path={labels_path}"
-    exec_python(cmd)
+    run_sanity_check(data_path=data_path, labels_path=labels_path)
 
 
 @app.command("statistics")
@@ -81,8 +74,7 @@ def statistics(
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
         output_path (str): File to store the statistics. Must be statistics.yaml. Required for Medperf Data Preparation MLCubes. 
     """
-    cmd = f"python3 statistics.py --data_path={data_path} --labels_path={labels_path} --out_file={output_path}"
-    exec_python(cmd)
+    run_statistics(data_path=data_path, labels_path=labels_path, out_file=output_path)
 
 
 if __name__ == "__main__":

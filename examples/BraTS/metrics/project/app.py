@@ -1,8 +1,7 @@
 # Code adapted from https://github.com/Sage-Bionetworks-Challenges/brats-dream-challenge-infra/blob/main/Docker/score.py
 
-import argparse
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Union
 import re
 import yaml
 import os
@@ -108,7 +107,7 @@ def score(labels_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFra
             continue
         subject_id = re.findall(r"(\w+)_final_seg\.nii\.gz", label_path.name)[0]
         logger.info(f"Processing {subject_id}...")
-        
+
         pred_path = preds_dir / (subject_id + ".nii.gz")
         if not pred_path.exists():
             missing_preds.append(subject_id)
@@ -169,48 +168,17 @@ def score(labels_dir: Path, preds_dir: Path, tmp_output="tmp.csv") -> pd.DataFra
     return pd.concat(scores).sort_values(by="subject_id")
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--preds_dir",
-        "--preds-dir",
-        type=str,
-        required=True,
-        help="Folder containing the predicted labels",
-    )
-    parser.add_argument(
-        "--data_path",
-        "--data-path",
-        type=str,
-        required=True,
-        help="Folder containing the ground truth",
-    )
-    parser.add_argument(
-        "--output_file",
-        "--output-file",
-        type=str,
-        required=True,
-        help="file to store metrics results as YAML",
-    )
-    parser.add_argument(
-        "--log_file",
-        "--log-file",
-        type=str,
-        required=False,
-        default="metrics.log",
-        help="file to store logs",
-    )
-    args = parser.parse_args()
-
-    logger.add(args.log_file)
-    results = score(Path(args.data_path), Path(args.preds_dir))
+def evaluate(
+    label_dir: Union[str, Path],
+    prediction_dir: Union[str, Path],
+    output_file: Union[str, Path],
+    log_file: Union[str, Path],
+) -> None:
+    logger.add(log_file)
+    results = score(Path(label_dir), Path(prediction_dir))
 
     results_dict = results.to_dict(orient="index")
 
-    with open(args.output_file, "w") as f:
+    with open(output_file, "w") as f:
         yaml.dump(results_dict, f)
-    logger.info(f"Results saved at {args.output_file}")
-
-
-if __name__ == "__main__":
-    main()
+    logger.info(f"Results saved at {output_file}")

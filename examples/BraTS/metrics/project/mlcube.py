@@ -6,23 +6,12 @@
 # You can provide that interface to MLCube in any way you prefer.
 # Here, we show a way that requires minimal intrusion to the original code,
 # By running the application through subprocesses.
-import os
 import typer
-import subprocess
+
+import app as evaluator
 
 
 app = typer.Typer()
-
-
-def exec_python(cmd: str) -> None:
-    """Execute a python script as a subprocess
-
-    Args:
-        cmd (str): command to run as would be written inside the terminal
-    """
-    splitted_cmd = cmd.split()
-    process = subprocess.Popen(splitted_cmd, cwd=".")
-    process.wait()
 
 
 @app.command("evaluate")
@@ -33,9 +22,12 @@ def evaluate(
     output_path: str = typer.Option(..., "--output_path"),
     log_path: str = typer.Option(..., "--log_path"),
 ):
-    cmd = f"python3 app.py --data_path={labels} --preds_dir={predictions} --output_file={output_path} --log_file={log_path}"
-    exec_python(cmd)
-
+    evaluator.evaluate(
+        label_dir=labels,
+        prediction_dir=predictions,
+        output_file=output_path,
+        log_file=log_path
+    )
 
 @app.command("hotfix")
 def hotfix():

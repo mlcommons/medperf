@@ -16,18 +16,16 @@ docker:
 
 tasks:
   prepare:
-  # This task is in charge of transforming the input data into the format
-  # expected by the model cubes. 
+  # This task is in charge of transforming the input data into the format expected by the model cubes. 
     parameters:
-    # TODO "required" is confusing. Required by MedPerf or in which sense?
       inputs: {
-        data_path: {type: directory, default: data},           # Required. Value must point to a directory containing the raw data inside workspace
-        labels_path: {type: directory, default: data},         # Required. Value must point to a directory containing labels for the data
-        parameters_file: parameters.yaml # Required. Value must be `parameters.yaml`
+        data_path: {type: directory, default: data},  # Value must point to a directory containing the raw data inside workspace
+        labels_path: {type: directory, default: data},  # Not used in this example
+        parameters_file: parameters.yaml  # Not used in this example
       }
       outputs: {
-        output_path: prepped_data/,  # Required. Indicates where to store the transformed data. Must contain prepared data
-        output_labels_path: labels/  # Required. Indicates where to store the transformed data. Must contain labels
+        output_path: prepped_data/,  # Indicates where to store the transformed data. Must contain prepared data
+        output_labels_path: labels/  # Indicates where to store the transformed data. Must contain labels
       }
   sanity_check:
   # This task ensures that the previously transformed data was transformed correctly.
@@ -35,21 +33,21 @@ tasks:
   # tests is determined by the cube author.
     parameters:
       inputs: {
-        data_path: {type: directory, default: prepped_data},  # Required. Value should be the first output of the prepare task
-        labels_path: labels/,  # Required. Value should be the second output of the prepare task
-        parameters_file: parameters.yaml
+        data_path: {type: directory, default: prepped_data},  # Value should be the first output of the prepare task
+        labels_path: labels/,  # Value should be the second output of the prepare task
+        parameters_file: parameters.yaml  # Not used in this example
       }
   statistics:
   # This task computes statistics on the prepared dataset. Its purpose is to get a high-level
   # idea of what is contained inside the data, without providing any specifics of any single entry
     parameters:
       inputs: {
-        data_path: {type: directory, default: prepped_data},  # Required. Value should be the first output of the prepare task
-        labels_path: labels/,  # Required. Value should be the second output of the prepare task
-        parameters_file: parameters.yaml # Required. Value must be `parameters.yaml`
+        data_path: {type: directory, default: prepped_data},  # Value should be the first output of the prepare task
+        labels_path: labels/,  # Value should be the second output of the prepare task
+        parameters_file: parameters.yaml  # Not used in this example
       }
       outputs: {
         output_path: {
-          type: file, default: statistics.yaml # Required. Value must be `statistics.yaml`
+          type: file, default: statistics.yaml
         }
       }

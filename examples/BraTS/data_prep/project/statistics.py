@@ -1,6 +1,5 @@
 from pathlib import Path
 import yaml
-import argparse
 
 from sanity_check import check_subject_validity
 
@@ -38,31 +37,8 @@ def get_statistics(data_path: str, labels_path: str) -> dict:
     return stats
 
 
-def main():
-    parser = argparse.ArgumentParser("MedPerf Statistics Example")
-    parser.add_argument(
-        "--data_path",
-        dest="data",
-        type=str,
-        help="directory containing the prepared data",
-    )
-    parser.add_argument(
-        "--labels_path",
-        dest="labels",
-        type=str,
-        help="directory containing the prepared labels",
-    )
-    parser.add_argument(
-        "--out_file", dest="out_file", type=str, help="file to store statistics"
-    )
+def run_statistics(data_path: str, labels_path: str, out_file: str):
+    stats = get_statistics(data_path, labels_path)
 
-    args = parser.parse_args()
-
-    stats = get_statistics(args.data, args.labels)
-
-    with open(args.out_file, "w") as f:
+    with open(out_file, "w") as f:
         yaml.dump(stats, f)
-
-
-if __name__ == "__main__":
-    main()
