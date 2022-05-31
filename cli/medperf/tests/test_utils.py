@@ -220,15 +220,14 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
     traveller.start()
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
-    spy = mocker.patch("os.makedirs")
     tmp_path = f"{config.tmp_prefix}{int(timestamp)}"
-    exp_out_path = os.path.join(data, tmp_path, "data")
+    exp_out_path = os.path.join(data, tmp_path)
 
     # Act
-    utils.generate_tmp_datapath()
+    out_path = utils.generate_tmp_datapath()
 
     # Assert
-    spy.assert_called_once_with(exp_out_path)
+    assert out_path == exp_out_path
     traveller.stop()
 
 
