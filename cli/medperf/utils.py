@@ -86,12 +86,12 @@ def cleanup_dsets():
     """
     dsets_path = storage_path(config.data_storage)
     dsets = get_uids(dsets_path)
-    tmp_prefix = config.tmp_prefix
+    tmp_reg_prefix = config.tmp_reg_prefix
     test_prefix = config.test_dset_prefix
     clutter_dsets = [
         dset
         for dset in dsets
-        if dset.startswith(tmp_prefix) or dset.startswith(test_prefix)
+        if dset.startswith(tmp_reg_prefix) or dset.startswith(test_prefix)
     ]
 
     for dset in clutter_dsets:
@@ -124,7 +124,7 @@ def cleanup_benchmarks():
     """
     bmks_path = storage_path(config.benchmarks_storage)
     bmks = os.listdir(bmks_path)
-    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
+    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_reg_prefix)]
 
     for bmk in clutter_bmks:
         logging.info(f"Removing clutter benchmark: {bmk}")
@@ -189,7 +189,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         str: Specific data path for the temporary dataset
     """
     uid = generate_tmp_uid()
-    tmp = config.tmp_prefix + uid
+    tmp = config.tmp_reg_prefix + uid
     out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
     return out_path

@@ -116,7 +116,7 @@ class Benchmark:
         Returns:
             Benchmark: a benchmark instance
         """
-        benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
+        benchmark_uid = f"{config.tmp_reg_prefix}{data_preparator}_{model}_{evaluator}"
         benchmark_dict = {
             "name": benchmark_uid,
             "data_preparation_mlcube": data_preparator,

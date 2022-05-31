@@ -23,7 +23,7 @@ REGISTRATION_MOCK = {
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
-TMP_PREFIX = config.tmp_prefix
+tmp_reg_prefix = config.tmp_reg_prefix
 
 
 @pytest.fixture
@@ -102,14 +102,14 @@ def test_all_returns_list_of_expected_size(mocker, ui, all_uids):
     assert len(dsets) == len(all_uids)
 
 
-@pytest.mark.parametrize("all_uids", [["1", "2", f"{TMP_PREFIX}3"]], indirect=True)
+@pytest.mark.parametrize("all_uids", [["1", "2", f"{tmp_reg_prefix}3"]], indirect=True)
 def test_all_ignores_temporary_datasets(mocker, ui, all_uids):
     # Act
     dsets = Dataset.all(ui)
     uids = [dset.generated_uid for dset in dsets]
 
     # Assert
-    assert f"{TMP_PREFIX}3" not in uids
+    assert f"{tmp_reg_prefix}3" not in uids
 
 
 @pytest.mark.parametrize(
