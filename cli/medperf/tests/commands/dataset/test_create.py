@@ -84,12 +84,13 @@ class TestWithDefaultUID:
         prepare = call(
             ui,
             task="prepare",
+            timeout=None,
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
         )
-        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH)
-        stats = call(ui, task="statistics", data_path=OUT_DATAPATH)
+        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
+        stats = call(ui, task="statistics", data_path=OUT_DATAPATH, timeout=None)
         calls = [prepare, check, stats]
 
         # Act

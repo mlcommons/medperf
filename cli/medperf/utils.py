@@ -13,6 +13,7 @@ from pexpect import spawn
 from datetime import datetime
 from typing import List, Tuple
 from colorama import Fore, Style
+from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.ui.interface import UI
@@ -290,7 +291,12 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     static_text = ui.text
     proc_out = ""
     while proc.isalive():
-        line = byte = proc.read(1)
+        try:
+            line = byte = proc.read(1)
+        except TIMEOUT:
+            logging.info("Process timed out")
+            pretty_error("Process timed out", ui)
+
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
             line += byte
