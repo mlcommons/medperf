@@ -111,16 +111,25 @@ class TestWithDefaultUID:
         prepare = call(
             ui,
             task="prepare",
+            timeout=None,
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
             output_labels_path=OUT_LABELSPATH,
         )
         check = call(
-            ui, task="sanity_check", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH
+            ui,
+            task="sanity_check",
+            timeout=None,
+            data_path=OUT_DATAPATH,
+            labels_path=OUT_LABELSPATH,
         )
         stats = call(
-            ui, task="statistics", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH
+            ui,
+            task="statistics",
+            timeout=None,
+            data_path=OUT_DATAPATH,
+            labels_path=OUT_LABELSPATH,
         )
         calls = [prepare, check, stats]
 

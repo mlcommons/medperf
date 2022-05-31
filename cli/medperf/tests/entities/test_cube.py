@@ -343,9 +343,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
     platform = "docker"
-    expected_cmd = (
-        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform} test=test"
-    )
+    expected_cmd = f'mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform} test="test"'
 
     # Act
     uid = 1
