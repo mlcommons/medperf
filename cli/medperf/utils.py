@@ -183,11 +183,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     tmp = config.tmp_prefix + uid
     out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
-    out_datapath = os.path.join(out_path, "data")
-    if not os.path.isdir(out_datapath):
-        logging.info(f"Creating temporary dataset path: {out_datapath}")
-        os.makedirs(out_datapath)
-    return out_path, out_datapath
+    return out_path
 
 
 def generate_tmp_uid() -> str:

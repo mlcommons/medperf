@@ -8,3 +8,6 @@ class MockCube:
 
     def run(self):
         pass
+
+    def get_default_output(self, *args, **kwargs):
+        return "out_path"
