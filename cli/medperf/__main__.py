@@ -117,9 +117,11 @@ def main(
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
+    platform: str = config.platform,
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
+    config.platform = platform
     if log_file is None:
         log_file = storage_path(config.log_file)
     else:
