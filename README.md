@@ -136,6 +136,12 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
    ~/CheXpert-v1.0-small
    ```
    We're going to be using the validation split. To ensure the data preparation step works properly, **please remove the `train.csv` from the `CheXpert-v1.0-small` folder.**
+   
+   ```
+   rm ~/CheXpert-v1.0-small/train.csv
+   ```
+   The data preparation mlcube assumes that the input folder contains a single csv. Therefore, any other dataset that is used for this benchmark must follow that same assumption.
+   
 2. ## Authenticate the CLI
    If you followed the server hosting instructions, then your instance of the server already has some toy users to play with. The CLI needs to be authenticated with a user to be able to execute commands and interact with the server. For this, you can run:
    ```

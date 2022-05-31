@@ -102,7 +102,7 @@ class BenchmarkExecution:
         )
         self.ui.print("> Model execution complete")
 
-        labels_path = data_path
+        labels_path = self.dataset.labels_path
 
         self.ui.text = "Evaluating results"
         out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
