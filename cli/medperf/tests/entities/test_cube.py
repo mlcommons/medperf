@@ -214,7 +214,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body):
     spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task} test=test"
+    expected_cmd = f'mlcube run --mlcube={CUBE_PATH} --task={task} test="test"'
 
     # Act
     uid = 1

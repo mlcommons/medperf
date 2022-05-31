@@ -29,6 +29,7 @@ class Registration:
         name: str = None,
         description: str = None,
         location: str = None,
+        separate_labels: bool = False,
     ):
         """Creates a registration instance
 
@@ -38,6 +39,7 @@ class Registration:
             name (str, optional): Assigned name. Defaults to None.
             description (str, optional): Assigned description. Defaults to None.
             location (str, optional): Assigned location. Defaults to None.
+            separate_labels (bool, optional): Whether the labels should be separated from the data. Defaults to False.
         """
         self.cube = cube
         self.stats = self.__get_stats()
@@ -50,6 +52,7 @@ class Registration:
         self.uid = None
         self.in_uid = None
         self.path = None
+        self.separate_labels = separate_labels
 
     def generate_uids(self, in_path: str, out_path: str) -> str:
         """Auto-generates dataset UIDs for both input and output paths
@@ -94,6 +97,7 @@ class Registration:
             "status": self.status,
             "uid": self.uid,
             "state": "OPERATION",
+            "separate_labels": self.separate_labels,
         }
 
         return registration
