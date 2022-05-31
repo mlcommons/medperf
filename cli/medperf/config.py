@@ -27,6 +27,7 @@ test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 default_comms = "REST"
 default_ui = "CLI"
+platform = "docker"
 git_file_domain = "https://raw.githubusercontent.com"
 comms = None
 ui = None

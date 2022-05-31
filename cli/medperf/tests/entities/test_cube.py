@@ -322,7 +322,10 @@ def test_cube_runs_command_with_pexpect(
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task}"
+    platform = "docker"
+    expected_cmd = (
+        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform}"
+    )
 
     # Act
     uid = 1
@@ -339,7 +342,10 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
     spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task} test=test"
+    platform = "docker"
+    expected_cmd = (
+        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform} test=test"
+    )
 
     # Act
     uid = 1
