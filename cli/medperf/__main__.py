@@ -1,5 +1,6 @@
 import typer
 import logging
+import logging.handlers
 from os.path import abspath, expanduser
 
 from medperf.commands import Login
@@ -62,12 +63,19 @@ def main(
         log_file = storage_path(config.log_file)
     else:
         log_file = abspath(expanduser(log_file))
+    config.log_file = log_file
 
     init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=10000000, backupCount=5
+    )
+    handler.setFormatter(logging.Formatter(log_fmt))
+    logging.basicConfig(
+        level=log_lvl, handlers=[handler], format=log_fmt, datefmt="%Y-%m-%d %H:%M:%S"
+    )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
     config.ui = UIFactory.create_ui(ui)
