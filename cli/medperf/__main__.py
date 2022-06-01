@@ -149,7 +149,11 @@ def main(
     )
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
-        level=log_lvl, handlers=[handler], format=log_fmt, datefmt="%Y-%m-%d %H:%M:%S"
+        level=log_lvl,
+        handlers=[handler],
+        format=log_fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
     )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
