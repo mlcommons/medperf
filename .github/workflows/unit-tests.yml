@@ -12,7 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.10 (as server Dockerfile))
+    # Recheck later. Due to pytest and mlcube dependencies, we have to keep Python 3.9 
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
