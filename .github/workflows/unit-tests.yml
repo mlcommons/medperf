@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: CI Workflow
+name: Unit test Workflow
 
 on: pull_request
 
@@ -12,10 +12,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    # Recheck later. Due to pytest and mlcube dependencies, we have to keep Python 3.9 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: '3.9'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
