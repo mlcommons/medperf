@@ -126,7 +126,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     utils.cleanup()
 
     # Assert
-    spy.assert_called_once_with(tmp, ignore_errors=True)
+    spy.assert_called_once_with(tmp)
 
 
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
@@ -141,7 +141,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
 
     invalid_dsets = [dset for dset in datasets if dset.startswith(prefix)]
     invalid_dsets = [os.path.join(data, dset) for dset in invalid_dsets]
-    exp_calls = [call(inv_dset, ignore_errors=True) for inv_dset in invalid_dsets]
+    exp_calls = [call(inv_dset) for inv_dset in invalid_dsets]
 
     # Act
     utils.cleanup()

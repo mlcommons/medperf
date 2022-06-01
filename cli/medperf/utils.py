@@ -74,7 +74,13 @@ def cleanup():
     tmp_path = storage_path(config.tmp_storage)
     if os.path.exists(tmp_path):
         logging.info("Removing temporary data storage")
-        rmtree(tmp_path, ignore_errors=True)
+        try:
+            rmtree(tmp_path)
+        except OSError as e:
+            logging.error(f"Could not remove temporary data storage: {e}")
+            config.ui.print_error(
+                "Could not remove temporary data storage. For more information check the logs."
+            )
 
     cleanup_dsets()
     cleanup_cubes()
@@ -98,7 +104,13 @@ def cleanup_dsets():
         logging.info(f"Removing clutter dataset: {dset}")
         dset_path = os.path.join(dsets_path, dset)
         if os.path.exists(dset_path):
-            rmtree(dset_path, ignore_errors=True)
+            try:
+                rmtree(dset_path)
+            except OSError as e:
+                logging.error(f"Could not remove dataset {dset}: {e}")
+                config.ui.print_error(
+                    f"Could not remove dataset {dset}. For more information check the logs."
+                )
 
 
 def cleanup_cubes():
@@ -116,7 +128,13 @@ def cleanup_cubes():
         logging.info(f"Removing clutter cube: {cube}")
         cube_path = os.path.join(cubes_path, cube)
         if os.path.exists(cube_path):
-            rmtree(cube_path, ignore_errors=True)
+            try:
+                rmtree(cube_path)
+            except OSError as e:
+                logging.error(f"Could not remove cube {cube}: {e}")
+                config.ui.print_error(
+                    f"Could not remove cube {cube}. For more information check the logs."
+                )
 
 
 def cleanup_benchmarks():
@@ -130,7 +148,13 @@ def cleanup_benchmarks():
         logging.info(f"Removing clutter benchmark: {bmk}")
         bmk_path = os.path.join(bmks_path, bmk)
         if os.path.exists(bmk_path):
-            rmtree(bmk_path, ignore_errors=True)
+            try:
+                rmtree(bmk_path)
+            except OSError as e:
+                logging.error(f"Could not remove benchmark {bmk}: {e}")
+                config.ui.print_error(
+                    f"Could not remove benchmark {bmk}. For more information check the logs."
+                )
 
 
 def get_uids(path: str) -> List[str]:
