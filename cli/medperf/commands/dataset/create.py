@@ -119,20 +119,30 @@ class DataPreparation:
 
         # Run the tasks
         self.ui.text = "Running preparation step..."
-        self.cube.run(self.ui, task="prepare", timeout=prepare_timeout, **prepare_params)
+        self.cube.run(
+            self.ui, task="prepare", timeout=prepare_timeout, **prepare_params
+        )
         self.ui.print("> Cube execution complete")
 
         self.ui.text = "Running sanity check..."
-        self.cube.run(self.ui, task="sanity_check", timeout=sanity_check_timeout, **sanity_params)
+        self.cube.run(
+            self.ui, task="sanity_check", timeout=sanity_check_timeout, **sanity_params
+        )
         self.ui.print("> Sanity checks complete")
 
         self.ui.text = "Generating statistics..."
-        self.cube.run(self.ui, task="statistics", timeout=statistics_timeout, **statistics_params)
+        self.cube.run(
+            self.ui, task="statistics", timeout=statistics_timeout, **statistics_params
+        )
         self.ui.print("> Statistics complete")
 
     def create_registration(self):
         self.registration = Registration(
-            self.cube, self.name, self.description, self.location, separate_labels=self.labels_specified
+            self.cube,
+            self.name,
+            self.description,
+            self.location,
+            separate_labels=self.labels_specified,
         )
         self.registration.generate_uids(self.data_path, self.out_datapath)
 
@@ -144,7 +154,7 @@ class DataPreparation:
                 config.test_dset_prefix + self.registration.generated_uid
             )
 
-        if self.registration.is_registered(self.ui):
+        if self.registration.is_registered(self.ui) and not self.run_test:
             msg = "This dataset has already been prepared. No changes made"
             pretty_error(msg, self.ui)
         self.registration.to_permanent_path(self.out_path)

@@ -124,6 +124,7 @@ def main(
     infer_timeout: int = config.infer_timeout,
     evaluate_timeout: int = config.evaluate_timeout,
     platform: str = config.platform,
+    cleanup: bool = True,
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
@@ -133,6 +134,7 @@ def main(
     config.infer_timeout = infer_timeout
     config.evaluate_timeout = evaluate_timeout
     config.platform = platform
+    config.cleanup = cleanup
 
     if log_file is None:
         log_file = storage_path(config.log_file)

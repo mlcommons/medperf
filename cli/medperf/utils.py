@@ -71,6 +71,9 @@ def init_storage():
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
+    if not config.cleanup:
+        logging.info("Cleanup disabled")
+        return
     tmp_path = storage_path(config.tmp_storage)
     if os.path.exists(tmp_path):
         logging.info("Removing temporary data storage")
