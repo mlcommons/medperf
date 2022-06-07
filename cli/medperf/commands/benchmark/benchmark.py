@@ -25,11 +25,42 @@ def list(
 
 @app.command("submit")
 @clean_except
-def submit():
+def submit(
+    name: str = typer.Option(..., "--name", "-n", help="Name of the benchmark"),
+    description: str = typer.Option(
+        ..., "--description", "-d", help="Description of the benchmark"
+    ),
+    docs_url: str = typer.Option("", "--docs-url", "-u", help="URL to documentation"),
+    demo_url: str = typer.Option(
+        "", "--demo-url", help="URL to demonstration dataset tarball file"
+    ),
+    demo_hash: str = typer.Option(
+        "", "--demo-hash", help="SHA1 of demonstration dataset tarball file"
+    ),
+    data_preparation_mlcube: str = typer.Option(
+        ..., "--data-preparation-mlcube", "-p", help="Data Preparation MLCube UID"
+    ),
+    reference_model_mlcube: str = typer.Option(
+        ..., "--reference-model-mlcube", "-m", help="Reference Model MLCube UID"
+    ),
+    evaluator_mlcube: str = typer.Option(
+        ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
+    ),
+):
     """Submits a new benchmark to the platform"""
     comms = config.comms
     ui = config.ui
-    SubmitBenchmark.run(comms, ui)
+    benchmark_info = {
+        "name": name,
+        "description": description,
+        "docs_url": docs_url,
+        "demo_url": demo_url,
+        "demo_hash": demo_hash,
+        "data_preparation_mlcube": data_preparation_mlcube,
+        "reference_model_mlcube": reference_model_mlcube,
+        "evaluator_mlcube": evaluator_mlcube,
+    }
+    SubmitBenchmark.run(benchmark_info, comms, ui)
     cleanup()
     ui.print("✅ Done!")
 
