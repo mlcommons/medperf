@@ -1,5 +1,6 @@
 import os
 import pytest
+from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
 from medperf.tests.utils import rand_l
@@ -145,17 +146,39 @@ def test_set_cube_uid_creates_symlink_if_path_provided(mocker, src, dst, comms, 
     mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
     exec.model = src
+    expected_path = Path(src).resolve()
 
     # Act
     exec.set_cube_uid("model")
 
     # Assert
-    syml_spy.assert_called_once_with(src, dst)
+    syml_spy.assert_called_once_with(expected_path, dst)
     assert call(cubes_loc, ANY) in join_spy.mock_calls
 
 
+@pytest.mark.parametrize("src", ["path/to/mlcube/mlcube.yaml"])
+@pytest.mark.parametrize("dst", ["path/to/symlink"])
+def test_set_cube_uid_corrects_path_if_file(mocker, src, dst, comms, ui):
+    # Arrange
+    cubes_loc = "~/.medperf/cubes"
+    mocker.patch("os.path.exists", return_value=True)
+    mocker.patch("pathlib.Path.is_file", return_value=True)
+    mocker.patch("medperf.utils.cleanup")
+    syml_spy = mocker.patch("os.symlink")
+    mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
+    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec.model = src
+    expected_src = Path(src).parent.resolve()
+
+    # Act
+    exec.set_cube_uid("model")
+
+    # Assert
+    syml_spy.assert_called_once_with(expected_src, ANY)
+
+
 @pytest.mark.parametrize("model_uid", rand_l(1, 500, 5))
-def test_set_cube_uid_keeps_passed_uid_intact(
+def test_set_cube_uid_keeps_passed_uid_intact_if_digit(
     mocker, default_setup, model_uid, comms, ui
 ):
     # Arrange

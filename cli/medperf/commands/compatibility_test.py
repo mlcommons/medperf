@@ -156,12 +156,12 @@ class CompatibilityTestExecution:
             return
 
         # Test if value looks like an mlcube_uid, if so skip path validation
-        if val.isdigit():
+        if str(val).isdigit():
             logging.info(f"MLCube value {val} for {attr} resembles an mlcube_uid")
             return
 
         # Check if value is a local mlcube
-        path = Path(str(val))
+        path = Path(val)
         if path.is_file():
             path = path.parent
         path = path.resolve()
@@ -177,10 +177,10 @@ class CompatibilityTestExecution:
             return
 
         logging.warning(f"mlcube {val} was not found as an existing mlcube")
-        pretty_error(
-            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
-            self.ui,
-        )
+        # pretty_error(
+        #     f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
+        #     self.ui,
+        # )
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
