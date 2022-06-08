@@ -177,10 +177,10 @@ class CompatibilityTestExecution:
             return
 
         logging.warning(f"mlcube {val} was not found as an existing mlcube")
-        # pretty_error(
-        #     f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
-        #     self.ui,
-        # )
+        pretty_error(
+            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
+            self.ui,
+        )
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.

@@ -193,6 +193,25 @@ def test_set_cube_uid_keeps_passed_uid_intact_if_digit(
     assert exec.model == model_uid
 
 
+@pytest.mark.parametrize("model_uid", ["path/to/mlcube.py", "test"])
+def test_set_cube_uid_fails_if_unrecognized_input(
+    mocker, default_setup, model_uid, comms, ui
+):
+    # Arrange
+    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec.model = model_uid
+    mocker.patch("os.symlink")
+    spy = mocker.patch(
+        PATCH_TEST.format("pretty_error"), side_effect=lambda *args: exit()
+    )
+
+    # Act & Assert
+    with pytest.raises(SystemExit):
+        exec.set_cube_uid("model")
+
+    spy.assert_called_once()
+
+
 def test_set_data_uid_retrieves_demo_data_by_default(mocker, default_setup, comms, ui):
     # Arrange
     spy = mocker.patch(
