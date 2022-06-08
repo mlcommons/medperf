@@ -132,7 +132,10 @@ def cleanup_cubes():
         cube_path = os.path.join(cubes_path, cube)
         if os.path.exists(cube_path):
             try:
-                rmtree(cube_path)
+                if os.path.islink(cube_path):
+                    os.unlink(cube_path)
+                else:
+                    rmtree(cube_path)
             except OSError as e:
                 logging.error(f"Could not remove cube {cube}: {e}")
                 config.ui.print_error(
