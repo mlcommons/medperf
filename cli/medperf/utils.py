@@ -66,7 +66,10 @@ def init_storage():
     for dir in dirs:
         if not os.path.isdir(dir):
             logging.info(f"Creating {dir} directory")
-            os.mkdir(dir)
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except FileExistsError:
+                logging.warning(f"Tried to create existing folder {dir}")
 
 
 def cleanup():

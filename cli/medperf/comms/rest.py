@@ -181,7 +181,7 @@ class REST(Comms):
             logging.error(res.json())
             pretty_error("couldn't download the demo dataset", self.ui)
 
-        os.mkdir(demo_data_path)
+        os.makedirs(demo_data_path, exist_ok=True)
 
         open(filepath, "wb+").write(res.content)
         return filepath
@@ -292,7 +292,7 @@ class REST(Comms):
             c_path = cube_path(cube_uid)
             path = os.path.join(c_path, path)
             if not os.path.isdir(path):
-                os.makedirs(path)
+                os.makedirs(path, exist_ok=True)
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
