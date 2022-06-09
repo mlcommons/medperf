@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import os
 import yaml
+import random
 import hashlib
 import logging
 import tarfile
@@ -227,12 +228,15 @@ def generate_tmp_datapath() -> Tuple[str, str]:
 
 def generate_tmp_uid() -> str:
     """Generates a temporary uid by means of getting the current timestamp
+    with a random salt
 
     Returns:
         str: generated temporary uid
     """
     dt = datetime.utcnow()
-    ts = str(int(datetime.timestamp(dt)))
+    ts_int = int(datetime.timestamp(dt))
+    salt = random.randint(-ts_int, ts_int)
+    ts = str(ts_int + salt)
     return ts
 
 

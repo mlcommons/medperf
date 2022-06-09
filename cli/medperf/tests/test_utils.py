@@ -213,14 +213,16 @@ def test_pretty_error_exits_program(mocker, ui):
 
 
 @pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
+@pytest.mark.parametrize("salt", rand_l(1, 5000, 2))
+def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     # Arrange
     datetime = dt.datetime(*timeparams)
     traveller = time_machine.travel(datetime)
     traveller.start()
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
-    tmp_path = f"{config.tmp_prefix}{int(timestamp)}"
+    mocker.patch("random.randint", return_value=salt)
+    tmp_path = f"{config.tmp_prefix}{int(timestamp + salt)}"
     exp_out_path = os.path.join(data, tmp_path)
 
     # Act
