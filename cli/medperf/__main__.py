@@ -55,11 +55,15 @@ def execute(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
     result.run_benchmark(
-        benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
+        benchmark_uid=benchmark_uid,
+        data_uid=data_uid,
+        model_uid=model_uid,
+        approved=approval,
     )
 
 
