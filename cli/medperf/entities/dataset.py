@@ -48,10 +48,15 @@ class Dataset:
         self.preparation_cube_uid = registration["data_preparation_mlcube"]
         self.generated_uid = registration["generated_uid"]
         self.input_data_hash = registration["input_data_hash"]
+        self.separate_labels = registration.get("separate_labels", False)
         self.split_seed = registration["split_seed"]
         self.metadata = registration["metadata"]
         self.status = registration["status"]
         self.state = registration["state"]
+
+        self.labels_path = self.data_path
+        if self.separate_labels:
+            self.labels_path = os.path.join(self.dataset_path, "labels")
 
     @property
     def registration(self):
@@ -67,6 +72,7 @@ class Dataset:
             "metadata": self.metadata,
             "status": self.status,
             "state": self.state,
+            "separate_labels": self.separate_labels,
         }
 
     @classmethod
@@ -156,7 +162,7 @@ class Dataset:
         Returns:
             bool: Wether the user gave consent or not.
         """
-        if self.status == "APPROVED":
+        if self.status != "PENDING":
             return True
 
         dict_pretty_print(self.registration, ui)
@@ -167,7 +173,10 @@ class Dataset:
             "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
             ui,
         )
-        self.status = "APPROVED"
+        if approved:
+            self.status = "APPROVED"
+        else:
+            self.status = "REJECTED"
         return approved
 
     def upload(self, comms: Comms):

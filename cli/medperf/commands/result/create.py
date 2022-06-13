@@ -95,6 +95,8 @@ class BenchmarkExecution:
         return cube
 
     def run_cubes(self):
+        infer_timeout = config.infer_timeout
+        evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
         model_uid = str(self.model_cube.uid)
         data_uid = str(self.dataset.data_uid)
@@ -102,17 +104,22 @@ class BenchmarkExecution:
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
         self.model_cube.run(
-            self.ui, task="infer", data_path=data_path, output_path=preds_path
+            self.ui,
+            task="infer",
+            timeout=infer_timeout,
+            data_path=data_path,
+            output_path=preds_path,
         )
         self.ui.print("> Model execution complete")
 
-        labels_path = data_path
+        labels_path = self.dataset.labels_path
 
         self.ui.text = "Evaluating results"
         out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
         self.evaluator.run(
             self.ui,
             task="evaluate",
+            timeout=evaluate_timeout,
             predictions=preds_path,
             labels=labels_path,
             output_path=out_path,

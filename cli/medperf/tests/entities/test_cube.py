@@ -312,22 +312,28 @@ def test_cube_is_invalid_with_incorrect_hash(mocker, comms, tar_body, no_local):
     assert not cube.is_valid()
 
 
-def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body, no_local):
+@pytest.mark.parametrize("timeout", rand_l(1, 100, 1) + [None])
+def test_cube_runs_command_with_pexpect(
+    mocker, ui, comms, basic_body, no_local, timeout
+):
     # Arrange
     mpexpect = MockPexpect(0)
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task}"
+    platform = "docker"
+    expected_cmd = (
+        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform}"
+    )
 
     # Act
     uid = 1
     cube = Cube.get(uid, comms, ui)
-    cube.run(ui, "task")
+    cube.run(ui, "task", timeout=timeout)
 
     # Assert
-    spy.assert_called_once_with(expected_cmd, timeout=None)
+    spy.assert_called_once_with(expected_cmd, timeout=timeout)
 
 
 def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_local):
@@ -336,7 +342,10 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
     spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task} test=test"
+    platform = "docker"
+    expected_cmd = (
+        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform} test=\"test\""
+    )
 
     # Act
     uid = 1

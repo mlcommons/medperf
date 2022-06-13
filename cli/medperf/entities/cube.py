@@ -135,25 +135,27 @@ class Cube(object):
             valid_additional = True
         return valid_additional
 
-    def run(self, ui: UI, task: str, **kwargs):
+    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
             ui (UI): an instance of an UI implementation
             task (str): task to run
+            timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
+        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
-            cmd_arg = f"{k}={v}"
+            cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
-        proc = pexpect.spawn(cmd, timeout=None)
+        proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
             ui.text = "\n"
+            ui.print(proc_out)
             pretty_error("There was an error while executing the cube", ui)
 
         logging.debug(list_files(config.storage))
@@ -169,10 +171,14 @@ class Cube(object):
 
         Returns:
             str: the path as specified in the mlcube.yaml file for the desired
-                output for the desired task
+                output for the desired task. Defaults to None if out_key not found
         """
         with open(self.cube_path, "r") as f:
             cube = yaml.safe_load(f)
+
+        out_params = cube["tasks"][task]["parameters"]["outputs"]
+        if out_key not in out_params:
+            return None
 
         out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
         if type(out_path) == dict:

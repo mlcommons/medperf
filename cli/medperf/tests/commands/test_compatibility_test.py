@@ -1,5 +1,6 @@
 import os
 import pytest
+from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
 from medperf.tests.utils import rand_l
@@ -145,17 +146,39 @@ def test_set_cube_uid_creates_symlink_if_path_provided(mocker, src, dst, comms, 
     mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
     exec.model = src
+    expected_path = Path(src).resolve()
 
     # Act
     exec.set_cube_uid("model")
 
     # Assert
-    syml_spy.assert_called_once_with(src, dst)
+    syml_spy.assert_called_once_with(expected_path, dst)
     assert call(cubes_loc, ANY) in join_spy.mock_calls
 
 
+@pytest.mark.parametrize("src", ["path/to/mlcube/mlcube.yaml"])
+@pytest.mark.parametrize("dst", ["path/to/symlink"])
+def test_set_cube_uid_corrects_path_if_file(mocker, src, dst, comms, ui):
+    # Arrange
+    cubes_loc = "~/.medperf/cubes"
+    mocker.patch("os.path.exists", return_value=True)
+    mocker.patch("pathlib.Path.is_file", return_value=True)
+    mocker.patch("medperf.utils.cleanup")
+    syml_spy = mocker.patch("os.symlink")
+    mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
+    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec.model = src
+    expected_src = Path(src).parent.resolve()
+
+    # Act
+    exec.set_cube_uid("model")
+
+    # Assert
+    syml_spy.assert_called_once_with(expected_src, ANY)
+
+
 @pytest.mark.parametrize("model_uid", rand_l(1, 500, 5))
-def test_set_cube_uid_keeps_passed_uid_intact(
+def test_set_cube_uid_keeps_passed_uid_intact_if_digit(
     mocker, default_setup, model_uid, comms, ui
 ):
     # Arrange
@@ -168,6 +191,25 @@ def test_set_cube_uid_keeps_passed_uid_intact(
 
     # Assert
     assert exec.model == model_uid
+
+
+@pytest.mark.parametrize("model_uid", ["path/to/mlcube.py", "test"])
+def test_set_cube_uid_fails_if_unrecognized_input(
+    mocker, default_setup, model_uid, comms, ui
+):
+    # Arrange
+    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec.model = model_uid
+    mocker.patch("os.symlink")
+    spy = mocker.patch(
+        PATCH_TEST.format("pretty_error"), side_effect=lambda *args: exit()
+    )
+
+    # Act & Assert
+    with pytest.raises(SystemExit):
+        exec.set_cube_uid("model")
+
+    spy.assert_called_once()
 
 
 def test_set_data_uid_retrieves_demo_data_by_default(mocker, default_setup, comms, ui):

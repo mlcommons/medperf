@@ -3,22 +3,28 @@ import validators
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.utils import get_file_sha1
+from medperf.utils import get_file_sha1, pretty_error
 
 
 class SubmitCube:
     @classmethod
-    def run(cls, comms: Comms, ui: UI):
+    def run(cls, submit_info: dict, comms: Comms, ui: UI):
         """Submits a new cube to the medperf platform
 
         Args:
-            comms (Comms): Communication instance
-            ui (UI): UI instance
+            submit_info (dict): Dictionary containing the cube information.
+                expected keys:
+                    name,
+                    mlcube_file,
+                    params_file,
+                    additional_file,
+                    additional_hash
+            comms (Comms): Communication instance.
+            ui (UI): UI instance.
         """
-        submission = cls(comms, ui)
-        submission.get_information()
-        while not submission.is_valid():
-            submission.get_information()
+        submission = cls(submit_info, comms, ui)
+        if not submission.is_valid():
+            pretty_error("MLCube submission is invalid", ui)
 
         with ui.interactive():
 
@@ -28,36 +34,15 @@ class SubmitCube:
                 ui.print("Additional file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
             submission.submit()
-        ui.print("Uploaded")
 
-    def __init__(self, comms: Comms, ui: UI):
+    def __init__(self, submit_info: dict, comms: Comms, ui: UI):
         self.comms = comms
         self.ui = ui
-        self.name = None
-        self.mlcube_file = None
-        self.params_file = None
-        self.additional_file = None
-        self.additional_hash = None
-
-    def get_information(self):
-        name_prompt = "MLCube name: "
-        mlcube_file_prompt = (
-            f"MLCube manifest file URL (must start with {config.git_file_domain}): "
-        )
-        params_file_prompt = f"Parameters file URL (must start with {config.git_file_domain}) [OPTIONAL]: "
-        additional_file_prompt = "Additional files tarball URL [OPTIONAL]: "
-
-        self.__get_or_print("name", name_prompt)
-        self.__get_or_print("mlcube_file", mlcube_file_prompt)
-        self.__get_or_print("params_file", params_file_prompt)
-        self.__get_or_print("additional_file", additional_file_prompt)
-
-    def __get_or_print(self, attr, prompt):
-        attr_val = getattr(self, attr)
-        if attr_val is None or attr_val == "":
-            setattr(self, attr, self.ui.prompt(prompt))
-        else:
-            self.ui.print(prompt + attr_val)
+        self.name = submit_info["name"]
+        self.mlcube_file = submit_info["mlcube_file"]
+        self.params_file = submit_info["params_file"]
+        self.additional_file = submit_info["additional_file"]
+        self.additional_hash = submit_info["additional_hash"]
 
     def is_valid(self):
         name_valid_length = 0 < len(self.name) < 20

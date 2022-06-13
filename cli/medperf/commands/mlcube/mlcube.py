@@ -23,11 +23,32 @@ def list(all: bool = typer.Option(False, help="Display all mlcubes")):
 
 @app.command("submit")
 @clean_except
-def submit():
+def submit(
+    name: str = typer.Option(..., "--name", "-n", help="Name of the mlcube"),
+    mlcube_file: str = typer.Option(
+        ..., "--mlcube-file", "-m", help="URL to mlcube file"
+    ),
+    params_file: str = typer.Option(
+        ..., "--parameters-file", "-p", help="URL to parameters file"
+    ),
+    additional_file: str = typer.Option(
+        "", "--additional-file", "-a", help="URL to additional file"
+    ),
+    additional_hash: str = typer.Option(
+        "", "--additional-hash", "-h", help="SHA1 of additional file"
+    ),
+):
     """Submits a new cube to the platform"""
     comms = config.comms
     ui = config.ui
-    SubmitCube.run(comms, ui)
+    mlcube_info = {
+        "name": name,
+        "mlcube_file": mlcube_file,
+        "params_file": params_file,
+        "additional_file": additional_file,
+        "additional_hash": additional_hash,
+    }
+    SubmitCube.run(mlcube_info, comms, ui)
     cleanup()
     ui.print("✅ Done!")
 
@@ -37,9 +58,10 @@ def submit():
 def associate(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Associates an MLCube to a benchmark"""
     comms = config.comms
     ui = config.ui
-    AssociateCube.run(model_uid, benchmark_uid, comms, ui)
+    AssociateCube.run(model_uid, benchmark_uid, comms, ui, approved=approval)
     ui.print("✅ Done!")

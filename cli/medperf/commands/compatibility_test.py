@@ -2,6 +2,7 @@ import os
 import yaml
 import logging
 from time import time
+from pathlib import Path
 from typing import List
 
 from medperf.ui.interface import UI
@@ -154,16 +155,32 @@ class CompatibilityTestExecution:
             setattr(self, attr, fallback)
             return
 
-        # Check if value is a server UID
-        val = str(val)
-        if os.path.exists(val):
+        # Test if value looks like an mlcube_uid, if so skip path validation
+        if str(val).isdigit():
+            logging.info(f"MLCube value {val} for {attr} resembles an mlcube_uid")
+            return
+
+        # Check if value is a local mlcube
+        path = Path(val)
+        if path.is_file():
+            path = path.parent
+        path = path.resolve()
+
+        if os.path.exists(path):
             logging.info("local path provided. Creating symbolic link")
             temp_uid = config.test_cube_prefix + str(int(time()))
             setattr(self, attr, temp_uid)
             cubes_storage = storage_path(config.cubes_storage)
             dst = os.path.join(cubes_storage, temp_uid)
-            os.symlink(val, dst)
+            os.symlink(path, dst)
             logging.info(f"local cube will be linked to path: {dst}")
+            return
+
+        logging.warning(f"mlcube {val} was not found as an existing mlcube")
+        pretty_error(
+            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
+            self.ui,
+        )
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.

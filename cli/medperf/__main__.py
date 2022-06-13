@@ -1,5 +1,6 @@
 import typer
 import logging
+import logging.handlers
 from os.path import abspath, expanduser
 
 import medperf.config as config
@@ -117,19 +118,45 @@ def main(
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
+    prepare_timeout: int = config.prepare_timeout,
+    sanity_check_timeout: int = config.sanity_check_timeout,
+    statistics_timeout: int = config.statistics_timeout,
+    infer_timeout: int = config.infer_timeout,
+    evaluate_timeout: int = config.evaluate_timeout,
+    platform: str = config.platform,
+    cleanup: bool = True,
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
+    config.prepare_timeout = prepare_timeout
+    config.sanity_check_timeout = sanity_check_timeout
+    config.statistics_timeout = statistics_timeout
+    config.infer_timeout = infer_timeout
+    config.evaluate_timeout = evaluate_timeout
+    config.platform = platform
+    config.cleanup = cleanup
+
     if log_file is None:
         log_file = storage_path(config.log_file)
     else:
         log_file = abspath(expanduser(log_file))
+    config.log_file = log_file
 
     init_storage()
     log = log.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    logging.basicConfig(filename=log_file, level=log_lvl, format=log_fmt)
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=10000000, backupCount=5
+    )
+    handler.setFormatter(logging.Formatter(log_fmt))
+    logging.basicConfig(
+        level=log_lvl,
+        handlers=[handler],
+        format=log_fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
+    )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
     config.ui = UIFactory.create_ui(ui)

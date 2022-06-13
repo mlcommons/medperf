@@ -47,11 +47,14 @@ def submit(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of the executed model"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
     comms = config.comms
     ui = config.ui
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(
+        benchmark_uid, data_uid, model_uid, comms, ui, approved=approval
+    )
     ui.print("✅ Done!")
 
 

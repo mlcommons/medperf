@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import os
 import yaml
+import random
 import hashlib
 import logging
 import tarfile
@@ -13,6 +14,7 @@ from pexpect import spawn
 from datetime import datetime
 from typing import List, Tuple
 from colorama import Fore, Style
+from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.ui.interface import UI
@@ -32,6 +34,7 @@ def get_file_sha1(path: str) -> str:
     Returns:
         str: Calculated hash
     """
+    logging.debug("Calculating SHA1 hash for file {}".format(path))
     BUF_SIZE = 65536
     sha1 = hashlib.sha1()
     with open(path, "rb") as f:
@@ -41,12 +44,15 @@ def get_file_sha1(path: str) -> str:
                 break
             sha1.update(data)
 
-    return sha1.hexdigest()
+    sha_val = sha1.hexdigest()
+    logging.debug(f"SHA1 hash for file {path}: {sha_val}")
+    return sha_val
 
 
 def init_storage():
     """Builds the general medperf folder structure.
     """
+    logging.info("Initializing storage")
     parent = config.storage
     data = storage_path(config.data_storage)
     cubes = storage_path(config.cubes_storage)
@@ -54,21 +60,34 @@ def init_storage():
     tmp = storage_path(config.tmp_storage)
     bmks = storage_path(config.benchmarks_storage)
     demo = storage_path(config.demo_data_storage)
+    log = storage_path(config.logs_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp, demo]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo, log]
     for dir in dirs:
         if not os.path.isdir(dir):
             logging.info(f"Creating {dir} directory")
-            os.mkdir(dir)
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except FileExistsError:
+                logging.warning(f"Tried to create existing folder {dir}")
 
 
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
+    if not config.cleanup:
+        logging.info("Cleanup disabled")
+        return
     tmp_path = storage_path(config.tmp_storage)
     if os.path.exists(tmp_path):
         logging.info("Removing temporary data storage")
-        rmtree(tmp_path, ignore_errors=True)
+        try:
+            rmtree(tmp_path)
+        except OSError as e:
+            logging.error(f"Could not remove temporary data storage: {e}")
+            config.ui.print_error(
+                "Could not remove temporary data storage. For more information check the logs."
+            )
 
     cleanup_dsets()
     cleanup_cubes()
@@ -92,7 +111,13 @@ def cleanup_dsets():
         logging.info(f"Removing clutter dataset: {dset}")
         dset_path = os.path.join(dsets_path, dset)
         if os.path.exists(dset_path):
-            rmtree(dset_path, ignore_errors=True)
+            try:
+                rmtree(dset_path)
+            except OSError as e:
+                logging.error(f"Could not remove dataset {dset}: {e}")
+                config.ui.print_error(
+                    f"Could not remove dataset {dset}. For more information check the logs."
+                )
 
 
 def cleanup_cubes():
@@ -110,7 +135,16 @@ def cleanup_cubes():
         logging.info(f"Removing clutter cube: {cube}")
         cube_path = os.path.join(cubes_path, cube)
         if os.path.exists(cube_path):
-            rmtree(cube_path, ignore_errors=True)
+            try:
+                if os.path.islink(cube_path):
+                    os.unlink(cube_path)
+                else:
+                    rmtree(cube_path)
+            except OSError as e:
+                logging.error(f"Could not remove cube {cube}: {e}")
+                config.ui.print_error(
+                    f"Could not remove cube {cube}. For more information check the logs."
+                )
 
 
 def cleanup_benchmarks():
@@ -124,7 +158,13 @@ def cleanup_benchmarks():
         logging.info(f"Removing clutter benchmark: {bmk}")
         bmk_path = os.path.join(bmks_path, bmk)
         if os.path.exists(bmk_path):
-            rmtree(bmk_path, ignore_errors=True)
+            try:
+                rmtree(bmk_path)
+            except OSError as e:
+                logging.error(f"Could not remove benchmark {bmk}: {e}")
+                config.ui.print_error(
+                    f"Could not remove benchmark {bmk}. For more information check the logs."
+                )
 
 
 def get_uids(path: str) -> List[str]:
@@ -133,7 +173,10 @@ def get_uids(path: str) -> List[str]:
     Returns:
         List[str]: UIDs of objects in path.
     """
+    logging.debug("Retrieving datasets")
     uids = next(os.walk(path))[1]
+    logging.debug(f"Found {len(uids)} datasets")
+    logging.debug(f"Datasets: {uids}")
     return uids
 
 
@@ -183,21 +226,20 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     tmp = config.tmp_prefix + uid
     out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
-    out_datapath = os.path.join(out_path, "data")
-    if not os.path.isdir(out_datapath):
-        logging.info(f"Creating temporary dataset path: {out_datapath}")
-        os.makedirs(out_datapath)
-    return out_path, out_datapath
+    return out_path
 
 
 def generate_tmp_uid() -> str:
     """Generates a temporary uid by means of getting the current timestamp
+    with a random salt
 
     Returns:
         str: generated temporary uid
     """
     dt = datetime.utcnow()
-    ts = str(int(datetime.timestamp(dt)))
+    ts_int = int(datetime.timestamp(dt))
+    salt = random.randint(-ts_int, ts_int)
+    ts = str(ts_int + salt)
     return ts
 
 
@@ -271,6 +313,7 @@ def dict_pretty_print(in_dict: dict, ui: "UI"):
     ui.print("=" * 20)
     in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
     ui.print(yaml.dump(in_dict))
+    logging.debug(f"Dictionary printed to the user: {in_dict}")
     ui.print("=" * 20)
 
 
@@ -290,7 +333,12 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     static_text = ui.text
     proc_out = ""
     while proc.isalive():
-        line = byte = proc.read(1)
+        try:
+            line = byte = proc.read(1)
+        except TIMEOUT:
+            logging.info("Process timed out")
+            pretty_error("Process timed out", ui)
+
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
             line += byte
@@ -320,6 +368,7 @@ def get_folder_sha1(path: str) -> str:
     hashes = []
     for root, _, files in os.walk(path, topdown=False):
         for file in files:
+            logging.debug(f"Hashing file {file}")
             filepath = os.path.join(root, file)
             hashes.append(get_file_sha1(filepath))
 
@@ -327,7 +376,9 @@ def get_folder_sha1(path: str) -> str:
     sha1 = hashlib.sha1()
     for hash in hashes:
         sha1.update(hash.encode("utf-8"))
-    return sha1.hexdigest()
+    hash_val = sha1.hexdigest()
+    logging.debug(f"Folder hash: {hash_val}")
+    return hash_val
 
 
 def results_path(benchmark_uid, model_uid, data_uid):
@@ -342,6 +393,7 @@ def results_path(benchmark_uid, model_uid, data_uid):
 
 def results_ids(ui: UI):
     results_storage = storage_path(config.results_storage)
+    logging.debug("Getting results ids")
     results_ids = []
     try:
         bmk_uids = next(os.walk(results_storage))[1]
@@ -360,7 +412,7 @@ def results_ids(ui: UI):
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
         pretty_error(msg, ui)
-
+    logging.debug(f"Results ids: {results_ids}")
     return results_ids
 
 
