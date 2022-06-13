@@ -69,7 +69,7 @@ echo "Dataset UID: $DSET_UID"
 echo "====================================="
 echo "Registering dataset with medperf"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\n" | medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset submit -d $DSET_UID
+medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset submit -d $DSET_UID -y
 if [ "$?" -ne "0" ]; then
   echo "Data registration step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
@@ -78,7 +78,7 @@ fi
 echo "====================================="
 echo "Creating dataset benchmark association"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\n" | medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset associate -d $DSET_UID -b 1
+medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset associate -d $DSET_UID -b 1 -y
 if [ "$?" -ne "0" ]; then
   echo "Data registration step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
@@ -88,13 +88,25 @@ echo "====================================="
 echo "Approving dataset association"
 echo "====================================="
 # Log in as the benchmark owner
-BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "$SERVER_URL/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
+medperf login -u testbenchmarkowner -p test
+# Get association information
+ASSOC_INFO=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL association ls | head -n 4 | tail -n 1 | tr -s ' ')
+ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
+ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
 # Mark dataset-benchmark association as approved
-curl -s -X PUT "$SERVER_URL/datasets/1/benchmarks/1/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"
+medperf association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
+if [ "$?" -ne "0" ]; then
+  echo "Association approval failed"
+  cat "$MEDPERF_STORAGE/medperf.log"
+  exit 2
+fi
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE result create -b 1 -d $DSET_UID -m 2
+# log back as user
+medperf --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=${USERNAME} --password=${PASS}
+# Create results
+medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE run -b 1 -d $DSET_UID -m 2 -y
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
   cat $MEDPERF_STORAGE/medperf.log

@@ -1,5 +1,5 @@
 #! /bin/bash
-rm -fr ~/.medperf
+rm -fr ~/.medperf_test
 rm -f db.sqlite3
 python server/manage.py migrate
 python server/manage.py runserver >& /dev/null &
