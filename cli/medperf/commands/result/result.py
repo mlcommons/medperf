@@ -34,7 +34,10 @@ def create(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    run_benchmark(benchmark_uid, data_uid, model_uid)
+    comms = config.comms
+    ui = config.ui
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("submit")
