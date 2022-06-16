@@ -2,6 +2,7 @@ from os.path import expanduser, abspath
 
 version = "0.0.0"
 server = "http://localhost:8000"
+certificate = None
 
 storage = abspath(expanduser("~/.medperf"))
 tmp_prefix = "tmp_"

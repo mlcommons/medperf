@@ -125,6 +125,7 @@ def main(
     evaluate_timeout: int = config.evaluate_timeout,
     platform: str = config.platform,
     cleanup: bool = True,
+    certificate: str = config.certificate,
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
@@ -135,6 +136,7 @@ def main(
     config.evaluate_timeout = evaluate_timeout
     config.platform = platform
     config.cleanup = cleanup
+    config.certificate = certificate
 
     if log_file is None:
         log_file = storage_path(config.log_file)
