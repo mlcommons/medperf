@@ -28,25 +28,33 @@ def server(mocker, ui):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {}),
-        ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
+        (
+            "benchmark_association",
+            "get",
+            200,
+            [1],
+            [],
+            (f"https://{url}/me/benchmarks",),
+            {},
+        ),
+        ("get_benchmark", "get", 200, [1], {}, (f"https://{url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
             "get",
             200,
             [1],
             [],
-            (f"{url}/benchmarks/1/models",),
+            (f"https://{url}/benchmarks/1/models",),
             {},
         ),
-        ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
+        ("get_cube_metadata", "get", 200, [1], {}, (f"https://{url}/mlcubes/1/",), {}),
         (
             "upload_dataset",
             "post",
             201,
             [{}],
             {"id": 1},
-            (f"{url}/datasets/",),
+            (f"https://{url}/datasets/",),
             {"json": {}},
         ),
         (
@@ -55,7 +63,7 @@ def server(mocker, ui):
             201,
             [{}],
             {"id": 1},
-            (f"{url}/results/",),
+            (f"https://{url}/results/",),
             {"json": {}},
         ),
         (
@@ -64,7 +72,7 @@ def server(mocker, ui):
             201,
             [1, 1],
             {},
-            (f"{url}/datasets/benchmarks/",),
+            (f"https://{url}/datasets/benchmarks/",),
             {
                 "json": {
                     "benchmark": 1,
@@ -78,18 +86,18 @@ def server(mocker, ui):
             "_REST__set_approval_status",
             "put",
             200,
-            [f"{url}/mlcubes/1/benchmarks/1", "APPROVED"],
+            [f"https://{url}/mlcubes/1/benchmarks/1", "APPROVED"],
             {},
-            (f"{url}/mlcubes/1/benchmarks/1",),
+            (f"https://{url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": "APPROVED"}},
         ),
         (
             "_REST__set_approval_status",
             "put",
             200,
-            [f"{url}/mlcubes/1/benchmarks/1", "REJECTED"],
+            [f"https://{url}/mlcubes/1/benchmarks/1", "REJECTED"],
             {},
-            (f"{url}/mlcubes/1/benchmarks/1",),
+            (f"https://{url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": "REJECTED"}},
         ),
     ],
@@ -152,13 +160,13 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     res = MockResponse({"token": ""}, 200)
     spy = mocker.patch("requests.post", return_value=res)
     exp_body = {"username": uname, "password": pwd}
-    exp_path = f"{url}/auth-token/"
+    exp_path = f"https://{url}/auth-token/"
 
     # Act
     server.login(ui, uname, pwd)
 
     # Assert
-    spy.assert_called_once_with(exp_path, json=exp_body)
+    spy.assert_called_once_with(exp_path, json=exp_body, verify=True)
 
 
 @pytest.mark.parametrize("token", ["test", "token"])
@@ -229,7 +237,7 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
     server._REST__auth_req(url, func)
 
     # Assert
-    spy.assert_called_once_with(url, headers=exp_headers)
+    spy.assert_called_once_with(url, headers=exp_headers, verify=True)
 
 
 @pytest.mark.parametrize("exp_role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
@@ -306,7 +314,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     bmarks = server.get_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/benchmarks/")
+    spy.assert_called_once_with(f"https://{url}/benchmarks/")
     assert bmarks == [body]
 
 
@@ -350,7 +358,7 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/benchmarks/")
+    spy.assert_called_once_with(f"https://{url}/me/benchmarks/")
 
 
 def test_get_user_benchmarks_returns_benchmarks(mocker, server):
@@ -379,7 +387,7 @@ def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     cubes = server.get_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/mlcubes/")
+    spy.assert_called_once_with(f"https://{url}/mlcubes/")
     assert cubes == [body]
 
 
@@ -426,7 +434,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/mlcubes/")
+    spy.assert_called_once_with(f"https://{url}/me/mlcubes/")
 
 
 def test_get_cube_file_writes_to_file(mocker, server):
@@ -458,7 +466,7 @@ def test_get_datasets_calls_datasets_path(mocker, server, body):
     cubes = server.get_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/datasets/")
+    spy.assert_called_once_with(f"https://{url}/datasets/")
     assert cubes == [body]
 
 
@@ -475,7 +483,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/datasets/")
+    spy.assert_called_once_with(f"https://{url}/me/datasets/")
 
 
 @pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
@@ -552,7 +560,7 @@ def test_set_dataset_association_approval_sets_approval(
     spy = mocker.patch(
         patch_server.format("REST._REST__set_approval_status"), return_value=res
     )
-    exp_url = f"{url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+    exp_url = f"https://{url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
     server.set_dataset_association_approval(dataset_uid, benchmark_uid, status)
@@ -572,7 +580,7 @@ def test_set_mlcube_association_approval_sets_approval(
     spy = mocker.patch(
         patch_server.format("REST._REST__set_approval_status"), return_value=res
     )
-    exp_url = f"{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+    exp_url = f"https://{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
     server.set_mlcube_association_approval(mlcube_uid, benchmark_uid, status)
@@ -585,7 +593,7 @@ def test_get_datasets_associations_gets_associations(mocker, server):
     # Arrange
     res = MockResponse([], 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
-    exp_path = f"{url}/me/datasets/associations/"
+    exp_path = f"https://{url}/me/datasets/associations/"
 
     # Act
     server.get_datasets_associations()
@@ -598,7 +606,7 @@ def test_get_cubes_associations_gets_associations(mocker, server):
     # Arrange
     res = MockResponse([], 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
-    exp_path = f"{url}/me/mlcubes/associations/"
+    exp_path = f"https://{url}/me/mlcubes/associations/"
 
     # Act
     server.get_cubes_associations()
