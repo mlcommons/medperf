@@ -433,7 +433,7 @@ class REST(Comms):
             pretty_error("Could not associate dataset to benchmark", self.ui)
 
     def set_dataset_association_approval(
-        self, dataset_uid: str, benchmark_uid: str, status: str
+        self, benchmark_uid: str, dataset_uid: str, status: str
     ):
         """Approves a dataset association
 
@@ -452,7 +452,7 @@ class REST(Comms):
             )
 
     def set_mlcube_association_approval(
-        self, mlcube_uid: str, benchmark_uid: str, status: str
+        self, benchmark_uid: str, mlcube_uid: str, status: str
     ):
         """Approves an mlcube association
 
