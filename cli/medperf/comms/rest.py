@@ -37,9 +37,7 @@ class REST(Comms):
             pwd (str): Password
         """
         body = {"username": user, "password": pwd}
-        res = requests.post(
-            f"{self.server_url}/auth-token/", verify=self.cert, json=body
-        )
+        res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
             pretty_error("Unable to authenticate user with provided credentials", ui)
         else:
@@ -68,13 +66,13 @@ class REST(Comms):
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
             self.authenticate()
+        return self.__req(
+            url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs,
+        )
+
+    def __req(self, url, req_func, **kwargs):
         try:
-            return req_func(
-                url,
-                headers={"Authorization": f"Token {self.token}"},
-                verify=self.cert,
-                **kwargs,
-            )
+            return req_func(url, verify=self.cert, **kwargs)
         except requests.exceptions.SSLError as e:
             logging.error(f"Couldn't connect to {self.server_url}: {e}")
             pretty_error(
