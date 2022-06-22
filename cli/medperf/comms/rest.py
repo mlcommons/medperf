@@ -207,7 +207,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes from the platform")
+            pretty_error("couldn't retrieve mlcubes from the platform", config.ui)
         return res.json()
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
