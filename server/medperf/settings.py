@@ -106,27 +106,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# Deploy using python manage.py runserver_plus or via docker.
-# Refer .github/workflows/local-ci.yml, .github/workflows/docker-ci.yml
-if DEPLOY_ENV == "local":
-    print("Local Build environment")
-    # Always run SSL server during local deployment
-    INSTALLED_APPS += ['django_extensions']
-    # Serve static files using whitenoise middleware if google cloud storage is not used
-    MIDDLEWARE += ["whitenoise.middleware.WhiteNoiseMiddleware"]
-    # SECURE_SSL_REDIRECT to true for SSL redirect
-    SECURE_SSL_REDIRECT = True
-# Deploy using cloudbuild in GCP CI enviroment. Refer cloudbuild-ci.yaml
-elif DEPLOY_ENV == "gcp-ci":
-    print("GCP CI Build environment")
-    # GCP_CI_DATABASE_URL is populated in cloudbuild trigger script
-    DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
-# Deploy using cloudbuild in GCP Prod enviroment. Refer cloudbuild-prod.yaml
-else:
-    print("GCP Prod Build environment")
-    # Always set DEBUG as False in production environments
-    DEBUG = False
-
 ROOT_URLCONF = "medperf.urls"
 
 TEMPLATES = [
@@ -152,6 +131,27 @@ WSGI_APPLICATION = "medperf.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {"default": env.db()}
+
+# Deploy using python manage.py runserver_plus or via docker.
+# Refer .github/workflows/local-ci.yml, .github/workflows/docker-ci.yml
+if DEPLOY_ENV == "local":
+    print("Local Build environment")
+    # Always run SSL server during local deployment
+    INSTALLED_APPS += ['django_extensions']
+    # Serve static files using whitenoise middleware if google cloud storage is not used
+    MIDDLEWARE += ["whitenoise.middleware.WhiteNoiseMiddleware"]
+    # SECURE_SSL_REDIRECT to true for SSL redirect
+    SECURE_SSL_REDIRECT = True
+# Deploy using cloudbuild in GCP CI enviroment. Refer cloudbuild-ci.yaml
+elif DEPLOY_ENV == "gcp-ci":
+    print("GCP CI Build environment")
+    # GCP_CI_DATABASE_URL is populated in cloudbuild trigger script
+    DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
+# Deploy using cloudbuild in GCP Prod enviroment. Refer cloudbuild-prod.yaml
+else:
+    print("GCP Prod Build environment")
+    # Always set DEBUG as False in production environments
+    DEBUG = False
 
 # If the flag as been set, configure to use proxy
 if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):

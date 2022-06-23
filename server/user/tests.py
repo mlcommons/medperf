@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.test import override_settings
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -7,6 +8,11 @@ class UserTest(TestCase):
     """Test module for users APIs"""
 
     def setUp(self):
+        # Disable SSL redirect in tests
+        settings_manager = override_settings(SECURE_SSL_REDIRECT=False)
+        settings_manager.enable()
+        self.addCleanup(settings_manager.disable)
+
         username = "admin"
         password = "admin"
         self.client = APIClient()
