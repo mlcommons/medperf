@@ -56,6 +56,7 @@ def main(
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
+    certificate: str = config.certificate,
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
@@ -64,6 +65,7 @@ def main(
     else:
         log_file = abspath(expanduser(log_file))
     config.log_file = log_file
+    config.certificate = certificate
 
     init_storage()
     log = log.upper()
