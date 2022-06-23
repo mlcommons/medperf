@@ -1,4 +1,4 @@
-name: Integration-workflow-local-ci
+name: Integration local workflow
 
 on: pull_request
 
@@ -28,7 +28,7 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh start-dev-server.sh cert.crt cert.key &
+      run: sh setup-dev-server.sh cert.crt cert.key &
 
     - name: Run integration tests
       working-directory: ./server

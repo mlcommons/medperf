@@ -67,10 +67,10 @@ CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
 GS_BUCKET_NAME = env("GS_BUCKET_NAME", default=None)
 
-DEPLOY_ENV=env("DEPLOY_ENV")
+DEPLOY_ENV = env("DEPLOY_ENV")
 
 # Possible deployment enviroments
-if DEPLOY_ENV not in ["local", "gcp_ci", "gcp_prod"]:
+if DEPLOY_ENV not in ["local", "gcp-ci", "gcp-prod"]:
     raise Exception("Invalid deployment enviroment")
 
 # Application definition
@@ -116,16 +116,16 @@ if DEPLOY_ENV == "local":
     MIDDLEWARE += ["whitenoise.middleware.WhiteNoiseMiddleware"]
     # SECURE_SSL_REDIRECT to true for SSL redirect
     SECURE_SSL_REDIRECT = True
-#Deploy using cloudbuild in GCP CI enviroment. Refer cloudbuild-ci.yaml
+# Deploy using cloudbuild in GCP CI enviroment. Refer cloudbuild-ci.yaml
 elif DEPLOY_ENV == "gcp-ci":
     print("GCP CI Build environment")
     # GCP_CI_DATABASE_URL is populated in cloudbuild trigger script
     DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
-#Deploy using cloudbuild in GCP Prod enviroment. Refer cloudbuild-prod.yaml
+# Deploy using cloudbuild in GCP Prod enviroment. Refer cloudbuild-prod.yaml
 else:
     print("GCP Prod Build environment")
-    #Always set DEBUG as False in production environments
-    DEBUG=False
+    # Always set DEBUG as False in production environments
+    DEBUG = False
 
 ROOT_URLCONF = "medperf.urls"
 

@@ -4,6 +4,7 @@ import requests
 import json
 import curlify
 
+
 class Server:
     def __init__(self, host, cert):
         self.host = host
@@ -16,7 +17,7 @@ class Server:
         headers.update({"accept": "application/json", "Content-Type": "application/json"})
         try:
             resp = requests.request(
-                method=method, headers=headers, url=self.host+endpoint, data=json.dumps(data), verify=self.cert
+                method=method, headers=headers, url=self.host + endpoint, data=json.dumps(data), verify=self.cert
             )
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
@@ -35,6 +36,7 @@ class Server:
                 sys.exit(out_field + "not in reponse" + resp.text)
             else:
                 return res[out_field]
+
 
 def seed(args):
     # Get Admin API token using admin credentials
@@ -365,6 +367,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--username", type=str, help="Admin username", default="admin")
     parser.add_argument("--password", type=str, help="Admin password", default="admin")
-    parser.add_argument("--cert", type=str, help="Server certificate", default='cert.crt')
+    parser.add_argument("--cert", type=str, help="Server certificate")
     args = parser.parse_args()
     seed(args)
