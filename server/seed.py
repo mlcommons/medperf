@@ -4,55 +4,55 @@ import requests
 import json
 import curlify
 
+class Server:
+    def __init__(self, host, cert):
+        self.host = host
+        self.cert = cert
 
-def send_request(endpoint, method, headers, data, out_field=None):
-    headers.update({"accept": "application/json", "Content-Type": "application/json"})
-    try:
-        resp = requests.request(
-            method=method, headers=headers, url=endpoint, data=json.dumps(data)
-        )
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
-    if resp.status_code != 200 and resp.status_code != 201:
-        sys.exit(
-            "Response code is "
-            + str(resp.status_code)
-            + " : "
-            + resp.text
-            + " curl request "
-            + curlify.to_curl(resp.request)
-        )
-    res = json.loads(resp.text)
-    if out_field:
-        if out_field not in res:
-            sys.exit(out_field + "not in reponse" + resp.text)
-        else:
-            return res[out_field]
-
-
-def header(token=None):
-    if not token:
-        return {}
-    else:
-        return {"Authorization": "Token " + token}
-
+    def request(self, endpoint, method, token, data, out_field=None):
+        headers = {}
+        if token:
+            headers = {"Authorization": "Token " + token}
+        headers.update({"accept": "application/json", "Content-Type": "application/json"})
+        try:
+            resp = requests.request(
+                method=method, headers=headers, url=self.host+endpoint, data=json.dumps(data), verify=self.cert
+            )
+        except requests.exceptions.RequestException as e:
+            raise SystemExit(e)
+        if resp.status_code != 200 and resp.status_code != 201:
+            sys.exit(
+                "Response code is "
+                + str(resp.status_code)
+                + " : "
+                + resp.text
+                + " curl request "
+                + curlify.to_curl(resp.request)
+            )
+        res = json.loads(resp.text)
+        if out_field:
+            if out_field not in res:
+                sys.exit(out_field + "not in reponse" + resp.text)
+            else:
+                return res[out_field]
 
 def seed(args):
     # Get Admin API token using admin credentials
-    admin_token = send_request(
-        args.server + "/auth-token/",
+    api_server = Server(host=args.server, cert=args.cert)
+    admin_token = api_server.request(
+        "/auth-token/",
         "POST",
-        header(),
+        None,
         {"username": args.username, "password": args.password},
         "token",
     )
     print("Admin User Token:", admin_token)
 
     # Create a new user 'testbenchmarkowner' by admin(Admin API token is used)
-    benchmark_owner = send_request(
-        args.server + "/users/",
+    benchmark_owner = api_server.request(
+        "/users/",
         "POST",
-        header(admin_token),
+        admin_token,
         {
             "username": "testbenchmarkowner",
             "email": "testbo@example.com",
@@ -65,10 +65,10 @@ def seed(args):
     print("Benchmark Owner User Created(by Admin User). ID:", benchmark_owner)
 
     # Create a new user 'testmodelowner' by admin(Admin API token is used)
-    model_owner = send_request(
-        args.server + "/users/",
+    model_owner = api_server.request(
+        "/users/",
         "POST",
-        header(admin_token),
+        admin_token,
         {
             "username": "testmodelowner",
             "email": "testmo@example.com",
@@ -81,10 +81,10 @@ def seed(args):
     print("Model Owner User Created(by Admin User). Id:", model_owner)
 
     # Create a new user 'testdataowner' by admin(Admin API token is used)
-    data_owner = send_request(
-        args.server + "/users/",
+    data_owner = api_server.request(
+        "/users/",
         "POST",
-        header(admin_token),
+        admin_token,
         {
             "username": "testdataowner",
             "email": "testdo@example.com",
@@ -98,20 +98,20 @@ def seed(args):
 
     print("##########################BENCHMARK OWNER##########################")
     # Get Benchmark Owner API token(token of testbenchmarkowner user)
-    benchmark_owner_token = send_request(
-        args.server + "/auth-token/",
+    benchmark_owner_token = api_server.request(
+        "/auth-token/",
         "POST",
-        header(),
+        None,
         {"username": "testbenchmarkowner", "password": "test"},
         "token",
     )
     print("Benchmark Owner Token:", benchmark_owner_token)
 
     # Create a Data preprocessor MLCube by Benchmark Owner
-    data_preprocessor_mlcube = send_request(
-        args.server + "/mlcubes/",
+    data_preprocessor_mlcube = api_server.request(
+        "/mlcubes/",
         "POST",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {
             "name": "xrv_prep",
             "git_mlcube_url": (
@@ -132,10 +132,10 @@ def seed(args):
     )
 
     # Update state of the Data preprocessor MLCube to OPERATION
-    data_preprocessor_mlcube_state = send_request(
-        args.server + "/mlcubes/" + str(data_preprocessor_mlcube) + "/",
+    data_preprocessor_mlcube_state = api_server.request(
+        "/mlcubes/" + str(data_preprocessor_mlcube) + "/",
         "PUT",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
     )
@@ -146,10 +146,10 @@ def seed(args):
     )
 
     # Create a reference model executor mlcube by Benchmark Owner
-    reference_model_executor_mlcube = send_request(
-        args.server + "/mlcubes/",
+    reference_model_executor_mlcube = api_server.request(
+        "/mlcubes/",
         "POST",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {
             "name": "xrv_chex_densenet",
             "git_mlcube_url": (
@@ -172,10 +172,10 @@ def seed(args):
     )
 
     # Update state of the Reference Model Executor MLCube to OPERATION
-    reference_model_executor_mlcube_state = send_request(
-        args.server + "/mlcubes/" + str(reference_model_executor_mlcube) + "/",
+    reference_model_executor_mlcube_state = api_server.request(
+        "/mlcubes/" + str(reference_model_executor_mlcube) + "/",
         "PUT",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
     )
@@ -186,10 +186,10 @@ def seed(args):
     )
 
     # Create a Data evalutor MLCube by Benchmark Owner
-    data_evaluator_mlcube = send_request(
-        args.server + "/mlcubes/",
+    data_evaluator_mlcube = api_server.request(
+        "/mlcubes/",
         "POST",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {
             "name": "xrv_metrics",
             "git_mlcube_url": (
@@ -209,10 +209,10 @@ def seed(args):
     )
 
     # Update state of the Data Evaluator MLCube to OPERATION
-    data_evaluator_mlcube_state = send_request(
-        args.server + "/mlcubes/" + str(data_evaluator_mlcube) + "/",
+    data_evaluator_mlcube_state = api_server.request(
+        "/mlcubes/" + str(data_evaluator_mlcube) + "/",
         "PUT",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
     )
@@ -223,10 +223,10 @@ def seed(args):
     )
 
     # Create a new benchmark by Benchmark owner
-    benchmark = send_request(
-        args.server + "/benchmarks/",
+    benchmark = api_server.request(
+        "/benchmarks/",
         "POST",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {
             "name": "xrv",
             "description": "benchmark-sample",
@@ -243,20 +243,20 @@ def seed(args):
     print("Benchmark Created(by Benchmark Owner). ID:", benchmark)
 
     # Update the benchmark state to OPERATION
-    benchmark_state = send_request(
-        args.server + "/benchmarks/" + str(benchmark) + "/",
+    benchmark_state = api_server.request(
+        "/benchmarks/" + str(benchmark) + "/",
         "PUT",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
     )
     print("Benchmark state updated to", benchmark_state, "by Benchmark owner")
 
     # Mark the benchmark to be APPROVED
-    benchmark_status = send_request(
-        args.server + "/benchmarks/" + str(benchmark) + "/",
+    benchmark_status = api_server.request(
+        "/benchmarks/" + str(benchmark) + "/",
         "PUT",
-        header(admin_token),
+        admin_token,
         {"approval_status": "APPROVED"},
         "approval_status",
     )
@@ -265,20 +265,20 @@ def seed(args):
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
     # Get Model Owner API token(token of testmodelowner user)
-    model_owner_token = send_request(
-        args.server + "/auth-token/",
+    model_owner_token = api_server.request(
+        "/auth-token/",
         "POST",
-        header(),
+        None,
         {"username": "testmodelowner", "password": "test"},
         "token",
     )
     print("Model Owner Token:", model_owner_token)
 
     # Create a model mlcube by Model Owner
-    model_executor1_mlcube = send_request(
-        args.server + "/mlcubes/",
+    model_executor1_mlcube = api_server.request(
+        "/mlcubes/",
         "POST",
-        header(model_owner_token),
+        model_owner_token,
         {
             "name": "xrv_resnet",
             "git_mlcube_url": (
@@ -298,10 +298,10 @@ def seed(args):
     print("Model MLCube Created(by Model Owner). ID:", model_executor1_mlcube)
 
     # Update state of the Model MLCube to OPERATION
-    model_executor1_mlcube_state = send_request(
-        args.server + "/mlcubes/" + str(model_executor1_mlcube) + "/",
+    model_executor1_mlcube_state = api_server.request(
+        "/mlcubes/" + str(model_executor1_mlcube) + "/",
         "PUT",
-        header(model_owner_token),
+        model_owner_token,
         {"state": "OPERATION"},
         "state",
     )
@@ -310,10 +310,10 @@ def seed(args):
     )
 
     # Associate the model-executor1 mlcube to the created benchmark by model owner user
-    model_executor1_in_benchmark = send_request(
-        args.server + "/mlcubes/benchmarks/",
+    model_executor1_in_benchmark = api_server.request(
+        "/mlcubes/benchmarks/",
         "POST",
-        header(model_owner_token),
+        model_owner_token,
         {
             "model_mlcube": model_executor1_mlcube,
             "benchmark": benchmark,
@@ -333,15 +333,14 @@ def seed(args):
     )
 
     # Mark the model-executor1 association with created benchmark as approved by benchmark owner
-    model_executor1_in_benchmark_status = send_request(
-        args.server
-        + "/mlcubes/"
+    model_executor1_in_benchmark_status = api_server.request(
+        "/mlcubes/"
         + str(model_executor1_mlcube)
         + "/benchmarks/"
         + str(benchmark)
         + "/",
         "PUT",
-        header(benchmark_owner_token),
+        benchmark_owner_token,
         {"approval_status": "APPROVED"},
         "approval_status",
     )
@@ -362,9 +361,10 @@ if __name__ == "__main__":
         "--server",
         type=str,
         help="Server host address to connect",
-        default="http://127.0.0.1:8000",
+        default="https://127.0.0.1:8000",
     )
     parser.add_argument("--username", type=str, help="Admin username", default="admin")
     parser.add_argument("--password", type=str, help="Admin password", default="admin")
+    parser.add_argument("--cert", type=str, help="Server certificate", default='cert.crt')
     args = parser.parse_args()
     seed(args)

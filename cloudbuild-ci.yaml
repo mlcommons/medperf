@@ -181,8 +181,7 @@ substitutions:
   _SECRET_SETTINGS_NAME: django-ci-settings
   _SQL_INSTANCE_NAME: medperf-dev
   ##Settings specific for CI trigger##
-  ##DB settings in secrets are overridden if _GCP_CI_CLOUDBUILD is set to True
-  _GCP_CI_CLOUDBUILD: 'True'
+  ##DB settings in secrets are overridden if DEPLOY_ENV is set to gcp-ci in secrets.
   _GCP_CI_DATABASE_NAME: db-cb-ci-pr-${_PR_NUMBER}
   #_GCP_CI_DATABASE_URL var is set in Cloud build trigger configuration using _GCP_CI_DATABASE_NAME
 

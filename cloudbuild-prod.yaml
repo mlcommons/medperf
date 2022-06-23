@@ -84,8 +84,7 @@ substitutions:
   _SECRET_SETTINGS_NAME: django-prod-settings
   _SQL_INSTANCE_NAME: medperf-dev
   ##Settings specific for Prod##
-  ##All DB settings are picked from the secret if _GCP_CI_CLOUDBUILD is set to False
-  _GCP_CI_CLOUDBUILD: 'False'
+  ##All DB settings are picked from the secret if DEPLOY_ENV is set to gcp-prod in secrets.
   #_GCP_CI_DATABASE_NAME: None 
   _GCP_CI_DATABASE_URL: None
 
