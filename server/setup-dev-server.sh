@@ -35,7 +35,8 @@ then
   echo "No certs are generated as CERT_GENERATE flag is disabled"
 else
     echo "Certs are generated"
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.crt -subj "/C=US/ST=Any/L=Any/O=MedPerf/CN=127.0.0.1" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+    openssl req -x509 -nodes -days 365 -newkey rsa:3072 -keyout cert.key -out cert.crt -subj "/C=US/ST=Any/L=Any/O=MedPerf/CN=127.0.0.1" -addext "subjectAltName = DNS:localhost,IP:127.0.0.1"
+    cat cert.crt cert.key > ~/.medperf.pem
 fi
 
 if [ "$RESET_DB" -eq 1 ]

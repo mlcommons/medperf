@@ -63,6 +63,7 @@ db.sqlite3-journal
 static/
 *.crt
 *.key
+*.pem
 
 # Flask stuff:
 instance/
