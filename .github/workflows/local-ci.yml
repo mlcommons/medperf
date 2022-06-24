@@ -50,4 +50,4 @@ jobs:
 
     - name: Run client integration tests
       working-directory: ./cli
-      run: sh cli.sh -s ${{ env.DEPLOY_URL }} -d ~ -u admin -p admin
+      run: sh cli.sh -s https://127.0.0.1:8000 -d ~ -u admin -p admin
