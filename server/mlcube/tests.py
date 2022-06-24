@@ -40,8 +40,10 @@ class MlCubeTest(TestCase):
             "name": "testmlcube",
             "git_mlcube_url": "string",
             "git_parameters_url": "string",
-            "tarball_url": "string",
-            "tarball_hash": "string",
+            "image_tarball_url": "string",
+            "image_tarball_hash": "string",
+            "additional_files_tarball_url": "string",
+            "additional_files_tarball_hash": "string",
             "metadata": {"key": "value"},
         }
 
