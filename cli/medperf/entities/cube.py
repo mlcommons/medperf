@@ -67,11 +67,12 @@ class Cube(object):
         params_path = None
         additional_path = None
         additional_hash = None
+        add_files = "additional_files_tarball_url"
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
             params_path = comms.get_cube_params(url, cube_uid)
-        if "tarball_url" in meta and meta["tarball_url"]:
-            url = meta["tarball_url"]
+        if add_files in meta and meta[add_files]:
+            url = meta[add_files]
             additional_path = comms.get_cube_additional(url, cube_uid)
             additional_hash = get_file_sha1(additional_path)
             untar_additional(additional_path)
@@ -84,9 +85,11 @@ class Cube(object):
         Returns:
             bool: Wether the cube and related files match the expeced hashes
         """
-        has_additional = "tarball_url" in self.meta and self.meta["tarball_url"]
+        add_files = "additional_files_tarball_url"
+        add_hash = "additional_files_tarball_hash"
+        has_additional = add_files in self.meta and self.meta[add_files]
         if has_additional:
-            valid_additional = self.additional_hash == self.meta["tarball_hash"]
+            valid_additional = self.additional_hash == self.meta[add_hash]
         else:
             valid_additional = True
         return valid_additional
