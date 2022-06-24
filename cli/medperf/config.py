@@ -1,4 +1,3 @@
-from pathlib import Path
 from os.path import expanduser, abspath
 
 version = "0.0.0"
@@ -17,6 +16,7 @@ cube_filename = "mlcube.yaml"
 params_filename = "parameters.yaml"
 additional_path = "workspace/additional_files"
 tarball_filename = "tmp.tar.gz"
+image_path = "workspace/.image"
 reg_file = "registration-info.yaml"
 log_file = "medperf.log"
 default_comms = "REST"

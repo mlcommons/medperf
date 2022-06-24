@@ -24,8 +24,12 @@ class SubmitCube:
 
             if submission.additional_file:
                 ui.text = "Generating additional file hash"
-                submission.get_hash()
+                submission.get_additional_hash()
                 ui.print("Additional file hash generated")
+            if submission.image_file:
+                ui.text = "Generating image file hash"
+                submission.get_image_hash()
+                ui.print("Image file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
             submission.submit()
         ui.print("Uploaded")
@@ -38,6 +42,8 @@ class SubmitCube:
         self.params_file = None
         self.additional_file = None
         self.additional_hash = None
+        self.image_file = None
+        self.image_hash = None
 
     def get_information(self):
         name_prompt = "MLCube name: "
@@ -46,11 +52,13 @@ class SubmitCube:
         )
         params_file_prompt = f"Parameters file URL (must start with {config.git_file_domain}) [OPTIONAL]: "
         additional_file_prompt = "Additional files tarball URL [OPTIONAL]: "
+        image_file_prompt = "Image URL [OPTIONAL]: "
 
         self.__get_or_print("name", name_prompt)
         self.__get_or_print("mlcube_file", mlcube_file_prompt)
         self.__get_or_print("params_file", params_file_prompt)
         self.__get_or_print("additional_file", additional_file_prompt)
+        self.__get_or_print("image_file", image_file_prompt)
 
     def __get_or_print(self, attr, prompt):
         attr_val = getattr(self, attr)
@@ -95,12 +103,17 @@ class SubmitCube:
 
         return valid
 
-    def get_hash(self):
+    def get_additional_hash(self):
         tmp_cube_uid = "tmp_submission"
         add_file_path = self.comms.get_cube_additional(
             self.additional_file, tmp_cube_uid
         )
         self.additional_hash = get_file_sha1(add_file_path)
+
+    def get_image_hash(self):
+        tmp_cube_uid = "tmp_submission"
+        image_path = self.comms.get_cube_image(self.image_file, tmp_cube_uid)
+        self.image_hash = get_file_sha1(image_path)
 
     def todict(self):
         dict = {
@@ -110,6 +123,9 @@ class SubmitCube:
             "state": "OPERATION",
             "is_valid": True,
         }
+        if self.image_file:
+            dict["image_tarball_url"] = self.image_file
+            dict["image_tarball_hash"] = self.image_hash
         if self.additional_file:
             dict["additional_files_tarball_url"] = self.additional_file
             dict["additional_files_tarball_hash"] = self.additional_hash
