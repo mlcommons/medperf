@@ -111,8 +111,8 @@ class SubmitCube:
             "is_valid": True,
         }
         if self.additional_file:
-            dict["tarball_url"] = self.additional_file
-            dict["tarball_hash"] = self.additional_hash
+            dict["additional_files_tarball_url"] = self.additional_file
+            dict["additional_files_tarball_hash"] = self.additional_hash
         return dict
 
     def submit(self):

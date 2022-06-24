@@ -133,7 +133,7 @@ def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body):
     Cube.get(uid, comms)
 
     # Assert
-    spy.assert_called_once_with(body["tarball_url"], uid)
+    spy.assert_called_once_with(body["additional_files_tarball_url"], uid)
 
 
 def test_get_cube_with_tarball_generates_tarball_hash(mocker, comms, tar_body):
