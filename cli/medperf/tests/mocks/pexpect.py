@@ -15,4 +15,3 @@ class MockPexpect:
 
     def spawn(self, command: str, timeout: int = 30) -> MockChild:
         return MockChild(self.exitstatus)
-

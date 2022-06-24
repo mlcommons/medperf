@@ -1,6 +1,5 @@
 import yaml
 from pathlib import Path
-from typing import Dict
 import os
 
 from medperf.ui import UI
@@ -11,7 +10,7 @@ from medperf.utils import (
     dict_pretty_print,
 )
 from medperf.comms import Comms
-from medperf.config import config
+import medperf.config as config
 from medperf.entities import Cube, Dataset
 
 
@@ -30,6 +29,7 @@ class Registration:
         name: str = None,
         description: str = None,
         location: str = None,
+        separate_labels: bool = False,
     ):
         """Creates a registration instance
 
@@ -39,6 +39,7 @@ class Registration:
             name (str, optional): Assigned name. Defaults to None.
             description (str, optional): Assigned description. Defaults to None.
             location (str, optional): Assigned location. Defaults to None.
+            separate_labels (bool, optional): Whether the labels should be separated from the data. Defaults to False.
         """
         self.cube = cube
         self.stats = self.__get_stats()
@@ -51,6 +52,7 @@ class Registration:
         self.uid = None
         self.in_uid = None
         self.path = None
+        self.separate_labels = separate_labels
 
     def generate_uids(self, in_path: str, out_path: str) -> str:
         """Auto-generates dataset UIDs for both input and output paths
@@ -73,7 +75,7 @@ class Registration:
         """
         stats_path = self.cube.get_default_output("statistics", "output_path")
         with open(stats_path, "r") as f:
-            stats = yaml.full_load(f)
+            stats = yaml.safe_load(f)
 
         return stats
 
@@ -95,6 +97,7 @@ class Registration:
             "status": self.status,
             "uid": self.uid,
             "state": "OPERATION",
+            "separate_labels": self.separate_labels,
         }
 
         return registration
@@ -141,12 +144,12 @@ class Registration:
         self.path = new_path
         return new_path
 
-    def write(self, filename: str = config["reg_file"]) -> str:
+    def write(self, filename: str = config.reg_file) -> str:
         """Writes the registration into disk
 
         Args:
             out_path (str): path where the file will be created
-            filename (str, optional): name of the file. Defaults to config["reg_file"].
+            filename (str, optional): name of the file. Defaults to config.reg_file.
 
         Returns:
             str: path to the created registration file
@@ -164,7 +167,7 @@ class Registration:
 
         Args:
             comms (Comms): Instance of the comms interface.
-        
+
         Returns:
             int: UID of registered dataset
         """

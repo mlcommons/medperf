@@ -1,23 +1,21 @@
-from unittest.mock import MagicMock, mock_open, call, ANY
+from unittest.mock import mock_open, call, ANY
 from pathlib import Path
-import datetime as dt
-import time_machine
 import random
 import pytest
 import os
 
 from medperf import utils
 from medperf.ui import UI
-from medperf.config import config
+import medperf.config as config
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockCube, MockTar
 
 
-parent = config["storage"]
-data = config["data_storage"]
-cubes = config["cubes_storage"]
-results = config["results_storage"]
-tmp = config["tmp_storage"]
+parent = config.storage
+data = utils.storage_path(config.data_storage)
+cubes = utils.storage_path(config.cubes_storage)
+results = utils.storage_path(config.results_storage)
+tmp = utils.storage_path(config.tmp_storage)
 config_dirs = [parent, data, cubes, results, tmp]
 patch_utils = "medperf.utils.{}"
 
@@ -36,7 +34,7 @@ def datasets(request):
     uids = [str(x) for x in uids]
     for i in range(size):
         if random.randint(0, 1):
-            uids[i] = config["tmp_reg_prefix"] + uids[i]
+            uids[i] = config.tmp_reg_prefix + uids[i]
 
     return uids
 
@@ -57,7 +55,7 @@ def ui(mocker):
 
 @pytest.fixture
 def filesystem():
-    fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs")),])
+    fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs"))])
     files = ["/foo/baz", "/foo/bar/spam", "/foo/bar/eggs"]
     return [fs, files]
 
@@ -131,7 +129,7 @@ def test_cleanup_removes_temporary_storage(mocker):
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
-    prefix = config["tmp_reg_prefix"]
+    prefix = config.tmp_reg_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
     mocker.patch(patch_utils.format("get_dsets"), return_value=datasets)
@@ -206,26 +204,6 @@ def test_pretty_error_exits_program(mocker, ui):
 
     # Assert
     spy.assert_called_once()
-
-
-@pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
-    # Arrange
-    datetime = dt.datetime(*timeparams)
-    traveller = time_machine.travel(datetime)
-    traveller.start()
-    timestamp = dt.datetime.timestamp(datetime)
-    mocker.patch("os.path.isdir", return_value=False)
-    spy = mocker.patch("os.makedirs")
-    tmp_path = f"{config['tmp_reg_prefix']}{int(timestamp)}"
-    exp_out_path = os.path.join(data, tmp_path, "data")
-
-    # Act
-    utils.generate_tmp_datapath()
-
-    # Assert
-    spy.assert_called_once_with(exp_out_path)
-    traveller.stop()
 
 
 @pytest.mark.parametrize("is_valid", [True, False])
@@ -393,15 +371,18 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
 
 
-@pytest.mark.parametrize("bmark_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("generated_uid", rand_l(1, 5000, 2))
-def test__results_path_returns_expected_path(bmark_uid, model_uid, generated_uid):
+@pytest.mark.parametrize("bmk", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("model", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("gen_uid", rand_l(1, 5000, 2))
+def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
-    expected_path = f"{config['results_storage']}/{bmark_uid}/{model_uid}/{generated_uid}/{config['results_filename']}"
+    storage = config.storage
+    res_storage = config.results_storage
+    res_file = config.results_filename
+    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}/{res_file}"
 
     # Act
-    path = utils.results_path(bmark_uid, model_uid, generated_uid)
+    path = utils.results_path(bmk, model, gen_uid)
 
     # Assert
     assert path == expected_path

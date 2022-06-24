@@ -7,13 +7,18 @@ import hashlib
 import os
 from shutil import rmtree
 import tarfile
-import typer
 import yaml
 from pathlib import Path
 from colorama import Fore, Style
 import re
 
-from medperf.config import config
+import medperf.config as config
+from medperf.ui import UI
+
+
+def storage_path(subpath: str):
+    """Helper funciton that converts a path to storage-related path"""
+    return os.path.join(config.storage, subpath)
 
 
 def get_file_sha1(path: str) -> str:
@@ -25,6 +30,7 @@ def get_file_sha1(path: str) -> str:
     Returns:
         str: Calculated hash
     """
+    logging.debug("Calculating SHA1 hash for file {}".format(path))
     BUF_SIZE = 65536
     sha1 = hashlib.sha1()
     with open(path, "rb") as f:
@@ -34,19 +40,23 @@ def get_file_sha1(path: str) -> str:
                 break
             sha1.update(data)
 
-    return sha1.hexdigest()
+    sha_val = sha1.hexdigest()
+    logging.debug(f"SHA1 hash for file {path}: {sha_val}")
+    return sha_val
 
 
 def init_storage():
     """Builds the general medperf folder structure.
     """
-    parent = config["storage"]
-    data = config["data_storage"]
-    cubes = config["cubes_storage"]
-    results = config["results_storage"]
-    tmp = config["tmp_storage"]
+    logging.info("Initializing storage")
+    parent = config.storage
+    data = storage_path(config.data_storage)
+    cubes = storage_path(config.cubes_storage)
+    results = storage_path(config.results_storage)
+    tmp = storage_path(config.tmp_storage)
+    log = storage_path(config.logs_storage)
 
-    dirs = [parent, data, cubes, results, tmp]
+    dirs = [parent, data, cubes, results, tmp, log]
     for dir in dirs:
         if not os.path.isdir(dir):
             logging.info(f"Creating {dir} directory")
@@ -56,15 +66,16 @@ def init_storage():
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
-    if os.path.exists(config["tmp_storage"]):
-        logging.info("Removing temporary data storage")
-        rmtree(config["tmp_storage"], ignore_errors=True)
+    tmp_storage = storage_path(config.tmp_storage)
+    if os.path.exists(tmp_storage):
+        logging.info("Removing temporary data storage: {}".format(tmp_storage))
+        rmtree(storage_path(config.tmp_storage), ignore_errors=True)
     dsets = get_dsets()
-    prefix = config["tmp_reg_prefix"]
+    prefix = config.tmp_reg_prefix
     unreg_dsets = [dset for dset in dsets if dset.startswith(prefix)]
     for dset in unreg_dsets:
-        logging.info("Removing unregistered dataset")
-        dset_path = os.path.join(config["data_storage"], dset)
+        logging.info("Removing unregistered dataset: {}".format(dset))
+        dset_path = os.path.join(storage_path(config.data_storage), dset)
         if os.path.exists(dset_path):
             rmtree(dset_path, ignore_errors=True)
 
@@ -75,7 +86,10 @@ def get_dsets() -> List[str]:
     Returns:
         List[str]: UIDs of prepared datasets.
     """
-    dsets = next(os.walk(config["data_storage"]))[1]
+    logging.debug("Retrieving datasets")
+    dsets = next(os.walk(storage_path(config.data_storage)))[1]
+    logging.debug(f"Found {len(dsets)} datasets")
+    logging.debug(f"Datasets: {dsets}")
     return dsets
 
 
@@ -84,8 +98,10 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
 
     Args:
         msg (str): Error message to show to the user
-        clean (bool, optional): Wether to run the cleanup process before exiting. Defaults to True.
-        add_instructions (bool, optional): Wether to show additional instructions to the user. Defualts to True.
+        clean (bool, optional):
+            Run the cleanup process before exiting. Defaults to True.
+        add_instructions (bool, optional):
+            Show additional instructions to the user. Defualts to True.
     """
     logging.warning(
         "MedPerf had to stop execution. See logs above for more information"
@@ -93,11 +109,11 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     if msg[-1] != ".":
         msg = msg + "."
     if add_instructions:
-        msg += f" See logs at {config['log_file']} for more information"
+        msg += f" See logs at {config.log_file} for more information"
     ui.print_error(msg)
     if clean:
         cleanup()
-    exit()
+    exit(1)
 
 
 def cube_path(uid: int) -> str:
@@ -109,7 +125,7 @@ def cube_path(uid: int) -> str:
     Returns:
         str: Location of the cube folder structure.
     """
-    return os.path.join(config["cubes_storage"], str(uid))
+    return os.path.join(storage_path(config.cubes_storage), str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
@@ -121,14 +137,10 @@ def generate_tmp_datapath() -> Tuple[str, str]:
     """
     dt = datetime.utcnow()
     ts = str(int(datetime.timestamp(dt)))
-    tmp = config["tmp_reg_prefix"] + ts
-    out_path = os.path.join(config["data_storage"], tmp)
+    tmp = config.tmp_reg_prefix + ts
+    out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
-    out_datapath = os.path.join(out_path, "data")
-    if not os.path.isdir(out_datapath):
-        logging.info(f"Creating temporary dataset path: {out_datapath}")
-        os.makedirs(out_datapath)
-    return out_path, out_datapath
+    return out_path
 
 
 def check_cube_validity(cube: "Cube", ui: "UI"):
@@ -192,13 +204,14 @@ def dict_pretty_print(in_dict: dict, ui: "UI"):
     ui.print("=" * 20)
     in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
     ui.print(yaml.dump(in_dict))
+    logging.debug(f"Dictionary printed to the user: {in_dict}")
     ui.print("=" * 20)
 
 
 def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
-    """Combines the output of a process and the spinner. 
-    Joins any string captured from the process with the 
-    spinner current text. Any strings ending with any other 
+    """Combines the output of a process and the spinner.
+    Joins any string captured from the process with the
+    spinner current text. Any strings ending with any other
     character from the subprocess will be returned later.
 
     Args:
@@ -241,6 +254,7 @@ def get_folder_sha1(path: str) -> str:
     hashes = []
     for root, _, files in os.walk(path, topdown=False):
         for file in files:
+            logging.debug(f"Hashing file {file}")
             filepath = os.path.join(root, file)
             hashes.append(get_file_sha1(filepath))
 
@@ -248,14 +262,61 @@ def get_folder_sha1(path: str) -> str:
     sha1 = hashlib.sha1()
     for hash in hashes:
         sha1.update(hash.encode("utf-8"))
-    return sha1.hexdigest()
+    hash_val = sha1.hexdigest()
+    logging.debug(f"Folder hash: {hash_val}")
+    return hash_val
 
 
 def results_path(benchmark_uid, model_uid, data_uid):
-    out_path = config["results_storage"]
+    out_path = storage_path(config.results_storage)
     bmark_uid = str(benchmark_uid)
     model_uid = str(model_uid)
     data_uid = str(data_uid)
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-    out_path = os.path.join(out_path, config["results_filename"])
+    out_path = os.path.join(out_path, config.results_filename)
     return out_path
+
+
+def results_ids(ui: UI):
+    results_storage = storage_path(config.results_storage)
+    logging.debug("Getting results ids")
+    results_ids = []
+    try:
+        bmk_uids = next(os.walk(results_storage))[1]
+        for bmk_uid in bmk_uids:
+            bmk_storage = os.path.join(results_storage, bmk_uid)
+            model_uids = next(os.walk(bmk_storage))[1]
+            for model_uid in model_uids:
+                bmk_model_storage = os.path.join(bmk_storage, model_uid)
+                data_uids = next(os.walk(bmk_model_storage))[1]
+                bmk_model_data_list = [
+                    (bmk_uid, model_uid, data_uid) for data_uid in data_uids
+                ]
+                results_ids += bmk_model_data_list
+
+    except StopIteration:
+        msg = "Couldn't iterate over the results directory"
+        logging.warning(msg)
+        pretty_error(msg, ui)
+    logging.debug(f"Results ids: {results_ids}")
+    return results_ids
+
+
+def setup_logger(logger, log_lvl):
+    fh = logging.FileHandler(config["log_file"])
+    fh.setLevel(log_lvl)
+    logger.addHandler(fh)
+
+
+def list_files(startpath):
+    tree_str = ""
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, "").count(os.sep)
+        indent = " " * 4 * (level)
+
+        tree_str += "{}{}/\n".format(indent, os.path.basename(root))
+        subindent = " " * 4 * (level + 1)
+        for f in files:
+            tree_str += "{}{}\n".format(subindent, f)
+
+    return tree_str

@@ -1,11 +1,11 @@
 import pytest
-from unittest.mock import MagicMock, mock_open
+from unittest.mock import mock_open
 
 import medperf
-from medperf.config import config
+from medperf import utils
+import medperf.config as config
 from medperf.entities import Dataset
 from medperf.ui import UI
-from medperf.comms import Comms
 from medperf.tests.mocks import Benchmark
 
 REGISTRATION_MOCK = {
@@ -16,12 +16,14 @@ REGISTRATION_MOCK = {
     "split_seed": "split_seed",
     "metadata": {},
     "generated_uid": "generated_uid",
+    "input_data_hash": "input_data_hash",
     "status": "status",
     "uid": "uid",
+    "state": "state",
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
-TMP_PREFIX = config["tmp_reg_prefix"]
+TMP_PREFIX = config.tmp_reg_prefix
 
 
 @pytest.fixture
@@ -34,7 +36,7 @@ def ui(mocker):
 def basic_arrange(mocker):
     m = mock_open()
     mocker.patch("builtins.open", m, create=True)
-    mocker.patch(PATCH_DATASET.format("yaml.full_load"), return_value=REGISTRATION_MOCK)
+    mocker.patch(PATCH_DATASET.format("yaml.safe_load"), return_value=REGISTRATION_MOCK)
     mocker.patch(PATCH_DATASET.format("os.path.exists"), return_value=True)
     return m
 
@@ -56,7 +58,7 @@ def all_uids(mocker, basic_arrange, request):
         reg["generated_uid"] = uid
         return reg
 
-    mocker.patch(PATCH_DATASET.format("yaml.full_load"), side_effect=mock_reg_file)
+    mocker.patch(PATCH_DATASET.format("yaml.safe_load"), side_effect=mock_reg_file)
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
     mocker.patch(PATCH_DATASET.format("get_dsets"), return_value=uids)
     return uids
@@ -72,7 +74,7 @@ def test_all_looks_for_dsets_in_data_storage(mocker, ui, all_uids):
     Dataset.all(ui)
 
     # Assert
-    spy.assert_called_once_with(config["data_storage"])
+    spy.assert_called_once_with(utils.storage_path(config.data_storage))
 
 
 def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
@@ -146,7 +148,7 @@ def test_get_registration_looks_for_registration_file(mocker, ui, all_uids):
     dset.get_registration()
 
     # Assert
-    spy.assert_called_once_with(dset.dataset_path, config["reg_file"])
+    spy.assert_called_once_with(dset.dataset_path, config.reg_file)
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
@@ -154,7 +156,7 @@ def test_get_registration_loads_yaml_file(mocker, ui, all_uids):
     # Arrange
     uid = "1"
     dset = Dataset(uid, ui)
-    spy = mocker.spy(medperf.entities.dataset.yaml, "full_load")
+    spy = mocker.spy(medperf.entities.dataset.yaml, "safe_load")
 
     # Act
     dset.get_registration()

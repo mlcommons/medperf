@@ -6,11 +6,13 @@ import pexpect
 
 from medperf.comms import Comms
 from medperf.ui import UI
+from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
     untar_additional,
     combine_proc_sp_text,
+    list_files,
 )
 
 
@@ -19,9 +21,9 @@ class Cube(object):
     Class representing an MLCube Container
 
     Medperf platform uses the MLCube container for components such as
-    Dataset Preparation, Evaluation, and the Registered Models. MLCube 
-    containers are software containers (e.g., Docker and Singularity) 
-    with standard metadata and a consistent file-system level interface. 
+    Dataset Preparation, Evaluation, and the Registered Models. MLCube
+    containers are software containers (e.g., Docker and Singularity)
+    with standard metadata and a consistent file-system level interface.
     """
 
     def __init__(
@@ -99,15 +101,18 @@ class Cube(object):
         """
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
         for k, v in kwargs.items():
-            cmd_arg = f"{k}={v}"
+            cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
+        logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=None)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
+        logging.debug(proc_out)
         if proc.exitstatus != 0:
-            logging.error(proc_out)
             ui.text = "\n"
             pretty_error("There was an error while executing the cube", ui)
+
+        logging.debug(list_files(config.storage))
         return proc
 
     def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
@@ -120,10 +125,14 @@ class Cube(object):
 
         Returns:
             str: the path as specified in the mlcube.yaml file for the desired
-                output for the desired task
+                output for the desired task. Defaults to None if out_key not found
         """
         with open(self.cube_path, "r") as f:
-            cube = yaml.full_load(f)
+            cube = yaml.safe_load(f)
+
+        out_params = cube["tasks"][task]["parameters"]["outputs"]
+        if out_key not in out_params:
+            return None
 
         out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
         if type(out_path) == dict:
@@ -134,7 +143,7 @@ class Cube(object):
 
         if self.params_path is not None and param_key is not None:
             with open(self.params_path, "r") as f:
-                params = yaml.full_load(f)
+                params = yaml.safe_load(f)
 
             out_path = os.path.join(out_path, params[param_key])
 

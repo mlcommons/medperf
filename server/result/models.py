@@ -11,9 +11,7 @@ class ModelResult(models.Model):
 
     name = models.CharField(max_length=20, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    benchmark = models.ForeignKey(
-        "benchmark.Benchmark", on_delete=models.CASCADE
-    )
+    benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
     model = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
     dataset = models.ForeignKey("dataset.Dataset", on_delete=models.PROTECT)
     results = models.JSONField()

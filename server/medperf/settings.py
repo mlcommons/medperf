@@ -32,19 +32,22 @@ else:
     try:
         _, os.environ["GOOGLE_CLOUD_PROJECT"] = google.auth.default()
     except google.auth.exceptions.DefaultCredentialsError:
-        raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.")
+        raise Exception(
+            "No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found."
+        )
 
     # Pull secrets from Secret Manager
     print("Loading env from GCP secrets manager")
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
     client = secretmanager.SecretManagerServiceClient()
-    settings_name = os.environ.get("SETTINGS_SECRETS_NAME", "django-dev-settings")
+    settings_name = os.environ.get("SETTINGS_SECRETS_NAME", None)
+    if settings_name is None:
+        raise Exception("SETTINGS_SECRETS_NAME var is not set")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
     payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
 
     env.read_env(io.StringIO(payload))
-
 
 
 SECRET_KEY = env("SECRET_KEY")
@@ -109,9 +112,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "libraries": {
-                "staticfiles": "django.templatetags.static",
-            },
+            "libraries": {"staticfiles": "django.templatetags.static",},
         },
     },
 ]
@@ -122,6 +123,9 @@ WSGI_APPLICATION = "medperf.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {"default": env.db()}
+if os.environ.get("GCP_CI_CLOUDBUILD", "False") == "True":
+    print("CI Build environment")
+    DATABASES = {"default": env.db_url("GCP_CI_DATABASE_URL")}
 
 # If the flag as been set, configure to use proxy
 if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
@@ -183,9 +187,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated"
-    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 SWAGGER_SETTINGS = {
@@ -198,5 +200,4 @@ SWAGGER_SETTINGS = {
 
 # Setup support for proxy headers
 USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

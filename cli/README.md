@@ -21,19 +21,48 @@ The CLI provides the following commands:
   ```
   medperf login
   ```
-- `datasets`: Lists all registered datasets stored locally
+- `dataset ls`: Lists all registered datasets by the user
   ```
-  medperf datasets
+  medperf dataset ls
   ```
-- `prepare`: Prepares a raw dataset for a specific benchmark
+- `dataset create`: Prepares a raw dataset for a specific benchmark
   ```
-  medperf prepare -b <BENCHMARK_UID> -d <DATA_PATH> -l <LABELS_PATH>
-- `associate`: Associates a prepared dataset with a specific benchmark
+  medperf dataset create -b <BENCHMARK_UID> -d <DATA_PATH> -l <LABELS_PATH>
+  ```
+- `dataset submit`: Submits a prepared local dataset to the platform.
+  ```
+  medperf dataset submit -d <DATASET_UID> 
+  ```
+- `dataset associate`: Associates a prepared dataset with a specific benchmark
   ```
   medperf associate -b <BENCHMARK_UID> -d <DATASET_UID>
   ```
-- `execute`: Runs a specific model from a benchmark with a specified prepared dataset
+- `run`: Alias for `result create`. Runs a specific model from a benchmark with a specified prepared dataset
   ```
-  medperf execute -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
+  medperf run -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
   ```
+- `result ls`: Displays all results created by the user
+  ```
+  medperf result ls
+  ```
+- `result create`: Runs a specific model from a benchmark with a specified prepared dataset
+  ```
+  medperf result create -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
+  ```
+- `result submit`: Submits already obtained results to the platform
+  ```
+  medperf result submit -b <BENCHMARK_UID> -d <DATASET_UID> -m <MODEL_UID>
+  ```
+- `mlcube ls`: Lists all mlcubes created by the user. Lists all mlcubes if `--all` is passed
+  ```
+  medperf mlcube ls [--all]
+  ``` 
+- `mlcube submit`: Submits a new mlcube to the platform
+  ```
+  medperf mlcube submit
+  ```   
+- `mlcube associate`: Associates an MLCube to a benchmark
+  ```
+  medperf mlcube associate -b <BENCHMARK_UID> -m <MODEL_UID>
+  ``` 
 The CLI runs MLCubes behind the scene. This cubes require a container engine like docker, and so that engine must be running before running commands like `prepare` and `execute`

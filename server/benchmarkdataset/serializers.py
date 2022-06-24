@@ -33,9 +33,7 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
                 "Association requests can be made only on an operational dataset"
             )
         last_benchmarkdataset = (
-            BenchmarkDataset.objects.filter(
-                benchmark__id=bid, dataset__id=dataset
-            )
+            BenchmarkDataset.objects.filter(benchmark__id=bid, dataset__id=dataset)
             .order_by("-created_at")
             .first()
         )
@@ -54,22 +52,26 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "User cannot create an approved association request"
                 )
-            elif approval_status == "REJECTED":
+            # approval_status == "REJECTED":
+            else:
                 if last_benchmarkdataset.approval_status != "APPROVED":
                     raise serializers.ValidationError(
                         "User can reject request only if prior request is approved"
                     )
-            else:
-                raise serializers.ValidationError("Invalid approval_status")
         return data
 
-    def update(self, instance, validated_data):
-        for k, v in validated_data.items():
-            setattr(instance, k, v)
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
-        instance.save()
-        return instance
+    def create(self, validated_data):
+        approval_status = validated_data.get("approval_status", "PENDING")
+        if approval_status != "PENDING":
+            validated_data["approved_at"] = timezone.now()
+        else:
+            if (
+                validated_data["dataset"].owner.id
+                == validated_data["benchmark"].owner.id
+            ):
+                validated_data["approval_status"] = "APPROVED"
+                validated_data["approved_at"] = timezone.now()
+        return BenchmarkDataset.objects.create(**validated_data)
 
 
 class DatasetApprovalSerializer(serializers.ModelSerializer):

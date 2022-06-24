@@ -1,7 +1,4 @@
-import string
-import random
 from django.test import TestCase
-from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -14,9 +11,7 @@ class UserTest(TestCase):
         password = "admin"
         self.client = APIClient()
         response = self.client.post(
-            "/auth-token/",
-            {"username": username, "password": password},
-            format="json",
+            "/auth-token/", {"username": username, "password": password}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.token = response.data["token"]

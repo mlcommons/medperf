@@ -1,8 +1,8 @@
 import stat
-from medperf.ui import UI
 from medperf.comms import Comms
-from medperf.config import config
+import medperf.config as config
 from medperf.commands import Login
+from medperf.utils import storage_path
 
 import pytest
 from unittest.mock import mock_open
@@ -32,7 +32,7 @@ def test_runs_comms_login(mocker, comms, ui):
 
 def test_removes_previous_credentials(mocker, comms, ui):
     # Arrange
-    creds_path = config["credentials_path"]
+    creds_path = storage_path(config.credentials_path)
     spy = mocker.patch("os.remove")
     mocker.patch("builtins.open", mock_open())
     mocker.patch("os.path.exists", return_value=True)
@@ -50,7 +50,7 @@ def test_removes_previous_credentials(mocker, comms, ui):
 def test_writes_new_credentials(mocker, comms, ui):
     # Arrange
     m = mock_open()
-    creds_path = config["credentials_path"]
+    creds_path = storage_path(config.credentials_path)
     spy = mocker.patch("builtins.open", m)
 
     # Act
@@ -64,7 +64,7 @@ def test_writes_new_credentials(mocker, comms, ui):
 
 def test_sets_credentials_permissions_to_read(mocker, comms, ui):
     # Arrange
-    creds_path = config["credentials_path"]
+    creds_path = storage_path(config.credentials_path)
     spy = mocker.patch("os.chmod")
     mocker.patch("builtins.open", mock_open())
 

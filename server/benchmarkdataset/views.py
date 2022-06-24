@@ -44,9 +44,7 @@ class BenchmarkDatasetApproval(GenericAPIView):
         Retrieve all benchmarks associated with a dataset
         """
         benchmarkdataset = self.get_object(pk)
-        serializer = BenchmarkDatasetListSerializer(
-            benchmarkdataset, many=True
-        )
+        serializer = BenchmarkDatasetListSerializer(benchmarkdataset, many=True)
         return Response(serializer.data)
 
 
@@ -75,9 +73,7 @@ class DatasetApproval(GenericAPIView):
         """
         Update approval status of the last benchmark dataset association
         """
-        benchmarkdataset = (
-            self.get_object(pk, bid).order_by("-created_at").first()
-        )
+        benchmarkdataset = self.get_object(pk, bid).order_by("-created_at").first()
         serializer = DatasetApprovalSerializer(
             benchmarkdataset, data=request.data, context={"request": request}
         )

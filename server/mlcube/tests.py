@@ -11,19 +11,12 @@ class MlCubeTest(TestCase):
 
     def setUp(self):
         username = "mlcubeowner"
-        password = "".join(
-            random.choice(string.ascii_letters) for m in range(10)
-        )
-        user = User.objects.create_user(
-            username=username,
-            password=password,
-        )
+        password = "".join(random.choice(string.ascii_letters) for m in range(10))
+        user = User.objects.create_user(username=username, password=password,)
         user.save()
         self.client = APIClient()
         response = self.client.post(
-            "/auth-token/",
-            {"username": username, "password": password},
-            format="json",
+            "/auth-token/", {"username": username, "password": password}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.token = response.data["token"]

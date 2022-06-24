@@ -1,5 +1,5 @@
-from typing import Type
 from collections.abc import Callable
+import functools
 import logging
 
 from medperf.utils import cleanup
@@ -16,10 +16,11 @@ def clean_except(func: Callable) -> Callable:
         Callable: Decorated function
     """
 
-    def wrapper():
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
         try:
             logging.info(f"Running function '{func.__name__}'")
-            func()
+            func(*args, **kwargs)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
             logging.error(e)

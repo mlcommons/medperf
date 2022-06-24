@@ -15,9 +15,7 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
     def validate(self, data):
         bid = self.context["request"].data.get("benchmark")
         mlcube = self.context["request"].data.get("model_mlcube")
-        approval_status = self.context["request"].data.get(
-            "approval_status", "PENDING"
-        )
+        approval_status = self.context["request"].data.get("approval_status", "PENDING")
         benchmark = Benchmark.objects.get(pk=bid)
         benchmark_state = benchmark.state
         if benchmark_state != "OPERATION":
@@ -35,9 +33,7 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
                 "Association requests can be made only on an operational model mlcube"
             )
         last_benchmarkmodel = (
-            BenchmarkModel.objects.filter(
-                benchmark__id=bid, model_mlcube__id=mlcube
-            )
+            BenchmarkModel.objects.filter(benchmark__id=bid, model_mlcube__id=mlcube)
             .order_by("-created_at")
             .first()
         )
@@ -57,22 +53,26 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "User cannot create an approved association request"
                 )
-            elif approval_status == "REJECTED":
+            # approval_status == "REJECTED":
+            else:
                 if last_benchmarkmodel.approval_status != "APPROVED":
                     raise serializers.ValidationError(
                         "User can reject request only if prior request is approved"
                     )
-            else:
-                raise serializers.ValidationError("Invalid approval_status")
         return data
 
-    def update(self, instance, validated_data):
-        for k, v in validated_data.items():
-            setattr(instance, k, v)
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
-        instance.save()
-        return instance
+    def create(self, validated_data):
+        approval_status = validated_data.get("approval_status", "PENDING")
+        if approval_status != "PENDING":
+            validated_data["approved_at"] = timezone.now()
+        else:
+            if (
+                validated_data["model_mlcube"].owner.id
+                == validated_data["benchmark"].owner.id
+            ):
+                validated_data["approval_status"] = "APPROVED"
+                validated_data["approved_at"] = timezone.now()
+        return BenchmarkModel.objects.create(**validated_data)
 
 
 class ModelApprovalSerializer(serializers.ModelSerializer):

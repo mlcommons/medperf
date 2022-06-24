@@ -3,8 +3,8 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path
-from medperf.config import config
+from medperf.utils import pretty_error, cube_path, storage_path
+import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
 from medperf.ui import UI
@@ -32,7 +32,7 @@ class REST(Comms):
             self.token = res.json()["token"]
 
     def authenticate(self):
-        cred_path = config["credentials_path"]
+        cred_path = storage_path(config.credentials_path)
         if os.path.exists(cred_path):
             with open(cred_path) as f:
                 self.token = f.readline()
@@ -78,7 +78,7 @@ class REST(Comms):
 
     def authorized_by_role(self, benchmark_uid: int, role: str) -> bool:
         """Indicates wether the current user is authorized to access
-        a benchmark based on desired role 
+        a benchmark based on desired role
 
         Args:
             benchmark_uid (int): UID of the benchmark
@@ -125,6 +125,18 @@ class REST(Comms):
         model_uids = [model["id"] for model in models]
         return model_uids
 
+    def get_cubes(self) -> List[dict]:
+        """Retrieves all MLCubes in the platform
+
+        Returns:
+            List[dict]: List containing the data of all MLCubes
+        """
+        res = self.__auth_get(f"{self.server_url}/mlcubes/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't retrieve mlcubes from the platform")
+        return res.json()
+
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
 
@@ -151,8 +163,21 @@ class REST(Comms):
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
-        cube_file = config["cube_filename"]
+        cube_file = config.cube_filename
         return self.__get_cube_file(url, cube_uid, "", cube_file)
+
+    def get_user_cubes(self) -> List[dict]:
+        """Retrieves metadata from all cubes registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the mlcubes registration information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't retrieve mlcubes created by the user")
+        data = res.json()
+        return data
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
         """Retrieves the cube parameters.yaml file from the server
@@ -164,8 +189,8 @@ class REST(Comms):
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
-        ws = config["workspace_path"]
-        params_file = config["params_filename"]
+        ws = config.workspace_path
+        params_file = config.params_filename
         return self.__get_cube_file(url, cube_uid, ws, params_file)
 
     def get_cube_additional(self, url: str, cube_uid: int) -> str:
@@ -178,8 +203,8 @@ class REST(Comms):
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
-        add_path = config["additional_path"]
-        tball_file = config["tarball_filename"]
+        add_path = config.additional_path
+        tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
 
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
@@ -198,6 +223,45 @@ class REST(Comms):
             open(filepath, "wb+").write(res.content)
             return filepath
 
+    def upload_mlcube(self, mlcube_body: dict) -> int:
+        """Uploads an MLCube instance to the platform
+
+        Args:
+            mlcube_body (dict): Dictionary containing all the relevant data for creating mlcubes
+
+        Returns:
+            int: id of the created mlcube instance on the platform
+        """
+        res = self.__auth_post(f"{self.server_url}/mlcubes/", json=mlcube_body)
+        if res.status_code != 201:
+            logging.error(res.json())
+            pretty_error("Could not upload the mlcube", self.ui)
+        return res.json()["id"]
+
+    def get_datasets(self) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+        res = self.__auth_get(f"{self.server_url}/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("could not retrieve datasets from server", self.ui)
+        return res.json()
+
+    def get_user_datasets(self) -> dict:
+        """Retrieves all datasets registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve datasets from server", self.ui)
+        return res.json()
+
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 
@@ -212,6 +276,18 @@ class REST(Comms):
             logging.error(res.json())
             pretty_error("Could not upload the dataset", self.ui)
         return res.json()["id"]
+
+    def get_user_results(self) -> dict:
+        """Retrieves all results registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        res = self.__auth_get(f"{self.server_url}/me/results/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve results from server", self.ui)
+        return res.json()
 
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
@@ -241,6 +317,24 @@ class REST(Comms):
             "approval_status": "PENDING",
         }
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
+        if res.status_code != 201:
+            logging.error(res.json())
+            pretty_error("Could not associate dataset to benchmark", self.ui)
+
+    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+        """Create an MLCube-Benchmark association
+
+        Args:
+            cube_uid (str): MLCube UID
+            benchmark_uid (int): Benchmark UID
+        """
+        data = {
+            "results": {},
+            "approval_status": "PENDING",
+            "model_mlcube": cube_uid,
+            "benchmark": benchmark_uid,
+        }
+        res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not associate dataset to benchmark", self.ui)

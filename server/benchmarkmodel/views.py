@@ -73,9 +73,7 @@ class ModelApproval(GenericAPIView):
         """
         Update approval status of the last benchmark model association
         """
-        benchmarkmodel = (
-            self.get_object(pk, bid).order_by("-created_at").first()
-        )
+        benchmarkmodel = self.get_object(pk, bid).order_by("-created_at").first()
         serializer = ModelApprovalSerializer(
             benchmarkmodel, data=request.data, context={"request": request}
         )

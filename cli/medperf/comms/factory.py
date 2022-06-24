@@ -1,6 +1,5 @@
 from .rest import REST
 from .comms import Comms
-from medperf.config import config
 from medperf.ui import UI
 from medperf.utils import pretty_error
 
@@ -13,4 +12,3 @@ class CommsFactory:
             return REST(host, ui)
         else:
             pretty_error("the indicated communication interface doesn't exist", ui)
-
