@@ -73,8 +73,6 @@ substitutions:
   _SQL_INSTANCE_NAME: medperf-dev
   ##Settings specific for Prod##
   ##All DB settings are picked from the secret if DEPLOY_ENV is set to gcp-prod in secrets.
-  #_GCP_CI_DATABASE_NAME: None 
-  #_GCP_CI_DATABASE_URL: None
 
 options:
   dynamic_substitutions: true
