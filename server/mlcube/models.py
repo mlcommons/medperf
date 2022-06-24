@@ -30,7 +30,7 @@ class MlCube(models.Model):
 
     class Meta:
         unique_together = (("image_tarball_url", "image_tarball_hash",
-                            "additional_files_tarball_url", "additional_files_tarball_url",
+                            "additional_files_tarball_url", "additional_files_tarball_hash",
                             "git_mlcube_url", "git_parameters_url"),)
         verbose_name_plural = "MlCubes"
         ordering = ["modified_at"]
