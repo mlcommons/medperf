@@ -33,6 +33,7 @@ class Cube(object):
         cube_path: str,
         params_path: str = None,
         additional_hash: str = None,
+        image_hash: str = None,
     ):
         """Creates a Cube instance
 
@@ -42,6 +43,7 @@ class Cube(object):
             cube_path (str): path to the mlcube.yaml file associated with this cube.
             params_path (str, optional): Location of the parameters.yaml file. if exists. Defaults to None.
             additional_hash (str, optional): Hash of the tarball file, if exists. Defaults to None.
+            image_hash (str, optional): Hash of the image file, if exists. Defaults to None.
         """
         self.uid = uid
         self.meta = meta
@@ -49,6 +51,7 @@ class Cube(object):
         self.cube_path = cube_path
         self.params_path = params_path
         self.additional_hash = additional_hash
+        self.image_hash = image_hash
 
     @classmethod
     def get(cls, cube_uid: str, comms: Comms) -> "Cube":
@@ -76,8 +79,12 @@ class Cube(object):
             additional_path = comms.get_cube_additional(url, cube_uid)
             additional_hash = get_file_sha1(additional_path)
             untar_additional(additional_path)
+        if "image_url" in meta and meta["image_url"]:
+            url = meta["image_url"]
+            image_path = comms.get_cube_image(url, cube_uid)
+            image_hash = get_file_sha1(image_path)
 
-        return cls(cube_uid, meta, cube_path, params_path, additional_hash)
+        return cls(cube_uid, meta, cube_path, params_path, additional_hash, image_hash)
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
@@ -92,7 +99,13 @@ class Cube(object):
             valid_additional = self.additional_hash == self.meta[add_hash]
         else:
             valid_additional = True
-        return valid_additional
+
+        has_image = "image_url" in self.meta and self.meta["image_url"]
+        if has_image:
+            valid_image = self.image_hash = self.meta["image_hash"]
+        else:
+            valid_image = True
+        return valid_additional and valid_image
 
     def run(self, ui: UI, task: str, **kwargs):
         """Executes a given task on the cube instance
