@@ -1,20 +1,17 @@
 import string
 import random
-from django.test import TestCase
 from django.contrib.auth.models import User
-from django.test import override_settings
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from medperf.tests import MedPerfTest
 
-class MlCubeTest(TestCase):
+
+class MlCubeTest(MedPerfTest):
     """Test module for MLCube APIs"""
 
     def setUp(self):
-        # Disable SSL redirect in tests
-        settings_manager = override_settings(SECURE_SSL_REDIRECT=False)
-        settings_manager.enable()
-        self.addCleanup(settings_manager.disable)
+        super(MlCubeTest, self).setUp()
 
         username = "mlcubeowner"
         password = "".join(random.choice(string.ascii_letters) for m in range(10))
