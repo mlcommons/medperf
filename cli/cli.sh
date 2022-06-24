@@ -12,17 +12,20 @@ do
 done
 USERNAME="${USERNAME:-testdataowner}"
 PASS="${PASS:-test}"
-SERVER_URL="${SERVER_URL:-http://127.0.0.1:8000}"
+SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
+PEM_FILE=~/.medperf_test.pem
 MEDPERF_STORAGE=~/.medperf_test
+MEDPERF_LOG_STORAGE="${MEDPERF_STORAGE}/logs/medperf.log"
 LOCAL="${LOCAL:-""}"
 
 echo "username: $USERNAME"
 echo "password: $PASS"
 echo "Server URL: $SERVER_URL"
-echo "Storage location: $MEDPERF_STORAGE"
+echo "Storage lotailion: $MEDPERF_STORAGE"
 echo "Running local config: $LOCAL"
+echo "Certificate: $PEM_FILE"
 
 mkdir MEDPERF_STORAGE
 chmod a+w MEDPERF_STORAGE
@@ -47,38 +50,38 @@ ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
 echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
 echo "====================================="
-echo ${LOCAL:+'-e'} "${USERNAME}\n${PASS}\n" | medperf --ui STDIN --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE login 
+echo ${LOCAL:+'-e'} "${USERNAME}\n${PASS}\n" | medperf --certificate $PEM_FILE --ui STDIN --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE login 
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
-  cat "$MEDPERF_STORAGE/medperf.log"
+  tail "$MEDPERF_LOG_STORAGE"
   exit 1
 fi
 echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert
+echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlotailion\nY\nY\n" | medperf --certificate $PEM_FILE --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
-  cat "$MEDPERF_STORAGE/medperf.log"
+  tail "$MEDPERF_LOG_STORAGE"
   exit 2
 fi
 echo "\n"
-DSET_UID=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_UID=$(medperf --certificate $PEM_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "====================================="
 echo "Approving dataset association"
 echo "====================================="
 # Log in as the benchmark owner
-BENCHMARK_OWNER_TOKEN=$(curl -s -X POST "$SERVER_URL/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
+BENCHMARK_OWNER_TOKEN=$(curl --cacert $PEM_FILE -s -X POST "$SERVER_URL/auth-token/" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \"username\": \"testbenchmarkowner\",  \"password\": \"test\"}" | jq -r '.token')
 # Mark dataset-benchmark association as approved
-curl -s -X PUT "$SERVER_URL/datasets/1/benchmarks/1/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"
+curl --cacert $PEM_FILE -s -X PUT "$SERVER_URL/datasets/1/benchmarks/1/" -H  "accept: application/json" -H  "Authorization: Token $BENCHMARK_OWNER_TOKEN" -H  "Content-Type: application/json" -d "{  \"approval_status\": \"APPROVED\"}"
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\n" | medperf --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE result create -b 1 -d $DSET_UID -m 2
+echo ${LOCAL:+'-e'} "Y\n" | medperf --certificate $PEM_FILE --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE result create -b 1 -d $DSET_UID -m 2
 if [ "$?" -ne "0" ]; then
   echo "Benchmark execution step failed"
-  cat $MEDPERF_STORAGE/medperf.log
+  tail $MEDPERF_LOG_STORAGE
   exit 3
 fi
 if ${CLEANUP}; then

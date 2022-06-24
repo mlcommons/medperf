@@ -1,4 +1,4 @@
-while getopts c:k:d:g:r: flag
+while getopts c:k:d:g:r:p: flag
 do
     case "${flag}" in
         c) CERT_FILE=${OPTARG};;
@@ -6,11 +6,13 @@ do
         d) DEPLOY=${OPTARG};;
         g) CERT_GENERATE=${OPTARG};;
         r) RESET_DB=${OPTARG};;
+        p) PEM_FILE=${OPTARG};;
     esac
 done
 
 DEPLOY="${DEPLOY:-1}"
 CERT_GENERATE="${CERT_GENERATE:-1}"
+PEM_FILE="${PEM_FILE:-~/.medperf.pem}"
 RESET_DB="${RESET_DB:-0}"
 echo $CERT_FILE
 echo $KEY_FILE
@@ -36,7 +38,7 @@ then
 else
     echo "Certs are generated"
     openssl req -x509 -nodes -days 365 -newkey rsa:3072 -keyout cert.key -out cert.crt -subj "/C=US/ST=Any/L=Any/O=MedPerf/CN=127.0.0.1" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-    cat cert.crt cert.key > ~/.medperf.pem
+    cat cert.crt cert.key > $PEM_FILE
 fi
 
 if [ "$RESET_DB" -eq 1 ]
