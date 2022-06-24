@@ -44,7 +44,8 @@ else:
     settings_name = os.environ.get("SETTINGS_SECRETS_NAME", None)
     if settings_name is None:
         raise Exception("SETTINGS_SECRETS_NAME var is not set")
-    name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
+    settings_version = os.environ.get("SETTINGS_SECRETS_VERSION", "latest")
+    name = f"projects/{project_id}/secrets/{settings_name}/versions/{settings_version}"
     payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
 
     env.read_env(io.StringIO(payload))

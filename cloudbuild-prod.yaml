@@ -14,10 +14,6 @@ steps:
         "${PROJECT_ID}:${_REGION}:${_SQL_INSTANCE_NAME}",
         "-e",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
-        "-e",
-        "GCP_CI_CLOUDBUILD=${_GCP_CI_CLOUDBUILD}",
-        "-e",
-        "GCP_CI_DATABASE_URL=${_GCP_CI_DATABASE_URL}",
         "--",
         "python",
         "manage.py",
@@ -35,10 +31,6 @@ steps:
         "${PROJECT_ID}:${_REGION}:${_SQL_INSTANCE_NAME}",
         "-e",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
-        "-e",
-        "GCP_CI_CLOUDBUILD=${_GCP_CI_CLOUDBUILD}",
-        "-e",
-        "GCP_CI_DATABASE_URL=${_GCP_CI_DATABASE_URL}",
         "--",
         "python",
         "manage.py",
@@ -65,10 +57,6 @@ steps:
         "${PROJECT_ID}:${_REGION}:${_SQL_INSTANCE_NAME}",
         "--set-env-vars",
         "SETTINGS_SECRETS_NAME=${_SECRET_SETTINGS_NAME}",
-        "--set-env-vars",
-        "GCP_CI_CLOUDBUILD=${_GCP_CI_CLOUDBUILD}",
-        "--set-env-vars",
-        "GCP_CI_DATABASE_URL=${_GCP_CI_DATABASE_URL}",
         "--allow-unauthenticated",
         "--min-instances",
         "${_CLOUD_RUN_MIN_INSTANCES}"
@@ -85,8 +73,6 @@ substitutions:
   _SQL_INSTANCE_NAME: medperf-dev
   ##Settings specific for Prod##
   ##All DB settings are picked from the secret if DEPLOY_ENV is set to gcp-prod in secrets.
-  #_GCP_CI_DATABASE_NAME: None 
-  _GCP_CI_DATABASE_URL: None
 
 options:
   dynamic_substitutions: true
