@@ -70,6 +70,8 @@ class Cube(object):
         params_path = None
         additional_path = None
         additional_hash = None
+        image_path = None
+        image_hash = None
         add_files = "additional_files_tarball_url"
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
@@ -102,7 +104,7 @@ class Cube(object):
 
         has_image = "image_url" in self.meta and self.meta["image_url"]
         if has_image:
-            valid_image = self.image_hash = self.meta["image_hash"]
+            valid_image = self.image_hash == self.meta["image_hash"]
         else:
             valid_image = True
         return valid_additional and valid_image

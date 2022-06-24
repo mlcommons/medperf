@@ -28,7 +28,7 @@ def benchmark_body(benchmark_uid):
     }
 
 
-def cube_metadata_generator(with_params=False, with_tarball=False):
+def cube_metadata_generator(with_params=False, with_tarball=False, with_image=False):
     """Provides an interface for generating mocked cube_metadata responses,
     with the possibility of changing some of the variables that affect the
     workflow
@@ -36,13 +36,16 @@ def cube_metadata_generator(with_params=False, with_tarball=False):
     Args:
         with_params (bool, optional): Wether the mocked cube has parameters. Defaults to False.
         with_tarball (bool, optional): Wether the mocked cube has a tarball. Defaults to False.
+        with_image (bool, optional): Wether the mocked cube has an image. Defaults to False.
 
     Returns:
         [type]: [description]
     """
     params = "parameters_url" if with_params else ""
     tarball = "additional_files_tarball_url" if with_tarball else ""
-    hash = "tarball_hash" if with_tarball else ""
+    tar_hash = "additional_files_tarball_hash" if with_tarball else ""
+    image = "image_url" if with_image else ""
+    img_hash = "image_hash" if with_image else ""
 
     def cube_metadata_body(cube_uid):
         return {
@@ -51,7 +54,9 @@ def cube_metadata_generator(with_params=False, with_tarball=False):
             "git_mlcube_url": "mlcube_url",
             "git_parameters_url": params,
             "additional_files_tarball_url": tarball,
-            "tarball_hash": hash,
+            "additional_files_tarball_hash": tar_hash,
+            "image_url": image,
+            "image_hash": img_hash,
             "metadata": {},
             "created_at": "timestamp",
             "modified_at": "timestamp",
