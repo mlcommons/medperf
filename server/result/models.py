@@ -27,5 +27,4 @@ class ModelResult(models.Model):
         return self.name
 
     class Meta:
-        unique_together = (("benchmark", "model", "dataset"),)
         ordering = ["modified_at"]
