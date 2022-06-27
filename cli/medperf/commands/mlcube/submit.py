@@ -82,6 +82,7 @@ class SubmitCube:
         add_file_is_valid = self.additional_file == "" or validators.url(
             self.additional_file
         )
+        image_file_is_valid = self.image_file == "" or validators.url(self.image_file)
 
         valid = True
         if not name_valid_length:
@@ -100,6 +101,10 @@ class SubmitCube:
             valid = False
             self.additional_file = None
             self.ui.print_error("Additional file is invalid")
+        if not image_file_is_valid:
+            valid = False
+            self.image_file = None
+            self.ui.print_error("Image file is invalid")
 
         return valid
 
