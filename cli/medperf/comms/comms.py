@@ -25,6 +25,15 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def change_password(self, pwd: str, ui: UI):
+        """Sets a new password for the current user.
+
+        Args:
+            pwd (str): New password to be set
+            ui (UI): Instance of an implementation
+        """
+
+    @abstractmethod
     def authenticate(self):
         """Retrieve a token stored locally for authentication
         """

@@ -33,7 +33,11 @@ def login():
 def passwd():
     """Set a new password. Must be logged in.
     """
-    PasswordChange.run(config.comms, config.ui)
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    PasswordChange.run(comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("run")
