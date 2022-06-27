@@ -18,7 +18,7 @@ jobs:
 
     - name: Generate SSL certificate
       working-directory: ./server
-      run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0 -p ~/.medperf_test.pem
+      run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0 -p ~/.medperf_test.crt
 
     - name: Install Docker
       run: |

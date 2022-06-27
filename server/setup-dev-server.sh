@@ -6,18 +6,19 @@ do
         d) DEPLOY=${OPTARG};;
         g) CERT_GENERATE=${OPTARG};;
         r) RESET_DB=${OPTARG};;
-        p) PEM_FILE=${OPTARG};;
+        p) CERT_PATH=${OPTARG};;
     esac
 done
 
 DEPLOY="${DEPLOY:-1}"
 CERT_GENERATE="${CERT_GENERATE:-1}"
-PEM_FILE="${PEM_FILE:-~/.medperf.pem}"
+CERT_PATH="${CERT_PATH:-~/.medperf.crt}"
 RESET_DB="${RESET_DB:-0}"
 echo $CERT_FILE
 echo $KEY_FILE
 echo $DEPLOY
 echo $CERT_GENERATE
+echo $CERT_PATH
 echo $RESET_DB
 
 if [ -z "$CERT_FILE" ]
@@ -38,7 +39,8 @@ then
 else
     echo "Certs are generated"
     openssl req -x509 -nodes -days 365 -newkey rsa:3072 -keyout cert.key -out cert.crt -subj "/C=US/ST=Any/L=Any/O=MedPerf/CN=127.0.0.1" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-    cat cert.crt cert.key > $PEM_FILE
+    echo "Copying certificate to home"
+    cp cert.crt $CERT_PATH
 fi
 
 if [ "$RESET_DB" -eq 1 ]

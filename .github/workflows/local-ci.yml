@@ -28,7 +28,7 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh -c cert.crt -k cert.key  -p ~/.medperf_test.pem &
+      run: sh setup-dev-server.sh -c cert.crt -k cert.key  -p ~/.medperf_test.crt &
 
     - name: Run integration tests
       working-directory: ./server

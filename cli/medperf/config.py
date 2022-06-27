@@ -5,7 +5,7 @@ server = "https://medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = "~/.medperf.pem"
+local_certificate = "~/.medperf.crt"
 
 storage = abspath(expanduser("~/.medperf"))
 tmp_reg_prefix = "tmp_"
