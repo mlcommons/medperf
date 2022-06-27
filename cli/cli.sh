@@ -88,7 +88,7 @@ echo "====================================="
 echo "Approving dataset association"
 echo "====================================="
 # Log in as the benchmark owner
-medperf login -u testbenchmarkowner -p test
+medperf --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=testbenchmarkowner --password=test
 # Get association information
 ASSOC_INFO=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL association ls | head -n 4 | tail -n 1 | tr -s ' ')
 ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
