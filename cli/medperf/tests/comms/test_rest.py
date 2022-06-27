@@ -555,7 +555,7 @@ def test_set_dataset_association_approval_sets_approval(
     exp_url = f"{url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_dataset_association_approval(dataset_uid, benchmark_uid, status)
+    server.set_dataset_association_approval(benchmark_uid, dataset_uid, status)
 
     # Assert
     spy.assert_called_once_with(exp_url, status)
@@ -575,7 +575,7 @@ def test_set_mlcube_association_approval_sets_approval(
     exp_url = f"{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_mlcube_association_approval(mlcube_uid, benchmark_uid, status)
+    server.set_mlcube_association_approval(benchmark_uid, mlcube_uid, status)
 
     # Assert
     spy.assert_called_once_with(exp_url, status)
