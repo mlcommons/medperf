@@ -28,11 +28,11 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh -c cert.crt -k cert.key  -p ~/.medperf_test.crt &
+      run: sh setup-dev-server.sh -c ~/.medperf_test.crt -k ~/.medperf_test.key &
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
+      run: pip install -r test-requirements.txt --user && python seed.py --cert ~/.medperf_test.crt
 
     - name: Install Docker
       run: |
