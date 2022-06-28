@@ -43,7 +43,7 @@ jobs:
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert ~/.medperf_test.crt --server https://localhost:8080
+      run: pip install -r test-requirements.txt --user && python seed.py --cert ~/.medperf_test.crt
 
     - name: Install dependencies
       run: |
