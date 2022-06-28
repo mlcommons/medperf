@@ -94,7 +94,7 @@ ASSOC_INFO=$(medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL association l
 ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
 ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
 # Mark dataset-benchmark association as approved
-medperf association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
+medperf --host=${SERVER_URL} --storage=$MEDPERF_STORAGE association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
 if [ "$?" -ne "0" ]; then
   echo "Association approval failed"
   cat "$MEDPERF_STORAGE/medperf.log"
