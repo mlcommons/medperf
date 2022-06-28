@@ -1,5 +1,5 @@
 #! /bin/bash
-while getopts u:p:s:d:c:l flag
+while getopts u:p:s:d:c:l:a: flag
 do
     case "${flag}" in
         u) USERNAME=${OPTARG};;
@@ -8,6 +8,7 @@ do
         d) DIRECTORY=${OPTARG};;
         c) CLEANUP="true";;
         l) LOCAL="true" ;;
+        a) AUTH_CERT=${OPTARG};;
     esac
 done
 USERNAME="${USERNAME:-testdataowner}"
@@ -15,7 +16,7 @@ PASS="${PASS:-test}"
 SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
-CERT_FILE=~/.medperf_test.crt
+CERT_FILE="${AUTH_CERT:-~/.medperf_test.crt}"
 MEDPERF_STORAGE=~/.medperf_test
 MEDPERF_LOG_STORAGE="${MEDPERF_STORAGE}/logs/medperf.log"
 LOCAL="${LOCAL:-""}"

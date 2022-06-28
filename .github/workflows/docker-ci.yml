@@ -18,7 +18,7 @@ jobs:
 
     - name: Generate SSL certificate
       working-directory: ./server
-      run: sh setup-dev-server.sh -c ~/.medperf_test.crt -k ~/.medperf_test.key -d 0
+      run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
 
     - name: Install Docker
       run: |
@@ -39,11 +39,11 @@ jobs:
       run: docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
-      run: PORT=8080 && docker run -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=~/.medperf_test.crt --keyfile=~/.medperf_test.key" ${{ env.IMAGE_NAME }}
+      run: PORT=8080 && docker run -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert ~/.medperf_test.crt
+      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
 
     - name: Install dependencies
       run: |
@@ -52,5 +52,5 @@ jobs:
         if [ -f cli/requirements.txt ]; then pip install -e cli; fi
 
     - name: Run client integration tests
-      working-directory: ./cli
-      run: sh cli.sh -s https://127.0.0.1:8000 -d ~ -u admin -p admin
+      working-directory: .
+      run: sh cli/cli.sh -s https://127.0.0.1:8000 -d ~ -u admin -p admin -a server/cert.crt
