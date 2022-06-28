@@ -18,7 +18,7 @@ jobs:
 
     - name: Generate SSL certificate
       working-directory: ./server
-      run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0 -p ~/.medperf_test.crt
+      run: sh setup-dev-server.sh -c ~/.medperf_test.crt -k ~/.medperf_test.key -d 0
 
     - name: Install Docker
       run: |
@@ -43,7 +43,7 @@ jobs:
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
+      run: pip install -r test-requirements.txt --user && python seed.py --cert ~/.medperf_test.crt
 
     - name: Install dependencies
       run: |
