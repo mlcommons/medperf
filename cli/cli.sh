@@ -23,7 +23,7 @@ LOCAL="${LOCAL:-""}"
 echo "username: $USERNAME"
 echo "password: $PASS"
 echo "Server URL: $SERVER_URL"
-echo "Storage lotailion: $MEDPERF_STORAGE"
+echo "Storage location: $MEDPERF_STORAGE"
 echo "Running local config: $LOCAL"
 echo "Certificate: $CERT_FILE"
 
