@@ -44,8 +44,8 @@ def cube_metadata_generator(with_params=False, with_tarball=False, with_image=Fa
     params = "parameters_url" if with_params else ""
     tarball = "additional_files_tarball_url" if with_tarball else ""
     tar_hash = "additional_files_tarball_hash" if with_tarball else ""
-    image = "image_url" if with_image else ""
-    img_hash = "image_hash" if with_image else ""
+    image = "image_tarball_url" if with_image else ""
+    img_hash = "image_tarball_hash" if with_image else ""
 
     def cube_metadata_body(cube_uid):
         return {
@@ -55,8 +55,8 @@ def cube_metadata_generator(with_params=False, with_tarball=False, with_image=Fa
             "git_parameters_url": params,
             "additional_files_tarball_url": tarball,
             "additional_files_tarball_hash": tar_hash,
-            "image_url": image,
-            "image_hash": img_hash,
+            "image_tarball_url": image,
+            "image_tarball_hash": img_hash,
             "metadata": {},
             "created_at": "timestamp",
             "modified_at": "timestamp",

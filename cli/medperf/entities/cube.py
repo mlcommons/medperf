@@ -10,7 +10,7 @@ from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
-    untar_additional,
+    untar,
     combine_proc_sp_text,
     list_files,
 )
@@ -33,7 +33,7 @@ class Cube(object):
         cube_path: str,
         params_path: str = None,
         additional_hash: str = None,
-        image_hash: str = None,
+        image_tarball_hash: str = None,
     ):
         """Creates a Cube instance
 
@@ -43,7 +43,7 @@ class Cube(object):
             cube_path (str): path to the mlcube.yaml file associated with this cube.
             params_path (str, optional): Location of the parameters.yaml file. if exists. Defaults to None.
             additional_hash (str, optional): Hash of the tarball file, if exists. Defaults to None.
-            image_hash (str, optional): Hash of the image file, if exists. Defaults to None.
+            image_tarball_hash (str, optional): Hash of the image file, if exists. Defaults to None.
         """
         self.uid = uid
         self.meta = meta
@@ -51,7 +51,7 @@ class Cube(object):
         self.cube_path = cube_path
         self.params_path = params_path
         self.additional_hash = additional_hash
-        self.image_hash = image_hash
+        self.image_tarball_hash = image_tarball_hash
 
     @classmethod
     def get(cls, cube_uid: str, comms: Comms) -> "Cube":
@@ -71,7 +71,7 @@ class Cube(object):
         additional_path = None
         additional_hash = None
         image_path = None
-        image_hash = None
+        image_tarball_hash = None
         add_files = "additional_files_tarball_url"
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
@@ -80,13 +80,16 @@ class Cube(object):
             url = meta[add_files]
             additional_path = comms.get_cube_additional(url, cube_uid)
             additional_hash = get_file_sha1(additional_path)
-            untar_additional(additional_path)
-        if "image_url" in meta and meta["image_url"]:
-            url = meta["image_url"]
+            untar(additional_path)
+        if "image_tarball_url" in meta and meta["image_tarball_url"]:
+            url = meta["image_tarball_url"]
             image_path = comms.get_cube_image(url, cube_uid)
-            image_hash = get_file_sha1(image_path)
+            image_tarball_hash = get_file_sha1(image_path)
+            untar(image_path)
 
-        return cls(cube_uid, meta, cube_path, params_path, additional_hash, image_hash)
+        return cls(
+            cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
+        )
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
@@ -102,9 +105,9 @@ class Cube(object):
         else:
             valid_additional = True
 
-        has_image = "image_url" in self.meta and self.meta["image_url"]
+        has_image = "image_tarball_url" in self.meta and self.meta["image_tarball_url"]
         if has_image:
-            valid_image = self.image_hash == self.meta["image_hash"]
+            valid_image = self.image_tarball_hash == self.meta["image_tarball_hash"]
         else:
             valid_image = True
         return valid_additional and valid_image

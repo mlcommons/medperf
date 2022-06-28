@@ -158,22 +158,22 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     ui.print(f"> {cube.name} MD5 hash check complete")
 
 
-def untar_additional(add_filepath: str) -> str:
-    """Untars and removes the additional_files.tar.gz file
+def untar(tarpath: str) -> str:
+    """Untars and removes file
 
     Args:
-        add_filepath (str): Path where the additional_files.tar.gz file can be found.
+        tarpath (str): Path where the tarball file can be found.
 
     Returns:
         str: location where the untared files can be found.
     """
-    logging.info(f"Uncompressing additional_files.tar.gz at {add_filepath}")
-    addpath = str(Path(add_filepath).parent)
-    tar = tarfile.open(add_filepath)
-    tar.extractall(addpath)
+    logging.info(f"Uncompressing tarball at {tarpath}")
+    path = str(Path(tarpath).parent)
+    tar = tarfile.open(tarpath)
+    tar.extractall(path)
     tar.close()
-    os.remove(add_filepath)
-    return addpath
+    os.remove(tarpath)
+    return path
 
 
 def approval_prompt(msg: str, ui: "UI") -> bool:

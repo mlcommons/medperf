@@ -28,7 +28,7 @@ class SubmitCube:
                 ui.print("Additional file hash generated")
             if submission.image_file:
                 ui.text = "Generating image file hash"
-                submission.get_image_hash()
+                submission.get_image_tarball_hash()
                 ui.print("Image file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
             submission.submit()
@@ -43,7 +43,7 @@ class SubmitCube:
         self.additional_file = None
         self.additional_hash = None
         self.image_file = None
-        self.image_hash = None
+        self.image_tarball_hash = None
 
     def get_information(self):
         name_prompt = "MLCube name: "
@@ -115,10 +115,10 @@ class SubmitCube:
         )
         self.additional_hash = get_file_sha1(add_file_path)
 
-    def get_image_hash(self):
+    def get_image_tarball_hash(self):
         tmp_cube_uid = "tmp_submission"
         image_path = self.comms.get_cube_image(self.image_file, tmp_cube_uid)
-        self.image_hash = get_file_sha1(image_path)
+        self.image_tarball_hash = get_file_sha1(image_path)
 
     def todict(self):
         dict = {
@@ -130,7 +130,7 @@ class SubmitCube:
         }
         if self.image_file:
             dict["image_tarball_url"] = self.image_file
-            dict["image_tarball_hash"] = self.image_hash
+            dict["image_tarball_hash"] = self.image_tarball_hash
         if self.additional_file:
             dict["additional_files_tarball_url"] = self.additional_file
             dict["additional_files_tarball_hash"] = self.additional_hash

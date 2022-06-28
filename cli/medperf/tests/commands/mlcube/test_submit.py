@@ -108,7 +108,7 @@ def test_get_additional_hash_gets_additional_file(mocker, comms, ui, add_file):
 
 
 @pytest.mark.parametrize("img_file", ["test.test/img/file", "https://url.url/img.sif"])
-def test_get_image_hash_gets_image_file(mocker, comms, ui, img_file):
+def test_get_image_tarball_hash_gets_image_file(mocker, comms, ui, img_file):
     # Arrange
     submission = SubmitCube(comms, ui)
     submission.image_file = img_file
@@ -116,7 +116,7 @@ def test_get_image_hash_gets_image_file(mocker, comms, ui, img_file):
     mocker.patch(PATCH_MLCUBE.format("get_file_sha1"), return_value="hash")
 
     # Act
-    submission.get_image_hash()
+    submission.get_image_tarball_hash()
 
     # Assert
     spy.assert_called_once_with(img_file, ANY)
