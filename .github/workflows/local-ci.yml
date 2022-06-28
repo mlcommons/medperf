@@ -28,11 +28,11 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh -c ~/.medperf_test.crt -k ~/.medperf_test.key &
+      run: sh setup-dev-server.sh -c cert.crt -k cert.key &
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert ~/.medperf_test.crt
+      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
 
     - name: Install Docker
       run: |
@@ -49,5 +49,5 @@ jobs:
         sudo apt-get install moby-engine moby-cli containerd.io
 
     - name: Run client integration tests
-      working-directory: ./cli
-      run: sh cli.sh -s https://127.0.0.1:8000 -d ~ -u admin -p admin
+      working-directory: .
+      run: sh cli/cli.sh -s https://127.0.0.1:8000 -d ~ -u admin -p admin -a server/cert.crt
