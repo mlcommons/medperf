@@ -61,7 +61,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlotailion\nY\nY\n" | medperf --certificate $CERT_FILE --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert
+echo ${LOCAL:+'-e'} "Y\nname\ndescription\nlocation\nY\nY\n" | medperf --certificate $CERT_FILE --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert
 if [ "$?" -ne "0" ]; then
   echo "Data preparation step failed"
   tail "$MEDPERF_LOG_STORAGE"
