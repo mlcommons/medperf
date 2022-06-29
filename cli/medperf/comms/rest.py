@@ -44,6 +44,8 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
         if res.status_code != 200:
             pretty_error("Unable to change the current password", self.ui)
+            return False
+        return True
 
     def authenticate(self):
         cred_path = storage_path(config.credentials_path)
