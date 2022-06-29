@@ -25,12 +25,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def change_password(self, pwd: str, ui: UI):
+    def change_password(self, pwd: str, ui: UI) -> bool:
         """Sets a new password for the current user.
 
         Args:
             pwd (str): New password to be set
             ui (UI): Instance of an implementation
+        Returns:
+            bool: Whether changing the password was successful or not
         """
 
     @abstractmethod

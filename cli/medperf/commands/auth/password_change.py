@@ -21,7 +21,10 @@ class PasswordChange:
                 add_instructions=False,
             )
 
-        comms.change_password(pwd)
-        cred_path = storage_path(config.credentials_path)
-        os.remove(cred_path)
-        ui.print("Password changed. Please log back in with medperf login")
+        passchange_successful = comms.change_password(pwd)
+        if passchange_successful:
+            cred_path = storage_path(config.credentials_path)
+            os.remove(cred_path)
+            ui.print("Password changed. Please log back in with medperf login")
+        else:
+            pretty_error("Unable to change the current password", ui)

@@ -6,6 +6,8 @@ from medperf.commands.auth import PasswordChange
 from medperf.utils import storage_path
 from medperf import config
 
+PATCH_PASSCHANGE = "medperf.commands.auth.password_change.{}"
+
 
 @pytest.fixture(params=["token123"])
 def comms(mocker, request):
@@ -59,3 +61,16 @@ def test_run_deletes_outdated_token(mocker, comms, ui):
 
     # Assert
     spy.assert_called_once_with(cred_path)
+
+
+def test_run_doesnt_delete_token_if_failed_passchange(mocker, comms, ui):
+    # Arrange
+    mocker.patch.object(comms, "change_password", return_value=False)
+    mocker.patch(PATCH_PASSCHANGE.format("pretty_error"))
+    spy = mocker.patch("os.remove")
+
+    # Act
+    PasswordChange.run(comms, ui)
+
+    # Assert
+    spy.assert_not_called()
