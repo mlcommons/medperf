@@ -1,4 +1,4 @@
-from user.serializers import UserSerializer
+from user.serializers import UserSerializer, UserPasswordSerializer
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
 from result.serializers import ModelResultSerializer
@@ -15,6 +15,7 @@ from django.http import Http404
 from django.db.models import Q
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from rest_framework import status
 
 
 class User(GenericAPIView):
@@ -28,6 +29,25 @@ class User(GenericAPIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+
+class UserPassword(GenericAPIView):
+    serializer_class = UserPasswordSerializer
+    queryset = ""
+
+    def post(self, request, format=None):
+        """
+        Update user credentials
+        """
+        serializer = UserPasswordSerializer(
+            request.user, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            # Delete user token
+            request.user.auth_token.delete()
+            return Response({"message": "Password changed successfully"})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BenchmarkList(GenericAPIView):
