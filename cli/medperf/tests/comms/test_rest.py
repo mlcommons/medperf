@@ -5,7 +5,6 @@ from unittest.mock import mock_open, ANY
 
 from medperf import config
 from medperf.ui.interface import UI
-from medperf.comms.rest import REST
 from medperf.enums import Role
 from medperf.comms.rest import REST
 from medperf.tests.utils import rand_l
