@@ -73,7 +73,7 @@ echo "Dataset UID: $DSET_UID"
 echo "====================================="
 echo "Registering dataset with medperf"
 echo "====================================="
-medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset submit -d $DSET_UID -y
+medperf --certificate $CERT_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset submit -d $DSET_UID -y
 if [ "$?" -ne "0" ]; then
   echo "Data registration step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
@@ -82,7 +82,7 @@ fi
 echo "====================================="
 echo "Creating dataset benchmark association"
 echo "====================================="
-medperf --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset associate -d $DSET_UID -b 1 -y
+medperf --certificate $CERT_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset associate -d $DSET_UID -b 1 -y
 if [ "$?" -ne "0" ]; then
   echo "Data registration step failed"
   cat "$MEDPERF_STORAGE/medperf.log"
