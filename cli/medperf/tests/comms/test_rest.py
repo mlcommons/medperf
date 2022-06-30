@@ -9,7 +9,7 @@ from medperf.enums import Role
 from medperf.tests.mocks import MockResponse
 from medperf.tests.utils import rand_l
 
-url = "mock.url"
+url = "https://mock.url"
 patch_server = "medperf.comms.rest.{}"
 
 
@@ -28,33 +28,25 @@ def server(mocker, ui):
 @pytest.mark.parametrize(
     "method_params",
     [
-        (
-            "benchmark_association",
-            "get",
-            200,
-            [1],
-            [],
-            (f"https://{url}/me/benchmarks",),
-            {},
-        ),
-        ("get_benchmark", "get", 200, [1], {}, (f"https://{url}/benchmarks/1",), {}),
+        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {},),
+        ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
             "get",
             200,
             [1],
             [],
-            (f"https://{url}/benchmarks/1/models",),
+            (f"{url}/benchmarks/1/models",),
             {},
         ),
-        ("get_cube_metadata", "get", 200, [1], {}, (f"https://{url}/mlcubes/1/",), {}),
+        ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
         (
             "upload_dataset",
             "post",
             201,
             [{}],
             {"id": 1},
-            (f"https://{url}/datasets/",),
+            (f"{url}/datasets/",),
             {"json": {}},
         ),
         (
@@ -63,7 +55,7 @@ def server(mocker, ui):
             201,
             [{}],
             {"id": 1},
-            (f"https://{url}/results/",),
+            (f"{url}/results/",),
             {"json": {}},
         ),
         (
@@ -72,8 +64,17 @@ def server(mocker, ui):
             201,
             [1, 1],
             {},
-            (f"https://{url}/datasets/benchmarks/",),
+            (f"{url}/datasets/benchmarks/",),
             {"json": {"benchmark": 1, "dataset": 1, "approval_status": "PENDING"}},
+        ),
+        (
+            "change_password",
+            "post",
+            200,
+            ["pwd"],
+            {},
+            (f"{url}/me/password/",),
+            {"json": {"password": "pwd"}},
         ),
     ],
 )
@@ -107,6 +108,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("upload_dataset", [{}], {"id": 1}),
         ("upload_results", [{}], {"id": 1}),
         ("associate_dset_benchmark", [1, 1], {}),
+        ("change_password", [{}], {"password": "pwd"}),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
@@ -135,7 +137,7 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     mocker.patch.object(ui, "prompt", return_value=uname)
     mocker.patch.object(ui, "hidden_prompt", return_value=pwd)
     exp_body = {"username": uname, "password": pwd}
-    exp_path = f"https://{url}/auth-token/"
+    exp_path = f"{url}/auth-token/"
 
     # Act
     server.login(ui)
@@ -318,7 +320,7 @@ def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     cubes = server.get_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"https://{url}/mlcubes/")
+    spy.assert_called_once_with(f"{url}/mlcubes/")
     assert cubes == [body]
 
 
@@ -365,7 +367,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"https://{url}/me/mlcubes/")
+    spy.assert_called_once_with(f"{url}/me/mlcubes/")
 
 
 def test_get_cube_file_writes_to_file(mocker, server):
@@ -397,7 +399,7 @@ def test_get_datasets_calls_datasets_path(mocker, server, body):
     cubes = server.get_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"https://{url}/datasets/")
+    spy.assert_called_once_with(f"{url}/datasets/")
     assert cubes == [body]
 
 
@@ -414,7 +416,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"https://{url}/me/datasets/")
+    spy.assert_called_once_with(f"{url}/me/datasets/")
 
 
 @pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
