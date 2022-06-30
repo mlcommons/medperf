@@ -84,6 +84,8 @@ def server(mocker, ui):
             {},
             (f"{url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": "REJECTED"}},
+        ),
+        (
             "change_password",
             "post",
             200,
