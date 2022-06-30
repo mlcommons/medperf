@@ -139,9 +139,9 @@ def get_uids(path: str) -> List[str]:
         List[str]: UIDs of objects in path.
     """
     logging.debug("Retrieving datasets")
-    dsets = next(os.walk(storage_path(config.data_storage)))[1]
-    logging.debug(f"Found {len(dsets)} datasets")
-    logging.debug(f"Datasets: {dsets}")
+    dsets = next(os.walk(path))[1]
+    logging.debug(f"Found {len(dsets)} uids")
+    logging.debug(f"UIDs: {dsets}")
     return dsets
 
 
