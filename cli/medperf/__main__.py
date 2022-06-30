@@ -3,7 +3,7 @@ import logging
 import logging.handlers
 from os.path import abspath, expanduser
 
-from medperf.commands import Login
+from medperf.commands.auth import Login, PasswordChange
 from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage, storage_path
@@ -28,6 +28,18 @@ def login():
     """Login to the medperf server. Must be done only once.
     """
     Login.run(config.comms, config.ui)
+
+
+@app.command("passwd")
+@clean_except
+def passwd():
+    """Set a new password. Must be logged in.
+    """
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    PasswordChange.run(comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("run")

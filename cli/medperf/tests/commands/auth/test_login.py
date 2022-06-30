@@ -1,7 +1,7 @@
 import stat
 from medperf.comms import Comms
 import medperf.config as config
-from medperf.commands import Login
+from medperf.commands.auth import Login
 from medperf.utils import storage_path
 
 import pytest
