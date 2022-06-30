@@ -1,15 +1,18 @@
 import string
 import random
-from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from medperf.tests import MedPerfTest
 
-class DatasetTest(TestCase):
+
+class DatasetTest(MedPerfTest):
     """Test module for Dataset APIs"""
 
     def setUp(self):
+        super(DatasetTest, self).setUp()
+
         username = "dataowner"
         password = "".join(random.choice(string.ascii_letters) for m in range(10))
         user = User.objects.create_user(username=username, password=password,)

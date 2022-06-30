@@ -10,7 +10,7 @@ from medperf.enums import Role
 from medperf.tests.mocks import MockResponse
 from medperf.tests.utils import rand_l
 
-url = "mock.url"
+url = "https://mock.url"
 patch_server = "medperf.comms.rest.{}"
 
 
@@ -29,7 +29,7 @@ def server(mocker, ui):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {}),
+        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {},),
         ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
@@ -68,6 +68,15 @@ def server(mocker, ui):
             (f"{url}/datasets/benchmarks/",),
             {"json": {"benchmark": 1, "dataset": 1, "approval_status": "PENDING"}},
         ),
+        (
+            "change_password",
+            "post",
+            200,
+            ["pwd"],
+            {},
+            (f"{url}/me/password/",),
+            {"json": {"password": "pwd"}},
+        ),
     ],
 )
 def test_methods_run_authorized_method(mocker, server, method_params):
@@ -100,6 +109,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("upload_dataset", [{}], {"id": 1}),
         ("upload_results", [{}], {"id": 1}),
         ("associate_dset_benchmark", [1, 1], {}),
+        ("change_password", [{}], {"password": "pwd"}),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
@@ -134,7 +144,7 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     server.login(ui)
 
     # Assert
-    spy.assert_called_once_with(exp_path, json=exp_body)
+    spy.assert_called_once_with(exp_path, json=exp_body, verify=True)
 
 
 @pytest.mark.parametrize("token", ["test", "token"])
@@ -207,7 +217,7 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
     server._REST__auth_req(url, func)
 
     # Assert
-    spy.assert_called_once_with(url, headers=exp_headers)
+    spy.assert_called_once_with(url, headers=exp_headers, verify=True)
 
 
 @pytest.mark.parametrize("exp_role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])

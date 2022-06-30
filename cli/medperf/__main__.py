@@ -3,7 +3,7 @@ import logging
 import logging.handlers
 from os.path import abspath, expanduser
 
-from medperf.commands import Login
+from medperf.commands.auth import Login, PasswordChange
 from medperf.commands.result import result
 import medperf.config as config
 from medperf.utils import init_storage, storage_path
@@ -26,6 +26,18 @@ def login():
     """Login to the medperf server. Must be done only once.
     """
     Login.run(config.comms, config.ui)
+
+
+@app.command("passwd")
+@clean_except
+def passwd():
+    """Set a new password. Must be logged in.
+    """
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    PasswordChange.run(comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("run")
@@ -56,6 +68,10 @@ def main(
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
+    certificate: str = config.certificate,
+    local: bool = typer.Option(
+        False, help="Run the CLI with local server configuration"
+    ),
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
@@ -63,6 +79,12 @@ def main(
         log_file = storage_path(config.log_file)
     else:
         log_file = abspath(expanduser(log_file))
+    if local:
+        config.server = config.local_server
+        config.certificate = abspath(expanduser(config.local_certificate))
+    else:
+        config.server = host
+        config.certificate = certificate
     config.log_file = log_file
 
     init_storage()
@@ -79,7 +101,7 @@ def main(
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
     config.ui = UIFactory.create_ui(ui)
-    config.comms = CommsFactory.create_comms(comms, config.ui, host)
+    config.comms = CommsFactory.create_comms(comms, config.ui, config.server)
 
     config.ui.print(f"MedPerf {config.version}")
 
