@@ -188,6 +188,18 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_cube_image(self, url: str, cube_uid: int) -> str:
+        """Retrieves and stores the image file from the server
+
+        Args:
+            url (str): URL where the image file can be downloaded.
+            cube_uid (int): Cube UID.
+
+        Returns:
+            str: Location where the image file is stored locally.
+        """
+
+    @abstractmethod
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
 

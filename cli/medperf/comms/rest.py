@@ -304,6 +304,20 @@ class REST(Comms):
         tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
 
+    def get_cube_image(self, url: str, cube_uid: int) -> str:
+        """Retrieves and stores the image file from the server
+
+        Args:
+            url (str): URL where the image file can be downloaded.
+            cube_uid (int): Cube UID.
+
+        Returns:
+            str: Location where the image file is stored locally.
+        """
+        image_path = config.image_path
+        image_name = url.split("/")[-1]
+        return self.__get_cube_file(url, cube_uid, image_path, image_name)
+
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
         res = requests.get(url)
         if res.status_code != 200:

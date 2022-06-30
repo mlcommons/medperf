@@ -124,6 +124,10 @@ def seed(args):
                 "https://raw.githubusercontent.com/aristizabal95/medical/"
                 "65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_prep/mlcube/workspace/parameters.yaml"
             ),
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "additional_files_tarball_url": "",
+            "additional_files_tarball_hash": "",
             "metadata": {},
         },
         "id",
@@ -162,8 +166,10 @@ def seed(args):
                 "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
                 "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_chex_densenet/parameters.yaml"
             ),
-            "tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
-            "tarball_hash": "c5c408b5f9ef8b1da748e3b1f2d58b8b3eebf96e",
+            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
+            "additional_files_tarball_hash": "c5c408b5f9ef8b1da748e3b1f2d58b8b3eebf96e",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
             "metadata": {},
         },
         "id",
@@ -202,6 +208,10 @@ def seed(args):
                 "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
                 "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_metrics/parameters.yaml"
             ),
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "additional_files_tarball_url": "",
+            "additional_files_tarball_hash": "",
             "metadata": {},
         },
         "id",
@@ -291,8 +301,10 @@ def seed(args):
                 "https://raw.githubusercontent.com/aristizabal95/medical/"
                 "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/workspace/parameters.yaml"
             ),
-            "tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",
-            "tarball_hash": "e70a6c8e0931537b4b3dd8c06560f227605e9ed1",
+            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",
+            "additional_files_tarball_hash": "e70a6c8e0931537b4b3dd8c06560f227605e9ed1",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
             "metadata": {},
         },
         "id",
