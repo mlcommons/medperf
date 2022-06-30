@@ -12,9 +12,21 @@ from medperf.ui import UI
 
 class REST(Comms):
     def __init__(self, source: str, ui: UI, token=None):
-        self.server_url = source
+        self.server_url = self.__parse_url(source)
         self.token = token
         self.ui = ui
+        self.cert = config.certificate
+        if self.cert is None:
+            # No certificate provided, default to normal verification
+            self.cert = True
+
+    def __parse_url(self, url):
+        url_sections = url.split("://")
+        # Remove protocol if passed
+        if len(url_sections) > 1:
+            url = "".join(url_sections[1:])
+
+        return f"https://{url}"
 
     def login(self, ui: UI):
         """Authenticates the user with the server. Required for most endpoints
@@ -25,7 +37,7 @@ class REST(Comms):
         user = ui.prompt("username: ")
         pwd = ui.hidden_prompt("password: ")
         body = {"username": user, "password": pwd}
-        res = requests.post(f"{self.server_url}/auth-token/", json=body)
+        res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
             pretty_error("Unable to authenticate user with provided credentials", ui)
         else:
@@ -54,7 +66,20 @@ class REST(Comms):
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
             pretty_error("Must be authenticated", self.ui)
-        return req_func(url, headers={"Authorization": f"Token {self.token}"}, **kwargs)
+        return self.__req(
+            url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs
+        )
+
+    def __req(self, url, req_func, **kwargs):
+        try:
+            return req_func(url, verify=self.cert, **kwargs)
+        except requests.exceptions.SSLError as e:
+            logging.error(f"Couldn't connect to {self.server_url}: {e}")
+            pretty_error(
+                "Couldn't connect to server through HTTPS. If running locally, "
+                "remember to provide the server certificate through --certificate",
+                self.ui,
+            )
 
     def __set_approval_status(self, url: str, status: str) -> requests.Response:
         """Sets the approval status of a resource
