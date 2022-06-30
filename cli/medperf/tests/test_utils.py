@@ -1,8 +1,6 @@
 import os
 import pytest
 import random
-import time_machine
-import datetime as dt
 from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
