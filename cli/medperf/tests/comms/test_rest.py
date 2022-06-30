@@ -67,6 +67,15 @@ def server(mocker, ui):
             (f"{url}/datasets/benchmarks/",),
             {"json": {"benchmark": 1, "dataset": 1, "approval_status": "PENDING"}},
         ),
+        (
+            "change_password",
+            "post",
+            200,
+            ["pwd"],
+            {},
+            (f"{url}/me/password/",),
+            {"json": {"password": "pwd"}},
+        ),
     ],
 )
 def test_methods_run_authorized_method(mocker, server, method_params):
@@ -98,7 +107,8 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("_REST__get_cube_file", ["", 1, "", ""], {}),
         ("upload_dataset", [{}], {"id": 1}),
         ("upload_results", [{}], {"id": 1}),
-        ("associate_dset", [1, 1], {}),
+        ("associate_dset_benchmark", [1, 1], {}),
+        ("change_password", [{}], {"password": "pwd"}),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
