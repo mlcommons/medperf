@@ -30,8 +30,12 @@ class SubmitCube:
 
             if submission.additional_file:
                 ui.text = "Generating additional file hash"
-                submission.get_hash()
+                submission.get_additional_hash()
                 ui.print("Additional file hash generated")
+            if submission.image_file:
+                ui.text = "Generating image file hash"
+                submission.get_image_tarball_hash()
+                ui.print("Image file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
             submission.submit()
 
@@ -43,6 +47,8 @@ class SubmitCube:
         self.params_file = submit_info["params_file"]
         self.additional_file = submit_info["additional_file"]
         self.additional_hash = submit_info["additional_hash"]
+        self.image_file = submit_info["image_file"]
+        self.image_tarball_hash = submit_info["image_hash"]
 
     def is_valid(self):
         name_valid_length = 0 < len(self.name) < 20
@@ -59,6 +65,7 @@ class SubmitCube:
         add_file_is_valid = self.additional_file == "" or validators.url(
             self.additional_file
         )
+        image_file_is_valid = self.image_file == "" or validators.url(self.image_file)
 
         valid = True
         if not name_valid_length:
@@ -77,6 +84,10 @@ class SubmitCube:
             valid = False
             self.additional_file = None
             self.ui.print_error("Additional file is invalid")
+        if not image_file_is_valid:
+            valid = False
+            self.image_file = None
+            self.ui.print_error("Image file is invalid")
 
         return valid
 
@@ -87,6 +98,11 @@ class SubmitCube:
         )
         self.additional_hash = get_file_sha1(add_file_path)
 
+    def get_image_tarball_hash(self):
+        tmp_cube_uid = "tmp_submission"
+        image_path = self.comms.get_cube_image(self.image_file, tmp_cube_uid)
+        self.image_tarball_hash = get_file_sha1(image_path)
+
     def todict(self):
         dict = {
             "name": self.name,
@@ -95,9 +111,12 @@ class SubmitCube:
             "state": "OPERATION",
             "is_valid": True,
         }
+        if self.image_file:
+            dict["image_tarball_url"] = self.image_file
+            dict["image_tarball_hash"] = self.image_tarball_hash
         if self.additional_file:
-            dict["tarball_url"] = self.additional_file
-            dict["tarball_hash"] = self.additional_hash
+            dict["additional_files_tarball_url"] = self.additional_file
+            dict["additional_files_tarball_hash"] = self.additional_hash
         return dict
 
     def submit(self):

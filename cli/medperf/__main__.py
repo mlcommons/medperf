@@ -5,12 +5,12 @@ from os.path import abspath, expanduser
 
 import medperf.config as config
 from medperf.ui.factory import UIFactory
-from medperf.commands.login import Login
 from medperf.decorators import clean_except
 from medperf.comms.factory import CommsFactory
 import medperf.commands.result.result as result
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
+from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
 from medperf.utils import init_storage, storage_path, cleanup
 import medperf.commands.association.association as association
@@ -41,6 +41,18 @@ def login(
     """
     Login.run(config.comms, config.ui, username=username, password=password)
     config.ui.print("✅ Done!")
+
+
+@app.command("passwd")
+@clean_except
+def passwd():
+    """Set a new password. Must be logged in.
+    """
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    PasswordChange.run(comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("run")

@@ -25,6 +25,17 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def change_password(self, pwd: str, ui: UI) -> bool:
+        """Sets a new password for the current user.
+
+        Args:
+            pwd (str): New password to be set
+            ui (UI): Instance of an implementation
+        Returns:
+            bool: Whether changing the password was successful or not
+        """
+
+    @abstractmethod
     def authenticate(self):
         """Retrieve a token stored locally for authentication
         """
@@ -174,6 +185,18 @@ class Comms(ABC):
 
         Returns:
             int: UID of newly created benchmark
+        """
+
+    @abstractmethod
+    def get_cube_image(self, url: str, cube_uid: int) -> str:
+        """Retrieves and stores the image file from the server
+
+        Args:
+            url (str): URL where the image file can be downloaded.
+            cube_uid (int): Cube UID.
+
+        Returns:
+            str: Location where the image file is stored locally.
         """
 
     @abstractmethod
