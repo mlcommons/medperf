@@ -3,7 +3,9 @@ import pytest
 import requests
 from unittest.mock import mock_open, ANY
 
+from medperf import config
 from medperf.ui.interface import UI
+from medperf.comms.rest import REST
 from medperf.enums import Role
 from medperf.comms.rest import REST
 from medperf.tests.utils import rand_l
@@ -411,7 +413,7 @@ def test_get_cube_metadata_returns_retrieved_body(mocker, server, exp_body):
 
 
 @pytest.mark.parametrize(
-    "method", ["get_cube", "get_cube_params", "get_cube_additional"]
+    "method", ["get_cube", "get_cube_params", "get_cube_additional", "get_cube_image"]
 )
 def test_get_cube_methods_run_get_cube_file(mocker, server, method):
     # Arrange
@@ -425,6 +427,23 @@ def test_get_cube_methods_run_get_cube_file(mocker, server, method):
 
     # Assert
     spy.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "url", ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"]
+)
+def test_get_cube_image_uses_correct_name(mocker, server, url):
+    # Arrange
+    spy = mocker.patch(
+        patch_server.format("REST._REST__get_cube_file"), return_value=""
+    )
+    exp_filename = url.split("/")[-1]
+
+    # Act
+    server.get_cube_image(url, 1)
+
+    # Assert
+    spy.assert_called_once_with(url, 1, config.image_path, exp_filename)
 
 
 def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
