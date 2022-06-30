@@ -89,7 +89,7 @@ class Dataset:
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory", ui)
-        tmp_prefix = config.tmp_prefix
+        tmp_prefix = config.tmp_reg_prefix
         dsets = []
         for uid in uids:
             not_tmp = not uid.startswith(tmp_prefix)

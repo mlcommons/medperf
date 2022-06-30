@@ -36,7 +36,7 @@ def datasets(request):
     uids = [str(x) for x in uids]
     for i in range(size):
         if random.randint(0, 1):
-            uids[i] = config.tmp_prefix + uids[i]
+            uids[i] = config.tmp_reg_prefix + uids[i]
 
     return uids
 
@@ -132,7 +132,7 @@ def test_cleanup_removes_temporary_storage(mocker):
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
-    prefix = config.tmp_prefix
+    prefix = config.tmp_reg_prefix
     # Mock that the temporary storage path doesn't exist
     mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
     mocker.patch(patch_utils.format("cleanup_benchmarks"))
@@ -221,7 +221,7 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
     spy = mocker.patch("os.makedirs")
-    tmp_path = f"{config.tmp_prefix}{int(timestamp)}"
+    tmp_path = f"{config.tmp_reg_prefix}{int(timestamp)}"
     exp_out_path = os.path.join(data, tmp_path, "data")
 
     # Act

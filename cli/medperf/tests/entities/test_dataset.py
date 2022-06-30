@@ -23,7 +23,7 @@ REGISTRATION_MOCK = {
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
-TMP_PREFIX = config.tmp_prefix
+TMP_PREFIX = config.tmp_reg_prefix
 
 
 @pytest.fixture
