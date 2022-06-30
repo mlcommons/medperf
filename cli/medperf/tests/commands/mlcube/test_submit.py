@@ -61,6 +61,8 @@ def test_get_additional_hash_gets_additional_file(mocker, comms, ui, add_file):
         "params_file": "",
         "additional_file": "",
         "additional_hash": "",
+        "image_file": "",
+        "image_hash": "",
     }
     submission = SubmitCube(submit_info, comms, ui)
     submission.additional_file = add_file
@@ -77,7 +79,16 @@ def test_get_additional_hash_gets_additional_file(mocker, comms, ui, add_file):
 @pytest.mark.parametrize("img_file", ["test.test/img/file", "https://url.url/img.sif"])
 def test_get_image_tarball_hash_gets_image_file(mocker, comms, ui, img_file):
     # Arrange
-    submission = SubmitCube(comms, ui)
+    submit_info = {
+        "name": "",
+        "mlcube_file": "",
+        "params_file": "",
+        "additional_file": "",
+        "additional_hash": "",
+        "image_file": "",
+        "image_hash": "",
+    }
+    submission = SubmitCube(submit_info, comms, ui)
     submission.image_file = img_file
     spy = mocker.patch.object(comms, "get_cube_image", return_value="/path/to/img")
     mocker.patch(PATCH_MLCUBE.format("get_file_sha1"), return_value="hash")
@@ -98,6 +109,8 @@ def test_submit_uploads_cube_data(mocker, comms, ui):
         "params_file": "",
         "additional_file": "",
         "additional_hash": "",
+        "image_file": "",
+        "image_hash": "",
     }
     submission = SubmitCube(submit_info, comms, ui)
     spy_todict = mocker.patch.object(submission, "todict", return_value=mock_body)
