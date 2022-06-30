@@ -43,6 +43,22 @@ class REST(Comms):
         else:
             self.token = res.json()["token"]
 
+    def change_password(self, pwd: str) -> bool:
+        """Sets a new password for the current user.
+
+        Args:
+            pwd (str): New password to be set
+            ui (UI): Instance of an implementation
+        Returns:
+            bool: Whether changing the password was successful or not
+        """
+        body = {"password": pwd}
+        res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
+        if res.status_code != 200:
+            pretty_error("Unable to change the current password", self.ui)
+            return False
+        return True
+
     def authenticate(self):
         cred_path = storage_path(config.credentials_path)
         if os.path.exists(cred_path):
@@ -231,6 +247,20 @@ class REST(Comms):
         add_path = config.additional_path
         tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
+
+    def get_cube_image(self, url: str, cube_uid: int) -> str:
+        """Retrieves and stores the image file from the server
+
+        Args:
+            url (str): URL where the image file can be downloaded.
+            cube_uid (int): Cube UID.
+
+        Returns:
+            str: Location where the image file is stored locally.
+        """
+        image_path = config.image_path
+        image_name = url.split("/")[-1]
+        return self.__get_cube_file(url, cube_uid, image_path, image_name)
 
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
         res = requests.get(url)
