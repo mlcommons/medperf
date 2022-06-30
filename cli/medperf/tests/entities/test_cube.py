@@ -142,7 +142,9 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
     spy.assert_called_once_with(ANY, cube_uid, cube_meta, cube_path, params_path)
 
 
-def test_get_basic_cube_retrieves_metadata_from_comms(mocker, comms, basic_body):
+def test_get_basic_cube_retrieves_metadata_from_comms(
+    mocker, comms, basic_body, no_local
+):
     # Arrange
     spy = mocker.spy(comms, "get_cube_metadata")
 
@@ -181,7 +183,7 @@ def test_get_basic_cube_doesnt_retrieve_parameters(mocker, comms, basic_body, no
 
 @pytest.mark.parametrize("server_call", ["get_cube_additional", "get_cube_image"])
 def test_get_basic_cube_doesnt_retrieve_extra_fields(
-    mocker, comms, basic_body, server_call
+    mocker, comms, basic_body, no_local, server_call
 ):
     # Arrange
     spy = mocker.spy(comms, server_call)
@@ -294,41 +296,34 @@ def test_get_cube_requests_server_if_not_local(mocker, comms, basic_body, local_
     metadata_spy.assert_called_once()
 
 
-def test_get_cube_with_image_retrieves_image(mocker, comms, img_body):
+def test_get_cube_with_image_retrieves_image(mocker, comms, img_body, no_local):
     # Arrange
     spy = mocker.spy(comms, "get_cube_image")
 
     # Act
     uid = 1
     body = img_body(uid)
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(body["image_tarball_url"], uid)
 
 
-def test_get_cube_with_image_generates_image_tarball_hash(mocker, comms, img_body):
+def test_get_cube_with_image_generates_image_tarball_hash(
+    mocker, comms, img_body, no_local
+):
     # Arrange
     spy = mocker.spy(medperf.entities.cube, "get_file_sha1")
 
     # Act
     uid = 1
-    Cube.get(uid, comms)
+    Cube.get(uid, comms, ui)
 
     # Assert
     spy.assert_called_once_with(IMG_PATH)
 
 
-def test_cube_is_valid_if_no_extrafields(mocker, comms, basic_body):
-    # Act
-    uid = 1
-    cube = Cube.get(uid, comms)
-
-    # Assert
-    assert cube.is_valid()
-
-
-def test_cube_is_valid_with_correct_tarball_hash(mocker, comms, tar_body):
+def test_cube_is_valid_if_no_extrafields(mocker, comms, basic_body, no_local):
     # Act
     uid = 1
     cube = Cube.get(uid, comms, ui)
@@ -337,7 +332,7 @@ def test_cube_is_valid_with_correct_tarball_hash(mocker, comms, tar_body):
     assert cube.is_valid()
 
 
-def test_cube_is_valid_with_correct_image_tarball_hash(mocker, comms, img_body):
+def test_cube_is_valid_with_correct_tarball_hash(mocker, comms, tar_body, no_local):
     # Act
     uid = 1
     cube = Cube.get(uid, comms, ui)
@@ -346,19 +341,32 @@ def test_cube_is_valid_with_correct_image_tarball_hash(mocker, comms, img_body):
     assert cube.is_valid()
 
 
-def test_cube_is_invalid_with_incorrect_tarball_hash(mocker, comms, tar_body):
+def test_cube_is_valid_with_correct_image_tarball_hash(
+    mocker, comms, img_body, no_local
+):
+    # Act
+    uid = 1
+    cube = Cube.get(uid, comms, ui)
+
+    # Assert
+    assert cube.is_valid()
+
+
+def test_cube_is_invalid_with_incorrect_tarball_hash(mocker, comms, tar_body, no_local):
     # Arrange
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="incorrect_hash")
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms)
+    cube = Cube.get(uid, comms, ui)
 
     # Assert
     assert not cube.is_valid()
 
 
-def test_cube_is_invalid_with_incorrect_image_tarball_hash(mocker, comms, img_body):
+def test_cube_is_invalid_with_incorrect_image_tarball_hash(
+    mocker, comms, img_body, no_local
+):
     # Arrange
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="incorrect_hash")
 
