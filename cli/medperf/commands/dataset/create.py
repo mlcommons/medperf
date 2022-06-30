@@ -31,9 +31,11 @@ class DataPreparation:
         self.ui = ui
         self.data_path = os.path.abspath(data_path)
         self.labels_path = os.path.abspath(labels_path)
-        out_path, out_datapath = generate_tmp_datapath()
+        out_path = generate_tmp_datapath()
         self.out_path = out_path
-        self.out_datapath = out_datapath
+        self.out_datapath = os.path.join(out_path, "data")
+        self.out_labelspath = os.path.join(out_path, "labels")
+        self.labels_specified = False
         init_storage()
 
         self.benchmark = Benchmark.get(benchmark_uid, comms)
@@ -50,27 +52,50 @@ class DataPreparation:
         data_path = self.data_path
         labels_path = self.labels_path
         out_datapath = self.out_datapath
+        out_labelspath = self.out_labelspath
 
-        self.ui.text = "Running preparation step..."
-        self.cube.run(
-            self.ui,
-            task="prepare",
-            data_path=data_path,
-            labels_path=labels_path,
-            output_path=out_datapath,
+        # Specify parameters for the tasks
+        prepare_params = {
+            "data_path": data_path,
+            "labels_path": labels_path,
+            "output_path": out_datapath,
+        }
+
+        sanity_params = {
+            "data_path": out_datapath,
+        }
+
+        statistics_params = {
+            "data_path": out_datapath,
+        }
+
+        # Check if labels_path is specified
+        self.labels_specified = (
+            self.cube.get_default_output("prepare", "output_labels_path") is not None
         )
+        if self.labels_specified:
+            # Add the labels parameter
+            prepare_params["output_labels_path"] = out_labelspath
+            sanity_params["labels_path"] = out_labelspath
+            statistics_params["labels_path"] = out_labelspath
+
+        # Run the tasks
+        self.ui.text = "Running preparation step..."
+        self.cube.run(self.ui, task="prepare", **prepare_params)
         self.ui.print("> Cube execution complete")
 
         self.ui.text = "Running sanity check..."
-        self.cube.run(self.ui, task="sanity_check", data_path=out_datapath)
+        self.cube.run(self.ui, task="sanity_check", **sanity_params)
         self.ui.print("> Sanity checks complete")
 
         self.ui.text = "Generating statistics..."
-        self.cube.run(self.ui, task="statistics", data_path=out_datapath)
+        self.cube.run(self.ui, task="statistics", **statistics_params)
         self.ui.print("> Statistics complete")
 
     def create_registration(self):
-        self.registration = Registration(self.cube)
+        self.registration = Registration(
+            self.cube, separate_labels=self.labels_specified
+        )
         self.registration.generate_uids(self.data_path, self.out_datapath)
         self.registration.retrieve_additional_data(self.ui)
         self.registration.to_permanent_path(self.out_path)
