@@ -1,12 +1,15 @@
-from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from medperf.tests import MedPerfTest
 
-class UserTest(TestCase):
+
+class UserTest(MedPerfTest):
     """Test module for users APIs"""
 
     def setUp(self):
+        super(UserTest, self).setUp()
+
         username = "admin"
         password = "admin"
         self.client = APIClient()
