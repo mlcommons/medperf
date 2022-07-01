@@ -127,5 +127,4 @@ class SubmitCube:
 
     def submit(self):
         body = self.todict()
-        print(body)
         self.comms.upload_mlcube(body)
