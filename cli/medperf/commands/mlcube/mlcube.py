@@ -32,11 +32,18 @@ def submit(
         ..., "--parameters-file", "-p", help="URL to parameters file"
     ),
     additional_file: str = typer.Option(
-        "", "--additional-file", "-a", help="URL to additional file"
+        "", "--additional-file", "-a", help="URL to additional files tarball"
     ),
     additional_hash: str = typer.Option(
-        "", "--additional-hash", "-h", help="SHA1 of additional file"
+        "", "--additional-hash", help="SHA1 of additional file"
     ),
+    image_file: str = typer.Option(
+        "",
+        "--image-file",
+        "-i",
+        help="URL to image file. Expected image to be compressed inside a tarball",
+    ),
+    image_hash: str = typer.Option("", "--image-hash", help="SHA1 of image file"),
 ):
     """Submits a new cube to the platform"""
     comms = config.comms
@@ -45,8 +52,10 @@ def submit(
         "name": name,
         "mlcube_file": mlcube_file,
         "params_file": params_file,
-        "additional_file": additional_file,
-        "additional_hash": additional_hash,
+        "image_tarball_url": image_file,
+        "image_tarball_hash": image_hash,
+        "additional_files_tarball_url": additional_file,
+        "additional_files_tarball_hash": additional_hash,
     }
     SubmitCube.run(mlcube_info, comms, ui)
     cleanup()

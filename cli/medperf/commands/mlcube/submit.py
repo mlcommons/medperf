@@ -17,8 +17,10 @@ class SubmitCube:
                     name,
                     mlcube_file,
                     params_file,
-                    additional_file,
-                    additional_hash
+                    additional_files_tarball_url,
+                    additional_files_tarball_hash,
+                    image_tarball_url,
+                    image_tarball_hash,
             comms (Comms): Communication instance.
             ui (UI): UI instance.
         """
@@ -45,10 +47,10 @@ class SubmitCube:
         self.name = submit_info["name"]
         self.mlcube_file = submit_info["mlcube_file"]
         self.params_file = submit_info["params_file"]
-        self.additional_file = submit_info["additional_file"]
-        self.additional_hash = submit_info["additional_hash"]
-        self.image_file = submit_info["image_file"]
-        self.image_tarball_hash = submit_info["image_hash"]
+        self.additional_file = submit_info["additional_files_tarball_url"]
+        self.additional_hash = submit_info["additional_files_tarball_hash"]
+        self.image_file = submit_info["image_tarball_url"]
+        self.image_tarball_hash = submit_info["image_tarball_hash"]
 
     def is_valid(self):
         name_valid_length = 0 < len(self.name) < 20
@@ -108,6 +110,10 @@ class SubmitCube:
             "name": self.name,
             "git_mlcube_url": self.mlcube_file,
             "git_parameters_url": self.params_file,
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "additional_files_tarball_url": "",
+            "additional_files_tarball_hash": "",
             "state": "OPERATION",
             "is_valid": True,
         }
@@ -121,4 +127,5 @@ class SubmitCube:
 
     def submit(self):
         body = self.todict()
+        print(body)
         self.comms.upload_mlcube(body)
