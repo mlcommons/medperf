@@ -7,7 +7,7 @@ pexpect==4.8.0
 colorama==0.4.4
 time-machine==2.4.0
 pytest-mock==1.13.0
-mlcube==0.0.6
-mlcube-docker==0.0.6
-mlcube-singularity==0.0.6
+mlcube==0.0.7
+mlcube-docker==0.0.7
+mlcube-singularity==0.0.7
 validators==0.18.2
