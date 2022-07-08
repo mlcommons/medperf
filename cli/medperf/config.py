@@ -1,13 +1,13 @@
 from os.path import expanduser, abspath
 
 version = "0.0.0"
-server = "https://medperf.org"
+server = "https://fets.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
 local_certificate = "~/.medperf.crt"
 
-storage = abspath(expanduser("~/.medperf"))
+storage = abspath(expanduser("~/.medperf_fets"))
 tmp_prefix = "tmp_"
 logs_storage = "logs"
 tmp_storage = "tmp"
