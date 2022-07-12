@@ -3,7 +3,7 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path, storage_path
+from medperf.utils import pretty_error, cube_path, storage_path, sanitize_json
 import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
@@ -74,6 +74,8 @@ class REST(Comms):
         return self.__auth_req(url, requests.get, **kwargs)
 
     def __auth_post(self, url, **kwargs):
+        if "json" in kwargs:
+            kwargs["json"] = sanitize_json(kwargs["json"])
         return self.__auth_req(url, requests.post, **kwargs)
 
     def __auth_req(self, url, req_func, **kwargs):
