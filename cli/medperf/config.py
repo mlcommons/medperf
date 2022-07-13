@@ -37,7 +37,7 @@ demo_dset_paths_file = "paths.yaml"
 
 default_comms = "REST"
 default_ui = "CLI"
-platform = "docker"
+platform = "singularity"
 git_file_domain = "https://raw.githubusercontent.com"
 comms = None
 ui = None
