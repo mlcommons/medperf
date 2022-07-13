@@ -94,6 +94,22 @@ def cleanup():
     cleanup_benchmarks()
 
 
+def remove_local_cube(cube_uid):
+    cubes_path = storage_path(config.cubes_storage)
+    cube_path = os.path.join(cubes_path, cube_uid)
+    if os.path.exists(cube_path):
+        try:
+            if os.path.islink(cube_path):
+                os.unlink(cube_path)
+            else:
+                rmtree(cube_path)
+        except OSError as e:
+            logging.error(f"Could not remove cube {cube_uid}: {e}")
+            config.ui.print_error(
+                f"Could not remove cube {cube_uid}. For more information check the logs."
+            )
+
+
 def cleanup_dsets():
     """Removes clutter related to datsets
     """
@@ -133,18 +149,7 @@ def cleanup_cubes():
 
     for cube in clutter_cubes:
         logging.info(f"Removing clutter cube: {cube}")
-        cube_path = os.path.join(cubes_path, cube)
-        if os.path.exists(cube_path):
-            try:
-                if os.path.islink(cube_path):
-                    os.unlink(cube_path)
-                else:
-                    rmtree(cube_path)
-            except OSError as e:
-                logging.error(f"Could not remove cube {cube}: {e}")
-                config.ui.print_error(
-                    f"Could not remove cube {cube}. For more information check the logs."
-                )
+        remove_local_cube(cube)
 
 
 def cleanup_benchmarks():
@@ -253,7 +258,9 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        logging.info(f"Removing invalid cube: {cube.uid}")
+        remove_local_cube(str(cube.uid))
+        pretty_error("MD5 hash doesn't match", ui)
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
