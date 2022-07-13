@@ -36,6 +36,7 @@ class Cube(object):
         cube_path: str,
         params_path: str = None,
         additional_hash: str = None,
+        image_tarball_hash: str = None,
     ):
         """Creates a Cube instance
 
@@ -45,6 +46,7 @@ class Cube(object):
             cube_path (str): path to the mlcube.yaml file associated with this cube.
             params_path (str, optional): Location of the parameters.yaml file. if exists. Defaults to None.
             additional_hash (str, optional): Hash of the tarball file, if exists. Defaults to None.
+            image_tarball_hash (str, optional): Hash of the image file, if exists. Defaults to None.
         """
         self.uid = uid
         self.meta = meta
@@ -52,6 +54,7 @@ class Cube(object):
         self.cube_path = cube_path
         self.params_path = params_path
         self.additional_hash = additional_hash
+        self.image_tarball_hash = image_tarball_hash
 
     @classmethod
     def all(cls, ui: UI) -> List["Cube"]:
@@ -111,16 +114,26 @@ class Cube(object):
         params_path = None
         additional_path = None
         additional_hash = None
+        image_path = None
+        image_tarball_hash = None
+        add_files = "additional_files_tarball_url"
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
             params_path = comms.get_cube_params(url, cube_uid)
-        if "tarball_url" in meta and meta["tarball_url"]:
-            url = meta["tarball_url"]
+        if add_files in meta and meta[add_files]:
+            url = meta[add_files]
             additional_path = comms.get_cube_additional(url, cube_uid)
             additional_hash = get_file_sha1(additional_path)
             untar(additional_path)
+        if "image_tarball_url" in meta and meta["image_tarball_url"]:
+            url = meta["image_tarball_url"]
+            image_path = comms.get_cube_image(url, cube_uid)
+            image_tarball_hash = get_file_sha1(image_path)
+            untar(image_path)
 
-        return cls(cube_uid, meta, cube_path, params_path, additional_hash)
+        return cls(
+            cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
+        )
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
@@ -128,12 +141,20 @@ class Cube(object):
         Returns:
             bool: Wether the cube and related files match the expeced hashes
         """
-        has_additional = "tarball_url" in self.meta and self.meta["tarball_url"]
+        add_files = "additional_files_tarball_url"
+        add_hash = "additional_files_tarball_hash"
+        has_additional = add_files in self.meta and self.meta[add_files]
         if has_additional:
-            valid_additional = self.additional_hash == self.meta["tarball_hash"]
+            valid_additional = self.additional_hash == self.meta[add_hash]
         else:
             valid_additional = True
-        return valid_additional
+
+        has_image = "image_tarball_url" in self.meta and self.meta["image_tarball_url"]
+        if has_image:
+            valid_image = self.image_tarball_hash == self.meta["image_tarball_hash"]
+        else:
+            valid_image = True
+        return valid_additional and valid_image
 
     def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance

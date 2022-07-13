@@ -104,9 +104,9 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
     mock_isdir = init_mock_isdir(existing_dirs)
     mocker.patch("os.path.isdir", side_effect=mock_isdir)
-    spy = mocker.patch("os.mkdir")
+    spy = mocker.patch("os.makedirs")
     exp_mkdirs = list(set(config_dirs) - set(existing_dirs))
-    exp_calls = [call(exp_mkdir) for exp_mkdir in exp_mkdirs]
+    exp_calls = [call(exp_mkdir, exist_ok=True) for exp_mkdir in exp_mkdirs]
 
     # Act
     utils.init_storage()

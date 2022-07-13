@@ -9,11 +9,13 @@ from medperf.commands.result.submit import ResultSubmission
 app = typer.Typer()
 
 
-def run_benchmark(benchmark_uid, data_uid, model_uid):
+def run_benchmark(benchmark_uid, data_uid, model_uid, approved=False):
     comms = config.comms
     ui = config.ui
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(
+        benchmark_uid, data_uid, model_uid, comms, ui, approved=approved
+    )
     ui.print("✅ Done!")
 
 
@@ -32,7 +34,10 @@ def create(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    run_benchmark(benchmark_uid, data_uid, model_uid)
+    comms = config.comms
+    ui = config.ui
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("submit")

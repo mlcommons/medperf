@@ -12,9 +12,21 @@ from medperf.utils import pretty_error, cube_path, storage_path, generate_tmp_ui
 
 class REST(Comms):
     def __init__(self, source: str, ui: UI, token=None):
-        self.server_url = source
+        self.server_url = self.__parse_url(source)
         self.token = token
         self.ui = ui
+        self.cert = config.certificate
+        if self.cert is None:
+            # No certificate provided, default to normal verification
+            self.cert = True
+
+    def __parse_url(self, url):
+        url_sections = url.split("://")
+        # Remove protocol if passed
+        if len(url_sections) > 1:
+            url = "".join(url_sections[1:])
+
+        return f"https://{url}"
 
     def login(self, ui: UI, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
@@ -25,11 +37,27 @@ class REST(Comms):
             pwd (str): Password
         """
         body = {"username": user, "password": pwd}
-        res = requests.post(f"{self.server_url}/auth-token/", json=body)
+        res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
             pretty_error("Unable to authenticate user with provided credentials", ui)
         else:
             self.token = res.json()["token"]
+
+    def change_password(self, pwd: str) -> bool:
+        """Sets a new password for the current user.
+
+        Args:
+            pwd (str): New password to be set
+            ui (UI): Instance of an implementation
+        Returns:
+            bool: Whether changing the password was successful or not
+        """
+        body = {"password": pwd}
+        res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
+        if res.status_code != 200:
+            pretty_error("Unable to change the current password", self.ui)
+            return False
+        return True
 
     def authenticate(self):
         cred_path = storage_path(config.credentials_path)
@@ -54,7 +82,20 @@ class REST(Comms):
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
             self.authenticate()
-        return req_func(url, headers={"Authorization": f"Token {self.token}"}, **kwargs)
+        return self.__req(
+            url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs
+        )
+
+    def __req(self, url, req_func, **kwargs):
+        try:
+            return req_func(url, verify=self.cert, **kwargs)
+        except requests.exceptions.SSLError as e:
+            logging.error(f"Couldn't connect to {self.server_url}: {e}")
+            pretty_error(
+                "Couldn't connect to server through HTTPS. If running locally, "
+                "remember to provide the server certificate through --certificate",
+                self.ui,
+            )
 
     def __set_approval_status(self, url: str, status: str) -> requests.Response:
         """Sets the approval status of a resource
@@ -207,7 +248,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes from the platform")
+            pretty_error("couldn't retrieve mlcubes from the platform", config.ui)
         return res.json()
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
@@ -279,6 +320,20 @@ class REST(Comms):
         add_path = config.additional_path
         tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_uid, add_path, tball_file)
+
+    def get_cube_image(self, url: str, cube_uid: int) -> str:
+        """Retrieves and stores the image file from the server
+
+        Args:
+            url (str): URL where the image file can be downloaded.
+            cube_uid (int): Cube UID.
+
+        Returns:
+            str: Location where the image file is stored locally.
+        """
+        image_path = config.image_path
+        image_name = url.split("/")[-1]
+        return self.__get_cube_file(url, cube_uid, image_path, image_name)
 
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
         res = requests.get(url)
@@ -433,7 +488,7 @@ class REST(Comms):
             pretty_error("Could not associate dataset to benchmark", self.ui)
 
     def set_dataset_association_approval(
-        self, dataset_uid: str, benchmark_uid: str, status: str
+        self, benchmark_uid: str, dataset_uid: str, status: str
     ):
         """Approves a dataset association
 
@@ -452,7 +507,7 @@ class REST(Comms):
             )
 
     def set_mlcube_association_approval(
-        self, mlcube_uid: str, benchmark_uid: str, status: str
+        self, benchmark_uid: str, mlcube_uid: str, status: str
     ):
         """Approves an mlcube association
 

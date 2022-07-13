@@ -5,12 +5,12 @@ from os.path import abspath, expanduser
 
 import medperf.config as config
 from medperf.ui.factory import UIFactory
-from medperf.commands.login import Login
 from medperf.decorators import clean_except
 from medperf.comms.factory import CommsFactory
 import medperf.commands.result.result as result
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
+from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
 from medperf.utils import init_storage, storage_path, cleanup
 import medperf.commands.association.association as association
@@ -43,6 +43,18 @@ def login(
     config.ui.print("✅ Done!")
 
 
+@app.command("passwd")
+@clean_except
+def passwd():
+    """Set a new password. Must be logged in.
+    """
+    comms = config.comms
+    ui = config.ui
+    comms.authenticate()
+    PasswordChange.run(comms, ui)
+    ui.print("✅ Done!")
+
+
 @app.command("run")
 @clean_except
 def execute(
@@ -55,11 +67,15 @@ def execute(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
     result.run_benchmark(
-        benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
+        benchmark_uid=benchmark_uid,
+        data_uid=data_uid,
+        model_uid=model_uid,
+        approved=approval,
     )
 
 
@@ -125,6 +141,10 @@ def main(
     evaluate_timeout: int = config.evaluate_timeout,
     platform: str = config.platform,
     cleanup: bool = True,
+    certificate: str = config.certificate,
+    local: bool = typer.Option(
+        False, help="Run the CLI with local server configuration"
+    ),
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
@@ -140,6 +160,12 @@ def main(
         log_file = storage_path(config.log_file)
     else:
         log_file = abspath(expanduser(log_file))
+    if local:
+        config.server = config.local_server
+        config.certificate = abspath(expanduser(config.local_certificate))
+    else:
+        config.server = host
+        config.certificate = certificate
     config.log_file = log_file
 
     init_storage()
@@ -160,7 +186,7 @@ def main(
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
     config.ui = UIFactory.create_ui(ui)
-    config.comms = CommsFactory.create_comms(comms, config.ui, host)
+    config.comms = CommsFactory.create_comms(comms, config.ui, config.server)
 
     config.ui.print(f"MedPerf {config.version}")
 
