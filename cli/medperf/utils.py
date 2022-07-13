@@ -323,11 +323,14 @@ def list_files(startpath):
     return tree_str
 
 
-def sanitize_json(data: dict):
+def sanitize_json(data: dict) -> dict:
     """Makes sure the input data is JSON compliant.
 
     Args:
         data (dict): dictionary containing data to be represented as JSON.
+
+    Returns:
+        dict: sanitized dictionary
     """
     json_string = json.dumps(data)
     json_string = re.sub(r"\bNaN\b", '"nan"', json_string)
