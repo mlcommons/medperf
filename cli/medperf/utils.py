@@ -330,6 +330,7 @@ def sanitize_json(data: dict):
         data (dict): dictionary containing data to be represented as JSON.
     """
     json_string = json.dumps(data)
-    json_string = re.sub(r"\bNaN\b", "null", json_string)
+    json_string = re.sub(r"\bNaN\b", '"nan"', json_string)
+    json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
