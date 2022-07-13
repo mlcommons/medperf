@@ -74,8 +74,6 @@ class REST(Comms):
         return self.__auth_req(url, requests.get, **kwargs)
 
     def __auth_post(self, url, **kwargs):
-        if "json" in kwargs:
-            kwargs["json"] = sanitize_json(kwargs["json"])
         return self.__auth_req(url, requests.post, **kwargs)
 
     def __auth_req(self, url, req_func, **kwargs):
@@ -86,6 +84,8 @@ class REST(Comms):
         )
 
     def __req(self, url, req_func, **kwargs):
+        if "json" in kwargs:
+            kwargs["json"] = sanitize_json(kwargs["json"])
         try:
             return req_func(url, verify=self.cert, **kwargs)
         except requests.exceptions.SSLError as e:
