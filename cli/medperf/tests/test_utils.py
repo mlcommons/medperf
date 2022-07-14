@@ -402,4 +402,3 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
-
