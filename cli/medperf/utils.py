@@ -434,3 +434,12 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
+
+
+def save_cube_metadata(meta):
+    c_path = cube_path(meta["id"])
+    if not os.path.isdir(c_path):
+        os.makedirs(c_path, exist_ok=True)
+    meta_file = os.path.join(c_path, config.cube_metadata_filename)
+    with open(meta_file, "w") as f:
+        yaml.dump(meta, f)
