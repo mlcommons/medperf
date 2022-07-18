@@ -35,6 +35,7 @@ cube_submission_id = "tmp_submission"
 test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
+cube_hashes_filename = "mlcube-hashes.yaml"
 
 default_comms = "REST"
 default_ui = "CLI"

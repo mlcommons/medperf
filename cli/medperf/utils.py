@@ -436,10 +436,13 @@ def list_files(startpath):
     return tree_str
 
 
-def save_cube_metadata(meta):
+def save_cube_metadata(meta, local_hashes):
     c_path = cube_path(meta["id"])
     if not os.path.isdir(c_path):
         os.makedirs(c_path, exist_ok=True)
     meta_file = os.path.join(c_path, config.cube_metadata_filename)
     with open(meta_file, "w") as f:
         yaml.dump(meta, f)
+    local_hashes_file = os.path.join(c_path, config.cube_hashes_filename)
+    with open(local_hashes_file, "w") as f:
+        yaml.dump(local_hashes, f)

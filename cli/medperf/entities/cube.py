@@ -87,8 +87,12 @@ class Cube(object):
             if not os.path.exists(params_path):
                 params_path = None
 
-            additional_hash = meta.get("computed_additional_files_tarball_hash", "")
-            image_tarball_hash = meta.get("computed_image_tarball_hash", "")
+            local_hashes_file = os.path.join(cubes_storage, uid, config.cube_hashes_filename)
+            with open(local_hashes_file, "r") as f:
+                local_hashes = yaml.safe_load(f)
+            additional_hash = local_hashes["additional_files_tarball_hash"]
+            image_tarball_hash = local_hashes["image_tarball_hash"]
+
             cube = cls(
                 uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
             )
@@ -138,13 +142,11 @@ class Cube(object):
             image_tarball_hash = get_file_sha1(image_path)
             untar(image_path)
 
-        meta["computed_additional_files_tarball_hash"] = (
-            additional_hash if additional_hash else ""
-        )
-        meta["computed_image_tarball_hash"] = (
-            image_tarball_hash if image_tarball_hash else ""
-        )
-        save_cube_metadata(meta)
+        local_hashes = {
+            "additional_files_tarball_hash": additional_hash if additional_hash else "",
+            "image_tarball_hash": image_tarball_hash if image_tarball_hash else ""
+        }
+        save_cube_metadata(meta, local_hashes)
         return cls(
             cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
         )
