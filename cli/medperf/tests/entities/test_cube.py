@@ -549,3 +549,58 @@ def test_request_registration_approval_returns_users_input(
 
     # Assert
     assert approved == approval
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("is_valid", [True, False])
+@pytest.mark.parametrize("with_tarball", [True, False])
+@pytest.mark.parametrize("with_image", [True, False])
+def test_local_cubes_validity_can_be_detected(
+    mocker, cube_uid, is_valid, with_tarball, with_image
+):
+    # Arrange
+    if not any([is_valid, with_tarball, with_image]):
+        # an outlier test parameters combination
+        return
+    cube_uid = str(cube_uid)
+    fs = iter([(".", (cube_uid,), ())])
+    mocker.patch("os.walk", return_value=fs)
+    mocker.patch("builtins.open", mock_open())
+    cube_meta = cube_metadata_generator(False, with_tarball, with_image)(cube_uid)
+    cube_local_hashes = cube_local_hashes_generator(is_valid, with_tarball, with_image)
+    mocker.patch("yaml.safe_load", side_effect=[cube_meta, cube_local_hashes])
+    mocker.patch("os.path.exists")
+
+    # Act
+    local_cube = Cube.all(ui)[0]
+    is_cube_valid = local_cube.is_valid()
+
+    # Assert
+    assert is_cube_valid == is_valid
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("with_tarball", [True, False])
+@pytest.mark.parametrize("with_image", [True, False])
+def test_get_cube_saves_cube_metadata(
+    mocker, comms, no_local, cube_uid, with_tarball, with_image
+):
+    # Arrange
+    meta = cube_metadata_generator(False, with_tarball, with_image)(cube_uid)
+    local_hashes = cube_local_hashes_generator(True, with_tarball, with_image)
+
+    mocker.patch.object(comms, "get_cube_metadata", return_value=meta)
+    hashes_list = []
+    if with_tarball:
+        hashes_list.append(local_hashes[TARBALL_HASH])
+    if with_image:
+        hashes_list.append(local_hashes[IMG_HASH])
+
+    mocker.patch(PATCH_CUBE.format("get_file_sha1"), side_effect=hashes_list)
+    spy = mocker.patch(PATCH_CUBE.format("save_cube_metadata"))
+
+    # Act
+    Cube.get(cube_uid, comms, ui)
+
+    # Assert
+    spy.assert_called_once_with(meta, local_hashes)
