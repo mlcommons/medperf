@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, mock_open, ANY
+from unittest.mock import MagicMock, mock_open, ANY, call
 
 import medperf
 from medperf.ui.interface import UI
@@ -8,7 +8,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
-from medperf.tests.utils import rand_l
+from medperf.tests.utils import cube_local_hashes_generator, rand_l
 from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
@@ -104,17 +104,19 @@ def test_all_reads_local_cube_metadata(mocker, cube_uid):
     cubes_path = storage_path(config.cubes_storage)
     fs = iter([(".", (cube_uid,), ())])
     mocker.patch("os.walk", return_value=fs)
-    spy = mocker.patch("builtins.open", mock_open())
+    spy = mocker.patch("builtins.open", return_value=mock_open().return_value)
     cube_meta = cube_metadata_generator()(cube_uid)
     mocker.patch("yaml.safe_load", return_value=cube_meta)
 
-    exp_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
+    meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
+    hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
 
     # Act
     Cube.all(ui)
 
     # Assert
-    spy.assert_called_once_with(exp_path, "r")
+    spy.assert_has_calls([call(meta_path, "r"), call(hashes_path, "r")])
+    assert spy.call_count == 2
 
 
 @pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
@@ -127,7 +129,8 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
     mocker.patch("os.walk", return_value=fs)
     mocker.patch("builtins.open", mock_open())
     cube_meta = cube_metadata_generator()(cube_uid)
-    mocker.patch("yaml.safe_load", return_value=cube_meta)
+    cube_local_hashes = cube_local_hashes_generator()
+    mocker.patch("yaml.safe_load", side_effect=[cube_meta, cube_local_hashes])
     mocker.patch("os.path.exists", return_value=with_params)
     spy = mocker.spy(Cube, "__init__")
 
@@ -142,7 +145,13 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
 
     # Assert
     spy.assert_called_once_with(
-        ANY, cube_uid, cube_meta, cube_path, params_path, "", ""
+        ANY,
+        cube_uid,
+        cube_meta,
+        cube_path,
+        params_path,
+        cube_local_hashes["additional_files_tarball_hash"],
+        cube_local_hashes["image_tarball_hash"],
     )
 
 
