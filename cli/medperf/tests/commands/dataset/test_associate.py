@@ -1,8 +1,9 @@
 import pytest
 
 from medperf.tests.utils import rand_l
-from medperf.entities import Dataset, Benchmark
-from medperf.commands.dataset import DatasetBenchmarkAssociation
+from medperf.entities.dataset import Dataset
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
 
 patch_associate = "medperf.commands.dataset.associate.{}"
 req_func = "request_association_approval"
@@ -66,7 +67,7 @@ def test_associates_if_approved(
     mocker, comms, ui, dataset, data_uid, benchmark_uid, benchmark
 ):
     # Arrange
-    assoc_func = "associate_dset_benchmark"
+    assoc_func = "associate_dset"
     mocker.patch.object(dataset, req_func, return_value=True)
     spy = mocker.patch.object(comms, assoc_func)
     dataset.uid = data_uid

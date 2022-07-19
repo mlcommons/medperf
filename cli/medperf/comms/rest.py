@@ -3,11 +3,17 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path, storage_path, sanitize_json
-import medperf.config as config
-from medperf.comms import Comms
 from medperf.enums import Role
-from medperf.ui import UI
+import medperf.config as config
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
+from medperf.utils import (
+    pretty_error,
+    cube_path,
+    storage_path,
+    generate_tmp_uid,
+    sanitize_json,
+)
 
 
 class REST(Comms):
@@ -133,6 +139,19 @@ class REST(Comms):
         assoc_role = self.benchmark_association(benchmark_uid)
         return assoc_role.name == role
 
+    def get_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks in the platform.
+
+        Returns:
+            List[dict]: all benchmarks information.
+        """
+        res = self.__auth_get(f"{self.server_url}/benchmarks/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't retrieve benchmarks", self.ui)
+        benchmarks = res.json()
+        return benchmarks
+
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
 
@@ -167,6 +186,49 @@ class REST(Comms):
         models = res.json()
         model_uids = [model["id"] for model in models]
         return model_uids
+
+    def get_benchmark_demo_dataset(
+        self, demo_data_url: str, uid: str = generate_tmp_uid()
+    ) -> str:
+        """Downloads the benchmark demo dataset and stores it in the user's machine
+
+        Args:
+            demo_data_url (str): location of demo data for download
+            uid (str): UID to use for storing the demo dataset. Defaults to generate_tmp_uid().
+
+        Returns:
+            str: path where the downloaded demo dataset can be found
+        """
+        tmp_dir = storage_path(config.demo_data_storage)
+        demo_data_path = os.path.join(tmp_dir, uid)
+        tball_file = config.tarball_filename
+        filepath = os.path.join(demo_data_path, tball_file)
+
+        # Don't re-download if something already exists with same uid
+        if os.path.exists(filepath):
+            return filepath
+
+        res = requests.get(demo_data_url)
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("couldn't download the demo dataset", self.ui)
+
+        os.mkdir(demo_data_path)
+
+        open(filepath, "wb+").write(res.content)
+        return filepath
+
+    def get_user_benchmarks(self) -> List[dict]:
+        """Retrieves all benchmarks created by the user
+
+        Returns:
+            List[dict]: Benchmarks data
+        """
+        res = self.__auth_get(f"{self.server_url}/me/benchmarks/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("wasn't able to retrieve user benchmarks", self.ui)
+        return res.json()
 
     def get_cubes(self) -> List[dict]:
         """Retrieves all MLCubes in the platform
@@ -267,6 +329,7 @@ class REST(Comms):
     def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
         res = requests.get(url)
         if res.status_code != 200:
+            logging.error(f"Retrieving cube file failed with: {res.status_code}")
             logging.error(res.json())
             pretty_error(
                 "There was a problem retrieving the specified file at " + url, self.ui
@@ -279,6 +342,20 @@ class REST(Comms):
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
+
+    def upload_benchmark(self, benchmark_dict: dict) -> int:
+        """Uploads a new benchmark to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        res = self.__auth_post(f"{self.server_url}/benchmarks/", json=benchmark_dict)
+        if res.status_code != 201:
+            logging.error(res.json())
+            pretty_error("Could not upload benchmark", self.ui)
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
@@ -361,7 +438,7 @@ class REST(Comms):
             pretty_error("Could not upload the results", self.ui)
         return res.json()["id"]
 
-    def associate_dset_benchmark(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int):
         """Create a Dataset Benchmark association
 
         Args:

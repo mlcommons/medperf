@@ -69,6 +69,7 @@ if [ "$?" -ne "0" ]; then
 fi
 echo "\n"
 DSET_UID=$(medperf --certificate $CERT_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+echo "Dataset UID: $DSET_UID"
 echo "====================================="
 echo "Approving dataset association"
 echo "====================================="

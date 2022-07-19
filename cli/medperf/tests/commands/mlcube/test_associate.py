@@ -1,7 +1,7 @@
 import pytest
 
 from medperf.tests.utils import rand_l
-from medperf.commands.mlcube import AssociateCube
+from medperf.commands.mlcube.associate import AssociateCube
 
 
 @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))

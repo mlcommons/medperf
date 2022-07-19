@@ -1,8 +1,8 @@
 import validators
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
+from medperf.ui.interface import UI
+import medperf.config as config
+from medperf.comms.interface import Comms
 from medperf.utils import get_file_sha1
 
 

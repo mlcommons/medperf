@@ -1,12 +1,11 @@
 import typer
-from medperf.commands.dataset import (
-    DatasetsList,
-    DatasetRegistration,
-    DataPreparation,
-    DatasetBenchmarkAssociation,
-)
-from medperf.decorators import clean_except
+
 import medperf.config as config
+from medperf.decorators import clean_except
+from medperf.commands.dataset.list import DatasetsList
+from medperf.commands.dataset.create import DataPreparation
+from medperf.commands.dataset.submit import DatasetRegistration
+from medperf.commands.dataset.associate import DatasetBenchmarkAssociation
 
 app = typer.Typer()
 

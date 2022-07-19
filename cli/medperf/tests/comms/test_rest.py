@@ -4,11 +4,11 @@ import requests
 from unittest.mock import mock_open, ANY
 
 from medperf import config
-from medperf.ui import UI
-from medperf.comms import REST
 from medperf.enums import Role
-from medperf.tests.mocks import MockResponse
+from medperf.ui.interface import UI
+from medperf.comms.rest import REST
 from medperf.tests.utils import rand_l
+from medperf.tests.mocks import MockResponse
 
 url = "https://mock.url"
 patch_server = "medperf.comms.rest.{}"
@@ -60,7 +60,7 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "associate_dset_benchmark",
+            "associate_dset",
             "post",
             201,
             [1, 1],
@@ -108,7 +108,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("_REST__get_cube_file", ["", 1, "", ""], {}),
         ("upload_dataset", [{}], {"id": 1}),
         ("upload_results", [{}], {"id": 1}),
-        ("associate_dset_benchmark", [1, 1], {}),
+        ("associate_dset", [1, 1], {}),
         ("change_password", [{}], {"password": "pwd"}),
     ],
 )
@@ -299,6 +299,20 @@ def test_authorized_by_role_returns_true_when_authorized(
 
 
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
+def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
+    # Arrange
+    res = MockResponse([body], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    bmarks = server.get_benchmarks()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/benchmarks/")
+    assert bmarks == [body]
+
+
+@pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmark_returns_benchmark_body(mocker, server, body):
     # Arrange
     res = MockResponse(body, 200)
@@ -323,6 +337,38 @@ def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
 
     # Assert
     assert set(uids) == set(exp_uids)
+
+
+def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    benchmarks = [
+        {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
+        {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
+    ]
+    res = MockResponse(benchmarks, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    server.get_user_benchmarks()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/me/benchmarks/")
+
+
+def test_get_user_benchmarks_returns_benchmarks(mocker, server):
+    # Arrange
+    benchmarks = [
+        {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
+        {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
+    ]
+    res = MockResponse(benchmarks, 200)
+    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    retrieved_benchmarks = server.get_user_benchmarks()
+
+    # Assert
+    assert benchmarks == retrieved_benchmarks
 
 
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])

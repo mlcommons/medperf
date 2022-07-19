@@ -1,19 +1,21 @@
-import logging
-import yaml
 import os
-from pathlib import Path
+import yaml
 import pexpect
+import logging
+from typing import List
+from pathlib import Path
 
-from medperf.comms import Comms
-from medperf.ui import UI
-from medperf import config
 from medperf.utils import (
     get_file_sha1,
     pretty_error,
     untar,
     combine_proc_sp_text,
     list_files,
+    storage_path,
 )
+from medperf.ui.interface import UI
+import medperf.config as config
+from medperf.comms.interface import Comms
 
 
 class Cube(object):
@@ -54,17 +56,58 @@ class Cube(object):
         self.image_tarball_hash = image_tarball_hash
 
     @classmethod
-    def get(cls, cube_uid: str, comms: Comms) -> "Cube":
-        """Retrieves and creates a Cube instance from the comms
+    def all(cls, ui: UI) -> List["Cube"]:
+        """Class method for retrieving all cubes stored on the user's machine.
+
+        Args:
+            ui (UI): Instance of an UI implementation.
+
+        Returns:
+            List[Cube]: List containing all cubes found locally
+        """
+        logging.info("Retrieving all local cubes")
+        cubes_storage = storage_path(config.cubes_storage)
+        try:
+            uids = next(os.walk(cubes_storage))[1]
+        except StopIteration:
+            msg = "Couldn't iterate over cubes directory"
+            logging.warning(msg)
+            pretty_error(msg, ui)
+
+        cubes = []
+        for uid in uids:
+            cube_path = os.path.join(cubes_storage, uid, config.cube_filename)
+            with open(cube_path, "r") as f:
+                meta = yaml.safe_load(f)
+
+            params_path = os.path.join(cubes_storage, uid, config.params_filename)
+            if not os.path.exists(params_path):
+                params_path = None
+            cube = cls(uid, meta, cube_path, params_path)
+            cubes.append(cube)
+
+        return cubes
+
+    @classmethod
+    def get(cls, cube_uid: str, comms: Comms, ui: UI) -> "Cube":
+        """Retrieves and creates a Cube instance from the comms. If cube already exists
+        inside the user's computer then retrieves it from there.
 
         Args:
             cube_uid (str): UID of the cube.
             comms (Comms): Instance of the server interface.
+            ui (UI): Instance of an UI implementation.
 
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
-        cube_uid = cube_uid
+        "Retrieve from local storage if cube already there"
+        local_cube = list(
+            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all(ui))
+        )
+        if len(local_cube) == 1:
+            return local_cube[0]
+
         meta = comms.get_cube_metadata(cube_uid)
         cube_path = comms.get_cube(meta["git_mlcube_url"], cube_uid)
         params_path = None
