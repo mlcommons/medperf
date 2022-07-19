@@ -180,7 +180,7 @@ class Benchmark:
         storage = storage_path(config.benchmarks_storage)
         bmk_path = os.path.join(storage, str(self.uid))
         if not os.path.exists(bmk_path):
-            os.mkdir(bmk_path)
+            os.makedirs(bmk_path, exist_ok=True)
         filepath = os.path.join(bmk_path, filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)

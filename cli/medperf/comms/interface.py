@@ -257,19 +257,61 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def associate_dset(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
 
         Args:
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
 
     @abstractmethod
-    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+
+    @abstractmethod
+    def set_dataset_association_approval(
+        self, dataset_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves a dataset association
+
+        Args:
+            dataset_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+
+    @abstractmethod
+    def set_mlcube_association_approval(
+        self, mlcube_uid: str, benchmark_uid: str, status: str
+    ):
+        """Approves an mlcube association
+
+        Args:
+            mlcube_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+
+    @abstractmethod
+    def get_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+
+    @abstractmethod
+    def get_cubes_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
         """

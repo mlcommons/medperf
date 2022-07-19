@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import os
 import yaml
+import random
 import hashlib
 import logging
 import tarfile
@@ -14,6 +15,7 @@ from pexpect import spawn
 from datetime import datetime
 from typing import List, Tuple
 from colorama import Fore, Style
+from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.ui.interface import UI
@@ -65,16 +67,28 @@ def init_storage():
     for dir in dirs:
         if not os.path.isdir(dir):
             logging.info(f"Creating {dir} directory")
-            os.mkdir(dir)
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except FileExistsError:
+                logging.warning(f"Tried to create existing folder {dir}")
 
 
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
+    if not config.cleanup:
+        logging.info("Cleanup disabled")
+        return
     tmp_path = storage_path(config.tmp_storage)
     if os.path.exists(tmp_path):
         logging.info("Removing temporary data storage")
-        rmtree(tmp_path, ignore_errors=True)
+        try:
+            rmtree(tmp_path)
+        except OSError as e:
+            logging.error(f"Could not remove temporary data storage: {e}")
+            config.ui.print_error(
+                "Could not remove temporary data storage. For more information check the logs."
+            )
 
     cleanup_dsets()
     cleanup_cubes()
@@ -98,7 +112,13 @@ def cleanup_dsets():
         logging.info(f"Removing clutter dataset: {dset}")
         dset_path = os.path.join(dsets_path, dset)
         if os.path.exists(dset_path):
-            rmtree(dset_path, ignore_errors=True)
+            try:
+                rmtree(dset_path)
+            except OSError as e:
+                logging.error(f"Could not remove dataset {dset}: {e}")
+                config.ui.print_error(
+                    f"Could not remove dataset {dset}. For more information check the logs."
+                )
 
 
 def cleanup_cubes():
@@ -107,13 +127,25 @@ def cleanup_cubes():
     cubes_path = storage_path(config.cubes_storage)
     cubes = get_uids(cubes_path)
     test_prefix = config.test_cube_prefix
-    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
+    submission = config.cube_submission_id
+    clutter_cubes = [
+        cube for cube in cubes if cube.startswith(test_prefix) or cube == submission
+    ]
 
     for cube in clutter_cubes:
         logging.info(f"Removing clutter cube: {cube}")
         cube_path = os.path.join(cubes_path, cube)
         if os.path.exists(cube_path):
-            rmtree(cube_path, ignore_errors=True)
+            try:
+                if os.path.islink(cube_path):
+                    os.unlink(cube_path)
+                else:
+                    rmtree(cube_path)
+            except OSError as e:
+                logging.error(f"Could not remove cube {cube}: {e}")
+                config.ui.print_error(
+                    f"Could not remove cube {cube}. For more information check the logs."
+                )
 
 
 def cleanup_benchmarks():
@@ -127,7 +159,13 @@ def cleanup_benchmarks():
         logging.info(f"Removing clutter benchmark: {bmk}")
         bmk_path = os.path.join(bmks_path, bmk)
         if os.path.exists(bmk_path):
-            rmtree(bmk_path, ignore_errors=True)
+            try:
+                rmtree(bmk_path)
+            except OSError as e:
+                logging.error(f"Could not remove benchmark {bmk}: {e}")
+                config.ui.print_error(
+                    f"Could not remove benchmark {bmk}. For more information check the logs."
+                )
 
 
 def get_uids(path: str) -> List[str]:
@@ -194,12 +232,15 @@ def generate_tmp_datapath() -> Tuple[str, str]:
 
 def generate_tmp_uid() -> str:
     """Generates a temporary uid by means of getting the current timestamp
+    with a random salt
 
     Returns:
         str: generated temporary uid
     """
     dt = datetime.utcnow()
-    ts = str(int(datetime.timestamp(dt)))
+    ts_int = int(datetime.timestamp(dt))
+    salt = random.randint(-ts_int, ts_int)
+    ts = str(ts_int + salt)
     return ts
 
 
@@ -293,7 +334,12 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     static_text = ui.text
     proc_out = ""
     while proc.isalive():
-        line = byte = proc.read(1)
+        try:
+            line = byte = proc.read(1)
+        except TIMEOUT:
+            logging.info("Process timed out")
+            pretty_error("Process timed out", ui)
+
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
             line += byte

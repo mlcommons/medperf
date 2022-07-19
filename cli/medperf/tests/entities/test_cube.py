@@ -9,6 +9,7 @@ from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
 from medperf.tests.utils import rand_l
+from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 
@@ -378,22 +379,28 @@ def test_cube_is_invalid_with_incorrect_image_tarball_hash(
     assert not cube.is_valid()
 
 
-def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body, no_local):
+@pytest.mark.parametrize("timeout", rand_l(1, 100, 1) + [None])
+def test_cube_runs_command_with_pexpect(
+    mocker, ui, comms, basic_body, no_local, timeout
+):
     # Arrange
     mpexpect = MockPexpect(0)
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task}"
+    platform = config.platform
+    expected_cmd = (
+        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform}"
+    )
 
     # Act
     uid = 1
     cube = Cube.get(uid, comms, ui)
-    cube.run(ui, "task")
+    cube.run(ui, "task", timeout=timeout)
 
     # Assert
-    spy.assert_called_once_with(expected_cmd, timeout=None)
+    spy.assert_called_once_with(expected_cmd, timeout=timeout)
 
 
 def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_local):
@@ -402,7 +409,8 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
     spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
-    expected_cmd = f'mlcube run --mlcube={CUBE_PATH} --task={task} test="test"'
+    platform = config.platform
+    expected_cmd = f'mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform} test="test"'
 
     # Act
     uid = 1
@@ -505,3 +513,27 @@ def test_default_output_returns_path_with_params(mocker, comms, params_body, no_
 
     # Assert
     assert out_path == exp_path
+
+
+@pytest.mark.parametrize("approval", [True, False])
+def test_request_registration_approval_returns_users_input(
+    mocker, comms, ui, approval, basic_body, no_local
+):
+    # Arrange
+    cube_contents = {
+        "tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: {"default": VALUE}}}}}
+    }
+    mocker.patch("builtins.open", MagicMock())
+    m = MagicMock(side_effect=[cube_contents])
+    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
+
+    uid = "1"
+    mock_benchmark = Benchmark()
+    mocker.patch(PATCH_CUBE.format("approval_prompt"), return_value=approval)
+    cube = Cube.get(uid, comms, ui)
+
+    # Act
+    approved = cube.request_association_approval(mock_benchmark, ui)
+
+    # Assert
+    assert approved == approval

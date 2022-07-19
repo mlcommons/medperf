@@ -9,12 +9,13 @@ from medperf.commands.result.submit import ResultSubmission
 app = typer.Typer()
 
 
-def run_benchmark(benchmark_uid, data_uid, model_uid):
+def run_benchmark(benchmark_uid, data_uid, model_uid, approved=False):
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(
+        benchmark_uid, data_uid, model_uid, comms, ui, approved=approved
+    )
     ui.print("✅ Done!")
 
 
@@ -33,7 +34,10 @@ def create(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    run_benchmark(benchmark_uid, data_uid, model_uid)
+    comms = config.comms
+    ui = config.ui
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ui.print("✅ Done!")
 
 
 @app.command("submit")
@@ -48,12 +52,14 @@ def submit(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of the executed model"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(
+        benchmark_uid, data_uid, model_uid, comms, ui, approved=approval
+    )
     ui.print("✅ Done!")
 
 
@@ -63,5 +69,4 @@ def list():
     """List results stored locally and remotely from the user"""
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     ResultsList.run(comms, ui)

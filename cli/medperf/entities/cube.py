@@ -6,6 +6,7 @@ from typing import List
 from pathlib import Path
 
 from medperf.utils import (
+    approval_prompt,
     get_file_sha1,
     pretty_error,
     untar,
@@ -155,25 +156,27 @@ class Cube(object):
             valid_image = True
         return valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, **kwargs):
+    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
             ui (UI): an instance of an UI implementation
             task (str): task to run
+            timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
+        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
-        proc = pexpect.spawn(cmd, timeout=None)
+        proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
             ui.text = "\n"
+            ui.print(proc_out)
             pretty_error("There was an error while executing the cube", ui)
 
         logging.debug(list_files(config.storage))
@@ -212,3 +215,19 @@ class Cube(object):
             out_path = os.path.join(out_path, params[param_key])
 
         return out_path
+
+    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
+        """Prompts the user for approval concerning associating a cube with a benchmark.
+
+        Args:
+            benchmark (Benchmark): Benchmark to be associated with
+            ui (UI): Instance of an UI interface
+
+        Returns:
+            bool: wether the user gave consent or not
+        """
+
+        msg = "Please confirm that you would like to associate "
+        msg += f"the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
+        approved = approval_prompt(msg, ui)
+        return approved

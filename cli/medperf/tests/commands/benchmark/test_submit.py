@@ -7,6 +7,17 @@ PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
 NAME_MAX_LEN = 20
 DESC_MAX_LEN = 100
 
+# benchmark_info = {
+#     "name": name,
+#     "description": description,
+#     "docs_url": docs_url,
+#     "demo_url": "",
+#     "demo_hash": "",
+#     "data_preparation_mlcube": prep_uid,
+#     "reference_model_mlcube": model_uid,
+#     "evaluator_mlcube": eval_uid,
+# }
+
 
 @pytest.fixture
 def benchmark(mocker):
@@ -19,56 +30,6 @@ def benchmark(mocker):
         return bmk
 
     return benchmark_gen
-
-
-@pytest.mark.parametrize("name", [None, "", "name"])
-@pytest.mark.parametrize("description", [None, "description"])
-@pytest.mark.parametrize("docs_url", [None, "docs_url"])
-@pytest.mark.parametrize("prep_uid", [None, "", "prep_uid"])
-@pytest.mark.parametrize("model_uid", [None, "", "model_uid"])
-@pytest.mark.parametrize("eval_uid", [None, "", "eval_uid"])
-def test_get_information_promps_unassigned_fields(
-    mocker, comms, ui, name, description, docs_url, prep_uid, model_uid, eval_uid
-):
-    # Arrange
-    assign_val = "assign_val"
-    submission = SubmitBenchmark(comms, ui)
-    submission.name = name
-    submission.description = description
-    submission.docs_url = docs_url
-    submission.data_preparation_mlcube = prep_uid
-    submission.reference_model_mlcube = model_uid
-    submission.data_evaluator_mlcube = eval_uid
-    mocker.patch.object(ui, "prompt", return_value=assign_val)
-
-    # Act
-    submission.get_information()
-
-    # Assert
-    if not name:
-        assert submission.name == assign_val
-    else:
-        assert submission.name == name
-    if not description:
-        assert submission.description == assign_val
-    else:
-        assert submission.description == description
-    if not docs_url:
-        assert submission.docs_url == assign_val
-    else:
-        assert submission.docs_url == docs_url
-    if not prep_uid:
-        assert submission.data_preparation_mlcube == assign_val
-    else:
-        assert submission.data_preparation_mlcube == prep_uid
-    if not model_uid:
-        assert submission.reference_model_mlcube == assign_val
-    else:
-        assert submission.reference_model_mlcube == model_uid
-    if not eval_uid:
-        assert submission.data_evaluator_mlcube == assign_val
-    else:
-        assert submission.data_evaluator_mlcube == eval_uid
 
 
 @pytest.mark.parametrize(
@@ -90,15 +51,17 @@ def test_is_valid_passes_valid_fields(
     comms, ui, name, desc, docs_url, demo_url, prep_uid, model_uid, eval_uid
 ):
     # Arrange
-    submission = SubmitBenchmark(comms, ui)
-    submission.name = name[0]
-    submission.description = desc[0]
-    submission.docs_url = docs_url[0]
-    submission.demo_url = demo_url[0]
-    submission.demo_hash = "test"
-    submission.data_preparation_mlcube = prep_uid[0]
-    submission.reference_model_mlcube = model_uid[0]
-    submission.data_evaluator_mlcube = eval_uid[0]
+    benchmark_info = {
+        "name": name[0],
+        "description": desc[0],
+        "docs_url": docs_url[0],
+        "demo_url": demo_url[0],
+        "demo_hash": "test",
+        "data_preparation_mlcube": prep_uid[0],
+        "reference_model_mlcube": model_uid[0],
+        "evaluator_mlcube": eval_uid[0],
+    }
+    submission = SubmitBenchmark(benchmark_info, comms, ui)
     should_pass = all(
         [
             name[1],
@@ -121,7 +84,17 @@ def test_is_valid_passes_valid_fields(
 def test_submit_uploads_benchmark_data(mocker, comms, ui):
     # Arrange
     mock_body = {}
-    submission = SubmitBenchmark(comms, ui)
+    benchmark_info = {
+        "name": "",
+        "description": "",
+        "docs_url": "",
+        "demo_url": "demo_url",
+        "demo_hash": "",
+        "data_preparation_mlcube": "",
+        "reference_model_mlcube": "",
+        "evaluator_mlcube": "",
+    }
+    submission = SubmitBenchmark(benchmark_info, comms, ui)
     spy_todict = mocker.patch.object(submission, "todict", return_value=mock_body)
     spy_upload = mocker.patch.object(comms, "upload_benchmark", return_value=1)
 
@@ -140,8 +113,17 @@ def test_get_extra_information_retrieves_expected_info(
     mocker, demo_hash, demo_uid, results, comms, ui
 ):
     # Arrange
-    submission = SubmitBenchmark(comms, ui)
-    submission.demo_url = "demo_url"
+    benchmark_info = {
+        "name": "",
+        "description": "",
+        "docs_url": "",
+        "demo_url": "demo_url",
+        "demo_hash": "",
+        "data_preparation_mlcube": "",
+        "reference_model_mlcube": "",
+        "evaluator_mlcube": "",
+    }
+    submission = SubmitBenchmark(benchmark_info, comms, ui)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value="demo_path")
     mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
     mocker.patch(
@@ -161,7 +143,17 @@ def test_get_extra_information_retrieves_expected_info(
 def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
     # Arrange
     bmk = benchmark("1", "2", "3", "4")
-    submission = SubmitBenchmark(comms, ui)
+    benchmark_info = {
+        "name": "",
+        "description": "",
+        "docs_url": "",
+        "demo_url": "demo_url",
+        "demo_hash": "",
+        "data_preparation_mlcube": "",
+        "reference_model_mlcube": "",
+        "evaluator_mlcube": "",
+    }
+    submission = SubmitBenchmark(benchmark_info, comms, ui)
     tmp_bmk_spy = mocker.patch(
         PATCH_BENCHMARK.format("Benchmark.tmp"), return_value=bmk
     )

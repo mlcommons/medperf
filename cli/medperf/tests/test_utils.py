@@ -104,9 +104,9 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
     mock_isdir = init_mock_isdir(existing_dirs)
     mocker.patch("os.path.isdir", side_effect=mock_isdir)
-    spy = mocker.patch("os.mkdir")
+    spy = mocker.patch("os.makedirs")
     exp_mkdirs = list(set(config_dirs) - set(existing_dirs))
-    exp_calls = [call(exp_mkdir) for exp_mkdir in exp_mkdirs]
+    exp_calls = [call(exp_mkdir, exist_ok=True) for exp_mkdir in exp_mkdirs]
 
     # Act
     utils.init_storage()
@@ -126,7 +126,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     utils.cleanup()
 
     # Assert
-    spy.assert_called_once_with(tmp, ignore_errors=True)
+    spy.assert_called_once_with(tmp)
 
 
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
@@ -141,7 +141,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
 
     invalid_dsets = [dset for dset in datasets if dset.startswith(prefix)]
     invalid_dsets = [os.path.join(data, dset) for dset in invalid_dsets]
-    exp_calls = [call(inv_dset, ignore_errors=True) for inv_dset in invalid_dsets]
+    exp_calls = [call(inv_dset) for inv_dset in invalid_dsets]
 
     # Act
     utils.cleanup()
@@ -213,14 +213,16 @@ def test_pretty_error_exits_program(mocker, ui):
 
 
 @pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
+@pytest.mark.parametrize("salt", rand_l(1, 5000, 2))
+def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     # Arrange
     datetime = dt.datetime(*timeparams)
     traveller = time_machine.travel(datetime)
     traveller.start()
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
-    tmp_path = f"{config.tmp_prefix}{int(timestamp)}"
+    mocker.patch("random.randint", return_value=salt)
+    tmp_path = f"{config.tmp_prefix}{int(timestamp + salt)}"
     exp_out_path = os.path.join(data, tmp_path)
 
     # Act
