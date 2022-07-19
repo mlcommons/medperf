@@ -50,7 +50,11 @@ class Dataset:
         self.input_data_hash = registration["input_data_hash"]
         self.separate_labels = registration.get("separate_labels", False)
         self.split_seed = registration["split_seed"]
-        self.metadata = registration["metadata"]
+        if "metadata" in registration:
+            # Make sure it is backwards-compatible
+            self.generated_metadata = registration["metadata"]
+        else:
+            self.generated_metadata = registration["generated_metadata"]
         self.status = registration["status"]
         self.state = registration["state"]
 
@@ -69,7 +73,7 @@ class Dataset:
             "input_data_hash": self.input_data_hash,
             "generated_uid": self.generated_uid,
             "split_seed": self.split_seed,
-            "metadata": self.metadata,
+            "generated_metadata": self.generated_metadata,
             "status": self.status,
             "state": self.state,
             "separate_labels": self.separate_labels,
