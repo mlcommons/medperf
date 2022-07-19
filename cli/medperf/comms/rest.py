@@ -3,7 +3,7 @@ import requests
 import logging
 import os
 
-from medperf.utils import pretty_error, cube_path, storage_path
+from medperf.utils import pretty_error, cube_path, storage_path, sanitize_json
 import medperf.config as config
 from medperf.comms import Comms
 from medperf.enums import Role
@@ -87,6 +87,8 @@ class REST(Comms):
         )
 
     def __req(self, url, req_func, **kwargs):
+        if "json" in kwargs:
+            kwargs["json"] = sanitize_json(kwargs["json"])
         try:
             return req_func(url, verify=self.cert, **kwargs)
         except requests.exceptions.SSLError as e:

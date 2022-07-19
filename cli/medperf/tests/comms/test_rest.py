@@ -240,6 +240,20 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
     spy.assert_called_once_with(url, headers=exp_headers, verify=True)
 
 
+def test__req_sanitizes_json(mocker, server):
+    # Arrange
+    body = {}
+    spy = mocker.patch(patch_server.format("sanitize_json"))
+    mocker.patch("requests.post")
+    func = requests.post
+
+    # Act
+    server._REST__req(url, func, json=body)
+
+    # Assert
+    spy.assert_called_once_with(body)
+
+
 @pytest.mark.parametrize("exp_role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
 def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
     # Arrange
