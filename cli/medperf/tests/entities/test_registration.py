@@ -22,7 +22,7 @@ REG_DICT_KEYS = [
     "data_preparation_mlcube",
     "generated_uid",
     "input_data_hash",
-    "metadata",
+    "generated_metadata",
     "status",
     "uid",
     "state",
