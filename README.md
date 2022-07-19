@@ -66,8 +66,11 @@ In addition to the BTCV dataset, we also included another publicly available dat
 
 **Participating institutions**
 
-- CNRS, France
-- IHU Strasbourg, France
+- University Hospital of Strasbourg, France
+- Policlinico Universitario Agostino Gemelli, Rome, Italy
+- Azienda Ospedaliero-Universitaria Sant’Andrea, Rome, Italy
+- Fondazione IRCCS Ca’ Granda Ospedale Maggiore Policlinico, Milan, Italy
+- Monaldi Hospital, Naples, Italy
 
 **Task**
 
