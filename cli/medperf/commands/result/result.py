@@ -2,7 +2,9 @@ import typer
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.result import BenchmarkExecution, ResultSubmission, ResultsList
+from medperf.commands.result.list import ResultsList
+from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.result.submit import ResultSubmission
 
 app = typer.Typer()
 
@@ -40,7 +42,7 @@ def submit(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the executed benchmark"
     ),
-    data_uid: int = typer.Option(
+    data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="UID of the dataset used for results"
     ),
     model_uid: int = typer.Option(

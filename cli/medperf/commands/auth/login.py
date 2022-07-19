@@ -1,9 +1,9 @@
 import os
 import stat
 
-from medperf.ui import UI
-from medperf.comms import Comms
+from medperf.ui.interface import UI
 import medperf.config as config
+from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 
 

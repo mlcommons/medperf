@@ -1,6 +1,6 @@
-from collections.abc import Callable
 import functools
 import logging
+from collections.abc import Callable
 
 from medperf.utils import cleanup
 
