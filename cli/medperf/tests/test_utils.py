@@ -411,3 +411,19 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
 
     # Assert
     assert path == expected_path
+
+
+@pytest.mark.parametrize(
+    "encode_pair",
+    [(float("nan"), "nan"), (float("inf"), "Infinity"), (float("-inf"), "-Infinity")],
+)
+def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
+    # Arrange
+    val, exp_encoding = encode_pair
+    body = {"test": val}
+
+    # Act
+    sanitized_dict = utils.sanitize_json(body)
+
+    # Assert
+    assert sanitized_dict["test"] == exp_encoding
