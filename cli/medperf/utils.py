@@ -7,6 +7,7 @@ import hashlib
 import logging
 import tarfile
 from glob import glob
+import json
 from pathlib import Path
 from shutil import rmtree
 from pexpect import spawn
@@ -391,3 +392,19 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
+
+
+def sanitize_json(data: dict) -> dict:
+    """Makes sure the input data is JSON compliant.
+
+    Args:
+        data (dict): dictionary containing data to be represented as JSON.
+
+    Returns:
+        dict: sanitized dictionary
+    """
+    json_string = json.dumps(data)
+    json_string = re.sub(r"\bNaN\b", '"nan"', json_string)
+    json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
+    data = json.loads(json_string)
+    return data
