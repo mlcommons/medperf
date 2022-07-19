@@ -14,7 +14,7 @@ REGISTRATION_MOCK = {
     "location": "location",
     "data_preparation_mlcube": "data_preparation_mlcube",
     "split_seed": "split_seed",
-    "metadata": {},
+    "metadata": {"metadata_key": "metadata_value"},
     "generated_uid": "generated_uid",
     "input_data_hash": "input_data_hash",
     "status": "PENDING",
@@ -110,6 +110,18 @@ def test_all_ignores_temporary_datasets(mocker, ui, all_uids):
 
     # Assert
     assert f"{TMP_PREFIX}3" not in uids
+
+
+@pytest.mark.parametrize("all_uids", [["1", "2", f"{TMP_PREFIX}3"]], indirect=True)
+def test_dataset_metadata_is_backwards_compatible(mocker, ui, all_uids):
+    # Arrange
+    uid = "1"
+
+    # Act
+    dset = Dataset(uid, ui)
+
+    # Assert
+    assert dset.generated_metadata == REGISTRATION_MOCK["metadata"]
 
 
 @pytest.mark.parametrize(
