@@ -8,7 +8,6 @@ from medperf.utils import (
     generate_tmp_datapath,
     init_storage,
     cleanup,
-    pretty_error,
 )
 
 
@@ -98,9 +97,6 @@ class DataPreparation:
             self.cube, separate_labels=self.labels_specified
         )
         self.registration.generate_uids(self.data_path, self.out_datapath)
-        if self.registration.is_registered(self.ui):
-            msg = "This dataset has already been prepared. No changes made"
-            pretty_error(msg, self.ui)
         self.registration.retrieve_additional_data(self.ui)
         self.registration.to_permanent_path(self.out_path)
         self.registration.write()
