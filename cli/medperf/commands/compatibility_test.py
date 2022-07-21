@@ -174,6 +174,16 @@ class CompatibilityTestExecution:
             dst = os.path.join(cubes_storage, temp_uid)
             os.symlink(path, dst)
             logging.info(f"local cube will be linked to path: {dst}")
+            cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
+            cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
+            if not os.path.exists(cube_metadata_file):
+                metadata = {"name": temp_uid, "is_valid": True}
+                with open(cube_metadata_file, "w") as f:
+                    yaml.dump(metadata, f)
+            if not os.path.exists(cube_hashes_filename):
+                hashes = {"additional_files_tarball_hash": "", "image_tarball_hash": ""}
+                with open(cube_hashes_filename, "w") as f:
+                    yaml.dump(hashes, f)
             return
 
         logging.warning(f"mlcube {val} was not found as an existing mlcube")

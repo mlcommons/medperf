@@ -1,4 +1,5 @@
 import os
+from medperf import config
 import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
@@ -470,3 +471,32 @@ def test_run_uses_correct_uids(
     exec_spy.assert_called_once_with(
         tmp_uid, exp_data_uid, exp_model_uid, comms, ui, run_test=True
     )
+
+
+@pytest.mark.parametrize("files_already_exist", [True, False])
+def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_exist):
+    # Arrange
+    model_path = "/path/to/model"
+    if files_already_exist:
+        exists_side_effect = lambda path: True
+        num_calls_expected = 0
+    else:
+        cube_metadata_file = os.path.join(model_path, config.cube_metadata_filename)
+        cube_hashes_filename = os.path.join(model_path, config.cube_hashes_filename)
+        exists_side_effect = lambda path: path not in [
+            cube_metadata_file,
+            cube_hashes_filename,
+        ]
+        num_calls_expected = 2
+
+    mocker.patch("os.symlink")
+    mocker.patch("os.path.exists", side_effect=exists_side_effect)
+    open_spy = mocker.patch("builtins.open", mock_open())
+    yml_spy = mocker.patch(PATCH_TEST.format("yaml.dump"))
+    # Act
+    cls = CompatibilityTestExecution("1", None, None, model_path, None, comms, ui)
+    cls.set_cube_uid("model")
+
+    # Assert
+    assert open_spy.call_count == num_calls_expected
+    assert yml_spy.call_count == num_calls_expected
