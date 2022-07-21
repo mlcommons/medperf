@@ -438,3 +438,19 @@ def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
     open_spy.assert_has_calls([call(meta_path, "w"), call(hashes_path, "w")])
     assert open_spy.call_count == 2
     yaml_spy.assert_has_calls([call(meta, meta_handler), call(hashes, hash_handler)])
+
+
+@pytest.mark.parametrize(
+    "encode_pair",
+    [(float("nan"), "nan"), (float("inf"), "Infinity"), (float("-inf"), "-Infinity")],
+)
+def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
+    # Arrange
+    val, exp_encoding = encode_pair
+    body = {"test": val}
+
+    # Act
+    sanitized_dict = utils.sanitize_json(body)
+
+    # Assert
+    assert sanitized_dict["test"] == exp_encoding

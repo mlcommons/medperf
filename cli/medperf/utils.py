@@ -8,6 +8,7 @@ import hashlib
 import logging
 import tarfile
 from glob import glob
+import json
 from pathlib import Path
 from shutil import rmtree
 from pexpect import spawn
@@ -446,3 +447,19 @@ def save_cube_metadata(meta, local_hashes):
     local_hashes_file = os.path.join(c_path, config.cube_hashes_filename)
     with open(local_hashes_file, "w") as f:
         yaml.dump(local_hashes, f)
+
+
+def sanitize_json(data: dict) -> dict:
+    """Makes sure the input data is JSON compliant.
+
+    Args:
+        data (dict): dictionary containing data to be represented as JSON.
+
+    Returns:
+        dict: sanitized dictionary
+    """
+    json_string = json.dumps(data)
+    json_string = re.sub(r"\bNaN\b", '"nan"', json_string)
+    json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
+    data = json.loads(json_string)
+    return data
