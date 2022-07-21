@@ -478,15 +478,21 @@ def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_e
     # Arrange
     model_path = "/path/to/model"
     if files_already_exist:
-        exists_side_effect = lambda path: True
+
+        def exists_side_effect(path):
+            return True
+
         num_calls_expected = 0
     else:
         cube_metadata_file = os.path.join(model_path, config.cube_metadata_filename)
         cube_hashes_filename = os.path.join(model_path, config.cube_hashes_filename)
-        exists_side_effect = lambda path: path not in [
-            cube_metadata_file,
-            cube_hashes_filename,
-        ]
+
+        def exists_side_effect(path):
+            return path not in [
+                cube_metadata_file,
+                cube_hashes_filename,
+            ]
+
         num_calls_expected = 2
 
     mocker.patch("os.symlink")
