@@ -254,7 +254,7 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        pretty_error("MD5 hash doesn't match", ui)
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -435,6 +435,18 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
+
+
+def save_cube_metadata(meta, local_hashes):
+    c_path = cube_path(meta["id"])
+    if not os.path.isdir(c_path):
+        os.makedirs(c_path, exist_ok=True)
+    meta_file = os.path.join(c_path, config.cube_metadata_filename)
+    with open(meta_file, "w") as f:
+        yaml.dump(meta, f)
+    local_hashes_file = os.path.join(c_path, config.cube_hashes_filename)
+    with open(local_hashes_file, "w") as f:
+        yaml.dump(local_hashes, f)
 
 
 def sanitize_json(data: dict) -> dict:

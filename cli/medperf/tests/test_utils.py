@@ -9,9 +9,9 @@ from unittest.mock import mock_open, call, ANY
 from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.tests.utils import rand_l
+from medperf.tests.utils import rand_l, cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
-
+from medperf.tests.mocks.requests import cube_metadata_generator
 
 parent = config.storage
 data = utils.storage_path(config.data_storage)
@@ -413,6 +413,31 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
 
     # Assert
     assert path == expected_path
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
+    # Arrange
+    cube_uid = str(cube_uid)
+    meta = cube_metadata_generator()(cube_uid)
+    hashes = cube_local_hashes_generator()
+    cubes_path = utils.storage_path(config.cubes_storage)
+    meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
+    hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
+
+    mocker.patch("os.path.isdir", return_value=True)
+    meta_handler = mock_open().return_value
+    hash_handler = mock_open().return_value
+    open_spy = mocker.patch("builtins.open", side_effect=[meta_handler, hash_handler])
+    yaml_spy = mocker.patch("yaml.dump")
+
+    # Act
+    utils.save_cube_metadata(meta, hashes)
+
+    # Assert
+    open_spy.assert_has_calls([call(meta_path, "w"), call(hashes_path, "w")])
+    assert open_spy.call_count == 2
+    yaml_spy.assert_has_calls([call(meta, meta_handler), call(hashes, hash_handler)])
 
 
 @pytest.mark.parametrize(
