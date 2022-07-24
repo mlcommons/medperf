@@ -93,7 +93,7 @@ class Registration:
             "data_preparation_mlcube": self.cube.uid,
             "generated_uid": self.generated_uid,
             "input_data_hash": self.in_uid,
-            "metadata": self.stats,
+            "generated_metadata": self.stats,
             "status": self.status,
             "uid": self.uid,
             "state": "OPERATION",
