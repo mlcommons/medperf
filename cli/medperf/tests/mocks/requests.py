@@ -61,6 +61,7 @@ def cube_metadata_generator(with_params=False, with_tarball=False, with_image=Fa
             "created_at": "timestamp",
             "modified_at": "timestamp",
             "owner": 1,
+            "is_valid": True,
         }
 
     return cube_metadata_body
