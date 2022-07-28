@@ -65,12 +65,11 @@ def init_storage():
 
     dirs = [parent, bmks, data, cubes, results, tmp, demo, log]
     for dir in dirs:
-        if not os.path.isdir(dir):
-            logging.info(f"Creating {dir} directory")
-            try:
-                os.makedirs(dir, exist_ok=True)
-            except FileExistsError:
-                logging.warning(f"Tried to create existing folder {dir}")
+        logging.info(f"Creating {dir} directory")
+        try:
+            os.makedirs(dir, exist_ok=True)
+        except FileExistsError:
+            logging.warning(f"Tried to create existing folder {dir}")
 
 
 def cleanup():
