@@ -493,7 +493,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
-            pretty_error("Could not associate dataset to benchmark", self.ui)
+            pretty_error("Could not associate mlcube to benchmark", self.ui)
 
     def set_dataset_association_approval(
         self, benchmark_uid: str, dataset_uid: str, status: str
