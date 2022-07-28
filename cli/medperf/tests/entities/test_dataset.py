@@ -17,7 +17,7 @@ REGISTRATION_MOCK = {
     "metadata": {"metadata_key": "metadata_value"},
     "generated_uid": "generated_uid",
     "input_data_hash": "input_data_hash",
-    "status": "status",
+    "status": "PENDING",
     "uid": "uid",
     "state": "state",
 }
@@ -232,7 +232,6 @@ def test_request_registration_approval_returns_users_input(
     uid = "1"
     mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=approval)
     mocker.patch(PATCH_DATASET.format("dict_pretty_print"))
-    mocker.patch("typer.echo")
     dset = Dataset(uid, ui)
 
     # Act

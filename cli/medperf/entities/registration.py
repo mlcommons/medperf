@@ -103,13 +103,6 @@ class Registration:
 
         return registration
 
-    def retrieve_additional_data(self, ui: UI):
-        """Prompts the user for the name, description and location
-        """
-        self.name = ui.prompt("Provide a dataset name: ")
-        self.description = ui.prompt("Provide a description:  ")
-        self.location = ui.prompt("Provide a location:     ")
-
     def request_approval(self, ui: UI) -> bool:
         """Prompts the user for approval concerning uploading the registration to the comms.
 
@@ -141,7 +134,8 @@ class Registration:
         """
         uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
-        os.rename(out_path, new_path)
+        if not os.path.exists(new_path):
+            os.rename(out_path, new_path)
         self.path = new_path
         return new_path
 

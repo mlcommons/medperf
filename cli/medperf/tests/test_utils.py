@@ -9,9 +9,9 @@ from unittest.mock import mock_open, call, ANY
 from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.tests.utils import rand_l
+from medperf.tests.utils import rand_l, cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
-
+from medperf.tests.mocks.requests import cube_metadata_generator
 
 parent = config.storage
 data = utils.storage_path(config.data_storage)
@@ -104,9 +104,9 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
     mock_isdir = init_mock_isdir(existing_dirs)
     mocker.patch("os.path.isdir", side_effect=mock_isdir)
-    spy = mocker.patch("os.mkdir")
+    spy = mocker.patch("os.makedirs")
     exp_mkdirs = list(set(config_dirs) - set(existing_dirs))
-    exp_calls = [call(exp_mkdir) for exp_mkdir in exp_mkdirs]
+    exp_calls = [call(exp_mkdir, exist_ok=True) for exp_mkdir in exp_mkdirs]
 
     # Act
     utils.init_storage()
@@ -126,7 +126,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     utils.cleanup()
 
     # Assert
-    spy.assert_called_once_with(tmp, ignore_errors=True)
+    spy.assert_called_once_with(tmp)
 
 
 @pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
@@ -141,7 +141,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
 
     invalid_dsets = [dset for dset in datasets if dset.startswith(prefix)]
     invalid_dsets = [os.path.join(data, dset) for dset in invalid_dsets]
-    exp_calls = [call(inv_dset, ignore_errors=True) for inv_dset in invalid_dsets]
+    exp_calls = [call(inv_dset) for inv_dset in invalid_dsets]
 
     # Act
     utils.cleanup()
@@ -172,7 +172,7 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     # Arrange
     spy = mocker.patch.object(ui, "print_error")
     mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch(patch_utils.format("exit"))
+    mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error(msg, ui)
@@ -187,7 +187,7 @@ def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
     # Arrange
     spy = mocker.patch(patch_utils.format("cleanup"))
     mocker.patch("typer.echo")
-    mocker.patch(patch_utils.format("exit"))
+    mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error("test", ui, clean)
@@ -203,7 +203,7 @@ def test_pretty_error_exits_program(mocker, ui):
     # Arrange
     mocker.patch(patch_utils.format("cleanup"))
     mocker.patch("typer.echo")
-    spy = mocker.patch(patch_utils.format("exit"))
+    spy = mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error("test", ui)
@@ -213,14 +213,16 @@ def test_pretty_error_exits_program(mocker, ui):
 
 
 @pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams):
+@pytest.mark.parametrize("salt", rand_l(1, 5000, 2))
+def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     # Arrange
     datetime = dt.datetime(*timeparams)
     traveller = time_machine.travel(datetime)
     traveller.start()
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
-    tmp_path = f"{config.tmp_prefix}{int(timestamp)}"
+    mocker.patch("random.randint", return_value=salt)
+    tmp_path = f"{config.tmp_prefix}{int(timestamp + salt)}"
     exp_out_path = os.path.join(data, tmp_path)
 
     # Act
@@ -411,6 +413,31 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
 
     # Assert
     assert path == expected_path
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
+    # Arrange
+    cube_uid = str(cube_uid)
+    meta = cube_metadata_generator()(cube_uid)
+    hashes = cube_local_hashes_generator()
+    cubes_path = utils.storage_path(config.cubes_storage)
+    meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
+    hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
+
+    mocker.patch("os.path.isdir", return_value=True)
+    meta_handler = mock_open().return_value
+    hash_handler = mock_open().return_value
+    open_spy = mocker.patch("builtins.open", side_effect=[meta_handler, hash_handler])
+    yaml_spy = mocker.patch("yaml.dump")
+
+    # Act
+    utils.save_cube_metadata(meta, hashes)
+
+    # Assert
+    open_spy.assert_has_calls([call(meta_path, "w"), call(hashes_path, "w")])
+    assert open_spy.call_count == 2
+    yaml_spy.assert_has_calls([call(meta, meta_handler), call(hashes, hash_handler)])
 
 
 @pytest.mark.parametrize(

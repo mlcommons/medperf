@@ -13,6 +13,9 @@ OUT_LABELSPATH = "out_path/labels"
 BENCHMARK_UID = "benchmark_uid"
 DATA_PATH = "data_path"
 LABELS_PATH = "labels_path"
+NAME = "name"
+DESCRIPTION = "description"
+LOCATION = "location"
 
 
 @pytest.fixture
@@ -20,7 +23,6 @@ def registration(mocker, request):
     mock_reg = mocker.create_autospec(spec=Registration)
     mocker.patch.object(mock_reg, "generate_uids")
     mocker.patch.object(mock_reg, "is_registered", return_value=False)
-    mocker.patch.object(mock_reg, "retrieve_additional_data")
     mocker.patch.object(mock_reg, "to_permanent_path")
     mocker.patch.object(mock_reg, "write")
     mock_reg.generated_uid = request.param
@@ -35,7 +37,9 @@ def preparation(mocker, comms, ui, registration):
         PATCH_DATAPREP.format("generate_tmp_datapath"), return_value=OUT_PATH,
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
-    preparation = DataPreparation(BENCHMARK_UID, DATA_PATH, LABELS_PATH, comms, ui)
+    preparation = DataPreparation(
+        BENCHMARK_UID, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION, comms, ui
+    )
     mocker.patch(PATCH_DATAPREP.format("Registration"), return_value=registration)
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()
@@ -81,12 +85,13 @@ class TestWithDefaultUID:
         prepare = call(
             ui,
             task="prepare",
+            timeout=None,
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
         )
-        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH)
-        stats = call(ui, task="statistics", data_path=OUT_DATAPATH)
+        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
+        stats = call(ui, task="statistics", data_path=OUT_DATAPATH, timeout=None)
         calls = [prepare, check, stats]
 
         # Act
@@ -106,16 +111,25 @@ class TestWithDefaultUID:
         prepare = call(
             ui,
             task="prepare",
+            timeout=None,
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
             output_labels_path=OUT_LABELSPATH,
         )
         check = call(
-            ui, task="sanity_check", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH
+            ui,
+            task="sanity_check",
+            timeout=None,
+            data_path=OUT_DATAPATH,
+            labels_path=OUT_LABELSPATH,
         )
         stats = call(
-            ui, task="statistics", data_path=OUT_DATAPATH, labels_path=OUT_LABELSPATH
+            ui,
+            task="statistics",
+            timeout=None,
+            data_path=OUT_DATAPATH,
+            labels_path=OUT_LABELSPATH,
         )
         calls = [prepare, check, stats]
 
@@ -171,19 +185,6 @@ class TestWithDefaultUID:
 
         # Assert
         spy.assert_called_once()
-
-    def test_create_registration_retrieves_additional_data(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        ui = preparation.ui
-        spy = mocker.patch.object(registration, "retrieve_additional_data")
-
-        # Act
-        preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once_with(ui)
 
     def test_create_registration_moves_to_permanent_path(
         self, mocker, preparation, registration

@@ -1,31 +1,39 @@
 from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.utils import pretty_error
+from medperf.comms.interface import Comms
+from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.dataset.associate import AssociateDataset
 
 
 class AssociateBenchmark:
     @classmethod
     def run(
-        cls, benchmark_uid: str, model_uid: str, dset_uid: str, comms: Comms, ui: UI
+        cls,
+        benchmark_uid: str,
+        model_uid: str,
+        data_uid: str,
+        comms: Comms,
+        ui: UI,
+        approved=False,
     ):
         """Associates a dataset or model to the given benchmark
 
         Args:
             benchmark_uid (str): UID of benchmark to associate entities with
             model_uid (str): UID of model to associate with benchmark
-            dset_uid (str): UID of dataset to associate with benchmark
-            comms (Comms): _description_
-            ui (UI): _description_
+            data_uid (str): UID of dataset to associate with benchmark
+            comms (Comms): Instance of Communications interface
+            ui (UI): Instance of UI interface
+            approved (bool): Skip approval step. Defaults to False
         """
-        if model_uid and dset_uid:
+        too_many_resources = data_uid and model_uid
+        no_resource = data_uid is None and model_uid is None
+        if no_resource or too_many_resources:
             pretty_error(
-                "Can only associate one entity at a time. Pass a model or a dataset only",
-                ui,
+                "Invalid arguments. Must provide either a dataset or mlcube", ui
             )
         if model_uid is not None:
-            comms.associate_cube(model_uid, benchmark_uid)
-            ui.print("Association request to MLCube created")
+            AssociateCube.run(model_uid, benchmark_uid, comms, ui, approved=approved)
 
-        if dset_uid is not None:
-            comms.associate_dset(dset_uid, benchmark_uid)
-            ui.print("Association request to dataset created")
+        if data_uid is not None:
+            AssociateDataset.run(data_uid, benchmark_uid, comms, ui, approved=approved)

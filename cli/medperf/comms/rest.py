@@ -34,14 +34,14 @@ class REST(Comms):
 
         return f"https://{url}"
 
-    def login(self, ui: UI):
+    def login(self, ui: UI, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
 
         Args:
             ui (UI): Instance of an implementation of the UI interface
+            user (str): Username
+            pwd (str): Password
         """
-        user = ui.prompt("username: ")
-        pwd = ui.hidden_prompt("password: ")
         body = {"username": user, "password": pwd}
         res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
@@ -82,9 +82,12 @@ class REST(Comms):
     def __auth_post(self, url, **kwargs):
         return self.__auth_req(url, requests.post, **kwargs)
 
+    def __auth_put(self, url, **kwargs):
+        return self.__auth_req(url, requests.put, **kwargs)
+
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
-            pretty_error("Must be authenticated", self.ui)
+            self.authenticate()
         return self.__req(
             url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs
         )
@@ -101,6 +104,20 @@ class REST(Comms):
                 "remember to provide the server certificate through --certificate",
                 self.ui,
             )
+
+    def __set_approval_status(self, url: str, status: str) -> requests.Response:
+        """Sets the approval status of a resource
+
+        Args:
+            url (str): URL to the resource to update
+            status (str): approval status to set
+
+        Returns:
+            requests.Response: Response object returned by the update
+        """
+        data = {"approval_status": status}
+        res = self.__auth_put(url, json=data,)
+        return res
 
     def benchmark_association(self, benchmark_uid: int) -> Role:
         """Retrieves the benchmark association
@@ -213,7 +230,7 @@ class REST(Comms):
             logging.error(res.json())
             pretty_error("couldn't download the demo dataset", self.ui)
 
-        os.mkdir(demo_data_path)
+        os.makedirs(demo_data_path, exist_ok=True)
 
         open(filepath, "wb+").write(res.content)
         return filepath
@@ -239,7 +256,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes from the platform")
+            pretty_error("couldn't retrieve mlcubes from the platform", config.ui)
         return res.json()
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
@@ -280,7 +297,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes created by the user")
+            pretty_error("couldn't retrieve mlcubes created by the user", self.ui)
         data = res.json()
         return data
 
@@ -338,7 +355,7 @@ class REST(Comms):
             c_path = cube_path(cube_uid)
             path = os.path.join(c_path, path)
             if not os.path.isdir(path):
-                os.makedirs(path)
+                os.makedirs(path, exist_ok=True)
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
@@ -356,6 +373,7 @@ class REST(Comms):
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not upload benchmark", self.ui)
+        return res.json()["id"]
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
@@ -438,37 +456,103 @@ class REST(Comms):
             pretty_error("Could not upload the results", self.ui)
         return res.json()["id"]
 
-    def associate_dset(self, data_uid: int, benchmark_uid: int):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
 
         Args:
             data_uid (int): Registered dataset UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
         data = {
             "dataset": data_uid,
             "benchmark": benchmark_uid,
             "approval_status": "PENDING",
+            "metadata": metadata,
         }
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not associate dataset to benchmark", self.ui)
 
-    def associate_cube(self, cube_uid: str, benchmark_uid: int):
+    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
             cube_uid (str): MLCube UID
             benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
         """
         data = {
             "results": {},
             "approval_status": "PENDING",
             "model_mlcube": cube_uid,
             "benchmark": benchmark_uid,
+            "metadata": metadata,
         }
         res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
-            pretty_error("Could not associate dataset to benchmark", self.ui)
+            pretty_error("Could not associate mlcube to benchmark", self.ui)
+
+    def set_dataset_association_approval(
+        self, benchmark_uid: str, dataset_uid: str, status: str
+    ):
+        """Approves a dataset association
+
+        Args:
+            dataset_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+        res = self.__set_approval_status(url, status)
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error(
+                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}",
+                self.ui,
+            )
+
+    def set_mlcube_association_approval(
+        self, benchmark_uid: str, mlcube_uid: str, status: str
+    ):
+        """Approves an mlcube association
+
+        Args:
+            mlcube_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+        res = self.__set_approval_status(url, status)
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error(
+                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}",
+                self.ui,
+            )
+
+    def get_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/datasets/associations/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve user datasets associations", self.ui)
+        return res.json()
+
+    def get_cubes_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/mlcubes/associations/")
+        if res.status_code != 200:
+            logging.error(res.json())
+            pretty_error("Could not retrieve user mlcubes associations", self.ui)
+        return res.json()
