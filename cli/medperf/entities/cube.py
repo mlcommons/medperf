@@ -87,7 +87,9 @@ class Cube(object):
             if not os.path.exists(params_path):
                 params_path = None
 
-            local_hashes_file = os.path.join(cubes_storage, uid, config.cube_hashes_filename)
+            local_hashes_file = os.path.join(
+                cubes_storage, uid, config.cube_hashes_filename
+            )
             with open(local_hashes_file, "r") as f:
                 local_hashes = yaml.safe_load(f)
             additional_hash = local_hashes["additional_files_tarball_hash"]
@@ -121,13 +123,21 @@ class Cube(object):
             return local_cube[0]
 
         meta = comms.get_cube_metadata(cube_uid)
+        # Backwards compatibility for cubes with
+        # tarball_url instead of additional_files_tarball_url
+        old_files = "tarball_url"
+        old_hash = "tarball_hash"
+        add_files = "additional_files_tarball_url"
+        add_hash = "additional_files_tarball_hash"
+        if old_files in meta:
+            meta[add_files] = meta[old_files]
+            meta[add_hash] = meta[old_hash]
         cube_path = comms.get_cube(meta["git_mlcube_url"], cube_uid)
         params_path = None
         additional_path = None
         additional_hash = None
         image_path = None
         image_tarball_hash = None
-        add_files = "additional_files_tarball_url"
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
             params_path = comms.get_cube_params(url, cube_uid)
@@ -144,7 +154,7 @@ class Cube(object):
 
         local_hashes = {
             "additional_files_tarball_hash": additional_hash if additional_hash else "",
-            "image_tarball_hash": image_tarball_hash if image_tarball_hash else ""
+            "image_tarball_hash": image_tarball_hash if image_tarball_hash else "",
         }
         save_cube_metadata(meta, local_hashes)
         return cls(
