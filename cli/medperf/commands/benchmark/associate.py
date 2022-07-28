@@ -26,10 +26,11 @@ class AssociateBenchmark:
             ui (UI): Instance of UI interface
             approved (bool): Skip approval step. Defaults to False
         """
-        if model_uid and data_uid:
+        too_many_resources = data_uid and model_uid
+        no_resource = data_uid is None and model_uid is None
+        if no_resource or too_many_resources:
             pretty_error(
-                "Can only associate one entity at a time. Pass a model or a dataset only",
-                ui,
+                "Invalid arguments. Must provide either a dataset or mlcube", ui
             )
         if model_uid is not None:
             AssociateCube.run(model_uid, benchmark_uid, comms, ui, approved=approved)
