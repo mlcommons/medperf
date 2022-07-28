@@ -172,7 +172,7 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     # Arrange
     spy = mocker.patch.object(ui, "print_error")
     mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch(patch_utils.format("exit"))
+    mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error(msg, ui)
@@ -187,7 +187,7 @@ def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
     # Arrange
     spy = mocker.patch(patch_utils.format("cleanup"))
     mocker.patch("typer.echo")
-    mocker.patch(patch_utils.format("exit"))
+    mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error("test", ui, clean)
@@ -203,7 +203,7 @@ def test_pretty_error_exits_program(mocker, ui):
     # Arrange
     mocker.patch(patch_utils.format("cleanup"))
     mocker.patch("typer.echo")
-    spy = mocker.patch(patch_utils.format("exit"))
+    spy = mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error("test", ui)
