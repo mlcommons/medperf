@@ -4,6 +4,12 @@ from medperf.entities.dataset import Dataset
 
 
 class ResultSubmission:
+    @classmethod
+    def run(cls, benchmark_uid, data_uid, model_uid, comms, ui, approved=False):
+        dset = Dataset(data_uid, ui)
+        sub = cls(benchmark_uid, dset.uid, model_uid, comms, ui, approved=approved)
+        sub.upload_results()
+
     def __init__(self, benchmark_uid, data_uid, model_uid, comms, ui, approved=False):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -11,12 +17,6 @@ class ResultSubmission:
         self.comms = comms
         self.ui = ui
         self.approved = approved
-
-    @classmethod
-    def run(cls, benchmark_uid, data_uid, model_uid, comms, ui, approved=False):
-        dset = Dataset(data_uid, ui)
-        sub = cls(benchmark_uid, dset.uid, model_uid, comms, ui, approved=approved)
-        sub.upload_results()
 
     def upload_results(self):
         result = Result(self.benchmark_uid, self.data_uid, self.model_uid)
