@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import os
+import sys
 import yaml
 import random
 import hashlib
@@ -201,7 +202,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     ui.print_error(msg)
     if clean:
         cleanup()
-    exit(1)
+    sys.exit(1)
 
 
 def cube_path(uid: int) -> str:
