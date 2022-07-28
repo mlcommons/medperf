@@ -1,12 +1,11 @@
 import typer
-from medperf.commands.dataset import (
-    DatasetsList,
-    DatasetRegistration,
-    DataPreparation,
-    DatasetBenchmarkAssociation,
-)
-from medperf.decorators import clean_except
+
 import medperf.config as config
+from medperf.decorators import clean_except
+from medperf.commands.dataset.list import DatasetsList
+from medperf.commands.dataset.create import DataPreparation
+from medperf.commands.dataset.submit import DatasetRegistration
+from medperf.commands.dataset.associate import AssociateDataset
 
 app = typer.Typer()
 
@@ -21,8 +20,7 @@ def datasets(
     """
     ui = config.ui
     comms = config.comms
-    comms.authenticate()
-    DatasetsList.run(comms, ui)
+    DatasetsList.run(comms, ui, all)
 
 
 @app.command("create")
@@ -37,16 +35,32 @@ def create(
     labels_path: str = typer.Option(
         ..., "--labels_path", "-l", help="Labels file location"
     ),
+    name: str = typer.Option(..., "--name", help="Name of the dataset"),
+    description: str = typer.Option(
+        ..., "--description", help="Description of the dataset"
+    ),
+    location: str = typer.Option(
+        ..., "--location", help="Location or Institution the data belongs to"
+    ),
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
-    data_uid = DataPreparation.run(benchmark_uid, data_path, labels_path, comms, ui)
-    DatasetRegistration.run(data_uid, comms, ui)
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    data_uid = DataPreparation.run(
+        benchmark_uid,
+        data_path,
+        labels_path,
+        comms,
+        ui,
+        name=name,
+        description=description,
+        location=location,
+    )
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: register the dataset with 'medperf dataset submit -d {data_uid}'"
+    )
 
 
 @app.command("submit")
@@ -54,15 +68,18 @@ def create(
 def register(
     data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Unregistered Dataset UID"
-    )
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits an unregistered Dataset instance to the backend
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
-    DatasetRegistration.run(data_uid, comms, ui)
+    DatasetRegistration.run(data_uid, comms, ui, approved=approval)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {data_uid}'"
+    )
 
 
 @app.command("associate")
@@ -74,12 +91,15 @@ def associate(
     benchmark_uid: int = typer.Option(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Associate a registered dataset with a specific benchmark.
     The dataset and benchmark must share the same data preparation cube.
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
-    DatasetBenchmarkAssociation.run(data_uid, benchmark_uid, comms, ui)
+    AssociateDataset.run(data_uid, benchmark_uid, comms, ui, approved=approval)
     ui.print("✅ Done!")
+    ui.print(
+        f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"
+    )
