@@ -169,6 +169,7 @@ class Cube(object):
         """
         add_files = "additional_files_tarball_url"
         add_hash = "additional_files_tarball_hash"
+        valid_cube = self.meta["is_valid"]
         has_additional = add_files in self.meta and self.meta[add_files]
         if has_additional:
             valid_additional = self.additional_hash == self.meta[add_hash]
@@ -180,7 +181,7 @@ class Cube(object):
             valid_image = self.image_tarball_hash == self.meta["image_tarball_hash"]
         else:
             valid_image = True
-        return valid_additional and valid_image
+        return valid_cube and valid_additional and valid_image
 
     def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance

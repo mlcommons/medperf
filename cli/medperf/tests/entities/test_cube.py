@@ -365,7 +365,19 @@ def test_cube_is_valid_with_correct_image_tarball_hash(
     assert cube.is_valid()
 
 
-def test_cube_is_invalid_with_incorrect_tarball_hash(mocker, comms, tar_body, no_local):
+def test_cube_is_invalid_if_invalidated(mocker, ui, comms, basic_body, no_local):
+    # Arrange
+    uid = 1
+    cube = Cube.get(uid, comms, ui)
+    cube.meta["is_valid"] = False
+
+    # Act & Assert
+    assert not cube.is_valid()
+
+
+def test_cube_is_invalid_with_incorrect_tarball_hash(
+    mocker, ui, comms, tar_body, no_local
+):
     # Arrange
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="incorrect_hash")
 
