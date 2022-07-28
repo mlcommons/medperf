@@ -8,6 +8,8 @@ from medperf.ui.factory import UIFactory
 from medperf.decorators import clean_except
 from medperf.comms.factory import CommsFactory
 import medperf.commands.result.result as result
+from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.result.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
@@ -71,12 +73,13 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    result.run_benchmark(
-        benchmark_uid=benchmark_uid,
-        data_uid=data_uid,
-        model_uid=model_uid,
-        approved=approval,
+    comms = config.comms
+    ui = config.ui
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(
+        benchmark_uid, data_uid, model_uid, comms, ui, approved=approval
     )
+    ui.print("✅ Done!")
 
 
 @app.command("test")
