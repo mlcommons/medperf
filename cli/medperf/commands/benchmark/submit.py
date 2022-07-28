@@ -28,7 +28,7 @@ class SubmitBenchmark:
             ui (UI): UI instance
         """
         submission = cls(benchmark_info, comms, ui)
-        while not submission.is_valid():
+        if not submission.is_valid():
             pretty_error("Invalid benchmark information", ui)
 
         with ui.interactive():
@@ -99,7 +99,6 @@ class SubmitBenchmark:
         for attr, test, error_msg in valid_tests:
             if not test:
                 valid = False
-                setattr(self, attr, None)
                 self.ui.print_error(error_msg)
 
         return valid
@@ -116,7 +115,7 @@ class SubmitBenchmark:
                 f"Demo dataset hash mismatch: {demo_hash} != {self.demo_hash}"
             )
             pretty_error("Demo dataset hash does not match the provided hash", self.ui)
-        self.demo_hash = get_file_sha1(demo_dset_path)
+        self.demo_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.demo_uid = demo_uid
         self.results = results
