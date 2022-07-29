@@ -1,8 +1,8 @@
 import pytest
 
-from medperf.entities import Dataset
 from medperf.tests.utils import rand_l
-from medperf.commands.dataset import DatasetRegistration
+from medperf.entities.dataset import Dataset
+from medperf.commands.dataset.submit import DatasetRegistration
 
 PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 
@@ -73,6 +73,25 @@ def test_run_requests_approval(mocker, comms, ui, dataset):
     spy.assert_called_once()
 
 
+def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
+    # Arrange
+    dataset.uid = None
+    spy = mocker.patch.object(
+        dataset, "request_registration_approval", return_value=False
+    )
+    mocker.patch(
+        PATCH_REGISTER.format("pretty_error"),
+        side_effect=lambda *args, **kwargs: exit(),
+    )
+
+    # Act
+    with pytest.raises(SystemExit):
+        DatasetRegistration.run("1", comms, ui)
+
+    # Assert
+    spy.assert_called_once()
+
+
 @pytest.mark.parametrize("approved", [True, False])
 class TestWithApproval:
     def test_run_uploads_dataset_if_approved(
@@ -84,6 +103,7 @@ class TestWithApproval:
             dataset, "request_registration_approval", return_value=approved
         )
         spy = mocker.patch.object(dataset, "upload")
+        mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
         DatasetRegistration.run("1", comms, ui)
@@ -103,6 +123,7 @@ class TestWithApproval:
             dataset, "request_registration_approval", return_value=approved
         )
         spy = mocker.patch.object(dataset, "set_registration")
+        mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
         DatasetRegistration.run("1", comms, ui)
@@ -111,4 +132,20 @@ class TestWithApproval:
         if approved:
             spy.assert_called_once()
         else:
+            spy.assert_not_called()
+
+    def test_skips_request_approval_if_preapproved(
+        self, mocker, comms, ui, dataset, approved
+    ):
+        # Arrange
+        dataset.uid = None
+        spy = mocker.patch.object(
+            dataset, "request_registration_approval", return_value=True,
+        )
+
+        # Act
+        DatasetRegistration.run("1", comms, ui, approved=approved)
+
+        # Assert
+        if approved:
             spy.assert_not_called()
