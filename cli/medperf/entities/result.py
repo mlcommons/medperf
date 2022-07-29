@@ -3,10 +3,16 @@ import yaml
 import logging
 from typing import List
 
-from medperf.ui import UI
-from medperf import config
-from medperf.comms import Comms
-from medperf.utils import storage_path, approval_prompt, dict_pretty_print, results_ids
+from medperf.utils import (
+    storage_path,
+    approval_prompt,
+    dict_pretty_print,
+    results_ids,
+    results_path,
+)
+from medperf.ui.interface import UI
+import medperf.config as config
+from medperf.comms.interface import Comms
 
 
 class Result:
@@ -21,17 +27,16 @@ class Result:
     """
 
     def __init__(
-        self, result_path: str, benchmark_uid: str, dataset_uid: str, model_uid: str,
+        self, benchmark_uid: str, dataset_uid: str, model_uid: str,
     ):
         """Creates a new result instance
 
         Args:
-            result_path (str): Location of the reuslts.yaml file.
             benchmark_uid (str): UID of the executed benchmark.
             dataset_uid (str): UID of the dataset used.
             model_uid (str): UID of the model used.
         """
-        self.path = result_path
+        self.path = results_path(benchmark_uid, model_uid, dataset_uid)
         self.benchmark_uid = benchmark_uid
         self.dataset_uid = dataset_uid
         self.model_uid = model_uid
@@ -46,14 +51,11 @@ class Result:
         """
         logging.info("Retrieving all results")
         results_ids_tuple = results_ids(ui)
-        results_storage = storage_path(config.results_storage)
+        storage_path(config.results_storage)
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
-            results_file = os.path.join(
-                results_storage, b_id, m_id, d_id, config.results_filename
-            )
-            results.append(cls(results_file, b_id, d_id, m_id))
+            results.append(cls(b_id, d_id, m_id))
 
         return results
 

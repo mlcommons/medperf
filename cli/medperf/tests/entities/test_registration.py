@@ -4,10 +4,11 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import medperf
-from medperf.ui import UI
-from medperf.comms import Comms
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.tests.utils import rand_l
-from medperf.entities import Registration, Cube
+from medperf.entities.registration import Registration
+from medperf.entities.cube import Cube
 
 
 IN_PATH = "in_path"
@@ -139,25 +140,6 @@ def test_todict_returns_expected_keys(mocker, reg_mocked_with_params):
     assert set(registration.todict().keys()) == set(REG_DICT_KEYS)
 
 
-@pytest.mark.parametrize(
-    "inputs", [["name", "desc", "loc"], ["chex", "chex dset", "col"]]
-)
-def test_retrieve_additional_data_prompts_user_correctly(
-    mocker, ui, inputs, reg_mocked_with_params
-):
-    # Arrange
-    m = MagicMock(side_effect=inputs)
-    mocker.patch.object(ui, "prompt", m)
-    reg = Registration(*reg_mocked_with_params)
-
-    # Act
-    reg.retrieve_additional_data(ui)
-    vals = [reg.name, reg.description, reg.location]
-
-    # Assert
-    assert vals == inputs
-
-
 def test_request_approval_skips_if_approved(mocker, ui, reg_mocked_with_params):
     # Arrange
     spy = mocker.patch(PATCH_REGISTRATION.format("approval_prompt"), return_value=True)
@@ -210,11 +192,13 @@ def test_to_permanent_path_returns_expected_path(
     "out_path", ["test", "out", "out_path", "~/.medperf/data/tmp_0"]
 )
 @pytest.mark.parametrize("new_path", ["test", "new", "new_path", "~/.medperf/data/34"])
+@pytest.mark.parametrize("exists", [True, False])
 def test_to_permanent_path_renames_folder_correctly(
-    mocker, out_path, new_path, reg_mocked_with_params
+    mocker, out_path, new_path, reg_mocked_with_params, exists
 ):
     # Arrange
     spy = mocker.patch("os.rename")
+    mocker.patch("os.path.exists", return_value=exists)
     mocker.patch("os.path.join", return_value=new_path)
     reg = Registration(*reg_mocked_with_params)
     reg.generated_uid = 0
@@ -223,7 +207,10 @@ def test_to_permanent_path_renames_folder_correctly(
     reg.to_permanent_path(out_path)
 
     # Assert
-    spy.assert_called_once_with(out_path, new_path)
+    if exists:
+        spy.assert_not_called()
+    else:
+        spy.assert_called_once_with(out_path, new_path)
 
 
 @pytest.mark.parametrize("filepath", ["filepath"])

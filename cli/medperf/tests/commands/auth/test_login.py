@@ -1,11 +1,11 @@
 import stat
-from medperf.comms import Comms
-import medperf.config as config
-from medperf.commands.auth import Login
-from medperf.utils import storage_path
-
 import pytest
 from unittest.mock import mock_open
+
+import medperf.config as config
+from medperf.comms.interface import Comms
+from medperf.utils import storage_path
+from medperf.commands.auth import Login
 
 
 @pytest.fixture(params=["token123"])
@@ -24,7 +24,7 @@ def test_runs_comms_login(mocker, comms, ui):
     mocker.patch("builtins.open", mock_open())
 
     # Act
-    Login.run(comms, ui)
+    Login.run(comms, ui, "usr", "pwd")
 
     # Assert
     spy.assert_called_once()
@@ -38,7 +38,7 @@ def test_removes_previous_credentials(mocker, comms, ui):
     mocker.patch("os.path.exists", return_value=True)
 
     # Act
-    Login.run(comms, ui)
+    Login.run(comms, ui, "usr", "pwd")
 
     # Assert
     spy.assert_called_once_with(creds_path)
@@ -54,7 +54,7 @@ def test_writes_new_credentials(mocker, comms, ui):
     spy = mocker.patch("builtins.open", m)
 
     # Act
-    Login.run(comms, ui)
+    Login.run(comms, ui, "usr", "pwd")
 
     # Assert
     spy.assert_called_once_with(creds_path, "w")
@@ -69,7 +69,7 @@ def test_sets_credentials_permissions_to_read(mocker, comms, ui):
     mocker.patch("builtins.open", mock_open())
 
     # Act
-    Login.run(comms, ui)
+    Login.run(comms, ui, "usr", "pwd")
 
     # Assert
     spy.assert_called_once_with(creds_path, stat.S_IREAD)
