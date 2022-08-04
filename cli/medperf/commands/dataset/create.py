@@ -29,6 +29,7 @@ class DataPreparation:
         description: str = None,
         location: str = None,
     ):
+
         preparation = cls(
             benchmark_uid,
             data_path,
@@ -40,6 +41,7 @@ class DataPreparation:
             ui,
             run_test,
         )
+        preparation.validate()
         with preparation.ui.interactive():
             preparation.get_prep_cube()
             preparation.run_cube_tasks()
@@ -75,6 +77,12 @@ class DataPreparation:
 
         self.benchmark = Benchmark.get(benchmark_uid, comms)
         self.ui.print(f"Benchmark Data Preparation: {self.benchmark.name}")
+
+    def validate(self):
+        if not os.path.exists(self.data_path):
+            pretty_error("The provided data path doesn't exist", self.ui)
+        if not os.path.exists(self.labels_path):
+            pretty_error("The provided labels path doesn't exist", self.ui)
 
     def get_prep_cube(self):
         cube_uid = self.benchmark.data_preparation
