@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, mock_open, ANY
+from unittest.mock import MagicMock, mock_open, ANY, call
 
 import medperf
 from medperf.ui.interface import UI
@@ -8,7 +8,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
-from medperf.tests.utils import rand_l
+from medperf.tests.utils import cube_local_hashes_generator, rand_l
 from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
@@ -44,6 +44,7 @@ def comms(mocker):
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=TARBALL_HASH)
     mocker.patch.object(comms, "get_cube_image", return_value=IMG_PATH)
     mocker.patch(PATCH_CUBE.format("untar"))
+    mocker.patch(PATCH_CUBE.format("save_cube_metadata"))
 
     return comms
 
@@ -103,17 +104,19 @@ def test_all_reads_local_cube_metadata(mocker, cube_uid):
     cubes_path = storage_path(config.cubes_storage)
     fs = iter([(".", (cube_uid,), ())])
     mocker.patch("os.walk", return_value=fs)
-    spy = mocker.patch("builtins.open", mock_open())
+    spy = mocker.patch("builtins.open", return_value=mock_open().return_value)
     cube_meta = cube_metadata_generator()(cube_uid)
     mocker.patch("yaml.safe_load", return_value=cube_meta)
 
-    exp_path = os.path.join(cubes_path, cube_uid, config.cube_filename)
+    meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
+    hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
 
     # Act
     Cube.all(ui)
 
     # Assert
-    spy.assert_called_once_with(exp_path, "r")
+    spy.assert_has_calls([call(meta_path, "r"), call(hashes_path, "r")])
+    assert spy.call_count == 2
 
 
 @pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
@@ -126,7 +129,8 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
     mocker.patch("os.walk", return_value=fs)
     mocker.patch("builtins.open", mock_open())
     cube_meta = cube_metadata_generator()(cube_uid)
-    mocker.patch("yaml.safe_load", return_value=cube_meta)
+    cube_local_hashes = cube_local_hashes_generator()
+    mocker.patch("yaml.safe_load", side_effect=[cube_meta, cube_local_hashes])
     mocker.patch("os.path.exists", return_value=with_params)
     spy = mocker.spy(Cube, "__init__")
 
@@ -140,7 +144,15 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
     Cube.all(ui)
 
     # Assert
-    spy.assert_called_once_with(ANY, cube_uid, cube_meta, cube_path, params_path)
+    spy.assert_called_once_with(
+        ANY,
+        cube_uid,
+        cube_meta,
+        cube_path,
+        params_path,
+        cube_local_hashes["additional_files_tarball_hash"],
+        cube_local_hashes["image_tarball_hash"],
+    )
 
 
 def test_get_basic_cube_retrieves_metadata_from_comms(
@@ -353,7 +365,19 @@ def test_cube_is_valid_with_correct_image_tarball_hash(
     assert cube.is_valid()
 
 
-def test_cube_is_invalid_with_incorrect_tarball_hash(mocker, comms, tar_body, no_local):
+def test_cube_is_invalid_if_invalidated(mocker, ui, comms, basic_body, no_local):
+    # Arrange
+    uid = 1
+    cube = Cube.get(uid, comms, ui)
+    cube.meta["is_valid"] = False
+
+    # Act & Assert
+    assert not cube.is_valid()
+
+
+def test_cube_is_invalid_with_incorrect_tarball_hash(
+    mocker, ui, comms, tar_body, no_local
+):
     # Arrange
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="incorrect_hash")
 
@@ -365,7 +389,9 @@ def test_cube_is_invalid_with_incorrect_tarball_hash(mocker, comms, tar_body, no
     assert not cube.is_valid()
 
 
-def test_cube_is_invalid_with_incorrect_image_tarball_hash(mocker, comms, img_body, no_local):
+def test_cube_is_invalid_with_incorrect_image_tarball_hash(
+    mocker, comms, img_body, no_local
+):
     # Arrange
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="incorrect_hash")
 
@@ -377,22 +403,28 @@ def test_cube_is_invalid_with_incorrect_image_tarball_hash(mocker, comms, img_bo
     assert not cube.is_valid()
 
 
-def test_cube_runs_command_with_pexpect(mocker, ui, comms, basic_body, no_local):
+@pytest.mark.parametrize("timeout", rand_l(1, 100, 1) + [None])
+def test_cube_runs_command_with_pexpect(
+    mocker, ui, comms, basic_body, no_local, timeout
+):
     # Arrange
     mpexpect = MockPexpect(0)
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
     task = "task"
-    expected_cmd = f"mlcube run --mlcube={CUBE_PATH} --task={task}"
+    platform = config.platform
+    expected_cmd = (
+        f"mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform}"
+    )
 
     # Act
     uid = 1
     cube = Cube.get(uid, comms, ui)
-    cube.run(ui, "task")
+    cube.run(ui, "task", timeout=timeout)
 
     # Assert
-    spy.assert_called_once_with(expected_cmd, timeout=None)
+    spy.assert_called_once_with(expected_cmd, timeout=timeout)
 
 
 def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_local):
@@ -401,7 +433,8 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
     spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
-    expected_cmd = f'mlcube run --mlcube={CUBE_PATH} --task={task} test="test"'
+    platform = config.platform
+    expected_cmd = f'mlcube run --mlcube={CUBE_PATH} --task={task} --platform={platform} test="test"'
 
     # Act
     uid = 1
@@ -528,3 +561,58 @@ def test_request_registration_approval_returns_users_input(
 
     # Assert
     assert approved == approval
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("is_valid", [True, False])
+@pytest.mark.parametrize("with_tarball", [True, False])
+@pytest.mark.parametrize("with_image", [True, False])
+def test_local_cubes_validity_can_be_detected(
+    mocker, cube_uid, is_valid, with_tarball, with_image
+):
+    # Arrange
+    if not any([is_valid, with_tarball, with_image]):
+        # an outlier test parameters combination
+        return
+    cube_uid = str(cube_uid)
+    fs = iter([(".", (cube_uid,), ())])
+    mocker.patch("os.walk", return_value=fs)
+    mocker.patch("builtins.open", mock_open())
+    cube_meta = cube_metadata_generator(False, with_tarball, with_image)(cube_uid)
+    cube_local_hashes = cube_local_hashes_generator(is_valid, with_tarball, with_image)
+    mocker.patch("yaml.safe_load", side_effect=[cube_meta, cube_local_hashes])
+    mocker.patch("os.path.exists")
+
+    # Act
+    local_cube = Cube.all(ui)[0]
+    is_cube_valid = local_cube.is_valid()
+
+    # Assert
+    assert is_cube_valid == is_valid
+
+
+@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("with_tarball", [True, False])
+@pytest.mark.parametrize("with_image", [True, False])
+def test_get_cube_saves_cube_metadata(
+    mocker, comms, no_local, cube_uid, with_tarball, with_image
+):
+    # Arrange
+    meta = cube_metadata_generator(False, with_tarball, with_image)(cube_uid)
+    local_hashes = cube_local_hashes_generator(True, with_tarball, with_image)
+
+    mocker.patch.object(comms, "get_cube_metadata", return_value=meta)
+    hashes_list = []
+    if with_tarball:
+        hashes_list.append(local_hashes[TARBALL_HASH])
+    if with_image:
+        hashes_list.append(local_hashes[IMG_HASH])
+
+    mocker.patch(PATCH_CUBE.format("get_file_sha1"), side_effect=hashes_list)
+    spy = mocker.patch(PATCH_CUBE.format("save_cube_metadata"))
+
+    # Act
+    Cube.get(cube_uid, comms, ui)
+
+    # Assert
+    spy.assert_called_once_with(meta, local_hashes)

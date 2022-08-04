@@ -6,10 +6,8 @@ Medperf is an open benchmarking platform for medical artificial intelligence usi
 
 ## What's included here
 Inside this repo you can find all important pieces for running MedPerf. In its current state, it includes:
-
 - ### MedPerf Server:
   Backend server implemented in django. Can be found inside the `server` folder
-
 - ### MedPerf CLI:
   Command Line Interface for interacting with the server. Can be found inside the `cli` folder.
 - ### Results from our Pilots:
@@ -150,19 +148,19 @@ The server comes with prepared users and cubes for demonstration purposes. A toy
 2. ## Authenticate the CLI
    If you followed the server hosting instructions, then your instance of the server already has some toy users to play with. The CLI needs to be authenticated with a user to be able to execute commands and interact with the server. For this, you can run:
    ```
-   medperf login
+   medperf login -u testdataowner -p test
    ```
-   And provide `testdataowner` as user and `test` as password. You only need to authenticate once. All following commands will be authenticated with that user.
+   We just provided `testdataowner` as user and `test` as password. You only need to authenticate once. All following commands will be authenticated with that user.
 3. ## Run the data preparation step
    Benchmarks will usually require a data owner to generate a new version of the dataset that has been preprocessed for a specific benchmark. The command to do that has the following structure
    ```
-   medperf dataset create -b <BENCHMARK_UID> -d <PATH_TO_DATASET> -l <PATH_TO_LABELS>
+   medperf dataset create -b <BENCHMARK_UID> -d <PATH_TO_DATASET> -l <PATH_TO_LABELS> --name <DATASET NAME> --description <DESCRIPTION> --location <LOCATION>
    ```
    for the CheXpert dataset, this would be the command to execute:
    ```
-   medperf dataset create -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small
+   medperf dataset create -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small --name "Chexpert valid" --description "Chexpert valid" --location "Chexpert loc"
    ```
-   Where we're executing the benchmark with UID `1`, since is the first and only benchmark in the server. By doing this, the CLI retrieves the data preparation cube from the benchmark and processes the raw dataset. You will be prompted for additional information and confirmations for the dataset to be prepared and registered onto the server.
+   Where we're executing the benchmark with UID `1`, since is the first and only benchmark in the server. By doing this, the CLI retrieves the data preparation cube from the benchmark and processes the raw dataset.
 4. ## Run the benchmark execution step
    Once the dataset is prepared and registered, you can execute the benchmark with a given model mlcube. The command to do this has the following structure
    ```

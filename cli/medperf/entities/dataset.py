@@ -93,7 +93,7 @@ class Dataset:
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
             pretty_error("Couldn't iterate over the dataset directory", ui)
-        tmp_prefix = config.tmp_reg_prefix
+        tmp_prefix = config.tmp_prefix
         dsets = []
         for uid in uids:
             not_tmp = not uid.startswith(tmp_prefix)
@@ -166,7 +166,7 @@ class Dataset:
         Returns:
             bool: Wether the user gave consent or not.
         """
-        if self.status == "APPROVED":
+        if self.status != "PENDING":
             return True
 
         dict_pretty_print(self.registration, ui)
@@ -177,7 +177,10 @@ class Dataset:
             "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
             ui,
         )
-        self.status = "APPROVED"
+        if approved:
+            self.status = "APPROVED"
+        else:
+            self.status = "REJECTED"
         return approved
 
     def upload(self, comms: Comms):

@@ -1,25 +1,35 @@
+import logging
 import validators
 
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.utils import get_file_sha1, generate_tmp_uid
 from medperf.entities.benchmark import Benchmark
+from medperf.utils import get_file_sha1, generate_tmp_uid, pretty_error
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
 class SubmitBenchmark:
     @classmethod
-    def run(cls, comms: Comms, ui: UI):
+    def run(cls, benchmark_info: dict, comms: Comms, ui: UI):
         """Submits a new cube to the medperf platform
         Args:
+            benchmark_info (dict): benchmark information
+                expected keys:
+                    name (str): benchmark name
+                    description (str): benchmark description
+                    docs_url (str): benchmark documentation url
+                    demo_url (str): benchmark demo dataset url
+                    demo_hash (str): benchmark demo dataset hash
+                    data_preparation_mlcube (str): benchmark data preparation mlcube uid
+                    reference_model_mlcube (str): benchmark reference model mlcube uid
+                    evaluator_mlcube (str): benchmark data evaluator mlcube uid
             comms (Comms): Communication instance
             ui (UI): UI instance
         """
-        submission = cls(comms, ui)
-        submission.get_information()
-        while not submission.is_valid():
-            submission.get_information()
+        submission = cls(benchmark_info, comms, ui)
+        if not submission.is_valid():
+            pretty_error("Invalid benchmark information", ui)
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -29,51 +39,19 @@ class SubmitBenchmark:
             submission.submit()
         ui.print("Uploaded")
 
-    def __init__(self, comms: Comms, ui: UI):
+    def __init__(self, benchmark_info: dict, comms: Comms, ui: UI):
         self.comms = comms
         self.ui = ui
-        self.name = None
-        self.description = None
-        self.docs_url = None
-        self.demo_url = None
-        self.demo_hash = None
+        self.name = benchmark_info["name"]
+        self.description = benchmark_info["description"]
+        self.docs_url = benchmark_info["docs_url"]
+        self.demo_url = benchmark_info["demo_url"]
+        self.demo_hash = benchmark_info["demo_hash"]
         self.demo_uid = None
-        self.data_preparation_mlcube = None
-        self.reference_model_mlcube = None
-        self.data_evaluator_mlcube = None
+        self.data_preparation_mlcube = benchmark_info["data_preparation_mlcube"]
+        self.reference_model_mlcube = benchmark_info["reference_model_mlcube"]
+        self.data_evaluator_mlcube = benchmark_info["evaluator_mlcube"]
         self.results = None
-
-    def get_information(self):
-        name_prompt = "Name: "
-        desc_prompt = "Description: "
-        docs_url_prompt = "Documentation URL [OPTIONAL]:"
-        demo_dset_prompt = "Demo Dataset Tarball URL [OPTIONAL]: "
-        demo_hash_prompt = "Demo Dataset Tarball Hash [OPTIONAL]: "
-        prep_uid_prompt = "Data Preparation MLCube UID: "
-        model_uid_prompt = "Reference Model MLCube UID: "
-        eval_uid_prompt = "Data Evaluator MLCube UID: "
-        self.__get_or_print("name", name_prompt)
-        self.__get_or_print("description", desc_prompt)
-        self.__get_or_print("docs_url", docs_url_prompt)
-        self.__get_or_print("demo_url", demo_dset_prompt)
-        self.__get_or_print("demo_hash", demo_hash_prompt)
-        self.__get_or_print("data_preparation_mlcube", prep_uid_prompt)
-        self.__get_or_print("reference_model_mlcube", model_uid_prompt)
-        self.__get_or_print("data_evaluator_mlcube", eval_uid_prompt)
-
-    def __get_or_print(self, attr: str, prompt: str):
-        """Will print the value stored in the provided attribute. If value is
-        None, it will prompt the user with the given prompt.
-
-        Args:
-            attr (str): attribute to check and/or write to.
-            prompt (str): message to display to the user if value is None.
-        """
-        attr_val = getattr(self, attr)
-        if attr_val is None or attr_val == "":
-            setattr(self, attr, self.ui.prompt(prompt))
-        else:
-            self.ui.print(prompt + attr_val)
 
     def is_valid(self) -> bool:
         """Validates that user-provided benchmark information is correct
@@ -121,7 +99,6 @@ class SubmitBenchmark:
         for attr, test, error_msg in valid_tests:
             if not test:
                 valid = False
-                setattr(self, attr, None)
                 self.ui.print_error(error_msg)
 
         return valid
@@ -132,7 +109,13 @@ class SubmitBenchmark:
         """
         tmp_uid = self.demo_hash if self.demo_hash else generate_tmp_uid()
         demo_dset_path = self.comms.get_benchmark_demo_dataset(self.demo_url, tmp_uid)
-        self.demo_hash = get_file_sha1(demo_dset_path)
+        demo_hash = get_file_sha1(demo_dset_path)
+        if self.demo_hash and demo_hash != self.demo_hash:
+            logging.error(
+                f"Demo dataset hash mismatch: {demo_hash} != {self.demo_hash}"
+            )
+            pretty_error("Demo dataset hash does not match the provided hash", self.ui)
+        self.demo_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.demo_uid = demo_uid
         self.results = results

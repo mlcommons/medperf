@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import re
 import os
+import sys
 import yaml
+import random
 import hashlib
 import logging
 import tarfile
@@ -14,6 +16,7 @@ from pexpect import spawn
 from datetime import datetime
 from typing import List, Tuple
 from colorama import Fore, Style
+from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.ui.interface import UI
@@ -63,18 +66,29 @@ def init_storage():
 
     dirs = [parent, bmks, data, cubes, results, tmp, demo, log]
     for dir in dirs:
-        if not os.path.isdir(dir):
-            logging.info(f"Creating {dir} directory")
-            os.mkdir(dir)
+        logging.info(f"Creating {dir} directory")
+        try:
+            os.makedirs(dir, exist_ok=True)
+        except FileExistsError:
+            logging.warning(f"Tried to create existing folder {dir}")
 
 
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
+    if not config.cleanup:
+        logging.info("Cleanup disabled")
+        return
     tmp_path = storage_path(config.tmp_storage)
     if os.path.exists(tmp_path):
         logging.info("Removing temporary data storage")
-        rmtree(tmp_path, ignore_errors=True)
+        try:
+            rmtree(tmp_path)
+        except OSError as e:
+            logging.error(f"Could not remove temporary data storage: {e}")
+            config.ui.print_error(
+                "Could not remove temporary data storage. For more information check the logs."
+            )
 
     cleanup_dsets()
     cleanup_cubes()
@@ -86,7 +100,7 @@ def cleanup_dsets():
     """
     dsets_path = storage_path(config.data_storage)
     dsets = get_uids(dsets_path)
-    tmp_prefix = config.tmp_reg_prefix
+    tmp_prefix = config.tmp_prefix
     test_prefix = config.test_dset_prefix
     clutter_dsets = [
         dset
@@ -98,7 +112,13 @@ def cleanup_dsets():
         logging.info(f"Removing clutter dataset: {dset}")
         dset_path = os.path.join(dsets_path, dset)
         if os.path.exists(dset_path):
-            rmtree(dset_path, ignore_errors=True)
+            try:
+                rmtree(dset_path)
+            except OSError as e:
+                logging.error(f"Could not remove dataset {dset}: {e}")
+                config.ui.print_error(
+                    f"Could not remove dataset {dset}. For more information check the logs."
+                )
 
 
 def cleanup_cubes():
@@ -116,7 +136,16 @@ def cleanup_cubes():
         logging.info(f"Removing clutter cube: {cube}")
         cube_path = os.path.join(cubes_path, cube)
         if os.path.exists(cube_path):
-            rmtree(cube_path, ignore_errors=True)
+            try:
+                if os.path.islink(cube_path):
+                    os.unlink(cube_path)
+                else:
+                    rmtree(cube_path)
+            except OSError as e:
+                logging.error(f"Could not remove cube {cube}: {e}")
+                config.ui.print_error(
+                    f"Could not remove cube {cube}. For more information check the logs."
+                )
 
 
 def cleanup_benchmarks():
@@ -124,13 +153,19 @@ def cleanup_benchmarks():
     """
     bmks_path = storage_path(config.benchmarks_storage)
     bmks = os.listdir(bmks_path)
-    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_reg_prefix)]
+    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
 
     for bmk in clutter_bmks:
         logging.info(f"Removing clutter benchmark: {bmk}")
         bmk_path = os.path.join(bmks_path, bmk)
         if os.path.exists(bmk_path):
-            rmtree(bmk_path, ignore_errors=True)
+            try:
+                rmtree(bmk_path)
+            except OSError as e:
+                logging.error(f"Could not remove benchmark {bmk}: {e}")
+                config.ui.print_error(
+                    f"Could not remove benchmark {bmk}. For more information check the logs."
+                )
 
 
 def get_uids(path: str) -> List[str]:
@@ -140,10 +175,10 @@ def get_uids(path: str) -> List[str]:
         List[str]: UIDs of objects in path.
     """
     logging.debug("Retrieving datasets")
-    dsets = next(os.walk(path))[1]
-    logging.debug(f"Found {len(dsets)} uids")
-    logging.debug(f"UIDs: {dsets}")
-    return dsets
+    uids = next(os.walk(path))[1]
+    logging.debug(f"Found {len(uids)} datasets")
+    logging.debug(f"Datasets: {uids}")
+    return uids
 
 
 def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
@@ -166,7 +201,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     ui.print_error(msg)
     if clean:
         cleanup()
-    exit(1)
+    sys.exit(1)
 
 
 def cube_path(uid: int) -> str:
@@ -189,7 +224,7 @@ def generate_tmp_datapath() -> Tuple[str, str]:
         str: Specific data path for the temporary dataset
     """
     uid = generate_tmp_uid()
-    tmp = config.tmp_reg_prefix + uid
+    tmp = config.tmp_prefix + uid
     out_path = os.path.join(storage_path(config.data_storage), tmp)
     out_path = os.path.abspath(out_path)
     return out_path
@@ -197,12 +232,15 @@ def generate_tmp_datapath() -> Tuple[str, str]:
 
 def generate_tmp_uid() -> str:
     """Generates a temporary uid by means of getting the current timestamp
+    with a random salt
 
     Returns:
         str: generated temporary uid
     """
     dt = datetime.utcnow()
-    ts = str(int(datetime.timestamp(dt)))
+    ts_int = int(datetime.timestamp(dt))
+    salt = random.randint(-ts_int, ts_int)
+    ts = str(ts_int + salt)
     return ts
 
 
@@ -216,7 +254,7 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        pretty_error("MD5 hash doesn't match", ui)
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -296,7 +334,12 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     static_text = ui.text
     proc_out = ""
     while proc.isalive():
-        line = byte = proc.read(1)
+        try:
+            line = byte = proc.read(1)
+        except TIMEOUT:
+            logging.info("Process timed out")
+            pretty_error("Process timed out", ui)
+
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
             line += byte
@@ -392,6 +435,18 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
+
+
+def save_cube_metadata(meta, local_hashes):
+    c_path = cube_path(meta["id"])
+    if not os.path.isdir(c_path):
+        os.makedirs(c_path, exist_ok=True)
+    meta_file = os.path.join(c_path, config.cube_metadata_filename)
+    with open(meta_file, "w") as f:
+        yaml.dump(meta, f)
+    local_hashes_file = os.path.join(c_path, config.cube_hashes_filename)
+    with open(local_hashes_file, "w") as f:
+        yaml.dump(local_hashes, f)
 
 
 def sanitize_json(data: dict) -> dict:

@@ -17,13 +17,13 @@ REGISTRATION_MOCK = {
     "metadata": {"metadata_key": "metadata_value"},
     "generated_uid": "generated_uid",
     "input_data_hash": "input_data_hash",
-    "status": "status",
+    "status": "PENDING",
     "uid": "uid",
     "state": "state",
 }
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
-TMP_PREFIX = config.tmp_reg_prefix
+TMP_PREFIX = config.tmp_prefix
 
 
 @pytest.fixture

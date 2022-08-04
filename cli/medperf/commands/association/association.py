@@ -20,7 +20,6 @@ def list(filter: Optional[str] = typer.Argument(None)):
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     ListAssociations.run(comms, ui, filter)
 
 
@@ -40,7 +39,6 @@ def approve(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     Approval.run(benchmark_uid, "APPROVED", comms, ui, dataset_uid, mlcube_uid)
     ui.print("✅ Done!")
 
@@ -61,6 +59,5 @@ def reject(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     Approval.run(benchmark_uid, "REJECT", comms, ui, dataset_uid, mlcube_uid)
     ui.print("✅ Done!")

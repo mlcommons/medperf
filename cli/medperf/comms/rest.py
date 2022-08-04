@@ -34,14 +34,14 @@ class REST(Comms):
 
         return f"https://{url}"
 
-    def login(self, ui: UI):
+    def login(self, ui: UI, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
 
         Args:
             ui (UI): Instance of an implementation of the UI interface
+            user (str): Username
+            pwd (str): Password
         """
-        user = ui.prompt("username: ")
-        pwd = ui.hidden_prompt("password: ")
         body = {"username": user, "password": pwd}
         res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
@@ -87,7 +87,7 @@ class REST(Comms):
 
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
-            pretty_error("Must be authenticated", self.ui)
+            self.authenticate()
         return self.__req(
             url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs
         )
@@ -230,7 +230,7 @@ class REST(Comms):
             logging.error(res.json())
             pretty_error("couldn't download the demo dataset", self.ui)
 
-        os.mkdir(demo_data_path)
+        os.makedirs(demo_data_path, exist_ok=True)
 
         open(filepath, "wb+").write(res.content)
         return filepath
@@ -256,7 +256,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("couldn't retrieve mlcubes from the platform")
+            pretty_error("couldn't retrieve mlcubes from the platform", config.ui)
         return res.json()
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
@@ -355,7 +355,7 @@ class REST(Comms):
             c_path = cube_path(cube_uid)
             path = os.path.join(c_path, path)
             if not os.path.isdir(path):
-                os.makedirs(path)
+                os.makedirs(path, exist_ok=True)
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
             return filepath
@@ -373,6 +373,7 @@ class REST(Comms):
         if res.status_code != 201:
             logging.error(res.json())
             pretty_error("Could not upload benchmark", self.ui)
+        return res.json()["id"]
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
@@ -492,10 +493,10 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
         if res.status_code != 201:
             logging.error(res.json())
-            pretty_error("Could not associate dataset to benchmark", self.ui)
+            pretty_error("Could not associate mlcube to benchmark", self.ui)
 
     def set_dataset_association_approval(
-        self, dataset_uid: str, benchmark_uid: str, status: str
+        self, benchmark_uid: str, dataset_uid: str, status: str
     ):
         """Approves a dataset association
 
@@ -514,7 +515,7 @@ class REST(Comms):
             )
 
     def set_mlcube_association_approval(
-        self, mlcube_uid: str, benchmark_uid: str, status: str
+        self, benchmark_uid: str, mlcube_uid: str, status: str
     ):
         """Approves an mlcube association
 

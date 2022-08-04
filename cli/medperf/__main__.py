@@ -8,6 +8,8 @@ from medperf.ui.factory import UIFactory
 from medperf.decorators import clean_except
 from medperf.comms.factory import CommsFactory
 import medperf.commands.result.result as result
+from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.result.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
@@ -29,10 +31,18 @@ app.add_typer(association.app, name="association", help="Manage associations")
 
 @app.command("login")
 @clean_except
-def login():
+def login(
+    username: str = typer.Option(
+        None, "--username", "-u", help="Username to login with"
+    ),
+    password: str = typer.Option(
+        None, "--password", "-p", help="Password to login with"
+    ),
+):
     """Login to the medperf server. Must be done only once.
     """
-    Login.run(config.comms, config.ui)
+    Login.run(config.comms, config.ui, username=username, password=password)
+    config.ui.print("✅ Done!")
 
 
 @app.command("passwd")
@@ -59,16 +69,21 @@ def execute(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    result.run_benchmark(
-        benchmark_uid=benchmark_uid, data_uid=data_uid, model_uid=model_uid
+    comms = config.comms
+    ui = config.ui
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(
+        benchmark_uid, data_uid, model_uid, comms, ui, approved=approval
     )
+    ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("test")
+@clean_except
 def test(
     benchmark_uid: int = typer.Option(
         None,
@@ -107,7 +122,6 @@ def test(
     """
     comms = config.comms
     ui = config.ui
-    comms.authenticate()
     CompatibilityTestExecution.run(
         benchmark_uid, comms, ui, data_uid, data_prep, model, evaluator
     )
@@ -123,6 +137,13 @@ def main(
     ui: str = config.default_ui,
     host: str = config.server,
     storage: str = config.storage,
+    prepare_timeout: int = config.prepare_timeout,
+    sanity_check_timeout: int = config.sanity_check_timeout,
+    statistics_timeout: int = config.statistics_timeout,
+    infer_timeout: int = config.infer_timeout,
+    evaluate_timeout: int = config.evaluate_timeout,
+    platform: str = config.platform,
+    cleanup: bool = True,
     certificate: str = config.certificate,
     local: bool = typer.Option(
         False, help="Run the CLI with local server configuration"
@@ -130,6 +151,14 @@ def main(
 ):
     # Set configuration variables
     config.storage = abspath(expanduser(storage))
+    config.prepare_timeout = prepare_timeout
+    config.sanity_check_timeout = sanity_check_timeout
+    config.statistics_timeout = statistics_timeout
+    config.infer_timeout = infer_timeout
+    config.evaluate_timeout = evaluate_timeout
+    config.platform = platform
+    config.cleanup = cleanup
+
     if log_file is None:
         log_file = storage_path(config.log_file)
     else:
@@ -151,7 +180,11 @@ def main(
     )
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
-        level=log_lvl, handlers=[handler], format=log_fmt, datefmt="%Y-%m-%d %H:%M:%S"
+        level=log_lvl,
+        handlers=[handler],
+        format=log_fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
     )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 

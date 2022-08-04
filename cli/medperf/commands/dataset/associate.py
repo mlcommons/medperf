@@ -8,7 +8,7 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class AssociateDataset:
     @staticmethod
-    def run(data_uid: str, benchmark_uid: int, comms: Comms, ui: UI):
+    def run(data_uid: str, benchmark_uid: int, comms: Comms, ui: UI, approved=False):
         """Associates a registered dataset with a benchmark
 
         Args:
@@ -29,9 +29,7 @@ class AssociateDataset:
         ui.print("They will not be part of the benchmark.")
         dict_pretty_print(result.todict(), ui)
 
-        approval = dset.request_association_approval(benchmark, ui)
-
-        if approval:
+        if approved or dset.request_association_approval(benchmark, ui):
             ui.print("Generating dataset benchmark association")
             metadata = {"test_result": result.todict()}
             comms.associate_dset(dset.uid, benchmark_uid, metadata)

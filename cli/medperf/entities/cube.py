@@ -7,6 +7,7 @@ from pathlib import Path
 
 from medperf.utils import (
     approval_prompt,
+    save_cube_metadata,
     get_file_sha1,
     pretty_error,
     untar,
@@ -78,13 +79,25 @@ class Cube(object):
         cubes = []
         for uid in uids:
             cube_path = os.path.join(cubes_storage, uid, config.cube_filename)
-            with open(cube_path, "r") as f:
+            meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+            with open(meta_file, "r") as f:
                 meta = yaml.safe_load(f)
 
             params_path = os.path.join(cubes_storage, uid, config.params_filename)
             if not os.path.exists(params_path):
                 params_path = None
-            cube = cls(uid, meta, cube_path, params_path)
+
+            local_hashes_file = os.path.join(
+                cubes_storage, uid, config.cube_hashes_filename
+            )
+            with open(local_hashes_file, "r") as f:
+                local_hashes = yaml.safe_load(f)
+            additional_hash = local_hashes["additional_files_tarball_hash"]
+            image_tarball_hash = local_hashes["image_tarball_hash"]
+
+            cube = cls(
+                uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
+            )
             cubes.append(cube)
 
         return cubes
@@ -110,13 +123,21 @@ class Cube(object):
             return local_cube[0]
 
         meta = comms.get_cube_metadata(cube_uid)
+        # Backwards compatibility for cubes with
+        # tarball_url instead of additional_files_tarball_url
+        old_files = "tarball_url"
+        old_hash = "tarball_hash"
+        add_files = "additional_files_tarball_url"
+        add_hash = "additional_files_tarball_hash"
+        if old_files in meta:
+            meta[add_files] = meta[old_files]
+            meta[add_hash] = meta[old_hash]
         cube_path = comms.get_cube(meta["git_mlcube_url"], cube_uid)
         params_path = None
         additional_path = None
         additional_hash = None
         image_path = None
         image_tarball_hash = None
-        add_files = "additional_files_tarball_url"
         if "git_parameters_url" in meta and meta["git_parameters_url"]:
             url = meta["git_parameters_url"]
             params_path = comms.get_cube_params(url, cube_uid)
@@ -131,6 +152,11 @@ class Cube(object):
             image_tarball_hash = get_file_sha1(image_path)
             untar(image_path)
 
+        local_hashes = {
+            "additional_files_tarball_hash": additional_hash if additional_hash else "",
+            "image_tarball_hash": image_tarball_hash if image_tarball_hash else "",
+        }
+        save_cube_metadata(meta, local_hashes)
         return cls(
             cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
         )
@@ -143,6 +169,7 @@ class Cube(object):
         """
         add_files = "additional_files_tarball_url"
         add_hash = "additional_files_tarball_hash"
+        valid_cube = self.meta["is_valid"]
         has_additional = add_files in self.meta and self.meta[add_files]
         if has_additional:
             valid_additional = self.additional_hash == self.meta[add_hash]
@@ -154,27 +181,29 @@ class Cube(object):
             valid_image = self.image_tarball_hash == self.meta["image_tarball_hash"]
         else:
             valid_image = True
-        return valid_additional and valid_image
+        return valid_cube and valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, **kwargs):
+    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
             ui (UI): an instance of an UI implementation
             task (str): task to run
+            timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task}"
+        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
-        proc = pexpect.spawn(cmd, timeout=None)
+        proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc, ui)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
             ui.text = "\n"
+            ui.print(proc_out)
             pretty_error("There was an error while executing the cube", ui)
 
         logging.debug(list_files(config.storage))
@@ -224,7 +253,8 @@ class Cube(object):
         Returns:
             bool: wether the user gave consent or not
         """
+
         msg = "Please confirm that you would like to associate "
         msg += f"the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
-        approved = approval_prompt(msg, ui,)
+        approved = approval_prompt(msg, ui)
         return approved

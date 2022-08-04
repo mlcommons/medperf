@@ -116,7 +116,7 @@ class Benchmark:
         Returns:
             Benchmark: a benchmark instance
         """
-        benchmark_uid = f"{config.tmp_reg_prefix}{data_preparator}_{model}_{evaluator}"
+        benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
         benchmark_dict = {
             "name": benchmark_uid,
             "data_preparation_mlcube": data_preparator,
@@ -180,7 +180,7 @@ class Benchmark:
         storage = storage_path(config.benchmarks_storage)
         bmk_path = os.path.join(storage, str(self.uid))
         if not os.path.exists(bmk_path):
-            os.mkdir(bmk_path)
+            os.makedirs(bmk_path, exist_ok=True)
         filepath = os.path.join(bmk_path, filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)

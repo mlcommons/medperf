@@ -4,12 +4,14 @@ import logging
 from typing import List
 
 from medperf.utils import (
+    storage_path,
     approval_prompt,
     dict_pretty_print,
     results_ids,
     results_path,
 )
 from medperf.ui.interface import UI
+import medperf.config as config
 from medperf.comms.interface import Comms
 
 
@@ -49,6 +51,7 @@ class Result:
         """
         logging.info("Retrieving all results")
         results_ids_tuple = results_ids(ui)
+        storage_path(config.results_storage)
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids

@@ -2,6 +2,7 @@ import os
 import yaml
 import logging
 from time import time
+from pathlib import Path
 from typing import List
 
 from medperf.ui.interface import UI
@@ -11,8 +12,8 @@ from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.create import DataPreparation
-from medperf.utils import pretty_error, untar, get_file_sha1, get_uids, storage_path
 from medperf.commands.result.create import BenchmarkExecution
+from medperf.utils import pretty_error, untar, get_file_sha1, get_uids, storage_path
 
 
 class CompatibilityTestExecution:
@@ -78,11 +79,23 @@ class CompatibilityTestExecution:
         Specifically, a benchmark must be passed if any other workflow
         parameter is not passed.
         """
-        params = [self.data_uid, self.data_prep, self.model, self.evaluator]
+        params = [self.data_uid, self.model, self.evaluator]
         none_params = [param is None for param in params]
         if self.benchmark_uid is None and any(none_params):
             pretty_error(
                 "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow",
+                self.ui,
+            )
+        # a redundant data preparation cube
+        if self.data_uid is not None and self.data_prep is not None:
+            pretty_error(
+                "Invalid combination of arguments to test. The passed preparation cube will not be used",
+                self.ui,
+            )
+        # a redundant benchmark
+        if self.benchmark_uid is not None and not any(none_params):
+            pretty_error(
+                "Invalid combination of arguments to test. The passed benchmark will not be used",
                 self.ui,
             )
 
@@ -91,16 +104,27 @@ class CompatibilityTestExecution:
         transformed to cube uids and benchmark is mocked/obtained.
         """
         if self.benchmark_uid:
-            self.benchmark = Benchmark.get(self.benchmark_uid, self.comms)
-            self.set_cube_uid("data_prep", self.benchmark.data_preparation)
-            self.set_cube_uid("model", self.benchmark.reference_model)
-            self.set_cube_uid("evaluator", self.benchmark.evaluator)
+            benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+            self.set_cube_uid("data_prep", benchmark.data_preparation)
+            self.set_cube_uid("model", benchmark.reference_model)
+            self.set_cube_uid("evaluator", benchmark.evaluator)
+            demo_dataset_url = benchmark.demo_dataset_url
+            demo_dataset_hash = benchmark.demo_dataset_hash
         else:
             self.set_cube_uid("data_prep")
             self.set_cube_uid("model")
             self.set_cube_uid("evaluator")
-            self.benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
-            self.benchmark_uid = self.benchmark.uid
+            demo_dataset_url = None
+            demo_dataset_hash = None
+
+        self.benchmark = Benchmark.tmp(
+            self.data_prep,
+            self.model,
+            self.evaluator,
+            demo_dataset_url,
+            demo_dataset_hash,
+        )
+        self.benchmark_uid = self.benchmark.uid
 
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
@@ -124,20 +148,49 @@ class CompatibilityTestExecution:
             attr (str): Attribute to check and/or reassign.
             fallback (any): Value to assign if attribute is empty. Defaults to None.
         """
-        logging.info("Establishing model_uid for test execution")
+        logging.info(f"Establishing {attr}_uid for test execution")
         val = getattr(self, attr)
         if val is None:
             logging.info(f"Empty attribute: {attr}. Assigning fallback: {fallback}")
             setattr(self, attr, fallback)
             return
 
-        # Check if value is a server UID
-        if os.path.exists(val):
+        # Test if value looks like an mlcube_uid, if so skip path validation
+        if str(val).isdigit():
+            logging.info(f"MLCube value {val} for {attr} resembles an mlcube_uid")
+            return
+
+        # Check if value is a local mlcube
+        path = Path(val)
+        if path.is_file():
+            path = path.parent
+        path = path.resolve()
+
+        if os.path.exists(path):
             logging.info("local path provided. Creating symbolic link")
-            self.cube_uid = config.test_cube_prefix + str(int(time()))
-            dst = os.path.join(config.cubes_storage, self.cube_uid)
-            os.symlink(val, dst)
-            logging.info(f"local cube will linked to path: {dst}")
+            temp_uid = config.test_cube_prefix + str(int(time()))
+            setattr(self, attr, temp_uid)
+            cubes_storage = storage_path(config.cubes_storage)
+            dst = os.path.join(cubes_storage, temp_uid)
+            os.symlink(path, dst)
+            logging.info(f"local cube will be linked to path: {dst}")
+            cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
+            cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
+            if not os.path.exists(cube_metadata_file):
+                metadata = {"name": temp_uid, "is_valid": True}
+                with open(cube_metadata_file, "w") as f:
+                    yaml.dump(metadata, f)
+            if not os.path.exists(cube_hashes_filename):
+                hashes = {"additional_files_tarball_hash": "", "image_tarball_hash": ""}
+                with open(cube_hashes_filename, "w") as f:
+                    yaml.dump(hashes, f)
+            return
+
+        logging.warning(f"mlcube {val} was not found as an existing mlcube")
+        pretty_error(
+            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
+            self.ui,
+        )
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.

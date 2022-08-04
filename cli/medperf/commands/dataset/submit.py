@@ -6,7 +6,7 @@ from medperf.entities.dataset import Dataset
 
 class DatasetRegistration:
     @staticmethod
-    def run(data_uid: str, comms: Comms, ui: UI):
+    def run(data_uid: str, comms: Comms, ui: UI, approved=False):
         """Registers a database to the backend.
 
         Args:
@@ -20,7 +20,9 @@ class DatasetRegistration:
                 "This dataset has already been registered.", ui, add_instructions=False
             )
 
-        if dset.request_registration_approval(ui):
+        if approved or dset.request_registration_approval(ui):
             ui.print("Uploading...")
             dset.upload(comms)
             dset.set_registration()
+        else:
+            pretty_error("Registration request cancelled.", ui, add_instructions=False)
