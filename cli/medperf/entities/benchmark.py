@@ -47,7 +47,7 @@ class Benchmark:
 
     @classmethod
     def get(
-        cls, benchmark_uid: str, comms: Comms, force_update: bool = False
+        cls, benchmark_uid: str, force_update: bool = False
     ) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
@@ -61,6 +61,7 @@ class Benchmark:
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
         """
+        comms = config.comms
         # Get local benchmarks
         bmk_storage = storage_path(config.benchmarks_storage)
         local_bmks = os.listdir(bmk_storage)
