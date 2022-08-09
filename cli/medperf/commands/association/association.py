@@ -59,5 +59,5 @@ def reject(
     """
     comms = config.comms
     ui = config.ui
-    Approval.run(benchmark_uid, "REJECT", comms, ui, dataset_uid, mlcube_uid)
+    Approval.run(benchmark_uid, "REJECTED", comms, ui, dataset_uid, mlcube_uid)
     ui.print("✅ Done!")
