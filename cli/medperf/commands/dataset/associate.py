@@ -2,7 +2,7 @@ from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import dict_pretty_print, pretty_error
+from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
@@ -29,7 +29,11 @@ class AssociateDataset:
         ui.print("They will not be part of the benchmark.")
         dict_pretty_print(result.todict(), ui)
 
-        if approved or dset.request_association_approval(benchmark, ui):
+        msg = "Please confirm that you would like to associate"
+        msg += f" the dataset {dset.name} with the benchmark {benchmark.name}."
+        msg += " [Y/n]"
+        approved = approved or approval_prompt(msg, ui)
+        if approved:
             ui.print("Generating dataset benchmark association")
             metadata = {"test_result": result.todict()}
             comms.associate_dset(dset.uid, benchmark_uid, metadata)

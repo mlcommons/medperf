@@ -25,7 +25,7 @@ class Dataset:
     data preparation output.
     """
 
-    def __init__(self, data_uid: int, ui: UI):
+    def __init__(self, data_uid: int):
         """Creates a new dataset instance
 
         Args:
@@ -34,7 +34,7 @@ class Dataset:
         Raises:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
-        data_uid = self.__full_uid(data_uid, ui)
+        data_uid = self.__full_uid(data_uid, config.ui)
         self.data_uid = data_uid
         self.dataset_path = os.path.join(
             storage_path(config.data_storage), str(data_uid)
@@ -80,7 +80,7 @@ class Dataset:
         }
 
     @classmethod
-    def all(cls, ui: UI) -> List["Dataset"]:
+    def all(cls) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Returns:
@@ -100,7 +100,7 @@ class Dataset:
             reg_path = os.path.join(data_storage, uid, config.reg_file)
             registered = os.path.exists(reg_path)
             if not_tmp and registered:
-                dsets.append(cls(uid, ui))
+                dsets.append(cls(uid))
         return dsets
 
     def __full_uid(self, uid_hint: str, ui: UI) -> str:
@@ -143,45 +143,6 @@ class Dataset:
         regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)
-
-    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
-        """Prompts the user for aproval regarding the association of the dataset
-        with a given benchmark.
-
-        Args:
-            benchmark (Benchmark): Benchmark to be associated with
-
-        Returns:
-            bool: Wether the user approved the association or not
-        """
-        msg = "Please confirm that you would like to associate"
-        msg += f" the dataset {self.name} with the benchmark {benchmark.name}."
-        msg += " [Y/n]"
-        approved = approval_prompt(msg, ui,)
-        return approved
-
-    def request_registration_approval(self, ui: UI) -> bool:
-        """Prompts the user for approval concerning uploading the registration to the backend.
-
-        Returns:
-            bool: Wether the user gave consent or not.
-        """
-        if self.status != "PENDING":
-            return True
-
-        dict_pretty_print(self.registration, ui)
-        ui.print(
-            "Above is the information and statistics that will be registered to the database"
-        )
-        approved = approval_prompt(
-            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
-            ui,
-        )
-        if approved:
-            self.status = "APPROVED"
-        else:
-            self.status = "REJECTED"
-        return approved
 
     def upload(self, comms: Comms):
         """Uploads the registration information to the comms.
