@@ -1,4 +1,5 @@
 import os
+from medperf.enums import Status
 import yaml
 import logging
 from typing import List
@@ -40,7 +41,7 @@ class Result:
         self.benchmark_uid = benchmark_uid
         self.dataset_uid = dataset_uid
         self.model_uid = model_uid
-        self.status = "PENDING"
+        self.status = Status.PENDING
         self.results = {}
         self.get_results()
         self.uid = self.results.get("uid", None)
@@ -67,7 +68,7 @@ class Result:
             "name": f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}",
             "results": results,
             "metadata": {},
-            "approval_status": self.status,
+            "approval_status": self.status.value,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
             "dataset": self.dataset_uid,
@@ -80,7 +81,7 @@ class Result:
         Returns:
             bool: Wether the user gave consent or not
         """
-        if self.status == "APPROVED":
+        if self.status == Status.APPROVED:
             return True
 
         dict_pretty_print(self.todict(), ui)
