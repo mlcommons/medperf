@@ -19,6 +19,10 @@ This folder contains scripts for the execution and submission of results related
 	 ```
 	 medperf dataset ls
 	 ```
+         If you have more than one dataset, you can find out which ones are associated to the specified benchmark by taking note of the dataset `Server UID` (found from the previous command) and looking at what benchmark is associated with, using the following command:
+         ```
+	 medperf association ls
+	 ```
    - **The number of subjects in the data:** This can be determined by looking at the registration information related to your dataset. You can find that by running the following command
      ```
 	 cat ~/.medperf_fets/data/<DATASET_UID>/registration-info.yaml
