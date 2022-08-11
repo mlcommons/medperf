@@ -147,7 +147,7 @@ if __name__ == "__main__":
         "-m",
         "--models-file",
         nargs="?",
-        default="brats_evaluation_priority.json",
+        default="fets_subm_list.json",
         type=str,
         help="Path to JSON document containing a list of model names in priority order",
     )
