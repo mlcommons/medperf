@@ -1,18 +1,19 @@
+import os
 import yaml
 from pathlib import Path
-import os
 import shutil
 
-from medperf.ui import UI
 from medperf.utils import (
     get_folder_sha1,
     pretty_error,
     approval_prompt,
     dict_pretty_print,
 )
-from medperf.comms import Comms
+from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.entities import Cube, Dataset
+from medperf.comms.interface import Comms
+from medperf.entities.cube import Cube
+from medperf.entities.dataset import Dataset
 
 
 class Registration:
@@ -94,7 +95,7 @@ class Registration:
             "data_preparation_mlcube": self.cube.uid,
             "generated_uid": self.generated_uid,
             "input_data_hash": self.in_uid,
-            "metadata": self.stats,
+            "generated_metadata": self.stats,
             "status": self.status,
             "uid": self.uid,
             "state": "OPERATION",
@@ -102,13 +103,6 @@ class Registration:
         }
 
         return registration
-
-    def retrieve_additional_data(self, ui: UI):
-        """Prompts the user for the name, description and location
-        """
-        self.name = ui.prompt("Provide a dataset name: ")
-        self.description = ui.prompt("Provide a description:  ")
-        self.location = ui.prompt("Provide a location:     ")
 
     def request_approval(self, ui: UI) -> bool:
         """Prompts the user for approval concerning uploading the registration to the comms.

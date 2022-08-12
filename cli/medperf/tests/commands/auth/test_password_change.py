@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import call, ANY
 
-from medperf.comms import Comms
+from medperf.comms.interface import Comms
 from medperf.commands.auth import PasswordChange
 from medperf.utils import storage_path
 from medperf import config
