@@ -11,6 +11,7 @@ from medperf.entities.dataset import Dataset
 from medperf.ui.factory import UIFactory
 from medperf.comms.factory import CommsFactory
 from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 config.platform = "singularity"
 
@@ -97,7 +98,7 @@ def cleanup_stale_predictions(model_id, data_uid):
         shutil.rmtree(stale_path)
 
 
-def main(benchmark_uid, data_uid, timeout, models_file):
+def main(benchmark_uid, data_uid, timeout, models_file, test=False):
     config.infer_timeout = timeout
     validate_setup()
     ui, comms = setup()
@@ -105,6 +106,10 @@ def main(benchmark_uid, data_uid, timeout, models_file):
     data = get_dset(data_uid, ui)
     local_uid = data.registration["generated_uid"]
     for model_name, model_id in models_ids:
+        if test:
+            print("Running tests to ensure execution works")
+            CompatibilityTestExecution.run(benchmark_uid, comms, ui, model=model_id)
+            print("Done!")
         print(f"Initiating Benchmark Execution with model {model_name}")
         cleanup_stale_predictions(model_id, local_uid)
         try:
@@ -151,6 +156,11 @@ if __name__ == "__main__":
         type=str,
         help="Path to JSON document containing a list of model names in priority order",
     )
+    parser.add_argument(
+        "--no-test",
+        action="store_false",
+        help="Skip approval step. Automatically submits all results.",
+    )
     args = parser.parse_args()
     in_config = vars(args)
 
@@ -158,5 +168,6 @@ if __name__ == "__main__":
     data_uid = in_config["data_uid"]
     timeout = in_config["num_cases"] * in_config["time_case"]
     models_file = in_config["models_file"]
+    test = in_config["no_test"]
 
-    main(benchmark_uid, data_uid, timeout, models_file)
+    main(benchmark_uid, data_uid, timeout, models_file, test=test)
