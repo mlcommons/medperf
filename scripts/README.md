@@ -33,13 +33,16 @@ To properly run the scripts provided, you need to know the following information
   cat ~/.medperf_fets/data/<DATASET_UID>/registration-info.yaml
   ```
   inside there you will see the `Valid_Subjects` key, which specifies the number of cases that will be processed.
-### FeTS Evaluation and submission:
+  
+Once you have gathered above information, you can continue to run model inference on your data by following the instructions below. You may notice that they contain two calls to the evaluation script. This is because we have two sets of model submissions this year: *FeTS submissions*, which are new models submitted to this year’s challenge and *BraTS submissions*, which are models from BraTS 2021 adapted for the FeTS challenge. As it is more urgent to get results for the FeTS submissions, we evaluate them first.
+
+### FeTS Submission:
 #### 1. Models execution:
    To generate results for the FeTS Challenge, you need to execute the following command
    ```
-   python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> -t 258
+   python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS>
    ```
-   This will initiate the model execution process, and go through all the models specified in the helper file (by default `fets_subm_list.json`) with an expected execution time of 4.3 minutes per case per model. 
+   This will initiate the model execution process, and go through all the models specified in the helper file (by default `fets_subm_list.json`). evaluation will take from a few hours to one day.
    
    If any model fails, it will say so in the stdout, and continue running the rest of the models. The script will only execute models which have not yet generated any results, which means that it can be executed multiple times to rety models which may have failed in the past.
 #### 2. Results Submission:
@@ -55,12 +58,12 @@ To properly run the scripts provided, you need to know the following information
    
    This command can be cancelled and resumed at any time. It will ask for submission confirmation for any results that have not been submitted already, which means that approved results will be ommited on a second run, but pending/not approved ones will be displayed again for submission confirmation.
 
-### BraTS Evaluation and Submission
+### BraTS Submission
 For the BraTS Evaluation process, the previous steps will be executed again but using the `brats_evaluation_priority.json`
 #### 1. Models execution:
-Use the following command to execute the BraTS models with an expected execution time of 47 minutes per case per model.
+Use the following command to execute the BraTS models. Evaluation will take from a few days to one week.
 ```
-python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> -t 2820 -m brats_evaluation_priority.json
+python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> -m brats_evaluation_priority.json
 ```
 
 #### 2. Results Submission:
