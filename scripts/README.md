@@ -40,9 +40,9 @@ Once you have gathered above information, you can continue to run model inferenc
 #### 1. Models execution:
    To generate results for the FeTS Challenge, you need to execute the following command
    ```
-   python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS>
+   python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> --no-test
    ```
-   This will initiate the model execution process, and go through all the models specified in the helper file (by default `fets_subm_list.json`). evaluation will take from a few hours to one day.
+   This will initiate the model execution process, and go through all the models specified in the helper file (by default `fets_subm_list.json`). Evaluation will take from a few hours to one day.
    
    If any model fails, it will say so in the stdout, and continue running the rest of the models. The script will only execute models which have not yet generated any results, which means that it can be executed multiple times to rety models which may have failed in the past.
 #### 2. Results Submission:
