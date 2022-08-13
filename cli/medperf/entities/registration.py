@@ -1,6 +1,7 @@
 import os
 import yaml
 from pathlib import Path
+import shutil
 
 from medperf.utils import (
     get_folder_sha1,
@@ -134,8 +135,9 @@ class Registration:
         """
         uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
-        if not os.path.exists(new_path):
-            os.rename(out_path, new_path)
+        if os.path.exists(new_path):
+            shutil.rmtree(new_path)
+        os.rename(out_path, new_path)
         self.path = new_path
         return new_path
 
