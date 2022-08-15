@@ -16,18 +16,19 @@ Alejandro will reply with the username and temporary password, which you can cha
 
 ### Preliminary Set-up
 To ensure a successful installation process, the following tools are needed/recommended: 
-- **Git:** Required to retrieve the code. You can find installation instructions here
-- **Anaconda/Miniconda:** Recommended for independent project environment. Here are the installation instructions. Then, create a new environment with `conda create -y -n fets22_env pip` and activate it (`conda activate fets22_env`) before following the rest of the instructions.
-- **Singularity:** Required, as it is the container engine that is going to be used throughout the benchmark. We recommend installing version 3.9.5, which is the same version used for testing. Here are the steps to install the specified version. Ensure you have the correct version by running:
+- **Git:** Required to retrieve the code. You can find installation instructions [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- **Anaconda/Miniconda:** Recommended for independent project environment. [Here](https://docs.anaconda.com/anaconda/install/linux/) are the installation instructions. Then, create a new environment with `conda create -y -n fets22_env pip` and activate it (`conda activate fets22_env`) before following the rest of the instructions.
+- **Singularity:** Required, as it is the container engine that is going to be used throughout the benchmark. We recommend installing version 3.9.5, which is the same version used for testing. [Here](https://docs.sylabs.io/guides/3.9/user-guide/quick_start.html#quick-installation-steps) are the steps to install the specified version. Ensure you have the correct version by running:
 	```
 	singularity --version
 	```
-- **NVIDIA-GPU driver:** Please make sure your driver has version 450.51 or later. This is required to make sure that the singularity containers can use the GPU. One possible way to install the driver is described in NVIDIA’s documentation.
+- **NVIDIA-GPU driver:** Please make sure your driver has version 450.51 or later. This is required to make sure that the singularity containers can use the GPU. One possible way to install the driver is described in [NVIDIA’s documentation](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#abstract).
 
 ### Get MedPerf
 You can get the most up-to-date version of medperf by using the following command: 
 ```
-git clone --branch fets-challenge https://github.com/mlcommons/medperf cd medperf/cli 
+git clone --branch fets-challenge https://github.com/mlcommons/medperf
+cd medperf/cli
 pip install -e .
 ```
 Medperf requires Python 3.7 or above. The fets-challenge branch contains settings specific to the FeTS challenge. 
@@ -54,7 +55,8 @@ This refreshes your cached credentials. Under normal circumstances, you should n
 The next step is to do final preparation, sanity-checking and MedPerf registration of your evaluation dataset. Note that none of your data will be uploaded. You will provide some descriptive information to help with organization that will be sent to the server (e.g. a name for the dataset), and will have the opportunity to review this small descriptor and cancel the upload if you wish (this would prevent evaluation).
 
 #### Dataset Preparation
-First, we “create” a new dataset entry, using the preparation logic required by the benchmark. We will need to pass a number of details on the command line. You’ll need: 1. `<path/to/data>`, which is the file path to where your dataset resides. You’ll need to type it twice: once for where the data is and once for where the labels are. Given the typical brats file structure, these should be the same directory. 
+First, we “create” a new dataset entry, using the preparation logic required by the benchmark. We will need to pass a number of details on the command line. You’ll need: 
+1. `<path/to/data>`, which is the file path to where your dataset resides. You’ll need to type it twice: once for where the data is and once for where the labels are. Given the typical brats file structure, these should be the same directory. 
 2. `<name>`, which is whatever name you would like the dataset to show in medperf, e.g. `"ACME FeTS 2022"`. (Quotes are required if using spaces) 
 3. `<description>` which is information that can be helpful for benchmark committees to find datasets of interest. 
 4. `<location>` which gives some information about where the data comes from. Useful when analyzing geographic diversity.
@@ -130,21 +132,22 @@ If this process succeeds, you are all done with data preparation! The benchmark 
 This folder contains scripts for the execution and submission of results related to the FeTS Challenge. 
 
 ### Prerequisites
-1. It is expected that the user already has a prepared dataset, which has been submitted to the platform, associated with the FeTS Benchmark and approved by the FeTS organizers.
+It is expected that the user already has a prepared dataset, which has been submitted to the platform, associated with the FeTS Benchmark and approved by the FeTS organizers.
    This can be confirmed with the following command
    ```
    medperf association ls
    ```
    which should display an association with status `APPROVED`
-2. Singularity 3.9.5
-3. CUDA >= 450
 
 ### Contents
-Here is a brief description of all the files contained in this folder:
+For evaluating challenge submissions, we provide the following files: 
 - `run_models.py`: script for automatically executing all models for a specific benchmark.
 - `submit_results.py`: script for automatically submitting all results for a specific benchmark.
 - `fets_subm_list.json`: file containing models names for the FeTS Challenge.
 - `brats_evaluation_priority.json` file containing models names for the BraTS Model Evaluation.
+As you cloned the Medperf repository earlier during data preparation, you can find them in the `scripts` folder (relative to your local Medperf repository).
+Here is a brief description of all the files contained in this folder:
+
 ### How to Use
 To properly run the scripts provided, you need to know the following information:
 - **The benchmark UID:** The currently accepted benchmark uid is `5`
@@ -164,7 +167,7 @@ To properly run the scripts provided, you need to know the following information
   
 Once you have gathered above information, you can continue to run model inference on your data by following the instructions below. You may notice that they contain two calls to the evaluation script. This is because we have two sets of model submissions this year: *FeTS submissions*, which are new models submitted to this year’s challenge and *BraTS submissions*, which are models from BraTS 2021 adapted for the FeTS challenge. As it is more urgent to get results for the FeTS submissions, we evaluate them first.
 
-### FeTS Submission:
+### Evaluate FeTS Submissions:
 #### 1. Models execution:
    To generate results for the FeTS Challenge, you need to execute the following command
    ```
@@ -172,7 +175,7 @@ Once you have gathered above information, you can continue to run model inferenc
    ```
    This will initiate the model execution process, and go through all the models specified in the helper file (by default `fets_subm_list.json`). Evaluation will take from a few hours to one day.
    
-   If any model fails, it will say so in the stdout, and continue running the rest of the models. The script will only execute models which have not yet generated any results, which means that it can be executed multiple times to rety models which may have failed in the past.
+   If any model fails, it will say so in the stdout, and continue running the rest of the models. The script will only execute models which have not yet generated any results, which means that it can be executed multiple times to retry models which may have failed in the past.
 #### 2. Results Submission:
    To submit the generated results, we offer two options:
    - Skip approval step: Faster, and requires no further input from the user. **This is only recommended if the collaborator trusts the results will not leak any private information.**
@@ -186,7 +189,7 @@ Once you have gathered above information, you can continue to run model inferenc
    
    This command can be cancelled and resumed at any time. It will ask for submission confirmation for any results that have not been submitted already, which means that approved results will be ommited on a second run, but pending/not approved ones will be displayed again for submission confirmation.
 
-### BraTS Submission
+### Evaluate BraTS Submissions
 For the BraTS Evaluation process, the previous steps will be executed again but using the `brats_evaluation_priority.json`
 #### 1. Models execution:
 Use the following command to execute the BraTS models. Evaluation will take from a few days to one week.
