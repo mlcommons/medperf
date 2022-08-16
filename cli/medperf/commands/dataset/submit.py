@@ -1,12 +1,12 @@
-from medperf.ui import UI
-from medperf.comms import Comms
-from medperf.entities import Dataset
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.utils import pretty_error
+from medperf.entities.dataset import Dataset
 
 
 class DatasetRegistration:
     @staticmethod
-    def run(data_uid: str, comms: Comms, ui: UI):
+    def run(data_uid: str, comms: Comms, ui: UI, approved=False):
         """Registers a database to the backend.
 
         Args:
@@ -32,7 +32,9 @@ class DatasetRegistration:
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
             return
 
-        if dset.request_registration_approval(ui):
+        if approved or dset.request_registration_approval(ui):
             ui.print("Uploading...")
             dset.upload(comms)
             dset.set_registration()
+        else:
+            pretty_error("Registration request cancelled.", ui, add_instructions=False)

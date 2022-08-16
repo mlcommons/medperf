@@ -4,11 +4,11 @@ import requests
 from unittest.mock import mock_open, ANY
 
 from medperf import config
-from medperf.ui import UI
-from medperf.comms import REST
 from medperf.enums import Role
-from medperf.tests.mocks import MockResponse
+from medperf.ui.interface import UI
+from medperf.comms.rest import REST
 from medperf.tests.utils import rand_l
+from medperf.tests.mocks import MockResponse
 
 url = "https://mock.url"
 patch_server = "medperf.comms.rest.{}"
@@ -60,13 +60,38 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "associate_dset_benchmark",
+            "associate_dset",
             "post",
             201,
             [1, 1],
             {},
             (f"{url}/datasets/benchmarks/",),
-            {"json": {"benchmark": 1, "dataset": 1, "approval_status": "PENDING"}},
+            {
+                "json": {
+                    "benchmark": 1,
+                    "dataset": 1,
+                    "approval_status": "PENDING",
+                    "metadata": {},
+                }
+            },
+        ),
+        (
+            "_REST__set_approval_status",
+            "put",
+            200,
+            [f"{url}/mlcubes/1/benchmarks/1", "APPROVED"],
+            {},
+            (f"{url}/mlcubes/1/benchmarks/1",),
+            {"json": {"approval_status": "APPROVED"}},
+        ),
+        (
+            "_REST__set_approval_status",
+            "put",
+            200,
+            [f"{url}/mlcubes/1/benchmarks/1", "REJECTED"],
+            {},
+            (f"{url}/mlcubes/1/benchmarks/1",),
+            {"json": {"approval_status": "REJECTED"}},
         ),
         (
             "change_password",
@@ -85,6 +110,8 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     res = MockResponse(body, status)
     if type == "get":
         patch_method = patch_server.format("REST._REST__auth_get")
+    elif type == "put":
+        patch_method = patch_server.format("REST._REST__auth_put")
     else:
         patch_method = patch_server.format("REST._REST__auth_post")
     spy = mocker.patch(patch_method, return_value=res)
@@ -108,7 +135,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("_REST__get_cube_file", ["", 1, "", ""], {}),
         ("upload_dataset", [{}], {"id": 1}),
         ("upload_results", [{}], {"id": 1}),
-        ("associate_dset_benchmark", [1, 1], {}),
+        ("associate_dset", [1, 1], {}),
         ("change_password", [{}], {"password": "pwd"}),
     ],
 )
@@ -135,16 +162,15 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     # Arrange
     res = MockResponse({"token": ""}, 200)
     spy = mocker.patch("requests.post", return_value=res)
-    mocker.patch.object(ui, "prompt", return_value=uname)
-    mocker.patch.object(ui, "hidden_prompt", return_value=pwd)
     exp_body = {"username": uname, "password": pwd}
     exp_path = f"{url}/auth-token/"
+    cert_verify = config.certificate or True
 
     # Act
-    server.login(ui)
+    server.login(ui, uname, pwd)
 
     # Assert
-    spy.assert_called_once_with(exp_path, json=exp_body, verify=True)
+    spy.assert_called_once_with(exp_path, json=exp_body, verify=cert_verify)
 
 
 @pytest.mark.parametrize("token", ["test", "token"])
@@ -152,11 +178,9 @@ def test_login_stores_token(mocker, ui, server, token):
     # Arrange
     res = MockResponse({"token": token}, 200)
     mocker.patch("requests.post", return_value=res)
-    mocker.patch.object(ui, "prompt", return_value="testuser")
-    mocker.patch.object(ui, "hidden_prompt", return_value="testpwd")
 
     # Act
-    server.login(ui)
+    server.login(ui, "testuser", "testpwd")
 
     # Assert
     assert server.token == token
@@ -186,10 +210,10 @@ def test_auth_post_calls_authorized_request(mocker, server):
     spy.called_once_with(url, requests.post)
 
 
-def test_auth_req_fails_if_token_missing(mocker, server):
+def test_auth_req_authenticates_if_token_missing(mocker, server):
     # Arrange
     mocker.patch("requests.post")
-    spy = mocker.patch(patch_server.format("pretty_error"))
+    spy = mocker.patch(patch_server.format("REST.authenticate"))
 
     # Act
     server._REST__auth_req(url, requests.post)
@@ -212,12 +236,13 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
         func = requests.post
 
     exp_headers = {"Authorization": f"Token {token}"}
+    cert_verify = config.certificate or True
 
     # Act
     server._REST__auth_req(url, func)
 
     # Assert
-    spy.assert_called_once_with(url, headers=exp_headers, verify=True)
+    spy.assert_called_once_with(url, headers=exp_headers, verify=cert_verify)
 
 
 def test__req_sanitizes_json(mocker, server):
@@ -299,6 +324,20 @@ def test_authorized_by_role_returns_true_when_authorized(
 
 
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
+def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
+    # Arrange
+    res = MockResponse([body], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    bmarks = server.get_benchmarks()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/benchmarks/")
+    assert bmarks == [body]
+
+
+@pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmark_returns_benchmark_body(mocker, server, body):
     # Arrange
     res = MockResponse(body, 200)
@@ -323,6 +362,38 @@ def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
 
     # Assert
     assert set(uids) == set(exp_uids)
+
+
+def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    benchmarks = [
+        {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
+        {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
+    ]
+    res = MockResponse(benchmarks, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    server.get_user_benchmarks()
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/me/benchmarks/")
+
+
+def test_get_user_benchmarks_returns_benchmarks(mocker, server):
+    # Arrange
+    benchmarks = [
+        {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
+        {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
+    ]
+    res = MockResponse(benchmarks, 200)
+    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    retrieved_benchmarks = server.get_user_benchmarks()
+
+    # Assert
+    assert benchmarks == retrieved_benchmarks
 
 
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
@@ -502,6 +573,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
         "approval_status": "PENDING",
         "model_mlcube": cube_uid,
         "benchmark": benchmark_uid,
+        "metadata": {},
     }
     res = MockResponse({}, 201)
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
@@ -511,3 +583,69 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)
+
+
+@pytest.mark.parametrize("dataset_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
+def test_set_dataset_association_approval_sets_approval(
+    mocker, server, dataset_uid, benchmark_uid, status
+):
+    # Arrange
+    res = MockResponse({}, 200)
+    spy = mocker.patch(
+        patch_server.format("REST._REST__set_approval_status"), return_value=res
+    )
+    exp_url = f"{url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+
+    # Act
+    server.set_dataset_association_approval(benchmark_uid, dataset_uid, status)
+
+    # Assert
+    spy.assert_called_once_with(exp_url, status)
+
+
+@pytest.mark.parametrize("mlcube_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
+def test_set_mlcube_association_approval_sets_approval(
+    mocker, server, mlcube_uid, benchmark_uid, status
+):
+    # Arrange
+    res = MockResponse({}, 200)
+    spy = mocker.patch(
+        patch_server.format("REST._REST__set_approval_status"), return_value=res
+    )
+    exp_url = f"{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+
+    # Act
+    server.set_mlcube_association_approval(benchmark_uid, mlcube_uid, status)
+
+    # Assert
+    spy.assert_called_once_with(exp_url, status)
+
+
+def test_get_datasets_associations_gets_associations(mocker, server):
+    # Arrange
+    res = MockResponse([], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    exp_path = f"{url}/me/datasets/associations/"
+
+    # Act
+    server.get_datasets_associations()
+
+    # Assert
+    spy.assert_called_once_with(exp_path)
+
+
+def test_get_cubes_associations_gets_associations(mocker, server):
+    # Arrange
+    res = MockResponse([], 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    exp_path = f"{url}/me/mlcubes/associations/"
+
+    # Act
+    server.get_cubes_associations()
+
+    # Assert
+    spy.assert_called_once_with(exp_path)
