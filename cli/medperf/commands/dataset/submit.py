@@ -21,7 +21,9 @@ class DatasetRegistration:
             )
         remote_dsets = comms.get_user_datasets()
         remote_dset = [
-            dset for dset in remote_dsets if dset["generated_uid"] == data_uid
+            remote_dset
+            for remote_dset in remote_dsets
+            if remote_dset["generated_uid"] == dset.data_uid
         ]
         if len(remote_dset) == 1:
             dset.uid = remote_dset[0]["id"]
