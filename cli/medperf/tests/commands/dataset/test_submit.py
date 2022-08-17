@@ -86,6 +86,7 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
 def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_hash):
     # Arrange
     dataset.uid = None
+    dataset.data_uid = data_hash
     remote_dsets = [
         {
             "id": 1,
