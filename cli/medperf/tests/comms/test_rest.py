@@ -164,12 +164,13 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     spy = mocker.patch("requests.post", return_value=res)
     exp_body = {"username": uname, "password": pwd}
     exp_path = f"{url}/auth-token/"
+    cert_verify = config.certificate or True
 
     # Act
     server.login(ui, uname, pwd)
 
     # Assert
-    spy.assert_called_once_with(exp_path, json=exp_body, verify=True)
+    spy.assert_called_once_with(exp_path, json=exp_body, verify=cert_verify)
 
 
 @pytest.mark.parametrize("token", ["test", "token"])
@@ -235,12 +236,13 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
         func = requests.post
 
     exp_headers = {"Authorization": f"Token {token}"}
+    cert_verify = config.certificate or True
 
     # Act
     server._REST__auth_req(url, func)
 
     # Assert
-    spy.assert_called_once_with(url, headers=exp_headers, verify=True)
+    spy.assert_called_once_with(url, headers=exp_headers, verify=cert_verify)
 
 
 def test__req_sanitizes_json(mocker, server):

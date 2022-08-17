@@ -162,9 +162,6 @@ class DataPreparation:
                 config.test_dset_prefix + self.registration.generated_uid
             )
 
-        if self.registration.is_registered(self.ui) and not self.run_test:
-            msg = "This dataset has already been prepared. No changes made"
-            pretty_error(msg, self.ui)
         self.registration.to_permanent_path(self.out_path)
         self.registration.write()
         return self.registration.generated_uid
