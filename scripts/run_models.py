@@ -98,13 +98,14 @@ def cleanup_stale_predictions(model_id, data_uid):
         shutil.rmtree(stale_path)
 
 
-def main(benchmark_uid, data_uid, timeout, models_file, test=False):
+def main(benchmark_uid, data_uid, timeout, models_file, test=False, cleanup=False):
     config.infer_timeout = timeout
     validate_setup()
     ui, comms = setup()
     models_ids = get_models_to_run(models_file, ui, comms)
     data = get_dset(data_uid, ui)
     local_uid = data.registration["generated_uid"]
+    cubes_path = medperf.utils.storage_path(config.cubes_storage)
     for model_name, model_id in models_ids:
         if test:
             print("Running tests to ensure execution works")
@@ -114,6 +115,10 @@ def main(benchmark_uid, data_uid, timeout, models_file, test=False):
         cleanup_stale_predictions(model_id, local_uid)
         try:
             BenchmarkExecution.run(benchmark_uid, local_uid, model_id, comms, ui)
+            if cleanup:
+                model_path = os.path.join(cubes_path, str(model_id))
+                print(f"Removing downloaded model at {model_path}")
+                shutil.rmtree(model_path)
         except (Exception, SystemExit):
             print(f"Benchmark execution with model {model_id} failed")
 
@@ -161,6 +166,11 @@ if __name__ == "__main__":
         action="store_false",
         help="Skip approval step. Automatically submits all results.",
     )
+    parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Remove models after model execution. This could save up space, but might cause redownloading models in case of multiple executions",
+    )
     args = parser.parse_args()
     in_config = vars(args)
 
@@ -169,5 +179,6 @@ if __name__ == "__main__":
     timeout = in_config["num_cases"] * in_config["time_case"]
     models_file = in_config["models_file"]
     test = in_config["no_test"]
+    cleanup = in_config["cleanup"]
 
-    main(benchmark_uid, data_uid, timeout, models_file, test=test)
+    main(benchmark_uid, data_uid, timeout, models_file, test=test, cleanup=cleanup)
