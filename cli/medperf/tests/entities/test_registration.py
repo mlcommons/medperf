@@ -1,4 +1,5 @@
 import os
+from medperf.enums import Status
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -144,7 +145,7 @@ def test_request_approval_skips_if_approved(mocker, ui, reg_mocked_with_params):
     # Arrange
     spy = mocker.patch(PATCH_REGISTRATION.format("approval_prompt"), return_value=True)
     reg = Registration(*reg_mocked_with_params)
-    reg.status = "APPROVED"
+    reg.status = Status.APPROVED
 
     # Act
     reg.request_approval(ui)
