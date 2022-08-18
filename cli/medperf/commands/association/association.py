@@ -5,6 +5,7 @@ import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.association.list import ListAssociations
 from medperf.commands.association.approval import Approval
+from medperf.enums import Status
 
 app = typer.Typer()
 
@@ -39,7 +40,7 @@ def approve(
     """
     comms = config.comms
     ui = config.ui
-    Approval.run(benchmark_uid, "APPROVED", comms, ui, dataset_uid, mlcube_uid)
+    Approval.run(benchmark_uid, Status.APPROVED, comms, ui, dataset_uid, mlcube_uid)
     ui.print("✅ Done!")
 
 
@@ -59,5 +60,5 @@ def reject(
     """
     comms = config.comms
     ui = config.ui
-    Approval.run(benchmark_uid, "REJECTED", comms, ui, dataset_uid, mlcube_uid)
+    Approval.run(benchmark_uid, Status.REJECTED, comms, ui, dataset_uid, mlcube_uid)
     ui.print("✅ Done!")
