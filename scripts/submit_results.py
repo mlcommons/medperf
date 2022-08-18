@@ -15,12 +15,17 @@ def setup():
 
 def get_results(benchmark_uid: int):
     # Get all local results
-    results = Result.all(config.ui)
-    # Filter out results that are not related to the current benchmark
-    results = [
-        result for result in results if int(result.benchmark_uid) == benchmark_uid
-    ]
-    results = [result for result in results if result.uid is None]
+    all_results = Result.all(config.ui)
+    results = []
+    for result in all_results:
+        is_test = not result.benchmark_uid.isdigit()
+        is_submitted = result.uid is not None
+        # Filter out temporary or submitted results
+        if is_test or is_submitted:
+            continue
+        # Filter out unrelated_results
+        if int(result.benchmark_uid) == benchmark_uid:
+            results.append(result)
     return results
 
 
