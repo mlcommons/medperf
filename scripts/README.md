@@ -77,7 +77,7 @@ First, we “create” a new dataset entry, using the preparation logic required
 **NOTE:** The `<name>` `<description>` and `<location>` fields have a hard limit of 20 characters. Beyond this, you will get an error from the server.
 
 ```
-medperf --log=debug dataset create -b 5 -d <path/to/data> -l <path/to/data> --name |<name>" --description "<description>" --location "<location>"
+medperf --log=debug dataset create -b 5 -d <path/to/data> -l <path/to/data> --name "<name>" --description "<description>" --location "<location>"
 ```
 This command will execute the Data Preparation MLCube provided by the specified benchmark. It will result in a new version of the original dataset, which has been transformed, checked and analyzed for model execution. 
 Information about the dataset (like its UID) can be obtained with: 
