@@ -1,6 +1,4 @@
 import typer
-import logging
-import logging.handlers
 from os.path import abspath, expanduser
 
 import medperf.config as config
@@ -12,7 +10,7 @@ import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
-from medperf.utils import init_storage, storage_path, cleanup
+from medperf.utils import init_storage, storage_path, cleanup, setup_logs
 import medperf.commands.association.association as association
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
@@ -169,21 +167,7 @@ def main(
     config.log_file = log_file
 
     init_storage()
-    log = log.upper()
-    log_lvl = getattr(logging, log)
-    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    handler = logging.handlers.RotatingFileHandler(
-        log_file, maxBytes=10000000, backupCount=5
-    )
-    handler.setFormatter(logging.Formatter(log_fmt))
-    logging.basicConfig(
-        level=log_lvl,
-        handlers=[handler],
-        format=log_fmt,
-        datefmt="%Y-%m-%d %H:%M:%S",
-        force=True,
-    )
-    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
+    setup_logs(log, log_file)
 
     config.ui = UIFactory.create_ui(ui)
     config.comms = CommsFactory.create_comms(comms, config.ui, config.server)

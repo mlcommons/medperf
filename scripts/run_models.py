@@ -100,6 +100,8 @@ def cleanup_stale_predictions(model_id, data_uid):
 
 def main(benchmark_uid, data_uid, timeout, models_file, test=False, cleanup=False):
     config.infer_timeout = timeout
+    log_file = medperf.utils.storage_path(config.log_file)
+    medperf.utils.setup_logs("DEBUG", log_file)
     validate_setup()
     ui, comms = setup()
     models_ids = get_models_to_run(models_file, ui, comms)

@@ -6,6 +6,7 @@ import yaml
 import random
 import hashlib
 import logging
+import logging.handlers
 import tarfile
 from glob import glob
 import json
@@ -19,6 +20,24 @@ from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.ui.interface import UI
+
+
+def setup_logs(loglevel, log_file):
+    log = loglevel.upper()
+    log_lvl = getattr(logging, log)
+    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=10000000, backupCount=5
+    )
+    handler.setFormatter(logging.Formatter(log_fmt))
+    logging.basicConfig(
+        level=log_lvl,
+        handlers=[handler],
+        format=log_fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
+    )
+    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
 
 def storage_path(subpath: str):
