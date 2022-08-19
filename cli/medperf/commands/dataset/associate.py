@@ -16,6 +16,10 @@ class AssociateDataset:
             benchmark_uid (int): UID of the benchmark to associate with
         """
         dset = Dataset(data_uid, ui)
+        if dset.uid is None:
+            msg = "The provided dataset is not registered."
+            pretty_error(msg, ui)
+
         benchmark = Benchmark.get(benchmark_uid, comms)
 
         if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):

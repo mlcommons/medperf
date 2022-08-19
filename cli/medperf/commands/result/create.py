@@ -72,6 +72,10 @@ class BenchmarkExecution:
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
         bmark_prep_cube = str(self.benchmark.data_preparation)
 
+        if self.dataset.uid is None:
+            msg = "The provided dataset is not registered."
+            pretty_error(msg, self.ui)
+
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             pretty_error(msg, self.ui)

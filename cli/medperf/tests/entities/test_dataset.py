@@ -1,3 +1,4 @@
+from medperf.enums import Status
 import pytest
 from unittest.mock import mock_open
 
@@ -17,7 +18,7 @@ REGISTRATION_MOCK = {
     "metadata": {"metadata_key": "metadata_value"},
     "generated_uid": "generated_uid",
     "input_data_hash": "input_data_hash",
-    "status": "PENDING",
+    "status": Status.PENDING.value,
     "uid": "uid",
     "state": "state",
 }
@@ -214,7 +215,7 @@ def test_request_registration_approval_skips_if_approved(mocker, all_uids, ui):
     uid = "1"
     spy = mocker.patch(PATCH_DATASET.format("approval_prompt"), return_value=True)
     reg = Dataset(uid, ui)
-    reg.status = "APPROVED"
+    reg.status = Status.APPROVED
 
     # Act
     reg.request_registration_approval(ui)
