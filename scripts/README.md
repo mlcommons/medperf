@@ -185,9 +185,11 @@ Once you have gathered above information, you can continue to run model inferenc
 #### 1. Models execution:
    To generate results for the FeTS Challenge, you need to execute the following command
    ```
-   python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> --no-test -t 300
+   python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> --no-test --no-cleanup -t 300
    ```
    This will initiate the model execution process, and go through all the models specified in the helper file (by default `fets_subm_list.json`). Evaluation will take from a few hours to one day.
+
+   **NOTE:** This command will download singularity image files for each model, which will take up 30GB of storage. If you don’t have enough disk space, you can omit the `--no-cleanup` option, so that image files are deleted after a model has been evaluated.
    
    If any model fails, it will say so in the stdout, and continue running the rest of the models. The script will only execute models which have not yet generated any results, which means that it can be executed multiple times to retry models which may have failed in the past.
 #### 2. Results Submission:
@@ -210,6 +212,8 @@ Use the following command to execute the BraTS models. Evaluation will take from
 ```
 python run_models.py -b <BENCHMARK_UID> -d <DATASET_UID> -n <NUM_SUBJECTS> -m brats_evaluation_priority.json
 ```
+
+**NOTE:** This command will automatically remove each model after successful execution. This is in order to save storage space, as the total space used by all the BraTS models is around 157GB. If you wish to keep the models for either re-execution with multiple datasets, or debugging, then please provide the `--no-cleanup` option to the above command.
 
 #### 2. Results Submission:
 If there's no need to manually approve each result, use the following command

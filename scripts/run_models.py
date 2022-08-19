@@ -167,8 +167,8 @@ if __name__ == "__main__":
         help="Skip approval step. Automatically submits all results.",
     )
     parser.add_argument(
-        "--cleanup",
-        action="store_true",
+        "--no-cleanup",
+        action="store_false",
         help="Remove models after model execution. This could save up space, but might cause redownloading models in case of multiple executions",
     )
     args = parser.parse_args()
@@ -179,6 +179,6 @@ if __name__ == "__main__":
     timeout = in_config["num_cases"] * in_config["time_case"]
     models_file = in_config["models_file"]
     test = in_config["no_test"]
-    cleanup = in_config["cleanup"]
+    cleanup = in_config["no_cleanup"]
 
     main(benchmark_uid, data_uid, timeout, models_file, test=test, cleanup=cleanup)
