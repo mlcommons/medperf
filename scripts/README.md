@@ -56,10 +56,24 @@ The next step is to do final preparation, sanity-checking and MedPerf registrati
 
 #### Dataset Preparation
 First, we “create” a new dataset entry, using the preparation logic required by the benchmark. We will need to pass a number of details on the command line. You’ll need: 
-1. `<path/to/data>`, which is the file path to where your dataset resides. You’ll need to type it twice: once for where the data is and once for where the labels are. Given the typical brats file structure, these should be the same directory. 
-2. `<name>`, which is whatever name you would like the dataset to show in medperf, e.g. `"ACME FeTS 2022"`. (Quotes are required if using spaces) 
-3. `<description>` which is information that can be helpful for benchmark committees to find datasets of interest. 
-4. `<location>` which gives some information about where the data comes from. Useful when analyzing geographic diversity.
+1. <path/to/data>, which is the path to the directory where your dataset resides. Later, you’ll need to pass it to the command twice: once for where the data is and once for where the labels are. We follow the file structure from the FeTS initiative, so these should be the same directory, which should look like:
+  ```
+  path/to/data/
+  │  
+  └───Patient_001 # case identifier
+  │   │ Patient_001_brain_t1.nii.gz  # also accepted without _brain (same for other modalities)
+  │   │ Patient_001_brain_t1ce.nii.gz
+  │   │ Patient_001_brain_t2.nii.gz
+  │   │ Patient_001_brain_flair.nii.gz
+  │   │ Patient_001_final_seg.nii.gz
+  │   
+  └───Pat_JohnDoe # other case identifier
+  │   │ ...
+  ```
+2. `<path/to/data>`, which is the file path to where your dataset resides. You’ll need to type it twice: once for where the data is and once for where the labels are. Given the typical brats file structure, these should be the same directory. 
+3. `<name>`, which is whatever name you would like the dataset to show in medperf, e.g. `"ACME FeTS 2022"`. (Quotes are required if using spaces) 
+4. `<description>` which is information that can be helpful for benchmark committees to find datasets of interest. 
+5. `<location>` which gives some information about where the data comes from. Useful when analyzing geographic diversity.
 **NOTE:** The `<name>` `<description>` and `<location>` fields have a hard limit of 20 characters. Beyond this, you will get an error from the server.
 
 ```
