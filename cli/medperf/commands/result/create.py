@@ -72,7 +72,7 @@ class BenchmarkExecution:
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
         bmark_prep_cube = str(self.benchmark.data_preparation)
 
-        if self.dataset.uid is None:
+        if self.dataset.uid is None and not self.run_test:
             msg = "The provided dataset is not registered."
             pretty_error(msg, self.ui)
 
@@ -119,7 +119,15 @@ class BenchmarkExecution:
         labels_path = self.dataset.labels_path
 
         self.ui.text = "Evaluating results"
-        out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
+        if not self.run_test:
+            out_path = results_path(
+                self.benchmark_uid, self.model_uid, self.dataset.uid
+            )
+        else:
+            out_path = results_path(
+                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
+            )
+
         self.evaluator.run(
             self.ui,
             task="evaluate",
