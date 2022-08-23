@@ -31,6 +31,7 @@ def benchmark(mocker):
 def dataset(mocker):
     dataset = mocker.create_autospec(spec=Dataset)
     dataset.uid = "uid"
+    dataset.generated_uid = "gen_uid"
     dataset.preparation_cube_uid = "cube_uid"
     return dataset
 

@@ -128,7 +128,7 @@ class CompatibilityTestExecution:
             self.ui,
             run_test=True,
         )
-        return Result(benchmark.uid, self.dataset.uid, self.model)
+        return Result(benchmark.uid, self.dataset.generated_uid, self.model)
 
     def set_cube_uid(self, attr: str, fallback: any = None):
         """Assigns the attr used for testing according to the initialization parameters.
@@ -206,11 +206,7 @@ class CompatibilityTestExecution:
                 self.ui,
                 run_test=True,
             )
-            # Dataset will not be registered, so we must mock its uid
-            logging.info("Defining local data uid")
             self.dataset = Dataset(self.data_uid, self.ui)
-            self.dataset.uid = self.data_uid
-            self.dataset.set_registration()
 
     def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark
