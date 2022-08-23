@@ -116,10 +116,12 @@ class Cube(object):
             Cube : a Cube instance with the retrieved data.
         """
         "Retrieve from local storage if cube already there"
+        logging.debug(f"Retrieving the cube {cube_uid}")
         local_cube = list(
             filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all(ui))
         )
         if len(local_cube) == 1:
+            logging.debug("Found cube locally")
             return local_cube[0]
 
         meta = comms.get_cube_metadata(cube_uid)
@@ -150,7 +152,14 @@ class Cube(object):
             url = meta["image_tarball_url"]
             image_path = comms.get_cube_image(url, cube_uid)
             image_tarball_hash = get_file_sha1(image_path)
-            untar(image_path)
+        else:
+            # Retrieve image from image registry
+            logging.debug(f"Retrieving {cube_uid} image")
+            cmd = f"mlcube configure --mlcube={cube_path}"
+            proc = pexpect.spawn(cmd)
+            proc_out = combine_proc_sp_text(proc, ui)
+            logging.debug(proc_out)
+            proc.close()
 
         local_hashes = {
             "additional_files_tarball_hash": additional_hash if additional_hash else "",
