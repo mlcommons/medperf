@@ -212,7 +212,8 @@ class CompatibilityTestExecution:
             )
             data_path, labels_path = self.download_demo_data(self.data_uid)
             self.data_uid = DataPreparation.run(
-                self.benchmark_uid,
+                None,
+                self.data_prep,
                 data_path,
                 labels_path,
                 self.comms,
