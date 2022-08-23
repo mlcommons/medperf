@@ -260,7 +260,6 @@ def test_set_data_uid_sets_demo_data_uid_by_default(
 @pytest.mark.parametrize("data_uid", rand_l(1, 500, 5))
 def test_set_data_uid_keeps_passed_data_uid(mocker, default_setup, data_uid, comms, ui):
     # Arrange
-    mocker.patch(PATCH_TEST.format("get_uids"), return_value=[str(data_uid)])
     exec = CompatibilityTestExecution(1, data_uid, None, None, None, comms, ui)
 
     # Act
@@ -441,7 +440,6 @@ def test_run_uses_correct_uids(
     error_spy = mocker.patch(PATCH_TEST.format("pretty_error"))
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch("os.path.exists", return_value=False)
-    mocker.patch(PATCH_TEST.format("get_uids"), return_value=[str(data_uid)])
     mocker.patch(
         PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
         return_value=("", ""),
