@@ -1,4 +1,5 @@
 import os
+from medperf.enums import Status
 import yaml
 import logging
 from typing import List
@@ -55,7 +56,7 @@ class Dataset:
             self.generated_metadata = registration["metadata"]
         else:
             self.generated_metadata = registration["generated_metadata"]
-        self.status = registration["status"]
+        self.status = Status(registration["status"])
         self.state = registration["state"]
 
         self.labels_path = self.data_path
@@ -74,7 +75,7 @@ class Dataset:
             "generated_uid": self.generated_uid,
             "split_seed": self.split_seed,
             "generated_metadata": self.generated_metadata,
-            "status": self.status,
+            "status": self.status.value,
             "state": self.state,
             "separate_labels": self.separate_labels,
         }
@@ -166,7 +167,7 @@ class Dataset:
         Returns:
             bool: Wether the user gave consent or not.
         """
-        if self.status != "PENDING":
+        if self.status != Status.PENDING:
             return True
 
         dict_pretty_print(self.registration, ui)
@@ -178,9 +179,9 @@ class Dataset:
             ui,
         )
         if approved:
-            self.status = "APPROVED"
+            self.status = Status.APPROVED
         else:
-            self.status = "REJECTED"
+            self.status = Status.REJECTED
         return approved
 
     def upload(self, comms: Comms):

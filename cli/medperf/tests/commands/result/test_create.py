@@ -74,6 +74,22 @@ def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
     spy.assert_called_once()
 
 
+def test_validate_fails_if_dataset_is_not_registered(mocker, execution):
+    # Arrange
+    execution.dataset.uid = None
+    spy = mocker.patch(
+        PATCH_EXECUTION.format("pretty_error"),
+        side_effect=lambda *args, **kwargs: exit(),
+    )
+
+    # Act
+    with pytest.raises(SystemExit):
+        execution.validate()
+
+    # Assert
+    spy.assert_called_once()
+
+
 def test_validate_passes_under_right_conditions(mocker, execution):
     # Arrange
     spy = mocker.patch(PATCH_EXECUTION.format("pretty_error"))

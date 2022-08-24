@@ -1,6 +1,8 @@
 import os
+from medperf.enums import Status
 import yaml
 from pathlib import Path
+import shutil
 
 from medperf.utils import (
     get_folder_sha1,
@@ -48,7 +50,7 @@ class Registration:
         self.description = description
         self.split_seed = 0
         self.location = location
-        self.status = "PENDING"
+        self.status = Status.PENDING
         self.generated_uid = None
         self.uid = None
         self.in_uid = None
@@ -95,7 +97,7 @@ class Registration:
             "generated_uid": self.generated_uid,
             "input_data_hash": self.in_uid,
             "generated_metadata": self.stats,
-            "status": self.status,
+            "status": self.status.value,
             "uid": self.uid,
             "state": "OPERATION",
             "separate_labels": self.separate_labels,
@@ -109,7 +111,7 @@ class Registration:
         Returns:
             bool: Wether the user gave consent or not.
         """
-        if self.status == "APPROVED":
+        if self.status == Status.APPROVED:
             return True
 
         dict_pretty_print(self.todict(), ui)
@@ -134,8 +136,9 @@ class Registration:
         """
         uid = self.generated_uid
         new_path = os.path.join(str(Path(out_path).parent), str(uid))
-        if not os.path.exists(new_path):
-            os.rename(out_path, new_path)
+        if os.path.exists(new_path):
+            shutil.rmtree(new_path)
+        os.rename(out_path, new_path)
         self.path = new_path
         return new_path
 

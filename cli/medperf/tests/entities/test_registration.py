@@ -1,4 +1,5 @@
 import os
+from medperf.enums import Status
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -144,7 +145,7 @@ def test_request_approval_skips_if_approved(mocker, ui, reg_mocked_with_params):
     # Arrange
     spy = mocker.patch(PATCH_REGISTRATION.format("approval_prompt"), return_value=True)
     reg = Registration(*reg_mocked_with_params)
-    reg.status = "APPROVED"
+    reg.status = Status.APPROVED
 
     # Act
     reg.request_approval(ui)
@@ -197,7 +198,8 @@ def test_to_permanent_path_renames_folder_correctly(
     mocker, out_path, new_path, reg_mocked_with_params, exists
 ):
     # Arrange
-    spy = mocker.patch("os.rename")
+    rename_spy = mocker.patch("os.rename")
+    rmtree_spy = mocker.patch("shutil.rmtree")
     mocker.patch("os.path.exists", return_value=exists)
     mocker.patch("os.path.join", return_value=new_path)
     reg = Registration(*reg_mocked_with_params)
@@ -208,9 +210,10 @@ def test_to_permanent_path_renames_folder_correctly(
 
     # Assert
     if exists:
-        spy.assert_not_called()
+        rmtree_spy.assert_called_once_with(new_path)
     else:
-        spy.assert_called_once_with(out_path, new_path)
+        rmtree_spy.assert_not_called()
+    rename_spy.assert_called_once_with(out_path, new_path)
 
 
 @pytest.mark.parametrize("filepath", ["filepath"])

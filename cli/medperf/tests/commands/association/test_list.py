@@ -1,3 +1,4 @@
+from medperf.enums import Status
 import pytest
 
 from medperf.commands.association.list import ListAssociations
@@ -22,12 +23,17 @@ def test_run_gets_dset_and_cube_associations(mocker, comms, ui):
 def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
     # Arrange
     dset_assocs = [
-        {"dataset": 1, "benchmark": 1, "initiated_by": 1, "approval_status": "PENDING"},
+        {
+            "dataset": 1,
+            "benchmark": 1,
+            "initiated_by": 1,
+            "approval_status": Status.PENDING.value,
+        },
         {
             "dataset": 2,
             "benchmark": 1,
             "initiated_by": 1,
-            "approval_status": "APPROVED",
+            "approval_status": Status.APPROVED.value,
         },
     ]
     cube_assocs = [
@@ -35,7 +41,7 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
             "model_mlcube": 1,
             "benchmark": 1,
             "initiated_by": 1,
-            "approval_status": "REJECTED",
+            "approval_status": Status.REJECTED.value,
         }
     ]
     mocker.patch.object(comms, "get_datasets_associations", return_value=dset_assocs)

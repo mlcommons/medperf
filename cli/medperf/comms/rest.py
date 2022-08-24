@@ -3,7 +3,7 @@ import requests
 import logging
 import os
 
-from medperf.enums import Role
+from medperf.enums import Role, Status
 import medperf.config as config
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
@@ -467,7 +467,7 @@ class REST(Comms):
         data = {
             "dataset": data_uid,
             "benchmark": benchmark_uid,
-            "approval_status": "PENDING",
+            "approval_status": Status.PENDING.value,
             "metadata": metadata,
         }
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
@@ -485,7 +485,7 @@ class REST(Comms):
         """
         data = {
             "results": {},
-            "approval_status": "PENDING",
+            "approval_status": Status.PENDING.value,
             "model_mlcube": cube_uid,
             "benchmark": benchmark_uid,
             "metadata": metadata,
