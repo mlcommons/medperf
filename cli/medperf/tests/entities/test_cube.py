@@ -361,6 +361,17 @@ def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_
     # Assert
     spy.assert_called_once_with(expected_cmd)
 
+def test_get_cube_with_image_isnt_configured(mocker, comms, img_body, no_local):
+    # Arrange
+    spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+
+    # Act
+    uid = 1
+    Cube.get(uid, comms, ui)
+
+    # Assert
+    spy.assert_not_called()
+
 
 def test_cube_is_valid_if_no_extrafields(mocker, comms, basic_body, no_local):
     # Act
