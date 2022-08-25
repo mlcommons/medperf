@@ -423,9 +423,14 @@ def results_ids(ui: UI):
             for model_uid in model_uids:
                 bmk_model_storage = os.path.join(bmk_storage, model_uid)
                 data_uids = next(os.walk(bmk_model_storage))[1]
-                bmk_model_data_list = [
-                    (bmk_uid, model_uid, data_uid) for data_uid in data_uids
-                ]
+                bmk_model_data_list = []
+                for data_uid in data_uids:
+                    bmk_model_data_storage = os.path.join(bmk_model_storage, data_uid)
+                    results_file = os.path.join(
+                        bmk_model_data_storage, config.results_filename
+                    )
+                    if os.path.exists(results_file):
+                        bmk_model_data_list.append((bmk_uid, model_uid, data_uid))
                 results_ids += bmk_model_data_list
 
     except StopIteration:
