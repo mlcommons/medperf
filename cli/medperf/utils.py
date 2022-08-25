@@ -273,7 +273,7 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        pretty_error("MD5 hash doesn't match", ui)
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
