@@ -55,11 +55,17 @@ def validate_setup():
     assert singularity_check, singularity_error_msg
 
 
-def get_models_to_run(models_file, ui, comms):
+def get_models_to_run(models_file, data_uid, ui, comms):
     cubes = comms.get_cubes()
     results = Result.all(ui)
     results = [result.todict() for result in results]
-    executed_models = set([int(result["model"]) for result in results])
+    executed_models = set(
+        [
+            int(result["model"])
+            for result in results
+            if int(result["dataset"]) == data_uid
+        ]
+    )
     cubes_names_dict = {cube["name"]: cube for cube in cubes}
 
     with open(models_file, "r") as f:
@@ -104,8 +110,8 @@ def main(benchmark_uid, data_uid, timeout, models_file, test=False, cleanup=Fals
     medperf.utils.setup_logs("DEBUG", log_file)
     validate_setup()
     ui, comms = setup()
-    models_ids = get_models_to_run(models_file, ui, comms)
     data = get_dset(data_uid, ui)
+    models_ids = get_models_to_run(models_file, data.uid, ui, comms)
     local_uid = data.registration["generated_uid"]
     cubes_path = medperf.utils.storage_path(config.cubes_storage)
     for model_name, model_id in models_ids:
