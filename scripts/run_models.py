@@ -63,7 +63,7 @@ def get_models_to_run(models_file, data_uid, ui, comms):
         [
             int(result["model"])
             for result in results
-            if int(result["dataset"]) == data_uid
+            if result["dataset"].isdigit() and int(result["dataset"]) == data_uid
         ]
     )
     cubes_names_dict = {cube["name"]: cube for cube in cubes}
