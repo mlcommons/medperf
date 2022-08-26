@@ -35,7 +35,10 @@ plugins:
   - mkdocstrings:
       watch:
         - cli/medperf
-        - server
+        # - server
+      handlers:
+        python:
+          paths: [cli/medperf]
   - gen-files:
       scripts:
         - docs/gen_ref_pages.py
