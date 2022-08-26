@@ -1,7 +1,7 @@
 from os.path import expanduser, abspath
 
 version = "0.0.0"
-server = "https://medperf.org"
+server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
