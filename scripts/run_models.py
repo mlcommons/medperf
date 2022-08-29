@@ -44,8 +44,11 @@ def validate_setup():
 
     # Assert correct versions are installed
     driver_check = (
-        driver_major_version >= VALID_DRIVER_MAJOR_VERSION
-        and driver_minor_version >= VALID_DRIVER_MINOR_VERSION
+        driver_major_version > VALID_DRIVER_MAJOR_VERSION
+        or (
+            driver_major_version == VALID_DRIVER_MAJOR_VERSION
+            and driver_minor_version >= VALID_DRIVER_MINOR_VERSION
+        )
     )
     driver_error_msg = f"Your installed NVIDIA Driver doesn't match the expected driver version >= {VALID_DRIVER_MAJOR_VERSION}.{VALID_DRIVER_MINOR_VERSION}"
     assert driver_check, driver_error_msg
