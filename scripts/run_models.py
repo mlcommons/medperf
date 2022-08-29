@@ -104,8 +104,15 @@ def cleanup_stale_predictions(model_id, data_uid):
         shutil.rmtree(stale_path)
 
 
-def main(benchmark_uid, data_uid, timeout, models_file, test=False, cleanup=False):
-    config.infer_timeout = timeout
+def main(
+    benchmark_uid,
+    data_uid,
+    timeout,
+    test_timeout,
+    models_file,
+    test=False,
+    cleanup=False,
+):
     log_file = medperf.utils.storage_path(config.log_file)
     medperf.utils.setup_logs("DEBUG", log_file)
     validate_setup()
@@ -116,11 +123,13 @@ def main(benchmark_uid, data_uid, timeout, models_file, test=False, cleanup=Fals
     cubes_path = medperf.utils.storage_path(config.cubes_storage)
     for model_name, model_id in models_ids:
         if test:
+            config.infer_timeout = test_timeout
             print("Running tests to ensure execution works")
             CompatibilityTestExecution.run(benchmark_uid, comms, ui, model=model_id)
             print("Done!")
         print(f"Initiating Benchmark Execution with model {model_name}")
         cleanup_stale_predictions(model_id, local_uid)
+        config.infer_timeout = timeout
         try:
             BenchmarkExecution.run(benchmark_uid, local_uid, model_id, comms, ui)
             if cleanup:
@@ -185,8 +194,18 @@ if __name__ == "__main__":
     benchmark_uid = in_config["benchmark"]
     data_uid = in_config["data_uid"]
     timeout = in_config["num_cases"] * in_config["time_case"]
+    test_timeout = 3 * in_config["time_case"]
     models_file = in_config["models_file"]
     test = in_config["no_test"]
     cleanup = in_config["no_cleanup"]
 
-    main(benchmark_uid, data_uid, timeout, models_file, test=test, cleanup=cleanup)
+    main(
+        benchmark_uid,
+        data_uid,
+        timeout,
+        test_timeout,
+        models_file,
+        test=test,
+        cleanup=cleanup,
+    )
+
