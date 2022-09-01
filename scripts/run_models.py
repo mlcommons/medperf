@@ -43,12 +43,9 @@ def validate_setup():
     singularity_version = singularity_output.strip()
 
     # Assert correct versions are installed
-    driver_check = (
-        driver_major_version > VALID_DRIVER_MAJOR_VERSION
-        or (
-            driver_major_version == VALID_DRIVER_MAJOR_VERSION
-            and driver_minor_version >= VALID_DRIVER_MINOR_VERSION
-        )
+    driver_check = driver_major_version > VALID_DRIVER_MAJOR_VERSION or (
+        driver_major_version == VALID_DRIVER_MAJOR_VERSION
+        and driver_minor_version >= VALID_DRIVER_MINOR_VERSION
     )
     driver_error_msg = f"Your installed NVIDIA Driver doesn't match the expected driver version >= {VALID_DRIVER_MAJOR_VERSION}.{VALID_DRIVER_MINOR_VERSION}"
     assert driver_check, driver_error_msg
@@ -125,21 +122,22 @@ def main(
     local_uid = data.registration["generated_uid"]
     cubes_path = medperf.utils.storage_path(config.cubes_storage)
     for model_name, model_id in models_ids:
-        if test:
-            config.infer_timeout = test_timeout
-            print("Running tests to ensure execution works")
-            CompatibilityTestExecution.run(benchmark_uid, comms, ui, model=model_id)
-            print("Done!")
-        print(f"Initiating Benchmark Execution with model {model_name}")
-        cleanup_stale_predictions(model_id, local_uid)
-        config.infer_timeout = timeout
         try:
+            if test:
+                config.infer_timeout = test_timeout
+                print("Running tests to ensure execution works")
+                CompatibilityTestExecution.run(benchmark_uid, comms, ui, model=model_id)
+                print("Done!")
+            print(f"Initiating Benchmark Execution with model {model_name}")
+            cleanup_stale_predictions(model_id, local_uid)
+            config.infer_timeout = timeout
             BenchmarkExecution.run(benchmark_uid, local_uid, model_id, comms, ui)
             if cleanup:
                 model_path = os.path.join(cubes_path, str(model_id))
                 print(f"Removing downloaded model at {model_path}")
                 shutil.rmtree(model_path)
-        except (Exception, SystemExit):
+        except (Exception, SystemExit) as e:
+            print(e)
             print(f"Benchmark execution with model {model_id} failed")
 
 
