@@ -319,7 +319,7 @@ def approval_prompt(msg: str, ui: "UI") -> bool:
     while approval is None or approval not in "yn":
         approval = ui.prompt(msg.strip() + " ").lower()
     logging.info(f"User answered approval with {approval}")
-    return approval == "y"
+    return approval == "y" or approval == ""
 
 
 def dict_pretty_print(in_dict: dict, ui: "UI"):
