@@ -31,14 +31,6 @@ class DataPreparation:
         location: str = None,
     ):
 
-        too_many_resources = benchmark_uid and prep_cube_uid
-        no_resource = benchmark_uid is None and prep_cube_uid is None
-        if no_resource or too_many_resources:
-            pretty_error(
-                "Invalid arguments. Must provide either a benchmark or a preparation mlcube",
-                ui,
-            )
-
         preparation = cls(
             benchmark_uid,
             prep_cube_uid,
@@ -84,14 +76,9 @@ class DataPreparation:
         self.out_labelspath = os.path.join(out_path, "labels")
         self.labels_specified = False
         self.run_test = run_test
+        self.benchmark_uid = benchmark_uid
+        self.prep_cube_uid = prep_cube_uid
         init_storage()
-
-        if benchmark_uid is not None:
-            benchmark = Benchmark.get(benchmark_uid, comms)
-            self.cube_uid = benchmark.data_preparation
-            self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
-        else:
-            self.cube_uid = prep_cube_uid
 
     def validate(self):
         if not os.path.exists(self.data_path):
@@ -99,9 +86,22 @@ class DataPreparation:
         if not os.path.exists(self.labels_path):
             pretty_error("The provided labels path doesn't exist", self.ui)
 
+        too_many_resources = self.benchmark_uid and self.prep_cube_uid
+        no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
+        if no_resource or too_many_resources:
+            pretty_error(
+                "Invalid arguments. Must provide either a benchmark or a preparation mlcube",
+                self.ui,
+            )
+
     def get_prep_cube(self):
-        self.ui.text = f"Retrieving data preparation cube: '{self.cube_uid}'"
-        self.cube = Cube.get(self.cube_uid, self.comms, self.ui)
+        cube_uid = self.prep_cube_uid
+        if cube_uid is None:
+            benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+            cube_uid = benchmark.data_preparation
+            self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
+        self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
+        self.cube = Cube.get(cube_uid, self.comms, self.ui)
         self.ui.print("> Preparation cube download complete")
         check_cube_validity(self.cube, self.ui)
 

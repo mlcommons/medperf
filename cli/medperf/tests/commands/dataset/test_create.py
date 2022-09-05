@@ -119,16 +119,14 @@ class TestWithDefaultUID:
         )
 
         # Act
-        preparation = DataPreparation(*[""] * 7, comms, ui)
+        preparation = DataPreparation(cube_uid, None, *[""] * 5, comms, ui)
         preparation.get_prep_cube()
 
         # Assert
         spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
 
-    @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
-    def test_get_prep_cube_checks_validity(self, mocker, preparation, cube_uid):
+    def test_get_prep_cube_checks_validity(self, mocker, preparation):
         # Arrange
-        preparation.cube_uid = cube_uid
         mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
         spy = mocker.patch(PATCH_DATAPREP.format("check_cube_validity"))
 
@@ -281,16 +279,14 @@ class TestWithDefaultUID:
         # Arrange
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
-        spy = mocker.patch(
-            PATCH_DATAPREP.format("pretty_error"), side_effect=lambda *args: exit()
-        )
+        spy = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
 
         # Act
+        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5, comms, ui)
+        preparation.validate()
         # Assert
 
         if num_arguments != 1:
-            with pytest.raises(SystemExit):
-                DataPreparation.run(benchmark_uid, cube_uid, *[""] * 5, comms, ui)
             spy.assert_called_once()
         else:
             spy.assert_not_called()

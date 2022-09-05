@@ -128,6 +128,9 @@ class CompatibilityTestExecution:
             self.ui,
             run_test=True,
         )
+        # Datasets associated with results of compatibility-test are identified
+        # by the generated uid. Server uid is not be applicable in the case
+        # of unregistered datasets.
         return Result(benchmark.uid, self.dataset.generated_uid, self.model)
 
     def set_cube_uid(self, attr: str, fallback: any = None):

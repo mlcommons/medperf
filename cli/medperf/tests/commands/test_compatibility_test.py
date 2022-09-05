@@ -106,7 +106,6 @@ def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
     # Arrange
     bmk = benchmark(uid, 1, 2, 3)
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    # mocker.patch.object(Benchmark, "write")
     exec = CompatibilityTestExecution(uid, None, None, None, None, comms, ui)
     spy = mocker.spy(exec, "set_cube_uid")
     attrs = ["data_prep", "model", "evaluator"]
