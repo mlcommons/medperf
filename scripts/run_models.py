@@ -2,8 +2,10 @@ import os
 import re
 import json
 import shutil
+import subprocess
 
 import medperf
+import mlcube
 import argparse
 from medperf import config
 from medperf.entities.result import Result
@@ -136,7 +138,12 @@ def main(
                 model_path = os.path.join(cubes_path, str(model_id))
                 print(f"Removing downloaded model at {model_path}")
                 shutil.rmtree(model_path)
-        except (Exception, SystemExit) as e:
+        except (
+            Exception,
+            SystemExit,
+            mlcube.errors.ExecutionError,
+            subprocess.CalledProcessError,
+        ) as e:
             print(e)
             print(f"Benchmark execution with model {model_id} failed")
 
