@@ -2,13 +2,15 @@ import os
 import yaml
 import logging
 from typing import List
+from collections import defaultdict
 
 import medperf.config as config
+from medperf.entities.entity import Entity
 from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 
 
-class Benchmark:
+class Benchmark(Entity):
     """
     Class representing a Benchmark
 
@@ -19,31 +21,34 @@ class Benchmark:
     what models to run and how to evaluate them.
     """
 
-    def __init__(self, uid: str, benchmark_dict: dict):
+    def __init__(self, benchmark_dict: dict):
         """Creates a new benchmark instance
 
         Args:
             uid (str): The benchmark UID
             benchmark_dict (dict): key-value representation of the benchmark.
         """
-        self.uid = uid
+        benchmark_dict = defaultdict(None, benchmark_dict)
         # Getting None by default allows creating empty benchmarks for tests
-        self.name = benchmark_dict.get("name", None)
-        self.description = benchmark_dict.get("description", None)
-        self.docs_url = benchmark_dict.get("docs_url", None)
-        self.created_at = benchmark_dict.get("created_at", None)
-        self.modified_at = benchmark_dict.get("modified_at", None)
-        self.owner = benchmark_dict.get("owner", None)
-        self.demo_dataset_url = benchmark_dict.get("demo_dataset_tarball_url", None)
-        self.demo_dataset_hash = benchmark_dict.get("demo_dataset_tarball_hash", None)
-        self.demo_dataset_generated_uid = benchmark_dict.get(
-            "demo_dataset_generated_uid", None
-        )
-        self.data_preparation = benchmark_dict.get("data_preparation_mlcube", None)
-        self.reference_model = benchmark_dict.get("reference_model_mlcube", None)
-        self.models = benchmark_dict.get("models", None)
-        self.evaluator = benchmark_dict.get("data_evaluator_mlcube", None)
-        self.approval_status = benchmark_dict.get("approval_status", None)
+        self.uid = benchmark_dict["uid"]
+        self.name = benchmark_dict["name"]
+        self.description = benchmark_dict["description"]
+        self.docs_url = benchmark_dict["docs_url"]
+        self.created_at = benchmark_dict["created_at"]
+        self.modified_at = benchmark_dict["modified_at"]
+        self.owner = benchmark_dict["owner"]
+        self.demo_dataset_url = benchmark_dict["demo_dataset_tarball_url"]
+        self.demo_dataset_hash = benchmark_dict["demo_dataset_tarball_hash"]
+        self.demo_dataset_generated_uid = benchmark_dict["demo_dataset_generated_uid"]
+        self.data_preparation = benchmark_dict["data_preparation_mlcube"]
+        self.reference_model = benchmark_dict["reference_model_mlcube"]
+        self.evaluator = benchmark_dict["data_evaluator_mlcube"]
+        # Default value for fields that should not be None in any particular scenario
+        self.models = benchmark_dict["models"] or []
+        self.state = benchmark_dict["state"] or "DEVELOPMENT"
+        self.is_valid = benchmark_dict["is_valid"] or True
+        self.approval_status = benchmark_dict["approval_status"] or "PENDING"
+        self.metadata = benchmark_dict["metadata"] or {}
 
     @classmethod
     def get(
@@ -161,11 +166,14 @@ class Benchmark:
             "demo_dataset_tarball_url": self.demo_dataset_url,
             "demo_dataset_tarball_hash": self.demo_dataset_hash,
             "demo_dataset_generated_uid": self.demo_dataset_generated_uid,
-            "data_preparation_mlcube": self.data_preparation,
-            "reference_model_mlcube": self.reference_model,
+            "data_preparation_mlcube": int(self.data_preparation),
+            "reference_model_mlcube": int(self.reference_model),
             "models": self.models,
-            "data_evaluator_mlcube": self.evaluator,
+            "data_evaluator_mlcube": int(self.evaluator),
+            "state": self.state,
+            "is_valid": self.is_valid,
             "approval_status": self.approval_status,
+            "metadata": self.metadata
         }
 
     def write(self, filename: str = config.benchmarks_filename) -> str:
@@ -186,3 +194,12 @@ class Benchmark:
         with open(filepath, "w") as f:
             yaml.dump(data, f)
         return filepath
+
+    def upload(self, comms: Comms):
+        """Uploads a benchmark to the server
+
+        Args:
+            comms (Comms): communications entity to submit through
+        """
+        body = self.todict()
+        comms.upload_benchmark(body)
