@@ -9,7 +9,7 @@ import mkdocs_gen_files
 nav = mkdocs_gen_files.Nav()
 
 build_params = [
-    ("cli/medperf", "cli", "cli/medperf", "reference"),
+    ("cli/medperf", "cli/medperf", "cli/medperf", "reference"),
     # ("server", "server", "", "reference"),
 ]
 
@@ -27,6 +27,8 @@ for path, mod, doc, full_doc in build_params:
         elif parts[-1] in ["__main__", "setup"]:
             continue
         if parts == ():
+            continue
+        if parts[0] == "tests":
             continue
 
         nav[parts] = str(doc_path)  #
