@@ -152,6 +152,7 @@ class Cube(object):
             url = meta["image_tarball_url"]
             image_path = comms.get_cube_image(url, cube_uid)
             image_tarball_hash = get_file_sha1(image_path)
+            untar(image_path)
         else:
             # Retrieve image from image registry
             logging.debug(f"Retrieving {cube_uid} image")
