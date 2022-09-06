@@ -348,6 +348,17 @@ def test_get_cube_with_image_generates_image_tarball_hash(
     spy.assert_called_once_with(IMG_PATH)
 
 
+def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
+    # Arragen
+    spy = mocker.spy(medperf.entities.cube, "untar")
+
+    # Act
+    uid = 1
+    Cube.get(uid, comms, ui)
+
+    # Assert
+    spy.assert_called_once_with(IMG_PATH)
+
 def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_local):
     # Arrange
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
