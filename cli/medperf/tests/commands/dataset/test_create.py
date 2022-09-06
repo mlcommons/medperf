@@ -38,7 +38,15 @@ def preparation(mocker, comms, ui, registration):
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
     preparation = DataPreparation(
-        BENCHMARK_UID, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION, comms, ui
+        BENCHMARK_UID,
+        None,
+        DATA_PATH,
+        LABELS_PATH,
+        NAME,
+        DESCRIPTION,
+        LOCATION,
+        comms,
+        ui,
     )
     mocker.patch(PATCH_DATAPREP.format("Registration"), return_value=registration)
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
@@ -83,23 +91,42 @@ class TestWithDefaultUID:
             spy.asset_not_called()
 
     @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
-    def test_get_prep_cube_gets_benchmark_cube(self, mocker, preparation, cube_uid):
+    def test_get_prep_cube_gets_prep_cube_if_provided(
+        self, mocker, preparation, cube_uid, comms, ui
+    ):
         # Arrange
-        preparation.benchmark.data_preparation = cube_uid
         spy = mocker.patch(
             PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
         )
 
         # Act
+        preparation = DataPreparation(None, cube_uid, *[""] * 5, comms, ui)
         preparation.get_prep_cube()
 
         # Assert
         spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
 
     @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
-    def test_get_prep_cube_checks_validity(self, mocker, preparation, cube_uid):
+    def test_get_prep_cube_gets_benchmark_cube_if_provided(
+        self, mocker, preparation, cube_uid, comms, ui
+    ):
         # Arrange
-        preparation.benchmark.data_preparation = cube_uid
+        benchmark = Benchmark()
+        benchmark.data_preparation = cube_uid
+        mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=benchmark)
+        spy = mocker.patch(
+            PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
+        )
+
+        # Act
+        preparation = DataPreparation(cube_uid, None, *[""] * 5, comms, ui)
+        preparation.get_prep_cube()
+
+        # Assert
+        spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
+
+    def test_get_prep_cube_checks_validity(self, mocker, preparation):
+        # Arrange
         mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
         spy = mocker.patch(PATCH_DATAPREP.format("check_cube_validity"))
 
@@ -236,13 +263,33 @@ class TestWithDefaultUID:
         )
 
         # Act
-        DataPreparation.run("", "", "", comms, ui)
+        DataPreparation.run("", "", "", "", comms, ui)
 
         # Assert
         validate_spy.assert_called_once()
         get_cube_spy.assert_called_once()
         run_cube_spy.assert_called_once()
         create_reg_spy.assert_called_once()
+
+    @pytest.mark.parametrize("benchmark_uid", [None, "1"])
+    @pytest.mark.parametrize("cube_uid", [None, "1"])
+    def test_fails_if_invalid_params(
+        self, mocker, preparation, benchmark_uid, cube_uid, comms, ui
+    ):
+        # Arrange
+        num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
+
+        spy = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
+
+        # Act
+        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5, comms, ui)
+        preparation.validate()
+        # Assert
+
+        if num_arguments != 1:
+            spy.assert_called_once()
+        else:
+            spy.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -256,7 +303,7 @@ def test_run_returns_registration_generated_uid(
     mocker.patch("os.path.exists", return_value=True)
 
     # Act
-    returned_uid = DataPreparation.run("", "", "", comms, ui)
+    returned_uid = DataPreparation.run("", "", "", "", comms, ui)
 
     # Assert
     assert returned_uid == registration.generated_uid
