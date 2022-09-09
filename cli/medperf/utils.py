@@ -463,3 +463,16 @@ def sanitize_json(data: dict) -> dict:
     json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
+
+
+def get_stats(cube) -> dict:
+    """Unwinds the cube output statistics location and retrieves the statistics data
+
+    Returns:
+        dict: dataset statistics as key-value pairs.
+    """
+    stats_path = cube.get_default_output("statistics", "output_path")
+    with open(stats_path, "r") as f:
+        stats = yaml.safe_load(f)
+
+    return stats

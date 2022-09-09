@@ -1,15 +1,18 @@
 import os
 from pathlib import Path
-
+import shutil
+from medperf.enums import Status
+import yaml
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
-from medperf.entities.registration import Registration
 from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,
+    get_folder_sha1,
+    get_stats,
     init_storage,
     pretty_error,
 )
@@ -47,8 +50,10 @@ class DataPreparation:
         with preparation.ui.interactive():
             preparation.get_prep_cube()
             preparation.run_cube_tasks()
-        data_uid = preparation.create_registration()
-        return data_uid
+        preparation.generate_uids()
+        preparation.to_permanent_path()
+        preparation.write()
+        return preparation.generated_uid
 
     def __init__(
         self,
@@ -78,6 +83,8 @@ class DataPreparation:
         self.run_test = run_test
         self.benchmark_uid = benchmark_uid
         self.prep_cube_uid = prep_cube_uid
+        self.in_uid = None
+        self.generated_uid = None
         init_storage()
 
     def validate(self):
@@ -158,24 +165,54 @@ class DataPreparation:
         )
         self.ui.print("> Statistics complete")
 
-    def create_registration(self):
-        self.registration = Registration(
-            self.cube,
-            self.name,
-            self.description,
-            self.location,
-            separate_labels=self.labels_specified,
-        )
-        self.registration.generate_uids(self.data_path, self.out_datapath)
-
+    def generate_uids(self):
+        """Auto-generates dataset UIDs for both input and output paths
+        """
+        self.in_uid = get_folder_sha1(self.data_path)
+        self.generated_uid = get_folder_sha1(self.out_datapath)
         if self.run_test:
-            self.registration.in_uid = (
-                config.test_dset_prefix + self.registration.in_uid
-            )
-            self.registration.generated_uid = (
-                config.test_dset_prefix + self.registration.generated_uid
-            )
+            self.in_uid = config.test_dset_prefix + self.in_uid
+            self.generated_uid = config.test_dset_prefix + self.generated_uid
 
-        self.registration.to_permanent_path(self.out_path)
-        self.registration.write()
-        return self.registration.generated_uid
+    def to_permanent_path(self) -> str:
+        """Renames the temporary data folder to permanent one using the hash of
+        the registration file
+        """
+        new_path = os.path.join(str(Path(self.out_datapath).parent), self.generated_uid)
+        if os.path.exists(new_path):
+            shutil.rmtree(new_path)
+        os.rename(self.out_datapath, new_path)
+        self.out_datapath = new_path
+
+    def todict(self) -> dict:
+        """Dictionary representation of the dataset
+
+        Returns:
+            dict: dictionary containing information pertaining the dataset.
+        """
+        data = {
+            "uid": None,
+            "name": self.name,
+            "description": self.description,
+            "location": self.location,
+            "data_preparation_mlcube": self.cube.uid,
+            "input_data_hash": self.in_uid,
+            "generated_uid": self.generated_uid,
+            "split_seed": 0,  # Currently this is not used
+            "generated_metadata": get_stats(self.cube),
+            "status": Status.PENDING.value,
+            "state": "OPERATION",
+            "separate_labels": self.labels_specified,
+        }
+        return data
+
+    def write(self, filename: str = config.reg_file) -> str:
+        """Writes the registration into disk
+        
+        Args:
+            filename (str, optional): name of the file. Defaults to config.reg_file.
+        """
+        data = self.todict()
+        filepath = os.path.join(self.out_datapath, filename)
+        with open(filepath, "w") as f:
+            yaml.dump(data, f)

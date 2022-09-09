@@ -4,7 +4,7 @@ import random
 import time_machine
 import datetime as dt
 from pathlib import Path
-from unittest.mock import mock_open, call, ANY
+from unittest.mock import MagicMock, mock_open, call, ANY
 
 from medperf import utils
 from medperf.ui.interface import UI
@@ -454,3 +454,33 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
+
+
+@pytest.mark.parametrize("path", ["stats_path", "./workspace/outputs/statistics.yaml"])
+def test_get_stats_opens_stats_path(mocker, path):
+    # Arrange
+    cube = MockCube(True)
+    spy = mocker.patch("builtins.open", MagicMock())
+    mocker.patch.object(cube, "get_default_output", return_value=path)
+    mocker.patch(patch_utils.format("yaml.safe_load"), return_value={})
+
+    # Act
+    utils.get_stats(cube)
+
+    # Assert
+    spy.assert_called_once_with(path, "r")
+
+
+@pytest.mark.parametrize("stats", [{}, {"test": ""}, {"mean": 8}])
+def test_get_stats_returns_stats(mocker, stats):
+    # Arrange
+    cube = MockCube(True)
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch.object(cube, "get_default_output", return_value="")
+    mocker.patch(patch_utils.format("yaml.safe_load"), return_value=stats)
+
+    # Act
+    returned_stats = utils.get_stats(cube)
+
+    # Assert
+    assert returned_stats == stats

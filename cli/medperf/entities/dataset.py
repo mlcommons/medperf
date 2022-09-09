@@ -167,7 +167,7 @@ class Dataset:
         Returns:
             bool: Wether the user gave consent or not.
         """
-        if self.status != Status.PENDING:
+        if self.status == Status.APPROVED:
             return True
 
         dict_pretty_print(self.registration, ui)
