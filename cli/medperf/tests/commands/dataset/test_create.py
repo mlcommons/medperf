@@ -368,4 +368,3 @@ def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
 
     # Assert
     assert returned_uid == uid
-
