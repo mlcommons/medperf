@@ -294,14 +294,14 @@ class TestWithDefaultUID:
         mocker.patch("os.rename")
         mocker.patch("os.path.exists", return_value=False)
         preparation.generated_uid = str(uid)
-        preparation.out_datapath = out_path
+        preparation.out_path = out_path
         expected_path = os.path.join(str(Path(out_path).parent), str(uid))
 
         # Act
         preparation.to_permanent_path()
 
         # Assert
-        assert preparation.out_datapath == expected_path
+        assert preparation.out_path == expected_path
 
     @pytest.mark.parametrize(
         "out_path", ["test", "out", "out_path", "~/.medperf/data/tmp_0"]
@@ -319,7 +319,7 @@ class TestWithDefaultUID:
         mocker.patch("os.path.exists", return_value=exists)
         mocker.patch("os.path.join", return_value=new_path)
         preparation.generated_uid = "0"
-        preparation.out_datapath = out_path
+        preparation.out_path = out_path
 
         # Act
         preparation.to_permanent_path()

@@ -178,11 +178,11 @@ class DataPreparation:
         """Renames the temporary data folder to permanent one using the hash of
         the registration file
         """
-        new_path = os.path.join(str(Path(self.out_datapath).parent), self.generated_uid)
+        new_path = os.path.join(str(Path(self.out_path).parent), self.generated_uid)
         if os.path.exists(new_path):
             shutil.rmtree(new_path)
-        os.rename(self.out_datapath, new_path)
-        self.out_datapath = new_path
+        os.rename(self.out_path, new_path)
+        self.out_path = new_path
 
     def todict(self) -> dict:
         """Dictionary representation of the dataset
@@ -212,6 +212,6 @@ class DataPreparation:
             filename (str, optional): name of the file. Defaults to config.reg_file.
         """
         data = self.todict()
-        filepath = os.path.join(self.out_datapath, filename)
+        filepath = os.path.join(self.out_path, filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)
