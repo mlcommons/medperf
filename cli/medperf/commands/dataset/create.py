@@ -208,7 +208,6 @@ class DataPreparation:
 
     def write(self, filename: str = config.reg_file) -> str:
         """Writes the registration into disk
-        
         Args:
             filename (str, optional): name of the file. Defaults to config.reg_file.
         """
