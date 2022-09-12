@@ -1,15 +1,28 @@
-# MedPerf
 
-Medperf is an open benchmarking platform for medical artificial intelligence using Federated Evaluation.
 
-## What's included here
-Inside this repo you can find all important pieces for running MedPerf. In its current state, it includes:
+# Welcome to the MedPerf Documentation.
+MedPerf is an open-source platform for benchmarking AI models to deliver clinical efficacy.
 
-- ### MedPerf Server:
-  Backend server implemented in django. Can be found inside the `server` folder
+## Our goal - Build powerful medical benchmarks securely.
+---
+
+MedPerf is an open-source framework for benchmarking AI models to deliver clinical efficacy while prioritizing patient privacy and mitigating legal and regulatory risks. It enables federated evaluation in which AI models are securely distributed to various facilities for evaluation.
+
+The MedPerf approach empowers healthcare organizations to assess and verify the performance of AI models in an efficient and human-supervised process without sharing any patient data across facilities during the process. It reduces the risks and costs associated with data sharing, towards maximizing medical and patient outcomes.
+
+---
+# What's included here
+
+
+- ## MedPerf Server:
+  
+  [How to start and test the MedPerf API Server](/docs/server/index.md)
+
+  [API documentation](https://api.medperf.org/)
 
 - ### MedPerf CLI:
-  Command Line Interface for interacting with the server. Can be found inside the `cli` folder.
+  Command Line Interface for interacting with the server. 
+  [CLI Commands](/docs/cli/index.md)
 
 ## How to run
 In order to run MedPerf locally, you must host the server in your machine, and install the CLI.
