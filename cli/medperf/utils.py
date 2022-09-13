@@ -465,7 +465,7 @@ def sanitize_json(data: dict) -> dict:
     return data
 
 
-def get_stats(data_path) -> dict:
+def get_stats(data_path: str, remove: bool = True) -> dict:
     """Retrieves the statistics of a prepared dataset
 
     Args:
@@ -478,4 +478,6 @@ def get_stats(data_path) -> dict:
     with open(stats_path, "r") as f:
         stats = yaml.safe_load(f)
 
+    if remove:
+        os.remove(stats_path)
     return stats

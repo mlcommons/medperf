@@ -461,6 +461,7 @@ def test_get_stats_opens_stats_path(mocker, path):
     # Arrange
     spy = mocker.patch("builtins.open", MagicMock())
     mocker.patch(patch_utils.format("yaml.safe_load"), return_value={})
+    mocker.patch(patch_utils.format("os.remove"))
     opened_path = os.path.join(path, config.statistics_filename)
     # Act
     utils.get_stats(path)
@@ -473,6 +474,7 @@ def test_get_stats_opens_stats_path(mocker, path):
 def test_get_stats_returns_stats(mocker, stats):
     # Arrange
     mocker.patch("builtins.open", MagicMock())
+    mocker.patch(patch_utils.format("os.remove"))
     mocker.patch(patch_utils.format("yaml.safe_load"), return_value=stats)
 
     # Act
@@ -480,3 +482,18 @@ def test_get_stats_returns_stats(mocker, stats):
 
     # Assert
     assert returned_stats == stats
+
+
+def test_get_stats_removes_file_by_default(mocker):
+    # Arrange
+    path = "mocked_path"
+    mocker.patch("builtins.open", MagicMock())
+    spy = mocker.patch(patch_utils.format("os.remove"))
+    mocker.patch(patch_utils.format("yaml.safe_load"))
+    opened_path = os.path.join(path, config.statistics_filename)
+
+    # Act
+    utils.get_stats(path)
+
+    # Assert
+    spy.assert_called_once_with(opened_path)
