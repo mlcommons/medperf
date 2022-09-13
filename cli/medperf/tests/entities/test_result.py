@@ -122,33 +122,6 @@ def test_todict_returns_expected_keys(mocker, result):
     assert set(result_dict.keys()) == expected_keys
 
 
-def test_request_approval_skips_if_already_approved(mocker, result, ui):
-    # Arrange
-    spy = mocker.patch(PATCH_RESULT.format("approval_prompt"))
-    result.status = "APPROVED"
-
-    # Act
-    result.request_approval(ui)
-
-    # Assert
-    spy.assert_not_called()
-
-
-@pytest.mark.parametrize("exp_approved", [True, False])
-def test_request_approval_returns_user_approval(mocker, result, ui, exp_approved):
-    # Arrange
-    mocker.patch("typer.echo")
-    mocker.patch(PATCH_RESULT.format("dict_pretty_print"))
-    mocker.patch(PATCH_RESULT.format("Result.todict"), return_value={})
-    mocker.patch(PATCH_RESULT.format("approval_prompt"), return_value=exp_approved)
-
-    # Act
-    approved = result.request_approval(ui)
-
-    # Assert
-    assert approved == exp_approved
-
-
 def test_upload_calls_server_method(mocker, result, comms):
     # Arrange
     spy = mocker.patch.object(comms, "upload_results")

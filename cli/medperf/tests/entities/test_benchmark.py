@@ -166,7 +166,7 @@ def test_write_writes_to_expected_file(mocker):
     )
 
     # Act
-    benchmark = Benchmark(uid, {})
+    benchmark = Benchmark({"uid": uid})
     benchmark.write()
 
     # Assert

@@ -18,6 +18,9 @@ def dataset(mocker):
 def test_run_retrieves_specified_dataset(mocker, comms, ui, dataset, data_uid):
     # Arrange
     dataset.uid = None
+    mocker.patch(
+        PATCH_REGISTER.format("approval_prompt"), return_value=True,
+    )
     spy = mocker.patch(PATCH_REGISTER.format("Dataset"), return_value=dataset)
 
     # Act
@@ -47,6 +50,9 @@ def test_run_fails_if_dataset_already_registered(mocker, comms, ui, dataset, uid
 def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset):
     # Arrange
     dataset.uid = None
+    mocker.patch(
+        PATCH_REGISTER.format("approval_prompt"), return_value=True,
+    )
     spy = mocker.patch(
         PATCH_REGISTER.format("pretty_error"),
         side_effect=lambda *args, **kwargs: exit(),
@@ -62,8 +68,8 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset):
 def test_run_requests_approval(mocker, comms, ui, dataset):
     # Arrange
     dataset.uid = None
-    spy = mocker.patch.object(
-        dataset, "request_registration_approval", return_value=True
+    spy = mocker.patch(
+        PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
 
     # Act
@@ -76,8 +82,8 @@ def test_run_requests_approval(mocker, comms, ui, dataset):
 def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
     # Arrange
     dataset.uid = None
-    spy = mocker.patch.object(
-        dataset, "request_registration_approval", return_value=False
+    spy = mocker.patch(
+        PATCH_REGISTER.format("approval_prompt"), return_value=False,
     )
     mocker.patch(
         PATCH_REGISTER.format("pretty_error"),
@@ -99,8 +105,8 @@ class TestWithApproval:
     ):
         # Arrange
         dataset.uid = None
-        mocker.patch.object(
-            dataset, "request_registration_approval", return_value=approved
+        mocker.patch(
+            PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
         spy = mocker.patch.object(dataset, "upload")
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
@@ -119,8 +125,8 @@ class TestWithApproval:
     ):
         # Arrange
         dataset.uid = None
-        mocker.patch.object(
-            dataset, "request_registration_approval", return_value=approved
+        mocker.patch(
+            PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
         spy = mocker.patch.object(dataset, "set_registration")
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
@@ -139,8 +145,8 @@ class TestWithApproval:
     ):
         # Arrange
         dataset.uid = None
-        spy = mocker.patch.object(
-            dataset, "request_registration_approval", return_value=True,
+        spy = mocker.patch(
+            PATCH_REGISTER.format("approval_prompt"), return_value=True,
         )
 
         # Act

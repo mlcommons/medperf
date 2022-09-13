@@ -4,6 +4,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
+import medperf
 from medperf.tests.utils import rand_l
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -88,7 +89,7 @@ def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
     eval = "4"
     get_spy = mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
-    tmp_spy = mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
+    tmp_spy = mocker.patch("medperf.entities.benchmark.Benchmark.tmp", return_value=bmk)
 
     # Act
     exec.prepare_test()
