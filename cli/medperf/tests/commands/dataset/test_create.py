@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import medperf.config as config
 import pytest
 from unittest.mock import MagicMock, call
 
@@ -144,6 +145,7 @@ class TestWithDefaultUID:
         spy = mocker.patch.object(preparation.cube, "run")
         mocker.patch.object(preparation.cube, "get_default_output", return_value=None)
         ui = preparation.ui
+        out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
             ui,
             task="prepare",
@@ -153,7 +155,13 @@ class TestWithDefaultUID:
             output_path=OUT_DATAPATH,
         )
         check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
-        stats = call(ui, task="statistics", data_path=OUT_DATAPATH, timeout=None)
+        stats = call(
+            ui,
+            task="statistics",
+            data_path=OUT_DATAPATH,
+            timeout=None,
+            output_path=out_statistics_path,
+        )
         calls = [prepare, check, stats]
 
         # Act
@@ -170,6 +178,7 @@ class TestWithDefaultUID:
             preparation.cube, "get_default_output", return_value=OUT_LABELSPATH
         )
         ui = preparation.ui
+        out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
             ui,
             task="prepare",
@@ -192,6 +201,7 @@ class TestWithDefaultUID:
             timeout=None,
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
+            output_path=out_statistics_path,
         )
         calls = [prepare, check, stats]
 
@@ -273,7 +283,7 @@ class TestWithDefaultUID:
         preparation.todict()
 
         # Assert
-        spy.assert_called_once_with(preparation.cube)
+        spy.assert_called_once_with(preparation.out_path)
 
     def test_todict_returns_expected_keys(self, mocker, preparation):
         # Arrange

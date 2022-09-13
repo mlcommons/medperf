@@ -456,31 +456,27 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
     assert sanitized_dict["test"] == exp_encoding
 
 
-@pytest.mark.parametrize("path", ["stats_path", "./workspace/outputs/statistics.yaml"])
+@pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
 def test_get_stats_opens_stats_path(mocker, path):
     # Arrange
-    cube = MockCube(True)
     spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch.object(cube, "get_default_output", return_value=path)
     mocker.patch(patch_utils.format("yaml.safe_load"), return_value={})
-
+    opened_path = os.path.join(path, config.statistics_filename)
     # Act
-    utils.get_stats(cube)
+    utils.get_stats(path)
 
     # Assert
-    spy.assert_called_once_with(path, "r")
+    spy.assert_called_once_with(opened_path, "r")
 
 
 @pytest.mark.parametrize("stats", [{}, {"test": ""}, {"mean": 8}])
 def test_get_stats_returns_stats(mocker, stats):
     # Arrange
-    cube = MockCube(True)
     mocker.patch("builtins.open", MagicMock())
-    mocker.patch.object(cube, "get_default_output", return_value="")
     mocker.patch(patch_utils.format("yaml.safe_load"), return_value=stats)
 
     # Act
-    returned_stats = utils.get_stats(cube)
+    returned_stats = utils.get_stats("mocked_path")
 
     # Assert
     assert returned_stats == stats

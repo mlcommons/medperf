@@ -465,13 +465,16 @@ def sanitize_json(data: dict) -> dict:
     return data
 
 
-def get_stats(cube) -> dict:
-    """Unwinds the cube output statistics location and retrieves the statistics data
+def get_stats(data_path) -> dict:
+    """Retrieves the statistics of a prepared dataset
+    
+    Args:
+        data_path (str): path to the dataset root
 
     Returns:
         dict: dataset statistics as key-value pairs.
     """
-    stats_path = cube.get_default_output("statistics", "output_path")
+    stats_path = os.path.join(data_path, config.statistics_filename)
     with open(stats_path, "r") as f:
         stats = yaml.safe_load(f)
 

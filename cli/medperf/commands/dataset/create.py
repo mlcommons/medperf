@@ -120,6 +120,7 @@ class DataPreparation:
         labels_path = self.labels_path
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
+        out_statistics_path = os.path.join(self.out_path, config.statistics_filename)
 
         # Specify parameters for the tasks
         prepare_params = {
@@ -134,6 +135,7 @@ class DataPreparation:
 
         statistics_params = {
             "data_path": out_datapath,
+            "output_path": out_statistics_path,
         }
 
         # Check if labels_path is specified
@@ -199,7 +201,7 @@ class DataPreparation:
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
-            "generated_metadata": get_stats(self.cube),
+            "generated_metadata": get_stats(self.out_path),
             "status": Status.PENDING.value,
             "state": "OPERATION",
             "separate_labels": self.labels_specified,
