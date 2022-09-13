@@ -467,7 +467,7 @@ def sanitize_json(data: dict) -> dict:
 
 def get_stats(data_path) -> dict:
     """Retrieves the statistics of a prepared dataset
-    
+
     Args:
         data_path (str): path to the dataset root
 
