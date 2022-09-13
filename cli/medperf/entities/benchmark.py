@@ -28,27 +28,27 @@ class Benchmark(Entity):
             uid (str): The benchmark UID
             benchmark_dict (dict): key-value representation of the benchmark.
         """
-        benchmark_dict = defaultdict(None, benchmark_dict)
+        bmk_dict = defaultdict(lambda: None, benchmark_dict)
         # Getting None by default allows creating empty benchmarks for tests
-        self.uid = benchmark_dict["uid"]
-        self.name = benchmark_dict["name"]
-        self.description = benchmark_dict["description"]
-        self.docs_url = benchmark_dict["docs_url"]
-        self.created_at = benchmark_dict["created_at"]
-        self.modified_at = benchmark_dict["modified_at"]
-        self.owner = benchmark_dict["owner"]
-        self.demo_dataset_url = benchmark_dict["demo_dataset_tarball_url"]
-        self.demo_dataset_hash = benchmark_dict["demo_dataset_tarball_hash"]
-        self.demo_dataset_generated_uid = benchmark_dict["demo_dataset_generated_uid"]
-        self.data_preparation = benchmark_dict["data_preparation_mlcube"]
-        self.reference_model = benchmark_dict["reference_model_mlcube"]
-        self.evaluator = benchmark_dict["data_evaluator_mlcube"]
+        self.uid = bmk_dict["uid"]
+        self.name = bmk_dict["name"]
+        self.description = bmk_dict["description"]
+        self.docs_url = bmk_dict["docs_url"]
+        self.created_at = bmk_dict["created_at"]
+        self.modified_at = bmk_dict["modified_at"]
+        self.owner = bmk_dict["owner"]
+        self.demo_dataset_url = bmk_dict["demo_dataset_tarball_url"]
+        self.demo_dataset_hash = bmk_dict["demo_dataset_tarball_hash"]
+        self.demo_dataset_generated_uid = bmk_dict["demo_dataset_generated_uid"]
+        self.data_preparation = bmk_dict["data_preparation_mlcube"]
+        self.reference_model = bmk_dict["reference_model_mlcube"]
+        self.evaluator = bmk_dict["data_evaluator_mlcube"]
         # Default value for fields that should not be None in any particular scenario
-        self.models = benchmark_dict["models"] or []
-        self.state = benchmark_dict["state"] or "DEVELOPMENT"
-        self.is_valid = benchmark_dict["is_valid"] or True
-        self.approval_status = benchmark_dict["approval_status"] or "PENDING"
-        self.metadata = benchmark_dict["metadata"] or {}
+        self.models = bmk_dict["models"] or []
+        self.state = bmk_dict["state"] or "DEVELOPMENT"
+        self.is_valid = bmk_dict["is_valid"] or True
+        self.approval_status = bmk_dict["approval_status"] or "PENDING"
+        self.metadata = bmk_dict["metadata"] or {}
 
     @classmethod
     def get(
@@ -124,6 +124,7 @@ class Benchmark(Entity):
         """
         benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
         benchmark_dict = {
+            "uid": benchmark_uid,
             "name": benchmark_uid,
             "data_preparation_mlcube": data_preparator,
             "reference_model_mlcube": model,
@@ -132,7 +133,7 @@ class Benchmark(Entity):
             "demo_dataset_tarball_hash": demo_hash,
             "models": [model],
         }
-        benchmark = Benchmark(benchmark_uid, benchmark_dict)
+        benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
 

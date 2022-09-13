@@ -1,6 +1,6 @@
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
-from medperf.utils import approval_prompt, pretty_error, request_approval
+from medperf.utils import approval_prompt, pretty_error
 from medperf.entities.dataset import Dataset
 
 

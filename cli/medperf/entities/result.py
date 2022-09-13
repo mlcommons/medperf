@@ -5,8 +5,6 @@ from typing import List
 
 from medperf.utils import (
     storage_path,
-    approval_prompt,
-    dict_pretty_print,
     results_ids,
     results_path,
 )
