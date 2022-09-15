@@ -1,9 +1,11 @@
+import os
+from pathlib import Path
+import medperf.config as config
 import pytest
-from unittest.mock import call
+from unittest.mock import MagicMock, call
 
 from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark, MockCube
-from medperf.entities.registration import Registration
 from medperf.commands.dataset.create import DataPreparation
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
@@ -17,20 +19,24 @@ NAME = "name"
 DESCRIPTION = "description"
 LOCATION = "location"
 
+REG_DICT_KEYS = [
+    "name",
+    "description",
+    "location",
+    "split_seed",
+    "data_preparation_mlcube",
+    "generated_uid",
+    "input_data_hash",
+    "generated_metadata",
+    "status",
+    "uid",
+    "state",
+    "separate_labels",
+]
+
 
 @pytest.fixture
-def registration(mocker, request):
-    mock_reg = mocker.create_autospec(spec=Registration)
-    mocker.patch.object(mock_reg, "generate_uids")
-    mocker.patch.object(mock_reg, "is_registered", return_value=False)
-    mocker.patch.object(mock_reg, "to_permanent_path")
-    mocker.patch.object(mock_reg, "write")
-    mock_reg.generated_uid = request.param
-    return mock_reg
-
-
-@pytest.fixture
-def preparation(mocker, comms, ui, registration):
+def preparation(mocker, comms, ui):
     mocker.patch("os.path.abspath", side_effect=lambda x: x)
     mocker.patch(PATCH_DATAPREP.format("init_storage"))
     mocker.patch(
@@ -48,7 +54,6 @@ def preparation(mocker, comms, ui, registration):
         comms,
         ui,
     )
-    mocker.patch(PATCH_DATAPREP.format("Registration"), return_value=registration)
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()
     preparation.data_path = DATA_PATH
@@ -56,7 +61,6 @@ def preparation(mocker, comms, ui, registration):
     return preparation
 
 
-@pytest.mark.parametrize("registration", ["uid"], indirect=True)
 class TestWithDefaultUID:
     @pytest.mark.parametrize("data_exists", [True, False])
     @pytest.mark.parametrize("labels_exist", [True, False])
@@ -141,6 +145,7 @@ class TestWithDefaultUID:
         spy = mocker.patch.object(preparation.cube, "run")
         mocker.patch.object(preparation.cube, "get_default_output", return_value=None)
         ui = preparation.ui
+        out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
             ui,
             task="prepare",
@@ -150,7 +155,13 @@ class TestWithDefaultUID:
             output_path=OUT_DATAPATH,
         )
         check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
-        stats = call(ui, task="statistics", data_path=OUT_DATAPATH, timeout=None)
+        stats = call(
+            ui,
+            task="statistics",
+            data_path=OUT_DATAPATH,
+            timeout=None,
+            output_path=out_statistics_path,
+        )
         calls = [prepare, check, stats]
 
         # Act
@@ -167,6 +178,7 @@ class TestWithDefaultUID:
             preparation.cube, "get_default_output", return_value=OUT_LABELSPATH
         )
         ui = preparation.ui
+        out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
             ui,
             task="prepare",
@@ -189,6 +201,7 @@ class TestWithDefaultUID:
             timeout=None,
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
+            output_path=out_statistics_path,
         )
         calls = [prepare, check, stats]
 
@@ -197,56 +210,6 @@ class TestWithDefaultUID:
 
         # Assert
         spy.assert_has_calls(calls)
-
-    def test_create_registration_generates_uid_of_output(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        spy = mocker.patch.object(registration, "generate_uids")
-        print(preparation.data_path)
-
-        # Act
-        preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once_with(DATA_PATH, OUT_DATAPATH)
-
-    def test_create_registration_moves_to_permanent_path(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        spy = mocker.patch.object(registration, "to_permanent_path")
-
-        # Act
-        preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once_with(OUT_PATH)
-
-    def test_create_registration_writes_reg_file(
-        self, mocker, preparation, registration
-    ):
-        # Arrange
-        spy = mocker.patch.object(registration, "write")
-
-        # Act
-        preparation.create_registration()
-
-        # Assert
-        spy.assert_called_once()
-
-    @pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
-    def test_create_registration_returns_generated_uid(
-        self, mocker, preparation, registration, uid
-    ):
-        # Arrange
-        registration.generated_uid = uid
-
-        # Act
-        returned_uid = preparation.create_registration()
-
-        # Assert
-        assert returned_uid == uid
 
     def test_run_executes_expected_flow(self, mocker, comms, ui, preparation):
         # Arrange
@@ -257,10 +220,13 @@ class TestWithDefaultUID:
         run_cube_spy = mocker.patch(
             PATCH_DATAPREP.format("DataPreparation.run_cube_tasks")
         )
-        create_reg_spy = mocker.patch(
-            PATCH_DATAPREP.format("DataPreparation.create_registration"),
-            return_value="",
+        generate_uids_spy = mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.generate_uids"),
         )
+        to_permanent_path_spy = mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.to_permanent_path"),
+        )
+        write_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
 
         # Act
         DataPreparation.run("", "", "", "", comms, ui)
@@ -269,7 +235,9 @@ class TestWithDefaultUID:
         validate_spy.assert_called_once()
         get_cube_spy.assert_called_once()
         run_cube_spy.assert_called_once()
-        create_reg_spy.assert_called_once()
+        generate_uids_spy.assert_called_once()
+        to_permanent_path_spy.assert_called_once()
+        write_spy.assert_called_once()
 
     @pytest.mark.parametrize("benchmark_uid", [None, "1"])
     @pytest.mark.parametrize("cube_uid", [None, "1"])
@@ -291,19 +259,122 @@ class TestWithDefaultUID:
         else:
             spy.assert_not_called()
 
+    @pytest.mark.parametrize("in_path", ["data_path", "input_path", "/usr/data/path"])
+    @pytest.mark.parametrize("out_path", ["out_path", "~/.medperf/data/123"])
+    def test_generate_uids_assigns_uids_to_obj_properties(
+        self, mocker, in_path, out_path, preparation
+    ):
+        # Arrange
+        mocker.patch(PATCH_DATAPREP.format("get_folder_sha1"), side_effect=lambda x: x)
+        preparation.data_path = in_path
+        preparation.out_datapath = out_path
 
-@pytest.mark.parametrize(
-    "registration", [str(x) for x in rand_l(1, 5000, 5)], indirect=True
-)
-def test_run_returns_registration_generated_uid(
-    mocker, comms, ui, preparation, registration
-):
+        # Act
+        preparation.generate_uids()
+
+        # Assert
+        assert preparation.in_uid == in_path
+        assert preparation.generated_uid == out_path
+
+    def test_todict_calls_get_stats(self, mocker, preparation):
+        # Arrange
+        spy = mocker.patch(PATCH_DATAPREP.format("get_stats"))
+        # Act
+        preparation.todict()
+
+        # Assert
+        spy.assert_called_once_with(preparation.out_path)
+
+    def test_todict_returns_expected_keys(self, mocker, preparation):
+        # Arrange
+        mocker.patch(PATCH_DATAPREP.format("get_stats"))
+
+        # Act
+        keys = preparation.todict().keys()
+
+        # Assert
+        assert set(keys) == set(REG_DICT_KEYS)
+
+    @pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
+    @pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
+    def test_to_permanent_path_modifies_output_path(
+        self, mocker, out_path, uid, preparation
+    ):
+        # Arrange
+        mocker.patch("os.rename")
+        mocker.patch("os.path.exists", return_value=False)
+        preparation.generated_uid = str(uid)
+        preparation.out_path = out_path
+        expected_path = os.path.join(str(Path(out_path).parent), str(uid))
+
+        # Act
+        preparation.to_permanent_path()
+
+        # Assert
+        assert preparation.out_path == expected_path
+
+    @pytest.mark.parametrize(
+        "out_path", ["test", "out", "out_path", "~/.medperf/data/tmp_0"]
+    )
+    @pytest.mark.parametrize(
+        "new_path", ["test", "new", "new_path", "~/.medperf/data/34"]
+    )
+    @pytest.mark.parametrize("exists", [True, False])
+    def test_to_permanent_path_renames_folder_correctly(
+        self, mocker, out_path, new_path, preparation, exists
+    ):
+        # Arrange
+        rename_spy = mocker.patch("os.rename")
+        rmtree_spy = mocker.patch("shutil.rmtree")
+        mocker.patch("os.path.exists", return_value=exists)
+        mocker.patch("os.path.join", return_value=new_path)
+        preparation.generated_uid = "0"
+        preparation.out_path = out_path
+
+        # Act
+        preparation.to_permanent_path()
+
+        # Assert
+        if exists:
+            rmtree_spy.assert_called_once_with(new_path)
+        else:
+            rmtree_spy.assert_not_called()
+        rename_spy.assert_called_once_with(out_path, new_path)
+
+    @pytest.mark.parametrize("filepath", ["filepath"])
+    def test_write_writes_to_desired_file(self, mocker, filepath, preparation):
+        # Arrange
+        mocker.patch("os.path.join", return_value=filepath)
+        open_spy = mocker.patch("builtins.open", MagicMock())
+        mocker.patch("yaml.dump", MagicMock())
+        mocker.patch(PATCH_DATAPREP.format("DataPreparation.todict"), return_value={})
+
+        # Act
+        preparation.write()
+
+        # Assert
+        open_spy.assert_called_once_with(filepath, "w")
+
+
+@pytest.mark.parametrize("uid", [str(x) for x in rand_l(1, 5000, 5)])
+def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     # Arrange
-    mocker.patch.object(preparation.cube, "run")
-    mocker.patch("os.path.exists", return_value=True)
+    def generate_uids(cls):
+        cls.generated_uid = uid
+
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_cube_tasks"))
+    mocker.patch(
+        PATCH_DATAPREP.format("DataPreparation.generate_uids"),
+        side_effect=generate_uids,
+        autospec=True,
+    )
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.to_permanent_path"),)
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
 
     # Act
     returned_uid = DataPreparation.run("", "", "", "", comms, ui)
 
     # Assert
-    assert returned_uid == registration.generated_uid
+    assert returned_uid == uid

@@ -463,3 +463,21 @@ def sanitize_json(data: dict) -> dict:
     json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
+
+
+def get_stats(data_path: str, remove: bool = True) -> dict:
+    """Retrieves the statistics of a prepared dataset
+
+    Args:
+        data_path (str): path to the dataset root
+
+    Returns:
+        dict: dataset statistics as key-value pairs.
+    """
+    stats_path = os.path.join(data_path, config.statistics_filename)
+    with open(stats_path, "r") as f:
+        stats = yaml.safe_load(f)
+
+    if remove:
+        os.remove(stats_path)
+    return stats
