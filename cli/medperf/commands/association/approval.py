@@ -32,10 +32,10 @@ class Approval:
 
         if dataset_uid:
             comms.set_dataset_association_approval(
-                benchmark_uid, dataset_uid, approval_status
+                benchmark_uid, dataset_uid, approval_status.value
             )
 
         if mlcube_uid:
             comms.set_mlcube_association_approval(
-                benchmark_uid, mlcube_uid, approval_status
+                benchmark_uid, mlcube_uid, approval_status.value
             )

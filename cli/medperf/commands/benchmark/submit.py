@@ -1,4 +1,5 @@
 import logging
+from medperf.enums import Status
 import validators
 
 from medperf.ui.interface import UI
@@ -154,7 +155,7 @@ class SubmitBenchmark:
             "data_evaluator_mlcube": int(self.data_evaluator_mlcube),
             "state": "OPERATION",
             "is_valid": True,
-            "approval_status": "PENDING",
+            "approval_status": Status.PENDING.value,
             "metadata": {"results": self.results.todict()},
         }
 
