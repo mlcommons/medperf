@@ -145,45 +145,6 @@ class Dataset:
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)
 
-    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
-        """Prompts the user for aproval regarding the association of the dataset
-        with a given benchmark.
-
-        Args:
-            benchmark (Benchmark): Benchmark to be associated with
-
-        Returns:
-            bool: Wether the user approved the association or not
-        """
-        msg = "Please confirm that you would like to associate"
-        msg += f" the dataset {self.name} with the benchmark {benchmark.name}."
-        msg += " [Y/n]"
-        approved = approval_prompt(msg, ui,)
-        return approved
-
-    def request_registration_approval(self, ui: UI) -> bool:
-        """Prompts the user for approval concerning uploading the registration to the backend.
-
-        Returns:
-            bool: Wether the user gave consent or not.
-        """
-        if self.status == Status.APPROVED:
-            return True
-
-        dict_pretty_print(self.registration, ui)
-        ui.print(
-            "Above is the information and statistics that will be registered to the database"
-        )
-        approved = approval_prompt(
-            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
-            ui,
-        )
-        if approved:
-            self.status = Status.APPROVED
-        else:
-            self.status = Status.REJECTED
-        return approved
-
     def upload(self, comms: Comms):
         """Uploads the registration information to the comms.
 
