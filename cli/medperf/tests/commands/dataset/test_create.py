@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import call
 
-from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark, MockCube
 from medperf.entities.registration import Registration
 from medperf.commands.dataset.create import DataPreparation
@@ -82,7 +81,7 @@ class TestWithDefaultUID:
         else:
             spy.asset_not_called()
 
-    @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
+    @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
     def test_get_prep_cube_gets_benchmark_cube(self, mocker, preparation, cube_uid):
         # Arrange
         preparation.benchmark.data_preparation = cube_uid
@@ -96,7 +95,7 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
 
-    @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
+    @pytest.mark.parametrize("cube_uid", [3998, 638, 2109])
     def test_get_prep_cube_checks_validity(self, mocker, preparation, cube_uid):
         # Arrange
         preparation.benchmark.data_preparation = cube_uid
@@ -242,7 +241,7 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once()
 
-    @pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
+    @pytest.mark.parametrize("uid", [3540, 727, 3674])
     def test_create_registration_returns_generated_uid(
         self, mocker, preparation, registration, uid
     ):
@@ -280,7 +279,7 @@ class TestWithDefaultUID:
 
 
 @pytest.mark.parametrize(
-    "registration", [str(x) for x in rand_l(1, 5000, 5)], indirect=True
+    "registration", ["574", "1059", "1901"], indirect=True
 )
 def test_run_returns_registration_generated_uid(
     mocker, comms, ui, preparation, registration

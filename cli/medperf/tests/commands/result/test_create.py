@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import call
 
-from medperf.tests.utils import rand_l
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -57,7 +56,7 @@ def test_validate_fails_if_preparation_cube_mismatch(mocker, execution):
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("model_uid", rand_l(5, 5000, 5))
+@pytest.mark.parametrize("model_uid", [4559, 3292, 1499])
 def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
     # Arrange
     execution.model_uid = model_uid  # model not in benchmark
@@ -85,8 +84,8 @@ def test_validate_passes_under_right_conditions(mocker, execution):
     spy.assert_not_called()
 
 
-@pytest.mark.parametrize("evaluator_uid", rand_l(1, 5000, 5))
-@pytest.mark.parametrize("model_uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("evaluator_uid", [1965, 2164])
+@pytest.mark.parametrize("model_uid", [3791, 2383])
 def test_get_cubes_retrieves_expected_cubes(
     mocker, execution, evaluator_uid, model_uid
 ):
@@ -107,10 +106,10 @@ def test_get_cubes_retrieves_expected_cubes(
     spy.assert_has_calls(calls)
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
-@pytest.mark.parametrize("name", [str(x) for x in rand_l(1, 500, 1)])
-def test__get_cube_retrieves_cube(mocker, execution, cube_uid, name):
+@pytest.mark.parametrize("cube_uid", [3889, 4669])
+def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     # Arrange
+    name = "872"
     comms = execution.comms
     ui = execution.ui
     spy = mocker.patch(PATCH_EXECUTION.format("Cube.get"))

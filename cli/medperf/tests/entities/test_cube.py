@@ -8,7 +8,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
-from medperf.tests.utils import cube_local_hashes_generator, rand_l
+from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
@@ -97,7 +97,7 @@ def test_all_looks_for_cubes_in_correct_path(mocker):
     spy.assert_called_once_with(cubes_path)
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("cube_uid", [40, 426, 418])
 def test_all_reads_local_cube_metadata(mocker, cube_uid):
     # Arrange
     cube_uid = str(cube_uid)
@@ -119,7 +119,7 @@ def test_all_reads_local_cube_metadata(mocker, cube_uid):
     assert spy.call_count == 2
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("cube_uid", [387, 1, 6])
 @pytest.mark.parametrize("with_params", [True, False])
 def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
     # Arrange
@@ -275,7 +275,7 @@ def test_get_cube_calls_all(mocker, comms, basic_body):
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("local_cubes", [rand_l(1, 500, 1)])
+@pytest.mark.parametrize("local_cubes", [[32, 87, 9]])
 def test_get_cube_return_local_first(mocker, comms, local_cubes):
     # Arrange
     cube = mocker.create_autospec(spec=Cube)
@@ -293,11 +293,10 @@ def test_get_cube_return_local_first(mocker, comms, local_cubes):
     metadata_spy.assert_not_called()
 
 
-@pytest.mark.parametrize("local_cubes", [rand_l(2, 500, 1)])
-def test_get_cube_requests_server_if_not_local(mocker, comms, basic_body, local_cubes):
+def test_get_cube_requests_server_if_not_local(mocker, comms, basic_body):
     # Arrange
     cube = mocker.create_autospec(spec=Cube)
-    cube.uid = local_cubes[0]
+    cube.uid = "2"
     mocker.patch.object(Cube, "all", return_value=[cube])
     metadata_spy = mocker.patch.object(comms, "get_cube_metadata")
 
@@ -403,7 +402,7 @@ def test_cube_is_invalid_with_incorrect_image_tarball_hash(
     assert not cube.is_valid()
 
 
-@pytest.mark.parametrize("timeout", rand_l(1, 100, 1) + [None])
+@pytest.mark.parametrize("timeout", [847, None])
 def test_cube_runs_command_with_pexpect(
     mocker, ui, comms, basic_body, no_local, timeout
 ):
@@ -563,7 +562,7 @@ def test_request_registration_approval_returns_users_input(
     assert approved == approval
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("cube_uid", [73, 9])
 @pytest.mark.parametrize("is_valid", [True, False])
 @pytest.mark.parametrize("with_tarball", [True, False])
 @pytest.mark.parametrize("with_image", [True, False])
@@ -591,7 +590,7 @@ def test_local_cubes_validity_can_be_detected(
     assert is_cube_valid == is_valid
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("cube_uid", [269, 90, 374])
 @pytest.mark.parametrize("with_tarball", [True, False])
 @pytest.mark.parametrize("with_image", [True, False])
 def test_get_cube_saves_cube_metadata(

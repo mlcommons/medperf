@@ -1,6 +1,5 @@
 import pytest
 
-from medperf.tests.utils import rand_l
 from medperf.commands.association.approval import Approval
 
 PATCH_APPROVE = "medperf.commands.association.approval.{}"
@@ -28,7 +27,7 @@ def test_run_fails_if_invalid_arguments(mocker, comms, ui, dset_uid, mlcube_uid)
         spy.assert_not_called()
 
 
-@pytest.mark.parametrize("dset_uid", rand_l(1, 500, 2))
+@pytest.mark.parametrize("dset_uid", [402, 173])
 @pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
 def test_run_calls_comms_dset_approval_with_status(mocker, comms, ui, dset_uid, status):
     # Arrange
@@ -41,7 +40,7 @@ def test_run_calls_comms_dset_approval_with_status(mocker, comms, ui, dset_uid, 
     spy.assert_called_once_with("1", dset_uid, status)
 
 
-@pytest.mark.parametrize("mlcube_uid", rand_l(1, 500, 2))
+@pytest.mark.parametrize("mlcube_uid", [294, 439])
 @pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
 def test_run_calls_comms_mlcube_approval_with_status(
     mocker, comms, ui, mlcube_uid, status

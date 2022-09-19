@@ -1,6 +1,5 @@
 import pytest
 
-from medperf.tests.utils import rand_l
 from medperf.entities.dataset import Dataset
 from medperf.commands.dataset.submit import DatasetRegistration
 
@@ -14,7 +13,7 @@ def dataset(mocker):
     return dset
 
 
-@pytest.mark.parametrize("data_uid", [str(x) for x in rand_l(1, 5000, 5)])
+@pytest.mark.parametrize("data_uid", ["2214", "3540", "362"])
 def test_run_retrieves_specified_dataset(mocker, comms, ui, dataset, data_uid):
     # Arrange
     dataset.uid = None
@@ -27,7 +26,7 @@ def test_run_retrieves_specified_dataset(mocker, comms, ui, dataset, data_uid):
     spy.assert_called_once_with(data_uid, ui)
 
 
-@pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("uid", [3720, 1465, 4033])
 def test_run_fails_if_dataset_already_registered(mocker, comms, ui, dataset, uid):
     # Arrange
     dataset.uid = uid

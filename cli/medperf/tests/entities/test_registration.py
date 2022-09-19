@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 import medperf
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
-from medperf.tests.utils import rand_l
 from medperf.entities.registration import Registration
 from medperf.entities.cube import Cube
 
@@ -171,7 +170,7 @@ def test_request_approval_returns_users_input(
 
 
 @pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
-@pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("uid", [2395, 10, 4743])
 def test_to_permanent_path_returns_expected_path(
     mocker, out_path, uid, reg_mocked_with_params
 ):
@@ -271,8 +270,8 @@ def test_is_registered_retrieves_local_datasets(mocker, ui, reg_mocked_with_para
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("dset_uids", [rand_l(1, 5000, 3) for _ in range(3)])
-@pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("dset_uids", [[2203, 1310, 4489], [3882, 112, 4688], [2717, 2651, 1219]])
+@pytest.mark.parametrize("uid", [82, 2769, 1475])
 def test_is_registered_finds_uid_in_dsets(
     mocker, ui, dset_uids, uid, reg_mocked_with_params
 ):

@@ -129,7 +129,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     spy.assert_called_once_with(tmp)
 
 
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
+@pytest.mark.parametrize("datasets", [4, 297, 500, 898], indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
     prefix = config.tmp_prefix
@@ -153,7 +153,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 2), indirect=True)
+@pytest.mark.parametrize("datasets", [4, 287], indirect=True)
 def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
     mock_walk_return = iter([(data, datasets, ())])
@@ -213,7 +213,7 @@ def test_pretty_error_exits_program(mocker, ui):
 
 
 @pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-@pytest.mark.parametrize("salt", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("salt", [342, 87])
 def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     # Arrange
     datetime = dt.datetime(*timeparams)
@@ -328,7 +328,7 @@ def test_approval_prompt_repeats_until_valid_answer(mocker, ui, inputted_strs):
     spy.call_count == exp_repeats
 
 
-@pytest.mark.parametrize("input_val", random.choices("YyNn", k=6))
+@pytest.mark.parametrize("input_val", ["Y", "y", "N", "n"])
 def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     # Arrange
     mocker.patch.object(ui, "prompt", return_value=input_val)
@@ -340,7 +340,7 @@ def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     assert approved == (input_val in "yY")
 
 
-@pytest.mark.parametrize("dict_with_nones", rand_l(0, 100, 5), indirect=True)
+@pytest.mark.parametrize("dict_with_nones", [32, 7, 90], indirect=True)
 def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones):
     # Arrange
     mocker.patch("typer.echo")
@@ -398,9 +398,9 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
 
 
-@pytest.mark.parametrize("bmk", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("gen_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("bmk", [1, 2])
+@pytest.mark.parametrize("model", [23, 84])
+@pytest.mark.parametrize("gen_uid", [43, 8])
 def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
     storage = config.storage
@@ -415,7 +415,7 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
     assert path == expected_path
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("cube_uid", [2, 87, 1])
 def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
     # Arrange
     cube_uid = str(cube_uid)
