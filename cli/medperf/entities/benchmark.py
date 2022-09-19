@@ -78,7 +78,8 @@ class Benchmark(Entity):
             ref_model = benchmark_dict["reference_model_mlcube"]
             add_models = cls.get_models_uids(benchmark_uid, comms)
             benchmark_dict["models"] = [ref_model] + add_models
-        benchmark = cls(benchmark_uid, benchmark_dict)
+        benchmark_dict["uid"] = benchmark_uid
+        benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
 
