@@ -14,6 +14,7 @@ PATCH_ASSOC = "medperf.commands.mlcube.associate.{}"
 def cube(mocker):
     cube = mocker.create_autospec(spec=Cube)
     mocker.patch.object(Cube, "get", return_value=cube)
+    cube.name = "name"
     return cube
 
 
@@ -21,6 +22,7 @@ def cube(mocker):
 def benchmark(mocker):
     benchmark = mocker.create_autospec(spec=Benchmark)
     mocker.patch.object(Benchmark, "get", return_value=benchmark)
+    benchmark.name = "name"
     return benchmark
 
 
@@ -39,6 +41,7 @@ def test_run_associates_cube_with_comms(
     # Arrange
     spy = mocker.patch.object(comms, "associate_cube")
     comp_ret = ("", "", "", result)
+    mocker.patch.object(ui, "prompt", return_value="y")
     mocker.patch(
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
     )
@@ -57,6 +60,7 @@ def test_run_calls_compatibility_test(
 ):
     # Arrange
     comp_ret = ("", "", "", result)
+    mocker.patch.object(ui, "prompt", return_value="y")
     spy = mocker.patch(
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
     )

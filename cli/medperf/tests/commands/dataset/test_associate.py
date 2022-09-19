@@ -26,6 +26,7 @@ def benchmark(mocker, request):
     mocker.patch(PATCH_ASSOC.format("Benchmark"), return_value=bm)
     mocker.patch(PATCH_ASSOC.format("Benchmark.get"), return_value=bm)
     bm.data_preparation = request.param
+    bm.name = "name"
     return bm
 
 

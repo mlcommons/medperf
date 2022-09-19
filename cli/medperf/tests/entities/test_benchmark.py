@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import mock_open, ANY
+from unittest.mock import mock_open, ANY, call
 
 import medperf.config as config
 from medperf.comms.interface import Comms
@@ -18,6 +18,7 @@ def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
     mocker.patch.object(comms, "get_benchmark", side_effect=benchmark_body)
     mocker.patch.object(comms, "get_benchmark_models", return_value=[])
+    config.comms = comms
     return comms
 
 
@@ -63,7 +64,7 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
     uid = benchmarks_uids[0]
 
     # Act
-    Benchmark.get(uid, comms)
+    Benchmark.get(uid)
 
     # Assert
     spy.assert_called_once_with(uid)
@@ -83,7 +84,7 @@ def test_get_benchmark_force_update_reads_remote_benchmark(
     uid = benchmarks_uids[0]
 
     # Act
-    Benchmark.get(uid, comms, force_update=True)
+    Benchmark.get(uid, force_update=True)
 
     # Assert
     spy.assert_not_called()
@@ -102,7 +103,7 @@ def test_get_local_dict_reads_expected_file(mocker, comms, uid):
     )
 
     # Act
-    Benchmark.get(uid, comms)
+    Benchmark.get(uid)
 
     # Assert
     spy.assert_called_once_with(exp_file, "r")
@@ -154,7 +155,7 @@ def test_benchmark_includes_additional_models_in_models(
     assert set(models).issubset(set(benchmark.models))
 
 
-def test_write_writes_to_expected_file(mocker):
+def test_write_writes_to_expected_file(mocker, comms):
     # Arrange
     uid = 1
     mocker.patch("os.listdir", return_value=[])
@@ -166,9 +167,9 @@ def test_write_writes_to_expected_file(mocker):
     )
 
     # Act
-    benchmark = Benchmark({"uid": uid})
+    benchmark = Benchmark.get("1")
     benchmark.write()
 
     # Assert
-    open_spy.assert_called_once_with(exp_file, "w")
-    yaml_spy.assert_called_once_with(benchmark.todict(), ANY)
+    open_spy.assert_any_call(exp_file, "w")
+    yaml_spy.assert_any_call(benchmark.todict(), ANY)
