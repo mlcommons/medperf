@@ -26,7 +26,7 @@ def infer(
     with open(params_file, "r") as f:
         params = yaml.safe_load(f)
 
-    run_inference(data_path, out_path, model_info, params)
+    run_inference(os.path.join(data_path, "images"), out_path, model_info, params)
 
 
 @app.command("hotfix")

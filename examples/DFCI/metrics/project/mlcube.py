@@ -9,6 +9,7 @@
 
 import typer
 from metrics import metrics
+import os
 
 app = typer.Typer()
 
@@ -21,7 +22,7 @@ def evaluate(
     output_path: str = typer.Option(..., "--output_path"),
 ):
 
-    metrics(predictions, labels, parameters_file, output_path)
+    metrics(predictions, os.path.join(labels, "labels"), parameters_file, output_path)
 
 
 @app.command("hotfix")
