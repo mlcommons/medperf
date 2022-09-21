@@ -7,26 +7,21 @@
 # Here, we show a way that requires minimal intrusion to the original code,
 # By running the application through subprocesses.
 
-import os
-import yaml
 import typer
-from infer import run_inference
+from metrics import metrics
 
 app = typer.Typer()
 
 
-@app.command("infer")
-def infer(
-    data_path: str = typer.Option(..., "--data_path"),
-    params_file: str = typer.Option(..., "--parameters_file"),
-    model_info: str = typer.Option(..., "--model_info"),
-    out_path: str = typer.Option(..., "--output_path"),
+@app.command("evaluate")
+def evaluate(
+    labels: str = typer.Option(..., "--labels"),
+    predictions: str = typer.Option(..., "--predictions"),
+    parameters_file: str = typer.Option(..., "--parameters_file"),
+    output_path: str = typer.Option(..., "--output_path"),
 ):
 
-    with open(params_file, "r") as f:
-        params = yaml.safe_load(f)
-
-    run_inference(data_path, out_path, model_info, params)
+    metrics(predictions, labels, parameters_file, output_path)
 
 
 @app.command("hotfix")
