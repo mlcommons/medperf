@@ -407,6 +407,7 @@ def test_download_demo_data_extracts_expected_paths(
     assert labels_path == exp_labels_path
 
 
+@pytest.mark.parametrize("bmk_uid", [83, None])
 @pytest.mark.parametrize("data_uid", [254, None])
 @pytest.mark.parametrize("prep_uid", [466, None])
 @pytest.mark.parametrize("model_uid", [145, None])
