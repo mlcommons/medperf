@@ -5,7 +5,7 @@ from typing import List
 from collections import defaultdict
 
 import medperf.config as config
-from medperf.entities.entity import Entity
+from medperf.entities.interface import Entity
 from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 

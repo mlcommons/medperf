@@ -9,12 +9,12 @@ from medperf.utils import (
     results_ids,
     results_path,
 )
-from medperf.ui.interface import UI
+from medperf.entities.interface import Entity
 import medperf.config as config
 from medperf.comms.interface import Comms
 
 
-class Result:
+class Result(Entity):
     """
     Class representing a Result entry
 

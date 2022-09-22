@@ -6,17 +6,16 @@ from typing import List
 
 from medperf.utils import (
     get_uids,
-    approval_prompt,
     pretty_error,
     storage_path,
-    dict_pretty_print,
 )
+from medperf.entities.interface import Entity
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
 
 
-class Dataset:
+class Dataset(Entity):
     """
     Class representing a Dataset
 

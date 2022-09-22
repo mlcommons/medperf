@@ -14,11 +14,12 @@ from medperf.utils import (
     list_files,
     storage_path,
 )
+from medperf.entities.interface import Entity
 from medperf.ui.interface import UI
 import medperf.config as config
 
 
-class Cube(object):
+class Cube(Entity):
     """
     Class representing an MLCube Container
 
