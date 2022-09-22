@@ -15,6 +15,7 @@ def dataset(mocker, request):
     dset = mocker.create_autospec(spec=Dataset)
     mocker.patch(PATCH_ASSOC.format("Dataset"), return_value=dset)
     dset.preparation_cube_uid = request.param
+    dset.uid = 1
     return dset
 
 
@@ -40,6 +41,23 @@ def test_fails_if_dataset_incompatible_with_benchmark(
     mocker, comms, ui, dataset, benchmark
 ):
     # Arrange
+    spy = mocker.patch(
+        PATCH_ASSOC.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
+    )
+
+    # Act
+    with pytest.raises(SystemExit):
+        AssociateDataset.run(1, 1, comms, ui)
+
+    # Assert
+    spy.assert_called_once()
+
+
+@pytest.mark.parametrize("dataset", [1], indirect=True)
+@pytest.mark.parametrize("benchmark", [2], indirect=True)
+def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmark):
+    # Arrange
+    dataset.uid = None
     spy = mocker.patch(
         PATCH_ASSOC.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
     )

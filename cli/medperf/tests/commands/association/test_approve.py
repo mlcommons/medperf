@@ -1,3 +1,4 @@
+from medperf.enums import Status
 import pytest
 
 from medperf.commands.association.approval import Approval
@@ -18,9 +19,9 @@ def test_run_fails_if_invalid_arguments(mocker, comms, ui, dset_uid, mlcube_uid)
     # Act & Assert
     if num_arguments != 1:
         with pytest.raises(SystemExit):
-            Approval.run("1", "APPROVE", comms, ui, dset_uid, mlcube_uid)
+            Approval.run("1", Status.APPROVED, comms, ui, dset_uid, mlcube_uid)
     else:
-        Approval.run("1", "APPROVE", comms, ui, dset_uid, mlcube_uid)
+        Approval.run("1", Status.APPROVED, comms, ui, dset_uid, mlcube_uid)
 
     # Assert
     if num_arguments == 1:
@@ -28,7 +29,7 @@ def test_run_fails_if_invalid_arguments(mocker, comms, ui, dset_uid, mlcube_uid)
 
 
 @pytest.mark.parametrize("dset_uid", [402, 173])
-@pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
+@pytest.mark.parametrize("status", [Status.APPROVED, Status.REJECTED])
 def test_run_calls_comms_dset_approval_with_status(mocker, comms, ui, dset_uid, status):
     # Arrange
     spy = mocker.patch.object(comms, "set_dataset_association_approval")
@@ -37,11 +38,11 @@ def test_run_calls_comms_dset_approval_with_status(mocker, comms, ui, dset_uid, 
     Approval.run("1", status, comms, ui, dataset_uid=dset_uid)
 
     # Assert
-    spy.assert_called_once_with("1", dset_uid, status)
+    spy.assert_called_once_with("1", dset_uid, status.value)
 
 
 @pytest.mark.parametrize("mlcube_uid", [294, 439])
-@pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
+@pytest.mark.parametrize("status", [Status.APPROVED, Status.REJECTED])
 def test_run_calls_comms_mlcube_approval_with_status(
     mocker, comms, ui, mlcube_uid, status
 ):
@@ -52,4 +53,4 @@ def test_run_calls_comms_mlcube_approval_with_status(
     Approval.run("1", status, comms, ui, mlcube_uid=mlcube_uid)
 
     # Assert
-    spy.assert_called_once_with("1", mlcube_uid, status)
+    spy.assert_called_once_with("1", mlcube_uid, status.value)

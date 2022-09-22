@@ -4,7 +4,7 @@ import requests
 from unittest.mock import mock_open, ANY
 
 from medperf import config
-from medperf.enums import Role
+from medperf.enums import Role, Status
 from medperf.ui.interface import UI
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
@@ -69,7 +69,7 @@ def server(mocker, ui):
                 "json": {
                     "benchmark": 1,
                     "dataset": 1,
-                    "approval_status": "PENDING",
+                    "approval_status": Status.PENDING.value,
                     "metadata": {},
                 }
             },
@@ -78,19 +78,19 @@ def server(mocker, ui):
             "_REST__set_approval_status",
             "put",
             200,
-            [f"{url}/mlcubes/1/benchmarks/1", "APPROVED"],
+            [f"{url}/mlcubes/1/benchmarks/1", Status.APPROVED.value],
             {},
             (f"{url}/mlcubes/1/benchmarks/1",),
-            {"json": {"approval_status": "APPROVED"}},
+            {"json": {"approval_status": Status.APPROVED.value}},
         ),
         (
             "_REST__set_approval_status",
             "put",
             200,
-            [f"{url}/mlcubes/1/benchmarks/1", "REJECTED"],
+            [f"{url}/mlcubes/1/benchmarks/1", Status.REJECTED.value],
             {},
             (f"{url}/mlcubes/1/benchmarks/1",),
-            {"json": {"approval_status": "REJECTED"}},
+            {"json": {"approval_status": Status.REJECTED.value}},
         ),
         (
             "change_password",
@@ -163,12 +163,13 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     spy = mocker.patch("requests.post", return_value=res)
     exp_body = {"username": uname, "password": pwd}
     exp_path = f"{url}/auth-token/"
+    cert_verify = config.certificate or True
 
     # Act
     server.login(ui, uname, pwd)
 
     # Assert
-    spy.assert_called_once_with(exp_path, json=exp_body, verify=True)
+    spy.assert_called_once_with(exp_path, json=exp_body, verify=cert_verify)
 
 
 @pytest.mark.parametrize("token", ["test", "token"])
@@ -234,12 +235,13 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
         func = requests.post
 
     exp_headers = {"Authorization": f"Token {token}"}
+    cert_verify = config.certificate or True
 
     # Act
     server._REST__auth_req(url, func)
 
     # Assert
-    spy.assert_called_once_with(url, headers=exp_headers, verify=True)
+    spy.assert_called_once_with(url, headers=exp_headers, verify=cert_verify)
 
 
 def test__req_sanitizes_json(mocker, server):
@@ -567,7 +569,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     # Arrange
     data = {
         "results": {},
-        "approval_status": "PENDING",
+        "approval_status": Status.PENDING.value,
         "model_mlcube": cube_uid,
         "benchmark": benchmark_uid,
         "metadata": {},
@@ -584,7 +586,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
 
 @pytest.mark.parametrize("dataset_uid", [4417, 1057])
 @pytest.mark.parametrize("benchmark_uid", [1011, 635])
-@pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
+@pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
 def test_set_dataset_association_approval_sets_approval(
     mocker, server, dataset_uid, benchmark_uid, status
 ):
@@ -604,7 +606,7 @@ def test_set_dataset_association_approval_sets_approval(
 
 @pytest.mark.parametrize("mlcube_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
-@pytest.mark.parametrize("status", ["APPROVED", "REJECTED"])
+@pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
 def test_set_mlcube_association_approval_sets_approval(
     mocker, server, mlcube_uid, benchmark_uid, status
 ):
