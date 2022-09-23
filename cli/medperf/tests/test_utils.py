@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, mock_open, call, ANY
 from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.tests.utils import rand_l, cube_local_hashes_generator
+from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
 from medperf.tests.mocks.requests import cube_metadata_generator
 
@@ -32,7 +32,7 @@ def init_mock_isdir(existing_dirs):
 @pytest.fixture
 def datasets(request):
     size = request.param
-    uids = rand_l(1, 5000, size)
+    uids = list(range(size))
     uids = [str(x) for x in uids]
     for i in range(size):
         if random.randint(0, 1):
@@ -44,8 +44,10 @@ def datasets(request):
 @pytest.fixture
 def dict_with_nones(request):
     num_keys = request.param
-    keys = rand_l(1, 5000, num_keys)
-    vals = [random.choice([None, x]) for x in keys]
+    keys = list(range(num_keys))
+    vals = list(range(num_keys))
+    vals[0] = None
+    vals[-1] = None
     return {k: v for k, v in zip(keys, vals)}
 
 
