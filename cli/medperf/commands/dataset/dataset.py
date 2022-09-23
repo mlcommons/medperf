@@ -27,7 +27,10 @@ def datasets(
 @clean_except
 def create(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        None, "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    data_prep_uid: int = typer.Option(
+        None, "--data_prep", "-p", help="UID of the desired preparation cube"
     ),
     data_path: str = typer.Option(
         ..., "--data_path", "-d", help="Location of the data to be prepared"
@@ -49,6 +52,7 @@ def create(
     ui = config.ui
     data_uid = DataPreparation.run(
         benchmark_uid,
+        data_prep_uid,
         data_path,
         labels_path,
         comms,

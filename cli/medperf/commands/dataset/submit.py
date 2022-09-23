@@ -19,6 +19,20 @@ class DatasetRegistration:
             pretty_error(
                 "This dataset has already been registered.", ui, add_instructions=False
             )
+        remote_dsets = comms.get_user_datasets()
+        remote_dset = [
+            remote_dset
+            for remote_dset in remote_dsets
+            if remote_dset["generated_uid"] == dset.data_uid
+        ]
+        if len(remote_dset) == 1:
+            dset.uid = remote_dset[0]["id"]
+            dset.name = remote_dset[0]["name"]
+            dset.location = remote_dset[0]["location"]
+            dset.description = remote_dset[0]["description"]
+            dset.set_registration()
+            ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
+            return
 
         if approved or dset.request_registration_approval(ui):
             ui.print("Uploading...")

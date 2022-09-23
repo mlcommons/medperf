@@ -1,7 +1,7 @@
 from os.path import expanduser, abspath
 
 version = "0.0.0"
-server = "https://medperf.org"
+server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
@@ -16,6 +16,7 @@ demo_data_storage = "demo"
 cubes_storage = "cubes"
 predictions_storage = "predictions"
 results_storage = "results"
+statistics_filename = "tmp_statistics.yaml"
 results_filename = "result.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"

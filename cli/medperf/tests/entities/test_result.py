@@ -1,3 +1,4 @@
+from medperf.enums import Status
 import pytest
 from unittest.mock import MagicMock, call, ANY
 
@@ -125,7 +126,7 @@ def test_todict_returns_expected_keys(mocker, result):
 def test_request_approval_skips_if_already_approved(mocker, result, ui):
     # Arrange
     spy = mocker.patch(PATCH_RESULT.format("approval_prompt"))
-    result.status = "APPROVED"
+    result.status = Status.APPROVED
 
     # Act
     result.request_approval(ui)

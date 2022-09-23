@@ -13,7 +13,7 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.result.create import BenchmarkExecution
-from medperf.utils import pretty_error, untar, get_file_sha1, get_uids, storage_path
+from medperf.utils import pretty_error, untar, get_file_sha1, storage_path
 
 
 class CompatibilityTestExecution:
@@ -65,7 +65,8 @@ class CompatibilityTestExecution:
         ui: UI,
     ):
         self.benchmark_uid = benchmark_uid
-        self.benchmark = None
+        self.demo_dataset_url = None
+        self.demo_dataset_hash = None
         self.data_uid = data_uid
         self.dataset = None
         self.data_prep = data_prep
@@ -108,36 +109,29 @@ class CompatibilityTestExecution:
             self.set_cube_uid("data_prep", benchmark.data_preparation)
             self.set_cube_uid("model", benchmark.reference_model)
             self.set_cube_uid("evaluator", benchmark.evaluator)
-            demo_dataset_url = benchmark.demo_dataset_url
-            demo_dataset_hash = benchmark.demo_dataset_hash
+            self.demo_dataset_url = benchmark.demo_dataset_url
+            self.demo_dataset_hash = benchmark.demo_dataset_hash
         else:
             self.set_cube_uid("data_prep")
             self.set_cube_uid("model")
             self.set_cube_uid("evaluator")
-            demo_dataset_url = None
-            demo_dataset_hash = None
-
-        self.benchmark = Benchmark.tmp(
-            self.data_prep,
-            self.model,
-            self.evaluator,
-            demo_dataset_url,
-            demo_dataset_hash,
-        )
-        self.benchmark_uid = self.benchmark.uid
 
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
         """
+        benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
         BenchmarkExecution.run(
-            self.benchmark_uid,
+            benchmark.uid,
             self.data_uid,
             self.model,
             self.comms,
             self.ui,
             run_test=True,
         )
-        return Result(self.benchmark_uid, self.dataset.uid, self.model)
+        # Datasets associated with results of compatibility-test are identified
+        # by the generated uid. Server uid is not be applicable in the case
+        # of unregistered datasets.
+        return Result(benchmark.uid, self.dataset.generated_uid, self.model)
 
     def set_cube_uid(self, attr: str, fallback: any = None):
         """Assigns the attr used for testing according to the initialization parameters.
@@ -200,45 +194,32 @@ class CompatibilityTestExecution:
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
         if self.data_uid is not None:
-            uid_hint = self.data_uid
-            data_storage = storage_path(config.data_storage)
-            data_uids = get_uids(data_storage)
-            match_uids = [uid for uid in data_uids if uid.startswith(str(uid_hint))]
-            if len(match_uids) > 0:
-                self.dataset = Dataset(self.data_uid, self.ui)
-        if self.dataset is None:
-            logging.info(
-                "No dataset found with provided uid. Using benchmark demo dataset"
-            )
-            data_path, labels_path = self.download_demo_data(self.data_uid)
+            self.dataset = Dataset(self.data_uid, self.ui)
+            # to avoid 'None' as a uid
+            self.data_prep = self.dataset.preparation_cube_uid
+        else:
+            logging.info("Using benchmark demo dataset")
+            data_path, labels_path = self.download_demo_data()
             self.data_uid = DataPreparation.run(
-                self.benchmark_uid,
+                None,
+                self.data_prep,
                 data_path,
                 labels_path,
                 self.comms,
                 self.ui,
                 run_test=True,
             )
-            # Dataset will not be registered, so we must mock its uid
-            logging.info("Defining local data uid")
             self.dataset = Dataset(self.data_uid, self.ui)
-            self.dataset.uid = self.data_uid
-            self.dataset.set_registration()
 
-    def download_demo_data(self, data_uid: str = None):
+    def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark
 
-        Arguments:
-            data_uid (str): Data UID to try and search locally as a demo dataset
         Returns:
             data_path (str): Location of the downloaded data
             labels_path (str): Location of the downloaded labels
         """
-        if data_uid is not None:
-            dset_hash = data_uid
-        else:
-            dset_hash = self.benchmark.demo_dataset_hash
-        dset_url = self.benchmark.demo_dataset_url
+        dset_hash = self.demo_dataset_hash
+        dset_url = self.demo_dataset_url
         file_path = self.comms.get_benchmark_demo_dataset(dset_url, dset_hash)
 
         # Check demo dataset integrity
