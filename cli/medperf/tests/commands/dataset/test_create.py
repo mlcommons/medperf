@@ -94,7 +94,7 @@ class TestWithDefaultUID:
             spy.asset_not_called()
 
     @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
-    def test_get_prep_cube_gets_benchmark_cube(self, mocker, preparation, cube_uid, comms, ui):
+    def test_get_prep_cube_gets_prep_cube_if_provided(self, mocker, preparation, cube_uid, comms, ui):
         # Arrange
         spy = mocker.patch(
             PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
