@@ -44,3 +44,24 @@ plugins:
         - docs/gen_ref_pages.py
   - literate-nav:
       nav_file: SUMMARY.md
+      
+ extra:
+  analytics:
+    provider: google
+    property: G-QNE8JMYY88
+    
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: >- 
+            Thanks for your feedback! Help us improve this page by
+            using our <a href="https://github.com/mlcommons/medperf/issues/new?title=[Feedback]+{title}+-+{url}" target="_blank" rel="noopener">feedback form</a>.
+
