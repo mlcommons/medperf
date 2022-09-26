@@ -76,9 +76,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
 def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     # Arrange
     dataset.uid = None
-    spy = mocker.patch(
-        PATCH_REGISTER.format("approval_prompt"), return_value=True,
-    )
+    spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
 
     # Act
     DatasetRegistration.run("1", comms, ui)
@@ -120,9 +118,7 @@ def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_ha
 def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
     # Arrange
     dataset.uid = None
-    spy = mocker.patch(
-        PATCH_REGISTER.format("approval_prompt"), return_value=False,
-    )
+    spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=False,)
     mocker.patch(
         PATCH_REGISTER.format("pretty_error"),
         side_effect=lambda *args, **kwargs: exit(),
@@ -183,9 +179,7 @@ class TestWithApproval:
     ):
         # Arrange
         dataset.uid = None
-        spy = mocker.patch(
-            PATCH_REGISTER.format("approval_prompt"), return_value=True,
-        )
+        spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
 
         # Act
         DatasetRegistration.run("1", comms, ui, approved=approved)

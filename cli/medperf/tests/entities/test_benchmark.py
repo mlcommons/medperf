@@ -139,7 +139,10 @@ def test_benchmark_includes_reference_model_in_models(comms, no_local):
     assert benchmark.reference_model in benchmark.models
 
 
-@pytest.mark.parametrize("models", [[4975, 573, 269, 3172], [556, 1588, 3398, 2724], [3531, 1423, 2275, 4223]])
+@pytest.mark.parametrize(
+    "models",
+    [[4975, 573, 269, 3172], [556, 1588, 3398, 2724], [3531, 1423, 2275, 4223]],
+)
 def test_benchmark_includes_additional_models_in_models(
     mocker, comms, models, no_local
 ):

@@ -51,9 +51,7 @@ class Benchmark(Entity):
         self.metadata = bmk_dict["metadata"] or {}
 
     @classmethod
-    def get(
-        cls, benchmark_uid: str, force_update: bool = False
-    ) -> "Benchmark":
+    def get(cls, benchmark_uid: str, force_update: bool = False) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -175,7 +173,7 @@ class Benchmark(Entity):
             "state": self.state,
             "is_valid": self.is_valid,
             "approval_status": self.approval_status,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     def write(self, filename: str = config.benchmarks_filename) -> str:

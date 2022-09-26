@@ -363,9 +363,7 @@ def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
 def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_local):
     # Arrange
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-    expected_cmd = (
-        f"mlcube configure --mlcube={CUBE_PATH}"
-    )
+    expected_cmd = f"mlcube configure --mlcube={CUBE_PATH}"
 
     # Act
     uid = 1
