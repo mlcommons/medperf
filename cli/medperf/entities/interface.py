@@ -1,14 +1,13 @@
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
-from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 
 
-class Entity:
+class Entity(ABC):
     @abstractmethod
     def all(cls) -> List["Entity"]:
-        """Gets a list of all instances of the respective entity. 
+        """Gets a list of all instances of the respective entity.
         Wether the list is local or remote depends on the implementation.
 
         Returns:
@@ -18,7 +17,7 @@ class Entity:
     @abstractmethod
     def get(cls, uid: str) -> "Entity":
         """Gets an instance of the respective entity.
-        Wether this requires only local read or remote calls depends 
+        Wether this requires only local read or remote calls depends
         on the implementation.
 
         Args:
