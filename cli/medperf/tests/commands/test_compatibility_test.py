@@ -4,7 +4,6 @@ import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
-from medperf.tests.utils import rand_l
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.compatibility_test import CompatibilityTestExecution
@@ -123,7 +122,7 @@ def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
 
 
 @pytest.mark.parametrize("attr", ["data_prep", "model", "evaluator"])
-@pytest.mark.parametrize("ref_uid", rand_l(1, 500, 1))
+@pytest.mark.parametrize("ref_uid", [436])
 def test_set_cube_uid_sets_ref_model_by_default(attr, ref_uid, comms, ui):
     # Arrange
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
@@ -177,7 +176,7 @@ def test_set_cube_uid_corrects_path_if_file(mocker, src, dst, comms, ui):
     syml_spy.assert_called_once_with(expected_src, ANY)
 
 
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("model_uid", [418, 165])
 def test_set_cube_uid_keeps_passed_uid_intact_if_digit(
     mocker, default_setup, model_uid, comms, ui
 ):
@@ -241,7 +240,7 @@ def test_set_data_uid_calls_DataPreparation_by_default(
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("data_uid", [343, 324, 96, 443, 185])
 def test_set_data_uid_sets_demo_data_uid_by_default(
     mocker, default_setup, data_uid, comms, ui
 ):
@@ -256,7 +255,7 @@ def test_set_data_uid_sets_demo_data_uid_by_default(
     assert exec.data_uid == data_uid
 
 
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("data_uid", [85, 388, 397])
 def test_set_data_uid_keeps_passed_data_uid(mocker, default_setup, data_uid, comms, ui):
     # Arrange
     exec = CompatibilityTestExecution(1, data_uid, None, None, None, comms, ui)
@@ -315,9 +314,9 @@ def test_run_executes_all_the_expected_steps(mocker, default_setup, comms, ui):
     execute_benchmark_spy.assert_called_once()
 
 
-@pytest.mark.parametrize("bmk_uid", rand_l(1, 500, 2))
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 2))
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 2))
+@pytest.mark.parametrize("bmk_uid", [255, 238])
+@pytest.mark.parametrize("data_uid", [312, 498])
+@pytest.mark.parametrize("model_uid", [241, 411])
 @pytest.mark.parametrize("results", [{}, {"AUC": 0.6}])
 def test_run_returns_uids(
     mocker, benchmark, bmk_uid, data_uid, model_uid, results, comms, ui
@@ -408,11 +407,11 @@ def test_download_demo_data_extracts_expected_paths(
     assert labels_path == exp_labels_path
 
 
-@pytest.mark.parametrize("bmk_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("prep_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("eval_uid", rand_l(1, 500, 1) + [None])
+@pytest.mark.parametrize("bmk_uid", [83, None])
+@pytest.mark.parametrize("data_uid", [254, None])
+@pytest.mark.parametrize("prep_uid", [466, None])
+@pytest.mark.parametrize("model_uid", [145, None])
+@pytest.mark.parametrize("eval_uid", [97, None])
 def test_run_uses_correct_uids(
     mocker,
     benchmark,

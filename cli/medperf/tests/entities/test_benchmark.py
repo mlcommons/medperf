@@ -4,7 +4,6 @@ from unittest.mock import mock_open, ANY
 
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.tests.utils import rand_l
 from medperf.utils import storage_path
 from medperf.entities.benchmark import Benchmark
 from medperf.tests.mocks.requests import benchmark_body
@@ -39,7 +38,7 @@ def test_get_benchmark_retrieves_benchmark_from_comms(mocker, no_local, comms):
     spy.assert_called_once_with(uid)
 
 
-@pytest.mark.parametrize("uid", rand_l(1, 5000, 10))
+@pytest.mark.parametrize("uid", [4, 82, 77, 38])
 def test_get_benchmark_retrieves_models_from_comms(mocker, no_local, comms, uid):
     # Arrange
     spy = mocker.spy(comms, "get_benchmark_models")
@@ -51,7 +50,7 @@ def test_get_benchmark_retrieves_models_from_comms(mocker, no_local, comms, uid)
     spy.assert_called_once_with(uid)
 
 
-@pytest.mark.parametrize("benchmarks_uids", [rand_l(1, 500, 3)])
+@pytest.mark.parametrize("benchmarks_uids", [[1, 8, 33]])
 def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids):
     # Arrange
     benchmarks_uids = [str(uid) for uid in benchmarks_uids]
@@ -69,7 +68,7 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
     spy.assert_called_once_with(uid)
 
 
-@pytest.mark.parametrize("benchmarks_uids", [rand_l(1, 500, 3)])
+@pytest.mark.parametrize("benchmarks_uids", [[449, 66, 337]])
 def test_get_benchmark_force_update_reads_remote_benchmark(
     mocker, comms, benchmarks_uids
 ):
@@ -89,7 +88,7 @@ def test_get_benchmark_force_update_reads_remote_benchmark(
     spy.assert_not_called()
 
 
-@pytest.mark.parametrize("uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("uid", [94, 23, 87])
 def test_get_local_dict_reads_expected_file(mocker, comms, uid):
     # Arrange
     uid = str(uid)
@@ -108,9 +107,9 @@ def test_get_local_dict_reads_expected_file(mocker, comms, uid):
     spy.assert_called_once_with(exp_file, "r")
 
 
-@pytest.mark.parametrize("data_prep", rand_l(1, 500, 2))
-@pytest.mark.parametrize("model", rand_l(1, 500, 2))
-@pytest.mark.parametrize("eval", rand_l(1, 500, 2))
+@pytest.mark.parametrize("data_prep", [12, 78])
+@pytest.mark.parametrize("model", [654, 4])
+@pytest.mark.parametrize("eval", [6, 354])
 def test_tmp_creates_and_writes_temporary_benchmark(mocker, data_prep, model, eval):
     # Arrange
     data_prep = str(data_prep)
@@ -139,7 +138,7 @@ def test_benchmark_includes_reference_model_in_models(comms, no_local):
     assert benchmark.reference_model in benchmark.models
 
 
-@pytest.mark.parametrize("models", [rand_l(1, 5000, 4) for _ in range(5)])
+@pytest.mark.parametrize("models", [[4975, 573, 269, 3172], [556, 1588, 3398, 2724], [3531, 1423, 2275, 4223]])
 def test_benchmark_includes_additional_models_in_models(
     mocker, comms, models, no_local
 ):

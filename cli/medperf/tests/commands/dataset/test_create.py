@@ -4,7 +4,6 @@ import medperf.config as config
 import pytest
 from unittest.mock import MagicMock, call
 
-from medperf.tests.utils import rand_l
 from medperf.tests.mocks import Benchmark, MockCube
 from medperf.commands.dataset.create import DataPreparation
 
@@ -94,10 +93,8 @@ class TestWithDefaultUID:
         else:
             spy.asset_not_called()
 
-    @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
-    def test_get_prep_cube_gets_prep_cube_if_provided(
-        self, mocker, preparation, cube_uid, comms, ui
-    ):
+    @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
+    def test_get_prep_cube_gets_prep_cube_if_provided(self, mocker, preparation, cube_uid, comms, ui):
         # Arrange
         spy = mocker.patch(
             PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
@@ -110,7 +107,7 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
 
-    @pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
+    @pytest.mark.parametrize("cube_uid", [998, 68, 109])
     def test_get_prep_cube_gets_benchmark_cube_if_provided(
         self, mocker, preparation, cube_uid, comms, ui
     ):
@@ -296,7 +293,7 @@ class TestWithDefaultUID:
         assert set(keys) == set(REG_DICT_KEYS)
 
     @pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
-    @pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
+    @pytest.mark.parametrize("uid", [858, 2770, 2052])
     def test_to_permanent_path_modifies_output_path(
         self, mocker, out_path, uid, preparation
     ):
@@ -356,7 +353,7 @@ class TestWithDefaultUID:
         open_spy.assert_called_once_with(filepath, "w")
 
 
-@pytest.mark.parametrize("uid", [str(x) for x in rand_l(1, 5000, 5)])
+@pytest.mark.parametrize("uid", ["574", "1059", "1901"])
 def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     # Arrange
     def generate_uids(cls):

@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import ANY
 
 import medperf.config as config
-from medperf.tests.utils import rand_l
 from medperf.commands.mlcube.submit import SubmitCube
 
 PATCH_MLCUBE = "medperf.commands.mlcube.submit.{}"
@@ -51,7 +50,7 @@ def test_is_valid_passes_valid_fields(
     assert valid == should_pass
 
 
-@pytest.mark.parametrize("add_file", rand_l(1, 500, 2))
+@pytest.mark.parametrize("add_file", [166, 335])
 def test_get_additional_files_tarball_hash_gets_additional_file(
     mocker, comms, ui, add_file
 ):
