@@ -92,7 +92,7 @@ class Dataset(Entity):
             uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", ui)
+            pretty_error("Couldn't iterate over the dataset directory", config.ui)
         tmp_prefix = config.tmp_prefix
         dsets = []
         for uid in uids:
