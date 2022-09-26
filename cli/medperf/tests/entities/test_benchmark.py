@@ -27,6 +27,34 @@ def no_local(mocker):
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
 
 
+def test_all_looks_at_correct_path(mocker):
+    # Arrange
+    bmks_path = storage_path(config.benchmarks_storage)
+    fs = iter([(".", (), ())])
+    spy = mocker.patch("os.walk", return_value=fs)
+
+    # Act
+    Benchmark.all()
+
+    # Assert
+    spy.assert_called_once_with(bmks_path)
+
+
+@pytest.mark.parametrize("bmk_uid", [29, 348, 219])
+def test_all_calls_get_with_correct_uid(mocker, bmk_uid):
+    # Arrange
+    bmk = mocker.create_autospec(spec=Benchmark)
+    fs = iter([(".", ([bmk_uid]), ())])
+    mocker.patch("os.walk", return_value=fs)
+    spy = mocker.patch(PATCH_BENCHMARK.format("Benchmark.get"), return_value=bmk)
+
+    # Act
+    Benchmark.all()
+
+    # Assert
+    spy.assert_called_once_with(bmk_uid)
+
+
 def test_get_benchmark_retrieves_benchmark_from_comms(mocker, no_local, comms):
     # Arrange
     spy = mocker.spy(comms, "get_benchmark")

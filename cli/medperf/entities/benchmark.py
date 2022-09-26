@@ -7,7 +7,7 @@ from collections import defaultdict
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.comms.interface import Comms
-from medperf.utils import storage_path
+from medperf.utils import storage_path, pretty_error
 
 
 class Benchmark(Entity):
@@ -49,6 +49,27 @@ class Benchmark(Entity):
         self.is_valid = bmk_dict["is_valid"] or True
         self.approval_status = bmk_dict["approval_status"] or "PENDING"
         self.metadata = bmk_dict["metadata"] or {}
+
+    @classmethod
+    def all(cls) -> List["Benchmark"]:
+        """Gets and creates instances of all locally present benchmarks
+
+        Returns:
+            List[Benchmark]: a list of Benchmark instances.
+        """
+        logging.info("Retrieving all benchmarks")
+        bmks_storage = storage_path(config.benchmarks_storage)
+        try:
+            uids = next(os.walk(bmks_storage))[1]
+        except StopIteration:
+            msg = "Couldn't iterate over benchmarks directory"
+            logging.warning(msg)
+            pretty_error(msg, config.ui)
+
+        benchmarks = [cls.get(uid) for uid in uids]
+
+        return benchmarks
+
 
     @classmethod
     def get(cls, benchmark_uid: str, force_update: bool = False) -> "Benchmark":
