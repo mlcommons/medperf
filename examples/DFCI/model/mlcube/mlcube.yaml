@@ -4,15 +4,16 @@ authors:
  - {name: "MLCommons Medical Working Group - DFCI "}
 
 platform:
-  accelerator_count: 0
+  accelerator_count: 1
 
 docker:
   # Image name.
-  image: mlcommons/dfci-mlcube
+  image: mlcommons/dfci-rstn:0.0.0
   # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
   build_context: "../project"
   # Docker file name within docker build context, default is `Dockerfile`.
   build_file: "Dockerfile"
+  gpu_args: --gpus all
 
 tasks:
   # Model MLCubes require only a single task: `infer`.
