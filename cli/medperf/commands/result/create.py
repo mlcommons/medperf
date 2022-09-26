@@ -63,10 +63,10 @@ class BenchmarkExecution:
         # If not running the test, redownload the benchmark
         update_bmk = not self.run_test
         self.benchmark = Benchmark.get(
-            self.benchmark_uid, self.comms, force_update=update_bmk
+            self.benchmark_uid, force_update=update_bmk
         )
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset(self.data_uid, self.ui)
+        self.dataset = Dataset(self.data_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)

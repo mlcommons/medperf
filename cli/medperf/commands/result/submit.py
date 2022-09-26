@@ -1,12 +1,13 @@
 from medperf.utils import pretty_error, dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
+from medperf.enums import Status
 
 
 class ResultSubmission:
     @classmethod
     def run(cls, benchmark_uid, data_uid, model_uid, comms, ui, approved=False):
-        dset = Dataset(data_uid, ui)
+        dset = Dataset(data_uid)
         sub = cls(benchmark_uid, dset.uid, model_uid, comms, ui, approved=approved)
         sub.upload_results()
 
@@ -19,7 +20,7 @@ class ResultSubmission:
         self.approved = approved
 
     def request_approval(self, result):
-        if self.status == "APPROVED":
+        if result.status == Status.APPROVED:
             return True
 
         dict_pretty_print(result.todict(), self.ui)
