@@ -7,7 +7,6 @@ from medperf import config
 from medperf.enums import Role, Status
 from medperf.ui.interface import UI
 from medperf.comms.rest import REST
-from medperf.tests.utils import rand_l
 from medperf.tests.mocks import MockResponse
 
 url = "https://mock.url"
@@ -288,7 +287,7 @@ def test_benchmark_association_returns_none_if_not_found(mocker, server):
     assert role is Role(None)
 
 
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("benchmark_uid", [333, 37])
 def test_authorized_by_role_calls_benchmark_association(mocker, server, benchmark_uid):
     # Arrange
     spy = mocker.patch(
@@ -304,11 +303,11 @@ def test_authorized_by_role_calls_benchmark_association(mocker, server, benchmar
 
 @pytest.mark.parametrize("exp_role", ["BENCHMARK_OWNER", "DATA_OWNER", "MODEL_OWNER"])
 @pytest.mark.parametrize("role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 500, 1))
 def test_authorized_by_role_returns_true_when_authorized(
-    mocker, server, role, exp_role, benchmark_uid
+    mocker, server, role, exp_role
 ):
     # Arrange
+    benchmark_uid = "2"
     benchmarks = [
         {"benchmark": benchmark_uid, "role": role},
         {"benchmark": 501, "role": "DataOwner"},
@@ -350,7 +349,7 @@ def test_get_benchmark_returns_benchmark_body(mocker, server, body):
     assert benchmark_body == body
 
 
-@pytest.mark.parametrize("exp_uids", [rand_l(1, 500, 5) for _ in range(5)])
+@pytest.mark.parametrize("exp_uids", [[142, 437, 196], [303, 27, 24], [40, 19, 399]])
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
     body = [{"id": uid} for uid in exp_uids]
@@ -522,7 +521,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     spy.assert_called_once_with(f"{url}/me/datasets/")
 
 
-@pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
+@pytest.mark.parametrize("exp_id", [192, 197, 426])
 def test_upload_mlcube_returns_cube_uid(mocker, server, exp_id):
     # Arrange
     body = {"id": exp_id}
@@ -536,7 +535,7 @@ def test_upload_mlcube_returns_cube_uid(mocker, server, exp_id):
     assert id == exp_id
 
 
-@pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
+@pytest.mark.parametrize("exp_id", [330, 161, 346])
 def test_upload_dataset_returns_dataset_uid(mocker, server, exp_id):
     # Arrange
     body = {"id": exp_id}
@@ -550,7 +549,7 @@ def test_upload_dataset_returns_dataset_uid(mocker, server, exp_id):
     assert id == exp_id
 
 
-@pytest.mark.parametrize("exp_id", rand_l(1, 500, 5))
+@pytest.mark.parametrize("exp_id", [153, 13, 165])
 def test_upload_results_returns_result_uid(mocker, server, exp_id):
     # Arrange
     body = {"id": exp_id}
@@ -564,8 +563,8 @@ def test_upload_results_returns_result_uid(mocker, server, exp_id):
     assert id == exp_id
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 5))
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("cube_uid", [2156, 915])
+@pytest.mark.parametrize("benchmark_uid", [1206, 3741])
 def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchmark_uid):
     # Arrange
     data = {
@@ -585,8 +584,8 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     spy.assert_called_once_with(ANY, json=data)
 
 
-@pytest.mark.parametrize("dataset_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("dataset_uid", [4417, 1057])
+@pytest.mark.parametrize("benchmark_uid", [1011, 635])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
 def test_set_dataset_association_approval_sets_approval(
     mocker, server, dataset_uid, benchmark_uid, status
@@ -605,8 +604,8 @@ def test_set_dataset_association_approval_sets_approval(
     spy.assert_called_once_with(exp_url, status)
 
 
-@pytest.mark.parametrize("mlcube_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("mlcube_uid", [4596, 3530])
+@pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
 def test_set_mlcube_association_approval_sets_approval(
     mocker, server, mlcube_uid, benchmark_uid, status

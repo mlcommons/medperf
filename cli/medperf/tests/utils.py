@@ -1,10 +1,3 @@
-import random
-
-
-def rand_l(a, b, size):
-    return random.sample(range(a, b), size)
-
-
 def cube_local_hashes_generator(valid=True, with_tarball=True, with_image=True):
     local_hashes = {"additional_files_tarball_hash": "", "image_tarball_hash": ""}
 

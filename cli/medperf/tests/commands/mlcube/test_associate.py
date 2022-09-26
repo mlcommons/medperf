@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import ANY
 
-from medperf.tests.utils import rand_l
 from medperf.entities.cube import Cube
 from medperf.entities.result import Result
 from medperf.entities.benchmark import Benchmark
@@ -33,8 +32,8 @@ def result(mocker):
     return result
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("cube_uid", [2405, 4186])
+@pytest.mark.parametrize("benchmark_uid", [4416, 1522])
 def test_run_associates_cube_with_comms(
     mocker, cube, benchmark, result, cube_uid, benchmark_uid, comms, ui
 ):
@@ -53,8 +52,8 @@ def test_run_associates_cube_with_comms(
     spy.assert_called_once_with(cube_uid, benchmark_uid, ANY)
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("cube_uid", [3081, 1554])
+@pytest.mark.parametrize("benchmark_uid", [3739, 4419])
 def test_run_calls_compatibility_test(
     mocker, cube, benchmark, cube_uid, benchmark_uid, result, comms, ui
 ):

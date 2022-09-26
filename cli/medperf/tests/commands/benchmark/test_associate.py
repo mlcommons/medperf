@@ -1,6 +1,5 @@
 import pytest
 
-from medperf.tests.utils import rand_l
 from medperf.commands.benchmark.associate import AssociateBenchmark
 
 PATCH_ASSOC = "medperf.commands.benchmark.associate.{}"
@@ -27,13 +26,11 @@ def test_run_fails_if_model_and_dset_passed(mocker, model_uid, data_uid, comms, 
         spy.assert_not_called()
 
 
-@pytest.mark.parametrize("bmk_uid", rand_l(1, 500, 1))
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 1))
 @pytest.mark.parametrize("approved", [True, False])
-def test_run_executes_cube_association(mocker, bmk_uid, model_uid, approved, comms, ui):
+def test_run_executes_cube_association(mocker, approved, comms, ui):
     # Arrange
-    bmk_uid = str(bmk_uid)
-    model_uid = str(model_uid)
+    bmk_uid = "87"
+    model_uid = "987"
     spy = mocker.patch(PATCH_ASSOC.format("AssociateCube.run"))
 
     # Act
@@ -43,8 +40,8 @@ def test_run_executes_cube_association(mocker, bmk_uid, model_uid, approved, com
     spy.assert_called_once_with(model_uid, bmk_uid, comms, ui, approved=approved)
 
 
-@pytest.mark.parametrize("bmk_uid", rand_l(1, 500, 2))
-@pytest.mark.parametrize("dset_uid", rand_l(1, 500, 2))
+@pytest.mark.parametrize("bmk_uid", [243, 217])
+@pytest.mark.parametrize("dset_uid", [386, 24])
 @pytest.mark.parametrize("approved", [True, False])
 def test_run_executes_dset_association(mocker, bmk_uid, dset_uid, approved, comms, ui):
     # Arrange

@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import ANY
 
-from medperf.tests.utils import rand_l
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -93,8 +92,8 @@ def test_requests_approval_from_user(mocker, comms, ui, dataset, result, benchma
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-@pytest.mark.parametrize("data_uid", [str(rand_l(1, 5000, 5))])
-@pytest.mark.parametrize("benchmark_uid", rand_l(1, 5000, 5))
+@pytest.mark.parametrize("data_uid", ["1562", "951"])
+@pytest.mark.parametrize("benchmark_uid", [3557, 423, 1528])
 def test_associates_if_approved(
     mocker, comms, ui, dataset, result, data_uid, benchmark_uid, benchmark
 ):
