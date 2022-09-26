@@ -34,9 +34,7 @@ def datasets(request):
     size = request.param
     uids = list(range(size))
     uids = [str(x) for x in uids]
-    for i in range(size):
-        if random.randint(0, 1):
-            uids[i] = config.tmp_prefix + uids[i]
+    uids[-1] = config.tmp_prefix + uids[-1]
 
     return uids
 
@@ -97,10 +95,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [
-        random.sample(config_dirs, random.randint(0, len(config_dirs)))
-        for _ in range(20)
-    ],
+    [config_dirs[0:i] + config_dirs[i+1:] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
