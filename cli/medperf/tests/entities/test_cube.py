@@ -9,7 +9,6 @@ from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
 from medperf.tests.utils import cube_local_hashes_generator
-from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 

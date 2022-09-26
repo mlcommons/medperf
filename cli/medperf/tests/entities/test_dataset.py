@@ -6,7 +6,6 @@ import medperf
 from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.tests.mocks import Benchmark
 from medperf.entities.dataset import Dataset
 
 REGISTRATION_MOCK = {

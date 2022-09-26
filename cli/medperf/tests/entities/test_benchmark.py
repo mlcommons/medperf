@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import mock_open, ANY, call
+from unittest.mock import mock_open, ANY
 
 import medperf.config as config
 from medperf.comms.interface import Comms
