@@ -2,7 +2,7 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 
 from medperf.utils import (
@@ -15,6 +15,7 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
+from medperf.comms.interface import Comms
 from medperf.ui.interface import UI
 import medperf.config as config
 
@@ -119,7 +120,7 @@ class Cube(Entity):
         comms = config.comms
         ui = config.ui
         local_cube = list(
-            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all(ui))
+            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
         if len(local_cube) == 1:
             logging.debug("Found cube locally")
@@ -253,3 +254,11 @@ class Cube(Entity):
             out_path = os.path.join(out_path, params[param_key])
 
         return out_path
+
+    def todict(self) -> Dict:
+        return self.meta
+
+    def upload(self, comms: Comms) -> int:
+        cube_uid = comms.upload_mlcube(self.todict())
+        self.uid = cube_uid
+        return self.uid

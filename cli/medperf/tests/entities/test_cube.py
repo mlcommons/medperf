@@ -640,3 +640,40 @@ def test_get_cube_saves_cube_metadata(
 
     # Assert
     spy.assert_called_once_with(meta, local_hashes)
+
+
+def test_todict_returns_expected_dict(mocker, basic_body, no_local):
+    # Arrange
+    cube = Cube.get(1)
+    exp_body = basic_body(1)
+
+    # Act
+    data = cube.todict()
+
+    # Assert
+    assert data == exp_body
+
+
+def test_upload_runs_comms_upload_proc(mocker, comms, basic_body, no_local):
+    # Arrange
+    cube = Cube.get(1)
+    spy = mocker.patch.object(comms, "upload_mlcube")
+
+    # Act
+    cube.upload(comms)
+
+    # Assert
+    spy.assert_called_once_with(cube.todict())
+
+
+@pytest.mark.parametrize("uid", [48, 272, 478])
+def test_upload_returns_comms_generated_uid(mocker, comms, basic_body, no_local, uid):
+    # Arrange
+    cube = Cube.get(1)
+    mocker.patch.object(comms, "upload_mlcube", return_value=uid)
+
+    # Act
+    returned_uid = cube.upload(comms)
+
+    # Assert
+    assert uid == returned_uid
