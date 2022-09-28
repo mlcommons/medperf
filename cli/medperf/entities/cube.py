@@ -109,8 +109,6 @@ class Cube(Entity):
 
         Args:
             cube_uid (str): UID of the cube.
-            comms (Comms): Instance of the server interface.
-            ui (UI): Instance of an UI implementation.
 
         Returns:
             Cube : a Cube instance with the retrieved data.
