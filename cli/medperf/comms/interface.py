@@ -238,6 +238,17 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_result(self, result_uid: str) -> dict:
+        """Retrieves a specific result data
+
+        Args:
+            result_uid (str): Result UID
+
+        Returns:
+            dict: Result metadata
+        """
+
+    @abstractmethod
     def get_user_results(self) -> dict:
         """Retrieves all results registered by the user
 

@@ -2,10 +2,18 @@ import pytest
 from unittest.mock import MagicMock, call, ANY
 
 from medperf.entities.result import Result
+from medperf.comms.interface import Comms
+from medperf import config
 
 PATCH_RESULT = "medperf.entities.result.{}"
 MOCK_RESULTS_CONTENT = {"id": "1", "results": {}}
 
+
+@pytest.fixture
+def comms(mocker):
+    comms = mocker.create_autospec(spec=Comms)
+    config.comms = comms
+    return comms
 
 @pytest.fixture
 def result(mocker):
@@ -83,22 +91,19 @@ def test_all_creates_result_objects_with_correct_info(
     spy.assert_has_calls([call(mocker.ANY, b_id, d_id, m_id)])
 
 
-@pytest.mark.parametrize(
-    "results_path", ["./results.yaml", "~/.medperf/results/1/results.yaml"]
-)
-def test_todict_opens_results_file_as_yaml(mocker, result, results_path):
+@pytest.mark.parametrize("uid", [349, 2, 84])
+def test_get_retrieves_results_from_comms(mocker, comms, uid):
     # Arrange
-    open_spy = mocker.patch("builtins.open", MagicMock())
-    yaml_spy = mocker.patch("yaml.safe_load", return_value={})
-    mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
-    result = Result(1, 1, 1)
+    uid = 0
+    result_dict = {"benchmark": 0, "dataset": 0, "model": 0, "results": {}, "uid": uid}
+    spy = mocker.patch.object(comms, "get_result", return_value=result_dict)
+    mocker.patch(PATCH_RESULT.format("Result.all"), return_value=[])
 
     # Act
-    result.todict()
+    Result.get(uid)
 
     # Assert
-    open_spy.assert_called_once_with(results_path, "r")
-    yaml_spy.assert_called_once()
+    spy.assert_called_once_with(uid)
 
 
 def test_todict_returns_expected_keys(mocker, result):

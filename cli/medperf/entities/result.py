@@ -26,7 +26,7 @@ class Result(Entity):
     """
 
     def __init__(
-        self, benchmark_uid: str, dataset_uid: str, model_uid: str,
+        self, benchmark_uid: str, dataset_uid: str, model_uid: str, results: dict=None
     ):
         """Creates a new result instance
 
@@ -34,14 +34,17 @@ class Result(Entity):
             benchmark_uid (str): UID of the executed benchmark.
             dataset_uid (str): UID of the dataset used.
             model_uid (str): UID of the model used.
+            results()
         """
         self.path = results_path(benchmark_uid, model_uid, dataset_uid)
         self.benchmark_uid = benchmark_uid
         self.dataset_uid = dataset_uid
         self.model_uid = model_uid
         self.status = Status.PENDING
-        self.results = {}
-        self.get_results()
+        self.results = results
+        if self.results is None:
+            self.results = {}
+            self.get_results()
         self.uid = self.results.get("uid", None)
 
     @classmethod
@@ -58,13 +61,38 @@ class Result(Entity):
 
         return results
 
-    def todict(self):
-        with open(self.path, "r") as f:
-            results = yaml.safe_load(f)
+    @classmethod
+    def get(cls, result_uid: str) -> "Result":
+        """Retrieves and creates a Result instance obtained from the platform.
+        If the result instance already exists in the user's machine, it loads
+        the local instance
 
+        Args:
+            result_uid (str): UID of the Result instance
+
+        Returns:
+            Result: Specified Result instance
+        """
+        logging.debug(f"Retrieving result {result_uid}")
+        comms = config.comms
+        local_result = list(filter(lambda res: str(res.uid) == str(result_uid), cls.all()))
+        if len(local_result) == 1:
+            logging.debug("Found result locally")
+            return local_result[0]
+
+        meta = comms.get_result(result_uid)
+        bmk_uid = meta["benchmark"]
+        dset_uid = meta["dataset"]
+        model_uid = meta["model"]
+        result_data = meta["results"]
+
+        return cls(bmk_uid, dset_uid, model_uid, result_data)
+
+
+    def todict(self):
         result_dict = {
             "name": f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}",
-            "results": results,
+            "results": self.results,
             "metadata": {},
             "approval_status": self.status.value,
             "benchmark": self.benchmark_uid,
