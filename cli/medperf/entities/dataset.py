@@ -25,7 +25,7 @@ class Dataset(Entity):
     data preparation output.
     """
 
-    def __init__(self, data_uid: int):
+    def __init__(self, data_uid: int, registration=None):
         """Creates a new dataset instance
 
         Args:
@@ -34,13 +34,17 @@ class Dataset(Entity):
         Raises:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
-        data_uid = self.__full_uid(data_uid, config.ui)
-        self.data_uid = data_uid
-        self.dataset_path = os.path.join(
-            storage_path(config.data_storage), str(data_uid)
-        )
+        if registration is None:
+            data_uid = self.__full_uid(data_uid, config.ui)
+            self.data_uid = data_uid
+            self.dataset_path = os.path.join(
+                storage_path(config.data_storage), str(data_uid)
+            )
+            registration = self.get_registration()
+        else:
+            self.registration = registration
+            self.data_uid = registration["generated_uid"]
         self.data_path = os.path.join(self.dataset_path, "data")
-        registration = self.get_registration()
         self.uid = registration["uid"]
         self.name = registration["name"]
         self.description = registration["description"]
@@ -114,7 +118,16 @@ class Dataset(Entity):
         Returns:
             Dataset: Specified Dataset Instance
         """
-        raise NotImplementedError("Retrieving datasets from the server is not supported")
+        logging.debug(f"Retrieving dataset {dset_uid}")
+        comms = config.comms
+        ui = config.ui
+        local_dset = list(filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all()))
+        if len(local_dset) == 1:
+            logging.debug("Found dataset locally")
+            return local_dset[0]
+
+        meta = comms.get_dataset(dset_uid)
+        return cls(dset_uid, registration=meta)
 
     def __full_uid(self, uid_hint: str, ui: UI) -> str:
         """Returns the found UID that starts with the provided UID hint
