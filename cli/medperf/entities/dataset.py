@@ -103,6 +103,19 @@ class Dataset(Entity):
                 dsets.append(cls(uid))
         return dsets
 
+    @classmethod
+    def get(cls, dset_uid: str) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        raise NotImplementedError("Retrieving datasets from the server is not supported")
+
     def __full_uid(self, uid_hint: str, ui: UI) -> str:
         """Returns the found UID that starts with the provided UID hint
 
@@ -143,6 +156,9 @@ class Dataset(Entity):
         regfile = os.path.join(self.dataset_path, config.reg_file)
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)
+
+    def todict(self):
+        return self.registration
 
     def upload(self, comms: Comms):
         """Uploads the registration information to the comms.
