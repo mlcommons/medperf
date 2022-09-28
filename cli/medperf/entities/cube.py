@@ -124,7 +124,7 @@ class Cube(Entity):
             logging.debug("Found cube locally")
             return local_cube[0]
 
-        meta = config.comms.get_cube_metadata(cube_uid)
+        meta = comms.get_cube_metadata(cube_uid)
         # Backwards compatibility for cubes with
         # tarball_url instead of additional_files_tarball_url
         old_files = "tarball_url"
