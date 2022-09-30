@@ -126,8 +126,6 @@ def test_get_cubes_retrieves_expected_cubes(
 def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     # Arrange
     name = "872"
-    comms = execution.comms
-    ui = execution.ui
     spy = mocker.patch(PATCH_EXECUTION.format("Cube.get"))
     mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
