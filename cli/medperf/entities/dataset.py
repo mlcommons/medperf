@@ -179,6 +179,6 @@ class Dataset(Entity):
         Args:
             comms (Comms): Instance of the comms interface.
         """
-        dataset_uid = comms.upload_dataset(self.registration)
+        dataset_uid = comms.upload_dataset(self.todict())
         self.uid = dataset_uid
         return self.uid
