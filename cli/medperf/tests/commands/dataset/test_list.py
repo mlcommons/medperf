@@ -11,7 +11,7 @@ def test_retrieves_all_local_benchmarks(mocker, comms, ui):
     DatasetsList.run(comms, ui)
 
     # Assert
-    spy.assert_called_once_with(ui)
+    spy.assert_called_once_with()
 
 
 def test_retrieves_all_user_remote_benchmarks(mocker, comms, ui):
