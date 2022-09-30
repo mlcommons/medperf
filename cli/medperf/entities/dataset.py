@@ -120,7 +120,6 @@ class Dataset(Entity):
         """
         logging.debug(f"Retrieving dataset {dset_uid}")
         comms = config.comms
-        ui = config.ui
         local_dset = list(
             filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
         )
