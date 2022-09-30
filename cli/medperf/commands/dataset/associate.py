@@ -15,7 +15,7 @@ class AssociateDataset:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
         """
-        dset = Dataset(data_uid, ui)
+        dset = Dataset(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
             pretty_error(msg, ui)

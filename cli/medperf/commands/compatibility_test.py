@@ -194,7 +194,7 @@ class CompatibilityTestExecution:
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
         if self.data_uid is not None:
-            self.dataset = Dataset(self.data_uid, self.ui)
+            self.dataset = Dataset(self.data_uid)
             # to avoid 'None' as a uid
             self.data_prep = self.dataset.preparation_cube_uid
         else:
@@ -209,7 +209,7 @@ class CompatibilityTestExecution:
                 self.ui,
                 run_test=True,
             )
-            self.dataset = Dataset(self.data_uid, self.ui)
+            self.dataset = Dataset(self.data_uid)
 
     def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark

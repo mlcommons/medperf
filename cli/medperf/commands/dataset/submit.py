@@ -13,7 +13,7 @@ class DatasetRegistration:
             data_uid (str): UID Hint of the unregistered dataset
         """
 
-        dset = Dataset(data_uid, ui)
+        dset = Dataset(data_uid)
 
         if dset.uid:
             pretty_error(
