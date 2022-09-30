@@ -2,6 +2,7 @@ from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.utils import approval_prompt, pretty_error
 from medperf.entities.dataset import Dataset
+from medperf.enums import Status
 
 
 class DatasetRegistration:
@@ -36,7 +37,7 @@ class DatasetRegistration:
 
         msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
         approved = approved or approval_prompt(msg, ui)
-        dset.status = "APPROVED" if approved else "REJECTED"
+        dset.status = Status("APPROVED") if approved else Status("REJECTED")
         if approved:
             ui.print("Uploading...")
             dset.upload(comms)
