@@ -15,6 +15,7 @@ def comms(mocker):
     config.comms = comms
     return comms
 
+
 @pytest.fixture
 def result(mocker):
     mocker.patch(PATCH_RESULT.format("Result.get_results"))

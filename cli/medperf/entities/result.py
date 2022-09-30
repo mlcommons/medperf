@@ -26,7 +26,7 @@ class Result(Entity):
     """
 
     def __init__(
-        self, benchmark_uid: str, dataset_uid: str, model_uid: str, results: dict=None
+        self, benchmark_uid: str, dataset_uid: str, model_uid: str, results: dict = None
     ):
         """Creates a new result instance
 
@@ -75,7 +75,9 @@ class Result(Entity):
         """
         logging.debug(f"Retrieving result {result_uid}")
         comms = config.comms
-        local_result = list(filter(lambda res: str(res.uid) == str(result_uid), cls.all()))
+        local_result = list(
+            filter(lambda res: str(res.uid) == str(result_uid), cls.all())
+        )
         if len(local_result) == 1:
             logging.debug("Found result locally")
             return local_result[0]
@@ -87,7 +89,6 @@ class Result(Entity):
         result_data = meta["results"]
 
         return cls(bmk_uid, dset_uid, model_uid, result_data)
-
 
     def todict(self):
         result_dict = {

@@ -121,7 +121,9 @@ class Dataset(Entity):
         logging.debug(f"Retrieving dataset {dset_uid}")
         comms = config.comms
         ui = config.ui
-        local_dset = list(filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all()))
+        local_dset = list(
+            filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
+        )
         if len(local_dset) == 1:
             logging.debug("Found dataset locally")
             return local_dset[0]

@@ -70,7 +70,6 @@ class Benchmark(Entity):
 
         return benchmarks
 
-
     @classmethod
     def get(cls, benchmark_uid: str, force_update: bool = False) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.

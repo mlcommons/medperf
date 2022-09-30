@@ -414,7 +414,9 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/datasets/{dset_uid}/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error("Could not retrieve the specified dataset from server", self.ui)
+            pretty_error(
+                "Could not retrieve the specified dataset from server", self.ui
+            )
         return res.json()
 
     def get_user_datasets(self) -> dict:
