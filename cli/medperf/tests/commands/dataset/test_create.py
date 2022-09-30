@@ -126,7 +126,7 @@ class TestWithDefaultUID:
         preparation.get_prep_cube()
 
         # Assert
-        spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
+        spy.assert_called_once_with(cube_uid)
 
     def test_get_prep_cube_checks_validity(self, mocker, preparation):
         # Arrange
