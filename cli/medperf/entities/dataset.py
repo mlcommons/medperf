@@ -42,7 +42,6 @@ class Dataset(Entity):
             )
             registration = self.get_registration()
         else:
-            self.registration = registration
             self.data_uid = registration["generated_uid"]
         self.data_path = os.path.join(self.dataset_path, "data")
         self.uid = registration["uid"]
