@@ -107,7 +107,7 @@ class TestWithDefaultUID:
         preparation.get_prep_cube()
 
         # Assert
-        spy.assert_called_once_with(cube_uid, preparation.comms, preparation.ui)
+        spy.assert_called_once_with(cube_uid)
 
     @pytest.mark.parametrize("cube_uid", [998, 68, 109])
     def test_get_prep_cube_gets_benchmark_cube_if_provided(
