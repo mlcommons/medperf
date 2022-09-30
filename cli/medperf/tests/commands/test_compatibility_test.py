@@ -95,7 +95,7 @@ def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
 
     # Assert
     if uid:
-        get_spy.assert_called_once_with(uid, comms)
+        get_spy.assert_called_once_with(uid)
     else:
         get_spy.assert_not_called()
 

@@ -33,7 +33,7 @@ def test_run_retrieves_specified_dataset(
     DatasetRegistration.run(data_uid, comms, ui)
 
     # Assert
-    spy.assert_called_once_with(data_uid, ui)
+    spy.assert_called_once_with(data_uid)
 
 
 @pytest.mark.parametrize("uid", [3720, 1465, 4033])

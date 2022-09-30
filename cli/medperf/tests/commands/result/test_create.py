@@ -135,7 +135,7 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     execution._BenchmarkExecution__get_cube(cube_uid, name)
 
     # Assert
-    spy.assert_called_once_with(cube_uid, comms, ui)
+    spy.assert_called_once_with(cube_uid)
 
 
 def test__get_cube_checks_cube_validity(mocker, execution, cube):
