@@ -20,7 +20,7 @@ class AssociateDataset:
             msg = "The provided dataset is not registered."
             pretty_error(msg, ui)
 
-        benchmark = Benchmark.get(benchmark_uid, comms)
+        benchmark = Benchmark.get(benchmark_uid)
 
         if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):
             pretty_error("The specified dataset wasn't prepared for this benchmark", ui)

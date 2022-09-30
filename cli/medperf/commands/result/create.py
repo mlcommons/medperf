@@ -91,7 +91,7 @@ class BenchmarkExecution:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
-        cube = Cube.get(uid, self.comms, self.ui)
+        cube = Cube.get(uid)
         self.ui.print(f"> {name} cube download complete")
         check_cube_validity(cube, self.ui)
         return cube

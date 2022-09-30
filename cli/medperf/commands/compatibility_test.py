@@ -105,7 +105,7 @@ class CompatibilityTestExecution:
         transformed to cube uids and benchmark is mocked/obtained.
         """
         if self.benchmark_uid:
-            benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+            benchmark = Benchmark.get(self.benchmark_uid)
             self.set_cube_uid("data_prep", benchmark.data_preparation)
             self.set_cube_uid("model", benchmark.reference_model)
             self.set_cube_uid("evaluator", benchmark.evaluator)

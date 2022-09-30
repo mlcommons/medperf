@@ -61,7 +61,7 @@ def test_get_benchmark_retrieves_benchmark_from_comms(mocker, no_local, comms):
 
     # Act
     uid = 1
-    Benchmark.get(uid, comms)
+    Benchmark.get(uid)
 
     # Assert
     spy.assert_called_once_with(uid)
@@ -73,7 +73,7 @@ def test_get_benchmark_retrieves_models_from_comms(mocker, no_local, comms, uid)
     spy = mocker.spy(comms, "get_benchmark_models")
 
     # Act
-    Benchmark.get(uid, comms)
+    Benchmark.get(uid)
 
     # Assert
     spy.assert_called_once_with(uid)
@@ -161,7 +161,7 @@ def test_tmp_creates_and_writes_temporary_benchmark(mocker, data_prep, model, ev
 def test_benchmark_includes_reference_model_in_models(comms, no_local):
     # Act
     uid = 1
-    benchmark = Benchmark.get(uid, comms)
+    benchmark = Benchmark.get(uid)
 
     # Assert
     assert benchmark.reference_model in benchmark.models
@@ -179,7 +179,7 @@ def test_benchmark_includes_additional_models_in_models(
 
     # Act
     uid = 1
-    benchmark = Benchmark.get(uid, comms)
+    benchmark = Benchmark.get(uid)
 
     # Assert
     assert set(models).issubset(set(benchmark.models))

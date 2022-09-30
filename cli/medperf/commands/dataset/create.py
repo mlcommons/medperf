@@ -104,7 +104,7 @@ class DataPreparation:
     def get_prep_cube(self):
         cube_uid = self.prep_cube_uid
         if cube_uid is None:
-            benchmark = Benchmark.get(self.benchmark_uid, self.comms)
+            benchmark = Benchmark.get(self.benchmark_uid)
             cube_uid = benchmark.data_preparation
             self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"

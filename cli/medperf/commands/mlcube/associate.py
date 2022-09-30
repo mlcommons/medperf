@@ -20,8 +20,8 @@ class AssociateCube:
             ui (UI): UI instance
             approved (bool): Skip validation step. Defualts to False
         """
-        cube = Cube.get(cube_uid, comms, ui)
-        benchmark = Benchmark.get(benchmark_uid, comms)
+        cube = Cube.get(cube_uid)
+        benchmark = Benchmark.get(benchmark_uid)
 
         _, _, _, result = CompatibilityTestExecution.run(
             benchmark_uid, comms, ui, model=cube_uid
