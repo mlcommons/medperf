@@ -128,7 +128,6 @@ class BenchmarkExecution:
             )
             self.ui.print("> Model execution complete")
 
-
             self.ui.text = "Evaluating results"
             self.evaluator.run(
                 self.ui,
