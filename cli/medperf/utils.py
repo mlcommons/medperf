@@ -73,22 +73,24 @@ def init_storage():
             logging.warning(f"Tried to create existing folder {dir}")
 
 
-def cleanup():
+def cleanup(extra_paths: List[str] = []):
     """Removes clutter and unused files from the medperf folder structure.
     """
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
     tmp_path = storage_path(config.tmp_storage)
-    if os.path.exists(tmp_path):
-        logging.info("Removing temporary data storage")
-        try:
-            rmtree(tmp_path)
-        except OSError as e:
-            logging.error(f"Could not remove temporary data storage: {e}")
-            config.ui.print_error(
-                "Could not remove temporary data storage. For more information check the logs."
-            )
+    extra_paths.append(tmp_path)
+    for path in extra_paths:
+        if os.path.exists(path):
+            logging.info(f"Removing clutter path: {path}")
+            try:
+                rmtree(path)
+            except OSError as e:
+                logging.error(f"Could not remove clutter path: {e}")
+                config.ui.print_error(
+                    "Could not remove clutter directory. For more information check the logs."
+                )
 
     cleanup_dsets()
     cleanup_cubes()

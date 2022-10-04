@@ -1,4 +1,5 @@
 import os
+import logging
 
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
@@ -11,6 +12,7 @@ from medperf.utils import (
     pretty_error,
     results_path,
     storage_path,
+    cleanup
 )
 import medperf.config as config
 
@@ -103,24 +105,29 @@ class BenchmarkExecution:
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
-        self.model_cube.run(
-            self.ui,
-            task="infer",
-            timeout=infer_timeout,
-            data_path=data_path,
-            output_path=preds_path,
-        )
-        self.ui.print("> Model execution complete")
-
         labels_path = self.dataset.labels_path
-
-        self.ui.text = "Evaluating results"
         out_path = results_path(self.benchmark_uid, self.model_uid, self.dataset.uid)
-        self.evaluator.run(
-            self.ui,
-            task="evaluate",
-            timeout=evaluate_timeout,
-            predictions=preds_path,
-            labels=labels_path,
-            output_path=out_path,
-        )
+        try:
+            self.model_cube.run(
+                self.ui,
+                task="infer",
+                timeout=infer_timeout,
+                data_path=data_path,
+                output_path=preds_path,
+            )
+            self.ui.print("> Model execution complete")
+
+
+            self.ui.text = "Evaluating results"
+            self.evaluator.run(
+                self.ui,
+                task="evaluate",
+                timeout=evaluate_timeout,
+                predictions=preds_path,
+                labels=labels_path,
+                output_path=out_path,
+            )
+        except RuntimeError as e:
+            logging.error(f"MLCube Execution failed: {e}")
+            cleanup([preds_path, out_path])
+            pretty_error("Benchmark execution failed", self.ui)
