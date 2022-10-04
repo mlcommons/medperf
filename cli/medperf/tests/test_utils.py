@@ -1,15 +1,14 @@
 import os
 import pytest
-import random
 import time_machine
 import datetime as dt
 from pathlib import Path
-from unittest.mock import mock_open, call, ANY
+from unittest.mock import MagicMock, mock_open, call, ANY
 
 from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.tests.utils import rand_l, cube_local_hashes_generator
+from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
 from medperf.tests.mocks.requests import cube_metadata_generator
 
@@ -32,11 +31,9 @@ def init_mock_isdir(existing_dirs):
 @pytest.fixture
 def datasets(request):
     size = request.param
-    uids = rand_l(1, 5000, size)
+    uids = list(range(size))
     uids = [str(x) for x in uids]
-    for i in range(size):
-        if random.randint(0, 1):
-            uids[i] = config.tmp_prefix + uids[i]
+    uids[-1] = config.tmp_prefix + uids[-1]
 
     return uids
 
@@ -44,8 +41,10 @@ def datasets(request):
 @pytest.fixture
 def dict_with_nones(request):
     num_keys = request.param
-    keys = rand_l(1, 5000, num_keys)
-    vals = [random.choice([None, x]) for x in keys]
+    keys = list(range(num_keys))
+    vals = list(range(num_keys))
+    vals[0] = None
+    vals[-1] = None
     return {k: v for k, v in zip(keys, vals)}
 
 
@@ -95,10 +94,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [
-        random.sample(config_dirs, random.randint(0, len(config_dirs)))
-        for _ in range(20)
-    ],
+    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -129,7 +125,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     spy.assert_called_once_with(tmp)
 
 
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
+@pytest.mark.parametrize("datasets", [4, 297, 500, 898], indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
     prefix = config.tmp_prefix
@@ -153,7 +149,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 2), indirect=True)
+@pytest.mark.parametrize("datasets", [4, 287], indirect=True)
 def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
     mock_walk_return = iter([(data, datasets, ())])
@@ -213,7 +209,7 @@ def test_pretty_error_exits_program(mocker, ui):
 
 
 @pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-@pytest.mark.parametrize("salt", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("salt", [342, 87])
 def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     # Arrange
     datetime = dt.datetime(*timeparams)
@@ -328,7 +324,7 @@ def test_approval_prompt_repeats_until_valid_answer(mocker, ui, inputted_strs):
     spy.call_count == exp_repeats
 
 
-@pytest.mark.parametrize("input_val", random.choices("YyNn", k=6))
+@pytest.mark.parametrize("input_val", ["Y", "y", "N", "n"])
 def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     # Arrange
     mocker.patch.object(ui, "prompt", return_value=input_val)
@@ -340,7 +336,7 @@ def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     assert approved == (input_val in "yY")
 
 
-@pytest.mark.parametrize("dict_with_nones", rand_l(0, 100, 5), indirect=True)
+@pytest.mark.parametrize("dict_with_nones", [32, 7, 90], indirect=True)
 def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones):
     # Arrange
     mocker.patch("typer.echo")
@@ -398,9 +394,9 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
 
 
-@pytest.mark.parametrize("bmk", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("gen_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("bmk", [1, 2])
+@pytest.mark.parametrize("model", [23, 84])
+@pytest.mark.parametrize("gen_uid", [43, 8])
 def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
     storage = config.storage
@@ -415,7 +411,7 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
     assert path == expected_path
 
 
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
+@pytest.mark.parametrize("cube_uid", [2, 87, 1])
 def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
     # Arrange
     cube_uid = str(cube_uid)
@@ -454,3 +450,46 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
+
+
+@pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
+def test_get_stats_opens_stats_path(mocker, path):
+    # Arrange
+    spy = mocker.patch("builtins.open", MagicMock())
+    mocker.patch(patch_utils.format("yaml.safe_load"), return_value={})
+    mocker.patch(patch_utils.format("os.remove"))
+    opened_path = os.path.join(path, config.statistics_filename)
+    # Act
+    utils.get_stats(path)
+
+    # Assert
+    spy.assert_called_once_with(opened_path, "r")
+
+
+@pytest.mark.parametrize("stats", [{}, {"test": ""}, {"mean": 8}])
+def test_get_stats_returns_stats(mocker, stats):
+    # Arrange
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch(patch_utils.format("os.remove"))
+    mocker.patch(patch_utils.format("yaml.safe_load"), return_value=stats)
+
+    # Act
+    returned_stats = utils.get_stats("mocked_path")
+
+    # Assert
+    assert returned_stats == stats
+
+
+def test_get_stats_removes_file_by_default(mocker):
+    # Arrange
+    path = "mocked_path"
+    mocker.patch("builtins.open", MagicMock())
+    spy = mocker.patch(patch_utils.format("os.remove"))
+    mocker.patch(patch_utils.format("yaml.safe_load"))
+    opened_path = os.path.join(path, config.statistics_filename)
+
+    # Act
+    utils.get_stats(path)
+
+    # Assert
+    spy.assert_called_once_with(opened_path)

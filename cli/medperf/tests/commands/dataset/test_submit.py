@@ -1,6 +1,5 @@
 import pytest
 
-from medperf.tests.utils import rand_l
 from medperf.entities.dataset import Dataset
 from medperf.commands.dataset.submit import DatasetRegistration
 
@@ -14,8 +13,15 @@ def dataset(mocker):
     return dset
 
 
-@pytest.mark.parametrize("data_uid", [str(x) for x in rand_l(1, 5000, 5)])
-def test_run_retrieves_specified_dataset(mocker, comms, ui, dataset, data_uid):
+@pytest.fixture
+def no_remote(mocker, comms):
+    mocker.patch.object(comms, "get_user_datasets", return_value=[])
+
+
+@pytest.mark.parametrize("data_uid", ["2214", "3540", "362"])
+def test_run_retrieves_specified_dataset(
+    mocker, comms, ui, dataset, data_uid, no_remote
+):
     # Arrange
     dataset.uid = None
     spy = mocker.patch(PATCH_REGISTER.format("Dataset"), return_value=dataset)
@@ -27,8 +33,10 @@ def test_run_retrieves_specified_dataset(mocker, comms, ui, dataset, data_uid):
     spy.assert_called_once_with(data_uid, ui)
 
 
-@pytest.mark.parametrize("uid", rand_l(1, 5000, 5))
-def test_run_fails_if_dataset_already_registered(mocker, comms, ui, dataset, uid):
+@pytest.mark.parametrize("uid", [3720, 1465, 4033])
+def test_run_fails_if_dataset_already_registered(
+    mocker, comms, ui, dataset, uid, no_remote
+):
     # Arrange
     dataset.uid = uid
     spy = mocker.patch(
@@ -44,7 +52,7 @@ def test_run_fails_if_dataset_already_registered(mocker, comms, ui, dataset, uid
     spy.assert_called_once()
 
 
-def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset):
+def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote):
     # Arrange
     dataset.uid = None
     spy = mocker.patch(
@@ -59,7 +67,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset):
     spy.assert_not_called()
 
 
-def test_run_requests_approval(mocker, comms, ui, dataset):
+def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     # Arrange
     dataset.uid = None
     spy = mocker.patch.object(
@@ -71,6 +79,36 @@ def test_run_requests_approval(mocker, comms, ui, dataset):
 
     # Assert
     spy.assert_called_once()
+
+
+@pytest.mark.parametrize("data_hash", ["data_hash", "data_hash_2"])
+def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_hash):
+    # Arrange
+    dataset.uid = None
+    dataset.data_uid = data_hash
+    remote_dsets = [
+        {
+            "id": 1,
+            "generated_uid": data_hash,
+            "name": "name",
+            "location": "location",
+            "description": "description",
+        },
+        {
+            "id": 2,
+            "generated_uid": "abc123",
+            "name": "name",
+            "location": "location",
+            "description": "description",
+        },
+    ]
+    mocker.patch.object(comms, "get_user_datasets", return_value=remote_dsets)
+
+    # Act
+    DatasetRegistration.run(data_hash, comms, ui)
+
+    # Assert
+    assert dataset.uid == 1
 
 
 def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
@@ -95,7 +133,7 @@ def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
 @pytest.mark.parametrize("approved", [True, False])
 class TestWithApproval:
     def test_run_uploads_dataset_if_approved(
-        self, mocker, comms, ui, dataset, approved
+        self, mocker, comms, ui, dataset, approved, no_remote
     ):
         # Arrange
         dataset.uid = None
@@ -115,7 +153,7 @@ class TestWithApproval:
             spy.assert_not_called()
 
     def test_run_updates_registration_if_approved(
-        self, mocker, comms, ui, dataset, approved
+        self, mocker, comms, ui, dataset, approved, no_remote
     ):
         # Arrange
         dataset.uid = None
