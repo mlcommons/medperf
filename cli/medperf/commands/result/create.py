@@ -12,7 +12,7 @@ from medperf.utils import (
     pretty_error,
     results_path,
     storage_path,
-    cleanup
+    cleanup,
 )
 import medperf.config as config
 

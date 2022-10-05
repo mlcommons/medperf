@@ -159,13 +159,19 @@ class DataPreparation:
 
             self.ui.text = "Running sanity check..."
             self.cube.run(
-                self.ui, task="sanity_check", timeout=sanity_check_timeout, **sanity_params
+                self.ui,
+                task="sanity_check",
+                timeout=sanity_check_timeout,
+                **sanity_params,
             )
             self.ui.print("> Sanity checks complete")
 
             self.ui.text = "Generating statistics..."
             self.cube.run(
-                self.ui, task="statistics", timeout=statistics_timeout, **statistics_params
+                self.ui,
+                task="statistics",
+                timeout=statistics_timeout,
+                **statistics_params,
             )
             self.ui.print("> Statistics complete")
         except RuntimeError as e:
