@@ -375,3 +375,19 @@ def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
 
     # Assert
     assert returned_uid == uid
+
+
+def test_run_deletes_output_path_on_failure(mocker, preparation):
+    # Arrange
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
+    mocker.patch.object(preparation.cube, "run", side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"))
+    spy = mocker.patch(PATCH_DATAPREP.format("cleanup"))
+    exp_outpaths = [preparation.out_datapath, preparation.out_labelspath]
+
+    # Act
+    with pytest.raises(RuntimeError):
+        preparation.run_cube_tasks()
+
+    # Assert
+    spy.assert_called_once_with(exp_outpaths)
