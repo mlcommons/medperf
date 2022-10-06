@@ -42,7 +42,11 @@ class Dataset(Entity):
             )
             registration = self.get_registration()
         else:
+            # in this case, the passed data_uid will not be used
             self.data_uid = registration["generated_uid"]
+            self.dataset_path = os.path.join(
+                storage_path(config.data_storage), str(self.data_uid)
+            )
         self.data_path = os.path.join(self.dataset_path, "data")
         self.uid = registration["uid"]
         self.name = registration["name"]
