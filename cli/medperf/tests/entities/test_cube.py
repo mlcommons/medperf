@@ -170,7 +170,6 @@ def test_get_basic_cube_retrieves_metadata_from_comms(
     mocker, comms, basic_body, no_local
 ):
     # Arrange
-    config.comms = comms
     spy = mocker.spy(comms, "get_cube_metadata")
 
     # Act
