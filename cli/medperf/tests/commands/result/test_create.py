@@ -29,7 +29,7 @@ def execution(mocker, comms, ui, cube):
     exec = BenchmarkExecution(0, 0, 0, comms, ui)
     exec.prepare()
     exec.dataset.uid = 1
-    exec.dataset.data_uid = "data_uid"
+    exec.dataset.generated_uid = "data_uid"
     exec.dataset.preparation_cube_uid = "prep_cube"
     exec.dataset.labels_path = "labels_path"
     exec.benchmark.data_preparation = "prep_cube"

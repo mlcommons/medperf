@@ -24,7 +24,7 @@ class DatasetRegistration:
         remote_dset = [
             remote_dset
             for remote_dset in remote_dsets
-            if remote_dset["generated_uid"] == dset.data_uid
+            if remote_dset["generated_uid"] == dset.generated_uid
         ]
         if len(remote_dset) == 1:
             dset.uid = remote_dset[0]["id"]

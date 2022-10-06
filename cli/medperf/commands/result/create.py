@@ -101,7 +101,7 @@ class BenchmarkExecution:
         evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
         model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.data_uid)
+        data_uid = str(self.dataset.generated_uid)
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
