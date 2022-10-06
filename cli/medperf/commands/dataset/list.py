@@ -17,7 +17,7 @@ class DatasetsList:
             all (bool, optional): List all datasets in the platform. Defaults to False.
         """
         # Get local and remote datasets
-        local_dsets = Dataset.all(ui)
+        local_dsets = Dataset.all()
         if all:
             remote_dsets = comms.get_datasets()
         else:

@@ -6,17 +6,16 @@ from typing import List
 
 from medperf.utils import (
     get_uids,
-    approval_prompt,
     pretty_error,
     storage_path,
-    dict_pretty_print,
 )
+from medperf.entities.interface import Entity
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
 
 
-class Dataset:
+class Dataset(Entity):
     """
     Class representing a Dataset
 
@@ -26,7 +25,7 @@ class Dataset:
     data preparation output.
     """
 
-    def __init__(self, data_uid: int, ui: UI):
+    def __init__(self, data_uid: int, registration=None):
         """Creates a new dataset instance
 
         Args:
@@ -35,19 +34,25 @@ class Dataset:
         Raises:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
-        data_uid = self.__full_uid(data_uid, ui)
-        self.data_uid = data_uid
-        self.dataset_path = os.path.join(
-            storage_path(config.data_storage), str(data_uid)
-        )
+        if registration is None:
+            data_uid = self.__full_uid(data_uid, config.ui)
+            self.generated_uid = data_uid
+            self.dataset_path = os.path.join(
+                storage_path(config.data_storage), str(data_uid)
+            )
+            registration = self.get_registration()
+        else:
+            # in this case, the passed data_uid will not be used
+            self.generated_uid = registration["generated_uid"]
+            self.dataset_path = os.path.join(
+                storage_path(config.data_storage), str(self.generated_uid)
+            )
         self.data_path = os.path.join(self.dataset_path, "data")
-        registration = self.get_registration()
         self.uid = registration["uid"]
         self.name = registration["name"]
         self.description = registration["description"]
         self.location = registration["location"]
         self.preparation_cube_uid = registration["data_preparation_mlcube"]
-        self.generated_uid = registration["generated_uid"]
         self.input_data_hash = registration["input_data_hash"]
         self.separate_labels = registration.get("separate_labels", False)
         self.split_seed = registration["split_seed"]
@@ -81,7 +86,7 @@ class Dataset:
         }
 
     @classmethod
-    def all(cls, ui: UI) -> List["Dataset"]:
+    def all(cls) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Returns:
@@ -90,19 +95,42 @@ class Dataset:
         logging.info("Retrieving all datasets")
         data_storage = storage_path(config.data_storage)
         try:
-            uids = next(os.walk(data_storage))[1]
+            generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", ui)
+            pretty_error("Couldn't iterate over the dataset directory", config.ui)
         tmp_prefix = config.tmp_prefix
         dsets = []
-        for uid in uids:
-            not_tmp = not uid.startswith(tmp_prefix)
-            reg_path = os.path.join(data_storage, uid, config.reg_file)
+        for generated_uid in generated_uids:
+            not_tmp = not generated_uid.startswith(tmp_prefix)
+            reg_path = os.path.join(data_storage, generated_uid, config.reg_file)
             registered = os.path.exists(reg_path)
             if not_tmp and registered:
-                dsets.append(cls(uid, ui))
+                dsets.append(cls(generated_uid))
         return dsets
+
+    @classmethod
+    def get(cls, dset_uid: str) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving dataset {dset_uid}")
+        comms = config.comms
+        local_dset = list(
+            filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
+        )
+        if len(local_dset) == 1:
+            logging.debug("Found dataset locally")
+            return local_dset[0]
+
+        meta = comms.get_dataset(dset_uid)
+        return cls(None, registration=meta)
 
     def __full_uid(self, uid_hint: str, ui: UI) -> str:
         """Returns the found UID that starts with the provided UID hint
@@ -145,44 +173,8 @@ class Dataset:
         with open(regfile, "w") as f:
             yaml.dump(self.registration, f)
 
-    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
-        """Prompts the user for aproval regarding the association of the dataset
-        with a given benchmark.
-
-        Args:
-            benchmark (Benchmark): Benchmark to be associated with
-
-        Returns:
-            bool: Wether the user approved the association or not
-        """
-        msg = "Please confirm that you would like to associate"
-        msg += f" the dataset {self.name} with the benchmark {benchmark.name}."
-        msg += " [Y/n]"
-        approved = approval_prompt(msg, ui,)
-        return approved
-
-    def request_registration_approval(self, ui: UI) -> bool:
-        """Prompts the user for approval concerning uploading the registration to the backend.
-
-        Returns:
-            bool: Wether the user gave consent or not.
-        """
-        if self.status == Status.APPROVED:
-            return True
-
-        dict_pretty_print(self.registration, ui)
-        ui.print(
-            "Above is the information and statistics that will be registered to the database"
-        )
-        approved = approval_prompt(
-            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
-            ui,
-        )
-        if approved:
-            self.status = Status.APPROVED
-        else:
-            self.status = Status.REJECTED
-        return approved
+    def todict(self):
+        return self.registration
 
     def upload(self, comms: Comms):
         """Uploads the registration information to the comms.
@@ -190,6 +182,6 @@ class Dataset:
         Args:
             comms (Comms): Instance of the comms interface.
         """
-        dataset_uid = comms.upload_dataset(self.registration)
+        dataset_uid = comms.upload_dataset(self.todict())
         self.uid = dataset_uid
         return self.uid

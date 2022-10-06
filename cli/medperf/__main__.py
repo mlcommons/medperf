@@ -168,7 +168,7 @@ def main(
         config.certificate = abspath(expanduser(config.local_certificate))
     else:
         config.server = host
-        config.certificate = certificate
+        config.certificate = abspath(expanduser(certificate))
     config.log_file = log_file
 
     init_storage()

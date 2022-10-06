@@ -9,7 +9,6 @@ from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
 from medperf.tests.utils import cube_local_hashes_generator
-from medperf.tests.mocks import Benchmark
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 
@@ -45,7 +44,7 @@ def comms(mocker):
     mocker.patch.object(comms, "get_cube_image", return_value=IMG_PATH)
     mocker.patch(PATCH_CUBE.format("untar"))
     mocker.patch(PATCH_CUBE.format("save_cube_metadata"))
-
+    config.comms = comms
     return comms
 
 
@@ -103,7 +102,7 @@ def test_all_looks_for_cubes_in_correct_path(mocker):
     spy = mocker.patch("os.walk", return_value=fs)
 
     # Act
-    Cube.all(ui)
+    Cube.all()
 
     # Assert
     spy.assert_called_once_with(cubes_path)
@@ -124,7 +123,7 @@ def test_all_reads_local_cube_metadata(mocker, cube_uid):
     hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
 
     # Act
-    Cube.all(ui)
+    Cube.all()
 
     # Assert
     spy.assert_has_calls([call(meta_path, "r"), call(hashes_path, "r")])
@@ -153,7 +152,7 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid, with_params):
         params_path = None
 
     # Act
-    Cube.all(ui)
+    Cube.all()
 
     # Assert
     spy.assert_called_once_with(
@@ -175,7 +174,7 @@ def test_get_basic_cube_retrieves_metadata_from_comms(
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(uid)
@@ -188,7 +187,7 @@ def test_get_basic_cube_retrieves_cube_manifest(mocker, comms, basic_body, no_lo
     # Act
     uid = 1
     body = basic_body(uid)
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(body["git_mlcube_url"], uid)
@@ -200,7 +199,7 @@ def test_get_basic_cube_doesnt_retrieve_parameters(mocker, comms, basic_body, no
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_not_called()
@@ -215,7 +214,7 @@ def test_get_basic_cube_doesnt_retrieve_extra_fields(
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_not_called()
@@ -230,7 +229,7 @@ def test_get_cube_with_parameters_retrieves_parameters(
     # Act
     uid = 1
     body = params_body(uid)
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(body["git_parameters_url"], uid)
@@ -243,7 +242,7 @@ def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body, no_loc
     # Act
     uid = 1
     body = tar_body(uid)
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(body["additional_files_tarball_url"], uid)
@@ -257,7 +256,7 @@ def test_get_cube_with_tarball_generates_tarball_hash(
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(TARBALL_PATH)
@@ -269,7 +268,7 @@ def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body, no_local):
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(TARBALL_PATH)
@@ -281,7 +280,7 @@ def test_get_cube_calls_all(mocker, comms, basic_body):
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once()
@@ -297,7 +296,7 @@ def test_get_cube_return_local_first(mocker, comms, local_cubes):
     metadata_spy = mocker.patch.object(comms, "get_cube_metadata")
 
     # Act
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     assert cube.uid == uid
@@ -314,7 +313,7 @@ def test_get_cube_requests_server_if_not_local(mocker, comms, basic_body):
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     metadata_spy.assert_called_once()
@@ -327,7 +326,7 @@ def test_get_cube_with_image_retrieves_image(mocker, comms, img_body, no_local):
     # Act
     uid = 1
     body = img_body(uid)
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(body["image_tarball_url"], uid)
@@ -341,7 +340,7 @@ def test_get_cube_with_image_generates_image_tarball_hash(
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(IMG_PATH)
@@ -353,7 +352,7 @@ def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(IMG_PATH)
@@ -362,13 +361,11 @@ def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
 def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_local):
     # Arrange
     spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-    expected_cmd = (
-        f"mlcube configure --mlcube={CUBE_PATH}"
-    )
+    expected_cmd = f"mlcube configure --mlcube={CUBE_PATH}"
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with(expected_cmd)
@@ -380,7 +377,7 @@ def test_get_cube_with_image_isnt_configured(mocker, comms, img_body, no_local):
 
     # Act
     uid = 1
-    Cube.get(uid, comms, ui)
+    Cube.get(uid)
 
     # Assert
     spy.assert_not_called()
@@ -389,7 +386,7 @@ def test_get_cube_with_image_isnt_configured(mocker, comms, img_body, no_local):
 def test_cube_is_valid_if_no_extrafields(mocker, comms, basic_body, no_local):
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     assert cube.is_valid()
@@ -398,7 +395,7 @@ def test_cube_is_valid_if_no_extrafields(mocker, comms, basic_body, no_local):
 def test_cube_is_valid_with_correct_tarball_hash(mocker, comms, tar_body, no_local):
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     assert cube.is_valid()
@@ -409,7 +406,7 @@ def test_cube_is_valid_with_correct_image_tarball_hash(
 ):
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     assert cube.is_valid()
@@ -418,7 +415,7 @@ def test_cube_is_valid_with_correct_image_tarball_hash(
 def test_cube_is_invalid_if_invalidated(mocker, ui, comms, basic_body, no_local):
     # Arrange
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     cube.meta["is_valid"] = False
 
     # Act & Assert
@@ -433,7 +430,7 @@ def test_cube_is_invalid_with_incorrect_tarball_hash(
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     assert not cube.is_valid()
@@ -447,7 +444,7 @@ def test_cube_is_invalid_with_incorrect_image_tarball_hash(
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
 
     # Assert
     assert not cube.is_valid()
@@ -470,7 +467,7 @@ def test_cube_runs_command_with_pexpect(
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     cube.run(ui, "task", timeout=timeout)
 
     # Assert
@@ -488,7 +485,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     cube.run(ui, task, test="test")
 
     # Assert
@@ -506,7 +503,7 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_lo
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     with pytest.raises(SystemExit):
         cube.run(ui, task)
 
@@ -523,7 +520,7 @@ def test_default_output_reads_cube_manifest(mocker, comms, basic_body, no_local)
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
@@ -541,7 +538,7 @@ def test_default_output_returns_specified_path(mocker, comms, basic_body, no_loc
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     out_path = cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
@@ -563,7 +560,7 @@ def test_default_output_returns_specified_dict_path(
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     out_path = cube.get_default_output(TASK, OUT_KEY)
 
     # Assert
@@ -582,35 +579,11 @@ def test_default_output_returns_path_with_params(mocker, comms, params_body, no_
 
     # Act
     uid = 1
-    cube = Cube.get(uid, comms, ui)
+    cube = Cube.get(uid)
     out_path = cube.get_default_output(TASK, OUT_KEY, PARAM_KEY)
 
     # Assert
     assert out_path == exp_path
-
-
-@pytest.mark.parametrize("approval", [True, False])
-def test_request_registration_approval_returns_users_input(
-    mocker, comms, ui, approval, basic_body, no_local
-):
-    # Arrange
-    cube_contents = {
-        "tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: {"default": VALUE}}}}}
-    }
-    mocker.patch("builtins.open", MagicMock())
-    m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
-
-    uid = "1"
-    mock_benchmark = Benchmark()
-    mocker.patch(PATCH_CUBE.format("approval_prompt"), return_value=approval)
-    cube = Cube.get(uid, comms, ui)
-
-    # Act
-    approved = cube.request_association_approval(mock_benchmark, ui)
-
-    # Assert
-    assert approved == approval
 
 
 @pytest.mark.parametrize("cube_uid", [73, 9])
@@ -634,7 +607,7 @@ def test_local_cubes_validity_can_be_detected(
     mocker.patch("os.path.exists")
 
     # Act
-    local_cube = Cube.all(ui)[0]
+    local_cube = Cube.all()[0]
     is_cube_valid = local_cube.is_valid()
 
     # Assert
@@ -662,7 +635,44 @@ def test_get_cube_saves_cube_metadata(
     spy = mocker.patch(PATCH_CUBE.format("save_cube_metadata"))
 
     # Act
-    Cube.get(cube_uid, comms, ui)
+    Cube.get(cube_uid)
 
     # Assert
     spy.assert_called_once_with(meta, local_hashes)
+
+
+def test_todict_returns_expected_dict(mocker, basic_body, no_local):
+    # Arrange
+    cube = Cube.get(1)
+    exp_body = basic_body(1)
+
+    # Act
+    data = cube.todict()
+
+    # Assert
+    assert data == exp_body
+
+
+def test_upload_runs_comms_upload_proc(mocker, comms, basic_body, no_local):
+    # Arrange
+    cube = Cube.get(1)
+    spy = mocker.patch.object(comms, "upload_mlcube")
+
+    # Act
+    cube.upload(comms)
+
+    # Assert
+    spy.assert_called_once_with(cube.todict())
+
+
+@pytest.mark.parametrize("uid", [48, 272, 478])
+def test_upload_returns_comms_generated_uid(mocker, comms, basic_body, no_local, uid):
+    # Arrange
+    cube = Cube.get(1)
+    mocker.patch.object(comms, "upload_mlcube", return_value=uid)
+
+    # Act
+    returned_uid = cube.upload(comms)
+
+    # Assert
+    assert uid == returned_uid

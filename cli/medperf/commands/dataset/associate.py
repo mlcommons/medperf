@@ -2,7 +2,7 @@ from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import dict_pretty_print, pretty_error
+from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
@@ -15,12 +15,12 @@ class AssociateDataset:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
         """
-        dset = Dataset(data_uid, ui)
+        dset = Dataset(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
             pretty_error(msg, ui)
 
-        benchmark = Benchmark.get(benchmark_uid, comms)
+        benchmark = Benchmark.get(benchmark_uid)
 
         if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):
             pretty_error("The specified dataset wasn't prepared for this benchmark", ui)
@@ -33,7 +33,11 @@ class AssociateDataset:
         ui.print("They will not be part of the benchmark.")
         dict_pretty_print(result.todict(), ui)
 
-        if approved or dset.request_association_approval(benchmark, ui):
+        msg = "Please confirm that you would like to associate"
+        msg += f" the dataset {dset.name} with the benchmark {benchmark.name}."
+        msg += " [Y/n]"
+        approved = approved or approval_prompt(msg, ui)
+        if approved:
             ui.print("Generating dataset benchmark association")
             metadata = {"test_result": result.todict()}
             comms.associate_dset(dset.uid, benchmark_uid, metadata)

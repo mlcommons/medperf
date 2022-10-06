@@ -7,13 +7,13 @@ from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.associate import AssociateDataset
 
 PATCH_ASSOC = "medperf.commands.dataset.associate.{}"
-req_func = "request_association_approval"
 
 
 @pytest.fixture
 def dataset(mocker, request):
     dset = mocker.create_autospec(spec=Dataset)
     mocker.patch(PATCH_ASSOC.format("Dataset"), return_value=dset)
+    dset.name = "test"
     dset.preparation_cube_uid = request.param
     dset.uid = 1
     return dset
@@ -25,6 +25,7 @@ def benchmark(mocker, request):
     mocker.patch(PATCH_ASSOC.format("Benchmark"), return_value=bm)
     mocker.patch(PATCH_ASSOC.format("Benchmark.get"), return_value=bm)
     bm.data_preparation = request.param
+    bm.name = "name"
     return bm
 
 
@@ -74,12 +75,13 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_requests_approval_from_user(mocker, comms, ui, dataset, result, benchmark):
     # Arrange
-    spy = mocker.patch.object(dataset, req_func, return_value=True)
+    spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     comp_ret = ("", "", "", result)
     mocker.patch(
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
     )
     dataset.uid = 1
+    dataset.name = "test"
 
     # Act
     AssociateDataset.run(1, 1, comms, ui)
@@ -97,7 +99,7 @@ def test_associates_if_approved(
 ):
     # Arrange
     assoc_func = "associate_dset"
-    mocker.patch.object(dataset, req_func, return_value=True)
+    mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     comp_ret = ("", "", "", result)
     mocker.patch(
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
@@ -123,7 +125,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
     mocker.patch(
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
     )
-    spy = mocker.patch.object(dataset, req_func, return_value=False)
+    spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
 
     # Act
     with pytest.raises(SystemExit):

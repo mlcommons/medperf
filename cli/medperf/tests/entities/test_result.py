@@ -1,11 +1,19 @@
-from medperf.enums import Status
 import pytest
 from unittest.mock import MagicMock, call, ANY
 
 from medperf.entities.result import Result
+from medperf.comms.interface import Comms
+from medperf import config
 
 PATCH_RESULT = "medperf.entities.result.{}"
 MOCK_RESULTS_CONTENT = {"id": "1", "results": {}}
+
+
+@pytest.fixture
+def comms(mocker):
+    comms = mocker.create_autospec(spec=Comms)
+    config.comms = comms
+    return comms
 
 
 @pytest.fixture
@@ -60,7 +68,7 @@ def test_all_gets_results_ids(mocker, ui):
     spy = mocker.patch(PATCH_RESULT.format("results_ids"), return_value=[])
 
     # Act
-    Result.all(ui)
+    Result.all()
 
     # Assert
     spy.assert_called_once()
@@ -78,28 +86,25 @@ def test_all_creates_result_objects_with_correct_info(
     mocker.patch("os.path.join", return_value=mock_path)
 
     # Act
-    Result.all(ui)
+    Result.all()
 
     # Assert
     spy.assert_has_calls([call(mocker.ANY, b_id, d_id, m_id)])
 
 
-@pytest.mark.parametrize(
-    "results_path", ["./results.yaml", "~/.medperf/results/1/results.yaml"]
-)
-def test_todict_opens_results_file_as_yaml(mocker, result, results_path):
+@pytest.mark.parametrize("uid", [349, 2, 84])
+def test_get_retrieves_results_from_comms(mocker, comms, uid):
     # Arrange
-    open_spy = mocker.patch("builtins.open", MagicMock())
-    yaml_spy = mocker.patch("yaml.safe_load", return_value={})
-    mocker.patch(PATCH_RESULT.format("results_path"), return_value=results_path)
-    result = Result(1, 1, 1)
+    uid = 0
+    result_dict = {"benchmark": 0, "dataset": 0, "model": 0, "results": {}, "uid": uid}
+    spy = mocker.patch.object(comms, "get_result", return_value=result_dict)
+    mocker.patch(PATCH_RESULT.format("Result.all"), return_value=[])
 
     # Act
-    result.todict()
+    Result.get(uid)
 
     # Assert
-    open_spy.assert_called_once_with(results_path, "r")
-    yaml_spy.assert_called_once()
+    spy.assert_called_once_with(uid)
 
 
 def test_todict_returns_expected_keys(mocker, result):
@@ -121,33 +126,6 @@ def test_todict_returns_expected_keys(mocker, result):
 
     # Assert
     assert set(result_dict.keys()) == expected_keys
-
-
-def test_request_approval_skips_if_already_approved(mocker, result, ui):
-    # Arrange
-    spy = mocker.patch(PATCH_RESULT.format("approval_prompt"))
-    result.status = Status.APPROVED
-
-    # Act
-    result.request_approval(ui)
-
-    # Assert
-    spy.assert_not_called()
-
-
-@pytest.mark.parametrize("exp_approved", [True, False])
-def test_request_approval_returns_user_approval(mocker, result, ui, exp_approved):
-    # Arrange
-    mocker.patch("typer.echo")
-    mocker.patch(PATCH_RESULT.format("dict_pretty_print"))
-    mocker.patch(PATCH_RESULT.format("Result.todict"), return_value={})
-    mocker.patch(PATCH_RESULT.format("approval_prompt"), return_value=exp_approved)
-
-    # Act
-    approved = result.request_approval(ui)
-
-    # Assert
-    assert approved == exp_approved
 
 
 def test_upload_calls_server_method(mocker, result, comms):

@@ -2,7 +2,7 @@ from medperf.ui.interface import UI
 from medperf.entities.cube import Cube
 from medperf.comms.interface import Comms
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import dict_pretty_print, pretty_error
+from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
@@ -20,8 +20,8 @@ class AssociateCube:
             ui (UI): UI instance
             approved (bool): Skip validation step. Defualts to False
         """
-        cube = Cube.get(cube_uid, comms, ui)
-        benchmark = Benchmark.get(benchmark_uid, comms)
+        cube = Cube.get(cube_uid)
+        benchmark = Benchmark.get(benchmark_uid)
 
         _, _, _, result = CompatibilityTestExecution.run(
             benchmark_uid, comms, ui, model=cube_uid
@@ -31,7 +31,10 @@ class AssociateCube:
         ui.print("They will not be part of the benchmark.")
         dict_pretty_print(result.todict(), ui)
 
-        if approved or cube.request_association_approval(benchmark, ui):
+        msg = "Please confirm that you would like to associate "
+        msg += f"the MLCube '{cube.name}' with the benchmark '{benchmark.name}' [Y/n]"
+        approved = approved or approval_prompt(msg, ui)
+        if approved:
             ui.print("Generating mlcube benchmark association")
             metadata = {"test_result": result.todict()}
             comms.associate_cube(cube_uid, benchmark_uid, metadata)

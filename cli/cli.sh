@@ -28,9 +28,6 @@ echo "Storage location: $MEDPERF_STORAGE"
 echo "Running local config: $LOCAL"
 echo "Certificate: $CERT_FILE"
 
-mkdir MEDPERF_STORAGE
-chmod a+w MEDPERF_STORAGE
-
 if ${CLEANUP}; then
   echo "====================================="
   echo "Cleaning up medperf tmp files"

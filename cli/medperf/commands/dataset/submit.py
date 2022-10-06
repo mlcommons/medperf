@@ -1,7 +1,8 @@
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
-from medperf.utils import pretty_error
+from medperf.utils import approval_prompt, pretty_error
 from medperf.entities.dataset import Dataset
+from medperf.enums import Status
 
 
 class DatasetRegistration:
@@ -13,7 +14,7 @@ class DatasetRegistration:
             data_uid (str): UID Hint of the unregistered dataset
         """
 
-        dset = Dataset(data_uid, ui)
+        dset = Dataset(data_uid)
 
         if dset.uid:
             pretty_error(
@@ -23,7 +24,7 @@ class DatasetRegistration:
         remote_dset = [
             remote_dset
             for remote_dset in remote_dsets
-            if remote_dset["generated_uid"] == dset.data_uid
+            if remote_dset["generated_uid"] == dset.generated_uid
         ]
         if len(remote_dset) == 1:
             dset.uid = remote_dset[0]["id"]
@@ -34,7 +35,10 @@ class DatasetRegistration:
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
             return
 
-        if approved or dset.request_registration_approval(ui):
+        msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
+        approved = approved or approval_prompt(msg, ui)
+        dset.status = Status("APPROVED") if approved else Status("REJECTED")
+        if approved:
             ui.print("Uploading...")
             dset.upload(comms)
             dset.set_registration()
