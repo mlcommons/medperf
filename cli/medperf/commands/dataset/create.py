@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 import shutil
 from medperf.enums import Status
@@ -175,9 +176,9 @@ class DataPreparation:
             )
             self.ui.print("> Statistics complete")
         except RuntimeError as e:
-            cleanup_paths = [out_datapath, out_labelspath]
-            cleanup(cleanup_paths)
-            raise e
+            logging.error(f"MLCube Execution failed: {e}")
+            cleanup([self.out_path])
+            pretty_error("Data preparation failed", self.ui)
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths

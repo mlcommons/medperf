@@ -388,12 +388,14 @@ def test_run_deletes_output_path_on_failure(mocker, preparation):
         "run",
         side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
     )
-    spy = mocker.patch(PATCH_DATAPREP.format("cleanup"))
-    exp_outpaths = [preparation.out_datapath, preparation.out_labelspath]
+    spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
+    spy_error = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
+
+    exp_outpaths = [preparation.out_path]
 
     # Act
-    with pytest.raises(RuntimeError):
-        preparation.run_cube_tasks()
+    preparation.run_cube_tasks()
 
     # Assert
-    spy.assert_called_once_with(exp_outpaths)
+    spy_clean.assert_called_once_with(exp_outpaths)
+    spy_error.assert_called_once()
