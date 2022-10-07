@@ -491,18 +491,33 @@ def test_get_cube_file_writes_to_file(mocker, server):
     spy.assert_called_once_with(filepath, "wb+")
 
 
-@pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
+@pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
 def test_get_datasets_calls_datasets_path(mocker, server, body):
     # Arrange
     res = MockResponse([body], 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
 
     # Act
-    cubes = server.get_datasets()
+    dsets = server.get_datasets()
 
     # Assert
     spy.assert_called_once_with(f"{url}/datasets/")
-    assert cubes == [body]
+    assert dsets == [body]
+
+
+@pytest.mark.parametrize("uid", [475, 28, 293])
+@pytest.mark.parametrize("body", [{"test": "test"}, {"body": "body"}])
+def test_get_dataset_calls_specific_dataset_path(mocker, server, uid, body):
+    # Arrange
+    res = MockResponse(body, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+
+    # Act
+    dset = server.get_dataset(uid)
+
+    # Assert
+    spy.assert_called_once_with(f"{url}/datasets/{uid}/")
+    assert dset == body
 
 
 def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
@@ -648,3 +663,19 @@ def test_get_cubes_associations_gets_associations(mocker, server):
 
     # Assert
     spy.assert_called_once_with(exp_path)
+
+
+@pytest.mark.parametrize("uid", [448, 53, 312])
+@pytest.mark.parametrize("body", [{"test": "test"}, {"body": "body"}])
+def test_get_result_calls_specified_path(mocker, server, uid, body):
+    # Arrange
+    res = MockResponse(body, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    exp_path = f"{url}/results/{uid}/"
+
+    # Act
+    result = server.get_result(uid)
+
+    # Assert
+    spy.assert_called_once_with(exp_path)
+    assert result == body

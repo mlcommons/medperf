@@ -10,7 +10,7 @@ class ResultsList:
     def run(comms: Comms, ui: UI):
         """Lists all local datasets
         """
-        results = Result.all(ui)
+        results = Result.all()
         headers = ["Benchmark UID", "Model UID", "Data UID", "Submitted", "Local"]
         # Get local results data
         results_data = [

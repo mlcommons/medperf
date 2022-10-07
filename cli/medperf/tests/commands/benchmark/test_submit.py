@@ -1,5 +1,6 @@
 import pytest
 
+from medperf.entities.result import Result
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.benchmark.submit import SubmitBenchmark
 
@@ -17,6 +18,13 @@ DESC_MAX_LEN = 100
 #     "reference_model_mlcube": model_uid,
 #     "evaluator_mlcube": eval_uid,
 # }
+
+
+@pytest.fixture
+def result(mocker):
+    result_obj = mocker.create_autospec(spec=Result)
+    mocker.patch.object(result_obj, "todict", return_value={})
+    return result_obj
 
 
 @pytest.fixture
@@ -81,29 +89,29 @@ def test_is_valid_passes_valid_fields(
     assert valid == should_pass
 
 
-def test_submit_uploads_benchmark_data(mocker, comms, ui):
+def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
     # Arrange
-    mock_body = {}
     benchmark_info = {
         "name": "",
         "description": "",
         "docs_url": "",
         "demo_url": "demo_url",
         "demo_hash": "",
-        "data_preparation_mlcube": "",
-        "reference_model_mlcube": "",
-        "evaluator_mlcube": "",
+        "data_preparation_mlcube": 0,
+        "reference_model_mlcube": 0,
+        "evaluator_mlcube": 0,
     }
     submission = SubmitBenchmark(benchmark_info, comms, ui)
-    spy_todict = mocker.patch.object(submission, "todict", return_value=mock_body)
+    submission.results = result
+    mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
+    expected_data = Benchmark(submission.todict()).todict()
     spy_upload = mocker.patch.object(comms, "upload_benchmark", return_value=1)
 
     # Act
     submission.submit()
 
     # Assert
-    spy_todict.assert_called_once()
-    spy_upload.assert_called_once_with(mock_body)
+    spy_upload.assert_called_once_with(expected_data)
 
 
 @pytest.mark.parametrize("demo_hash", ["demo_hash", "437289fa3d"])

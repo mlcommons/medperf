@@ -161,4 +161,7 @@ class SubmitBenchmark:
 
     def submit(self):
         body = self.todict()
-        self.comms.upload_benchmark(body)
+        benchmark = Benchmark(body)
+        uid = benchmark.upload(self.comms)
+        benchmark.uid = uid
+        benchmark.write()

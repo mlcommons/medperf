@@ -64,11 +64,9 @@ class BenchmarkExecution:
         init_storage()
         # If not running the test, redownload the benchmark
         update_bmk = not self.run_test
-        self.benchmark = Benchmark.get(
-            self.benchmark_uid, self.comms, force_update=update_bmk
-        )
+        self.benchmark = Benchmark.get(self.benchmark_uid, force_update=update_bmk)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset(self.data_uid, self.ui)
+        self.dataset = Dataset(self.data_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -95,7 +93,7 @@ class BenchmarkExecution:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
-        cube = Cube.get(uid, self.comms, self.ui)
+        cube = Cube.get(uid)
         self.ui.print(f"> {name} cube download complete")
         check_cube_validity(cube, self.ui)
         return cube
@@ -105,7 +103,7 @@ class BenchmarkExecution:
         evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
         model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.data_uid)
+        data_uid = str(self.dataset.generated_uid)
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path

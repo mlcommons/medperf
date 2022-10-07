@@ -2,11 +2,10 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 
 from medperf.utils import (
-    approval_prompt,
     save_cube_metadata,
     get_file_sha1,
     pretty_error,
@@ -15,12 +14,13 @@ from medperf.utils import (
     list_files,
     storage_path,
 )
+from medperf.entities.interface import Entity
+from medperf.comms.interface import Comms
 from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
-class Cube(object):
+class Cube(Entity):
     """
     Class representing an MLCube Container
 
@@ -58,7 +58,7 @@ class Cube(object):
         self.image_tarball_hash = image_tarball_hash
 
     @classmethod
-    def all(cls, ui: UI) -> List["Cube"]:
+    def all(cls) -> List["Cube"]:
         """Class method for retrieving all cubes stored on the user's machine.
 
         Args:
@@ -74,7 +74,7 @@ class Cube(object):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg, ui)
+            pretty_error(msg, config.ui)
 
         cubes = []
         for uid in uids:
@@ -103,22 +103,22 @@ class Cube(object):
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: str, comms: Comms, ui: UI) -> "Cube":
+    def get(cls, cube_uid: str) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
             cube_uid (str): UID of the cube.
-            comms (Comms): Instance of the server interface.
-            ui (UI): Instance of an UI implementation.
 
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
         "Retrieve from local storage if cube already there"
         logging.debug(f"Retrieving the cube {cube_uid}")
+        comms = config.comms
+        ui = config.ui
         local_cube = list(
-            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all(ui))
+            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
         if len(local_cube) == 1:
             logging.debug("Found cube locally")
@@ -251,18 +251,10 @@ class Cube(object):
 
         return out_path
 
-    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
-        """Prompts the user for approval concerning associating a cube with a benchmark.
+    def todict(self) -> Dict:
+        return self.meta
 
-        Args:
-            benchmark (Benchmark): Benchmark to be associated with
-            ui (UI): Instance of an UI interface
-
-        Returns:
-            bool: wether the user gave consent or not
-        """
-
-        msg = "Please confirm that you would like to associate "
-        msg += f"the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
-        approved = approval_prompt(msg, ui)
-        return approved
+    def upload(self, comms: Comms) -> int:
+        cube_uid = comms.upload_mlcube(self.todict())
+        self.uid = cube_uid
+        return self.uid

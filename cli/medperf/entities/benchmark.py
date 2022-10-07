@@ -2,13 +2,15 @@ import os
 import yaml
 import logging
 from typing import List
+from collections import defaultdict
 
 import medperf.config as config
+from medperf.entities.interface import Entity
 from medperf.comms.interface import Comms
-from medperf.utils import storage_path
+from medperf.utils import storage_path, pretty_error
 
 
-class Benchmark:
+class Benchmark(Entity):
     """
     Class representing a Benchmark
 
@@ -19,36 +21,57 @@ class Benchmark:
     what models to run and how to evaluate them.
     """
 
-    def __init__(self, uid: str, benchmark_dict: dict):
+    def __init__(self, benchmark_dict: dict):
         """Creates a new benchmark instance
 
         Args:
             uid (str): The benchmark UID
             benchmark_dict (dict): key-value representation of the benchmark.
         """
-        self.uid = uid
+        bmk_dict = defaultdict(lambda: None, benchmark_dict)
         # Getting None by default allows creating empty benchmarks for tests
-        self.name = benchmark_dict.get("name", None)
-        self.description = benchmark_dict.get("description", None)
-        self.docs_url = benchmark_dict.get("docs_url", None)
-        self.created_at = benchmark_dict.get("created_at", None)
-        self.modified_at = benchmark_dict.get("modified_at", None)
-        self.owner = benchmark_dict.get("owner", None)
-        self.demo_dataset_url = benchmark_dict.get("demo_dataset_tarball_url", None)
-        self.demo_dataset_hash = benchmark_dict.get("demo_dataset_tarball_hash", None)
-        self.demo_dataset_generated_uid = benchmark_dict.get(
-            "demo_dataset_generated_uid", None
-        )
-        self.data_preparation = benchmark_dict.get("data_preparation_mlcube", None)
-        self.reference_model = benchmark_dict.get("reference_model_mlcube", None)
-        self.models = benchmark_dict.get("models", None)
-        self.evaluator = benchmark_dict.get("data_evaluator_mlcube", None)
-        self.approval_status = benchmark_dict.get("approval_status", None)
+        self.uid = bmk_dict["uid"]
+        self.name = bmk_dict["name"]
+        self.description = bmk_dict["description"]
+        self.docs_url = bmk_dict["docs_url"]
+        self.created_at = bmk_dict["created_at"]
+        self.modified_at = bmk_dict["modified_at"]
+        self.owner = bmk_dict["owner"]
+        self.demo_dataset_url = bmk_dict["demo_dataset_tarball_url"]
+        self.demo_dataset_hash = bmk_dict["demo_dataset_tarball_hash"]
+        self.demo_dataset_generated_uid = bmk_dict["demo_dataset_generated_uid"]
+        self.data_preparation = bmk_dict["data_preparation_mlcube"]
+        self.reference_model = bmk_dict["reference_model_mlcube"]
+        self.evaluator = bmk_dict["data_evaluator_mlcube"]
+        # Default value for fields that should not be None in any particular scenario
+        self.models = bmk_dict["models"] or []
+        self.state = bmk_dict["state"] or "DEVELOPMENT"
+        self.is_valid = bmk_dict["is_valid"] or True
+        self.approval_status = bmk_dict["approval_status"] or "PENDING"
+        self.metadata = bmk_dict["metadata"] or {}
 
     @classmethod
-    def get(
-        cls, benchmark_uid: str, comms: Comms, force_update: bool = False
-    ) -> "Benchmark":
+    def all(cls) -> List["Benchmark"]:
+        """Gets and creates instances of all locally present benchmarks
+
+        Returns:
+            List[Benchmark]: a list of Benchmark instances.
+        """
+        logging.info("Retrieving all benchmarks")
+        bmks_storage = storage_path(config.benchmarks_storage)
+        try:
+            uids = next(os.walk(bmks_storage))[1]
+        except StopIteration:
+            msg = "Couldn't iterate over benchmarks directory"
+            logging.warning(msg)
+            pretty_error(msg, config.ui)
+
+        benchmarks = [cls.get(uid) for uid in uids]
+
+        return benchmarks
+
+    @classmethod
+    def get(cls, benchmark_uid: str, force_update: bool = False) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -61,6 +84,7 @@ class Benchmark:
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
         """
+        comms = config.comms
         # Get local benchmarks
         bmk_storage = storage_path(config.benchmarks_storage)
         local_bmks = os.listdir(bmk_storage)
@@ -72,7 +96,8 @@ class Benchmark:
             ref_model = benchmark_dict["reference_model_mlcube"]
             add_models = cls.get_models_uids(benchmark_uid, comms)
             benchmark_dict["models"] = [ref_model] + add_models
-        benchmark = cls(benchmark_uid, benchmark_dict)
+        benchmark_dict["uid"] = benchmark_uid
+        benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
 
@@ -118,6 +143,7 @@ class Benchmark:
         """
         benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
         benchmark_dict = {
+            "uid": benchmark_uid,
             "name": benchmark_uid,
             "data_preparation_mlcube": data_preparator,
             "reference_model_mlcube": model,
@@ -126,7 +152,7 @@ class Benchmark:
             "demo_dataset_tarball_hash": demo_hash,
             "models": [model],
         }
-        benchmark = Benchmark(benchmark_uid, benchmark_dict)
+        benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
 
@@ -160,11 +186,14 @@ class Benchmark:
             "demo_dataset_tarball_url": self.demo_dataset_url,
             "demo_dataset_tarball_hash": self.demo_dataset_hash,
             "demo_dataset_generated_uid": self.demo_dataset_generated_uid,
-            "data_preparation_mlcube": self.data_preparation,
-            "reference_model_mlcube": self.reference_model,
+            "data_preparation_mlcube": int(self.data_preparation),
+            "reference_model_mlcube": int(self.reference_model),
             "models": self.models,
-            "data_evaluator_mlcube": self.evaluator,
+            "data_evaluator_mlcube": int(self.evaluator),
+            "state": self.state,
+            "is_valid": self.is_valid,
             "approval_status": self.approval_status,
+            "metadata": self.metadata,
         }
 
     def write(self, filename: str = config.benchmarks_filename) -> str:
@@ -185,3 +214,12 @@ class Benchmark:
         with open(filepath, "w") as f:
             yaml.dump(data, f)
         return filepath
+
+    def upload(self, comms: Comms):
+        """Uploads a benchmark to the server
+
+        Args:
+            comms (Comms): communications entity to submit through
+        """
+        body = self.todict()
+        comms.upload_benchmark(body)

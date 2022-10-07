@@ -30,7 +30,7 @@ def execution(mocker, comms, ui, cube):
     exec = BenchmarkExecution(0, 0, 0, comms, ui)
     exec.prepare()
     exec.dataset.uid = 1
-    exec.dataset.data_uid = "data_uid"
+    exec.dataset.generated_uid = "data_uid"
     exec.dataset.preparation_cube_uid = "prep_cube"
     exec.dataset.labels_path = "labels_path"
     exec.benchmark.data_preparation = "prep_cube"
@@ -127,8 +127,6 @@ def test_get_cubes_retrieves_expected_cubes(
 def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     # Arrange
     name = "872"
-    comms = execution.comms
-    ui = execution.ui
     spy = mocker.patch(PATCH_EXECUTION.format("Cube.get"))
     mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
@@ -136,7 +134,7 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     execution._BenchmarkExecution__get_cube(cube_uid, name)
 
     # Assert
-    spy.assert_called_once_with(cube_uid, comms, ui)
+    spy.assert_called_once_with(cube_uid)
 
 
 def test__get_cube_checks_cube_validity(mocker, execution, cube):
