@@ -467,9 +467,7 @@ def test_run_uses_correct_uids(
         exp_prep_uid = bmk_prep_uid
 
     # Act
-    CompatibilityTestExecution.run(
-        bmk_uid, data_uid, prep_uid, model_uid, eval_uid
-    )
+    CompatibilityTestExecution.run(bmk_uid, data_uid, prep_uid, model_uid, eval_uid)
 
     # Assert
     if error_spy.call_count != 0:

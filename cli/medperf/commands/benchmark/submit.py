@@ -2,9 +2,7 @@ import logging
 from medperf.enums import Status
 import validators
 
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import get_file_sha1, generate_tmp_uid, pretty_error
 from medperf.commands.compatibility_test import CompatibilityTestExecution

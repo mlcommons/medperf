@@ -43,9 +43,7 @@ def submit(
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
-    ResultSubmission.run(
-        benchmark_uid, data_uid, model_uid, approved=approval
-    )
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 
@@ -53,6 +51,4 @@ def submit(
 @clean_except
 def list():
     """List results stored locally and remotely from the user"""
-    comms = config.comms
-    ui = config.ui
     ResultsList.run()

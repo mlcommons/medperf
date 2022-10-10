@@ -1,7 +1,5 @@
 import os
 
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -18,11 +16,7 @@ import medperf.config as config
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls,
-        benchmark_uid: int,
-        data_uid: str,
-        model_uid: int,
-        run_test=False,
+        cls, benchmark_uid: int, data_uid: str, model_uid: int, run_test=False,
     ):
         """Benchmark execution flow.
 
@@ -39,11 +33,7 @@ class BenchmarkExecution:
             execution.run_cubes()
 
     def __init__(
-        self,
-        benchmark_uid: int,
-        data_uid: int,
-        model_uid: int,
-        run_test=False,
+        self, benchmark_uid: int, data_uid: int, model_uid: int, run_test=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid

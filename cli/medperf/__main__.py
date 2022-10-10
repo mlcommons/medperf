@@ -74,9 +74,7 @@ def execute(
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
     BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
-    ResultSubmission.run(
-        benchmark_uid, data_uid, model_uid, approved=approval
-    )
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 
@@ -118,9 +116,7 @@ def test(
     Executes a compatibility test for a determined benchmark.
     Can test prepared datasets, remote and local models independently.
     """
-    CompatibilityTestExecution.run(
-        benchmark_uid, data_uid, data_prep, model, evaluator
-    )
+    CompatibilityTestExecution.run(benchmark_uid, data_uid, data_prep, model, evaluator)
     config.ui.print("✅ Done!")
     cleanup()
 

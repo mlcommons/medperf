@@ -23,10 +23,7 @@ def prepare(
         out_path (str): Location to store transformed data. Required for Medperf Data Preparation MLCubes.
     """
     prepare_data(
-        data_path,
-        labels_path,
-        params_file,
-        out_path,
+        data_path, labels_path, params_file, out_path,
     )
 
 
@@ -61,9 +58,7 @@ def statistics(
         output_path (str): File to store the statistics. Must be statistics.yaml. Required for Medperf Data Preparation MLCubes.
     """
     get_stats(
-        data_path,
-        params_file,
-        output_path,
+        data_path, params_file, output_path,
     )
 
 

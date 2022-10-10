@@ -77,7 +77,5 @@ def associate(
 ):
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
-    AssociateBenchmark.run(
-        benchmark_uid, model_uid, dataset_uid, approved=approval
-    )
+    AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, approved=approval)
     config.ui.print("✅ Done!")

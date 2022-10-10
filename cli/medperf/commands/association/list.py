@@ -2,6 +2,7 @@ from tabulate import tabulate
 
 from medperf import config
 
+
 class ListAssociations:
     @staticmethod
     def run(filter: str = None):

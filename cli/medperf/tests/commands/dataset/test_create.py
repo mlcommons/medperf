@@ -43,13 +43,7 @@ def preparation(mocker, comms, ui):
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
     preparation = DataPreparation(
-        BENCHMARK_UID,
-        None,
-        DATA_PATH,
-        LABELS_PATH,
-        NAME,
-        DESCRIPTION,
-        LOCATION,
+        BENCHMARK_UID, None, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION,
     )
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()

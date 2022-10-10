@@ -3,7 +3,6 @@ import pytest
 from unittest.mock import mock_open
 
 import medperf.config as config
-from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 from medperf.commands.auth import Login
 

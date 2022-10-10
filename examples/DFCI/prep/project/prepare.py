@@ -87,7 +87,7 @@ def prepare_btcv_labels(input_path, output_path, cases):
         data = np.flip(data, axis=-1)
         data[data != 11] = 0
         data[data == 11] = 1
-        data = np.repeat(data, [3]*data.shape[-1], axis=-1)
+        data = np.repeat(data, [3] * data.shape[-1], axis=-1)
 
         outfile = os.path.join(output_path, volumeID + ".npy")
         np.save(outfile, data)
@@ -95,10 +95,7 @@ def prepare_btcv_labels(input_path, output_path, cases):
 
 
 def prepare_btcv(
-    data_path,
-    labels_path,
-    params_file,
-    out_path,
+    data_path, labels_path, params_file, out_path,
 ):
     # images folder structure is expected to have list of imgXXXX.nii.gz
     # images folder structure is expected to have list of labelXXXX.nii.gz
@@ -122,10 +119,7 @@ def prepare_btcv(
 
 
 def prepare_tcia(
-    data_path,
-    labels_path,
-    params_file,
-    out_path,
+    data_path, labels_path, params_file, out_path,
 ):
     # folder structure of data_path is expected to be like
     # "Pancreas-CT" folder of the official TCIA dataset
@@ -156,27 +150,18 @@ def prepare_tcia(
 
 
 def prepare_data(
-    data_path,
-    labels_path,
-    params_file,
-    out_path,
+    data_path, labels_path, params_file, out_path,
 ):
     # the way to infer btcv or tcia is the existence of nii.gz images
     # or folders starting with PANCREAS, according to the official
     # datasets structure
     if os.listdir(data_path)[0].endswith(".nii.gz"):
         prepare_btcv(
-            data_path,
-            labels_path,
-            params_file,
-            out_path,
+            data_path, labels_path, params_file, out_path,
         )
     elif os.listdir(data_path)[0].startswith("PANCREAS"):
         prepare_tcia(
-            data_path,
-            labels_path,
-            params_file,
-            out_path,
+            data_path, labels_path, params_file, out_path,
         )
     else:
         raise Exception("Cannot infer data structure")

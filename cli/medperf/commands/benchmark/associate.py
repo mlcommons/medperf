@@ -7,11 +7,7 @@ from medperf.commands.dataset.associate import AssociateDataset
 class AssociateBenchmark:
     @classmethod
     def run(
-        cls,
-        benchmark_uid: str,
-        model_uid: str,
-        data_uid: str,
-        approved=False,
+        cls, benchmark_uid: str, model_uid: str, data_uid: str, approved=False,
     ):
         """Associates a dataset or model to the given benchmark
 

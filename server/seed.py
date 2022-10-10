@@ -14,10 +14,16 @@ class Server:
         headers = {}
         if token:
             headers = {"Authorization": "Token " + token}
-        headers.update({"accept": "application/json", "Content-Type": "application/json"})
+        headers.update(
+            {"accept": "application/json", "Content-Type": "application/json"}
+        )
         try:
             resp = requests.request(
-                method=method, headers=headers, url=self.host + endpoint, data=json.dumps(data), verify=self.cert
+                method=method,
+                headers=headers,
+                url=self.host + endpoint,
+                data=json.dumps(data),
+                verify=self.cert,
             )
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
