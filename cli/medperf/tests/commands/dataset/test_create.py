@@ -135,7 +135,6 @@ class TestWithDefaultUID:
         # Arrange
         spy = mocker.patch.object(preparation.cube, "run")
         mocker.patch.object(preparation.cube, "get_default_output", return_value=None)
-        ui = preparation.ui
         out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
             task="prepare",
@@ -166,7 +165,6 @@ class TestWithDefaultUID:
         mocker.patch.object(
             preparation.cube, "get_default_output", return_value=OUT_LABELSPATH
         )
-        ui = preparation.ui
         out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
             task="prepare",
