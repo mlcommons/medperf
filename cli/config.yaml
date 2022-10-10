@@ -1,0 +1,6 @@
+server: https://medperf.org
+storage: ~/.medperf
+
+default_comms: REST
+default_ui: CLI
+platform: docker

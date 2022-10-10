@@ -181,7 +181,7 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, ui: "UI" = config.ui, clean: bool = True, add_instructions=True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
@@ -244,7 +244,7 @@ def generate_tmp_uid() -> str:
     return ts
 
 
-def check_cube_validity(cube: "Cube", ui: "UI"):
+def check_cube_validity(cube: "Cube", ui: "UI" = config.ui):
     """Helper function for pretty printing the cube validity process.
 
     Args:
@@ -286,7 +286,7 @@ def untar(filepath: str, remove: bool = True) -> str:
     return addpath
 
 
-def approval_prompt(msg: str, ui: "UI") -> bool:
+def approval_prompt(msg: str, ui: "UI" = config.ui) -> bool:
     """Helper function for prompting the user for things they have to explicitly approve.
 
     Args:
@@ -303,7 +303,7 @@ def approval_prompt(msg: str, ui: "UI") -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict, ui: "UI"):
+def dict_pretty_print(in_dict: dict, ui: "UI" = config.ui):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -318,7 +318,7 @@ def dict_pretty_print(in_dict: dict, ui: "UI"):
     ui.print("=" * 20)
 
 
-def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
+def combine_proc_sp_text(proc: spawn, ui: "UI" = config.ui) -> str:
     """Combines the output of a process and the spinner.
     Joins any string captured from the process with the
     spinner current text. Any strings ending with any other
@@ -392,7 +392,7 @@ def results_path(benchmark_uid, model_uid, data_uid):
     return out_path
 
 
-def results_ids(ui: UI):
+def results_ids(ui: UI = config.ui):
     results_storage = storage_path(config.results_storage)
     logging.debug("Getting results ids")
     results_ids = []

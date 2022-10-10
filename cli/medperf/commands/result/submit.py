@@ -1,3 +1,5 @@
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.utils import pretty_error, dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
@@ -12,12 +14,12 @@ class ResultSubmission:
         sub = cls(benchmark_uid, dset.uid, model_uid, approved=approved)
         sub.upload_results()
 
-    def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
+    def __init__(self, benchmark_uid, data_uid, model_uid, approved=False, comms: Comms = config.comms, ui: UI = config.ui):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
         self.model_uid = model_uid
-        self.comms = config.comms
-        self.ui = config.ui
+        self.comms = comms
+        self.ui = ui
         self.approved = approved
 
     def request_approval(self, result):
@@ -40,6 +42,6 @@ class ResultSubmission:
 
         if not approved:
             msg = "Results upload operation cancelled"
-            pretty_error(msg, self.ui, add_instructions=False)
+            pretty_error(msg, add_instructions=False)
 
         result.upload()

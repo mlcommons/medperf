@@ -1,4 +1,6 @@
 from medperf import config
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
@@ -7,16 +9,16 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class AssociateCube:
     @classmethod
-    def run(cls, cube_uid: str, benchmark_uid: int, approved=False):
+    def run(cls, cube_uid: str, benchmark_uid: int, approved=False, comms: Comms = config.comms, ui: UI = config.ui):
         """Associates a cube with a given benchmark
 
         Args:
             cube_uid (str): UID of model MLCube
             benchmark_uid (int): UID of benchmark
             approved (bool): Skip validation step. Defualts to False
+            comms (Comms, optional): Communications instance. Defaults to config.comms
+            ui (UI, optional): UI instance. Defaults to config.ui
         """
-        comms = config.comms
-        ui = config.ui
         cube = Cube.get(cube_uid)
         benchmark = Benchmark.get(benchmark_uid)
 

@@ -1,22 +1,22 @@
 from tabulate import tabulate
 
 from medperf import config
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.entities.dataset import Dataset
 
 
 class DatasetsList:
     @staticmethod
-    def run(all: bool = False):
+    def run(all: bool = False, comms: Comms = config.comms, ui: UI = config.ui):
         """List all local and remote users created by user.
         Use "all" to list all remote datasets in the platform
 
         Args:
-            comms (Comms): Communications instance
-            ui (UI): UI instance
             all (bool, optional): List all datasets in the platform. Defaults to False.
+            comms (Comms, optional): Communications instance. Defaults to config.comms
+            ui (UI, optional): UI instance. Defaults to config.ui
         """
-        comms = config.comms
-        ui = config.ui
         # Get local and remote datasets
         local_dsets = Dataset.all()
         if all:

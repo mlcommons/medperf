@@ -4,6 +4,8 @@ import shutil
 from medperf.enums import Status
 import yaml
 import medperf.config as config
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
@@ -59,9 +61,11 @@ class DataPreparation:
         description: str,
         location: str,
         run_test=False,
+        comms: Comms = config.comms,
+        ui: UI = config.ui
     ):
-        self.comms = config.comms
-        self.ui = config.ui
+        self.comms = comms
+        self.ui = ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         out_path = generate_tmp_datapath()

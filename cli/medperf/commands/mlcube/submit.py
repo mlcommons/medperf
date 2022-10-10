@@ -1,12 +1,14 @@
 import validators
 
 import medperf.config as config
+from medperf.ui.interface import UI
+from medperf.comms.interface import Comms
 from medperf.utils import get_file_sha1, pretty_error
 
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict):
+    def run(cls, submit_info: dict, ui: UI = config.ui):
         """Submits a new cube to the medperf platform
 
         Args:
@@ -19,11 +21,11 @@ class SubmitCube:
                     additional_files_tarball_hash,
                     image_tarball_url,
                     image_tarball_hash,
+            ui (UI, optional): UI instance. Defaults to config.ui
         """
-        ui = config.ui
         submission = cls(submit_info)
         if not submission.is_valid():
-            pretty_error("MLCube submission is invalid", ui)
+            pretty_error("MLCube submission is invalid")
 
         with ui.interactive():
 
@@ -38,9 +40,9 @@ class SubmitCube:
             ui.text = "Submitting MLCube to MedPerf"
             submission.submit()
 
-    def __init__(self, submit_info: dict):
-        self.comms = config.comms
-        self.ui = config.ui
+    def __init__(self, submit_info: dict, comms: Comms = config.comms, ui: UI = config.ui):
+        self.comms = comms
+        self.ui = ui
         self.name = submit_info["name"]
         self.mlcube_file = submit_info["mlcube_file"]
         self.params_file = submit_info["params_file"]
