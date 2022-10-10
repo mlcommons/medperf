@@ -475,7 +475,7 @@ def test_run_uses_correct_uids(
 
     tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
     exec_spy.assert_called_once_with(
-        tmp_uid, exp_data_uid, exp_model_uid, comms, ui, run_test=True
+        tmp_uid, exp_data_uid, exp_model_uid, run_test=True
     )
 
 
