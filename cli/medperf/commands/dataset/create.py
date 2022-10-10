@@ -143,19 +143,19 @@ class DataPreparation:
         # Run the tasks
         self.ui.text = "Running preparation step..."
         self.cube.run(
-            self.ui, task="prepare", timeout=prepare_timeout, **prepare_params
+            task="prepare", timeout=prepare_timeout, **prepare_params
         )
         self.ui.print("> Cube execution complete")
 
         self.ui.text = "Running sanity check..."
         self.cube.run(
-            self.ui, task="sanity_check", timeout=sanity_check_timeout, **sanity_params
+            task="sanity_check", timeout=sanity_check_timeout, **sanity_params
         )
         self.ui.print("> Sanity checks complete")
 
         self.ui.text = "Generating statistics..."
         self.cube.run(
-            self.ui, task="statistics", timeout=statistics_timeout, **statistics_params
+            task="statistics", timeout=statistics_timeout, **statistics_params
         )
         self.ui.print("> Statistics complete")
 
