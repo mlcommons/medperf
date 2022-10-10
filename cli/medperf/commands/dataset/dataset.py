@@ -46,15 +46,12 @@ def create(
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
-    comms = config.comms
     ui = config.ui
     data_uid = DataPreparation.run(
         benchmark_uid,
         data_prep_uid,
         data_path,
         labels_path,
-        comms,
-        ui,
         name=name,
         description=description,
         location=location,
