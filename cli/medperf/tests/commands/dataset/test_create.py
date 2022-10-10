@@ -138,16 +138,14 @@ class TestWithDefaultUID:
         ui = preparation.ui
         out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
-            ui,
             task="prepare",
             timeout=None,
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
         )
-        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
+        check = call(task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
         stats = call(
-            ui,
             task="statistics",
             data_path=OUT_DATAPATH,
             timeout=None,
@@ -171,7 +169,6 @@ class TestWithDefaultUID:
         ui = preparation.ui
         out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
-            ui,
             task="prepare",
             timeout=None,
             data_path=DATA_PATH,
@@ -180,14 +177,12 @@ class TestWithDefaultUID:
             output_labels_path=OUT_LABELSPATH,
         )
         check = call(
-            ui,
             task="sanity_check",
             timeout=None,
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
         )
         stats = call(
-            ui,
             task="statistics",
             timeout=None,
             data_path=OUT_DATAPATH,
