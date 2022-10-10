@@ -118,8 +118,6 @@ class CompatibilityTestExecution:
             benchmark.uid,
             self.data_uid,
             self.model,
-            self.comms,
-            self.ui,
             run_test=True,
         )
         # Datasets associated with results of compatibility-test are identified
