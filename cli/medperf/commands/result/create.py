@@ -92,7 +92,6 @@ class BenchmarkExecution:
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
         self.model_cube.run(
-            self.ui,
             task="infer",
             timeout=infer_timeout,
             data_path=data_path,
@@ -113,7 +112,6 @@ class BenchmarkExecution:
             )
 
         self.evaluator.run(
-            self.ui,
             task="evaluate",
             timeout=evaluate_timeout,
             predictions=preds_path,
