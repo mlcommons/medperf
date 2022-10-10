@@ -26,7 +26,7 @@ def execution(mocker, comms, ui, cube):
     mocker.patch(PATCH_EXECUTION.format("init_storage"))
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
-    exec = BenchmarkExecution(0, 0, 0, comms, ui)
+    exec = BenchmarkExecution(0, 0, 0)
     exec.prepare()
     exec.dataset.uid = 1
     exec.dataset.generated_uid = "data_uid"
@@ -177,7 +177,7 @@ def test_run_executes_expected_flow(mocker, comms, ui, execution):
     run_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.run_cubes"))
 
     # Act
-    BenchmarkExecution.run(1, 1, 1, comms, ui)
+    BenchmarkExecution.run(1, 1, 1)
 
     # Assert
     val_spy.assert_called_once()

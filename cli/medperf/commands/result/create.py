@@ -22,8 +22,6 @@ class BenchmarkExecution:
         benchmark_uid: int,
         data_uid: str,
         model_uid: int,
-        comms: Comms,
-        ui: UI,
         run_test=False,
     ):
         """Benchmark execution flow.
@@ -33,7 +31,7 @@ class BenchmarkExecution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui, run_test)
+        execution = cls(benchmark_uid, data_uid, model_uid, run_test)
         execution.prepare()
         execution.validate()
         with execution.ui.interactive():
@@ -45,15 +43,13 @@ class BenchmarkExecution:
         benchmark_uid: int,
         data_uid: int,
         model_uid: int,
-        comms: Comms,
-        ui: UI,
         run_test=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
         self.model_uid = model_uid
-        self.comms = comms
-        self.ui = ui
+        self.comms = config.comms
+        self.ui = config.ui
         self.evaluator = None
         self.model_cube = None
         self.run_test = run_test

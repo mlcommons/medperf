@@ -50,8 +50,6 @@ def preparation(mocker, comms, ui):
         NAME,
         DESCRIPTION,
         LOCATION,
-        comms,
-        ui,
     )
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()
@@ -103,7 +101,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        preparation = DataPreparation(None, cube_uid, *[""] * 5, comms, ui)
+        preparation = DataPreparation(None, cube_uid, *[""] * 5)
         preparation.get_prep_cube()
 
         # Assert
@@ -122,7 +120,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        preparation = DataPreparation(cube_uid, None, *[""] * 5, comms, ui)
+        preparation = DataPreparation(cube_uid, None, *[""] * 5)
         preparation.get_prep_cube()
 
         # Assert
@@ -228,7 +226,7 @@ class TestWithDefaultUID:
         write_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
 
         # Act
-        DataPreparation.run("", "", "", "", comms, ui)
+        DataPreparation.run("", "", "", "")
 
         # Assert
         validate_spy.assert_called_once()
@@ -249,7 +247,7 @@ class TestWithDefaultUID:
         spy = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
 
         # Act
-        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5, comms, ui)
+        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5)
         preparation.validate()
         # Assert
 
@@ -373,7 +371,7 @@ def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
 
     # Act
-    returned_uid = DataPreparation.run("", "", "", "", comms, ui)
+    returned_uid = DataPreparation.run("", "", "", "")
 
     # Assert
     assert returned_uid == uid

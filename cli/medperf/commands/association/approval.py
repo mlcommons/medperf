@@ -1,5 +1,4 @@
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
+from medperf import config
 from medperf.utils import pretty_error
 
 
@@ -8,8 +7,6 @@ class Approval:
     def run(
         benchmark_uid: str,
         approval_status: str,
-        comms: Comms,
-        ui: UI,
         dataset_uid: str = None,
         mlcube_uid: str = None,
     ):
@@ -23,6 +20,8 @@ class Approval:
             dataset_uid (str, optional): Dataset UID. Defaults to None.
             mlcube_uid (str, optional): MLCube UID. Defaults to None.
         """
+        comms = config.comms
+        ui = config.ui
         too_many_resources = dataset_uid and mlcube_uid
         no_resource = dataset_uid is None and mlcube_uid is None
         if no_resource or too_many_resources:

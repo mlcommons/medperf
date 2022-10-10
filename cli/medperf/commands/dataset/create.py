@@ -3,9 +3,7 @@ from pathlib import Path
 import shutil
 from medperf.enums import Status
 import yaml
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
@@ -26,8 +24,6 @@ class DataPreparation:
         prep_cube_uid: str,
         data_path: str,
         labels_path: str,
-        comms: Comms,
-        ui: UI,
         run_test=False,
         name: str = None,
         description: str = None,
@@ -42,8 +38,6 @@ class DataPreparation:
             name,
             description,
             location,
-            comms,
-            ui,
             run_test,
         )
         preparation.validate()
@@ -64,12 +58,10 @@ class DataPreparation:
         name: str,
         description: str,
         location: str,
-        comms: Comms,
-        ui: UI,
         run_test=False,
     ):
-        self.comms = comms
-        self.ui = ui
+        self.comms = config.comms
+        self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         out_path = generate_tmp_datapath()

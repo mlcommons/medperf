@@ -186,7 +186,7 @@ def test_upload_returns_uid_from_comms(mocker, all_uids, ui, comms_uid, comms):
     dset = Dataset(uid)
 
     # Act
-    uid = dset.upload(comms)
+    uid = dset.upload()
 
     # Assert
     assert uid == comms_uid

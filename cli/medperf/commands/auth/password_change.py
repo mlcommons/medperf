@@ -8,9 +8,11 @@ from medperf.utils import pretty_error, storage_path
 
 class PasswordChange:
     @staticmethod
-    def run(comms: Comms, ui: UI):
+    def run():
         """Change the user's password. Must be logged in
         """
+        comms = config.comms
+        ui = config.ui
         pwd = ui.hidden_prompt("Please type your new password: ")
         pwd_repeat = ui.hidden_prompt("Please retype your new password: ")
         if pwd != pwd_repeat:

@@ -468,7 +468,7 @@ def test_cube_runs_command_with_pexpect(
     # Act
     uid = 1
     cube = Cube.get(uid)
-    cube.run(ui, "task", timeout=timeout)
+    cube.run("task", timeout=timeout)
 
     # Assert
     spy.assert_any_call(expected_cmd, timeout=timeout)
@@ -486,7 +486,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
     # Act
     uid = 1
     cube = Cube.get(uid)
-    cube.run(ui, task, test="test")
+    cube.run(task, test="test")
 
     # Assert
     spy.assert_any_call(expected_cmd, timeout=None)
@@ -659,7 +659,7 @@ def test_upload_runs_comms_upload_proc(mocker, comms, basic_body, no_local):
     spy = mocker.patch.object(comms, "upload_mlcube")
 
     # Act
-    cube.upload(comms)
+    cube.upload()
 
     # Assert
     spy.assert_called_once_with(cube.todict())
@@ -672,7 +672,7 @@ def test_upload_returns_comms_generated_uid(mocker, comms, basic_body, no_local,
     mocker.patch.object(comms, "upload_mlcube", return_value=uid)
 
     # Act
-    returned_uid = cube.upload(comms)
+    returned_uid = cube.upload()
 
     # Assert
     assert uid == returned_uid

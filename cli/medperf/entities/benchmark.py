@@ -6,7 +6,6 @@ from collections import defaultdict
 
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.comms.interface import Comms
 from medperf.utils import storage_path, pretty_error
 
 
@@ -94,7 +93,7 @@ class Benchmark(Entity):
             # Download benchmark
             benchmark_dict = comms.get_benchmark(benchmark_uid)
             ref_model = benchmark_dict["reference_model_mlcube"]
-            add_models = cls.get_models_uids(benchmark_uid, comms)
+            add_models = cls.get_models_uids(benchmark_uid)
             benchmark_dict["models"] = [ref_model] + add_models
         benchmark_dict["uid"] = benchmark_uid
         benchmark = cls(benchmark_dict)
@@ -157,7 +156,7 @@ class Benchmark(Entity):
         return benchmark
 
     @classmethod
-    def get_models_uids(cls, benchmark_uid: str, comms: Comms) -> List[str]:
+    def get_models_uids(cls, benchmark_uid: str) -> List[str]:
         """Retrieves the list of models associated to the benchmark
 
         Args:
@@ -167,7 +166,7 @@ class Benchmark(Entity):
         Returns:
             List[str]: List of mlcube uids
         """
-        return comms.get_benchmark_models(benchmark_uid)
+        return config.comms.get_benchmark_models(benchmark_uid)
 
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance
@@ -215,11 +214,11 @@ class Benchmark(Entity):
             yaml.dump(data, f)
         return filepath
 
-    def upload(self, comms: Comms):
+    def upload(self):
         """Uploads a benchmark to the server
 
         Args:
             comms (Comms): communications entity to submit through
         """
         body = self.todict()
-        comms.upload_benchmark(body)
+        config.comms.upload_benchmark(body)

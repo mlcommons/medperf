@@ -18,9 +18,7 @@ def list(
     """Lists all benchmarks created by the user
     If --all is used, displays all benchmarks in the platform
     """
-    ui = config.ui
-    comms = config.comms
-    BenchmarksList.run(comms, ui, all)
+    BenchmarksList.run(all)
 
 
 @app.command("submit")
@@ -48,8 +46,6 @@ def submit(
     ),
 ):
     """Submits a new benchmark to the platform"""
-    comms = config.comms
-    ui = config.ui
     benchmark_info = {
         "name": name,
         "description": description,
@@ -60,9 +56,9 @@ def submit(
         "reference_model_mlcube": reference_model_mlcube,
         "evaluator_mlcube": evaluator_mlcube,
     }
-    SubmitBenchmark.run(benchmark_info, comms, ui)
+    SubmitBenchmark.run(benchmark_info)
     cleanup()
-    ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("associate")
@@ -81,9 +77,7 @@ def associate(
 ):
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
-    comms = config.comms
-    ui = config.ui
     AssociateBenchmark.run(
-        benchmark_uid, model_uid, dataset_uid, comms, ui, approved=approval
+        benchmark_uid, model_uid, dataset_uid, approved=approval
     )
-    ui.print("✅ Done!")
+    config.ui.print("✅ Done!")

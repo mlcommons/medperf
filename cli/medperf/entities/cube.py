@@ -15,8 +15,6 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.comms.interface import Comms
-from medperf.ui.interface import UI
 import medperf.config as config
 
 
@@ -193,15 +191,15 @@ class Cube(Entity):
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
+    def run(self, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
-            ui (UI): an instance of an UI implementation
             task (str): task to run
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
+        ui = config.ui
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
@@ -256,7 +254,7 @@ class Cube(Entity):
     def todict(self) -> Dict:
         return self.meta
 
-    def upload(self, comms: Comms) -> int:
-        cube_uid = comms.upload_mlcube(self.todict())
+    def upload(self) -> int:
+        cube_uid = config.comms.upload_mlcube(self.todict())
         self.uid = cube_uid
         return self.uid

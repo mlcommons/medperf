@@ -1,5 +1,4 @@
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
+from medperf import config
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
@@ -8,13 +7,15 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class AssociateDataset:
     @staticmethod
-    def run(data_uid: str, benchmark_uid: int, comms: Comms, ui: UI, approved=False):
+    def run(data_uid: str, benchmark_uid: int, approved=False):
         """Associates a registered dataset with a benchmark
 
         Args:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
         """
+        comms = config.comms
+        ui = config.ui
         dset = Dataset(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
