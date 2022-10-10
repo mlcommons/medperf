@@ -41,7 +41,7 @@ def login(
 ):
     """Login to the medperf server. Must be done only once.
     """
-    Login.run(config.comms, config.ui, username=username, password=password)
+    Login.run(username=username, password=password)
     config.ui.print("✅ Done!")
 
 
