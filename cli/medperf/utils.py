@@ -254,7 +254,7 @@ def check_cube_validity(cube: "Cube", ui: "UI" = config.ui):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match", ui)
+        pretty_error("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -338,7 +338,7 @@ def combine_proc_sp_text(proc: spawn, ui: "UI" = config.ui) -> str:
             line = byte = proc.read(1)
         except TIMEOUT:
             logging.info("Process timed out")
-            pretty_error("Process timed out", ui)
+            pretty_error("Process timed out")
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -412,7 +412,7 @@ def results_ids(ui: UI = config.ui):
     except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
-        pretty_error(msg, ui)
+        pretty_error(msg)
     logging.debug(f"Results ids: {results_ids}")
     return results_ids
 

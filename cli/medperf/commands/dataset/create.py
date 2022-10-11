@@ -85,9 +85,9 @@ class DataPreparation:
 
     def validate(self):
         if not os.path.exists(self.data_path):
-            pretty_error("The provided data path doesn't exist", self.ui)
+            pretty_error("The provided data path doesn't exist")
         if not os.path.exists(self.labels_path):
-            pretty_error("The provided labels path doesn't exist", self.ui)
+            pretty_error("The provided labels path doesn't exist")
 
         too_many_resources = self.benchmark_uid and self.prep_cube_uid
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None

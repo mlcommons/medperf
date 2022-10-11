@@ -214,7 +214,7 @@ class Cube(Entity):
         if proc.exitstatus != 0:
             ui.text = "\n"
             ui.print(proc_out)
-            pretty_error("There was an error while executing the cube", ui)
+            pretty_error("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
         return proc

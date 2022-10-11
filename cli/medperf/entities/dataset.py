@@ -150,9 +150,9 @@ class Dataset(Entity):
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
+            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
         elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.", ui)
+            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
         else:
             return match[0]
 

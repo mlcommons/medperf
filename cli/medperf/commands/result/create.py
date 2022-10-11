@@ -60,11 +60,11 @@ class BenchmarkExecution:
 
         if self.dataset.uid is None and not self.run_test:
             msg = "The provided dataset is not registered."
-            pretty_error(msg, self.ui)
+            pretty_error(msg)
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
-            pretty_error(msg, self.ui)
+            pretty_error(msg)
 
         in_assoc_cubes = self.model_uid in self.benchmark.models
         if not self.run_test and not in_assoc_cubes:
