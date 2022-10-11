@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, mock_open, call, ANY
 
 from medperf import utils
-from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar

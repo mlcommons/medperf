@@ -143,7 +143,6 @@ class Dataset(Entity):
         Returns:
             str: the complete UID
         """
-        ui = config.ui
         data_storage = storage_path(config.data_storage)
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
