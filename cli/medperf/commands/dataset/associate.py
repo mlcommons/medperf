@@ -19,12 +19,12 @@ class AssociateDataset:
         dset = Dataset(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
-            pretty_error(msg, ui)
+            pretty_error(msg)
 
         benchmark = Benchmark.get(benchmark_uid)
 
         if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):
-            pretty_error("The specified dataset wasn't prepared for this benchmark", ui)
+            pretty_error("The specified dataset wasn't prepared for this benchmark")
 
         _, _, _, result = CompatibilityTestExecution.run(
             benchmark_uid, data_uid=data_uid

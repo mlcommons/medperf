@@ -218,7 +218,7 @@ class CompatibilityTestExecution:
         file_hash = get_file_sha1(file_path)
         # Alllow for empty datset hashes for benchmark registration purposes
         if dset_hash and file_hash != dset_hash:
-            pretty_error("Demo dataset hash doesn't match expected hash", self.ui)
+            pretty_error("Demo dataset hash doesn't match expected hash")
 
         untar_path = untar(file_path, remove=False)
 

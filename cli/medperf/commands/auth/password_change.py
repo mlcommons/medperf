@@ -27,4 +27,4 @@ class PasswordChange:
             os.remove(cred_path)
             ui.print("Password changed. Please log back in with medperf login")
         else:
-            pretty_error("Unable to change the current password", ui)
+            pretty_error("Unable to change the current password")

@@ -72,7 +72,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg, config.ui)
+            pretty_error(msg)
 
         cubes = []
         for uid in uids:
@@ -212,7 +212,7 @@ class Cube(Entity):
         if proc.exitstatus != 0:
             ui.text = "\n"
             ui.print(proc_out)
-            pretty_error("There was an error while executing the cube", ui)
+            pretty_error("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
         return proc

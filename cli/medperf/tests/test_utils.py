@@ -49,12 +49,6 @@ def dict_with_nones(request):
 
 
 @pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
 def filesystem():
     fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs"))])
     files = ["/foo/baz", "/foo/bar/spam", "/foo/bar/eggs"]
@@ -171,7 +165,7 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error(msg, ui)
+    utils.pretty_error(msg)
 
     # Assert
     printed_msg = spy.call_args_list[0][0][0]
@@ -202,7 +196,7 @@ def test_pretty_error_exits_program(mocker, ui):
     spy = mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error("test", ui)
+    utils.pretty_error("test")
 
     # Assert
     spy.assert_called_once()

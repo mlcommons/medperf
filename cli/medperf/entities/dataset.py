@@ -96,7 +96,7 @@ class Dataset(Entity):
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", config.ui)
+            pretty_error("Couldn't iterate over the dataset directory")
         tmp_prefix = config.tmp_prefix
         dsets = []
         for generated_uid in generated_uids:
@@ -148,9 +148,9 @@ class Dataset(Entity):
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
+            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
         elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.", ui)
+            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
         else:
             return match[0]
 

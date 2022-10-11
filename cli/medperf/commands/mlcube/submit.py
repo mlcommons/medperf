@@ -23,7 +23,7 @@ class SubmitCube:
         ui = config.ui
         submission = cls(submit_info)
         if not submission.is_valid():
-            pretty_error("MLCube submission is invalid", ui)
+            pretty_error("MLCube submission is invalid")
 
         with ui.interactive():
 

@@ -181,7 +181,7 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, clean: bool = True, add_instructions=True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
@@ -191,6 +191,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
         add_instructions (bool, optional):
             Show additional instructions to the user. Defualts to True.
     """
+    ui = config.ui
     logging.warning(
         "MedPerf had to stop execution. See logs above for more information"
     )
@@ -254,7 +255,7 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match", ui)
+        pretty_error("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -338,7 +339,7 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
             line = byte = proc.read(1)
         except TIMEOUT:
             logging.info("Process timed out")
-            pretty_error("Process timed out", ui)
+            pretty_error("Process timed out")
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -412,7 +413,7 @@ def results_ids(ui: UI):
     except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
-        pretty_error(msg, ui)
+        pretty_error(msg)
     logging.debug(f"Results ids: {results_ids}")
     return results_ids
 

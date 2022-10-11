@@ -27,7 +27,7 @@ class SubmitBenchmark:
         ui = config.ui
         submission = cls(benchmark_info)
         if not submission.is_valid():
-            pretty_error("Invalid benchmark information", ui)
+            pretty_error("Invalid benchmark information")
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -112,7 +112,7 @@ class SubmitBenchmark:
             logging.error(
                 f"Demo dataset hash mismatch: {demo_hash} != {self.demo_hash}"
             )
-            pretty_error("Demo dataset hash does not match the provided hash", self.ui)
+            pretty_error("Demo dataset hash does not match the provided hash")
         self.demo_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.demo_uid = demo_uid
