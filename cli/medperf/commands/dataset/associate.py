@@ -1,6 +1,4 @@
 from medperf import config
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
@@ -9,24 +7,24 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class AssociateDataset:
     @staticmethod
-    def run(data_uid: str, benchmark_uid: int, approved=False, comms: Comms = config.comms, ui: UI = config.ui):
+    def run(data_uid: str, benchmark_uid: int, approved=False):
         """Associates a registered dataset with a benchmark
 
         Args:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
-            comms (Comms, optional): Communications instance. Defaults to config.comms
-            ui (UI, optional): UI instance. Defaults to config.ui
         """
+        comms = config.comms
+        ui = config.ui
         dset = Dataset(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
-            pretty_error(msg)
+            pretty_error(msg, ui)
 
         benchmark = Benchmark.get(benchmark_uid)
 
         if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):
-            pretty_error("The specified dataset wasn't prepared for this benchmark")
+            pretty_error("The specified dataset wasn't prepared for this benchmark", ui)
 
         _, _, _, result = CompatibilityTestExecution.run(
             benchmark_uid, data_uid=data_uid

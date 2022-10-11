@@ -4,8 +4,6 @@ import shutil
 from medperf.enums import Status
 import yaml
 import medperf.config as config
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
@@ -61,11 +59,9 @@ class DataPreparation:
         description: str,
         location: str,
         run_test=False,
-        comms: Comms = config.comms,
-        ui: UI = config.ui
     ):
-        self.comms = comms
-        self.ui = ui
+        self.comms = config.comms
+        self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         out_path = generate_tmp_datapath()
@@ -85,9 +81,9 @@ class DataPreparation:
 
     def validate(self):
         if not os.path.exists(self.data_path):
-            pretty_error("The provided data path doesn't exist")
+            pretty_error("The provided data path doesn't exist", self.ui)
         if not os.path.exists(self.labels_path):
-            pretty_error("The provided labels path doesn't exist")
+            pretty_error("The provided labels path doesn't exist", self.ui)
 
         too_many_resources = self.benchmark_uid and self.prep_cube_uid
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None

@@ -3,8 +3,6 @@ from medperf.enums import Status
 import validators
 
 import medperf.config as config
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import get_file_sha1, generate_tmp_uid, pretty_error
 from medperf.commands.compatibility_test import CompatibilityTestExecution
@@ -12,7 +10,7 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class SubmitBenchmark:
     @classmethod
-    def run(cls, benchmark_info: dict, ui: UI = config.ui):
+    def run(cls, benchmark_info: dict):
         """Submits a new cube to the medperf platform
         Args:
             benchmark_info (dict): benchmark information
@@ -25,11 +23,11 @@ class SubmitBenchmark:
                     data_preparation_mlcube (str): benchmark data preparation mlcube uid
                     reference_model_mlcube (str): benchmark reference model mlcube uid
                     evaluator_mlcube (str): benchmark data evaluator mlcube uid
-            ui (UI, optional): UI instance. Defaults to config.ui
         """
+        ui = config.ui
         submission = cls(benchmark_info)
         if not submission.is_valid():
-            pretty_error("Invalid benchmark information")
+            pretty_error("Invalid benchmark information", ui)
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -39,9 +37,9 @@ class SubmitBenchmark:
             submission.submit()
         ui.print("Uploaded")
 
-    def __init__(self, benchmark_info: dict, comms: Comms = config.comms, ui: UI = config.ui):
-        self.comms = comms
-        self.ui = ui
+    def __init__(self, benchmark_info: dict):
+        self.comms = config.comms
+        self.ui = config.ui
         self.name = benchmark_info["name"]
         self.description = benchmark_info["description"]
         self.docs_url = benchmark_info["docs_url"]
@@ -114,7 +112,7 @@ class SubmitBenchmark:
             logging.error(
                 f"Demo dataset hash mismatch: {demo_hash} != {self.demo_hash}"
             )
-            pretty_error("Demo dataset hash does not match the provided hash")
+            pretty_error("Demo dataset hash does not match the provided hash", self.ui)
         self.demo_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.demo_uid = demo_uid

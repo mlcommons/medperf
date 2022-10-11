@@ -1,26 +1,24 @@
 from medperf.utils import approval_prompt, pretty_error
 from medperf.entities.dataset import Dataset
-from medperf.comms.interface import Comms
-from medperf.ui.interface import UI
 from medperf.enums import Status
 from medperf import config
 
 
 class DatasetRegistration:
     @staticmethod
-    def run(data_uid: str, approved=False, comms: Comms = config.comms, ui: UI = config.ui):
+    def run(data_uid: str, approved=False):
         """Registers a database to the backend.
 
         Args:
             data_uid (str): UID Hint of the unregistered dataset
-            comms (Comms, optional): Communications instance. Defaults to config.comms
-            ui (UI, optional): UI instance. Defaults to config.ui
         """
+        comms = config.comms
+        ui = config.ui
         dset = Dataset(data_uid)
 
         if dset.uid:
             pretty_error(
-                "This dataset has already been registered.", add_instructions=False
+                "This dataset has already been registered.", ui, add_instructions=False
             )
         remote_dsets = comms.get_user_datasets()
         remote_dset = [

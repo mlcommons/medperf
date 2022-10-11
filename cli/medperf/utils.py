@@ -73,7 +73,7 @@ def init_storage():
             logging.warning(f"Tried to create existing folder {dir}")
 
 
-def cleanup(ui: UI = config.ui):
+def cleanup():
     """Removes clutter and unused files from the medperf folder structure.
     """
     if not config.cleanup:
@@ -86,7 +86,7 @@ def cleanup(ui: UI = config.ui):
             rmtree(tmp_path)
         except OSError as e:
             logging.error(f"Could not remove temporary data storage: {e}")
-            ui.print_error(
+            config.ui.print_error(
                 "Could not remove temporary data storage. For more information check the logs."
             )
 
@@ -95,7 +95,7 @@ def cleanup(ui: UI = config.ui):
     cleanup_benchmarks()
 
 
-def cleanup_dsets(ui: UI = config.ui):
+def cleanup_dsets():
     """Removes clutter related to datsets
     """
     dsets_path = storage_path(config.data_storage)
@@ -116,12 +116,12 @@ def cleanup_dsets(ui: UI = config.ui):
                 rmtree(dset_path)
             except OSError as e:
                 logging.error(f"Could not remove dataset {dset}: {e}")
-                ui.print_error(
+                config.ui.print_error(
                     f"Could not remove dataset {dset}. For more information check the logs."
                 )
 
 
-def cleanup_cubes(ui: UI = config.ui):
+def cleanup_cubes():
     """Removes clutter related to cubes
     """
     cubes_path = storage_path(config.cubes_storage)
@@ -143,12 +143,12 @@ def cleanup_cubes(ui: UI = config.ui):
                     rmtree(cube_path)
             except OSError as e:
                 logging.error(f"Could not remove cube {cube}: {e}")
-                ui.print_error(
+                config.ui.print_error(
                     f"Could not remove cube {cube}. For more information check the logs."
                 )
 
 
-def cleanup_benchmarks(ui: UI = config.ui):
+def cleanup_benchmarks():
     """Removes clutter related to benchmarks
     """
     bmks_path = storage_path(config.benchmarks_storage)
@@ -163,7 +163,7 @@ def cleanup_benchmarks(ui: UI = config.ui):
                 rmtree(bmk_path)
             except OSError as e:
                 logging.error(f"Could not remove benchmark {bmk}: {e}")
-                ui.print_error(
+                config.ui.print_error(
                     f"Could not remove benchmark {bmk}. For more information check the logs."
                 )
 
@@ -181,7 +181,7 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, ui: "UI" = config.ui, clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
@@ -244,7 +244,7 @@ def generate_tmp_uid() -> str:
     return ts
 
 
-def check_cube_validity(cube: "Cube", ui: "UI" = config.ui):
+def check_cube_validity(cube: "Cube", ui: "UI"):
     """Helper function for pretty printing the cube validity process.
 
     Args:
@@ -254,7 +254,7 @@ def check_cube_validity(cube: "Cube", ui: "UI" = config.ui):
     logging.info(f"Checking cube {cube.name} validity")
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        pretty_error("MD5 hash doesn't match", ui)
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -286,7 +286,7 @@ def untar(filepath: str, remove: bool = True) -> str:
     return addpath
 
 
-def approval_prompt(msg: str, ui: "UI" = config.ui) -> bool:
+def approval_prompt(msg: str, ui: "UI") -> bool:
     """Helper function for prompting the user for things they have to explicitly approve.
 
     Args:
@@ -303,7 +303,7 @@ def approval_prompt(msg: str, ui: "UI" = config.ui) -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict, ui: "UI" = config.ui):
+def dict_pretty_print(in_dict: dict, ui: "UI"):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -318,7 +318,7 @@ def dict_pretty_print(in_dict: dict, ui: "UI" = config.ui):
     ui.print("=" * 20)
 
 
-def combine_proc_sp_text(proc: spawn, ui: "UI" = config.ui) -> str:
+def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     """Combines the output of a process and the spinner.
     Joins any string captured from the process with the
     spinner current text. Any strings ending with any other
@@ -338,7 +338,7 @@ def combine_proc_sp_text(proc: spawn, ui: "UI" = config.ui) -> str:
             line = byte = proc.read(1)
         except TIMEOUT:
             logging.info("Process timed out")
-            pretty_error("Process timed out")
+            pretty_error("Process timed out", ui)
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -392,7 +392,7 @@ def results_path(benchmark_uid, model_uid, data_uid):
     return out_path
 
 
-def results_ids(ui: UI = config.ui):
+def results_ids(ui: UI):
     results_storage = storage_path(config.results_storage)
     logging.debug("Getting results ids")
     results_ids = []
@@ -412,7 +412,7 @@ def results_ids(ui: UI = config.ui):
     except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
-        pretty_error(msg)
+        pretty_error(msg, ui)
     logging.debug(f"Results ids: {results_ids}")
     return results_ids
 

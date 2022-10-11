@@ -1,21 +1,21 @@
 from tabulate import tabulate
 
 from medperf import config
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 
 
 class BenchmarksList:
     @staticmethod
-    def run(all: bool = False, comms: Comms = config.comms, ui: UI = config.ui):
+    def run(all: bool = False):
         """Lists all benchmarks created by the user by default.
         Use "all" to display all benchmarks in the platform
 
         Args:
+            comms (Comms): Communications instance
+            ui (UI): UI instance
             all (bool): Display all benchmarks in the platform. Defaults to False.
-            comms (Comms, optional): Communications instance. Defaults to config.comms
-            ui (UI, optional): UI instance. Defaults to config.ui
         """
+        comms = config.comms
+        ui = config.ui
         if all:
             benchmarks = comms.get_benchmarks()
         else:

@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import List
 
 import medperf.config as config
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -59,8 +57,6 @@ class CompatibilityTestExecution:
         data_prep: str,
         model: str,
         evaluator: str,
-        comms: Comms = config.comms,
-        ui: UI = config.ui,
     ):
         self.benchmark_uid = benchmark_uid
         self.demo_dataset_url = None
@@ -70,8 +66,8 @@ class CompatibilityTestExecution:
         self.data_prep = data_prep
         self.model = model
         self.evaluator = evaluator
-        self.comms = comms
-        self.ui = ui
+        self.comms = config.comms
+        self.ui = config.ui
 
     def validate(self):
         """Ensures test has been passed a valid combination of parameters.
@@ -222,7 +218,7 @@ class CompatibilityTestExecution:
         file_hash = get_file_sha1(file_path)
         # Alllow for empty datset hashes for benchmark registration purposes
         if dset_hash and file_hash != dset_hash:
-            pretty_error("Demo dataset hash doesn't match expected hash")
+            pretty_error("Demo dataset hash doesn't match expected hash", self.ui)
 
         untar_path = untar(file_path, remove=False)
 

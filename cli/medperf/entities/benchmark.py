@@ -63,7 +63,7 @@ class Benchmark(Entity):
         except StopIteration:
             msg = "Couldn't iterate over benchmarks directory"
             logging.warning(msg)
-            pretty_error(msg)
+            pretty_error(msg, config.ui)
 
         benchmarks = [cls.get(uid) for uid in uids]
 

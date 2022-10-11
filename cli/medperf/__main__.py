@@ -160,8 +160,7 @@ def main(
         config.certificate = abspath(expanduser(config.local_certificate))
     else:
         config.server = host
-        if certificate is not None:
-            config.certificate = abspath(expanduser(certificate))
+        config.certificate = abspath(expanduser(certificate))
     config.log_file = log_file
 
     init_storage()

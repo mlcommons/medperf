@@ -15,13 +15,15 @@ class AssociateBenchmark:
             benchmark_uid (str): UID of benchmark to associate entities with
             model_uid (str): UID of model to associate with benchmark
             data_uid (str): UID of dataset to associate with benchmark
+            comms (Comms): Instance of Communications interface
+            ui (UI): Instance of UI interface
             approved (bool): Skip approval step. Defaults to False
         """
         too_many_resources = data_uid and model_uid
         no_resource = data_uid is None and model_uid is None
         if no_resource or too_many_resources:
             pretty_error(
-                "Invalid arguments. Must provide either a dataset or mlcube"
+                "Invalid arguments. Must provide either a dataset or mlcube", config.ui
             )
         if model_uid is not None:
             AssociateCube.run(model_uid, benchmark_uid, approved=approved)
