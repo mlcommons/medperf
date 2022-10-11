@@ -179,7 +179,7 @@ def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
     mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error("test", ui, clean)
+    utils.pretty_error("test", clean)
 
     # Assert
     if clean:

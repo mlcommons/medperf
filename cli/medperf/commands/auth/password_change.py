@@ -16,7 +16,6 @@ class PasswordChange:
         if pwd != pwd_repeat:
             pretty_error(
                 "The passwords you typed don't match. Please try again.",
-                ui,
                 clean=False,
                 add_instructions=False,
             )
