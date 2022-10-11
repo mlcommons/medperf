@@ -15,6 +15,8 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
+from medperf.comms.interface import Comms
+from medperf.ui.interface import UI
 import medperf.config as config
 
 
@@ -72,7 +74,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg, config.ui)
+            pretty_error(msg)
 
         cubes = []
         for uid in uids:
@@ -101,20 +103,20 @@ class Cube(Entity):
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: str) -> "Cube":
+    def get(cls, cube_uid: str, comms: Comms = config.comms, ui: UI = config.ui) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
             cube_uid (str): UID of the cube.
+            comms (Comms, optional): Communications instance. Defaults to config.comms
+            ui (UI, optional): UI instance. Defaults to config.ui
 
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
         "Retrieve from local storage if cube already there"
         logging.debug(f"Retrieving the cube {cube_uid}")
-        comms = config.comms
-        ui = config.ui
         local_cube = list(
             filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
@@ -191,15 +193,15 @@ class Cube(Entity):
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, task: str, timeout: int = None, **kwargs):
+    def run(self, task: str, ui: UI = config.ui, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
             task (str): task to run
+            ui (UI, optional): UI instance. Defaults to config.ui
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        ui = config.ui
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
@@ -254,7 +256,7 @@ class Cube(Entity):
     def todict(self) -> Dict:
         return self.meta
 
-    def upload(self) -> int:
-        cube_uid = config.comms.upload_mlcube(self.todict())
+    def upload(self, comms: Comms = config.comms) -> int:
+        cube_uid = comms.upload_mlcube(self.todict())
         self.uid = cube_uid
         return self.uid

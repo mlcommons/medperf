@@ -10,6 +10,8 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
+from medperf.comms.interface import Comms
+from medperf.ui.interface import UI
 import medperf.config as config
 
 
@@ -96,7 +98,7 @@ class Dataset(Entity):
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", config.ui)
+            pretty_error("Couldn't iterate over the dataset directory")
         tmp_prefix = config.tmp_prefix
         dsets = []
         for generated_uid in generated_uids:
@@ -130,11 +132,12 @@ class Dataset(Entity):
         meta = comms.get_dataset(dset_uid)
         return cls(None, registration=meta)
 
-    def __full_uid(self, uid_hint: str) -> str:
+    def __full_uid(self, uid_hint: str, ui: UI = config.ui) -> str:
         """Returns the found UID that starts with the provided UID hint
 
         Args:
             uid_hint (int): a small initial portion of an existing local dataset UID
+            ui (UI, optional): UI instance. Defaults to config.ui
 
         Raises:
             NameError: If no dataset is found starting with the given hint, this is thrown.
@@ -143,7 +146,6 @@ class Dataset(Entity):
         Returns:
             str: the complete UID
         """
-        ui = config.ui
         data_storage = storage_path(config.data_storage)
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
@@ -175,12 +177,12 @@ class Dataset(Entity):
     def todict(self):
         return self.registration
 
-    def upload(self):
+    def upload(self, comms: Comms = config.comms):
         """Uploads the registration information to the comms.
 
         Args:
-            comms (Comms): Instance of the comms interface.
+            comms (Comms, optional): Communications instance. Defaults to config.comms
         """
-        dataset_uid = config.comms.upload_dataset(self.todict())
+        dataset_uid = comms.upload_dataset(self.todict())
         self.uid = dataset_uid
         return self.uid

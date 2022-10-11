@@ -73,7 +73,7 @@ def init_storage():
             logging.warning(f"Tried to create existing folder {dir}")
 
 
-def cleanup():
+def cleanup(ui: UI = config.ui):
     """Removes clutter and unused files from the medperf folder structure.
     """
     if not config.cleanup:
@@ -86,7 +86,7 @@ def cleanup():
             rmtree(tmp_path)
         except OSError as e:
             logging.error(f"Could not remove temporary data storage: {e}")
-            config.ui.print_error(
+            ui.print_error(
                 "Could not remove temporary data storage. For more information check the logs."
             )
 
@@ -95,7 +95,7 @@ def cleanup():
     cleanup_benchmarks()
 
 
-def cleanup_dsets():
+def cleanup_dsets(ui: UI = config.ui):
     """Removes clutter related to datsets
     """
     dsets_path = storage_path(config.data_storage)
@@ -116,12 +116,12 @@ def cleanup_dsets():
                 rmtree(dset_path)
             except OSError as e:
                 logging.error(f"Could not remove dataset {dset}: {e}")
-                config.ui.print_error(
+                ui.print_error(
                     f"Could not remove dataset {dset}. For more information check the logs."
                 )
 
 
-def cleanup_cubes():
+def cleanup_cubes(ui: UI = config.ui):
     """Removes clutter related to cubes
     """
     cubes_path = storage_path(config.cubes_storage)
@@ -143,12 +143,12 @@ def cleanup_cubes():
                     rmtree(cube_path)
             except OSError as e:
                 logging.error(f"Could not remove cube {cube}: {e}")
-                config.ui.print_error(
+                ui.print_error(
                     f"Could not remove cube {cube}. For more information check the logs."
                 )
 
 
-def cleanup_benchmarks():
+def cleanup_benchmarks(ui: UI = config.ui):
     """Removes clutter related to benchmarks
     """
     bmks_path = storage_path(config.benchmarks_storage)
@@ -163,7 +163,7 @@ def cleanup_benchmarks():
                 rmtree(bmk_path)
             except OSError as e:
                 logging.error(f"Could not remove benchmark {bmk}: {e}")
-                config.ui.print_error(
+                ui.print_error(
                     f"Could not remove benchmark {bmk}. For more information check the logs."
                 )
 
