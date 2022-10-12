@@ -88,9 +88,13 @@ class REST(Comms):
     def __auth_req(self, url, req_func, **kwargs):
         if self.token is None:
             self.authenticate()
-        return self.__req(
+        logging.debug(f"Starting a request with Auth token {self.token[:5]}*****")
+        logging.debug(f"Calling {req_func.__name__.upper()}: {url} with args {kwargs}")
+        res = self.__req(
             url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs
         )
+        logging.debug(f"Request call returned status code {res.status_code}")
+        return res
 
     def __req(self, url, req_func, **kwargs):
         if "json" in kwargs:

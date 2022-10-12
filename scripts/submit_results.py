@@ -1,4 +1,5 @@
 import argparse
+import medperf
 from medperf import config
 from medperf.entities.result import Result
 from medperf.ui.factory import UIFactory
@@ -48,6 +49,8 @@ if __name__ == "__main__":
         action="store_true",
         help="Skip approval step. Automatically submits all results.",
     )
+    log_file = medperf.utils.storage_path(config.log_file)
+    medperf.utils.setup_logs("DEBUG", log_file)
     parser.set_defaults(approve=False)
     args = parser.parse_args()
     in_config = vars(args)
