@@ -505,7 +505,7 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_lo
     uid = 1
     cube = Cube.get(uid)
     with pytest.raises(SystemExit):
-        cube.run(ui, task)
+        cube.run(task)
 
     # Assert
     spy.assert_called_once()
