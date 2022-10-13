@@ -1,4 +1,5 @@
 import os
+from medperf.enums import Status
 import yaml
 import logging
 from typing import List
@@ -21,21 +22,20 @@ class Benchmark(Entity):
     what models to run and how to evaluate them.
     """
 
-    def __init__(self, benchmark_dict: dict):
+    def __init__(self, bmk_dict: dict):
         """Creates a new benchmark instance
 
         Args:
             uid (str): The benchmark UID
             benchmark_dict (dict): key-value representation of the benchmark.
         """
-        bmk_dict = defaultdict(lambda: None, benchmark_dict)
-        # Getting None by default allows creating empty benchmarks for tests
-        self.uid = bmk_dict["uid"]
+        self.uid = bmk_dict["id"]
         self.name = bmk_dict["name"]
         self.description = bmk_dict["description"]
         self.docs_url = bmk_dict["docs_url"]
         self.created_at = bmk_dict["created_at"]
         self.modified_at = bmk_dict["modified_at"]
+        self.approved_at = bmk_dict["approved_at"]
         self.owner = bmk_dict["owner"]
         self.demo_dataset_url = bmk_dict["demo_dataset_tarball_url"]
         self.demo_dataset_hash = bmk_dict["demo_dataset_tarball_hash"]
@@ -43,12 +43,13 @@ class Benchmark(Entity):
         self.data_preparation = bmk_dict["data_preparation_mlcube"]
         self.reference_model = bmk_dict["reference_model_mlcube"]
         self.evaluator = bmk_dict["data_evaluator_mlcube"]
-        # Default value for fields that should not be None in any particular scenario
-        self.models = bmk_dict["models"] or []
-        self.state = bmk_dict["state"] or "DEVELOPMENT"
-        self.is_valid = bmk_dict["is_valid"] or True
-        self.approval_status = bmk_dict["approval_status"] or "PENDING"
-        self.metadata = bmk_dict["metadata"] or {}
+        self.models = bmk_dict["models"]
+        self.state = bmk_dict["state"]
+        self.is_valid = bmk_dict["is_valid"]
+        self.is_active = bmk_dict["is_active"]
+        self.approval_status = bmk_dict["approval_status"]
+        self.metadata = bmk_dict["metadata"]
+        self.user_metadata = bmk_dict["user_metadata"]
 
     @classmethod
     def all(cls) -> List["Benchmark"]:
@@ -96,7 +97,6 @@ class Benchmark(Entity):
             ref_model = benchmark_dict["reference_model_mlcube"]
             add_models = cls.get_models_uids(benchmark_uid, comms)
             benchmark_dict["models"] = [ref_model] + add_models
-        benchmark_dict["uid"] = benchmark_uid
         benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
@@ -143,14 +143,27 @@ class Benchmark(Entity):
         """
         benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
         benchmark_dict = {
-            "uid": benchmark_uid,
+            "id": benchmark_uid,
             "name": benchmark_uid,
             "data_preparation_mlcube": data_preparator,
             "reference_model_mlcube": model,
             "data_evaluator_mlcube": evaluator,
             "demo_dataset_tarball_url": demo_url,
             "demo_dataset_tarball_hash": demo_hash,
-            "models": [model],
+            "models": [model],  # not in the server (OK)
+            "description": None,
+            "docs_url": None,
+            "created_at": None,
+            "modified_at": None,
+            "approved_at": None,
+            "owner": None,
+            "demo_dataset_generated_uid": None,
+            "state": "DEVELOPMENT",
+            "is_valid": True,
+            "is_active": True,
+            "approval_status": Status.PENDING.value,
+            "metadata": {},
+            "user_metadata": {},
         }
         benchmark = cls(benchmark_dict)
         benchmark.write()
@@ -176,27 +189,30 @@ class Benchmark(Entity):
         dict: Dictionary containing benchmark information
         """
         return {
-            "uid": self.uid,
+            "id": self.uid,
             "name": self.name,
             "description": self.description,
             "docs_url": self.docs_url,
             "created_at": self.created_at,
             "modified_at": self.modified_at,
+            "approved_at": self.approved_at,
             "owner": self.owner,
             "demo_dataset_tarball_url": self.demo_dataset_url,
             "demo_dataset_tarball_hash": self.demo_dataset_hash,
             "demo_dataset_generated_uid": self.demo_dataset_generated_uid,
             "data_preparation_mlcube": int(self.data_preparation),
             "reference_model_mlcube": int(self.reference_model),
-            "models": self.models,
+            "models": self.models,  # not in the server (OK)
             "data_evaluator_mlcube": int(self.evaluator),
             "state": self.state,
             "is_valid": self.is_valid,
+            "is_active": self.is_active,
             "approval_status": self.approval_status,
             "metadata": self.metadata,
+            "user_metadata": self.user_metadata,
         }
 
-    def write(self, filename: str = config.benchmarks_filename) -> str:
+    def write(self) -> str:
         """Writes the benchmark into disk
 
         Args:
@@ -210,7 +226,7 @@ class Benchmark(Entity):
         bmk_path = os.path.join(storage, str(self.uid))
         if not os.path.exists(bmk_path):
             os.makedirs(bmk_path, exist_ok=True)
-        filepath = os.path.join(bmk_path, filename)
+        filepath = os.path.join(bmk_path, config.benchmarks_filename)
         with open(filepath, "w") as f:
             yaml.dump(data, f)
         return filepath
@@ -222,4 +238,11 @@ class Benchmark(Entity):
             comms (Comms): communications entity to submit through
         """
         body = self.todict()
-        comms.upload_benchmark(body)
+        updated_body = comms.upload_benchmark(body)
+
+        self.uid = updated_body["id"]
+        self.created_at = updated_body["created_at"]
+        self.modified_at = updated_body["modified_at"]
+        self.owner = updated_body["owner"]
+
+        self.write()
