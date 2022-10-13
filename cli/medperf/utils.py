@@ -393,7 +393,7 @@ def results_path(benchmark_uid, model_uid, data_uid):
     return out_path
 
 
-def results_ids(ui: UI):
+def results_ids():
     results_storage = storage_path(config.results_storage)
     logging.debug("Getting results ids")
     results_ids = []
