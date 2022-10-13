@@ -41,14 +41,17 @@ class Dataset(Entity):
         self.location = dataset_dict["location"]
         self.preparation_cube_uid = dataset_dict["data_preparation_mlcube"]
         self.input_data_hash = dataset_dict["input_data_hash"]
-        self.separate_labels = dataset_dict["separate_labels"]  # not in the server
+        self.separate_labels = dataset_dict.get("separate_labels", None)  # not in the server
         self.split_seed = dataset_dict["split_seed"]
         if "metadata" in dataset_dict:
             # Make sure it is backwards-compatible
             self.generated_metadata = dataset_dict["metadata"]
         else:
             self.generated_metadata = dataset_dict["generated_metadata"]
-        self.status = Status(dataset_dict["status"])  # not in the server
+        if "status" in dataset_dict:
+            self.status = Status(dataset_dict["status"])  # not in the server
+        else:
+            self.status = Status.PENDING if dataset_dict["id"] is None else Status.APPROVED
         self.state = dataset_dict["state"]
         self.is_valid = dataset_dict["is_valid"]
         self.user_metadata = dataset_dict["user_metadata"]
@@ -139,8 +142,6 @@ class Dataset(Entity):
             return local_dset[0]
 
         meta = comms.get_dataset(dset_uid)
-        # BUG: currently this will break since the server response doesn't contain:
-        # `separate_labels` and `status`
         return cls(meta)
 
     def __full_uid(self, uid_hint: str, ui: UI) -> str:
