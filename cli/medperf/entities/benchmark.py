@@ -46,7 +46,7 @@ class Benchmark(Entity):
         self.state = bmk_dict["state"]
         self.is_valid = bmk_dict["is_valid"]
         self.is_active = bmk_dict["is_active"]
-        self.approval_status = bmk_dict["approval_status"]
+        self.approval_status = Status(bmk_dict["approval_status"])
         self.metadata = bmk_dict["metadata"]
         self.user_metadata = bmk_dict["user_metadata"]
 
@@ -206,7 +206,7 @@ class Benchmark(Entity):
             "state": self.state,
             "is_valid": self.is_valid,
             "is_active": self.is_active,
-            "approval_status": self.approval_status,
+            "approval_status": self.approval_status.value,
             "metadata": self.metadata,
             "user_metadata": self.user_metadata,
         }
