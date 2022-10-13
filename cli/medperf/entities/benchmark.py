@@ -3,7 +3,6 @@ from medperf.enums import Status
 import yaml
 import logging
 from typing import List
-from collections import defaultdict
 
 import medperf.config as config
 from medperf.entities.interface import Entity

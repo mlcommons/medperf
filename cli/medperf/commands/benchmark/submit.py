@@ -156,7 +156,7 @@ class SubmitBenchmark:
             "state": "OPERATION",
             "is_valid": True,
             "approval_status": Status.PENDING.value,
-            "metadata": {"results": self.results.todict()},
+            "metadata": {"results": self.results.results},
             "id": None,
             "models": [int(self.reference_model_mlcube)],  # not in the server (OK)
             "created_at": None,

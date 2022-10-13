@@ -3,7 +3,6 @@ from pathlib import Path
 import shutil
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
-import yaml
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms

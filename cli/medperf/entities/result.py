@@ -5,7 +5,6 @@ import logging
 from typing import List
 
 from medperf.utils import (
-    storage_path,
     results_ids,
     results_path,
 )
