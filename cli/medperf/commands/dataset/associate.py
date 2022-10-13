@@ -44,5 +44,5 @@ class AssociateDataset:
             comms.associate_dset(dset.uid, benchmark_uid, metadata)
         else:
             pretty_error(
-                "Dataset association operation cancelled", ui, add_instructions=False
+                "Dataset association operation cancelled", add_instructions=False
             )

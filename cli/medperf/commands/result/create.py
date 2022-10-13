@@ -66,9 +66,7 @@ class BenchmarkExecution:
 
         in_assoc_cubes = self.model_uid in self.benchmark.models
         if not self.run_test and not in_assoc_cubes:
-            pretty_error(
-                "The provided model is not part of the specified benchmark.", self.ui
-            )
+            pretty_error("The provided model is not part of the specified benchmark.")
 
     def get_cubes(self):
         evaluator_uid = self.benchmark.evaluator

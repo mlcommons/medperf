@@ -18,7 +18,7 @@ class DatasetRegistration:
 
         if dset.uid:
             pretty_error(
-                "This dataset has already been registered.", ui, add_instructions=False
+                "This dataset has already been registered.", add_instructions=False
             )
         remote_dsets = comms.get_user_datasets()
         remote_dset = [
@@ -43,4 +43,4 @@ class DatasetRegistration:
             dset.upload()
             dset.set_registration()
         else:
-            pretty_error("Registration request cancelled.", ui, add_instructions=False)
+            pretty_error("Registration request cancelled.", add_instructions=False)

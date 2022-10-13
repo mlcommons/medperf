@@ -35,5 +35,5 @@ class AssociateCube:
             comms.associate_cube(cube_uid, benchmark_uid, metadata)
         else:
             pretty_error(
-                "MLCube association operation cancelled", ui, add_instructions=False
+                "MLCube association operation cancelled", add_instructions=False
             )

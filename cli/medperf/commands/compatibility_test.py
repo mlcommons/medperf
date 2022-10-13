@@ -78,20 +78,17 @@ class CompatibilityTestExecution:
         none_params = [param is None for param in params]
         if self.benchmark_uid is None and any(none_params):
             pretty_error(
-                "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow",
-                self.ui,
+                "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow"
             )
         # a redundant data preparation cube
         if self.data_uid is not None and self.data_prep is not None:
             pretty_error(
-                "Invalid combination of arguments to test. The passed preparation cube will not be used",
-                self.ui,
+                "Invalid combination of arguments to test. The passed preparation cube will not be used"
             )
         # a redundant benchmark
         if self.benchmark_uid is not None and not any(none_params):
             pretty_error(
-                "Invalid combination of arguments to test. The passed benchmark will not be used",
-                self.ui,
+                "Invalid combination of arguments to test. The passed benchmark will not be used"
             )
 
     def prepare_test(self):
@@ -115,10 +112,7 @@ class CompatibilityTestExecution:
         """
         benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
         BenchmarkExecution.run(
-            benchmark.uid,
-            self.data_uid,
-            self.model,
-            run_test=True,
+            benchmark.uid, self.data_uid, self.model, run_test=True,
         )
         # Datasets associated with results of compatibility-test are identified
         # by the generated uid. Server uid is not be applicable in the case
@@ -174,8 +168,7 @@ class CompatibilityTestExecution:
 
         logging.warning(f"mlcube {val} was not found as an existing mlcube")
         pretty_error(
-            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube",
-            self.ui,
+            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube"
         )
 
     def set_data_uid(self):
@@ -193,13 +186,7 @@ class CompatibilityTestExecution:
             logging.info("Using benchmark demo dataset")
             data_path, labels_path = self.download_demo_data()
             self.data_uid = DataPreparation.run(
-                None,
-                self.data_prep,
-                data_path,
-                labels_path,
-                self.comms,
-                self.ui,
-                run_test=True,
+                None, self.data_prep, data_path, labels_path, run_test=True,
             )
             self.dataset = Dataset(self.data_uid)
 

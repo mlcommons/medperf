@@ -72,8 +72,7 @@ class REST(Comms):
                 self.token = f.readline()
         else:
             pretty_error(
-                "Couldn't find credentials file. Did you run 'medperf login' before?",
-                self.ui,
+                "Couldn't find credentials file. Did you run 'medperf login' before?"
             )
 
     def __auth_get(self, url, **kwargs):
@@ -101,8 +100,7 @@ class REST(Comms):
             logging.error(f"Couldn't connect to {self.server_url}: {e}")
             pretty_error(
                 "Couldn't connect to server through HTTPS. If running locally, "
-                "remember to provide the server certificate through --certificate",
-                self.ui,
+                "remember to provide the server certificate through --certificate"
             )
 
     def __set_approval_status(self, url: str, status: str) -> requests.Response:
@@ -131,9 +129,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/benchmarks")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error(
-                "there was an error retrieving the current user's benchmarks", self.ui
-            )
+            pretty_error("there was an error retrieving the current user's benchmarks")
 
         benchmarks = res.json()
         bm_dict = {bm["benchmark"]: bm for bm in benchmarks}
@@ -197,9 +193,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error(
-                "couldn't retrieve models for the specified benchmark", self.ui
-            )
+            pretty_error("couldn't retrieve models for the specified benchmark")
         models = res.json()
         model_uids = [model["id"] for model in models]
         return model_uids
@@ -348,9 +342,7 @@ class REST(Comms):
         if res.status_code != 200:
             logging.error(f"Retrieving cube file failed with: {res.status_code}")
             logging.error(res.json())
-            pretty_error(
-                "There was a problem retrieving the specified file at " + url, self.ui
-            )
+            pretty_error("There was a problem retrieving the specified file at " + url)
         else:
             c_path = cube_path(cube_uid)
             path = os.path.join(c_path, path)
@@ -414,9 +406,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/datasets/{dset_uid}/")
         if res.status_code != 200:
             logging.error(res.json())
-            pretty_error(
-                "Could not retrieve the specified dataset from server", self.ui
-            )
+            pretty_error("Could not retrieve the specified dataset from server")
         return res.json()
 
     def get_user_datasets(self) -> dict:
@@ -542,8 +532,7 @@ class REST(Comms):
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error(
-                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}",
-                self.ui,
+                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}"
             )
 
     def set_mlcube_association_approval(
@@ -561,8 +550,7 @@ class REST(Comms):
         if res.status_code != 200:
             logging.error(res.json())
             pretty_error(
-                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}",
-                self.ui,
+                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}"
             )
 
     def get_datasets_associations(self) -> List[dict]:

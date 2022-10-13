@@ -40,6 +40,6 @@ class ResultSubmission:
 
         if not approved:
             msg = "Results upload operation cancelled"
-            pretty_error(msg, self.ui, add_instructions=False)
+            pretty_error(msg, add_instructions=False)
 
         result.upload()

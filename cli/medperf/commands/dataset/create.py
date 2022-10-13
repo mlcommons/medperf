@@ -89,8 +89,7 @@ class DataPreparation:
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
         if no_resource or too_many_resources:
             pretty_error(
-                "Invalid arguments. Must provide either a benchmark or a preparation mlcube",
-                self.ui,
+                "Invalid arguments. Must provide either a benchmark or a preparation mlcube"
             )
 
     def get_prep_cube(self):
@@ -142,9 +141,7 @@ class DataPreparation:
 
         # Run the tasks
         self.ui.text = "Running preparation step..."
-        self.cube.run(
-            task="prepare", timeout=prepare_timeout, **prepare_params
-        )
+        self.cube.run(task="prepare", timeout=prepare_timeout, **prepare_params)
         self.ui.print("> Cube execution complete")
 
         self.ui.text = "Running sanity check..."

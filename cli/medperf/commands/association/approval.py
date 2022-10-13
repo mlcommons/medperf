@@ -21,13 +21,10 @@ class Approval:
             mlcube_uid (str, optional): MLCube UID. Defaults to None.
         """
         comms = config.comms
-        ui = config.ui
         too_many_resources = dataset_uid and mlcube_uid
         no_resource = dataset_uid is None and mlcube_uid is None
         if no_resource or too_many_resources:
-            pretty_error(
-                "Invalid arguments. Must provide either a dataset or mlcube", ui
-            )
+            pretty_error("Invalid arguments. Must provide either a dataset or mlcube")
 
         if dataset_uid:
             comms.set_dataset_association_approval(
