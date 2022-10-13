@@ -1,4 +1,7 @@
 import os
+from medperf.entities.result import Result
+from medperf.enums import Status
+import yaml
 
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
@@ -64,7 +67,7 @@ class BenchmarkExecution:
         update_bmk = not self.run_test
         self.benchmark = Benchmark.get(self.benchmark_uid, force_update=update_bmk)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset(self.data_uid)
+        self.dataset = Dataset.from_generated_uid(self.data_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -134,3 +137,27 @@ class BenchmarkExecution:
             labels=labels_path,
             output_path=out_path,
         )
+        with open(out_path, "r") as f:
+            self.results = yaml.safe_load(f)
+
+    def todict(self):
+        data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
+
+        return {
+            "id": None,
+            "name": f"{self.benchmark_uid}_{self.model_uid}_{data_uid}",
+            "owner": None,
+            "benchmark": self.benchmark_uid,
+            "model": self.model_uid,
+            "dataset": data_uid,
+            "results": self.results,
+            "metadata": {},
+            "approval_status": Status.PENDING.value,
+            "approved_at": None,
+            "created_at": None,
+            "modified_at": None,
+        }
+
+    def write(self):
+        results_info = self.todict()
+        Result(results_info).write()
