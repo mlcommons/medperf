@@ -3,6 +3,7 @@ import validators
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
+from medperf.entities.cube import Cube
 from medperf.utils import get_file_sha1, pretty_error
 
 
@@ -29,14 +30,16 @@ class SubmitCube:
             pretty_error("MLCube submission is invalid", ui)
 
         with ui.interactive():
-
+            ui.text = "Validating MLCube can be downloaded"
+            cube = Cube(config.cube_submission_id, submission.todict(), "")
+            cube.download()
             if submission.additional_file:
                 ui.text = "Generating additional file hash"
-                submission.get_additional_hash()
+                submission.additional_hash = cube.additional_hash
                 ui.print("Additional file hash generated")
             if submission.image_file:
                 ui.text = "Generating image file hash"
-                submission.get_image_tarball_hash()
+                submission.image_tarball_hash = cube.image_tarball_hash
                 ui.print("Image file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
             submission.submit()
@@ -92,18 +95,6 @@ class SubmitCube:
             self.ui.print_error("Image file is invalid")
 
         return valid
-
-    def get_additional_hash(self):
-        tmp_cube_uid = config.cube_submission_id
-        add_file_path = self.comms.get_cube_additional(
-            self.additional_file, tmp_cube_uid
-        )
-        self.additional_hash = get_file_sha1(add_file_path)
-
-    def get_image_tarball_hash(self):
-        tmp_cube_uid = "tmp_submission"
-        image_path = self.comms.get_cube_image(self.image_file, tmp_cube_uid)
-        self.image_tarball_hash = get_file_sha1(image_path)
 
     def todict(self):
         dict = {
