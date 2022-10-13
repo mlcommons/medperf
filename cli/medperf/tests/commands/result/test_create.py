@@ -138,7 +138,6 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
 
 def test__get_cube_checks_cube_validity(mocker, execution, cube):
     # Arrange
-    ui = execution.ui
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), return_value=cube)
     spy = mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
@@ -146,7 +145,7 @@ def test__get_cube_checks_cube_validity(mocker, execution, cube):
     execution._BenchmarkExecution__get_cube(1, "test")
 
     # Assert
-    spy.assert_called_once_with(cube, ui)
+    spy.assert_called_once_with(cube)
 
 
 def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
