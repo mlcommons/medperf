@@ -36,7 +36,7 @@ class DatasetRegistration:
             return
 
         msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
-        approved = approved or approval_prompt(msg, ui)
+        approved = approved or approval_prompt(msg)
         dset.status = Status("APPROVED") if approved else Status("REJECTED")
         if approved:
             ui.print("Uploading...")

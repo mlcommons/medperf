@@ -114,7 +114,6 @@ class Cube(Entity):
         "Retrieve from local storage if cube already there"
         logging.debug(f"Retrieving the cube {cube_uid}")
         comms = config.comms
-        ui = config.ui
         local_cube = list(
             filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
@@ -156,7 +155,7 @@ class Cube(Entity):
             logging.debug(f"Retrieving {cube_uid} image")
             cmd = f"mlcube configure --mlcube={cube_path}"
             proc = pexpect.spawn(cmd)
-            proc_out = combine_proc_sp_text(proc, ui)
+            proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
 
@@ -206,7 +205,7 @@ class Cube(Entity):
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
-        proc_out = combine_proc_sp_text(proc, ui)
+        proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:

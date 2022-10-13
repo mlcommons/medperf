@@ -77,7 +77,7 @@ class BenchmarkExecution:
         self.ui.text = f"Retrieving {name} cube"
         cube = Cube.get(uid)
         self.ui.print(f"> {name} cube download complete")
-        check_cube_validity(cube, self.ui)
+        check_cube_validity(cube)
         return cube
 
     def run_cubes(self):

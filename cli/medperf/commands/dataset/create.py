@@ -101,7 +101,7 @@ class DataPreparation:
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
-        check_cube_validity(self.cube, self.ui)
+        check_cube_validity(self.cube)
 
     def run_cube_tasks(self):
         prepare_timeout = config.prepare_timeout

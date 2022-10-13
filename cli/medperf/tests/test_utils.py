@@ -87,7 +87,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -229,7 +229,7 @@ def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
     cube = MockCube(is_valid)
 
     # Act
-    utils.check_cube_validity(cube, ui)
+    utils.check_cube_validity(cube)
 
     # Assert
     if not is_valid:
@@ -288,7 +288,7 @@ def test_approval_prompt_asks_for_user_input(mocker, ui):
     spy = mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
-    utils.approval_prompt("test", ui)
+    utils.approval_prompt("test")
 
     # Assert
     spy.assert_called_once()
@@ -311,7 +311,7 @@ def test_approval_prompt_repeats_until_valid_answer(mocker, ui, inputted_strs):
     spy = mocker.patch.object(ui, "prompt", side_effect=str_list)
 
     # Act
-    utils.approval_prompt("test prompt", ui)
+    utils.approval_prompt("test prompt")
 
     # Assert
     spy.call_count == exp_repeats
@@ -323,7 +323,7 @@ def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     mocker.patch.object(ui, "prompt", return_value=input_val)
 
     # Act
-    approved = utils.approval_prompt("test approval return", ui)
+    approved = utils.approval_prompt("test approval return")
 
     # Assert
     assert approved == (input_val in "yY")
@@ -337,7 +337,7 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     exp_dict = {k: v for k, v in dict_with_nones.items() if v is not None}
 
     # Act
-    utils.dict_pretty_print(dict_with_nones, ui)
+    utils.dict_pretty_print(dict_with_nones)
 
     # Assert
     spy.assert_called_once_with(exp_dict)
