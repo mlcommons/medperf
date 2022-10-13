@@ -198,7 +198,6 @@ class Cube(Entity):
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        ui = config.ui
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
@@ -209,9 +208,7 @@ class Cube(Entity):
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
-            ui.text = "\n"
-            ui.print(proc_out)
-            pretty_error("There was an error while executing the cube")
+            raise RuntimeError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
         return proc

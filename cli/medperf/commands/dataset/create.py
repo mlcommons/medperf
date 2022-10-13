@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 import shutil
 from medperf.enums import Status
@@ -13,6 +14,7 @@ from medperf.utils import (
     get_stats,
     init_storage,
     pretty_error,
+    cleanup,
 )
 
 
@@ -141,20 +143,25 @@ class DataPreparation:
 
         # Run the tasks
         self.ui.text = "Running preparation step..."
-        self.cube.run(task="prepare", timeout=prepare_timeout, **prepare_params)
-        self.ui.print("> Cube execution complete")
+        try:
+            self.cube.run(task="prepare", timeout=prepare_timeout, **prepare_params)
+            self.ui.print("> Cube execution complete")
 
-        self.ui.text = "Running sanity check..."
-        self.cube.run(
-            task="sanity_check", timeout=sanity_check_timeout, **sanity_params
-        )
-        self.ui.print("> Sanity checks complete")
+            self.ui.text = "Running sanity check..."
+            self.cube.run(
+                task="sanity_check", timeout=sanity_check_timeout, **sanity_params,
+            )
+            self.ui.print("> Sanity checks complete")
 
-        self.ui.text = "Generating statistics..."
-        self.cube.run(
-            task="statistics", timeout=statistics_timeout, **statistics_params
-        )
-        self.ui.print("> Statistics complete")
+            self.ui.text = "Generating statistics..."
+            self.cube.run(
+                task="statistics", timeout=statistics_timeout, **statistics_params,
+            )
+            self.ui.print("> Statistics complete")
+        except RuntimeError as e:
+            logging.error(f"MLCube Execution failed: {e}")
+            cleanup([self.out_path])
+            pretty_error("Data preparation failed")
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths

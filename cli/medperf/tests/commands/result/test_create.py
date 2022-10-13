@@ -182,3 +182,36 @@ def test_run_executes_expected_flow(mocker, comms, ui, execution):
     val_spy.assert_called_once()
     get_spy.assert_called_once()
     run_spy.assert_called_once()
+
+
+@pytest.mark.parametrize("mlcube", ["model", "eval"])
+def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
+    # Arrange
+    execution.dataset.data_path = "data_path"
+    execution.model_cube.cube_path = "cube_path"
+    out_path = "out_path"
+    preds_path = "preds_path"
+
+    failed_cube = execution.model_cube if mlcube == "model" else execution.evaluator
+    mocker.patch.object(
+        failed_cube,
+        "run",
+        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("results_path"), return_value=out_path,
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
+    )
+    spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
+    spy_error = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
+
+    exp_outpaths = [preds_path, out_path]
+
+    # Act
+    execution.run_cubes()
+
+    # Assert
+    spy_clean.assert_called_once_with(exp_outpaths)
+    spy_error.assert_called_once()

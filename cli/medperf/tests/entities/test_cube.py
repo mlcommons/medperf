@@ -496,19 +496,13 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_lo
     # Arrange
     mpexpect = MockPexpect(1)
     mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
-    spy = mocker.patch(
-        PATCH_CUBE.format("pretty_error"), side_effect=lambda *args, **kwargs: exit()
-    )
     task = "task"
 
-    # Act
+    # Act & Assert
     uid = 1
     cube = Cube.get(uid)
-    with pytest.raises(SystemExit):
+    with pytest.raises(RuntimeError):
         cube.run(task)
-
-    # Assert
-    spy.assert_called_once()
 
 
 def test_default_output_reads_cube_manifest(mocker, comms, basic_body, no_local):
