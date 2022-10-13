@@ -101,7 +101,7 @@ class REST(Comms):
         )
 
     def __req(self, url, req_func, **kwargs):
-        logging.debug(f"Calling {req_func.__name__.upper()} -> {url}")
+        logging.debug(f"Calling {req_func}: {url}")
         if "json" in kwargs:
             logging.debug(f"Passing JSON contents: {kwargs['json']}")
             kwargs["json"] = sanitize_json(kwargs["json"])
