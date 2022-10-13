@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import shutil
+from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 import yaml
 from medperf.ui.interface import UI
@@ -192,8 +193,8 @@ class DataPreparation:
         Returns:
             dict: dictionary containing information pertaining the dataset.
         """
-        data = {
-            "uid": None,
+        return {
+            "id": None,
             "name": self.name,
             "description": self.description,
             "location": self.location,
@@ -202,18 +203,20 @@ class DataPreparation:
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
             "generated_metadata": get_stats(self.out_path),
-            "status": Status.PENDING.value,
+            "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
-            "separate_labels": self.labels_specified,
+            "separate_labels": self.labels_specified,  # not in the server
+            "is_valid": True,
+            "user_metadata": {},
+            "created_at": None,
+            "modified_at": None,
+            "owner": None,
         }
-        return data
 
-    def write(self, filename: str = config.reg_file) -> str:
+    def write(self) -> str:
         """Writes the registration into disk
         Args:
             filename (str, optional): name of the file. Defaults to config.reg_file.
         """
-        data = self.todict()
-        filepath = os.path.join(self.out_path, filename)
-        with open(filepath, "w") as f:
-            yaml.dump(data, f)
+        dataset_dict = self.registration()
+        Dataset(dataset_dict).write()
