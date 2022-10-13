@@ -181,7 +181,7 @@ def main(
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
     config.ui = UIFactory.create_ui(ui)
-    config.comms = CommsFactory.create_comms(comms, config.ui, config.server)
+    config.comms = CommsFactory.create_comms(comms, config.server)
 
     config.ui.print(f"MedPerf {config.version}")
 

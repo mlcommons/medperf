@@ -5,7 +5,6 @@ import os
 
 from medperf.enums import Role, Status
 import medperf.config as config
-from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.utils import (
     pretty_error,
@@ -17,10 +16,9 @@ from medperf.utils import (
 
 
 class REST(Comms):
-    def __init__(self, source: str, ui: UI, token=None):
+    def __init__(self, source: str, token=None):
         self.server_url = self.__parse_url(source)
         self.token = token
-        self.ui = ui
         self.cert = config.certificate
         if self.cert is None:
             # No certificate provided, default to normal verification
@@ -34,7 +32,7 @@ class REST(Comms):
 
         return f"https://{url}"
 
-    def login(self, ui: UI, user: str, pwd: str):
+    def login(self, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
 
         Args:
