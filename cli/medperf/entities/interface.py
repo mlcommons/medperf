@@ -1,8 +1,6 @@
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
-from medperf.comms.interface import Comms
-
 
 class Entity(ABC):
     @abstractmethod
@@ -36,6 +34,6 @@ class Entity(ABC):
         """
 
     @abstractmethod
-    def upload(self, comms: Comms):
+    def upload(self):
         """Upload the entity-related information to the communication's interface
         """

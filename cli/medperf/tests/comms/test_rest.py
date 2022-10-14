@@ -160,7 +160,7 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     cert_verify = config.certificate or True
 
     # Act
-    server.login(ui, uname, pwd)
+    server.login(uname, pwd)
 
     # Assert
     spy.assert_called_once_with(exp_path, json=exp_body, verify=cert_verify)
@@ -173,7 +173,7 @@ def test_login_stores_token(mocker, ui, server, token):
     mocker.patch("requests.post", return_value=res)
 
     # Act
-    server.login(ui, "testuser", "testpwd")
+    server.login("testuser", "testpwd")
 
     # Assert
     assert server.token == token

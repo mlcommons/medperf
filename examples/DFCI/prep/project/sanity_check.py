@@ -13,10 +13,7 @@ def check(data_path, params_file):
     for image_path in images:
         assert image_path.endswith(".npy")
         image = np.load(image_path)
-        assert image.shape[:2] == (
-            params["image_height"],
-            params["image_width"],
-        )
+        assert image.shape[:2] == (params["image_height"], params["image_width"],)
         assert len(image.shape) == 3
         number = os.path.basename(image_path).replace(".npy", "")
 

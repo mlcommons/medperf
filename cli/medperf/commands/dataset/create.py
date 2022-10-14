@@ -4,9 +4,7 @@ from pathlib import Path
 import shutil
 from medperf.enums import Status
 import yaml
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
@@ -28,8 +26,6 @@ class DataPreparation:
         prep_cube_uid: str,
         data_path: str,
         labels_path: str,
-        comms: Comms,
-        ui: UI,
         run_test=False,
         name: str = None,
         description: str = None,
@@ -44,8 +40,6 @@ class DataPreparation:
             name,
             description,
             location,
-            comms,
-            ui,
             run_test,
         )
         preparation.validate()
@@ -66,12 +60,10 @@ class DataPreparation:
         name: str,
         description: str,
         location: str,
-        comms: Comms,
-        ui: UI,
         run_test=False,
     ):
-        self.comms = comms
-        self.ui = ui
+        self.comms = config.comms
+        self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         out_path = generate_tmp_datapath()
@@ -91,16 +83,15 @@ class DataPreparation:
 
     def validate(self):
         if not os.path.exists(self.data_path):
-            pretty_error("The provided data path doesn't exist", self.ui)
+            pretty_error("The provided data path doesn't exist")
         if not os.path.exists(self.labels_path):
-            pretty_error("The provided labels path doesn't exist", self.ui)
+            pretty_error("The provided labels path doesn't exist")
 
         too_many_resources = self.benchmark_uid and self.prep_cube_uid
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
         if no_resource or too_many_resources:
             pretty_error(
-                "Invalid arguments. Must provide either a benchmark or a preparation mlcube",
-                self.ui,
+                "Invalid arguments. Must provide either a benchmark or a preparation mlcube"
             )
 
     def get_prep_cube(self):
@@ -112,7 +103,7 @@ class DataPreparation:
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
-        check_cube_validity(self.cube, self.ui)
+        check_cube_validity(self.cube)
 
     def run_cube_tasks(self):
         prepare_timeout = config.prepare_timeout
@@ -153,32 +144,24 @@ class DataPreparation:
         # Run the tasks
         self.ui.text = "Running preparation step..."
         try:
-            self.cube.run(
-                self.ui, task="prepare", timeout=prepare_timeout, **prepare_params
-            )
+            self.cube.run(task="prepare", timeout=prepare_timeout, **prepare_params)
             self.ui.print("> Cube execution complete")
 
             self.ui.text = "Running sanity check..."
             self.cube.run(
-                self.ui,
-                task="sanity_check",
-                timeout=sanity_check_timeout,
-                **sanity_params,
+                task="sanity_check", timeout=sanity_check_timeout, **sanity_params,
             )
             self.ui.print("> Sanity checks complete")
 
             self.ui.text = "Generating statistics..."
             self.cube.run(
-                self.ui,
-                task="statistics",
-                timeout=statistics_timeout,
-                **statistics_params,
+                task="statistics", timeout=statistics_timeout, **statistics_params,
             )
             self.ui.print("> Statistics complete")
         except RuntimeError as e:
             logging.error(f"MLCube Execution failed: {e}")
             cleanup([self.out_path])
-            pretty_error("Data preparation failed", self.ui)
+            pretty_error("Data preparation failed")
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths

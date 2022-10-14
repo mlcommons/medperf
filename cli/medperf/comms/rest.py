@@ -5,7 +5,6 @@ import os
 
 from medperf.enums import Role, Status
 import medperf.config as config
-from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.utils import (
     pretty_error,
@@ -23,10 +22,9 @@ def log_response_error(res):
         logging.error("JSON Response could not be parsed")
 
 class REST(Comms):
-    def __init__(self, source: str, ui: UI, token=None):
+    def __init__(self, source: str, token=None):
         self.server_url = self.__parse_url(source)
         self.token = token
-        self.ui = ui
         self.cert = config.certificate
         if self.cert is None:
             # No certificate provided, default to normal verification
@@ -40,7 +38,7 @@ class REST(Comms):
 
         return f"https://{url}"
 
-    def login(self, ui: UI, user: str, pwd: str):
+    def login(self, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
 
         Args:
@@ -52,7 +50,7 @@ class REST(Comms):
         res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Unable to authenticate user with provided credentials", ui)
+            pretty_error("Unable to authenticate user with provided credentials")
         else:
             self.token = res.json()["token"]
 
@@ -69,7 +67,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Unable to change the current password", self.ui)
+            pretty_error("Unable to change the current password")
             return False
         return True
 
@@ -80,8 +78,7 @@ class REST(Comms):
                 self.token = f.readline()
         else:
             pretty_error(
-                "Couldn't find credentials file. Did you run 'medperf login' before?",
-                self.ui,
+                "Couldn't find credentials file. Did you run 'medperf login' before?"
             )
 
     def __auth_get(self, url, **kwargs):
@@ -111,8 +108,7 @@ class REST(Comms):
             logging.error(f"Couldn't connect to {self.server_url}: {e}")
             pretty_error(
                 "Couldn't connect to server through HTTPS. If running locally, "
-                "remember to provide the server certificate through --certificate",
-                self.ui,
+                "remember to provide the server certificate through --certificate"
             )
 
     def __set_approval_status(self, url: str, status: str) -> requests.Response:
@@ -141,9 +137,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/benchmarks")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error(
-                "there was an error retrieving the current user's benchmarks", self.ui
-            )
+            pretty_error("there was an error retrieving the current user's benchmarks")
 
         benchmarks = res.json()
         bm_dict = {bm["benchmark"]: bm for bm in benchmarks}
@@ -175,8 +169,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/benchmarks/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("couldn't retrieve benchmarks", self.ui)
-        benchmarks = res.json()
+            pretty_error("couldn't retrieve benchmarks")
         return benchmarks
 
     def get_benchmark(self, benchmark_uid: int) -> dict:
@@ -191,8 +184,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("the specified benchmark doesn't exist", self.ui)
-        benchmark = res.json()
+            pretty_error("the specified benchmark doesn't exist")
         return benchmark
 
     def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
@@ -207,9 +199,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error(
-                "couldn't retrieve models for the specified benchmark", self.ui
-            )
+            pretty_error("couldn't retrieve models for the specified benchmark")
         models = res.json()
         model_uids = [model["id"] for model in models]
         return model_uids
@@ -238,7 +228,7 @@ class REST(Comms):
         res = requests.get(demo_data_url)
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("couldn't download the demo dataset", self.ui)
+            pretty_error("couldn't download the demo dataset")
 
         os.makedirs(demo_data_path, exist_ok=True)
 
@@ -254,7 +244,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/benchmarks/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("wasn't able to retrieve user benchmarks", self.ui)
+            pretty_error("wasn't able to retrieve user benchmarks")
         return res.json()
 
     def get_cubes(self) -> List[dict]:
@@ -266,7 +256,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("couldn't retrieve mlcubes from the platform", config.ui)
+            pretty_error("couldn't retrieve mlcubes from the platform")
         return res.json()
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
@@ -281,8 +271,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/mlcubes/{cube_uid}/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("the specified cube doesn't exist", self.ui)
-        metadata = res.json()
+            pretty_error("the specified cube doesn't exist")
         return metadata
 
     def get_cube(self, url: str, cube_uid: int) -> str:
@@ -307,8 +296,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("couldn't retrieve mlcubes created by the user", self.ui)
-        data = res.json()
+            pretty_error("couldn't retrieve mlcubes created by the user")
         return data
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
@@ -357,9 +345,7 @@ class REST(Comms):
         res = requests.get(url)
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error(
-                "There was a problem retrieving the specified file at " + url, self.ui
-            )
+            pretty_error("There was a problem retrieving the specified file at " + url)
         else:
             c_path = cube_path(cube_uid)
             path = os.path.join(c_path, path)
@@ -381,8 +367,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/benchmarks/", json=benchmark_dict)
         if res.status_code != 201:
             log_response_error(res)
-            pretty_error("Could not upload benchmark", self.ui)
-        return res.json()["id"]
+            pretty_error("Could not upload benchmark")
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
@@ -396,7 +381,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/mlcubes/", json=mlcube_body)
         if res.status_code != 201:
             log_response_error(res)
-            pretty_error("Could not upload the mlcube", self.ui)
+            pretty_error("Could not upload the mlcube")
         return res.json()["id"]
 
     def get_datasets(self) -> List[dict]:
@@ -408,8 +393,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/datasets/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("could not retrieve datasets from server", self.ui)
-        return res.json()
+            pretty_error("could not retrieve datasets from server")
 
     def get_dataset(self, dset_uid: str) -> dict:
         """Retrieves a specific dataset
@@ -423,10 +407,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/datasets/{dset_uid}/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error(
-                "Could not retrieve the specified dataset from server", self.ui
-            )
-        return res.json()
+            pretty_error("Could not retrieve the specified dataset from server")
 
     def get_user_datasets(self) -> dict:
         """Retrieves all datasets registered by the user
@@ -437,8 +418,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/datasets/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Could not retrieve datasets from server", self.ui)
-        return res.json()
+            pretty_error("Could not retrieve datasets from server")
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
@@ -452,7 +432,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/datasets/", json=reg_dict)
         if res.status_code != 201:
             log_response_error(res)
-            pretty_error("Could not upload the dataset", self.ui)
+            pretty_error("Could not upload the dataset")
         return res.json()["id"]
 
     def get_result(self, result_uid: str) -> dict:
@@ -467,8 +447,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/results/{result_uid}/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Could not retrieve the specified result", self.ui)
-        return res.json()
+            pretty_error("Could not retrieve the specified result")
 
     def get_user_results(self) -> dict:
         """Retrieves all results registered by the user
@@ -479,8 +458,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/results/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Could not retrieve results from server", self.ui)
-        return res.json()
+            pretty_error("Could not retrieve results from server")
 
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
@@ -494,8 +472,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/results/", json=results_dict)
         if res.status_code != 201:
             log_response_error(res)
-            pretty_error("Could not upload the results", self.ui)
-        return res.json()["id"]
+            pretty_error("Could not upload the results")
 
     def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
@@ -514,7 +491,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
         if res.status_code != 201:
             log_response_error(res)
-            pretty_error("Could not associate dataset to benchmark", self.ui)
+            pretty_error("Could not associate dataset to benchmark")
 
     def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
@@ -534,7 +511,7 @@ class REST(Comms):
         res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
         if res.status_code != 201:
             log_response_error(res)
-            pretty_error("Could not associate mlcube to benchmark", self.ui)
+            pretty_error("Could not associate mlcube to benchmark")
 
     def set_dataset_association_approval(
         self, benchmark_uid: str, dataset_uid: str, status: str
@@ -551,8 +528,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error(
-                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}",
-                self.ui,
+                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}"
             )
 
     def set_mlcube_association_approval(
@@ -570,8 +546,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error(
-                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}",
-                self.ui,
+                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}"
             )
 
     def get_datasets_associations(self) -> List[dict]:
@@ -583,7 +558,7 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/datasets/associations/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Could not retrieve user datasets associations", self.ui)
+            pretty_error("Could not retrieve user datasets associations")
         return res.json()
 
     def get_cubes_associations(self) -> List[dict]:
@@ -595,5 +570,5 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/mlcubes/associations/")
         if res.status_code != 200:
             log_response_error(res)
-            pretty_error("Could not retrieve user mlcubes associations", self.ui)
+            pretty_error("Could not retrieve user mlcubes associations")
         return res.json()

@@ -17,7 +17,7 @@ def test_run_fails_if_model_and_dset_passed(mocker, model_uid, data_uid, comms, 
     mocker.patch(PATCH_ASSOC.format("AssociateDataset.run"))
 
     # Act
-    AssociateBenchmark.run("1", model_uid, data_uid, comms, ui)
+    AssociateBenchmark.run("1", model_uid, data_uid)
 
     # Assert
     if num_arguments != 1:
@@ -34,10 +34,10 @@ def test_run_executes_cube_association(mocker, approved, comms, ui):
     spy = mocker.patch(PATCH_ASSOC.format("AssociateCube.run"))
 
     # Act
-    AssociateBenchmark.run(bmk_uid, model_uid, None, comms, ui, approved=approved)
+    AssociateBenchmark.run(bmk_uid, model_uid, None, approved=approved)
 
     # Assert
-    spy.assert_called_once_with(model_uid, bmk_uid, comms, ui, approved=approved)
+    spy.assert_called_once_with(model_uid, bmk_uid, approved=approved)
 
 
 @pytest.mark.parametrize("bmk_uid", [243, 217])
@@ -50,7 +50,7 @@ def test_run_executes_dset_association(mocker, bmk_uid, dset_uid, approved, comm
     spy = mocker.patch(PATCH_ASSOC.format("AssociateDataset.run"))
 
     # Act
-    AssociateBenchmark.run(bmk_uid, None, dset_uid, comms, ui, approved=approved)
+    AssociateBenchmark.run(bmk_uid, None, dset_uid, approved=approved)
 
     # Assert
-    spy.assert_called_once_with(dset_uid, bmk_uid, comms, ui, approved=approved)
+    spy.assert_called_once_with(dset_uid, bmk_uid, approved=approved)

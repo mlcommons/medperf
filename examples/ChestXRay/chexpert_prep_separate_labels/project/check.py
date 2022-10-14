@@ -42,7 +42,11 @@ if __name__ == "__main__":
         "--data_path", "--data-path", type=str, required=True, help="prepared data path"
     )
     parser.add_argument(
-        "--labels_path", "--labels-path", type=str, required=True, help="prepared labels path"
+        "--labels_path",
+        "--labels-path",
+        type=str,
+        required=True,
+        help="prepared labels path",
     )
     parser.add_argument(
         "--params_file",
@@ -57,5 +61,10 @@ if __name__ == "__main__":
     with open(args.params_file, "r") as f:
         params = yaml.full_load(f)
 
-    checker = Checker(args.data_path, params["output_datafile"], args.labels_path, params["output_labelsfile"])
+    checker = Checker(
+        args.data_path,
+        params["output_datafile"],
+        args.labels_path,
+        params["output_labelsfile"],
+    )
     checker.run()
