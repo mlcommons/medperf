@@ -172,7 +172,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("couldn't retrieve benchmarks")
-        return benchmarks
+        return res.json()
 
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
@@ -187,7 +187,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("the specified benchmark doesn't exist")
-        return benchmark
+        return res.json()
 
     def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
         """Retrieves all the models associated with a benchmark. reference model not included
@@ -274,7 +274,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("the specified cube doesn't exist")
-        return metadata
+        return res.json()
 
     def get_cube(self, url: str, cube_uid: int) -> str:
         """Downloads and writes an mlcube.yaml file from the server
@@ -299,7 +299,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("couldn't retrieve mlcubes created by the user")
-        return data
+        return res.json()
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
         """Retrieves the cube parameters.yaml file from the server
