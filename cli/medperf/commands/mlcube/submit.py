@@ -4,7 +4,7 @@ from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
-from medperf.utils import get_file_sha1, pretty_error
+from medperf.utils import pretty_error
 
 
 class SubmitCube:
