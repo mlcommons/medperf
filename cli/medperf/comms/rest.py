@@ -396,6 +396,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("could not retrieve datasets from server")
+        return res.json()
 
     def get_dataset(self, dset_uid: str) -> dict:
         """Retrieves a specific dataset
@@ -410,6 +411,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("Could not retrieve the specified dataset from server")
+        return res.json()
 
     def get_user_datasets(self) -> dict:
         """Retrieves all datasets registered by the user
@@ -421,6 +423,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("Could not retrieve datasets from server")
+        return res.json()
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
@@ -450,6 +453,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("Could not retrieve the specified result")
+        return res.json()
 
     def get_user_results(self) -> dict:
         """Retrieves all results registered by the user
@@ -461,6 +465,7 @@ class REST(Comms):
         if res.status_code != 200:
             log_response_error(res)
             pretty_error("Could not retrieve results from server")
+        return res.json()
 
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
@@ -475,6 +480,7 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             pretty_error("Could not upload the results")
+        return res.json()["id"]
 
     def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association
