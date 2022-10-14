@@ -15,8 +15,6 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.comms.interface import Comms
-from medperf.ui.interface import UI
 import medperf.config as config
 
 
@@ -74,7 +72,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg, config.ui)
+            pretty_error(msg)
 
         cubes = []
         for uid in uids:
@@ -116,7 +114,6 @@ class Cube(Entity):
         "Retrieve from local storage if cube already there"
         logging.debug(f"Retrieving the cube {cube_uid}")
         comms = config.comms
-        ui = config.ui
         local_cube = list(
             filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
@@ -158,7 +155,7 @@ class Cube(Entity):
             logging.debug(f"Retrieving {cube_uid} image")
             cmd = f"mlcube configure --mlcube={cube_path}"
             proc = pexpect.spawn(cmd)
-            proc_out = combine_proc_sp_text(proc, ui)
+            proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
 
@@ -193,11 +190,10 @@ class Cube(Entity):
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
+    def run(self, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
-            ui (UI): an instance of an UI implementation
             task (str): task to run
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
@@ -208,7 +204,7 @@ class Cube(Entity):
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
-        proc_out = combine_proc_sp_text(proc, ui)
+        proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
@@ -254,7 +250,7 @@ class Cube(Entity):
     def todict(self) -> Dict:
         return self.meta
 
-    def upload(self, comms: Comms) -> int:
-        cube_uid = comms.upload_mlcube(self.todict())
+    def upload(self) -> int:
+        cube_uid = config.comms.upload_mlcube(self.todict())
         self.uid = cube_uid
         return self.uid

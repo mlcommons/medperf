@@ -18,9 +18,7 @@ def datasets(
     """Lists all datasets from the user by default.
     Use all to get all datasets in the platform
     """
-    ui = config.ui
-    comms = config.comms
-    DatasetsList.run(comms, ui, all)
+    DatasetsList.run(all)
 
 
 @app.command("create")
@@ -48,15 +46,12 @@ def create(
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
-    comms = config.comms
     ui = config.ui
     data_uid = DataPreparation.run(
         benchmark_uid,
         data_prep_uid,
         data_path,
         labels_path,
-        comms,
-        ui,
         name=name,
         description=description,
         location=location,
@@ -77,9 +72,8 @@ def register(
 ):
     """Submits an unregistered Dataset instance to the backend
     """
-    comms = config.comms
     ui = config.ui
-    DatasetRegistration.run(data_uid, comms, ui, approved=approval)
+    DatasetRegistration.run(data_uid, approved=approval)
     ui.print("✅ Done!")
     ui.print(
         f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {data_uid}'"
@@ -100,9 +94,8 @@ def associate(
     """Associate a registered dataset with a specific benchmark.
     The dataset and benchmark must share the same data preparation cube.
     """
-    comms = config.comms
     ui = config.ui
-    AssociateDataset.run(data_uid, benchmark_uid, comms, ui, approved=approval)
+    AssociateDataset.run(data_uid, benchmark_uid, approved=approval)
     ui.print("✅ Done!")
     ui.print(
         f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"

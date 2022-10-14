@@ -5,26 +5,30 @@
 # the SWIG interface file instead.
 
 
-
-
-
 from sys import version_info
+
 if version_info >= (2, 6, 0):
+
     def swig_import_helper():
         from os.path import dirname
         import imp
+
         fp = None
         try:
-            fp, pathname, description = imp.find_module('_fast_functions', [dirname(__file__)])
+            fp, pathname, description = imp.find_module(
+                "_fast_functions", [dirname(__file__)]
+            )
         except ImportError:
             import _fast_functions
+
             return _fast_functions
         if fp is not None:
             try:
-                _mod = imp.load_module('_fast_functions', fp, pathname, description)
+                _mod = imp.load_module("_fast_functions", fp, pathname, description)
             finally:
                 fp.close()
             return _mod
+
     _fast_functions = swig_import_helper()
     del swig_import_helper
 else:
@@ -37,16 +41,16 @@ except NameError:
 
 
 def _swig_setattr_nondynamic(self, class_type, name, value, static=1):
-    if (name == "thisown"):
+    if name == "thisown":
         return self.this.own(value)
-    if (name == "this"):
-        if type(value).__name__ == 'SwigPyObject':
+    if name == "this":
+        if type(value).__name__ == "SwigPyObject":
             self.__dict__[name] = value
             return
     method = class_type.__swig_setmethods__.get(name, None)
     if method:
         return method(self, value)
-    if (not static):
+    if not static:
         if _newclass:
             object.__setattr__(self, name, value)
         else:
@@ -60,15 +64,16 @@ def _swig_setattr(self, class_type, name, value):
 
 
 def _swig_getattr_nondynamic(self, class_type, name, static=1):
-    if (name == "thisown"):
+    if name == "thisown":
         return self.this.own()
     method = class_type.__swig_getmethods__.get(name, None)
     if method:
         return method(self)
-    if (not static):
+    if not static:
         return object.__getattr__(self, name)
     else:
         raise AttributeError(name)
+
 
 def _swig_getattr(self, class_type, name):
     return _swig_getattr_nondynamic(self, class_type, name, 0)
@@ -79,25 +84,34 @@ def _swig_repr(self):
         strthis = "proxy of " + self.this.__repr__()
     except Exception:
         strthis = ""
-    return "<%s.%s; %s >" % (self.__class__.__module__, self.__class__.__name__, strthis,)
+    return "<%s.%s; %s >" % (
+        self.__class__.__module__,
+        self.__class__.__name__,
+        strthis,
+    )
+
 
 try:
     _object = object
     _newclass = 1
 except AttributeError:
+
     class _object:
         pass
-    _newclass = 0
 
+    _newclass = 0
 
 
 def post_processing(F, S, threshold, top2):
     return _fast_functions.post_processing(F, S, threshold, top2)
+
+
 post_processing = _fast_functions.post_processing
+
 
 def DSC_computation(A, G, P):
     return _fast_functions.DSC_computation(A, G, P)
+
+
 DSC_computation = _fast_functions.DSC_computation
 # This file is compatible with both classic and new-style classes.
-
-

@@ -1,8 +1,6 @@
 import os
 import logging
 
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -20,13 +18,7 @@ import medperf.config as config
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls,
-        benchmark_uid: int,
-        data_uid: str,
-        model_uid: int,
-        comms: Comms,
-        ui: UI,
-        run_test=False,
+        cls, benchmark_uid: int, data_uid: str, model_uid: int, run_test=False,
     ):
         """Benchmark execution flow.
 
@@ -35,7 +27,7 @@ class BenchmarkExecution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, comms, ui, run_test)
+        execution = cls(benchmark_uid, data_uid, model_uid, run_test)
         execution.prepare()
         execution.validate()
         with execution.ui.interactive():
@@ -43,19 +35,13 @@ class BenchmarkExecution:
             execution.run_cubes()
 
     def __init__(
-        self,
-        benchmark_uid: int,
-        data_uid: int,
-        model_uid: int,
-        comms: Comms,
-        ui: UI,
-        run_test=False,
+        self, benchmark_uid: int, data_uid: int, model_uid: int, run_test=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
         self.model_uid = model_uid
-        self.comms = comms
-        self.ui = ui
+        self.comms = config.comms
+        self.ui = config.ui
         self.evaluator = None
         self.model_cube = None
         self.run_test = run_test
@@ -74,17 +60,15 @@ class BenchmarkExecution:
 
         if self.dataset.uid is None and not self.run_test:
             msg = "The provided dataset is not registered."
-            pretty_error(msg, self.ui)
+            pretty_error(msg)
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
-            pretty_error(msg, self.ui)
+            pretty_error(msg)
 
         in_assoc_cubes = self.model_uid in self.benchmark.models
         if not self.run_test and not in_assoc_cubes:
-            pretty_error(
-                "The provided model is not part of the specified benchmark.", self.ui
-            )
+            pretty_error("The provided model is not part of the specified benchmark.")
 
     def get_cubes(self):
         evaluator_uid = self.benchmark.evaluator
@@ -95,7 +79,7 @@ class BenchmarkExecution:
         self.ui.text = f"Retrieving {name} cube"
         cube = Cube.get(uid)
         self.ui.print(f"> {name} cube download complete")
-        check_cube_validity(cube, self.ui)
+        check_cube_validity(cube)
         return cube
 
     def run_cubes(self):
@@ -118,7 +102,6 @@ class BenchmarkExecution:
             )
         try:
             self.model_cube.run(
-                self.ui,
                 task="infer",
                 timeout=infer_timeout,
                 data_path=data_path,
@@ -128,7 +111,6 @@ class BenchmarkExecution:
 
             self.ui.text = "Evaluating results"
             self.evaluator.run(
-                self.ui,
                 task="evaluate",
                 timeout=evaluate_timeout,
                 predictions=preds_path,
@@ -138,4 +120,4 @@ class BenchmarkExecution:
         except RuntimeError as e:
             logging.error(f"MLCube Execution failed: {e}")
             cleanup([preds_path, out_path])
-            pretty_error("Benchmark execution failed", self.ui)
+            pretty_error("Benchmark execution failed")

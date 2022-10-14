@@ -9,7 +9,7 @@ def test_list_gets_local_results(mocker, comms, ui):
     spy = mocker.patch.object(Result, "all", return_value=[])
 
     # Act
-    ResultsList.run(comms, ui)
+    ResultsList.run()
 
     # Assert
     spy.assert_called_once()
@@ -21,7 +21,7 @@ def test_list_gets_remote_results(mocker, comms, ui):
     spy = mocker.patch.object(comms, "get_user_results", return_value=[])
 
     # Act
-    ResultsList.run(comms, ui)
+    ResultsList.run()
 
     # Assert
     spy.assert_called_once()
