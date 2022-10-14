@@ -14,12 +14,14 @@ from medperf.utils import (
     sanitize_json,
 )
 
+
 def log_response_error(res):
     logging.error(f"Obtained response with status code: {res.status_code}")
     try:
         logging.error(res.json())
     except Exception:
         logging.error("JSON Response could not be parsed")
+
 
 class REST(Comms):
     def __init__(self, source: str, token=None):

@@ -135,7 +135,6 @@ class Cube(Entity):
         """Downloads the required elements for an mlcube to run locally.
         """
         comms = config.comms
-        ui = config.ui
         # Backwards compatibility for cubes with
         # tarball_url instead of additional_files_tarball_url
         old_files = "tarball_url"
@@ -179,7 +178,6 @@ class Cube(Entity):
         self.params_path = params_path
         self.additional_hash = additional_hash
         self.image_tarball_hash = image_tarball_hash
-
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.

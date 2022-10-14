@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import ANY
 
 import medperf.config as config
 from medperf.commands.mlcube.submit import SubmitCube
@@ -66,7 +65,6 @@ def test_run_downloads_cube(mocker, comms, ui):
 
     # Act
     SubmitCube.run(submit_info, comms, ui)
-
 
     # Assert
     spy_todict.assert_called_once()
