@@ -50,6 +50,29 @@ def test_is_valid_passes_valid_fields(
     assert valid == should_pass
 
 
+def test_run_downloads_cube(mocker, comms, ui):
+    # Arrange
+    submit_info = {
+        "name": "",
+        "mlcube_file": "",
+        "params_file": "",
+        "additional_files_tarball_url": "",
+        "additional_files_tarball_hash": "",
+        "image_tarball_url": "",
+        "image_tarball_hash": "",
+    }
+    spy_todict = mocker.patch(PATCH_MLCUBE.format("SubmitCube.is_valid"), return_value=True)
+    spy_download = mocker.patch(PATCH_MLCUBE.format("Cube.download"))
+
+    # Act
+    SubmitCube.run(submit_info, comms, ui)
+
+
+    # Assert
+    spy_todict.assert_called_once()
+    spy_download.assert_called_once()
+
+
 def test_submit_uploads_cube_data(mocker, comms, ui):
     # Arrange
     mock_body = {}
