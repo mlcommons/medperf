@@ -64,7 +64,7 @@ def test_run_downloads_cube(mocker, comms, ui):
     spy_download = mocker.patch(PATCH_MLCUBE.format("Cube.download"))
 
     # Act
-    SubmitCube.run(submit_info, comms, ui)
+    SubmitCube.run(submit_info)
 
     # Assert
     spy_todict.assert_called_once()
