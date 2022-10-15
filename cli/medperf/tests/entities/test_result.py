@@ -115,6 +115,7 @@ def test_upload_calls_server_method(mocker, result, comms):
 @pytest.mark.parametrize("write_access", [True, False])
 def test_set_results_writes_results_contents_to_file(mocker, result, write_access):
     # Arrange
+    mocker.patch("os.path.exists", return_value=True)
     mocker.patch("os.access", return_value=write_access)
     mocker.patch("os.remove")
     open_spy = mocker.patch("builtins.open", MagicMock())
@@ -131,6 +132,7 @@ def test_set_results_writes_results_contents_to_file(mocker, result, write_acces
 @pytest.mark.parametrize("write_access", [True, False])
 def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
     # Arrange
+    mocker.patch("os.path.exists", return_value=True)
     mocker.patch("os.access", return_value=write_access)
     spy = mocker.patch("os.remove")
     mocker.patch("builtins.open", MagicMock())
@@ -142,5 +144,24 @@ def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
     # arrange
     if not write_access:
         spy.assert_called_once_with(result.path)
+    else:
+        spy.assert_not_called()
+
+
+@pytest.mark.parametrize("exists", [True, False])
+def test_set_results_check_access_only_if_file_exists(mocker, result, exists):
+    # Arrange
+    mocker.patch("os.path.exists", return_value=exists)
+    spy = mocker.patch("os.access")
+    mocker.patch("os.remove")
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch("yaml.dump")
+
+    # Act
+    result.write()
+
+    # arrange
+    if exists:
+        spy.assert_called_once()
     else:
         spy.assert_not_called()

@@ -128,10 +128,11 @@ class Result(Entity):
         self.write()
 
     def write(self):
-        write_access = os.access(self.path, os.W_OK)
-        logging.debug(f"file has write access? {write_access}")
-        if not write_access:
-            logging.debug("removing outdated and inaccessible results")
-            os.remove(self.path)
+        if os.path.exists(self.path):
+            write_access = os.access(self.path, os.W_OK)
+            logging.debug(f"file has write access? {write_access}")
+            if not write_access:
+                logging.debug("removing outdated and inaccessible results")
+                os.remove(self.path)
         with open(self.path, "w") as f:
             yaml.dump(self.todict(), f)
