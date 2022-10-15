@@ -47,12 +47,14 @@ class Result(Entity):
         self.modified_at = results_info["modified_at"]
 
         self.path = results_path(self.benchmark_uid, self.model_uid, self.dataset_uid)
+        self.path = os.path.join(self.path, config.results_info_file)
 
     @classmethod
     def from_entities_uids(
         cls, benchmark_uid: str, dataset_uid: str, model_uid: str
     ) -> "Result":
         path = results_path(benchmark_uid, model_uid, dataset_uid)
+        path = os.path.join(path, config.results_info_file)
         with open(path, "r") as f:
             results_info = yaml.safe_load(f)
         return cls(results_info)
@@ -66,7 +68,7 @@ class Result(Entity):
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
-            results.append(cls(b_id, d_id, m_id))
+            results.append(cls.from_entities_uids(b_id, d_id, m_id))
 
         return results
 

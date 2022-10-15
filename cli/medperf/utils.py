@@ -388,7 +388,6 @@ def results_path(benchmark_uid, model_uid, data_uid):
     model_uid = str(model_uid)
     data_uid = str(data_uid)
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-    out_path = os.path.join(out_path, config.results_filename)
     return out_path
 
 
@@ -481,3 +480,21 @@ def get_stats(data_path: str, remove: bool = True) -> dict:
     if remove:
         os.remove(stats_path)
     return stats
+
+
+def get_results(result_path: str, remove: bool = True) -> dict:
+    """Retrieves the results of an execution
+
+    Args:
+        path (str): path to the result root
+
+    Returns:
+        dict: results of the execution.
+    """
+    path = os.path.join(result_path, config.results_filename)
+    with open(path, "r") as f:
+        results = yaml.safe_load(f)
+
+    if remove:
+        os.remove(path)
+    return results

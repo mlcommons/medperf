@@ -1,7 +1,6 @@
 import os
 from medperf.entities.result import Result
 from medperf.enums import Status
-import yaml
 
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
@@ -10,6 +9,7 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
+    get_results,
     init_storage,
     pretty_error,
     results_path,
@@ -42,6 +42,7 @@ class BenchmarkExecution:
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
+        execution.write()
 
     def __init__(
         self,
@@ -68,6 +69,14 @@ class BenchmarkExecution:
         self.benchmark = Benchmark.get(self.benchmark_uid, force_update=update_bmk)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.from_generated_uid(self.data_uid)
+        if not self.run_test:
+            self.out_path = results_path(
+                self.benchmark_uid, self.model_uid, self.dataset.uid
+            )
+        else:
+            self.out_path = results_path(
+                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
+            )
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -108,6 +117,7 @@ class BenchmarkExecution:
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
+        out_path = os.path.join(self.out_path, config.results_filename)
         self.model_cube.run(
             self.ui,
             task="infer",
@@ -120,14 +130,6 @@ class BenchmarkExecution:
         labels_path = self.dataset.labels_path
 
         self.ui.text = "Evaluating results"
-        if not self.run_test:
-            out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.uid
-            )
-        else:
-            out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
-            )
 
         self.evaluator.run(
             self.ui,
@@ -137,8 +139,6 @@ class BenchmarkExecution:
             labels=labels_path,
             output_path=out_path,
         )
-        with open(out_path, "r") as f:
-            self.results = yaml.safe_load(f)
 
     def todict(self):
         data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
@@ -150,7 +150,7 @@ class BenchmarkExecution:
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
             "dataset": data_uid,
-            "results": self.results,
+            "results": get_results(self.out_path),
             "metadata": {},
             "approval_status": Status.PENDING.value,
             "approved_at": None,
