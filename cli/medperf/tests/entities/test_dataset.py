@@ -192,7 +192,7 @@ def test_upload_updates_fields_and_writes(mocker, all_uids, ui, comms_uid, comms
     dset = Dataset.from_generated_uid(uid)
 
     # Act
-    dset.upload(comms)
+    dset.upload()
 
     # Assert
     spy.assert_called_once()

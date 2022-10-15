@@ -1,3 +1,5 @@
+import os
+from medperf import config
 import pytest
 from unittest.mock import call
 
@@ -28,6 +30,7 @@ def execution(mocker, comms, ui, cube):
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
     exec = BenchmarkExecution(0, 0, 0)
     exec.prepare()
+    exec.out_path = "out_path"
     exec.dataset.uid = 1
     exec.dataset.generated_uid = "data_uid"
     exec.dataset.preparation_cube_uid = "prep_cube"
@@ -211,7 +214,7 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
     spy_error = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
 
-    exp_outpaths = [preds_path, out_path]
+    exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
 
     # Act
     execution.run_cubes()

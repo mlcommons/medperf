@@ -94,7 +94,7 @@ class Dataset(Entity):
 
     @classmethod
     def from_generated_uid(cls, generated_uid: int) -> "Dataset":
-        generated_uid = cls.__full_uid(cls, generated_uid, config.ui)
+        generated_uid = cls.__full_uid(cls, generated_uid)
         dataset_path = os.path.join(
             storage_path(config.data_storage), str(generated_uid)
         )
