@@ -401,8 +401,7 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
     storage = config.storage
     res_storage = config.results_storage
-    res_file = config.results_filename
-    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}/{res_file}"
+    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}"
 
     # Act
     path = utils.results_path(bmk, model, gen_uid)
@@ -490,6 +489,35 @@ def test_get_stats_removes_file_by_default(mocker):
 
     # Act
     utils.get_stats(path)
+
+    # Assert
+    spy.assert_called_once_with(opened_path)
+
+
+@pytest.mark.parametrize("results", [{}, {"test": ""}, {"mean": 8}])
+def test_get_results_returns_results(mocker, results):
+    # Arrange
+    mocker.patch("builtins.open", MagicMock())
+    mocker.patch(patch_utils.format("os.remove"))
+    mocker.patch(patch_utils.format("yaml.safe_load"), return_value=results)
+
+    # Act
+    returned_results = utils.get_results("mocked_path")
+
+    # Assert
+    assert returned_results == results
+
+
+def test_get_results_removes_file_by_default(mocker):
+    # Arrange
+    path = "mocked_path"
+    mocker.patch("builtins.open", MagicMock())
+    spy = mocker.patch(patch_utils.format("os.remove"))
+    mocker.patch(patch_utils.format("yaml.safe_load"))
+    opened_path = os.path.join(path, config.results_filename)
+
+    # Act
+    utils.get_results(path)
 
     # Assert
     spy.assert_called_once_with(opened_path)

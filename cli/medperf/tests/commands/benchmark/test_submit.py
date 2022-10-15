@@ -1,3 +1,4 @@
+from medperf.tests.mocks.requests import benchmark_body
 import pytest
 
 from medperf.entities.result import Result
@@ -23,7 +24,8 @@ DESC_MAX_LEN = 100
 @pytest.fixture
 def result(mocker):
     result_obj = mocker.create_autospec(spec=Result)
-    mocker.patch.object(result_obj, "todict", return_value={})
+    # mocker.patch.object(result_obj, "todict", return_value={})
+    result_obj.results = {}
     return result_obj
 
 
@@ -105,7 +107,9 @@ def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
     submission.results = result
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
     expected_data = Benchmark(submission.todict()).todict()
-    spy_upload = mocker.patch.object(comms, "upload_benchmark", return_value=1)
+    spy_upload = mocker.patch.object(
+        comms, "upload_benchmark", return_value=benchmark_body(1)
+    )
 
     # Act
     submission.submit()

@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 import medperf.config as config
+from medperf.tests.mocks.requests import dataset_dict
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import call
 
 from medperf.tests.mocks import Benchmark, MockCube
 from medperf.commands.dataset.create import DataPreparation
@@ -18,20 +19,7 @@ NAME = "name"
 DESCRIPTION = "description"
 LOCATION = "location"
 
-REG_DICT_KEYS = [
-    "name",
-    "description",
-    "location",
-    "split_seed",
-    "data_preparation_mlcube",
-    "generated_uid",
-    "input_data_hash",
-    "generated_metadata",
-    "status",
-    "uid",
-    "state",
-    "separate_labels",
-]
+REG_DICT_KEYS = list(dataset_dict().keys())
 
 
 @pytest.fixture
@@ -340,19 +328,18 @@ class TestWithDefaultUID:
             rmtree_spy.assert_not_called()
         rename_spy.assert_called_once_with(out_path, new_path)
 
-    @pytest.mark.parametrize("filepath", ["filepath"])
-    def test_write_writes_to_desired_file(self, mocker, filepath, preparation):
+    def test_write_calls_dataset_write(self, mocker, preparation):
         # Arrange
-        mocker.patch("os.path.join", return_value=filepath)
-        open_spy = mocker.patch("builtins.open", MagicMock())
-        mocker.patch("yaml.dump", MagicMock())
-        mocker.patch(PATCH_DATAPREP.format("DataPreparation.todict"), return_value={})
-
+        data_dict = dataset_dict()
+        mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.todict"), return_value=data_dict
+        )
+        spy = mocker.patch(PATCH_DATAPREP.format("Dataset.write"))
         # Act
         preparation.write()
 
         # Assert
-        open_spy.assert_called_once_with(filepath, "w")
+        spy.assert_called_once()
 
 
 @pytest.mark.parametrize("uid", ["574", "1059", "1901"])

@@ -45,7 +45,7 @@ def default_setup(mocker, benchmark, dataset):
         return_value=("", ""),
     )
     mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value="")
-    mocker.patch(PATCH_TEST.format("Dataset"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Dataset.from_generated_uid"), return_value=dataset)
     return bmk
 
 
@@ -272,7 +272,7 @@ def test_execute_benchmark_runs_benchmark_workflow(
 ):
     # Arrange
     spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
-    mocker.patch(PATCH_TEST.format("Result.get_results"), return_value=[])
+    mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
     exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
     exec.dataset = dataset
 
@@ -445,8 +445,8 @@ def test_run_uses_correct_uids(
     mocker.patch(
         PATCH_TEST.format("DataPreparation.run"), return_value=demo_dataset_uid
     )
-    mocker.patch(PATCH_TEST.format("Dataset"), return_value=dataset)
-    mocker.patch(PATCH_TEST.format("Result"))
+    mocker.patch(PATCH_TEST.format("Dataset.from_generated_uid"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
 
     def tmp_side_effect(prep, model, eval):
         return benchmark(tmp_uid, prep, model, eval)

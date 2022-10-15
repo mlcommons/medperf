@@ -1,13 +1,15 @@
 import os
 import medperf
 from medperf.enums import Status
+from medperf.tests.mocks.requests import dataset_dict
 import pytest
-from unittest.mock import mock_open
+from unittest.mock import MagicMock, mock_open
 
 from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.entities.dataset import Dataset
+
 
 REGISTRATION_MOCK = {
     "name": "name",
@@ -21,13 +23,8 @@ REGISTRATION_MOCK = {
     "status": Status.PENDING.value,  # not in the server
     "id": "uid",
     "state": "state",
-    "separate_labels": None,  # not in the server
-    "is_valid": True,
-    "user_metadata": "user_metadata",
-    "created_at": "created_at",
-    "modified_at": "modified_at",
-    "owner": "owner",
 }
+REGISTRATION_MOCK = dataset_dict(REGISTRATION_MOCK)
 
 PATCH_DATASET = "medperf.entities.dataset.{}"
 TMP_PREFIX = config.tmp_prefix
@@ -200,3 +197,19 @@ def test_upload_updates_fields_and_writes(mocker, all_uids, ui, comms_uid, comms
     # Assert
     spy.assert_called_once()
     assert dset.todict() == updated_reg
+
+
+@pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
+@pytest.mark.parametrize("filepath", ["filepath"])
+def test_write_writes_to_desired_file(mocker, all_uids, filepath):
+    # Arrange
+    mocker.patch("os.path.join", return_value=filepath)
+    open_spy = mocker.patch("builtins.open", MagicMock())
+    mocker.patch("yaml.dump", MagicMock())
+    mocker.patch(PATCH_DATASET.format("Dataset.todict"), return_value={})
+    dset = Dataset(REGISTRATION_MOCK)
+    # Act
+    dset.write()
+
+    # Assert
+    open_spy.assert_called_once_with(filepath, "w")

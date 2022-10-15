@@ -172,14 +172,18 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
 
 def test_run_executes_expected_flow(mocker, comms, ui, execution):
     # Arrange
+    prep_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.prepare"))
     val_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.validate"))
     get_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_cubes"))
     run_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.run_cubes"))
+    write_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.write"))
 
     # Act
     BenchmarkExecution.run(1, 1, 1, comms, ui)
 
     # Assert
+    prep_spy.assert_called_once()
     val_spy.assert_called_once()
     get_spy.assert_called_once()
     run_spy.assert_called_once()
+    write_spy.assert_called_once()

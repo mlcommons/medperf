@@ -550,32 +550,30 @@ def test_upload_mlcube_returns_cube_uid(mocker, server, exp_id):
     assert id == exp_id
 
 
-@pytest.mark.parametrize("exp_id", [330, 161, 346])
-def test_upload_dataset_returns_dataset_uid(mocker, server, exp_id):
+@pytest.mark.parametrize("body", [{"dataset": 1}, {}, {"test": "test"}])
+def test_upload_dataset_returns_dataset_body(mocker, server, body):
     # Arrange
-    body = {"id": exp_id}
     res = MockResponse(body, 201)
     mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    id = server.upload_dataset({})
+    exp_body = server.upload_dataset({})
 
     # Assert
-    assert id == exp_id
+    assert body == exp_body
 
 
-@pytest.mark.parametrize("exp_id", [153, 13, 165])
-def test_upload_results_returns_result_uid(mocker, server, exp_id):
+@pytest.mark.parametrize("body", [{"result": 1}, {}, {"test": "test"}])
+def test_upload_results_returns_result_body(mocker, server, body):
     # Arrange
-    body = {"id": exp_id}
     res = MockResponse(body, 201)
     mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    id = server.upload_results({})
+    exp_body = server.upload_results({})
 
     # Assert
-    assert id == exp_id
+    assert body == exp_body
 
 
 @pytest.mark.parametrize("cube_uid", [2156, 915])
@@ -679,3 +677,16 @@ def test_get_result_calls_specified_path(mocker, server, uid, body):
     # Assert
     spy.assert_called_once_with(exp_path)
     assert result == body
+
+
+@pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
+def test_upload_benchmark_returns_benchmark_body(mocker, server, body):
+    # Arrange
+    res = MockResponse(body, 201)
+    mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
+
+    # Act
+    exp_body = server.upload_benchmark({})
+
+    # Assert
+    assert body == exp_body

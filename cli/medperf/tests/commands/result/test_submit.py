@@ -12,6 +12,7 @@ PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 def result(mocker):
     res = mocker.create_autospec(spec=Result)
     res.status = Status.PENDING
+    res.results = {}
     return res
 
 
@@ -27,6 +28,9 @@ def dataset(mocker):
 def submission(mocker, comms, ui, result, dataset):
     sub = ResultSubmission(1, 1, 1, comms, ui)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
+    mocker.patch(
+        PATCH_SUBMISSION.format("Result.from_entities_uids"), return_value=result
+    )
     mocker.patch(PATCH_SUBMISSION.format("Dataset"), return_value=dataset)
     return sub
 
