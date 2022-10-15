@@ -71,7 +71,7 @@ def test_is_valid_passes_valid_fields(
         "reference_model_mlcube": model_uid[0],
         "evaluator_mlcube": eval_uid[0],
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     should_pass = all(
         [
             name[1],
@@ -103,7 +103,7 @@ def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
         "reference_model_mlcube": 0,
         "evaluator_mlcube": 0,
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     submission.results = result
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
     expected_data = Benchmark(submission.todict()).todict()
@@ -135,7 +135,7 @@ def test_get_extra_information_retrieves_expected_info(
         "reference_model_mlcube": "",
         "evaluator_mlcube": "",
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value="demo_path")
     mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
     mocker.patch(
@@ -165,7 +165,7 @@ def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
         "reference_model_mlcube": "",
         "evaluator_mlcube": "",
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     tmp_bmk_spy = mocker.patch(
         PATCH_BENCHMARK.format("Benchmark.tmp"), return_value=bmk
     )

@@ -1,25 +1,25 @@
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
 from medperf.utils import approval_prompt, pretty_error
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
+from medperf import config
 
 
 class DatasetRegistration:
     @staticmethod
-    def run(data_uid: str, comms: Comms, ui: UI, approved=False):
+    def run(data_uid: str, approved=False):
         """Registers a database to the backend.
 
         Args:
             data_uid (str): UID Hint of the unregistered dataset
         """
-
+        comms = config.comms
+        ui = config.ui
         dset = Dataset.from_generated_uid(data_uid)
 
         if dset.uid:
             # TODO: should get_dataset and update locally. solves existing issue?
             pretty_error(
-                "This dataset has already been registered.", ui, add_instructions=False
+                "This dataset has already been registered.", add_instructions=False
             )
         remote_dsets = comms.get_user_datasets()
         remote_dset = [
@@ -34,10 +34,10 @@ class DatasetRegistration:
             return
 
         msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
-        approved = approved or approval_prompt(msg, ui)
+        approved = approved or approval_prompt(msg)
         dset.status = Status("APPROVED") if approved else Status("REJECTED")
         if approved:
             ui.print("Uploading...")
-            dset.upload(comms)
+            dset.upload()
         else:
-            pretty_error("Registration request cancelled.", ui, add_instructions=False)
+            pretty_error("Registration request cancelled.", add_instructions=False)

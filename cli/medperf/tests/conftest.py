@@ -3,6 +3,7 @@ import requests
 import builtins
 import os
 
+from medperf import config
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 
@@ -65,10 +66,12 @@ def disable_fs_IO_operations(monkeypatch):
 @pytest.fixture
 def ui(mocker):
     ui = mocker.create_autospec(spec=UI)
+    config.ui = ui
     return ui
 
 
 @pytest.fixture
 def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
+    config.comms = comms
     return comms

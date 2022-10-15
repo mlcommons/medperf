@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, mock_open, call, ANY
 
 from medperf import utils
-from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
@@ -46,12 +45,6 @@ def dict_with_nones(request):
     vals[0] = None
     vals[-1] = None
     return {k: v for k, v in zip(keys, vals)}
-
-
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
 
 
 @pytest.fixture
@@ -171,7 +164,7 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error(msg, ui)
+    utils.pretty_error(msg)
 
     # Assert
     printed_msg = spy.call_args_list[0][0][0]
@@ -186,7 +179,7 @@ def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
     mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error("test", ui, clean)
+    utils.pretty_error("test", clean)
 
     # Assert
     if clean:
@@ -202,7 +195,7 @@ def test_pretty_error_exits_program(mocker, ui):
     spy = mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error("test", ui)
+    utils.pretty_error("test")
 
     # Assert
     spy.assert_called_once()
@@ -236,7 +229,7 @@ def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
     cube = MockCube(is_valid)
 
     # Act
-    utils.check_cube_validity(cube, ui)
+    utils.check_cube_validity(cube)
 
     # Assert
     if not is_valid:
@@ -295,7 +288,7 @@ def test_approval_prompt_asks_for_user_input(mocker, ui):
     spy = mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
-    utils.approval_prompt("test", ui)
+    utils.approval_prompt("test")
 
     # Assert
     spy.assert_called_once()
@@ -318,7 +311,7 @@ def test_approval_prompt_repeats_until_valid_answer(mocker, ui, inputted_strs):
     spy = mocker.patch.object(ui, "prompt", side_effect=str_list)
 
     # Act
-    utils.approval_prompt("test prompt", ui)
+    utils.approval_prompt("test prompt")
 
     # Assert
     spy.call_count == exp_repeats
@@ -330,7 +323,7 @@ def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     mocker.patch.object(ui, "prompt", return_value=input_val)
 
     # Act
-    approved = utils.approval_prompt("test approval return", ui)
+    approved = utils.approval_prompt("test approval return")
 
     # Assert
     assert approved == (input_val in "yY")
@@ -344,7 +337,7 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     exp_dict = {k: v for k, v in dict_with_nones.items() if v is not None}
 
     # Act
-    utils.dict_pretty_print(dict_with_nones, ui)
+    utils.dict_pretty_print(dict_with_nones)
 
     # Assert
     spy.assert_called_once_with(exp_dict)

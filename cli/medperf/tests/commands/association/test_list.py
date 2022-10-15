@@ -12,7 +12,7 @@ def test_run_gets_dset_and_cube_associations(mocker, comms, ui):
     cube_spy = mocker.patch.object(comms, "get_cubes_associations", return_value=[])
 
     # Act
-    ListAssociations.run(comms, ui)
+    ListAssociations.run()
 
     # Assert
     dset_spy.assert_called_once()
@@ -49,7 +49,7 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
     tab_spy = mocker.patch(PATCH_LIST.format("tabulate"), return_value="")
 
     # Act
-    ListAssociations.run(comms, ui, filter)
+    ListAssociations.run(filter)
 
     # Assert
     tab_call = tab_spy.call_args_list[0]

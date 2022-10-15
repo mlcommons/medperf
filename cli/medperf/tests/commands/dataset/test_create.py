@@ -31,15 +31,7 @@ def preparation(mocker, comms, ui):
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
     preparation = DataPreparation(
-        BENCHMARK_UID,
-        None,
-        DATA_PATH,
-        LABELS_PATH,
-        NAME,
-        DESCRIPTION,
-        LOCATION,
-        comms,
-        ui,
+        BENCHMARK_UID, None, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION,
     )
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
     preparation.get_prep_cube()
@@ -91,7 +83,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        preparation = DataPreparation(None, cube_uid, *[""] * 5, comms, ui)
+        preparation = DataPreparation(None, cube_uid, *[""] * 5)
         preparation.get_prep_cube()
 
         # Assert
@@ -110,7 +102,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        preparation = DataPreparation(cube_uid, None, *[""] * 5, comms, ui)
+        preparation = DataPreparation(cube_uid, None, *[""] * 5)
         preparation.get_prep_cube()
 
         # Assert
@@ -125,25 +117,22 @@ class TestWithDefaultUID:
         preparation.get_prep_cube()
 
         # Assert
-        spy.assert_called_once_with(preparation.cube, preparation.ui)
+        spy.assert_called_once_with(preparation.cube)
 
     def test_run_cube_tasks_runs_required_tasks(self, mocker, preparation):
         # Arrange
         spy = mocker.patch.object(preparation.cube, "run")
         mocker.patch.object(preparation.cube, "get_default_output", return_value=None)
-        ui = preparation.ui
         out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
-            ui,
             task="prepare",
             timeout=None,
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
         )
-        check = call(ui, task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
+        check = call(task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
         stats = call(
-            ui,
             task="statistics",
             data_path=OUT_DATAPATH,
             timeout=None,
@@ -164,10 +153,8 @@ class TestWithDefaultUID:
         mocker.patch.object(
             preparation.cube, "get_default_output", return_value=OUT_LABELSPATH
         )
-        ui = preparation.ui
         out_statistics_path = os.path.join(OUT_PATH, config.statistics_filename)
         prepare = call(
-            ui,
             task="prepare",
             timeout=None,
             data_path=DATA_PATH,
@@ -176,14 +163,12 @@ class TestWithDefaultUID:
             output_labels_path=OUT_LABELSPATH,
         )
         check = call(
-            ui,
             task="sanity_check",
             timeout=None,
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
         )
         stats = call(
-            ui,
             task="statistics",
             timeout=None,
             data_path=OUT_DATAPATH,
@@ -216,7 +201,7 @@ class TestWithDefaultUID:
         write_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
 
         # Act
-        DataPreparation.run("", "", "", "", comms, ui)
+        DataPreparation.run("", "", "", "")
 
         # Assert
         validate_spy.assert_called_once()
@@ -237,7 +222,7 @@ class TestWithDefaultUID:
         spy = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
 
         # Act
-        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5, comms, ui)
+        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5)
         preparation.validate()
         # Assert
 
@@ -360,7 +345,29 @@ def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
 
     # Act
-    returned_uid = DataPreparation.run("", "", "", "", comms, ui)
+    returned_uid = DataPreparation.run("", "", "", "")
 
     # Assert
     assert returned_uid == uid
+
+
+def test_run_deletes_output_path_on_failure(mocker, preparation):
+    # Arrange
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
+    mocker.patch.object(
+        preparation.cube,
+        "run",
+        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+    )
+    spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
+    spy_error = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
+
+    exp_outpaths = [preparation.out_path]
+
+    # Act
+    preparation.run_cube_tasks()
+
+    # Assert
+    spy_clean.assert_called_once_with(exp_outpaths)
+    spy_error.assert_called_once()

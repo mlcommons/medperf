@@ -10,9 +10,7 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
 class Dataset(Entity):
@@ -41,7 +39,9 @@ class Dataset(Entity):
         self.location = dataset_dict["location"]
         self.preparation_cube_uid = dataset_dict["data_preparation_mlcube"]
         self.input_data_hash = dataset_dict["input_data_hash"]
-        self.separate_labels = dataset_dict.get("separate_labels", None)  # not in the server
+        self.separate_labels = dataset_dict.get(
+            "separate_labels", None
+        )  # not in the server
         self.split_seed = dataset_dict["split_seed"]
         if "metadata" in dataset_dict:
             # Make sure it is backwards-compatible
@@ -51,7 +51,9 @@ class Dataset(Entity):
         if "status" in dataset_dict:
             self.status = Status(dataset_dict["status"])  # not in the server
         else:
-            self.status = Status.PENDING if dataset_dict["id"] is None else Status.APPROVED
+            self.status = (
+                Status.PENDING if dataset_dict["id"] is None else Status.APPROVED
+            )
         self.state = dataset_dict["state"]
         self.is_valid = dataset_dict["is_valid"]
         self.user_metadata = dataset_dict["user_metadata"]
@@ -115,7 +117,7 @@ class Dataset(Entity):
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", config.ui)
+            pretty_error("Couldn't iterate over the dataset directory")
         dsets = []
         for generated_uid in generated_uids:
             dsets.append(cls.from_generated_uid(generated_uid))
@@ -144,7 +146,7 @@ class Dataset(Entity):
         meta = comms.get_dataset(dset_uid)
         return cls(meta)
 
-    def __full_uid(self, uid_hint: str, ui: UI) -> str:
+    def __full_uid(self, uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
 
         Args:
@@ -161,9 +163,9 @@ class Dataset(Entity):
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
+            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
         elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.", ui)
+            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
         else:
             return match[0]
 
@@ -174,7 +176,7 @@ class Dataset(Entity):
         with open(regfile, "w") as f:
             yaml.dump(self.todict(), f)
 
-    def upload(self, comms: Comms):
+    def upload(self):
         """Uploads the registration information to the comms.
 
         Args:
@@ -182,7 +184,7 @@ class Dataset(Entity):
         """
         dataset_dict = self.todict()
         # check if calling POST with fields like id, owner, affect server behavior
-        updated_dataset_dict = comms.upload_dataset(dataset_dict)
+        updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
 
         # update server-generated fields
         self.uid = updated_dataset_dict["id"]

@@ -19,7 +19,6 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
-from medperf.ui.interface import UI
 
 
 def storage_path(subpath: str):
@@ -73,22 +72,24 @@ def init_storage():
             logging.warning(f"Tried to create existing folder {dir}")
 
 
-def cleanup():
+def cleanup(extra_paths: List[str] = []):
     """Removes clutter and unused files from the medperf folder structure.
     """
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
     tmp_path = storage_path(config.tmp_storage)
-    if os.path.exists(tmp_path):
-        logging.info("Removing temporary data storage")
-        try:
-            rmtree(tmp_path)
-        except OSError as e:
-            logging.error(f"Could not remove temporary data storage: {e}")
-            config.ui.print_error(
-                "Could not remove temporary data storage. For more information check the logs."
-            )
+    extra_paths.append(tmp_path)
+    for path in extra_paths:
+        if os.path.exists(path):
+            logging.info(f"Removing clutter path: {path}")
+            try:
+                rmtree(path)
+            except OSError as e:
+                logging.error(f"Could not remove clutter path: {e}")
+                config.ui.print_error(
+                    "Could not remove clutter directory. For more information check the logs."
+                )
 
     cleanup_dsets()
     cleanup_cubes()
@@ -181,7 +182,7 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, clean: bool = True, add_instructions=True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
@@ -191,6 +192,7 @@ def pretty_error(msg: str, ui: "UI", clean: bool = True, add_instructions=True):
         add_instructions (bool, optional):
             Show additional instructions to the user. Defualts to True.
     """
+    ui = config.ui
     logging.warning(
         "MedPerf had to stop execution. See logs above for more information"
     )
@@ -244,7 +246,7 @@ def generate_tmp_uid() -> str:
     return ts
 
 
-def check_cube_validity(cube: "Cube", ui: "UI"):
+def check_cube_validity(cube: "Cube"):
     """Helper function for pretty printing the cube validity process.
 
     Args:
@@ -252,9 +254,10 @@ def check_cube_validity(cube: "Cube", ui: "UI"):
         ui (UI): Instance of an UI implementation
     """
     logging.info(f"Checking cube {cube.name} validity")
+    ui = config.ui
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match", ui)
+        pretty_error("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -286,7 +289,7 @@ def untar(filepath: str, remove: bool = True) -> str:
     return addpath
 
 
-def approval_prompt(msg: str, ui: "UI") -> bool:
+def approval_prompt(msg: str) -> bool:
     """Helper function for prompting the user for things they have to explicitly approve.
 
     Args:
@@ -296,6 +299,7 @@ def approval_prompt(msg: str, ui: "UI") -> bool:
         bool: Wether the user explicitly approved or not.
     """
     logging.info("Prompting for user's approval")
+    ui = config.ui
     approval = None
     while approval is None or approval not in "yn":
         approval = ui.prompt(msg.strip() + " ").lower()
@@ -303,13 +307,14 @@ def approval_prompt(msg: str, ui: "UI") -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict, ui: "UI"):
+def dict_pretty_print(in_dict: dict):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
         in_dict (dict): dictionary to print
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
+    ui = config.ui
     ui.print()
     ui.print("=" * 20)
     in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
@@ -318,7 +323,7 @@ def dict_pretty_print(in_dict: dict, ui: "UI"):
     ui.print("=" * 20)
 
 
-def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
+def combine_proc_sp_text(proc: spawn) -> str:
     """Combines the output of a process and the spinner.
     Joins any string captured from the process with the
     spinner current text. Any strings ending with any other
@@ -331,6 +336,7 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
     Returns:
         str: all non-carriage-return-ending string captured from proc
     """
+    ui = config.ui
     static_text = ui.text
     proc_out = ""
     while proc.isalive():
@@ -338,7 +344,7 @@ def combine_proc_sp_text(proc: spawn, ui: "UI") -> str:
             line = byte = proc.read(1)
         except TIMEOUT:
             logging.info("Process timed out")
-            pretty_error("Process timed out", ui)
+            pretty_error("Process timed out")
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -391,7 +397,7 @@ def results_path(benchmark_uid, model_uid, data_uid):
     return out_path
 
 
-def results_ids(ui: UI):
+def results_ids():
     results_storage = storage_path(config.results_storage)
     logging.debug("Getting results ids")
     results_ids = []
@@ -411,7 +417,7 @@ def results_ids(ui: UI):
     except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
-        pretty_error(msg, ui)
+        pretty_error(msg)
     logging.debug(f"Results ids: {results_ids}")
     return results_ids
 

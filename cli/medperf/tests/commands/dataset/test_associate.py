@@ -48,7 +48,7 @@ def test_fails_if_dataset_incompatible_with_benchmark(
 
     # Act
     with pytest.raises(SystemExit):
-        AssociateDataset.run(1, 1, comms, ui)
+        AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -65,7 +65,7 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
 
     # Act
     with pytest.raises(SystemExit):
-        AssociateDataset.run(1, 1, comms, ui)
+        AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -84,7 +84,7 @@ def test_requests_approval_from_user(mocker, comms, ui, dataset, result, benchma
     dataset.name = "test"
 
     # Act
-    AssociateDataset.run(1, 1, comms, ui)
+    AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -108,7 +108,7 @@ def test_associates_if_approved(
     dataset.uid = data_uid
 
     # Act
-    AssociateDataset.run(data_uid, benchmark_uid, comms, ui)
+    AssociateDataset.run(data_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(data_uid, benchmark_uid, ANY)
@@ -129,7 +129,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
 
     # Act
     with pytest.raises(SystemExit):
-        AssociateDataset.run(1, 1, comms, ui)
+        AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()

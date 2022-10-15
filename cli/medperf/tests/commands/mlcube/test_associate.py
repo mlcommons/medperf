@@ -46,7 +46,7 @@ def test_run_associates_cube_with_comms(
     )
 
     # Act
-    AssociateCube.run(cube_uid, benchmark_uid, comms, ui)
+    AssociateCube.run(cube_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(cube_uid, benchmark_uid, ANY)
@@ -65,7 +65,7 @@ def test_run_calls_compatibility_test(
     )
 
     # Act
-    AssociateCube.run(cube_uid, benchmark_uid, comms, ui)
+    AssociateCube.run(cube_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(benchmark_uid, comms, ui, model=cube_uid)
+    spy.assert_called_once_with(benchmark_uid, model=cube_uid)

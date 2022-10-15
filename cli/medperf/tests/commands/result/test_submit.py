@@ -26,7 +26,7 @@ def dataset(mocker):
 
 @pytest.fixture
 def submission(mocker, comms, ui, result, dataset):
-    sub = ResultSubmission(1, 1, 1, comms, ui)
+    sub = ResultSubmission(1, 1, 1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
     mocker.patch(
         PATCH_SUBMISSION.format("Result.from_entities_uids"), return_value=result
@@ -98,7 +98,7 @@ def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
-    ResultSubmission.run(bmark_uid, data_uid, model_uid, comms, ui)
+    ResultSubmission.run(bmark_uid, data_uid, model_uid)
 
     # Assert
     spy.assert_called_once()

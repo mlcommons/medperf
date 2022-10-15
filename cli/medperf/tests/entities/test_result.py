@@ -106,7 +106,7 @@ def test_upload_calls_server_method(mocker, result, comms):
     mocker.patch(PATCH_RESULT.format("Result.write"))
 
     # Act
-    result.upload(comms)
+    result.upload()
 
     # Assert
     spy.assert_called_once()

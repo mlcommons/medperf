@@ -10,7 +10,6 @@ from medperf.utils import (
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
 class Result(Entity):
@@ -64,7 +63,7 @@ class Result(Entity):
         """Gets and creates instances of all the user's results
         """
         logging.info("Retrieving all results")
-        results_ids_tuple = results_ids(config.ui)
+        results_ids_tuple = results_ids()
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
@@ -112,14 +111,14 @@ class Result(Entity):
             "modified_at": self.modified_at,
         }
 
-    def upload(self, comms: Comms):
+    def upload(self):
         """Uploads the results to the comms
 
         Args:
             comms (Comms): Instance of the communications interface.
         """
         results_info = self.todict()
-        updated_results_info = comms.upload_results(results_info)
+        updated_results_info = config.comms.upload_results(results_info)
 
         self.uid = updated_results_info["id"]
         self.owner = updated_results_info["owner"]
