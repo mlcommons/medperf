@@ -217,5 +217,5 @@ class DataPreparation:
         Args:
             filename (str, optional): name of the file. Defaults to config.reg_file.
         """
-        dataset_dict = self.registration()
+        dataset_dict = self.todict()
         Dataset(dataset_dict).write()
