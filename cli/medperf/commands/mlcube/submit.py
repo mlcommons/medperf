@@ -28,7 +28,7 @@ class SubmitCube:
 
         with ui.interactive():
             ui.text = "Validating MLCube can be downloaded"
-            cube = Cube(config.cube_submission_id, submission.todict(), "")
+            cube = Cube(submission.todict())
             cube.download()
             if submission.additional_file:
                 ui.text = "Generating additional file hash"
@@ -98,19 +98,19 @@ class SubmitCube:
             "name": self.name,
             "git_mlcube_url": self.mlcube_file,
             "git_parameters_url": self.params_file,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
-            "additional_files_tarball_url": "",
-            "additional_files_tarball_hash": "",
+            "image_tarball_url": self.image_file,
+            "image_tarball_hash": self.image_tarball_hash,
+            "additional_files_tarball_url": self.additional_file,
+            "additional_files_tarball_hash": self.additional_hash,
             "state": "OPERATION",
             "is_valid": True,
+            "id": config.cube_submission_id,
+            "owner": None,
+            "metadata": {},
+            "user_metadata": {},
+            "created_at": None,
+            "modified_at": None,
         }
-        if self.image_file:
-            dict["image_tarball_url"] = self.image_file
-            dict["image_tarball_hash"] = self.image_tarball_hash
-        if self.additional_file:
-            dict["additional_files_tarball_url"] = self.additional_file
-            dict["additional_files_tarball_hash"] = self.additional_hash
         return dict
 
     def submit(self):
