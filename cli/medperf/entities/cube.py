@@ -122,12 +122,27 @@ class Cube(Entity):
             return local_cube[0]
 
         meta = comms.get_cube_metadata(cube_uid)
+        cube = cls(cube_uid, meta, "")
+        cube.download()
+        local_hashes = {
+            "additional_files_tarball_hash": cube.additional_hash if cube.additional_hash else "",
+            "image_tarball_hash": cube.image_tarball_hash if cube.image_tarball_hash else "",
+        }
+        save_cube_metadata(meta, local_hashes)
+        return cube
+
+    def download(self):
+        """Downloads the required elements for an mlcube to run locally.
+        """
+        comms = config.comms
         # Backwards compatibility for cubes with
         # tarball_url instead of additional_files_tarball_url
         old_files = "tarball_url"
         old_hash = "tarball_hash"
         add_files = "additional_files_tarball_url"
         add_hash = "additional_files_tarball_hash"
+        meta = self.meta
+        cube_uid = self.uid
         if old_files in meta:
             meta[add_files] = meta[old_files]
             meta[add_hash] = meta[old_hash]
@@ -159,14 +174,10 @@ class Cube(Entity):
             logging.debug(proc_out)
             proc.close()
 
-        local_hashes = {
-            "additional_files_tarball_hash": additional_hash if additional_hash else "",
-            "image_tarball_hash": image_tarball_hash if image_tarball_hash else "",
-        }
-        save_cube_metadata(meta, local_hashes)
-        return cls(
-            cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
-        )
+        self.cube_path = cube_path
+        self.params_path = params_path
+        self.additional_hash = additional_hash
+        self.image_tarball_hash = image_tarball_hash
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.

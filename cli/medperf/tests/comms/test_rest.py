@@ -5,7 +5,6 @@ from unittest.mock import mock_open, ANY
 
 from medperf import config
 from medperf.enums import Role, Status
-from medperf.ui.interface import UI
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
 
@@ -14,14 +13,8 @@ patch_server = "medperf.comms.rest.{}"
 
 
 @pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
-def server(mocker):
-    server = REST(url)
+def server(mocker, ui):
+    server = REST(url, ui)
     return server
 
 
@@ -212,6 +205,7 @@ def test_auth_post_calls_authorized_request(mocker, server):
 def test_auth_req_authenticates_if_token_missing(mocker, server):
     # Arrange
     mocker.patch("requests.post")
+    server.token = None
     spy = mocker.patch(patch_server.format("REST.authenticate"))
 
     # Act
