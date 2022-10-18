@@ -23,7 +23,7 @@ def clean_except(func: Callable) -> Callable:
             func(*args, **kwargs)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
-            logging.error(e)
+            logging.exception(e)
             cleanup()
             raise e
 
