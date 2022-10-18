@@ -93,15 +93,9 @@ class Dataset(Entity):
         }
 
     @classmethod
-    def from_generated_uid(cls, generated_uid: int) -> "Dataset":
+    def from_generated_uid(cls, generated_uid: str) -> "Dataset":
         generated_uid = cls.__full_uid(cls, generated_uid)
-        dataset_path = os.path.join(
-            storage_path(config.data_storage), str(generated_uid)
-        )
-        regfile = os.path.join(dataset_path, config.reg_file)
-        with open(regfile, "r") as f:
-            reg = yaml.safe_load(f)
-
+        reg = cls.__get_local_dict(generated_uid)
         return cls(reg)
 
     @classmethod
@@ -189,3 +183,13 @@ class Dataset(Entity):
         updated_dataset_dict["status"] = dataset_dict["status"]
         updated_dataset_dict["separate_labels"] = dataset_dict["separate_labels"]
         return updated_dataset_dict
+
+    @classmethod
+    def __get_local_dict(cls, generated_uid):
+        dataset_path = os.path.join(
+            storage_path(config.data_storage), str(generated_uid)
+        )
+        regfile = os.path.join(dataset_path, config.reg_file)
+        with open(regfile, "r") as f:
+            reg = yaml.safe_load(f)
+        return reg

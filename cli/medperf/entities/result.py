@@ -52,10 +52,7 @@ class Result(Entity):
     def from_entities_uids(
         cls, benchmark_uid: str, dataset_uid: str, model_uid: str
     ) -> "Result":
-        path = results_path(benchmark_uid, model_uid, dataset_uid)
-        path = os.path.join(path, config.results_info_file)
-        with open(path, "r") as f:
-            results_info = yaml.safe_load(f)
+        results_info = cls.__get_local_dict(benchmark_uid, dataset_uid, model_uid)
         return cls(results_info)
 
     @classmethod
@@ -132,3 +129,11 @@ class Result(Entity):
                 os.remove(self.path)
         with open(self.path, "w") as f:
             yaml.dump(self.todict(), f)
+
+    @classmethod
+    def __get_local_dict(cls, benchmark_uid, model_uid, dataset_uid):
+        path = results_path(benchmark_uid, model_uid, dataset_uid)
+        path = os.path.join(path, config.results_info_file)
+        with open(path, "r") as f:
+            results_info = yaml.safe_load(f)
+        return results_info

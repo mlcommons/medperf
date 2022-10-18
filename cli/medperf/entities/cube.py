@@ -93,9 +93,7 @@ class Cube(Entity):
 
         cubes = []
         for uid in uids:
-            meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
-            with open(meta_file, "r") as f:
-                meta = yaml.safe_load(f)
+            meta = cls.__get_local_dict(uid)
             cube = cls(meta)
             cubes.append(cube)
 
@@ -301,3 +299,11 @@ class Cube(Entity):
         )
         with open(local_hashes_file, "w") as f:
             yaml.dump(local_hashes, f)
+
+    @classmethod
+    def __get_local_dict(cls, uid):
+        cubes_storage = storage_path(config.cubes_storage)
+        meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+        with open(meta_file, "r") as f:
+            meta = yaml.safe_load(f)
+        return meta
