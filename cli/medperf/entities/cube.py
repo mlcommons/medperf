@@ -6,7 +6,6 @@ from typing import List, Dict
 from pathlib import Path
 
 from medperf.utils import (
-    save_cube_metadata,
     get_file_sha1,
     pretty_error,
     untar,
@@ -32,12 +31,8 @@ class Cube(Entity):
         """Creates a Cube instance
 
         Args:
-            uid (str): UID of the cube.
-            meta (dict): Dict for additional information regarding the cube.
-            cube_path (str): path to the mlcube.yaml file associated with this cube.
-            params_path (str, optional): Location of the parameters.yaml file. if exists. Defaults to None.
-            additional_hash (str, optional): Hash of the tarball file, if exists. Defaults to None.
-            image_tarball_hash (str, optional): Hash of the image file, if exists. Defaults to None.
+            cube_dict (dict): Dict for information regarding the cube.
+
         """
         self.uid = cube_dict["id"]
         self.name = cube_dict["name"]
@@ -71,8 +66,8 @@ class Cube(Entity):
 
         self.cube_path = None
         self.params_path = None
-        self.local_additional_hash = None
-        self.local_image_hash = None
+        self.local_additional_hash = ""
+        self.local_image_hash = ""
 
         if self.uid:
             cubes_storage = storage_path(config.cubes_storage)
@@ -106,6 +101,14 @@ class Cube(Entity):
             with open(meta_file, "r") as f:
                 meta = yaml.safe_load(f)
             cube = cls(meta)
+            local_hashes_file = os.path.join(
+                cubes_storage, uid, config.cube_hashes_filename
+            )
+            with open(local_hashes_file, "r") as f:
+                local_hashes = yaml.safe_load(f)
+            cube.local_additional_hash = local_hashes["additional_files_tarball_hash"]
+            cube.local_image_hash = local_hashes["image_tarball_hash"]
+
             cubes.append(cube)
 
         return cubes
@@ -134,15 +137,7 @@ class Cube(Entity):
         meta = comms.get_cube_metadata(cube_uid)
         cube = cls(meta)
         cube.download()
-        local_hashes = {
-            "additional_files_tarball_hash": cube.additional_hash
-            if cube.additional_hash
-            else "",
-            "image_tarball_hash": cube.image_tarball_hash
-            if cube.image_tarball_hash
-            else "",
-        }
-        save_cube_metadata(meta, local_hashes)
+        cube.write()
         return cube
 
     def download(self):
@@ -192,26 +187,14 @@ class Cube(Entity):
         Returns:
             bool: Wether the cube and related files match the expeced hashes
         """
-        # local_hashes_file = os.path.join(
-        #     cubes_storage, uid, config.cube_hashes_filename
-        # )
-        # with open(local_hashes_file, "r") as f:
-        #     local_hashes = yaml.safe_load(f)
-        # additional_hash = local_hashes["additional_files_tarball_hash"]
-        # image_tarball_hash = local_hashes["image_tarball_hash"]
-
-        add_files = "additional_files_tarball_url"
-        add_hash = "additional_files_tarball_hash"
-        valid_cube = self.meta["is_valid"]
-        has_additional = add_files in self.meta and self.meta[add_files]
-        if has_additional:
-            valid_additional = self.additional_hash == self.meta[add_hash]
+        valid_cube = self.is_cube_valid
+        if self.additional_files_tarball_url:
+            valid_additional = self.additional_hash == self.local_additional_hash
         else:
             valid_additional = True
 
-        has_image = "image_tarball_url" in self.meta and self.meta["image_tarball_url"]
-        if has_image:
-            valid_image = self.image_tarball_hash == self.meta["image_tarball_hash"]
+        if self.image_tarball_url:
+            valid_image = self.image_tarball_hash == self.local_image_hash
         else:
             valid_image = True
         return valid_cube and valid_additional and valid_image
@@ -274,7 +257,37 @@ class Cube(Entity):
         return out_path
 
     def todict(self) -> Dict:
-        return self.meta
+        return {
+            "name": self.name,
+            "git_mlcube_url": self.git_mlcube_url,
+            "git_parameters_url": self.git_parameters_url,
+            "image_tarball_url": self.image_tarball_url,
+            "image_tarball_hash": self.image_tarball_hash,
+            "additional_files_tarball_url": self.additional_files_tarball_url,
+            "additional_files_tarball_hash": self.additional_hash,
+            "state": self.state,
+            "is_valid": self.is_cube_valid,
+            "id": self.uid,
+            "owner": self.owner,
+            "metadata": self.metadata,
+            "user_metadata": self.user_metadata,
+            "created_at": self.created_at,
+            "modified_at": self.modified_at,
+        }
+
+    def write(self):
+        cube_loc = str(Path(self.cube_path).parent)
+        meta_file = os.path.join(cube_loc, config.cube_metadata_filename)
+        with open(meta_file, "w") as f:
+            yaml.dump(self.todict(), f)
+
+        local_hashes_file = os.path.join(cube_loc, config.cube_hashes_filename)
+        local_hashes = {
+            "additional_files_tarball_hash": self.local_additional_hash,
+            "image_tarball_hash": self.local_image_hash,
+        }
+        with open(local_hashes_file, "w") as f:
+            yaml.dump(local_hashes, f)
 
     def upload(self) -> int:
         cube_uid = config.comms.upload_mlcube(self.todict())
