@@ -152,7 +152,7 @@ class TestWithDefaultUID:
             string_params={'Ptasks.sanity_check.parameters.input.data_path.opts': 'ro'},
             data_path=OUT_DATAPATH,
             timeout=None
-            )
+        )
         stats = call(
             task="statistics",
             data_path=OUT_DATAPATH,
