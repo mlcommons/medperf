@@ -1,8 +1,10 @@
+import os
+import shutil
 import validators
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import pretty_error
+from medperf.utils import pretty_error, storage_path
 
 
 class SubmitCube:
@@ -26,12 +28,14 @@ class SubmitCube:
         if not submission.is_valid():
             pretty_error("MLCube submission is invalid")
 
+        cube = Cube(submission.todict())
         with ui.interactive():
             ui.text = "Validating MLCube can be downloaded"
-            cube = Cube(submission.todict())
             cube.download()
             ui.text = "Submitting MLCube to MedPerf"
-            cube.upload()
+            updated_cube_dict = cube.upload()
+            submission.to_permanent_path(updated_cube_dict["id"])
+            submission.write(updated_cube_dict)
 
     def __init__(self, submit_info: dict):
         self.comms = config.comms
@@ -104,3 +108,18 @@ class SubmitCube:
             "modified_at": None,
         }
         return dict
+
+    def to_permanent_path(self, cube_uid):
+        """Renames the temporary cube submission to a permanent one using the uid of
+        the registered cube
+        """
+        cubes_storage = storage_path(config.cubes_storage)
+        old_cube_loc = os.path.join(cubes_storage, config.cube_submission_id)
+        new_cube_loc = os.path.join(cubes_storage, cube_uid)
+        if os.path.exists(new_cube_loc):
+            shutil.rmtree(new_cube_loc)
+        os.rename(old_cube_loc, new_cube_loc)
+
+    def write(self, updated_cube_dict):
+        cube = Cube(updated_cube_dict)
+        cube.write()

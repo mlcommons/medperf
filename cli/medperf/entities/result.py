@@ -121,13 +121,7 @@ class Result(Entity):
         """
         results_info = self.todict()
         updated_results_info = config.comms.upload_results(results_info)
-
-        self.uid = updated_results_info["id"]
-        self.owner = updated_results_info["owner"]
-        self.created_at = updated_results_info["created_at"]
-        self.modified_at = updated_results_info["modified_at"]
-
-        self.write()
+        return updated_results_info
 
     def write(self):
         if os.path.exists(self.path):

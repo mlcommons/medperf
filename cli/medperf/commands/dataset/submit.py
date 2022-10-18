@@ -38,6 +38,8 @@ class DatasetRegistration:
         dset.status = Status("APPROVED") if approved else Status("REJECTED")
         if approved:
             ui.print("Uploading...")
-            dset.upload()
+            updated_dset_dict = dset.upload()
+            updated_dset = Dataset(updated_dset_dict)
+            updated_dset.write()
         else:
             pretty_error("Registration request cancelled.", add_instructions=False)

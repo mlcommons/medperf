@@ -185,13 +185,5 @@ class Dataset(Entity):
             comms (Comms): Instance of the comms interface.
         """
         dataset_dict = self.todict()
-        # check if calling POST with fields like id, owner, affect server behavior
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
-
-        # update server-generated fields
-        self.uid = updated_dataset_dict["id"]
-        self.created_at = updated_dataset_dict["created_at"]
-        self.modified_at = updated_dataset_dict["modified_at"]
-        self.owner = updated_dataset_dict["owner"]
-
-        self.write()
+        return updated_dataset_dict

@@ -237,10 +237,4 @@ class Benchmark(Entity):
         """
         body = self.todict()
         updated_body = config.comms.upload_benchmark(body)
-
-        self.uid = updated_body["id"]
-        self.created_at = updated_body["created_at"]
-        self.modified_at = updated_body["modified_at"]
-        self.owner = updated_body["owner"]
-
-        self.write()
+        return updated_body

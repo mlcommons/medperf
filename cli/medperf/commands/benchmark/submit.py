@@ -34,8 +34,9 @@ class SubmitBenchmark:
             submission.get_extra_information()
             ui.print("> Completed benchmark registration information")
             ui.text = "Submitting Benchmark to MedPerf"
-            submission.submit()
+            updated_benchmark_body = submission.submit()
         ui.print("Uploaded")
+        submission.write(updated_benchmark_body)
 
     def __init__(self, benchmark_info: dict):
         self.comms = config.comms
@@ -164,4 +165,10 @@ class SubmitBenchmark:
 
     def submit(self):
         body = self.todict()
-        Benchmark(body).upload()
+        updated_body = Benchmark(body).upload()
+        return updated_body
+
+    def write(self, updated_body):
+        updated_body["models"] = [int(self.reference_model_mlcube)]
+        bmk = Benchmark(updated_body)
+        bmk.write()

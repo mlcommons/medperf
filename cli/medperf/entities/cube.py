@@ -1,5 +1,4 @@
 import os
-import shutil
 import yaml
 import pexpect
 import logging
@@ -65,17 +64,16 @@ class Cube(Entity):
         self.created_at = cube_dict["created_at"]
         self.modified_at = cube_dict["modified_at"]
 
-        self.cube_path = None
-        self.params_path = None
+        cubes_storage = storage_path(config.cubes_storage)
+        self.cube_path = os.path.join(
+            cubes_storage, str(self.uid), config.cube_filename
+        )
+        self.params_path = os.path.join(
+            cubes_storage, str(self.uid), config.params_filename
+        )
+
         self.local_additional_hash = ""
         self.local_image_hash = ""
-
-        if self.uid:
-            cubes_storage = storage_path(config.cubes_storage)
-            self.cube_path = os.path.join(cubes_storage, self.uid, config.cube_filename)
-            self.params_path = os.path.join(
-                cubes_storage, self.uid, config.params_filename
-            )
 
     @classmethod
     def all(cls) -> List["Cube"]:
@@ -290,26 +288,7 @@ class Cube(Entity):
         with open(local_hashes_file, "w") as f:
             yaml.dump(local_hashes, f)
 
-    def upload(self) -> int:
-        updated_cube_dict = config.comms.upload_mlcube(self.todict())
-
-        self.uid = updated_cube_dict["id"]
-        self.owner = updated_cube_dict["owner"]
-        self.created_at = updated_cube_dict["created_at"]
-        self.modified_at = updated_cube_dict["modified_at"]
-
-        self.to_permanent_path()
-        self.write()
-
-    def to_permanent_path(self):
-        """Renames the temporary cube submission to a permanent one using the uid of
-        the registered cube
-        """
-        cubes_storage = storage_path(config.cubes_storage)
-        old_cube_loc = str(Path(self.cube_path).parent)
-        new_cube_loc = os.path.join(cubes_storage, self.uid)
-        if os.path.exists(new_cube_loc):
-            shutil.rmtree(new_cube_loc)
-        os.rename(old_cube_loc, new_cube_loc)
-        self.cube_path = os.path.join(new_cube_loc, config.cube_filename)
-        self.params_path = os.path.join(cubes_storage, self.uid, config.params_filename)
+    def upload(self):
+        cube_dict = self.todict()
+        updated_cube_dict = config.comms.upload_mlcube(cube_dict)
+        return updated_cube_dict

@@ -147,4 +147,5 @@ class BenchmarkExecution:
 
     def write(self):
         results_info = self.todict()
-        Result(results_info).write()
+        result = Result(results_info)
+        result.write()

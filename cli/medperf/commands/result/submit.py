@@ -10,7 +10,8 @@ class ResultSubmission:
     def run(cls, benchmark_uid, data_uid, model_uid, approved=False):
         dset = Dataset.from_generated_uid(data_uid)
         sub = cls(benchmark_uid, dset.uid, model_uid, approved=approved)
-        sub.upload_results()
+        updated_result_dict = sub.upload_results()
+        sub.write(updated_result_dict)
 
     def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
         self.benchmark_uid = benchmark_uid
@@ -43,4 +44,9 @@ class ResultSubmission:
             msg = "Results upload operation cancelled"
             pretty_error(msg, add_instructions=False)
 
-        result.upload()
+        updated_result_dict = result.upload()
+        return updated_result_dict
+
+    def write(self, updated_result_dict):
+        result = Result(updated_result_dict)
+        result.write()
