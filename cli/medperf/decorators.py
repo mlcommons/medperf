@@ -2,8 +2,6 @@ import logging
 import functools
 from collections.abc import Callable
 
-from medperf.utils import pretty_error
-
 
 def clean_except(func: Callable) -> Callable:
     """Decorator for handling unexpected errors. It allows logging
