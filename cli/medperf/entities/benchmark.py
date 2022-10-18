@@ -237,4 +237,5 @@ class Benchmark(Entity):
         """
         body = self.todict()
         updated_body = config.comms.upload_benchmark(body)
+        updated_body["models"] = body["models"]
         return updated_body

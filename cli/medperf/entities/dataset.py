@@ -186,4 +186,6 @@ class Dataset(Entity):
         """
         dataset_dict = self.todict()
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
+        updated_dataset_dict["status"] = dataset_dict["status"]
+        updated_dataset_dict["separate_labels"] = dataset_dict["separate_labels"]
         return updated_dataset_dict

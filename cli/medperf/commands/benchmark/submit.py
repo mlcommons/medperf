@@ -169,6 +169,5 @@ class SubmitBenchmark:
         return updated_body
 
     def write(self, updated_body):
-        updated_body["models"] = [int(self.reference_model_mlcube)]
         bmk = Benchmark(updated_body)
         bmk.write()
