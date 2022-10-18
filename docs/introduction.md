@@ -35,3 +35,15 @@ Anyone who joins our platform can get several benefits, regardless of the role t
 * Provide consistent and rigorous approaches for evaluating the accuracy of ML models for real-world use in a standardized manner;
 * Enable model usability measurement across institutions while maintaining data privacy and model reliability;
 * Connect with a community of expert groups to employ scientific evaluation methodologies and technical approaches to operate benchmarks that not only have well-defined clinical aspects, such as clinical impact, clinical workflow integration and patient outcome, but also support robust technical aspects, including proper metrics, data preprocessing and reference implementation. 
+
+# What is a benchmark in the MedPerf perspective?
+
+A benchmark is a collection of assets used by the platform to test the performance of ML models for a specific clinical problem. The primary components of a benchmark are:
+
+1. **Specifications**: precise definition of the clinical setting (e.g., problem or task and specific patient population) on which trained ML models are to be evaluated. It also includes the labeling (annotation) methodology as well as the choice of evaluation metrics. 
+2. **Dataset Preparation**: a process that prepares datasets for use in evaluation, and can also test the prepared datasets for quality and compatibility. This is implemented as an MLCube (see [Data Preparator MLCube](#data-preparator-mlcube)).  
+3. **Registered Datasets**: a list of registered datasets prepared according to the benchmark criteria and approved for evaluation use by their owners (e.g. patient data from multiple facilities representing (as a whole) a diverse patient population). 
+4. **Evaluation**: a consistent implementation of the testing pipelines and evaluation metrics. 
+5. **Reference Implementation**: a detailed example of a benchmark submission consisting of example model code, the evaluation component, and de-identified or synthetic publicly available sample data. 
+6. **Registered Models**: a list of registered models to run in this benchmark. 
+7. **Documentation**: documents for understanding and using the benchmark.
