@@ -201,7 +201,7 @@ class Cube(Entity):
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, task: str, string_params: Dict[str] = {}, timeout: int = None, **kwargs):
+    def run(self, task: str, string_params: Dict[str, str] = {}, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
