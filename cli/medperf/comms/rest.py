@@ -385,7 +385,7 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             pretty_error("Could not upload the mlcube")
-        return res.json()["id"]
+        return res.json()
 
     def get_datasets(self) -> List[dict]:
         """Retrieves all datasets in the platform
