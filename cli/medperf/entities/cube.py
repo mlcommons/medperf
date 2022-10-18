@@ -291,6 +291,16 @@ class Cube(Entity):
             yaml.dump(local_hashes, f)
 
     def upload(self) -> int:
+        updated_cube_dict = config.comms.upload_mlcube(self.todict())
+
+        self.uid = updated_cube_dict["id"]
+        self.owner = updated_cube_dict["owner"]
+        self.created_at = updated_cube_dict["created_at"]
+        self.modified_at = updated_cube_dict["modified_at"]
+
+        self.to_permanent_path()
+        self.write()
+
     def to_permanent_path(self):
         """Renames the temporary cube submission to a permanent one using the uid of
         the registered cube
