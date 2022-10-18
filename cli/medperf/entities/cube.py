@@ -1,4 +1,5 @@
 import os
+import shutil
 import yaml
 import pexpect
 import logging
@@ -290,6 +291,15 @@ class Cube(Entity):
             yaml.dump(local_hashes, f)
 
     def upload(self) -> int:
-        cube_uid = config.comms.upload_mlcube(self.todict())
-        self.uid = cube_uid
-        return self.uid
+    def to_permanent_path(self):
+        """Renames the temporary cube submission to a permanent one using the uid of
+        the registered cube
+        """
+        cubes_storage = storage_path(config.cubes_storage)
+        old_cube_loc = str(Path(self.cube_path).parent)
+        new_cube_loc = os.path.join(cubes_storage, self.uid)
+        if os.path.exists(new_cube_loc):
+            shutil.rmtree(new_cube_loc)
+        os.rename(old_cube_loc, new_cube_loc)
+        self.cube_path = os.path.join(new_cube_loc, config.cube_filename)
+        self.params_path = os.path.join(cubes_storage, self.uid, config.params_filename)
