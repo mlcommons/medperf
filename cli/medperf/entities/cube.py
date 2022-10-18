@@ -158,11 +158,15 @@ class Cube(Entity):
             url = self.additional_files_tarball_url
             additional_path = comms.get_cube_additional(url, cube_uid)
             self.local_additional_hash = get_file_sha1(additional_path)
+            if not self.additional_hash:
+                self.additional_hash = self.local_additional_hash
             untar(additional_path)
         if self.image_tarball_url:
             url = self.image_tarball_url
             image_path = comms.get_cube_image(url, cube_uid)
             self.local_image_hash = get_file_sha1(image_path)
+            if not self.image_tarball_hash:
+                self.image_tarball_hash = self.local_image_hash
             untar(image_path)
         else:
             # Retrieve image from image registry
