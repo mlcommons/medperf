@@ -39,7 +39,7 @@ class SubmitCube:
                 submission.image_tarball_hash = cube.image_tarball_hash
                 ui.print("Image file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
-            submission.submit()
+            cube.upload()
 
     def __init__(self, submit_info: dict):
         self.comms = config.comms
@@ -112,7 +112,3 @@ class SubmitCube:
             "modified_at": None,
         }
         return dict
-
-    def submit(self):
-        body = self.todict()
-        self.comms.upload_mlcube(body)
