@@ -91,7 +91,9 @@ def metrics(preds_path, labels_path, params_file, out_path):
         params = yaml.full_load(f)
 
     coarse = coarse_metrics(os.path.join(preds_path, "coarse"), labels_path)
-    fine = fine_metrics(os.path.join(preds_path, "fine"), labels_path, params["max_rounds"])
+    fine = fine_metrics(
+        os.path.join(preds_path, "fine"), labels_path, params["max_rounds"]
+    )
 
     with open(out_path, "w") as f:
         yaml.dump({"DSC": {"coarse": coarse, "fine": fine}}, f)

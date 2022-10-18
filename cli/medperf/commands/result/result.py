@@ -24,10 +24,8 @@ def create(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = config.comms
-    ui = config.ui
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ui.print("✅ Done!")
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
+    config.ui.print("✅ Done!")
 
 
 @app.command("submit")
@@ -45,18 +43,12 @@ def submit(
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
-    comms = config.comms
-    ui = config.ui
-    ResultSubmission.run(
-        benchmark_uid, data_uid, model_uid, comms, ui, approved=approval
-    )
-    ui.print("✅ Done!")
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
+    config.ui.print("✅ Done!")
 
 
 @app.command("ls")
 @clean_except
 def list():
     """List results stored locally and remotely from the user"""
-    comms = config.comms
-    ui = config.ui
-    ResultsList.run(comms, ui)
+    ResultsList.run()
