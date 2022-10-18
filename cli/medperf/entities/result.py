@@ -93,7 +93,9 @@ class Result(Entity):
             return local_result[0]
 
         meta = comms.get_result(result_uid)
-        return cls(meta)
+        result = cls(meta)
+        result.write()
+        return result
 
     def todict(self):
         return {

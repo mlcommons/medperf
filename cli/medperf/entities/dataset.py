@@ -144,7 +144,9 @@ class Dataset(Entity):
             return local_dset[0]
 
         meta = comms.get_dataset(dset_uid)
-        return cls(meta)
+        dataset = cls(meta)
+        dataset.write()
+        return dataset
 
     def __full_uid(self, uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
