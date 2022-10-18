@@ -30,14 +30,6 @@ class SubmitCube:
             ui.text = "Validating MLCube can be downloaded"
             cube = Cube(submission.todict())
             cube.download()
-            if submission.additional_file:
-                ui.text = "Generating additional file hash"
-                submission.additional_hash = cube.additional_hash
-                ui.print("Additional file hash generated")
-            if submission.image_file:
-                ui.text = "Generating image file hash"
-                submission.image_tarball_hash = cube.image_tarball_hash
-                ui.print("Image file hash generated")
             ui.text = "Submitting MLCube to MedPerf"
             cube.upload()
 

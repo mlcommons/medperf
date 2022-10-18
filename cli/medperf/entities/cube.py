@@ -149,6 +149,7 @@ class Cube(Entity):
         """Downloads the required elements for an mlcube to run locally.
         """
         comms = config.comms
+        ui = config.ui
         cube_uid = self.uid
         self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
         if self.git_parameters_url:
@@ -157,15 +158,23 @@ class Cube(Entity):
         if self.additional_files_tarball_url:
             url = self.additional_files_tarball_url
             additional_path = comms.get_cube_additional(url, cube_uid)
+            if not self.additional_hash:
+                # log interactive ui only during submission
+                ui.text = "Generating additional file hash"
             self.local_additional_hash = get_file_sha1(additional_path)
             if not self.additional_hash:
+                ui.print("Additional file hash generated")
                 self.additional_hash = self.local_additional_hash
             untar(additional_path)
         if self.image_tarball_url:
             url = self.image_tarball_url
             image_path = comms.get_cube_image(url, cube_uid)
+            if not self.image_tarball_hash:
+                # log interactive ui only during submission
+                ui.text = "Generating image file hash"
             self.local_image_hash = get_file_sha1(image_path)
             if not self.image_tarball_hash:
+                ui.print("Image file hash generated")
                 self.image_tarball_hash = self.local_image_hash
             untar(image_path)
         else:
