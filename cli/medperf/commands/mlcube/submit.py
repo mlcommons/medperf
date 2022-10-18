@@ -32,6 +32,8 @@ class SubmitCube:
         with ui.interactive():
             ui.text = "Validating MLCube can be downloaded"
             cube.download()
+            if not cube.is_valid():
+                pretty_error("MLCube hash check failed")
             ui.text = "Submitting MLCube to MedPerf"
             updated_cube_dict = cube.upload()
             submission.to_permanent_path(updated_cube_dict["id"])
