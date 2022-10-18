@@ -15,8 +15,6 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.comms.interface import Comms
-from medperf.ui.interface import UI
 import medperf.config as config
 
 
@@ -74,7 +72,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg, config.ui)
+            pretty_error(msg)
 
         cubes = []
         for uid in uids:
@@ -116,7 +114,6 @@ class Cube(Entity):
         "Retrieve from local storage if cube already there"
         logging.debug(f"Retrieving the cube {cube_uid}")
         comms = config.comms
-        ui = config.ui
         local_cube = list(
             filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
@@ -125,12 +122,27 @@ class Cube(Entity):
             return local_cube[0]
 
         meta = comms.get_cube_metadata(cube_uid)
+        cube = cls(cube_uid, meta, "")
+        cube.download()
+        local_hashes = {
+            "additional_files_tarball_hash": cube.additional_hash if cube.additional_hash else "",
+            "image_tarball_hash": cube.image_tarball_hash if cube.image_tarball_hash else "",
+        }
+        save_cube_metadata(meta, local_hashes)
+        return cube
+
+    def download(self):
+        """Downloads the required elements for an mlcube to run locally.
+        """
+        comms = config.comms
         # Backwards compatibility for cubes with
         # tarball_url instead of additional_files_tarball_url
         old_files = "tarball_url"
         old_hash = "tarball_hash"
         add_files = "additional_files_tarball_url"
         add_hash = "additional_files_tarball_hash"
+        meta = self.meta
+        cube_uid = self.uid
         if old_files in meta:
             meta[add_files] = meta[old_files]
             meta[add_hash] = meta[old_hash]
@@ -158,18 +170,14 @@ class Cube(Entity):
             logging.debug(f"Retrieving {cube_uid} image")
             cmd = f"mlcube configure --mlcube={cube_path}"
             proc = pexpect.spawn(cmd)
-            proc_out = combine_proc_sp_text(proc, ui)
+            proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
 
-        local_hashes = {
-            "additional_files_tarball_hash": additional_hash if additional_hash else "",
-            "image_tarball_hash": image_tarball_hash if image_tarball_hash else "",
-        }
-        save_cube_metadata(meta, local_hashes)
-        return cls(
-            cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
-        )
+        self.cube_path = cube_path
+        self.params_path = params_path
+        self.additional_hash = additional_hash
+        self.image_tarball_hash = image_tarball_hash
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
@@ -193,11 +201,10 @@ class Cube(Entity):
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, string_params: Dict[str] = {}, timeout: int = None, **kwargs):
+    def run(self, task: str, string_params: Dict[str] = {}, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
-            ui (UI): an instance of an UI implementation
             task (str): task to run
             string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
                                                  Defaults to {}.
@@ -211,13 +218,11 @@ class Cube(Entity):
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
-        proc_out = combine_proc_sp_text(proc, ui)
+        proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
-            ui.text = "\n"
-            ui.print(proc_out)
-            pretty_error("There was an error while executing the cube", ui)
+            raise RuntimeError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
         return proc
@@ -259,7 +264,7 @@ class Cube(Entity):
     def todict(self) -> Dict:
         return self.meta
 
-    def upload(self, comms: Comms) -> int:
-        cube_uid = comms.upload_mlcube(self.todict())
+    def upload(self) -> int:
+        cube_uid = config.comms.upload_mlcube(self.todict())
         self.uid = cube_uid
         return self.uid

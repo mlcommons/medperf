@@ -138,7 +138,7 @@ DATABASES = {"default": env.db()}
 if DEPLOY_ENV == "local":
     print("Local Build environment")
     # Always run SSL server during local deployment
-    INSTALLED_APPS += ['django_extensions']
+    INSTALLED_APPS += ["django_extensions"]
     # Serve static files using whitenoise middleware if google cloud storage is not used
     MIDDLEWARE += ["whitenoise.middleware.WhiteNoiseMiddleware"]
     # SECURE_SSL_REDIRECT to true for SSL redirect

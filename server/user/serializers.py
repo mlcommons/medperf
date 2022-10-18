@@ -40,12 +40,10 @@ class UserPasswordSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     def update(self, instance, validated_data):
-        instance.set_password(validated_data['password'])
+        instance.set_password(validated_data["password"])
         instance.save()
         return instance
 
     class Meta:
         model = User
-        fields = (
-            "password",
-        )
+        fields = ("password",)

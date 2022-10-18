@@ -1,19 +1,19 @@
 from tabulate import tabulate
 
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
+from medperf import config
 
 
 class CubesList:
     @staticmethod
-    def run(comms: Comms, ui: UI, all: bool = False):
+    def run(all: bool = False):
         """Lists all mlcubes created by the user by default.
         Use "all" to display all mlcubes in the platform
 
         Args:
-            comms (Comms): Communications interface
-            ui (UI): UI interface
+            all (bool, optional): Wether to get all mlcubes. Defaults to False
         """
+        comms = config.comms
+        ui = config.ui
         if all:
             cubes = comms.get_cubes()
         else:

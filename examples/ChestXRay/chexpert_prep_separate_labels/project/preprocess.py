@@ -13,14 +13,18 @@ import torchvision
 
 
 class Preprocessor:
-    def __init__(self, img_path, csv_path, params_file, output_path, output_labels_path):
+    def __init__(
+        self, img_path, csv_path, params_file, output_path, output_labels_path
+    ):
         with open(params_file, "r") as f:
             self.params = yaml.full_load(f)
         self.img_path = img_path
         self.csv_path = csv_path
         self.output_path = output_path
         self.output_csv_path = os.path.join(output_path, self.params["output_datafile"])
-        self.output_labels_csv_path = os.path.join(output_labels_path, self.params["output_labelsfile"])
+        self.output_labels_csv_path = os.path.join(
+            output_labels_path, self.params["output_labelsfile"]
+        )
 
     def run(self):
         # Before any wrangling of the data, let's make sure the library identifies
@@ -135,6 +139,10 @@ if __name__ == "__main__":
     for arg in vars(args):
         setattr(args, arg, getattr(args, arg).replace("'", ""))
     preprocessor = Preprocessor(
-        args.img_path, args.csv_path, args.params_file, args.output_path, args.output_labels_path
+        args.img_path,
+        args.csv_path,
+        args.params_file,
+        args.output_path,
+        args.output_labels_path,
     )
     preprocessor.run()
