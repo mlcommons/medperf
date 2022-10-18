@@ -193,15 +193,18 @@ class Cube(Entity):
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
+    def run(self, ui: UI, task: str, string_params: Dict[str] = {}, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
             ui (UI): an instance of an UI implementation
             task (str): task to run
+            string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
+                                                 Defaults to {}.
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
+        kwargs.update(string_params)
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
