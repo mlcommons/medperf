@@ -78,6 +78,7 @@ def test_get_retrieves_results_from_comms(mocker, comms, uid):
     uid = 0
     spy = mocker.patch.object(comms, "get_result", return_value=MOCK_RESULTS_CONTENT)
     mocker.patch(PATCH_RESULT.format("Result.all"), return_value=[])
+    mocker.patch(PATCH_RESULT.format("Result.write"))
 
     # Act
     Result.get(uid)

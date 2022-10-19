@@ -94,11 +94,24 @@ def test_upload_results_uploads_if_approved(mocker, submission, result, approved
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     # Arrange
     bmark_uid = data_uid = model_uid = 1
-    spy = mocker.spy(ResultSubmission, "upload_results")
+    up_spy = mocker.spy(ResultSubmission, "upload_results")
+    write_spy = mocker.spy(ResultSubmission, "write")
     mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
     ResultSubmission.run(bmark_uid, data_uid, model_uid)
 
     # Assert
-    spy.assert_called_once()
+    up_spy.assert_called_once()
+    write_spy.assert_called_once()
+
+
+def test_write_writes_results_using_entity(mocker, submission, result):
+    # Arrange
+    spy = mocker.patch.object(result, "write")
+
+    # Act
+    submission.write({})
+
+    # Assert
+    spy.assert_called()
