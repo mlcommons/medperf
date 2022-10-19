@@ -530,18 +530,17 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     spy.assert_called_once_with(f"{url}/me/datasets/")
 
 
-@pytest.mark.parametrize("exp_id", [192, 197, 426])
-def test_upload_mlcube_returns_cube_uid(mocker, server, exp_id):
+@pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
+def test_upload_mlcube_returns_cube_uid(mocker, server, body):
     # Arrange
-    body = {"id": exp_id}
     res = MockResponse(body, 201)
     mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    id = server.upload_mlcube({})
+    exp_body = server.upload_dataset({})
 
     # Assert
-    assert id == exp_id
+    assert body == exp_body
 
 
 @pytest.mark.parametrize("body", [{"dataset": 1}, {}, {"test": "test"}])
