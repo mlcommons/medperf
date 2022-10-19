@@ -13,8 +13,8 @@ app = typer.Typer()
 def exec_python(cmd: str) -> None:
     splitted_cmd = cmd.split()
 
-    process = subprocess.Popen(splitted_cmd, cwd=".")
-    process.wait()
+    subprocess.run(splitted_cmd, cwd=".", check=True)
+    
 
 
 class PrepareTask(object):
