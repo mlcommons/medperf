@@ -53,21 +53,23 @@ def cube_metadata_generator(with_params=False, with_tarball=False, with_image=Fa
     img_hash = "image_tarball_hash" if with_image else ""
 
     def cube_metadata_body(cube_uid):
-        return {
-            "id": cube_uid,
-            "name": "test_cube",
-            "git_mlcube_url": "mlcube_url",
-            "git_parameters_url": params,
-            "additional_files_tarball_url": tarball,
-            "additional_files_tarball_hash": tar_hash,
-            "image_tarball_url": image,
-            "image_tarball_hash": img_hash,
-            "metadata": {},
-            "created_at": "timestamp",
-            "modified_at": "timestamp",
-            "owner": 1,
-            "is_valid": True,
-        }
+        return cube_dict(
+            {
+                "id": cube_uid,
+                "name": "test_cube",
+                "git_mlcube_url": "mlcube_url",
+                "git_parameters_url": params,
+                "additional_files_tarball_url": tarball,
+                "additional_files_tarball_hash": tar_hash,
+                "image_tarball_url": image,
+                "image_tarball_hash": img_hash,
+                "metadata": {},
+                "created_at": "timestamp",
+                "modified_at": "timestamp",
+                "owner": 1,
+                "is_valid": True,
+            }
+        )
 
     return cube_metadata_body
 
@@ -140,6 +142,30 @@ def result_dict(kwargs={}):
         "metadata": {},
         "approval_status": Status.PENDING.value,
         "approved_at": None,
+        "created_at": None,
+        "modified_at": None,
+    }
+    for key, val in kwargs.items():
+        json_[key] = val
+
+    return json_
+
+
+def cube_dict(kwargs={}):
+    json_ = {
+        "name": "",
+        "git_mlcube_url": "",
+        "git_parameters_url": "",
+        "image_tarball_url": "",
+        "image_tarball_hash": "",
+        "additional_files_tarball_url": "",
+        "additional_files_tarball_hash": "",
+        "state": "OPERATION",
+        "is_valid": True,
+        "id": None,
+        "owner": None,
+        "metadata": {},
+        "user_metadata": {},
         "created_at": None,
         "modified_at": None,
     }
