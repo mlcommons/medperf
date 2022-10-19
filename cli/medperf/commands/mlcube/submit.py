@@ -28,14 +28,11 @@ class SubmitCube:
         if not submission.is_valid():
             pretty_error("MLCube submission is invalid")
 
-        cube = Cube(submission.todict())
         with ui.interactive():
             ui.text = "Validating MLCube can be downloaded"
-            cube.download()
-            if not cube.is_valid():
-                pretty_error("MLCube hash check failed")
+            submission.download()
             ui.text = "Submitting MLCube to MedPerf"
-            updated_cube_dict = cube.upload()
+            updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict["id"])
             submission.write(updated_cube_dict)
 
@@ -91,6 +88,14 @@ class SubmitCube:
 
         return valid
 
+    def download(self):
+        cube = Cube(self.todict())
+        cube.download()
+        self.additional_hash = cube.additional_hash
+        self.image_tarball_hash = cube.image_tarball_hash
+        if not cube.is_valid():
+            pretty_error("MLCube hash check failed. Submission aborted.")
+
     def todict(self):
         dict = {
             "name": self.name,
@@ -111,13 +116,18 @@ class SubmitCube:
         }
         return dict
 
+    def upload(self):
+        body = self.todict()
+        updated_body = Cube(body).upload()
+        return updated_body
+
     def to_permanent_path(self, cube_uid):
         """Renames the temporary cube submission to a permanent one using the uid of
         the registered cube
         """
         cubes_storage = storage_path(config.cubes_storage)
         old_cube_loc = os.path.join(cubes_storage, config.cube_submission_id)
-        new_cube_loc = os.path.join(cubes_storage, cube_uid)
+        new_cube_loc = os.path.join(cubes_storage, str(cube_uid))
         if os.path.exists(new_cube_loc):
             shutil.rmtree(new_cube_loc)
         os.rename(old_cube_loc, new_cube_loc)
