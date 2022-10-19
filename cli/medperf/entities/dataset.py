@@ -94,7 +94,7 @@ class Dataset(Entity):
 
     @classmethod
     def from_generated_uid(cls, generated_uid: str) -> "Dataset":
-        generated_uid = cls.__full_uid(cls, generated_uid)
+        generated_uid = cls.__full_uid(generated_uid)
         reg = cls.__get_local_dict(generated_uid)
         return cls(reg)
 
@@ -142,7 +142,8 @@ class Dataset(Entity):
         dataset.write()
         return dataset
 
-    def __full_uid(self, uid_hint: str) -> str:
+    @staticmethod
+    def __full_uid(uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
 
         Args:
