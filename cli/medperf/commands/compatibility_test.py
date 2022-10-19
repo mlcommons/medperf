@@ -118,7 +118,7 @@ class CompatibilityTestExecution:
         # by the generated uid. Server uid is not be applicable in the case
         # of unregistered datasets.
         return Result.from_entities_uids(
-            benchmark.uid, self.dataset.generated_uid, self.model
+            benchmark.uid, self.model, self.dataset.generated_uid
         )
 
     def set_cube_uid(self, attr: str, fallback: any = None):

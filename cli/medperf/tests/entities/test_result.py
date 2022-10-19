@@ -166,3 +166,34 @@ def test_set_results_check_access_only_if_file_exists(mocker, result, exists):
         spy.assert_called_once()
     else:
         spy.assert_not_called()
+
+
+def test_from_entities_uids_calls_local_dict_with_correct_entities_order(mocker):
+    # Arrange
+    bmk, model, data = "bmk", "model", "data"
+    spy = mocker.patch(
+        PATCH_RESULT.format("Result._Result__get_local_dict"),
+        return_value=result_dict(),
+    )
+
+    # Act
+    Result.from_entities_uids(bmk, model, data)
+
+    # Assert
+    spy.assert_called_once_with(bmk, model, data)
+
+
+def test_get_local_dict_calls_result_path_with_correct_entities_order(mocker):
+    # Arrange
+    bmk, model, data = "bmk", "model", "data"
+    spy = mocker.patch(PATCH_RESULT.format("results_path"))
+    mocker.patch(PATCH_RESULT.format("os.path.join"))
+    mocker.patch(PATCH_RESULT.format("yaml.safe_load"), return_value=result_dict())
+    mocker.patch(PATCH_RESULT.format("Result.__init__"), return_value=None)
+    mocker.patch("builtins.open")
+
+    # Act
+    Result.from_entities_uids(bmk, model, data)
+
+    # Assert
+    spy.assert_called_once_with(bmk, model, data)

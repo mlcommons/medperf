@@ -50,9 +50,9 @@ class Result(Entity):
 
     @classmethod
     def from_entities_uids(
-        cls, benchmark_uid: str, dataset_uid: str, model_uid: str
+        cls, benchmark_uid: str, model_uid: str, dataset_uid: str
     ) -> "Result":
-        results_info = cls.__get_local_dict(benchmark_uid, dataset_uid, model_uid)
+        results_info = cls.__get_local_dict(benchmark_uid, model_uid, dataset_uid)
         return cls(results_info)
 
     @classmethod
@@ -64,7 +64,7 @@ class Result(Entity):
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
-            results.append(cls.from_entities_uids(b_id, d_id, m_id))
+            results.append(cls.from_entities_uids(b_id, m_id, d_id))
 
         return results
 
