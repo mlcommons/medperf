@@ -69,7 +69,7 @@ def test_all_creates_result_objects_with_correct_info(
     Result.all()
 
     # Assert
-    spy.assert_has_calls([call(b_id, d_id, m_id)])
+    spy.assert_has_calls([call(b_id, m_id, d_id)])
 
 
 @pytest.mark.parametrize("uid", [349, 2, 84])
