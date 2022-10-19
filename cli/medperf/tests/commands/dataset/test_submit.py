@@ -31,6 +31,7 @@ def test_run_retrieves_specified_dataset(
     spy = mocker.patch(
         PATCH_REGISTER.format("Dataset.from_generated_uid"), return_value=dataset
     )
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
     DatasetRegistration.run(data_uid)
@@ -68,6 +69,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
         PATCH_REGISTER.format("pretty_error"),
         side_effect=lambda *args, **kwargs: exit(),
     )
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
     DatasetRegistration.run("1")
@@ -80,6 +82,7 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     # Arrange
     dataset.uid = None
     spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
     DatasetRegistration.run("1")
@@ -153,6 +156,7 @@ class TestWithApproval:
             PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
         spy = mocker.patch.object(dataset, "upload")
+        mocker.patch(PATCH_REGISTER.format("Dataset.write"))
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
@@ -170,10 +174,34 @@ class TestWithApproval:
         # Arrange
         dataset.uid = None
         spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+        mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
         # Act
         DatasetRegistration.run("1", approved=approved)
 
         # Assert
         if approved:
+            spy.assert_not_called()
+        else:
+            spy.assert_called_once()
+
+    def test_run_writes_dataset_if_uploads(
+        self, mocker, comms, ui, dataset, approved, no_remote
+    ):
+        # Arrange
+        dataset.uid = None
+        mocker.patch(
+            PATCH_REGISTER.format("approval_prompt"), return_value=approved,
+        )
+        mocker.patch.object(dataset, "upload")
+        spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+        mocker.patch(PATCH_REGISTER.format("pretty_error"))
+
+        # Act
+        DatasetRegistration.run("1")
+
+        # Assert
+        if approved:
+            spy.assert_called_once()
+        else:
             spy.assert_not_called()

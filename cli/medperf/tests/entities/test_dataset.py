@@ -173,30 +173,19 @@ def test_from_generated_uid_loads_yaml_file(mocker, ui, all_uids):
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
 @pytest.mark.parametrize("comms_uid", [1, 4, 834, 12])
-def test_upload_updates_fields_and_writes(mocker, all_uids, ui, comms_uid, comms):
+def test_upload_returns_updated_info(mocker, all_uids, ui, comms_uid, comms):
     # Arrange
     uid = "1"
-    updated_info = {
-        "id": "new_id",
-        "created_at": "new_created",
-        "modified_at": "new_modified",
-        "owner": "new_owner",
-    }
-    updated_reg = REGISTRATION_MOCK.copy()
-    # updated generated uid based on "basic_arrange" called behind the scenes
-    updated_reg["generated_uid"] = uid
-    updated_reg.update(updated_info)
+    updated_info = dataset_dict({"id": comms_uid})
 
-    mocker.patch.object(comms, "upload_dataset", return_value=updated_reg)
-    spy = mocker.patch(PATCH_DATASET.format("Dataset.write"))
+    mocker.patch.object(comms, "upload_dataset", return_value=updated_info)
     dset = Dataset.from_generated_uid(uid)
 
     # Act
-    dset.upload()
+    info = dset.upload()
 
     # Assert
-    spy.assert_called_once()
-    assert dset.todict() == updated_reg
+    assert info == updated_info
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
