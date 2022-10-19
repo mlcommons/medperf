@@ -47,10 +47,10 @@ class IsDatasetOwner(BasePermission):
             pk = request.data.get("dataset", None)
         else:
             result_pk = view.kwargs.get("pk", None)
-            result = get_result_object(result_pk)
+            result = self.get_result_object(result_pk)
             if not result:
                 return False
-            pk = result.dataset
+            pk = result.dataset.id
         if not pk:
             return False
         dataset = self.get_dataset_object(pk)
@@ -78,10 +78,10 @@ class IsBenchmarkOwner(BasePermission):
     def has_permission(self, request, view):
         if request.method == "GET":
             result_pk = view.kwargs.get("pk", None)
-            result = get_result_object(result_pk)
+            result = self.get_result_object(result_pk)
             if not result:
                 return False
-            pk = result.benchmark
+            pk = result.benchmark.id
         if not pk:
             return False
         benchmark = self.get_benchmark_object(pk)
