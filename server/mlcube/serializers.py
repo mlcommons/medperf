@@ -17,7 +17,14 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.instance.state == "OPERATION":
-            editable_fields = ["is_valid", "user_metadata"]
+            editable_fields = [
+                "is_valid",
+                "user_metadata",
+                "image_tarball_url",
+                "additional_files_tarball_url",
+                "git_mlcube_url",
+                "git_parameters_url",
+            ]
             for k, v in data.items():
                 if k not in editable_fields:
                     if v != getattr(self.instance, k):
