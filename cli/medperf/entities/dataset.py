@@ -10,9 +10,7 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
 class Dataset(Entity):
@@ -35,7 +33,7 @@ class Dataset(Entity):
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
         if registration is None:
-            data_uid = self.__full_uid(data_uid, config.ui)
+            data_uid = self.__full_uid(data_uid)
             self.generated_uid = data_uid
             self.dataset_path = os.path.join(
                 storage_path(config.data_storage), str(data_uid)
@@ -98,7 +96,7 @@ class Dataset(Entity):
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", config.ui)
+            pretty_error("Couldn't iterate over the dataset directory")
         tmp_prefix = config.tmp_prefix
         dsets = []
         for generated_uid in generated_uids:
@@ -132,7 +130,7 @@ class Dataset(Entity):
         meta = comms.get_dataset(dset_uid)
         return cls(None, registration=meta)
 
-    def __full_uid(self, uid_hint: str, ui: UI) -> str:
+    def __full_uid(self, uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
 
         Args:
@@ -149,9 +147,9 @@ class Dataset(Entity):
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
+            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
         elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.", ui)
+            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
         else:
             return match[0]
 
@@ -176,12 +174,12 @@ class Dataset(Entity):
     def todict(self):
         return self.registration
 
-    def upload(self, comms: Comms):
+    def upload(self):
         """Uploads the registration information to the comms.
 
         Args:
             comms (Comms): Instance of the comms interface.
         """
-        dataset_uid = comms.upload_dataset(self.todict())
+        dataset_uid = config.comms.upload_dataset(self.todict())
         self.uid = dataset_uid
         return self.uid

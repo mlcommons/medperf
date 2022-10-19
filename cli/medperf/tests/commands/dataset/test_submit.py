@@ -30,7 +30,7 @@ def test_run_retrieves_specified_dataset(
     spy = mocker.patch(PATCH_REGISTER.format("Dataset"), return_value=dataset)
 
     # Act
-    DatasetRegistration.run(data_uid, comms, ui)
+    DatasetRegistration.run(data_uid)
 
     # Assert
     spy.assert_called_once_with(data_uid)
@@ -49,7 +49,7 @@ def test_run_fails_if_dataset_already_registered(
 
     # Act
     with pytest.raises(SystemExit):
-        DatasetRegistration.run("1", comms, ui)
+        DatasetRegistration.run("1")
 
     # Assert
     spy.assert_called_once()
@@ -67,7 +67,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
     )
 
     # Act
-    DatasetRegistration.run("1", comms, ui)
+    DatasetRegistration.run("1")
 
     # Assert
     spy.assert_not_called()
@@ -79,7 +79,7 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
 
     # Act
-    DatasetRegistration.run("1", comms, ui)
+    DatasetRegistration.run("1")
 
     # Assert
     spy.assert_called_once()
@@ -109,7 +109,7 @@ def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_ha
     mocker.patch.object(comms, "get_user_datasets", return_value=remote_dsets)
 
     # Act
-    DatasetRegistration.run(data_hash, comms, ui)
+    DatasetRegistration.run(data_hash)
 
     # Assert
     assert dataset.uid == 1
@@ -126,7 +126,7 @@ def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
 
     # Act
     with pytest.raises(SystemExit):
-        DatasetRegistration.run("1", comms, ui)
+        DatasetRegistration.run("1")
 
     # Assert
     spy.assert_called_once()
@@ -146,7 +146,7 @@ class TestWithApproval:
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
-        DatasetRegistration.run("1", comms, ui)
+        DatasetRegistration.run("1")
 
         # Assert
         if approved:
@@ -166,7 +166,7 @@ class TestWithApproval:
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
-        DatasetRegistration.run("1", comms, ui)
+        DatasetRegistration.run("1")
 
         # Assert
         if approved:
@@ -182,7 +182,7 @@ class TestWithApproval:
         spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
 
         # Act
-        DatasetRegistration.run("1", comms, ui, approved=approved)
+        DatasetRegistration.run("1", approved=approved)
 
         # Assert
         if approved:

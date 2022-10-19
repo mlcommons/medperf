@@ -26,7 +26,7 @@ def execution(mocker, comms, ui, cube):
     mocker.patch(PATCH_EXECUTION.format("init_storage"))
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
-    exec = BenchmarkExecution(0, 0, 0, comms, ui)
+    exec = BenchmarkExecution(0, 0, 0)
     exec.prepare()
     exec.dataset.uid = 1
     exec.dataset.generated_uid = "data_uid"
@@ -138,7 +138,6 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
 
 def test__get_cube_checks_cube_validity(mocker, execution, cube):
     # Arrange
-    ui = execution.ui
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), return_value=cube)
     spy = mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
@@ -146,7 +145,7 @@ def test__get_cube_checks_cube_validity(mocker, execution, cube):
     execution._BenchmarkExecution__get_cube(1, "test")
 
     # Assert
-    spy.assert_called_once_with(cube, ui)
+    spy.assert_called_once_with(cube)
 
 
 def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
@@ -177,9 +176,42 @@ def test_run_executes_expected_flow(mocker, comms, ui, execution):
     run_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.run_cubes"))
 
     # Act
-    BenchmarkExecution.run(1, 1, 1, comms, ui)
+    BenchmarkExecution.run(1, 1, 1)
 
     # Assert
     val_spy.assert_called_once()
     get_spy.assert_called_once()
     run_spy.assert_called_once()
+
+
+@pytest.mark.parametrize("mlcube", ["model", "eval"])
+def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
+    # Arrange
+    execution.dataset.data_path = "data_path"
+    execution.model_cube.cube_path = "cube_path"
+    out_path = "out_path"
+    preds_path = "preds_path"
+
+    failed_cube = execution.model_cube if mlcube == "model" else execution.evaluator
+    mocker.patch.object(
+        failed_cube,
+        "run",
+        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("results_path"), return_value=out_path,
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
+    )
+    spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
+    spy_error = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
+
+    exp_outpaths = [preds_path, out_path]
+
+    # Act
+    execution.run_cubes()
+
+    # Assert
+    spy_clean.assert_called_once_with(exp_outpaths)
+    spy_error.assert_called_once()

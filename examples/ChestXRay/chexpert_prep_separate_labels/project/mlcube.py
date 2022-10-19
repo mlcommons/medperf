@@ -30,7 +30,11 @@ class PrepareTask(object):
 
     @staticmethod
     def run(
-        data_path: str, labels_path: str, params_file: str, output_path: str, output_labels_path: str
+        data_path: str,
+        labels_path: str,
+        params_file: str,
+        output_path: str,
+        output_labels_path: str,
     ) -> None:
         files = next(os.walk(labels_path))[2]
         csvs = [file for file in files if file.endswith(".csv")]
@@ -98,7 +102,9 @@ def prepare(
     output_path: str = typer.Option(..., "--output_path"),
     output_labels_path: str = typer.Option(..., "--output_labels_path"),
 ):
-    PrepareTask.run(data_path, labels_path, parameters_file, output_path, output_labels_path)
+    PrepareTask.run(
+        data_path, labels_path, parameters_file, output_path, output_labels_path
+    )
 
 
 @app.command("sanity_check")

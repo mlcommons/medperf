@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import call, ANY
 
-from medperf.comms.interface import Comms
 from medperf.commands.auth import PasswordChange
 from medperf.utils import storage_path
 from medperf import config
@@ -10,8 +9,7 @@ PATCH_PASSCHANGE = "medperf.commands.auth.password_change.{}"
 
 
 @pytest.fixture(params=["token123"])
-def comms(mocker, request):
-    comms = mocker.create_autospec(spec=Comms)
+def comms(mocker, request, comms):
     mocker.patch.object(comms, "change_password")
     mocker.patch("os.remove")
     comms.token = request.param
@@ -24,7 +22,7 @@ def test_run_asks_for_password_twice(mocker, comms, ui):
     calls = [call(ANY), call(ANY)]
 
     # Act
-    PasswordChange.run(comms, ui)
+    PasswordChange.run()
 
     # Assert
     spy.assert_has_calls(calls)
@@ -36,7 +34,7 @@ def test_run_fails_if_password_mismatch(mocker, comms, ui):
 
     # Act & Assert
     with pytest.raises(SystemExit):
-        PasswordChange.run(comms, ui)
+        PasswordChange.run()
 
 
 def test_run_executes_comms_change_password(mocker, comms, ui):
@@ -44,7 +42,7 @@ def test_run_executes_comms_change_password(mocker, comms, ui):
     spy = mocker.patch.object(comms, "change_password")
 
     # Act
-    PasswordChange.run(comms, ui)
+    PasswordChange.run()
 
     # Assert
     spy.assert_called_once()
@@ -57,7 +55,7 @@ def test_run_deletes_outdated_token(mocker, comms, ui):
     spy = mocker.patch("os.remove")
 
     # Act
-    PasswordChange.run(comms, ui)
+    PasswordChange.run()
 
     # Assert
     spy.assert_called_once_with(cred_path)
@@ -70,7 +68,7 @@ def test_run_doesnt_delete_token_if_failed_passchange(mocker, comms, ui):
     spy = mocker.patch("os.remove")
 
     # Act
-    PasswordChange.run(comms, ui)
+    PasswordChange.run()
 
     # Assert
     spy.assert_not_called()

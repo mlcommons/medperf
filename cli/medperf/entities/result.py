@@ -11,7 +11,6 @@ from medperf.utils import (
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
 class Result(Entity):
@@ -52,7 +51,7 @@ class Result(Entity):
         """Gets and creates instances of all the user's results
         """
         logging.info("Retrieving all results")
-        results_ids_tuple = results_ids(config.ui)
+        results_ids_tuple = results_ids()
         storage_path(config.results_storage)
         results = []
         for result_ids in results_ids_tuple:
@@ -102,13 +101,13 @@ class Result(Entity):
         }
         return result_dict
 
-    def upload(self, comms: Comms):
+    def upload(self):
         """Uploads the results to the comms
 
         Args:
             comms (Comms): Instance of the communications interface.
         """
-        result_uid = comms.upload_results(self.todict())
+        result_uid = config.comms.upload_results(self.todict())
         self.uid = result_uid
         self.results["uid"] = result_uid
         self.set_results()
