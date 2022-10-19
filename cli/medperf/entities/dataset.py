@@ -170,6 +170,7 @@ class Dataset(Entity):
         logging.info(f"Updating registration information for dataset: {self.uid}")
         logging.debug(f"registration information: {self.todict()}")
         regfile = os.path.join(self.dataset_path, config.reg_file)
+        os.makedirs(self.dataset_path, exist_ok=True)
         with open(regfile, "w") as f:
             yaml.dump(self.todict(), f)
 

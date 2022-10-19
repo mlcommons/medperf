@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from medperf.enums import Status
 import yaml
 import logging
@@ -127,6 +128,7 @@ class Result(Entity):
             if not write_access:
                 logging.debug("removing outdated and inaccessible results")
                 os.remove(self.path)
+        os.makedirs(Path(self.path).parent, exist_ok=True)
         with open(self.path, "w") as f:
             yaml.dump(self.todict(), f)
 

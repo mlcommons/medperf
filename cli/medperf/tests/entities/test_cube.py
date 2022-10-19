@@ -685,8 +685,9 @@ def test_download_saves_local_hashes(mocker, comms, basic_body, no_local):
 
 @pytest.mark.parametrize("precalculated", [False, True])
 def test_download_does_not_ignore_hashes_if_precalculated(
-    mocker, ui, comms, basic_body, no_local, precalculated
+    mocker, ui, comms, precalculated
 ):
+    # Arrange
     meta = cube_metadata_generator(with_tarball=True, with_image=True)(1)
     if not precalculated:
         meta["additional_files_tarball_hash"] = ""
@@ -705,3 +706,23 @@ def test_download_does_not_ignore_hashes_if_precalculated(
     else:
         assert cube.additional_hash == "some_local_hash"
         assert cube.image_tarball_hash == "some_local_hash"
+
+
+@pytest.mark.parametrize("cube_uid", [269, 90, 374])
+def test_write_writes_to_expected_path(mocker, cube_uid):
+    # Arrange
+    meta = cube_metadata_generator()(cube_uid)
+    open_spy = mocker.patch("builtins.open", mock_open())
+    yaml_spy = mocker.patch("yaml.dump")
+    mocker.patch(PATCH_CUBE.format("os.makedirs"))
+    exp_file = os.path.join(
+        storage_path(config.cubes_storage), str(cube_uid), config.cube_metadata_filename
+    )
+
+    # Act
+    cube = Cube(meta)
+    cube.write()
+
+    # Assert
+    open_spy.assert_called_once_with(exp_file, "w")
+    yaml_spy.assert_called_once_with(cube.todict(), ANY)

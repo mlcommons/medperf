@@ -121,6 +121,7 @@ def test_set_results_writes_results_contents_to_file(mocker, result, write_acces
     mocker.patch("os.remove")
     open_spy = mocker.patch("builtins.open", MagicMock())
     yaml_spy = mocker.patch("yaml.dump")
+    mocker.patch("os.makedirs")
 
     # Act
     result.write()
@@ -138,7 +139,7 @@ def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
     spy = mocker.patch("os.remove")
     mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.dump")
-
+    mocker.patch("os.makedirs")
     # Act
     result.write()
 
@@ -157,6 +158,7 @@ def test_set_results_check_access_only_if_file_exists(mocker, result, exists):
     mocker.patch("os.remove")
     mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.dump")
+    mocker.patch("os.makedirs")
 
     # Act
     result.write()

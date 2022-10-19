@@ -195,6 +195,7 @@ def test_write_writes_to_desired_file(mocker, all_uids, filepath):
     mocker.patch("os.path.join", return_value=filepath)
     open_spy = mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.dump", MagicMock())
+    mocker.patch("os.makedirs")
     mocker.patch(PATCH_DATASET.format("Dataset.todict"), return_value={})
     dset = Dataset(REGISTRATION_MOCK)
     # Act

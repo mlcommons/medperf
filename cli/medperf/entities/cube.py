@@ -275,6 +275,7 @@ class Cube(Entity):
     def write(self):
         cube_loc = str(Path(self.cube_path).parent)
         meta_file = os.path.join(cube_loc, config.cube_metadata_filename)
+        os.makedirs(cube_loc, exist_ok=True)
         with open(meta_file, "w") as f:
             yaml.dump(self.todict(), f)
 
