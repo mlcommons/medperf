@@ -3,7 +3,7 @@ import pytest
 import time_machine
 import datetime as dt
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, call, ANY
+from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
 import medperf.config as config
@@ -415,75 +415,3 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
-
-
-@pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
-def test_get_stats_opens_stats_path(mocker, path):
-    # Arrange
-    spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_utils.format("yaml.safe_load"), return_value={})
-    mocker.patch(patch_utils.format("os.remove"))
-    opened_path = os.path.join(path, config.statistics_filename)
-    # Act
-    utils.get_stats(path)
-
-    # Assert
-    spy.assert_called_once_with(opened_path, "r")
-
-
-@pytest.mark.parametrize("stats", [{}, {"test": ""}, {"mean": 8}])
-def test_get_stats_returns_stats(mocker, stats):
-    # Arrange
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_utils.format("os.remove"))
-    mocker.patch(patch_utils.format("yaml.safe_load"), return_value=stats)
-
-    # Act
-    returned_stats = utils.get_stats("mocked_path")
-
-    # Assert
-    assert returned_stats == stats
-
-
-def test_get_stats_removes_file_by_default(mocker):
-    # Arrange
-    path = "mocked_path"
-    mocker.patch("builtins.open", MagicMock())
-    spy = mocker.patch(patch_utils.format("os.remove"))
-    mocker.patch(patch_utils.format("yaml.safe_load"))
-    opened_path = os.path.join(path, config.statistics_filename)
-
-    # Act
-    utils.get_stats(path)
-
-    # Assert
-    spy.assert_called_once_with(opened_path)
-
-
-@pytest.mark.parametrize("results", [{}, {"test": ""}, {"mean": 8}])
-def test_get_results_returns_results(mocker, results):
-    # Arrange
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_utils.format("os.remove"))
-    mocker.patch(patch_utils.format("yaml.safe_load"), return_value=results)
-
-    # Act
-    returned_results = utils.get_results("mocked_path")
-
-    # Assert
-    assert returned_results == results
-
-
-def test_get_results_removes_file_by_default(mocker):
-    # Arrange
-    path = "mocked_path"
-    mocker.patch("builtins.open", MagicMock())
-    spy = mocker.patch(patch_utils.format("os.remove"))
-    mocker.patch(patch_utils.format("yaml.safe_load"))
-    opened_path = os.path.join(path, config.results_filename)
-
-    # Act
-    utils.get_results(path)
-
-    # Assert
-    spy.assert_called_once_with(opened_path)

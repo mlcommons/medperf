@@ -8,7 +8,6 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
-    get_results,
     init_storage,
     pretty_error,
     results_path,
@@ -16,6 +15,7 @@ from medperf.utils import (
     cleanup,
 )
 import medperf.config as config
+import yaml
 
 
 class BenchmarkExecution:
@@ -37,6 +37,7 @@ class BenchmarkExecution:
             execution.get_cubes()
             execution.run_cubes()
         execution.write()
+        execution.remove_temp_results()
 
     def __init__(
         self, benchmark_uid: int, data_uid: int, model_uid: int, run_test=False,
@@ -137,13 +138,23 @@ class BenchmarkExecution:
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
             "dataset": data_uid,
-            "results": get_results(self.out_path),
+            "results": self.get_temp_results(),
             "metadata": {},
             "approval_status": Status.PENDING.value,
             "approved_at": None,
             "created_at": None,
             "modified_at": None,
         }
+
+    def get_temp_results(self):
+        path = os.path.join(self.out_path, config.results_filename)
+        with open(path, "r") as f:
+            results = yaml.safe_load(f)
+        return results
+
+    def remove_temp_results(self):
+        path = os.path.join(self.out_path, config.results_filename)
+        os.remove(path)
 
     def write(self):
         results_info = self.todict()

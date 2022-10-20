@@ -3,7 +3,7 @@ from pathlib import Path
 import medperf.config as config
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
-from unittest.mock import call
+from unittest.mock import MagicMock, call
 
 from medperf.tests.mocks import Benchmark, MockCube
 from medperf.commands.dataset.create import DataPreparation
@@ -199,6 +199,9 @@ class TestWithDefaultUID:
             PATCH_DATAPREP.format("DataPreparation.to_permanent_path"),
         )
         write_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
+        remove_spy = mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.remove_temp_stats"),
+        )
 
         # Act
         DataPreparation.run("", "", "", "")
@@ -210,6 +213,7 @@ class TestWithDefaultUID:
         generate_uids_spy.assert_called_once()
         to_permanent_path_spy.assert_called_once()
         write_spy.assert_called_once()
+        remove_spy.assert_called_once()
 
     @pytest.mark.parametrize("benchmark_uid", [None, "1"])
     @pytest.mark.parametrize("cube_uid", [None, "1"])
@@ -248,24 +252,49 @@ class TestWithDefaultUID:
         assert preparation.in_uid == in_path
         assert preparation.generated_uid == out_path
 
-    def test_todict_calls_get_stats(self, mocker, preparation):
+    def test_todict_calls_get_temp_stats(self, mocker, preparation):
         # Arrange
-        spy = mocker.patch(PATCH_DATAPREP.format("get_stats"))
+        spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_temp_stats"))
         # Act
         preparation.todict()
 
         # Assert
-        spy.assert_called_once_with(preparation.out_path)
+        spy.assert_called_once()
 
     def test_todict_returns_expected_keys(self, mocker, preparation):
         # Arrange
-        mocker.patch(PATCH_DATAPREP.format("get_stats"))
+        mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_temp_stats"))
 
         # Act
         keys = preparation.todict().keys()
 
         # Assert
         assert set(keys) == set(REG_DICT_KEYS)
+
+    @pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
+    def test_get_temp_stats_opens_stats_path(self, mocker, path, preparation):
+        # Arrange
+        preparation.out_path = path
+        spy = mocker.patch("builtins.open", MagicMock())
+        mocker.patch(PATCH_DATAPREP.format("yaml.safe_load"), return_value={})
+        opened_path = os.path.join(path, config.statistics_filename)
+        # Act
+        preparation.get_temp_stats()
+
+        # Assert
+        spy.assert_called_once_with(opened_path, "r")
+
+    @pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
+    def test_remove_temp_stats_removes_file(self, mocker, path, preparation):
+        # Arrange
+        preparation.out_path = path
+        spy = mocker.patch(PATCH_DATAPREP.format("os.remove"))
+        deleted = os.path.join(path, config.statistics_filename)
+        # Act
+        preparation.remove_temp_stats()
+
+        # Assert
+        spy.assert_called_once_with(deleted)
 
     @pytest.mark.parametrize("out_path", ["./test", "~/.medperf", "./workspace"])
     @pytest.mark.parametrize("uid", [858, 2770, 2052])
@@ -343,6 +372,7 @@ def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     )
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.to_permanent_path"),)
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.write"),)
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.remove_temp_stats"),)
 
     # Act
     returned_uid = DataPreparation.run("", "", "", "")

@@ -11,11 +11,11 @@ from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,
     get_folder_sha1,
-    get_stats,
     init_storage,
     pretty_error,
     cleanup,
 )
+import yaml
 
 
 class DataPreparation:
@@ -49,6 +49,7 @@ class DataPreparation:
         preparation.generate_uids()
         preparation.to_permanent_path()
         preparation.write()
+        preparation.remove_temp_stats()
         return preparation.generated_uid
 
     def __init__(
@@ -197,7 +198,7 @@ class DataPreparation:
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
-            "generated_metadata": get_stats(self.out_path),
+            "generated_metadata": self.get_temp_stats(),
             "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
             "separate_labels": self.labels_specified,  # not in the server
@@ -207,6 +208,16 @@ class DataPreparation:
             "modified_at": None,
             "owner": None,
         }
+
+    def get_temp_stats(self):
+        stats_path = os.path.join(self.out_path, config.statistics_filename)
+        with open(stats_path, "r") as f:
+            stats = yaml.safe_load(f)
+        return stats
+
+    def remove_temp_stats(self):
+        stats_path = os.path.join(self.out_path, config.statistics_filename)
+        os.remove(stats_path)
 
     def write(self) -> str:
         """Writes the registration into disk

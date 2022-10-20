@@ -1,7 +1,8 @@
 import os
 from medperf import config
+from medperf.tests.mocks.requests import result_dict
 import pytest
-from unittest.mock import call
+from unittest.mock import MagicMock, call
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
@@ -179,6 +180,9 @@ def test_run_executes_expected_flow(mocker, comms, ui, execution):
     get_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_cubes"))
     run_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.run_cubes"))
     write_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.write"))
+    remove_spy = mocker.patch(
+        PATCH_EXECUTION.format("BenchmarkExecution.remove_temp_results")
+    )
 
     # Act
     BenchmarkExecution.run(1, 1, 1)
@@ -189,6 +193,7 @@ def test_run_executes_expected_flow(mocker, comms, ui, execution):
     get_spy.assert_called_once()
     run_spy.assert_called_once()
     write_spy.assert_called_once()
+    remove_spy.assert_called_once()
 
 
 @pytest.mark.parametrize("mlcube", ["model", "eval"])
@@ -222,3 +227,65 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     # Assert
     spy_clean.assert_called_once_with(exp_outpaths)
     spy_error.assert_called_once()
+
+
+def test_todict_calls_get_temp_results(mocker, execution):
+    # Arrange
+    spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_temp_results"))
+    # Act
+    execution.todict()
+
+    # Assert
+    spy.assert_called_once()
+
+
+def test_todict_returns_expected_keys(mocker, execution):
+    # Arrange
+    mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_temp_results"))
+
+    # Act
+    keys = execution.todict().keys()
+
+    # Assert
+    assert set(keys) == set(result_dict().keys())
+
+
+def test_write_calls_result_write(mocker, execution):
+    # Arrange
+    result_info = result_dict()
+    mocker.patch(
+        PATCH_EXECUTION.format("BenchmarkExecution.todict"), return_value=result_info
+    )
+    spy = mocker.patch(PATCH_EXECUTION.format("Result.write"))
+    # Act
+    execution.write()
+
+    # Assert
+    spy.assert_called_once()
+
+
+@pytest.mark.parametrize("path", ["res_path", "path/to/folder"])
+def test_get_temp_results_opens_results_path(mocker, path, execution):
+    # Arrange
+    execution.out_path = path
+    spy = mocker.patch("builtins.open", MagicMock())
+    mocker.patch(PATCH_EXECUTION.format("yaml.safe_load"), return_value={})
+    opened_path = os.path.join(path, config.results_filename)
+    # Act
+    execution.get_temp_results()
+
+    # Assert
+    spy.assert_called_once_with(opened_path, "r")
+
+
+@pytest.mark.parametrize("path", ["res_path", "path/to/folder"])
+def test_remove_temp_results_removes_file(mocker, path, execution):
+    # Arrange
+    execution.out_path = path
+    spy = mocker.patch(PATCH_EXECUTION.format("os.remove"))
+    deleted = os.path.join(path, config.results_filename)
+    # Act
+    execution.remove_temp_results()
+
+    # Assert
+    spy.assert_called_once_with(deleted)
