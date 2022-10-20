@@ -1,4 +1,6 @@
 import os
+from medperf.entities.result import Result
+from medperf.enums import Status
 import logging
 
 from medperf.entities.cube import Cube
@@ -13,6 +15,7 @@ from medperf.utils import (
     cleanup,
 )
 import medperf.config as config
+import yaml
 
 
 class BenchmarkExecution:
@@ -33,6 +36,8 @@ class BenchmarkExecution:
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
+        execution.write()
+        execution.remove_temp_results()
 
     def __init__(
         self, benchmark_uid: int, data_uid: int, model_uid: int, run_test=False,
@@ -52,7 +57,15 @@ class BenchmarkExecution:
         update_bmk = not self.run_test
         self.benchmark = Benchmark.get(self.benchmark_uid, force_update=update_bmk)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset(self.data_uid)
+        self.dataset = Dataset.from_generated_uid(self.data_uid)
+        if not self.run_test:
+            self.out_path = results_path(
+                self.benchmark_uid, self.model_uid, self.dataset.uid
+            )
+        else:
+            self.out_path = results_path(
+                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
+            )
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -91,15 +104,8 @@ class BenchmarkExecution:
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
+        out_path = os.path.join(self.out_path, config.results_filename)
         labels_path = self.dataset.labels_path
-        if not self.run_test:
-            out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.uid
-            )
-        else:
-            out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
-            )
         try:
             self.model_cube.run(
                 task="infer",
@@ -128,3 +134,36 @@ class BenchmarkExecution:
             logging.error(f"MLCube Execution failed: {e}")
             cleanup([preds_path, out_path])
             pretty_error("Benchmark execution failed")
+
+    def todict(self):
+        data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
+
+        return {
+            "id": None,
+            "name": f"{self.benchmark_uid}_{self.model_uid}_{data_uid}",
+            "owner": None,
+            "benchmark": self.benchmark_uid,
+            "model": self.model_uid,
+            "dataset": data_uid,
+            "results": self.get_temp_results(),
+            "metadata": {},
+            "approval_status": Status.PENDING.value,
+            "approved_at": None,
+            "created_at": None,
+            "modified_at": None,
+        }
+
+    def get_temp_results(self):
+        path = os.path.join(self.out_path, config.results_filename)
+        with open(path, "r") as f:
+            results = yaml.safe_load(f)
+        return results
+
+    def remove_temp_results(self):
+        path = os.path.join(self.out_path, config.results_filename)
+        os.remove(path)
+
+    def write(self):
+        results_info = self.todict()
+        result = Result(results_info)
+        result.write()

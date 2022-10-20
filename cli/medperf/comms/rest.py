@@ -370,6 +370,7 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             pretty_error("Could not upload benchmark")
+        return res.json()
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
@@ -384,7 +385,7 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             pretty_error("Could not upload the mlcube")
-        return res.json()["id"]
+        return res.json()
 
     def get_datasets(self) -> List[dict]:
         """Retrieves all datasets in the platform
@@ -438,7 +439,7 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             pretty_error("Could not upload the dataset")
-        return res.json()["id"]
+        return res.json()
 
     def get_result(self, result_uid: str) -> dict:
         """Retrieves a specific result data
@@ -480,7 +481,7 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             pretty_error("Could not upload the results")
-        return res.json()["id"]
+        return res.json()
 
     def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create a Dataset Benchmark association

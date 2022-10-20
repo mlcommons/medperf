@@ -2,8 +2,8 @@ import os
 import logging
 from pathlib import Path
 import shutil
+from medperf.entities.dataset import Dataset
 from medperf.enums import Status
-import yaml
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
@@ -11,11 +11,11 @@ from medperf.utils import (
     check_cube_validity,
     generate_tmp_datapath,
     get_folder_sha1,
-    get_stats,
     init_storage,
     pretty_error,
     cleanup,
 )
+import yaml
 
 
 class DataPreparation:
@@ -49,6 +49,7 @@ class DataPreparation:
         preparation.generate_uids()
         preparation.to_permanent_path()
         preparation.write()
+        preparation.remove_temp_stats()
         return preparation.generated_uid
 
     def __init__(
@@ -209,8 +210,8 @@ class DataPreparation:
         Returns:
             dict: dictionary containing information pertaining the dataset.
         """
-        data = {
-            "uid": None,
+        return {
+            "id": None,
             "name": self.name,
             "description": self.description,
             "location": self.location,
@@ -218,19 +219,32 @@ class DataPreparation:
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
-            "generated_metadata": get_stats(self.out_path),
-            "status": Status.PENDING.value,
+            "generated_metadata": self.get_temp_stats(),
+            "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
-            "separate_labels": self.labels_specified,
+            "separate_labels": self.labels_specified,  # not in the server
+            "is_valid": True,
+            "user_metadata": {},
+            "created_at": None,
+            "modified_at": None,
+            "owner": None,
         }
-        return data
 
-    def write(self, filename: str = config.reg_file) -> str:
+    def get_temp_stats(self):
+        stats_path = os.path.join(self.out_path, config.statistics_filename)
+        with open(stats_path, "r") as f:
+            stats = yaml.safe_load(f)
+        return stats
+
+    def remove_temp_stats(self):
+        stats_path = os.path.join(self.out_path, config.statistics_filename)
+        os.remove(stats_path)
+
+    def write(self) -> str:
         """Writes the registration into disk
         Args:
             filename (str, optional): name of the file. Defaults to config.reg_file.
         """
-        data = self.todict()
-        filepath = os.path.join(self.out_path, filename)
-        with open(filepath, "w") as f:
-            yaml.dump(data, f)
+        dataset_dict = self.todict()
+        dataset = Dataset(dataset_dict)
+        dataset.write()
