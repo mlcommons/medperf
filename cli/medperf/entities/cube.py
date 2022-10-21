@@ -128,72 +128,65 @@ class Cube(Entity):
         cube.write()
         return cube
 
-    def download(self):
-        """Downloads the required elements for an mlcube to run locally.
-        """
-        comms = config.comms
-        ui = config.ui
-        cube_uid = self.uid
-        local_additional_hash = ""
-        local_image_hash = ""
-        local_parameters_hash = ""
-        local_mlcube_hash = ""
-
-        self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
+    def download_mlcube(self):
+        url = self.git_mlcube_url
+        path = config.comms.get_cube(url, self.uid)
+        local_hash = get_file_sha1(path)
         if not self.mlcube_hash:
-            # log interactive ui only during submission
-            ui.text = "Generating mlcube file hash"
-        local_mlcube_hash = get_file_sha1(self.cube_path)
-        if not self.mlcube_hash:
-            ui.print("Parameters file hash generated")
-            self.mlcube_hash = local_mlcube_hash
+            self.mlcube_hash = local_hash
+        self.cube_path = path
+        return local_hash
 
-        if self.git_parameters_url:
-            url = self.git_parameters_url
-            self.params_path = comms.get_cube_params(url, cube_uid)
+    def download_parameters(self):
+        url = self.git_parameters_url
+        if url:
+            path = config.comms.get_cube_params(url, self.uid)
+            local_hash = get_file_sha1(path)
             if not self.parameters_hash:
-                # log interactive ui only during submission
-                ui.text = "Generating parameters file hash"
-            local_parameters_hash = get_file_sha1(self.params_path)
-            if not self.parameters_hash:
-                ui.print("Parameters file hash generated")
-                self.parameters_hash = local_parameters_hash
-        if self.additional_files_tarball_url:
-            url = self.additional_files_tarball_url
-            additional_path = comms.get_cube_additional(url, cube_uid)
+                self.parameters_hash = local_hash
+            self.params_path = path
+            return local_hash
+        return ""
+
+    def download_additional(self):
+        url = self.additional_files_tarball_url
+        if url:
+            path = config.comms.get_cube_additional(url, self.uid)
+            local_hash = get_file_sha1(path)
             if not self.additional_hash:
-                # log interactive ui only during submission
-                ui.text = "Generating additional file hash"
-            local_additional_hash = get_file_sha1(additional_path)
-            if not self.additional_hash:
-                ui.print("Additional file hash generated")
-                self.additional_hash = local_additional_hash
-            untar(additional_path)
-        if self.image_tarball_url:
-            url = self.image_tarball_url
-            image_path = comms.get_cube_image(url, cube_uid)
+                self.additional_hash = local_hash
+            untar(path)
+            return local_hash
+        return ""
+
+    def download_image(self):
+        url = self.image_tarball_url
+        if url:
+            path = config.comms.get_cube_image(url, self.uid)
+            local_hash = get_file_sha1(path)
             if not self.image_tarball_hash:
-                # log interactive ui only during submission
-                ui.text = "Generating image file hash"
-            local_image_hash = get_file_sha1(image_path)
-            if not self.image_tarball_hash:
-                ui.print("Image file hash generated")
-                self.image_tarball_hash = local_image_hash
-            untar(image_path)
+                self.image_tarball_hash = local_hash
+            untar(path)
+            return local_hash
         else:
             # Retrieve image from image registry
-            logging.debug(f"Retrieving {cube_uid} image")
+            logging.debug(f"Retrieving {self.uid} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
             proc = pexpect.spawn(cmd)
             proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
+            return ""
+
+    def download(self):
+        """Downloads the required elements for an mlcube to run locally.
+        """
 
         local_hashes = {
-            "additional_files_tarball_hash": local_additional_hash,
-            "image_tarball_hash": local_image_hash,
-            "parameters_hash": local_parameters_hash,
-            "mlcube_hash": local_mlcube_hash,
+            "mlcube_hash": self.download_mlcube(),
+            "parameters_hash": self.download_parameters(),
+            "additional_files_tarball_hash": self.download_additional(),
+            "image_tarball_hash": self.download_image(),
         }
         self.store_local_hashes(local_hashes)
 
