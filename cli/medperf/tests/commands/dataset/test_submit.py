@@ -1,3 +1,4 @@
+from medperf.tests.mocks.requests import dataset_dict
 import pytest
 
 from medperf.entities.dataset import Dataset
@@ -9,7 +10,7 @@ PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 @pytest.fixture
 def dataset(mocker):
     dset = mocker.create_autospec(spec=Dataset)
-    mocker.patch(PATCH_REGISTER.format("Dataset"), return_value=dset)
+    mocker.patch(PATCH_REGISTER.format("Dataset.from_generated_uid"), return_value=dset)
     return dset
 
 
@@ -27,7 +28,10 @@ def test_run_retrieves_specified_dataset(
     mocker.patch(
         PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
-    spy = mocker.patch(PATCH_REGISTER.format("Dataset"), return_value=dataset)
+    spy = mocker.patch(
+        PATCH_REGISTER.format("Dataset.from_generated_uid"), return_value=dataset
+    )
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
     DatasetRegistration.run(data_uid)
@@ -65,6 +69,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
         PATCH_REGISTER.format("pretty_error"),
         side_effect=lambda *args, **kwargs: exit(),
     )
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
     DatasetRegistration.run("1")
@@ -77,6 +82,7 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     # Arrange
     dataset.uid = None
     spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
     DatasetRegistration.run("1")
@@ -91,28 +97,35 @@ def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_ha
     dataset.uid = None
     dataset.generated_uid = data_hash
     remote_dsets = [
-        {
-            "id": 1,
-            "generated_uid": data_hash,
-            "name": "name",
-            "location": "location",
-            "description": "description",
-        },
-        {
-            "id": 2,
-            "generated_uid": "abc123",
-            "name": "name",
-            "location": "location",
-            "description": "description",
-        },
+        dataset_dict(
+            {
+                "id": 1,
+                "generated_uid": data_hash,
+                "name": "name",
+                "location": "location",
+                "description": "description",
+            }
+        ),
+        dataset_dict(
+            {
+                "id": 2,
+                "generated_uid": "abc123",
+                "name": "name",
+                "location": "location",
+                "description": "description",
+            }
+        ),
     ]
     mocker.patch.object(comms, "get_user_datasets", return_value=remote_dsets)
+    write_spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+    upload_spy = mocker.patch(PATCH_REGISTER.format("Dataset.upload"))
 
     # Act
     DatasetRegistration.run(data_hash)
 
     # Assert
-    assert dataset.uid == 1
+    upload_spy.assert_not_called()
+    write_spy.assert_called_once()
 
 
 def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
@@ -143,26 +156,7 @@ class TestWithApproval:
             PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
         spy = mocker.patch.object(dataset, "upload")
-        mocker.patch(PATCH_REGISTER.format("pretty_error"))
-
-        # Act
-        DatasetRegistration.run("1")
-
-        # Assert
-        if approved:
-            spy.assert_called_once()
-        else:
-            spy.assert_not_called()
-
-    def test_run_updates_registration_if_approved(
-        self, mocker, comms, ui, dataset, approved, no_remote
-    ):
-        # Arrange
-        dataset.uid = None
-        mocker.patch(
-            PATCH_REGISTER.format("approval_prompt"), return_value=approved,
-        )
-        spy = mocker.patch.object(dataset, "set_registration")
+        mocker.patch(PATCH_REGISTER.format("Dataset.write"))
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
@@ -180,10 +174,34 @@ class TestWithApproval:
         # Arrange
         dataset.uid = None
         spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+        mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
         # Act
         DatasetRegistration.run("1", approved=approved)
 
         # Assert
         if approved:
+            spy.assert_not_called()
+        else:
+            spy.assert_called_once()
+
+    def test_run_writes_dataset_if_uploads(
+        self, mocker, comms, ui, dataset, approved, no_remote
+    ):
+        # Arrange
+        dataset.uid = None
+        mocker.patch(
+            PATCH_REGISTER.format("approval_prompt"), return_value=approved,
+        )
+        mocker.patch.object(dataset, "upload")
+        spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+        mocker.patch(PATCH_REGISTER.format("pretty_error"))
+
+        # Act
+        DatasetRegistration.run("1")
+
+        # Assert
+        if approved:
+            spy.assert_called_once()
+        else:
             spy.assert_not_called()

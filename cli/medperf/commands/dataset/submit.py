@@ -14,9 +14,10 @@ class DatasetRegistration:
         """
         comms = config.comms
         ui = config.ui
-        dset = Dataset(data_uid)
+        dset = Dataset.from_generated_uid(data_uid)
 
         if dset.uid:
+            # TODO: should get_dataset and update locally. solves existing issue?
             pretty_error(
                 "This dataset has already been registered.", add_instructions=False
             )
@@ -27,11 +28,8 @@ class DatasetRegistration:
             if remote_dset["generated_uid"] == dset.generated_uid
         ]
         if len(remote_dset) == 1:
-            dset.uid = remote_dset[0]["id"]
-            dset.name = remote_dset[0]["name"]
-            dset.location = remote_dset[0]["location"]
-            dset.description = remote_dset[0]["description"]
-            dset.set_registration()
+            dset = Dataset(remote_dset[0])
+            dset.write()
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
             return
 
@@ -40,7 +38,8 @@ class DatasetRegistration:
         dset.status = Status("APPROVED") if approved else Status("REJECTED")
         if approved:
             ui.print("Uploading...")
-            dset.upload()
-            dset.set_registration()
+            updated_dset_dict = dset.upload()
+            updated_dset = Dataset(updated_dset_dict)
+            updated_dset.write()
         else:
             pretty_error("Registration request cancelled.", add_instructions=False)
