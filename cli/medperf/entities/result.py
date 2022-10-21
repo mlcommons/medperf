@@ -1,11 +1,11 @@
 import os
+from pathlib import Path
 from medperf.enums import Status
 import yaml
 import logging
 from typing import List
 
 from medperf.utils import (
-    storage_path,
     results_ids,
     results_path,
 )
@@ -24,9 +24,7 @@ class Result(Entity):
     benchmark results and how to upload them to the backend.
     """
 
-    def __init__(
-        self, benchmark_uid: str, dataset_uid: str, model_uid: str, results: dict = None
-    ):
+    def __init__(self, results_info: dict):
         """Creates a new result instance
 
         Args:
@@ -35,16 +33,28 @@ class Result(Entity):
             model_uid (str): UID of the model used.
             results()
         """
-        self.path = results_path(benchmark_uid, model_uid, dataset_uid)
-        self.benchmark_uid = benchmark_uid
-        self.dataset_uid = dataset_uid
-        self.model_uid = model_uid
-        self.status = Status.PENDING
-        self.results = results
-        if self.results is None:
-            self.results = {}
-            self.get_results()
-        self.uid = self.results.get("uid", None)
+        self.uid = results_info["id"]
+        self.name = results_info["name"]
+        self.owner = results_info["owner"]
+        self.benchmark_uid = results_info["benchmark"]
+        self.model_uid = results_info["model"]
+        self.dataset_uid = results_info["dataset"]
+        self.results = results_info["results"]
+        self.status = Status(results_info["approval_status"])
+        self.metadata = results_info["metadata"]
+        self.approved_at = results_info["approved_at"]
+        self.created_at = results_info["created_at"]
+        self.modified_at = results_info["modified_at"]
+
+        self.path = results_path(self.benchmark_uid, self.model_uid, self.dataset_uid)
+        self.path = os.path.join(self.path, config.results_info_file)
+
+    @classmethod
+    def from_entities_uids(
+        cls, benchmark_uid: str, model_uid: str, dataset_uid: str
+    ) -> "Result":
+        results_info = cls.__get_local_dict(benchmark_uid, model_uid, dataset_uid)
+        return cls(results_info)
 
     @classmethod
     def all(cls) -> List["Result"]:
@@ -52,11 +62,10 @@ class Result(Entity):
         """
         logging.info("Retrieving all results")
         results_ids_tuple = results_ids()
-        storage_path(config.results_storage)
         results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
-            results.append(cls(b_id, d_id, m_id))
+            results.append(cls.from_entities_uids(b_id, m_id, d_id))
 
         return results
 
@@ -82,24 +91,25 @@ class Result(Entity):
             return local_result[0]
 
         meta = comms.get_result(result_uid)
-        bmk_uid = meta["benchmark"]
-        dset_uid = meta["dataset"]
-        model_uid = meta["model"]
-        result_data = meta["results"]
-
-        return cls(bmk_uid, dset_uid, model_uid, result_data)
+        result = cls(meta)
+        result.write()
+        return result
 
     def todict(self):
-        result_dict = {
-            "name": f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}",
-            "results": self.results,
-            "metadata": {},
-            "approval_status": self.status.value,
+        return {
+            "id": self.uid,
+            "name": self.name,
+            "owner": self.owner,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
             "dataset": self.dataset_uid,
+            "results": self.results,
+            "metadata": self.metadata,
+            "approval_status": self.status.value,
+            "approved_at": self.approved_at,
+            "created_at": self.created_at,
+            "modified_at": self.modified_at,
         }
-        return result_dict
 
     def upload(self):
         """Uploads the results to the comms
@@ -107,20 +117,25 @@ class Result(Entity):
         Args:
             comms (Comms): Instance of the communications interface.
         """
-        result_uid = config.comms.upload_results(self.todict())
-        self.uid = result_uid
-        self.results["uid"] = result_uid
-        self.set_results()
+        results_info = self.todict()
+        updated_results_info = config.comms.upload_results(results_info)
+        return updated_results_info
 
-    def set_results(self):
-        write_access = os.access(self.path, os.W_OK)
-        logging.debug(f"file has write access? {write_access}")
-        if not write_access:
-            logging.debug("removing outdated and inaccessible results")
-            os.remove(self.path)
+    def write(self):
+        if os.path.exists(self.path):
+            write_access = os.access(self.path, os.W_OK)
+            logging.debug(f"file has write access? {write_access}")
+            if not write_access:
+                logging.debug("removing outdated and inaccessible results")
+                os.remove(self.path)
+        os.makedirs(Path(self.path).parent, exist_ok=True)
         with open(self.path, "w") as f:
-            yaml.dump(self.results, f)
+            yaml.dump(self.todict(), f)
 
-    def get_results(self):
-        with open(self.path, "r") as f:
-            self.results = yaml.safe_load(f)
+    @classmethod
+    def __get_local_dict(cls, benchmark_uid, model_uid, dataset_uid):
+        path = results_path(benchmark_uid, model_uid, dataset_uid)
+        path = os.path.join(path, config.results_info_file)
+        with open(path, "r") as f:
+            results_info = yaml.safe_load(f)
+        return results_info
