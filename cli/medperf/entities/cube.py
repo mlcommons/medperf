@@ -38,6 +38,8 @@ class Cube(Entity):
         self.name = cube_dict["name"]
         self.git_mlcube_url = cube_dict["git_mlcube_url"]
         self.git_parameters_url = cube_dict["git_parameters_url"]
+        self.mlcube_hash = cube_dict["mlcube_hash"]
+        self.parameters_hash = cube_dict["parameters_hash"]
         self.image_tarball_url = cube_dict["image_tarball_url"]
         self.image_tarball_hash = cube_dict["image_tarball_hash"]
         if "tarball_url" in cube_dict:
@@ -132,12 +134,30 @@ class Cube(Entity):
         comms = config.comms
         ui = config.ui
         cube_uid = self.uid
-        self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
         local_additional_hash = ""
         local_image_hash = ""
+        local_parameters_hash = ""
+        local_mlcube_hash = ""
+
+        self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
+        if not self.mlcube_hash:
+            # log interactive ui only during submission
+            ui.text = "Generating mlcube file hash"
+        local_mlcube_hash = get_file_sha1(self.cube_path)
+        if not self.mlcube_hash:
+            ui.print("Parameters file hash generated")
+            self.mlcube_hash = local_mlcube_hash
+
         if self.git_parameters_url:
             url = self.git_parameters_url
             self.params_path = comms.get_cube_params(url, cube_uid)
+            if not self.parameters_hash:
+                # log interactive ui only during submission
+                ui.text = "Generating parameters file hash"
+            local_parameters_hash = get_file_sha1(self.params_path)
+            if not self.parameters_hash:
+                ui.print("Parameters file hash generated")
+                self.parameters_hash = local_parameters_hash
         if self.additional_files_tarball_url:
             url = self.additional_files_tarball_url
             additional_path = comms.get_cube_additional(url, cube_uid)
@@ -172,6 +192,8 @@ class Cube(Entity):
         local_hashes = {
             "additional_files_tarball_hash": local_additional_hash,
             "image_tarball_hash": local_image_hash,
+            "parameters_hash": local_parameters_hash,
+            "mlcube_hash": local_mlcube_hash,
         }
         self.store_local_hashes(local_hashes)
 
@@ -181,20 +203,18 @@ class Cube(Entity):
         Returns:
             bool: Wether the cube and related files match the expeced hashes
         """
-        local_hashes = self.get_local_hashes()
-        local_additional_hash = local_hashes["additional_files_tarball_hash"]
-        local_image_hash = local_hashes["image_tarball_hash"]
         valid_cube = self.is_cube_valid
-        if self.additional_files_tarball_url:
-            valid_additional = self.additional_hash == local_additional_hash
-        else:
-            valid_additional = True
+        valid_hashes = True
+        local_hashes = self.get_local_hashes()
+        server_hashes = self.todict()
+        for key in local_hashes:
+            if local_hashes[key]:
+                if local_hashes[key] != server_hashes[key]:
+                    valid_hashes = False
+                    msg = f"{key.replace('_', ' ')} doesn't match"
+                    config.ui.print_error(msg)
 
-        if self.image_tarball_url:
-            valid_image = self.image_tarball_hash == local_image_hash
-        else:
-            valid_image = True
-        return valid_cube and valid_additional and valid_image
+        return valid_cube and valid_hashes
 
     def run(self, task: str, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
@@ -257,7 +277,9 @@ class Cube(Entity):
         return {
             "name": self.name,
             "git_mlcube_url": self.git_mlcube_url,
+            "mlcube_hash": self.mlcube_hash,
             "git_parameters_url": self.git_parameters_url,
+            "parameters_hash": self.parameters_hash,
             "image_tarball_url": self.image_tarball_url,
             "image_tarball_hash": self.image_tarball_hash,
             "additional_files_tarball_url": self.additional_files_tarball_url,
