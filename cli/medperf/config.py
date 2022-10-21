@@ -42,7 +42,6 @@ cube_hashes_filename = "mlcube-hashes.yaml"
 default_comms = "REST"
 default_ui = "CLI"
 platform = "docker"
-git_file_domain = "https://raw.githubusercontent.com"
 comms = None
 ui = None
 
