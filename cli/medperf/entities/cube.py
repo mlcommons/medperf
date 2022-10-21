@@ -12,6 +12,7 @@ from medperf.utils import (
     combine_proc_sp_text,
     list_files,
     storage_path,
+    cleanup
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
@@ -131,6 +132,8 @@ class Cube(Entity):
                 return cube
             attempt += 1
         logging.error("Max download attempts reached")
+        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
+        cleanup(cube_path)
         raise RuntimeError("Could not successfully download the requested MLCube")
 
     def download(self):
