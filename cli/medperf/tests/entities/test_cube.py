@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, mock_open, ANY
+from unittest.mock import MagicMock, mock_open, ANY, call
 
 import medperf
 import medperf.config as config
@@ -341,7 +341,7 @@ def test_get_cube_with_image_generates_image_tarball_hash(
 
 
 def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
-    # Arragen
+    # Arrange
     spy = mocker.spy(medperf.entities.cube, "untar")
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=True)
 
@@ -351,6 +351,63 @@ def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
 
     # Assert
     spy.assert_called_once_with(IMG_PATH)
+
+
+def test_get_cube_checks_validity(mocker, comms, basic_body, no_local):
+    # Arrange
+    spy = mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=True)
+
+    # Act
+    uid = 1
+    Cube.get(uid)
+
+    # Assert
+    spy.assert_called_once()
+
+
+@pytest.mark.parametrize("max_attempts", [3, 5, 2])
+def test_get_cube_retries_configured_number_of_times(mocker, comms, basic_body, no_local, max_attempts):
+    # Arrange
+    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=False)
+    mocker.patch(PATCH_CUBE.format("cleanup"))
+    spy = mocker.patch(PATCH_CUBE.format("Cube.download"))
+    config.cube_get_max_attempts = max_attempts
+    calls = [call()] * max_attempts
+
+    # Act
+    with pytest.raises(RuntimeError):
+        uid = 1
+        Cube.get(uid)
+
+        # Assert
+        spy.assert_has_calls(calls)
+
+
+@pytest.mark.parametrize("uid", [3, 75, 918])
+def test_get_cube_deletes_cube_if_failed(mocker, comms, basic_body, no_local, uid):
+    # Arrange
+    uid = 1
+    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=False)
+    spy = mocker.patch(PATCH_CUBE.format("cleanup"))
+    cube_path = os.path.join(storage_path(config.cubes_storage), str(uid))
+
+    # Act
+    with pytest.raises(RuntimeError):
+        Cube.get(uid)
+
+        # Assert
+        spy.assert_called_once_with(cube_path)
+
+
+def test_get_cube_raises_error_if_failed(mocker, comms, basic_body, no_local):
+    # Arrange
+    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=False)
+    mocker.patch(PATCH_CUBE.format("cleanup"))
+
+    # Act & Assert
+    with pytest.raises(RuntimeError):
+        uid = 1
+        Cube.get(uid)
 
 
 def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_local):

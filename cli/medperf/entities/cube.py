@@ -124,7 +124,7 @@ class Cube(Entity):
         meta = comms.get_cube_metadata(cube_uid)
         cube = cls(meta)
         attempt = 0
-        while attempt < 3: # Allow up to three download attempts
+        while attempt < config.cube_get_max_attempts:
             logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
             cube.download()
             if cube.is_valid():
@@ -132,8 +132,8 @@ class Cube(Entity):
                 return cube
             attempt += 1
         logging.error("Max download attempts reached")
-        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
-        cleanup(cube_path)
+        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid + 1))
+        cleanup([cube_path])
         raise RuntimeError("Could not successfully download the requested MLCube")
 
     def download(self):
