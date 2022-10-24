@@ -23,8 +23,8 @@ def exec_python(cmd: str) -> None:
         cmd (str): command to run as would be written inside the terminal
     """
     splitted_cmd = cmd.split()
-    process = subprocess.Popen(splitted_cmd, cwd=".")
-    process.wait()
+    subprocess.run(splitted_cmd, cwd=".", check=True)
+    
 
 
 @app.command("infer")
