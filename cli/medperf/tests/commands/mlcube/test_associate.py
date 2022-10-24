@@ -28,7 +28,7 @@ def benchmark(mocker):
 @pytest.fixture
 def result(mocker):
     result = mocker.create_autospec(spec=Result)
-    mocker.patch.object(Result, "todict", return_value={})
+    result.results = {}
     return result
 
 

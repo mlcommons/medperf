@@ -117,7 +117,9 @@ class CompatibilityTestExecution:
         # Datasets associated with results of compatibility-test are identified
         # by the generated uid. Server uid is not be applicable in the case
         # of unregistered datasets.
-        return Result(benchmark.uid, self.dataset.generated_uid, self.model)
+        return Result.from_entities_uids(
+            benchmark.uid, self.model, self.dataset.generated_uid
+        )
 
     def set_cube_uid(self, attr: str, fallback: any = None):
         """Assigns the attr used for testing according to the initialization parameters.
@@ -179,7 +181,7 @@ class CompatibilityTestExecution:
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
         if self.data_uid is not None:
-            self.dataset = Dataset(self.data_uid)
+            self.dataset = Dataset.from_generated_uid(self.data_uid)
             # to avoid 'None' as a uid
             self.data_prep = self.dataset.preparation_cube_uid
         else:
@@ -188,7 +190,7 @@ class CompatibilityTestExecution:
             self.data_uid = DataPreparation.run(
                 None, self.data_prep, data_path, labels_path, run_test=True,
             )
-            self.dataset = Dataset(self.data_uid)
+            self.dataset = Dataset.from_generated_uid(self.data_uid)
 
     def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark

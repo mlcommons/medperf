@@ -3,13 +3,11 @@ import pytest
 import time_machine
 import datetime as dt
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, call, ANY
+from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
 import medperf.config as config
-from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
-from medperf.tests.mocks.requests import cube_metadata_generator
 
 parent = config.storage
 data = utils.storage_path(config.data_storage)
@@ -394,39 +392,13 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
     storage = config.storage
     res_storage = config.results_storage
-    res_file = config.results_filename
-    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}/{res_file}"
+    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}"
 
     # Act
     path = utils.results_path(bmk, model, gen_uid)
 
     # Assert
     assert path == expected_path
-
-
-@pytest.mark.parametrize("cube_uid", [2, 87, 1])
-def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
-    # Arrange
-    cube_uid = str(cube_uid)
-    meta = cube_metadata_generator()(cube_uid)
-    hashes = cube_local_hashes_generator()
-    cubes_path = utils.storage_path(config.cubes_storage)
-    meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
-    hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
-
-    mocker.patch("os.path.isdir", return_value=True)
-    meta_handler = mock_open().return_value
-    hash_handler = mock_open().return_value
-    open_spy = mocker.patch("builtins.open", side_effect=[meta_handler, hash_handler])
-    yaml_spy = mocker.patch("yaml.dump")
-
-    # Act
-    utils.save_cube_metadata(meta, hashes)
-
-    # Assert
-    open_spy.assert_has_calls([call(meta_path, "w"), call(hashes_path, "w")])
-    assert open_spy.call_count == 2
-    yaml_spy.assert_has_calls([call(meta, meta_handler), call(hashes, hash_handler)])
 
 
 @pytest.mark.parametrize(
@@ -443,46 +415,3 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
-
-
-@pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
-def test_get_stats_opens_stats_path(mocker, path):
-    # Arrange
-    spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_utils.format("yaml.safe_load"), return_value={})
-    mocker.patch(patch_utils.format("os.remove"))
-    opened_path = os.path.join(path, config.statistics_filename)
-    # Act
-    utils.get_stats(path)
-
-    # Assert
-    spy.assert_called_once_with(opened_path, "r")
-
-
-@pytest.mark.parametrize("stats", [{}, {"test": ""}, {"mean": 8}])
-def test_get_stats_returns_stats(mocker, stats):
-    # Arrange
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch(patch_utils.format("os.remove"))
-    mocker.patch(patch_utils.format("yaml.safe_load"), return_value=stats)
-
-    # Act
-    returned_stats = utils.get_stats("mocked_path")
-
-    # Assert
-    assert returned_stats == stats
-
-
-def test_get_stats_removes_file_by_default(mocker):
-    # Arrange
-    path = "mocked_path"
-    mocker.patch("builtins.open", MagicMock())
-    spy = mocker.patch(patch_utils.format("os.remove"))
-    mocker.patch(patch_utils.format("yaml.safe_load"))
-    opened_path = os.path.join(path, config.statistics_filename)
-
-    # Act
-    utils.get_stats(path)
-
-    # Assert
-    spy.assert_called_once_with(opened_path)
