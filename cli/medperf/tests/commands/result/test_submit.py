@@ -12,6 +12,7 @@ PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 def result(mocker):
     res = mocker.create_autospec(spec=Result)
     res.status = Status.PENDING
+    res.results = {}
     return res
 
 
@@ -27,6 +28,9 @@ def dataset(mocker):
 def submission(mocker, comms, ui, result, dataset):
     sub = ResultSubmission(1, 1, 1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
+    mocker.patch(
+        PATCH_SUBMISSION.format("Result.from_entities_uids"), return_value=result
+    )
     mocker.patch(PATCH_SUBMISSION.format("Dataset"), return_value=dataset)
     return sub
 
@@ -90,11 +94,24 @@ def test_upload_results_uploads_if_approved(mocker, submission, result, approved
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     # Arrange
     bmark_uid = data_uid = model_uid = 1
-    spy = mocker.spy(ResultSubmission, "upload_results")
+    up_spy = mocker.spy(ResultSubmission, "upload_results")
+    write_spy = mocker.spy(ResultSubmission, "write")
     mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
     ResultSubmission.run(bmark_uid, data_uid, model_uid)
 
     # Assert
-    spy.assert_called_once()
+    up_spy.assert_called_once()
+    write_spy.assert_called_once()
+
+
+def test_write_writes_results_using_entity(mocker, submission, result):
+    # Arrange
+    spy = mocker.patch.object(result, "write")
+
+    # Act
+    submission.write({})
+
+    # Assert
+    spy.assert_called()

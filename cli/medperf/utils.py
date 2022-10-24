@@ -394,7 +394,6 @@ def results_path(benchmark_uid, model_uid, data_uid):
     model_uid = str(model_uid)
     data_uid = str(data_uid)
     out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-    out_path = os.path.join(out_path, config.results_filename)
     return out_path
 
 
@@ -443,18 +442,6 @@ def list_files(startpath):
     return tree_str
 
 
-def save_cube_metadata(meta, local_hashes):
-    c_path = cube_path(meta["id"])
-    if not os.path.isdir(c_path):
-        os.makedirs(c_path, exist_ok=True)
-    meta_file = os.path.join(c_path, config.cube_metadata_filename)
-    with open(meta_file, "w") as f:
-        yaml.dump(meta, f)
-    local_hashes_file = os.path.join(c_path, config.cube_hashes_filename)
-    with open(local_hashes_file, "w") as f:
-        yaml.dump(local_hashes, f)
-
-
 def sanitize_json(data: dict) -> dict:
     """Makes sure the input data is JSON compliant.
 
@@ -469,21 +456,3 @@ def sanitize_json(data: dict) -> dict:
     json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
-
-
-def get_stats(data_path: str, remove: bool = True) -> dict:
-    """Retrieves the statistics of a prepared dataset
-
-    Args:
-        data_path (str): path to the dataset root
-
-    Returns:
-        dict: dataset statistics as key-value pairs.
-    """
-    stats_path = os.path.join(data_path, config.statistics_filename)
-    with open(stats_path, "r") as f:
-        stats = yaml.safe_load(f)
-
-    if remove:
-        os.remove(stats_path)
-    return stats
