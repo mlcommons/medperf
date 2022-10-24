@@ -6,7 +6,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 from medperf.entities.benchmark import Benchmark
-from medperf.tests.mocks.requests import benchmark_body
+from medperf.tests.mocks.requests import benchmark_body, benchmark_dict
 
 
 PATCH_BENCHMARK = "medperf.entities.benchmark.{}"
@@ -86,7 +86,8 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
     mocker.patch("os.listdir", return_value=benchmarks_uids)
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
     spy = mocker.patch(
-        PATCH_BENCHMARK.format("Benchmark._Benchmark__get_local_dict"), return_value={}
+        PATCH_BENCHMARK.format("Benchmark._Benchmark__get_local_dict"),
+        return_value=benchmark_dict(),
     )
     uid = benchmarks_uids[0]
 
@@ -122,7 +123,7 @@ def test_get_local_dict_reads_expected_file(mocker, comms, uid):
     # Arrange
     uid = str(uid)
     mocker.patch("os.listdir", return_value=[uid])
-    mocker.patch("yaml.safe_load", return_value={})
+    mocker.patch("yaml.safe_load", return_value=benchmark_dict())
     spy = mocker.patch("builtins.open", mock_open())
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
     exp_file = os.path.join(
