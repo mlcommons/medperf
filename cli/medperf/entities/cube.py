@@ -132,9 +132,9 @@ class Cube(Entity):
                 return cube
             attempt += 1
         logging.error("Max download attempts reached")
-        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid + 1))
+        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
         cleanup([cube_path])
-        raise RuntimeError("Could not successfully download the requested MLCube")
+        pretty_error("Could not successfully download the requested MLCube")
 
     def download(self):
         """Downloads the required elements for an mlcube to run locally.

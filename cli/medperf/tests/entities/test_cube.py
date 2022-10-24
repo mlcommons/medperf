@@ -395,8 +395,8 @@ def test_get_cube_deletes_cube_if_failed(mocker, comms, basic_body, no_local, ui
     with pytest.raises(RuntimeError):
         Cube.get(uid)
 
-        # Assert
-        spy.assert_called_once_with(cube_path)
+    # Assert
+    spy.assert_called_once_with([cube_path])
 
 
 def test_get_cube_raises_error_if_failed(mocker, comms, basic_body, no_local):
