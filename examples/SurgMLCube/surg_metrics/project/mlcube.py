@@ -25,8 +25,8 @@ class EvaluateTask(object):
         cmd = f"python3 metrics.py --preds_path={preds_path} --parameters_file={parameters_file} --output_file={output_file}"
         splitted_cmd = cmd.split()
 
-        process = subprocess.Popen(splitted_cmd, cwd=".")
-        process.wait()
+        subprocess.run(splitted_cmd, cwd=".", check=True)
+        
 
 
 @app.command("evaluate")
