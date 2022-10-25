@@ -366,48 +366,54 @@ def test_get_cube_checks_validity(mocker, comms, basic_body, no_local):
 
 
 @pytest.mark.parametrize("max_attempts", [3, 5, 2])
-def test_get_cube_retries_configured_number_of_times(mocker, comms, basic_body, no_local, max_attempts):
+def test_get_cube_retries_configured_number_of_times(
+    mocker, comms, basic_body, no_local, max_attempts
+):
     # Arrange
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=False)
     mocker.patch(PATCH_CUBE.format("cleanup"))
+    err_spy = mocker.patch(PATCH_CUBE.format("pretty_error"))
     spy = mocker.patch(PATCH_CUBE.format("Cube.download"))
     config.cube_get_max_attempts = max_attempts
     calls = [call()] * max_attempts
 
     # Act
-    with pytest.raises(RuntimeError):
-        uid = 1
-        Cube.get(uid)
+    uid = 1
+    Cube.get(uid)
 
-        # Assert
-        spy.assert_has_calls(calls)
+    # Assert
+    spy.assert_has_calls(calls)
+    err_spy.assert_called_once()
 
 
 @pytest.mark.parametrize("uid", [3, 75, 918])
 def test_get_cube_deletes_cube_if_failed(mocker, comms, basic_body, no_local, uid):
     # Arrange
-    uid = 1
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=False)
     spy = mocker.patch(PATCH_CUBE.format("cleanup"))
+    err_spy = mocker.patch(PATCH_CUBE.format("pretty_error"))
     cube_path = os.path.join(storage_path(config.cubes_storage), str(uid))
 
     # Act
-    with pytest.raises(RuntimeError):
-        Cube.get(uid)
+    Cube.get(uid)
 
     # Assert
     spy.assert_called_once_with([cube_path])
+    err_spy.assert_called_once()
 
 
 def test_get_cube_raises_error_if_failed(mocker, comms, basic_body, no_local):
     # Arrange
+    uid = 1
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=False)
     mocker.patch(PATCH_CUBE.format("cleanup"))
+    err_spy = mocker.patch(PATCH_CUBE.format("pretty_error"))
 
-    # Act & Assert
-    with pytest.raises(RuntimeError):
-        uid = 1
-        Cube.get(uid)
+    # Act
+    Cube.get(uid)
+
+    # Assert
+    err_spy.assert_called_once()
 
 
 def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_local):
