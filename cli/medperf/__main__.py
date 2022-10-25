@@ -151,7 +151,7 @@ def main(
     config.platform = platform
     config.cleanup = cleanup
 
-    set_unique_tmp_config() 
+    set_unique_tmp_config()
 
     if log_file is None:
         log_file = storage_path(config.log_file)
