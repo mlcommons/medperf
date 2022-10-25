@@ -14,7 +14,7 @@ import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
-from medperf.utils import init_storage, storage_path, cleanup
+from medperf.utils import init_storage, storage_path, cleanup, set_unique_tmp_config
 import medperf.commands.association.association as association
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
@@ -150,6 +150,8 @@ def main(
     config.evaluate_timeout = evaluate_timeout
     config.platform = platform
     config.cleanup = cleanup
+
+    set_unique_tmp_config() 
 
     if log_file is None:
         log_file = storage_path(config.log_file)
