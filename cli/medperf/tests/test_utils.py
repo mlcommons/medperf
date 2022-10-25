@@ -102,6 +102,23 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     spy.assert_has_calls(exp_calls, any_order=True)
 
 
+@pytest.mark.parametrize("pid", [37, 864, 2890])
+def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
+    # Arrange
+    spy = mocker.patch("os.getpid", return_value=pid)
+    pid = str(pid)
+
+    # Act
+    utils.set_unique_tmp_config()
+
+    # Assert
+    spy.assert_called_once()
+    assert config.tmp_storage.endswith(pid)
+    assert config.tmp_prefix.endswith(pid)
+    assert config.test_dset_prefix.endswith(pid)
+    assert config.test_cube_prefix.endswith(pid)
+
+
 def test_cleanup_removes_temporary_storage(mocker):
     # Arrange
     mocker.patch("os.path.exists", return_value=True)
