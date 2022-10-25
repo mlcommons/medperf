@@ -122,14 +122,24 @@ class DataPreparation:
             "labels_path": labels_path,
             "output_path": out_datapath,
         }
+        prepare_str_params = {
+            "Ptasks.prepare.parameters.input.data_path.opts": "ro",
+            "Ptasks.prepare.parameters.input.labels_path.opts": "ro"
+        }
 
         sanity_params = {
             "data_path": out_datapath,
+        }
+        sanity_str_params = {
+            "Ptasks.sanity_check.parameters.input.data_path.opts": "ro"
         }
 
         statistics_params = {
             "data_path": out_datapath,
             "output_path": out_statistics_path,
+        }
+        statistics_str_params = {
+            "Ptasks.statistics.parameters.input.data_path.opts": "ro"
         }
 
         # Check if labels_path is specified
@@ -145,18 +155,29 @@ class DataPreparation:
         # Run the tasks
         self.ui.text = "Running preparation step..."
         try:
-            self.cube.run(task="prepare", timeout=prepare_timeout, **prepare_params)
+            self.cube.run(
+                task="prepare",
+                string_params=prepare_str_params,
+                timeout=prepare_timeout,
+                **prepare_params,
+            )
             self.ui.print("> Cube execution complete")
 
             self.ui.text = "Running sanity check..."
             self.cube.run(
-                task="sanity_check", timeout=sanity_check_timeout, **sanity_params,
+                task="sanity_check",
+                string_params=sanity_str_params,
+                timeout=sanity_check_timeout,
+                **sanity_params,
             )
             self.ui.print("> Sanity checks complete")
 
             self.ui.text = "Generating statistics..."
             self.cube.run(
-                task="statistics", timeout=statistics_timeout, **statistics_params,
+                task="statistics",
+                string_params=statistics_str_params,
+                timeout=statistics_timeout,
+                **statistics_params
             )
             self.ui.print("> Statistics complete")
         except RuntimeError as e:

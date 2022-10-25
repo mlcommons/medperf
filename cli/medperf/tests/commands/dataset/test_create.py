@@ -130,13 +130,23 @@ class TestWithDefaultUID:
             data_path=DATA_PATH,
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
+            string_params={
+                'Ptasks.prepare.parameters.input.data_path.opts': 'ro',
+                'Ptasks.prepare.parameters.input.labels_path.opts': 'ro',
+            }
         )
-        check = call(task="sanity_check", data_path=OUT_DATAPATH, timeout=None)
+        check = call(
+            task="sanity_check",
+            string_params={'Ptasks.sanity_check.parameters.input.data_path.opts': 'ro'},
+            data_path=OUT_DATAPATH,
+            timeout=None
+        )
         stats = call(
             task="statistics",
             data_path=OUT_DATAPATH,
             timeout=None,
             output_path=out_statistics_path,
+            string_params={'Ptasks.statistics.parameters.input.data_path.opts': 'ro'}
         )
         calls = [prepare, check, stats]
 
@@ -161,12 +171,17 @@ class TestWithDefaultUID:
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
             output_labels_path=OUT_LABELSPATH,
+            string_params={
+                'Ptasks.prepare.parameters.input.data_path.opts': 'ro',
+                'Ptasks.prepare.parameters.input.labels_path.opts': 'ro',
+            }
         )
         check = call(
             task="sanity_check",
             timeout=None,
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
+            string_params={'Ptasks.sanity_check.parameters.input.data_path.opts': 'ro'},
         )
         stats = call(
             task="statistics",
@@ -174,6 +189,7 @@ class TestWithDefaultUID:
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
             output_path=out_statistics_path,
+            string_params={'Ptasks.statistics.parameters.input.data_path.opts': 'ro'}
         )
         calls = [prepare, check, stats]
 

@@ -4,6 +4,7 @@ from medperf.tests.mocks.requests import result_dict
 import pytest
 from unittest.mock import MagicMock, call
 
+from medperf.utils import storage_path
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -154,23 +155,46 @@ def test__get_cube_checks_cube_validity(mocker, execution, cube):
 
 def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
     # Arrange
-    execution.dataset.data_path = "data_path"
-    execution.model_cube.cube_path = "cube_path"
+    data_path = "data_path"
+    labels_path = "labels_path"
+    cube_path = "cube_path"
+    model_uid = str(execution.model_cube.uid)
+    data_uid = execution.dataset.generated_uid
+    preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
+    preds_path = storage_path(preds_path)
+    result_path = os.path.join(execution.out_path, config.results_filename)
+    execution.dataset.data_path = data_path
+    execution.dataset.labels_path = labels_path
+    execution.model_cube.cube_path = cube_path
     model_spy = mocker.patch.object(execution.model_cube, "run")
     eval_spy = mocker.patch.object(execution.evaluator, "run")
-    mocker.patch("os.path.join", return_value="")
-    mocker.patch(
-        PATCH_EXECUTION.format("results_path"), return_value="",
+    infer = call(
+        task="infer",
+        timeout=None,
+        data_path="data_path",
+        output_path=preds_path,
+        string_params={
+            'Ptasks.infer.parameters.input.data_path.opts': 'ro',
+        }
+    )
+    evaluate = call(
+        task="evaluate",
+        timeout=None,
+        predictions=preds_path,
+        labels="labels_path",
+        output_path=result_path,
+        string_params={
+            'Ptasks.evaluate.parameters.input.predictions.opts': 'ro',
+            'Ptasks.evaluate.parameters.input.labels.opts': 'ro'
+        }
     )
 
     # Act
     execution.run_cubes()
 
     # Assert
-    assert model_spy.call_count == 1
-    assert model_spy.call_args_list[0][1]["task"] == "infer"
-    assert eval_spy.call_count == 1
-    assert eval_spy.call_args_list[0][1]["task"] == "evaluate"
+    model_spy.assert_has_calls([infer])
+    eval_spy.assert_has_calls([evaluate])
 
 
 def test_run_executes_expected_flow(mocker, comms, ui, execution):
