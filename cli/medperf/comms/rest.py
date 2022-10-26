@@ -113,6 +113,51 @@ class REST(Comms):
                 "remember to provide the server certificate through --certificate"
             )
 
+    def __get_list(self, url, num_elements=None, page_size=32, offset=0, binary_reduction=True):
+        """Retrieves a list of elements from a URL by iterating over pages until num_elements is obtained.
+        If num_elements is None, then iterates until all elements have been retrieved.
+        If binary_reduction is enabled, errors are assumed to be related to response size. In that case,
+        the page_size is reduced by half until a successful response is obtained or until page_size can't be
+        reduced anymore.
+
+        Args:
+            url (str): The url to retrieve elements from
+            num_elements (int, optional): The desired number of elements to be retrieved. Defaults to None.
+            page_size (int, optional): The starting page size. Defaults to 32. This number was chosen arbitrarily.
+            start_limit (int, optional): The starting position for element retrieval. Defaults to 0.
+            binary_reduction (bool, optional): Wether to handle errors by halfing the page size. Defaults to True.
+
+        Returns:
+            List[dict]: A list of dictionaries representing the retrieved elements.
+        """
+        start_page_size = page_size
+        el_list = []
+
+
+        if num_elements is None:
+            num_elements = float("inf")
+
+        while len(el_list) < num_elements:
+            paginated_url = f"{url}?limit={page_size}&offset={offset}"
+            res = self.__auth_get(paginated_url)
+            if res.status_code != 200:
+                if page_size <= 1:
+                    raise RuntimeError("Could not retrieve list. Minimum page size achieved without success.")
+                page_size /= 2
+                continue
+            else:
+                data = res.json()
+                offset += data["count"]
+                page_size = start_page_size
+                el_list += data["results"]
+                if data["next"] is None:
+                    break
+
+        if type(num_elements) == int:
+            return el_list[:num_elements]
+        return el_list
+
+
     def __set_approval_status(self, url: str, status: str) -> requests.Response:
         """Sets the approval status of a resource
 
@@ -168,11 +213,8 @@ class REST(Comms):
         Returns:
             List[dict]: all benchmarks information.
         """
-        res = self.__auth_get(f"{self.server_url}/benchmarks/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("couldn't retrieve benchmarks")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/benchmarks/")
+        return res
 
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
@@ -198,12 +240,8 @@ class REST(Comms):
         Returns:
             list[int]: List of model UIDS
         """
-        res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("couldn't retrieve models for the specified benchmark")
-        models = res.json()
-        model_uids = [model["id"] for model in models]
+        res = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
+        model_uids = [model["id"] for model in res]
         return model_uids
 
     def get_benchmark_demo_dataset(
@@ -243,11 +281,8 @@ class REST(Comms):
         Returns:
             List[dict]: Benchmarks data
         """
-        res = self.__auth_get(f"{self.server_url}/me/benchmarks/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("wasn't able to retrieve user benchmarks")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/me/benchmarks/")
+        return res
 
     def get_cubes(self) -> List[dict]:
         """Retrieves all MLCubes in the platform
@@ -255,11 +290,8 @@ class REST(Comms):
         Returns:
             List[dict]: List containing the data of all MLCubes
         """
-        res = self.__auth_get(f"{self.server_url}/mlcubes/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("couldn't retrieve mlcubes from the platform")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/mlcubes/")
+        return res
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
@@ -295,11 +327,8 @@ class REST(Comms):
         Returns:
             List[dict]: List of dictionaries containing the mlcubes registration information
         """
-        res = self.__auth_get(f"{self.server_url}/me/mlcubes/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("couldn't retrieve mlcubes created by the user")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/me/mlcubes/")
+        return res
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
         """Retrieves the cube parameters.yaml file from the server
@@ -393,11 +422,8 @@ class REST(Comms):
         Returns:
             List[dict]: List of data from all datasets
         """
-        res = self.__auth_get(f"{self.server_url}/datasets/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("could not retrieve datasets from server")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/datasets/")
+        return res
 
     def get_dataset(self, dset_uid: str) -> dict:
         """Retrieves a specific dataset
@@ -420,11 +446,8 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each dataset registration query
         """
-        res = self.__auth_get(f"{self.server_url}/me/datasets/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("Could not retrieve datasets from server")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/me/datasets/")
+        return res
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
@@ -462,11 +485,8 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each dataset registration query
         """
-        res = self.__auth_get(f"{self.server_url}/me/results/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("Could not retrieve results from server")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/me/results/")
+        return res
 
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
@@ -564,11 +584,8 @@ class REST(Comms):
         Returns:
             List[dict]: List containing all associations information
         """
-        res = self.__auth_get(f"{self.server_url}/me/datasets/associations/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("Could not retrieve user datasets associations")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/me/datasets/associations/")
+        return res
 
     def get_cubes_associations(self) -> List[dict]:
         """Get all cube associations related to the current user
@@ -576,8 +593,5 @@ class REST(Comms):
         Returns:
             List[dict]: List containing all associations information
         """
-        res = self.__auth_get(f"{self.server_url}/me/mlcubes/associations/")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("Could not retrieve user mlcubes associations")
-        return res.json()
+        res = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
+        return res
