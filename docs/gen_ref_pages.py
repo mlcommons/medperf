@@ -9,7 +9,7 @@ import mkdocs_gen_files
 nav = mkdocs_gen_files.Nav()
 
 build_params = [
-    ("cli, "cli/medperf", "cli", "reference"),
+    ("cli/medperf", "cli", "cli/medperf", "reference"),
     # ("server", "server", "", "reference"),
 ]
 
