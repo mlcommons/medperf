@@ -1,3 +1,4 @@
+from asyncore import dispatcher_with_send
 from typing import List
 import requests
 import logging
@@ -213,8 +214,8 @@ class REST(Comms):
         Returns:
             List[dict]: all benchmarks information.
         """
-        res = self.__get_list(f"{self.server_url}/benchmarks/")
-        return res
+        bmks = self.__get_list(f"{self.server_url}/benchmarks/")
+        return bmks
 
     def get_benchmark(self, benchmark_uid: int) -> dict:
         """Retrieves the benchmark specification file from the server
@@ -240,8 +241,8 @@ class REST(Comms):
         Returns:
             list[int]: List of model UIDS
         """
-        res = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
-        model_uids = [model["id"] for model in res]
+        model_uids = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
+        model_uids = [model["id"] for model in models]
         return model_uids
 
     def get_benchmark_demo_dataset(
@@ -281,8 +282,8 @@ class REST(Comms):
         Returns:
             List[dict]: Benchmarks data
         """
-        res = self.__get_list(f"{self.server_url}/me/benchmarks/")
-        return res
+        bmks = self.__get_list(f"{self.server_url}/me/benchmarks/")
+        return bmks
 
     def get_cubes(self) -> List[dict]:
         """Retrieves all MLCubes in the platform
@@ -290,8 +291,8 @@ class REST(Comms):
         Returns:
             List[dict]: List containing the data of all MLCubes
         """
-        res = self.__get_list(f"{self.server_url}/mlcubes/")
-        return res
+        cubes = self.__get_list(f"{self.server_url}/mlcubes/")
+        return cubes
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
         """Retrieves metadata about the specified cube
@@ -327,8 +328,8 @@ class REST(Comms):
         Returns:
             List[dict]: List of dictionaries containing the mlcubes registration information
         """
-        res = self.__get_list(f"{self.server_url}/me/mlcubes/")
-        return res
+        cubes = self.__get_list(f"{self.server_url}/me/mlcubes/")
+        return cubes
 
     def get_cube_params(self, url: str, cube_uid: int) -> str:
         """Retrieves the cube parameters.yaml file from the server
@@ -422,8 +423,8 @@ class REST(Comms):
         Returns:
             List[dict]: List of data from all datasets
         """
-        res = self.__get_list(f"{self.server_url}/datasets/")
-        return res
+        dsets = self.__get_list(f"{self.server_url}/datasets/")
+        return dsets
 
     def get_dataset(self, dset_uid: str) -> dict:
         """Retrieves a specific dataset
@@ -446,8 +447,8 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each dataset registration query
         """
-        res = self.__get_list(f"{self.server_url}/me/datasets/")
-        return res
+        dsets = self.__get_list(f"{self.server_url}/me/datasets/")
+        return dsets
 
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
@@ -485,8 +486,8 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each dataset registration query
         """
-        res = self.__get_list(f"{self.server_url}/me/results/")
-        return res
+        results = self.__get_list(f"{self.server_url}/me/results/")
+        return results
 
     def upload_results(self, results_dict: dict) -> int:
         """Uploads results to the server.
@@ -584,8 +585,8 @@ class REST(Comms):
         Returns:
             List[dict]: List containing all associations information
         """
-        res = self.__get_list(f"{self.server_url}/me/datasets/associations/")
-        return res
+        assocs = self.__get_list(f"{self.server_url}/me/datasets/associations/")
+        return assocs
 
     def get_cubes_associations(self) -> List[dict]:
         """Get all cube associations related to the current user
@@ -593,5 +594,5 @@ class REST(Comms):
         Returns:
             List[dict]: List containing all associations information
         """
-        res = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
-        return res
+        assocs = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
+        return assocs
