@@ -85,7 +85,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -106,27 +106,20 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
 def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Arrange
     spy = mocker.patch("os.getpid", return_value=pid)
+    mocker.patch(
+        patch_utils.format("config"), return_value=__import__("medperf.config")
+    )
     pid = str(pid)
-    original_tmp_storage = config.tmp_storage
-    original_tmp_prefix = config.tmp_prefix
-    original_test_dset_prefix = config.test_dset_prefix
-    original_test_cube_prefix = config.test_cube_prefix
 
     # Act
     utils.set_unique_tmp_config()
 
     # Assert
     spy.assert_called_once()
-    assert config.tmp_storage.endswith(pid)
-    assert config.tmp_prefix.endswith(pid)
-    assert config.test_dset_prefix.endswith(pid)
-    assert config.test_cube_prefix.endswith(pid)
-
-    # Cleanup
-    config.tmp_storage = original_tmp_storage
-    config.tmp_prefix = original_tmp_prefix
-    config.test_dset_prefix = original_test_dset_prefix
-    config.test_cube_prefix = original_test_cube_prefix
+    assert utils.config.tmp_storage.endswith(pid)
+    assert utils.config.tmp_prefix.endswith(pid)
+    assert utils.config.test_dset_prefix.endswith(pid)
+    assert utils.config.test_cube_prefix.endswith(pid)
 
 
 def test_cleanup_removes_temporary_storage(mocker):
