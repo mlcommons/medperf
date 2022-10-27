@@ -241,7 +241,7 @@ class REST(Comms):
         Returns:
             list[int]: List of model UIDS
         """
-        model_uids = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
+        models = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
         model_uids = [model["id"] for model in models]
         return model_uids
 
