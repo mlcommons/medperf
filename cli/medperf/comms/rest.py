@@ -144,7 +144,7 @@ class REST(Comms):
             if res.status_code != 200:
                 if page_size <= 1:
                     pretty_error("Could not retrieve list. Minimum page size achieved without success.")
-                page_size /= 2
+                page_size = page_size // 2
                 continue
             else:
                 data = res.json()
