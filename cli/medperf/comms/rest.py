@@ -114,7 +114,7 @@ class REST(Comms):
                 "remember to provide the server certificate through --certificate"
             )
 
-    def __get_list(self, url, num_elements=None, page_size=32, offset=0, binary_reduction=True):
+    def __get_list(self, url, num_elements=None, page_size=config.default_page_size, offset=0, binary_reduction=True):
         """Retrieves a list of elements from a URL by iterating over pages until num_elements is obtained.
         If num_elements is None, then iterates until all elements have been retrieved.
         If binary_reduction is enabled, errors are assumed to be related to response size. In that case,
@@ -124,7 +124,7 @@ class REST(Comms):
         Args:
             url (str): The url to retrieve elements from
             num_elements (int, optional): The desired number of elements to be retrieved. Defaults to None.
-            page_size (int, optional): The starting page size. Defaults to 32. This number was chosen arbitrarily.
+            page_size (int, optional): The starting page size. Defaults to config.default_page_size. This number was chosen arbitrarily.
             start_limit (int, optional): The starting position for element retrieval. Defaults to 0.
             binary_reduction (bool, optional): Wether to handle errors by halfing the page size. Defaults to True.
 

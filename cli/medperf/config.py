@@ -44,6 +44,7 @@ default_comms = "REST"
 default_ui = "CLI"
 platform = "docker"
 git_file_domain = "https://raw.githubusercontent.com"
+default_page_size = 32
 comms = None
 ui = None
 
