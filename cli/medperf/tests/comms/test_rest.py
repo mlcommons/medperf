@@ -574,7 +574,6 @@ def test_upload_results_returns_result_body(mocker, server, body):
 def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchmark_uid):
     # Arrange
     data = {
-        "results": {},
         "approval_status": Status.PENDING.value,
         "model_mlcube": cube_uid,
         "benchmark": benchmark_uid,
