@@ -1,6 +1,6 @@
 # MedPerf Benchmarking Workflow 
 
-![](https://github.com/cassianomoraes/documentation-medperf/blob/main/Images/full_diagram.PNG)
+![](./images/full_diagram.PNG)
 
 ## Creating a User
 
@@ -66,7 +66,7 @@ After submitting the Data Preparator MLCube, Model MLCube, and Metrics MLCube, t
 
 Once a reference benchmark is submitted by the Benchmark Committee, any user can submit their own Model MLCubes and request an association with the benchmark (check step 4 in the section “[Preparing a Dataset](#preparing-a-dataset)” if you are a Data Provider, or check [this section](#requesting-association-to-a-benchmark) if you are a Model Owner). This association request executes the benchmark locally with the given model to ensure compatibility. If the model successfully passes the compatibility test, and its association is approved by the Benchmark Committee, then it becomes part of the benchmark. 
 
-![](https://github.com/cassianomoraes/documentation-medperf/blob/main/Images/submitting_associating_additional_models_1.png)
+![](./images/submitting_associating_additional_models_1.png)
 
 ## Dataset Preparation and Association
 
@@ -74,11 +74,11 @@ Data Providers that want to be part of the benchmark can prepare their own datas
 
 After downloading MLCube in their cloud or on-prem and verifying it is the right piece of software, Data Providers will run the Data Preparator MLCube so that they can extract, preprocess, label, and review the datasets for legal/ethical compliance. 
 
-![](https://github.com/cassianomoraes/documentation-medperf/blob/main/Images/flow_preparation_association_folders.PNG) 
+![](./images/flow_preparation_association_folders.PNG) 
 
 If the execution is successful and the dataset has successfully passed the compatibility test, and its association is approved by the Benchmark Committee, then it’s registered with the benchmarking platform and associated with that specific benchmark. 
 
-![](https://github.com/cassianomoraes/documentation-medperf/blob/main/Images/dataset_preparation_association.png)
+![](./images/dataset_preparation_association.png)
 
 ## Executing the Benchmark
 
@@ -88,7 +88,7 @@ This procedure retrieves the specified Model MLCube and runs it with the indicat
 
 Finally, the Metrics MLCube is retrieved to compute metrics on the predictions. Once results are generated, the user can submit them to the platform.
 
-![](https://github.com/cassianomoraes/documentation-medperf/blob/main/Images/execution_flow_folders.PNG)
+![](./images/execution_flow_folders.PNG)
 
 ## Release Results to Participants
 
