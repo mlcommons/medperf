@@ -3,7 +3,7 @@ site_url: https://medperf.com/
 repo_url: https://github.com/mlcommons/medperf
 repo_name: mlcommons/medperf
 nav:
-- Introduction: introduction.md
+- Introduction: index.md
 - Benchmark Roles: roles.md
 - MedPerf Components: medperf_components.md
 - MLCubes: mlcubes.md
