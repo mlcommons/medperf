@@ -81,6 +81,7 @@ def set_unique_tmp_config():
     config.tmp_prefix += pid
     config.test_dset_prefix += pid
     config.test_cube_prefix += pid
+    config.cube_submission_id += pid
 
 
 def cleanup(extra_paths: List[str] = []):

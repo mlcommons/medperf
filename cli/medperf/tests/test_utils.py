@@ -106,9 +106,8 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
 def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Arrange
     spy = mocker.patch("os.getpid", return_value=pid)
-    mocker.patch(
-        patch_utils.format("config"), return_value=__import__("medperf.config")
-    )
+    original_config = utils.config
+    utils.config = __import__("medperf").config
     pid = str(pid)
 
     # Act
@@ -120,6 +119,10 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     assert utils.config.tmp_prefix.endswith(pid)
     assert utils.config.test_dset_prefix.endswith(pid)
     assert utils.config.test_cube_prefix.endswith(pid)
+    assert utils.config.cube_submission_id.endswith(pid)
+
+    # Cleanup
+    utils.config = original_config
 
 
 def test_cleanup_removes_temporary_storage(mocker):
