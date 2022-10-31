@@ -13,7 +13,7 @@ class IsDatasetOwner(BasePermission):
         try:
             return Dataset.objects.get(pk=pk)
         except Dataset.DoesNotExist:
-            raise None
+            return None
 
     def has_permission(self, request, view):
         if request.method == "POST":
@@ -36,7 +36,7 @@ class IsBenchmarkOwner(BasePermission):
         try:
             return Benchmark.objects.get(pk=pk)
         except Benchmark.DoesNotExist:
-            raise None
+            return None
 
     def has_permission(self, request, view):
         if request.method == "POST":
