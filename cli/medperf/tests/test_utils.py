@@ -105,16 +105,18 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
 @pytest.mark.parametrize("pid", [37, 864, 2890])
 def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Arrange
-    spy = mocker.patch("os.getpid", return_value=pid)
-    original_config = utils.config
-    utils.config = __import__("medperf").config
+    mocker.patch("os.getpid", return_value=pid)
+    tmp_storage = utils.config.tmp_storage
+    tmp_prefix = utils.config.tmp_prefix
+    test_dset_prefix = utils.config.test_dset_prefix
+    test_cube_prefix = utils.config.test_cube_prefix
+    cube_submission_id = utils.config.cube_submission_id
     pid = str(pid)
 
     # Act
     utils.set_unique_tmp_config()
 
     # Assert
-    spy.assert_called_once()
     assert utils.config.tmp_storage.endswith(pid)
     assert utils.config.tmp_prefix.endswith(pid)
     assert utils.config.test_dset_prefix.endswith(pid)
@@ -122,7 +124,11 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     assert utils.config.cube_submission_id.endswith(pid)
 
     # Cleanup
-    utils.config = original_config
+    utils.config.tmp_storage = tmp_storage
+    utils.config.tmp_prefix = tmp_prefix
+    utils.config.test_dset_prefix = test_dset_prefix
+    utils.config.test_cube_prefix = test_cube_prefix
+    utils.config.cube_submission_id = cube_submission_id
 
 
 def test_cleanup_removes_temporary_storage(mocker):
