@@ -12,6 +12,7 @@ from medperf.utils import (
     combine_proc_sp_text,
     list_files,
     storage_path,
+    cleanup
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
@@ -124,9 +125,18 @@ class Cube(Entity):
 
         meta = comms.get_cube_metadata(cube_uid)
         cube = cls(meta)
-        cube.download()
-        cube.write()
-        return cube
+        attempt = 0
+        while attempt < config.cube_get_max_attempts:
+            logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
+            cube.download()
+            if cube.is_valid():
+                cube.write()
+                return cube
+            attempt += 1
+        logging.error("Max download attempts reached")
+        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
+        cleanup([cube_path])
+        pretty_error("Could not successfully download the requested MLCube")
 
     def download_mlcube(self):
         url = self.git_mlcube_url
@@ -209,14 +219,17 @@ class Cube(Entity):
 
         return valid_cube and valid_hashes
 
-    def run(self, task: str, timeout: int = None, **kwargs):
+    def run(self, task: str, string_params: Dict[str, str] = {}, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
             task (str): task to run
+            string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
+                                                 Defaults to {}.
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
+        kwargs.update(string_params)
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
