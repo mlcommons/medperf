@@ -499,7 +499,7 @@ def test_cube_is_invalid_if_invalidated(mocker, ui, comms, basic_body, no_local)
     uid = 1
     local_hashes = cube_local_hashes_generator()
     mocker.patch(PATCH_CUBE.format("Cube.get_local_hashes"), return_value=local_hashes)
-    cube = Cube.get(uid)
+    cube = Cube(cube_metadata_generator()(uid))
     cube.is_cube_valid = False
 
     # Act & Assert
