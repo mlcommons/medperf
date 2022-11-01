@@ -12,7 +12,7 @@ from medperf.utils import (
     combine_proc_sp_text,
     list_files,
     storage_path,
-    cleanup
+    cleanup,
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
@@ -71,9 +71,11 @@ class Cube(Entity):
         self.cube_path = os.path.join(
             cubes_storage, str(self.uid), config.cube_filename
         )
-        self.params_path = os.path.join(
-            cubes_storage, str(self.uid), config.params_filename
-        )
+        self.params_path = None
+        if self.git_parameters_url:
+            self.params_path = os.path.join(
+                cubes_storage, str(self.uid), config.params_filename
+            )
 
     @classmethod
     def all(cls) -> List["Cube"]:
@@ -219,7 +221,13 @@ class Cube(Entity):
 
         return valid_cube and valid_hashes
 
-    def run(self, task: str, string_params: Dict[str, str] = {}, timeout: int = None, **kwargs):
+    def run(
+        self,
+        task: str,
+        string_params: Dict[str, str] = {},
+        timeout: int = None,
+        **kwargs,
+    ):
         """Executes a given task on the cube instance
 
         Args:
