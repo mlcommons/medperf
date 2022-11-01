@@ -158,9 +158,9 @@ class REST(Comms):
                 continue
             else:
                 data = res.json()
-                offset += data["count"]
                 page_size = start_page_size
                 el_list += data["results"]
+                offset += len(data["results"])
                 if data["next"] is None:
                     break
 
