@@ -147,6 +147,7 @@ class REST(Comms):
             paginated_url = f"{url}?limit={page_size}&offset={offset}"
             res = self.__auth_get(paginated_url)
             if res.status_code != 200:
+                log_response_error(res)
                 if page_size <= 1:
                     pretty_error(
                         "Could not retrieve list. Minimum page size achieved without success."
