@@ -16,6 +16,7 @@ from medperf.utils import (
 
 
 def log_response_error(res):
+    # note: status 403 might be also returned if a requested resource doesn't exist
     logging.error(f"Obtained response with status code: {res.status_code}")
     try:
         logging.error(res.json())
