@@ -1,4 +1,3 @@
-from asyncore import dispatcher_with_send
 from typing import List
 import requests
 import logging
@@ -114,7 +113,14 @@ class REST(Comms):
                 "remember to provide the server certificate through --certificate"
             )
 
-    def __get_list(self, url, num_elements=None, page_size=config.default_page_size, offset=0, binary_reduction=True):
+    def __get_list(
+        self,
+        url,
+        num_elements=None,
+        page_size=config.default_page_size,
+        offset=0,
+        binary_reduction=True,
+    ):
         """Retrieves a list of elements from a URL by iterating over pages until num_elements is obtained.
         If num_elements is None, then iterates until all elements have been retrieved.
         If binary_reduction is enabled, errors are assumed to be related to response size. In that case,
@@ -124,7 +130,7 @@ class REST(Comms):
         Args:
             url (str): The url to retrieve elements from
             num_elements (int, optional): The desired number of elements to be retrieved. Defaults to None.
-            page_size (int, optional): The starting page size. Defaults to config.default_page_size. This number was chosen arbitrarily.
+            page_size (int, optional): Starting page size. Defaults to config.default_page_size.
             start_limit (int, optional): The starting position for element retrieval. Defaults to 0.
             binary_reduction (bool, optional): Wether to handle errors by halfing the page size. Defaults to True.
 
@@ -134,7 +140,6 @@ class REST(Comms):
         start_page_size = page_size
         el_list = []
 
-
         if num_elements is None:
             num_elements = float("inf")
 
@@ -143,7 +148,9 @@ class REST(Comms):
             res = self.__auth_get(paginated_url)
             if res.status_code != 200:
                 if page_size <= 1:
-                    pretty_error("Could not retrieve list. Minimum page size achieved without success.")
+                    pretty_error(
+                        "Could not retrieve list. Minimum page size achieved without success."
+                    )
                 page_size = page_size // 2
                 continue
             else:
@@ -157,7 +164,6 @@ class REST(Comms):
         if type(num_elements) == int:
             return el_list[:num_elements]
         return el_list
-
 
     def __set_approval_status(self, url: str, status: str) -> requests.Response:
         """Sets the approval status of a resource
