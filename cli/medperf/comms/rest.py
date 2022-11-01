@@ -148,6 +148,8 @@ class REST(Comms):
             res = self.__auth_get(paginated_url)
             if res.status_code != 200:
                 log_response_error(res)
+                if not binary_reduction:
+                    pretty_error("there was an error retrieving the current list.")
                 if page_size <= 1:
                     pretty_error(
                         "Could not retrieve list. Minimum page size achieved without success."
