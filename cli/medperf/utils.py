@@ -4,10 +4,12 @@ import re
 import os
 import sys
 import yaml
+import typer
 import random
 import hashlib
 import logging
 import tarfile
+import configparser
 from glob import glob
 import json
 from pathlib import Path
@@ -22,9 +24,70 @@ import medperf.config as config
 from medperf.ui.interface import UI
 
 
+def parse_context_args(ctx_args: List[str]) -> dict:
+    """Parses extra arguments received from typer into a dictionary of args
+
+    Args:
+        ctx_args (List[str]): List of extra cli arguments
+
+    Returns:
+        dict: dictionary of key-value cli arguments
+    """
+    assert len(ctx_args) % 2 == 0, "A malformed set of arguments was passed"
+    cli_args = {}
+    for idx in range(0, len(ctx_args), 2):
+        key = ctx_args[idx]
+        val = ctx_args[idx + 1]
+        
+        assert key[:2] == "--", "Could not identify an argument name"
+        cli_args[key[2:]] = val
+
+    return cli_args
+
+
+def set_custom_config(cli_args: dict, profile_args: dict):
+    """Function to set parameters defined by the user. Parameters
+    are prioritized by:
+    1. CLI-defined parameters
+    2. Profile-defined parameters
+    3. Default config parameters
+
+    Args:
+        cli_args (dict): config params defined through the CLI
+        profile_args (dict): config params defined through the active profile
+    """
+    params = config.customizable_params
+    for param in params:
+        val = getattr(config, param)
+        if param in cli_args:
+            val = cli_args[param]
+        elif param in profile_args:
+            val = profile_args[param]
+        setattr(config, param, val)
+
+
+def load_config(profile: str) -> dict:
+    """Loads the configuration parameters associated to a profile
+
+    Args:
+        profile (str): profile name
+
+    Returns:
+        dict: configuration parameters
+    """
+    config_p = configparser.ConfigParser()
+    config_file = os.path.join(config.storage, config.config_path)
+    config_p.read(config_file)
+    # Set current profile
+    config.profile = profile
+    return config_p[profile]
+
+
 def storage_path(subpath: str):
     """Helper function that converts a path to storage-related path"""
-    return os.path.join(config.storage, subpath)
+    server_path = config.server.split('//')[1]
+    server_path = server_path.replace('.', '_')
+    return os.path.join(config.storage, server_path, subpath)
 
 
 def get_file_sha1(path: str) -> str:
@@ -71,6 +134,22 @@ def init_storage():
             os.makedirs(dir, exist_ok=True)
         except FileExistsError:
             logging.warning(f"Tried to create existing folder {dir}")
+
+
+def init_config():
+    """builds the initial configuration file
+    """
+    config_file = os.path.join(config.storage, config.config_path)
+    if os.path.exists(config_file):
+        return
+    config_p = configparser.ConfigParser()
+    config_p["default"] = {}
+    config_p["test"] = {}
+    config_p["test"]["server"] = config.local_server
+    config_p["test"]["certificate"] = config.local_certificate
+
+    with open(config_file, "w") as f:
+        config_p.write(f)
 
 
 def cleanup():

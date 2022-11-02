@@ -1,7 +1,8 @@
+import os
 import typer
 import logging
 import logging.handlers
-from os.path import abspath, expanduser
+from os.path import expanduser, abspath
 
 import medperf.config as config
 from medperf.ui.factory import UIFactory
@@ -14,7 +15,15 @@ import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
-from medperf.utils import init_storage, storage_path, cleanup
+from medperf.utils import (
+    parse_context_args,
+    set_custom_config,
+    load_config,
+    init_storage,
+    init_config,
+    storage_path,
+    cleanup
+)
 import medperf.commands.association.association as association
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
@@ -129,52 +138,27 @@ def test(
     cleanup()
 
 
-@app.callback()
+@app.callback(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def main(
-    log: str = "INFO",
-    log_file: str = None,
-    comms: str = config.default_comms,
-    ui: str = config.default_ui,
-    host: str = config.server,
-    storage: str = config.storage,
-    prepare_timeout: int = config.prepare_timeout,
-    sanity_check_timeout: int = config.sanity_check_timeout,
-    statistics_timeout: int = config.statistics_timeout,
-    infer_timeout: int = config.infer_timeout,
-    evaluate_timeout: int = config.evaluate_timeout,
-    platform: str = config.platform,
-    cleanup: bool = True,
-    certificate: str = config.certificate,
-    local: bool = typer.Option(
-        False, help="Run the CLI with local server configuration"
-    ),
+    ctx: typer.Context,
+    profile: str = typer.Option(
+        "default", help="Configuration profile to use"
+    )
 ):
-    # Set configuration variables
-    config.storage = abspath(expanduser(storage))
-    config.prepare_timeout = prepare_timeout
-    config.sanity_check_timeout = sanity_check_timeout
-    config.statistics_timeout = statistics_timeout
-    config.infer_timeout = infer_timeout
-    config.evaluate_timeout = evaluate_timeout
-    config.platform = platform
-    config.cleanup = cleanup
+    # Create medperf root path
+    os.makedirs(config.storage, exist_ok=True)
+    init_config()
 
-    if log_file is None:
-        log_file = storage_path(config.log_file)
-    else:
-        log_file = abspath(expanduser(log_file))
-    if local:
-        config.server = config.local_server
-        config.certificate = abspath(expanduser(config.local_certificate))
-    else:
-        config.server = host
-        config.certificate = certificate
-    config.log_file = log_file
+    cli_args = parse_context_args(ctx.args)
+    profile_args = load_config(profile)
+    set_custom_config(cli_args, profile_args)
+    config.certificate = abspath(expanduser(config.certificate))
 
     init_storage()
-    log = log.upper()
+    log = config.loglevel.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    log_file = storage_path(config.log_file)
     handler = logging.handlers.RotatingFileHandler(
         log_file, maxBytes=10000000, backupCount=5
     )
@@ -188,8 +172,9 @@ def main(
     )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
-    config.ui = UIFactory.create_ui(ui)
-    config.comms = CommsFactory.create_comms(comms, config.ui, config.server)
+    # convert comms and ui from their string representations to their respective objects
+    config.ui = UIFactory.create_ui(config.ui)
+    config.comms = CommsFactory.create_comms(config.comms, config.ui, config.server)
 
     config.ui.print(f"MedPerf {config.version}")
 
