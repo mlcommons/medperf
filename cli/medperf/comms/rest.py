@@ -192,12 +192,7 @@ class REST(Comms):
         Returns:
             Role: the association type between current user and benchmark
         """
-        res = self.__auth_get(f"{self.server_url}/me/benchmarks")
-        if res.status_code != 200:
-            log_response_error(res)
-            pretty_error("there was an error retrieving the current user's benchmarks")
-
-        benchmarks = res.json()
+        benchmarks = self.__get_list(f"{self.server_url}/me/benchmarks")
         bm_dict = {bm["benchmark"]: bm for bm in benchmarks}
         rolename = None
         if benchmark_uid in bm_dict:
