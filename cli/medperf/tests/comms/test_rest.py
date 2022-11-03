@@ -304,7 +304,7 @@ def test__get_list_returns_desired_number_of_elements(mocker, server, num_elemen
     assert len(elements) == num_elements
 
 
-def test__get_list_splits_page_size_temporarily_on_error(mocker, server):
+def test__get_list_splits_page_size_on_error(mocker, server):
     # Arrange
     failing_body = MockResponse({}, 500)
     reduced_body = MockResponse(
@@ -318,12 +318,12 @@ def test__get_list_splits_page_size_temporarily_on_error(mocker, server):
     exp_calls = [
         call(gen_url.format(32, 0)),
         call(gen_url.format(16, 0)),
-        call(gen_url.format(32, 16)),
+        call(gen_url.format(16, 16)),
     ]
     spy = mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
 
     # Act
-    server._REST__get_list(url)
+    server._REST__get_list(url, binary_reduction=True)
 
     # Assert
     spy.assert_has_calls(exp_calls)
