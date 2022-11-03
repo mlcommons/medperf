@@ -21,11 +21,19 @@ def server(mocker, ui):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {},),
+        (
+            "benchmark_association",
+            "get_list",
+            200,
+            [1],
+            [],
+            (f"{url}/me/benchmarks",),
+            {},
+        ),
         ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
-            "get",
+            "get_list",
             200,
             [1],
             [],
@@ -100,13 +108,13 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     # Arrange
     method, type, status, args, body, out_args, kwargs = method_params
     res = MockResponse(body, status)
-    if type == "get":
-        patch_method = patch_server.format("REST._REST__auth_get")
-    elif type == "put":
-        patch_method = patch_server.format("REST._REST__auth_put")
+    if type == "get_list":
+        patch_method = patch_server.format("REST._REST__get_list")
+        return_value = body
     else:
-        patch_method = patch_server.format("REST._REST__auth_post")
-    spy = mocker.patch(patch_method, return_value=res)
+        patch_method = patch_server.format(f"REST._REST__auth_{type}")
+        return_value = res
+    spy = mocker.patch(patch_method, return_value=return_value)
     method = getattr(server, method)
 
     # Act
@@ -120,9 +128,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", [1], []),
         ("get_benchmark", [1], {}),
-        ("get_benchmark_models", [1], []),
         ("get_cube_metadata", [1], {}),
         ("_REST__get_cube_file", ["", 1, "", ""], {}),
         ("upload_dataset", [{}], {"id": 1}),
@@ -345,8 +351,7 @@ def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
         {"benchmark": 1, "role": exp_role},
         {"benchmark": 2, "role": "DataOwner"},
     ]
-    res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
 
     # Act
     role = server.benchmark_association(1)
@@ -357,8 +362,7 @@ def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
 
 def test_benchmark_association_returns_none_if_not_found(mocker, server):
     # Arrange
-    res = MockResponse([], 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
 
     # Act
     role = server.benchmark_association(1)
@@ -392,8 +396,7 @@ def test_authorized_by_role_returns_true_when_authorized(
         {"benchmark": benchmark_uid, "role": role},
         {"benchmark": 501, "role": "DataOwner"},
     ]
-    res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
 
     # Act
     authorized = server.authorized_by_role(benchmark_uid, exp_role)
@@ -405,8 +408,7 @@ def test_authorized_by_role_returns_true_when_authorized(
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     # Arrange
-    res = MockResponse([body], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[body])
 
     # Act
     bmarks = server.get_benchmarks()
@@ -433,8 +435,7 @@ def test_get_benchmark_returns_benchmark_body(mocker, server, body):
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
     body = [{"id": uid} for uid in exp_uids]
-    res = MockResponse(body, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=body)
 
     # Act
     uids = server.get_benchmark_models(1)
@@ -449,8 +450,9 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
         {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
         {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
     ]
-    res = MockResponse(benchmarks, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(
+        patch_server.format("REST._REST__get_list"), return_value=benchmarks
+    )
 
     # Act
     server.get_user_benchmarks()
@@ -465,8 +467,7 @@ def test_get_user_benchmarks_returns_benchmarks(mocker, server):
         {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
         {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
     ]
-    res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
 
     # Act
     retrieved_benchmarks = server.get_user_benchmarks()
@@ -478,8 +479,7 @@ def test_get_user_benchmarks_returns_benchmarks(mocker, server):
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
 def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     # Arrange
-    res = MockResponse([body], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[body])
 
     # Act
     cubes = server.get_cubes()
@@ -542,8 +542,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
         {"id": 1, "name": "name1", "state": "OPERATION"},
         {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
     ]
-    res = MockResponse(cubes, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=cubes)
 
     # Act
     server.get_user_cubes()
@@ -574,8 +573,7 @@ def test_get_cube_file_writes_to_file(mocker, server):
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
 def test_get_datasets_calls_datasets_path(mocker, server, body):
     # Arrange
-    res = MockResponse([body], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[body])
 
     # Act
     dsets = server.get_datasets()
@@ -606,8 +604,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
         {"id": 1, "name": "name1", "state": "OPERATION"},
         {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
     ]
-    res = MockResponse(cubes, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=cubes)
 
     # Act
     server.get_user_datasets()
@@ -718,8 +715,7 @@ def test_set_mlcube_association_approval_sets_approval(
 
 def test_get_datasets_associations_gets_associations(mocker, server):
     # Arrange
-    res = MockResponse([], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
     exp_path = f"{url}/me/datasets/associations/"
 
     # Act
@@ -731,8 +727,7 @@ def test_get_datasets_associations_gets_associations(mocker, server):
 
 def test_get_cubes_associations_gets_associations(mocker, server):
     # Arrange
-    res = MockResponse([], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
     exp_path = f"{url}/me/mlcubes/associations/"
 
     # Act
