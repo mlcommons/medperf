@@ -138,7 +138,6 @@ class REST(Comms):
         Returns:
             List[dict]: A list of dictionaries representing the retrieved elements.
         """
-        start_page_size = page_size
         el_list = []
 
         if num_elements is None:
