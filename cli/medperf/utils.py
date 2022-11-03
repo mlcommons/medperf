@@ -33,11 +33,15 @@ def parse_context_args(ctx_args: List[str]) -> dict:
     Returns:
         dict: dictionary of key-value cli arguments
     """
-    assert len(ctx_args) % 2 == 0, "A malformed set of arguments was passed"
+    args = []
+    for arg in args:
+        args += arg.split("=")
+
+    assert len(args) % 2 == 0, "A malformed set of arguments was passed"
     cli_args = {}
-    for idx in range(0, len(ctx_args), 2):
-        key = ctx_args[idx]
-        val = ctx_args[idx + 1]
+    for idx in range(0, len(args), 2):
+        key = args[idx]
+        val = args[idx + 1]
         
         assert key[:2] == "--", "Could not identify an argument name"
         cli_args[key[2:]] = val
@@ -45,24 +49,17 @@ def parse_context_args(ctx_args: List[str]) -> dict:
     return cli_args
 
 
-def set_custom_config(cli_args: dict, profile_args: dict):
-    """Function to set parameters defined by the user. Parameters
-    are prioritized by:
-    1. CLI-defined parameters
-    2. Profile-defined parameters
-    3. Default config parameters
+def set_custom_config(args: dict):
+    """Function to set parameters defined by the user
 
     Args:
-        cli_args (dict): config params defined through the CLI
-        profile_args (dict): config params defined through the active profile
+        args (dict): custom config params
     """
     params = config.customizable_params
     for param in params:
         val = getattr(config, param)
-        if param in cli_args:
-            val = cli_args[param]
-        elif param in profile_args:
-            val = profile_args[param]
+        if param in args:
+            val = args[param]
         setattr(config, param, val)
 
 

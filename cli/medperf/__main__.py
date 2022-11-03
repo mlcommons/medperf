@@ -15,8 +15,8 @@ import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
+import medperf.commands.profile as profile
 from medperf.utils import (
-    parse_context_args,
     set_custom_config,
     load_config,
     init_storage,
@@ -36,6 +36,7 @@ app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(association.app, name="association", help="Manage associations")
+app.add_typer(profile.app, name="profile", help="Manage profiles")
 
 
 @app.command("login")
@@ -138,9 +139,8 @@ def test(
     cleanup()
 
 
-@app.callback(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.callback()
 def main(
-    ctx: typer.Context,
     profile: str = typer.Option(
         "default", help="Configuration profile to use"
     )
@@ -149,10 +149,10 @@ def main(
     os.makedirs(config.storage, exist_ok=True)
     init_config()
 
-    cli_args = parse_context_args(ctx.args)
     profile_args = load_config(profile)
-    set_custom_config(cli_args, profile_args)
-    config.certificate = abspath(expanduser(config.certificate))
+    set_custom_config(profile_args)
+    if config.certificate is not None:
+        config.certificate = abspath(expanduser(config.certificate))
 
     init_storage()
     log = config.loglevel.upper()
