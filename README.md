@@ -196,3 +196,16 @@ Once all the requirements are met, running `sh test.sh` will:
 - Retrieve the demo dataset
 - Run the CLI demo using `cli/cli.sh`
 - cleanup temporary files
+
+## Documentation Contribution
+If you wish to contribute to our documentation, here are the steps for successfully building and serving documentation locally:
+
+- **Install dependencies:** We are currently using mkdocs for serving documentation. You can install all the requirements by running the following command:
+  ```
+  pip install -r docs/requirements.txt
+  ``` 
+- **Serve local documentation:** To run your own local server for visualizing documentation, run:
+  ```
+  mkdocs serve
+  ```
+- **Access local documentation:** Once mkdocs is done setting up the server, you should be able to access your local documentation website by heading to `http:/localhost:8000` on your browser.
