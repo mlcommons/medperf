@@ -19,6 +19,7 @@ import medperf.commands.profile as profile
 from medperf.utils import (
     set_custom_config,
     load_config,
+    set_unique_tmp_config,
     init_storage,
     init_config,
     storage_path,
@@ -145,6 +146,8 @@ def main(
     set_custom_config(profile_args)
     if config.certificate is not None:
         config.certificate = abspath(expanduser(config.certificate))
+
+    set_unique_tmp_config()
 
     init_storage()
     log = config.loglevel.upper()
