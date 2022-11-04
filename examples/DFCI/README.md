@@ -1,27 +1,15 @@
-# MedPerf-Study
+# Pancreas Segmentation MLCubes
 
-You can find medperf's primary repository here: https://github.com/mlcommons/medperf
+This contains the code for the MLCubes related to Pancreas Segmentation that took place acroos Dana-Farber Cancer Institute and Harvard T.H. Chan School of Public Health.
 
-This repo consists of 5 mlcubes:
-* 1 data preparation cube
-* 3 model cubes
-* 1 metrics cube 
+There are 3 MLCubes:
 
-## Data Preparation
+### prep: Data Preparation MLCube
+Our Data Preparation MLCube reads the raw CT data, performs the necessary preprocessing steps, and saves the outputs as numpy arrays. 3D volumes of abdominal CT scans can have different spatial orientation based on the type of acquisition tool used and how it was placed. The MLCube we built applies a set of preprocessing steps (rotations, scaling) to the BTCV volumes to become aligned with the TCIA volumes. For the labels, the MLCube supports NIfTI data format. Since the BTCV dataset is a multi-organ dataset, its labels were altered such that all organs other than the pancreas are regarded as background.
 
-The data preparation cube includes processing for the following two dataset:
-* https://www.synapse.org/#!Synapse:syn3193805/files/
-* https://wiki.cancerimagingarchive.net/display/Public/Pancreas-CT
+### model: Model MLCube
 
-Generally, this cube converts CT scans to 512 x 512 images for 2.5D UNET segmentation models. 
+The Model MLCube implements an RSTN model for pancreas segmentation whose codebase is available both in PyTorch (https://github.com/twni2016/OrganSegRSTN_PyTorch) and Caffe2 (https://github.com/198808xc/OrganSegRSTN). The PyTorch model version was trained on the TCIA dataset, on patients subjects of IDs 21 to 82 (60 subjects), as described in their GitHub repository: https://github.com/twni2016/OrganSegRSTN_PyTorch#5-pre-trained-models-on-the-nih-dataset. We used the pretrained model weights they publicly provide. Inference in this model consists of two stages: a coarse stage, where inference is done on each 2D slice of the three possible planar views, and a fine stage, where the previous predictions are fused together and processed. The MLCube implements both stages and saves all the predictions as compressed numpy arrays in a unified structure ready for evaluation.
 
-## Model 
-
-Each model cube contains a unique UNET model, based on the following sources:
-* https://github.com/PacktPublishing/Modern-Computer-Vision-with-PyTorch/blob/master/Chapter09/Semantic_Segmentation_with_U_Net.ipynb
-* https://docs.monai.io/en/stable/_modules/monai/networks/nets/unetr.html
-* https://docs.monai.io/en/stable/_modules/monai/networks/nets/basic_unet.html
-
-## Metrics
-
-The metrics cube processes these predictions and outputs DICE scores and loss for the segmented pancreas. 
+### metrics: Metrics MLCube
+Metrics MLCube evaluates the output segmentations generated from the model MLCube and produces results using the metrics of interest. The Sørensen–Dice coefficient (DSC) was the metric used for evaluating the output segmentations.

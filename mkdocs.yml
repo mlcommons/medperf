@@ -1,0 +1,67 @@
+site_name: MedPerf
+site_url: https://medperf.com/
+repo_url: https://github.com/mlcommons/medperf
+repo_name: mlcommons/medperf
+nav:
+  - Home: index.md
+  - About: about.md
+  - CLI: cli/index.md
+  - Server: server/index.md
+  - Code Reference: reference/
+theme: 
+  features:
+    - search.suggest
+    - search.highlight
+    - search.share
+  name: material
+  logo: assets/logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)" 
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)" 
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+
+plugins:
+  - search
+  - mkdocstrings:
+      watch:
+        - cli/medperf
+        # - server
+      handlers:
+        python:
+          paths: [cli/medperf]
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+      
+extra:
+  analytics:
+    provider: google
+    property: G-QNE8JMYY88
+    
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: >- 
+            Thanks for your feedback! Help us improve this page by
+            using our <a href="https://github.com/mlcommons/medperf/issues/new?title=[Feedback]+{title}+-+{url}" target="_blank" rel="noopener">feedback form</a>.
+

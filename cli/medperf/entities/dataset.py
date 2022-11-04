@@ -1,21 +1,19 @@
 import os
+from medperf.enums import Status
 import yaml
 import logging
 from typing import List
 
 from medperf.utils import (
     get_uids,
-    approval_prompt,
     pretty_error,
     storage_path,
-    dict_pretty_print,
 )
-from medperf.ui.interface import UI
+from medperf.entities.interface import Entity
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
-class Dataset:
+class Dataset(Entity):
     """
     Class representing a Dataset
 
@@ -25,7 +23,7 @@ class Dataset:
     data preparation output.
     """
 
-    def __init__(self, data_uid: int, ui: UI):
+    def __init__(self, dataset_dict: dict):
         """Creates a new dataset instance
 
         Args:
@@ -34,38 +32,48 @@ class Dataset:
         Raises:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
-        data_uid = self.__full_uid(data_uid, ui)
-        self.data_uid = data_uid
+
+        self.generated_uid = dataset_dict["generated_uid"]
+        self.name = dataset_dict["name"]
+        self.description = dataset_dict["description"]
+        self.location = dataset_dict["location"]
+        self.preparation_cube_uid = dataset_dict["data_preparation_mlcube"]
+        self.input_data_hash = dataset_dict["input_data_hash"]
+        self.separate_labels = dataset_dict.get(
+            "separate_labels", None
+        )  # not in the server
+        self.split_seed = dataset_dict["split_seed"]
+        if "metadata" in dataset_dict:
+            # Make sure it is backwards-compatible
+            self.generated_metadata = dataset_dict["metadata"]
+        else:
+            self.generated_metadata = dataset_dict["generated_metadata"]
+        if "status" in dataset_dict:
+            self.status = Status(dataset_dict["status"])  # not in the server
+        else:
+            self.status = (
+                Status.PENDING if dataset_dict["id"] is None else Status.APPROVED
+            )
+        self.state = dataset_dict["state"]
+        self.is_valid = dataset_dict["is_valid"]
+        self.user_metadata = dataset_dict["user_metadata"]
+
+        self.uid = dataset_dict["id"]
+        self.created_at = dataset_dict["created_at"]
+        self.modified_at = dataset_dict["modified_at"]
+        self.owner = dataset_dict["owner"]
+
         self.dataset_path = os.path.join(
-            storage_path(config.data_storage), str(data_uid)
+            storage_path(config.data_storage), str(self.generated_uid)
         )
         self.data_path = os.path.join(self.dataset_path, "data")
-        registration = self.get_registration()
-        self.uid = registration["uid"]
-        self.name = registration["name"]
-        self.description = registration["description"]
-        self.location = registration["location"]
-        self.preparation_cube_uid = registration["data_preparation_mlcube"]
-        self.generated_uid = registration["generated_uid"]
-        self.input_data_hash = registration["input_data_hash"]
-        self.separate_labels = registration.get("separate_labels", False)
-        self.split_seed = registration["split_seed"]
-        if "metadata" in registration:
-            # Make sure it is backwards-compatible
-            self.generated_metadata = registration["metadata"]
-        else:
-            self.generated_metadata = registration["generated_metadata"]
-        self.status = registration["status"]
-        self.state = registration["state"]
-
         self.labels_path = self.data_path
         if self.separate_labels:
             self.labels_path = os.path.join(self.dataset_path, "labels")
 
-    @property
-    def registration(self):
+    def todict(self):
         return {
-            "uid": self.uid,
+            "id": self.uid,
             "name": self.name,
             "description": self.description,
             "location": self.location,
@@ -74,13 +82,24 @@ class Dataset:
             "generated_uid": self.generated_uid,
             "split_seed": self.split_seed,
             "generated_metadata": self.generated_metadata,
-            "status": self.status,
+            "status": self.status.value,  # not in the server
             "state": self.state,
-            "separate_labels": self.separate_labels,
+            "separate_labels": self.separate_labels,  # not in the server
+            "is_valid": self.is_valid,
+            "user_metadata": self.user_metadata,
+            "created_at": self.created_at,
+            "modified_at": self.modified_at,
+            "owner": self.owner,
         }
 
     @classmethod
-    def all(cls, ui: UI) -> List["Dataset"]:
+    def from_generated_uid(cls, generated_uid: str) -> "Dataset":
+        generated_uid = cls.__full_uid(generated_uid)
+        reg = cls.__get_local_dict(generated_uid)
+        return cls(reg)
+
+    @classmethod
+    def all(cls) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Returns:
@@ -89,21 +108,42 @@ class Dataset:
         logging.info("Retrieving all datasets")
         data_storage = storage_path(config.data_storage)
         try:
-            uids = next(os.walk(data_storage))[1]
+            generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory", ui)
-        tmp_prefix = config.tmp_prefix
+            pretty_error("Couldn't iterate over the dataset directory")
         dsets = []
-        for uid in uids:
-            not_tmp = not uid.startswith(tmp_prefix)
-            reg_path = os.path.join(data_storage, uid, config.reg_file)
-            registered = os.path.exists(reg_path)
-            if not_tmp and registered:
-                dsets.append(cls(uid, ui))
+        for generated_uid in generated_uids:
+            dsets.append(cls.from_generated_uid(generated_uid))
         return dsets
 
-    def __full_uid(self, uid_hint: str, ui: UI) -> str:
+    @classmethod
+    def get(cls, dset_uid: str) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving dataset {dset_uid}")
+        comms = config.comms
+        local_dset = list(
+            filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
+        )
+        if len(local_dset) == 1:
+            logging.debug("Found dataset locally")
+            return local_dset[0]
+
+        meta = comms.get_dataset(dset_uid)
+        dataset = cls(meta)
+        dataset.write()
+        return dataset
+
+    @staticmethod
+    def __full_uid(uid_hint: str) -> str:
         """Returns the found UID that starts with the provided UID hint
 
         Args:
@@ -120,75 +160,38 @@ class Dataset:
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.", ui)
+            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
         elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.", ui)
+            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
         else:
             return match[0]
 
-    def get_registration(self) -> dict:
-        """Retrieves the registration information.
-
-        Returns:
-            dict: registration information as key-value pairs.
-        """
-        regfile = os.path.join(self.dataset_path, config.reg_file)
-        with open(regfile, "r") as f:
-            reg = yaml.safe_load(f)
-        return reg
-
-    def set_registration(self):
+    def write(self):
         logging.info(f"Updating registration information for dataset: {self.uid}")
-        logging.debug(f"registration information: {self.registration}")
+        logging.debug(f"registration information: {self.todict()}")
         regfile = os.path.join(self.dataset_path, config.reg_file)
+        os.makedirs(self.dataset_path, exist_ok=True)
         with open(regfile, "w") as f:
-            yaml.dump(self.registration, f)
+            yaml.dump(self.todict(), f)
 
-    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
-        """Prompts the user for aproval regarding the association of the dataset
-        with a given benchmark.
-
-        Args:
-            benchmark (Benchmark): Benchmark to be associated with
-
-        Returns:
-            bool: Wether the user approved the association or not
-        """
-        msg = "Please confirm that you would like to associate"
-        msg += f" the dataset {self.name} with the benchmark {benchmark.name}."
-        msg += " [Y/n]"
-        approved = approval_prompt(msg, ui,)
-        return approved
-
-    def request_registration_approval(self, ui: UI) -> bool:
-        """Prompts the user for approval concerning uploading the registration to the backend.
-
-        Returns:
-            bool: Wether the user gave consent or not.
-        """
-        if self.status != "PENDING":
-            return True
-
-        dict_pretty_print(self.registration, ui)
-        ui.print(
-            "Above is the information and statistics that will be registered to the database"
-        )
-        approved = approval_prompt(
-            "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] ",
-            ui,
-        )
-        if approved:
-            self.status = "APPROVED"
-        else:
-            self.status = "REJECTED"
-        return approved
-
-    def upload(self, comms: Comms):
+    def upload(self):
         """Uploads the registration information to the comms.
 
         Args:
             comms (Comms): Instance of the comms interface.
         """
-        dataset_uid = comms.upload_dataset(self.registration)
-        self.uid = dataset_uid
-        return self.uid
+        dataset_dict = self.todict()
+        updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
+        updated_dataset_dict["status"] = dataset_dict["status"]
+        updated_dataset_dict["separate_labels"] = dataset_dict["separate_labels"]
+        return updated_dataset_dict
+
+    @classmethod
+    def __get_local_dict(cls, generated_uid):
+        dataset_path = os.path.join(
+            storage_path(config.data_storage), str(generated_uid)
+        )
+        regfile = os.path.join(dataset_path, config.reg_file)
+        with open(regfile, "r") as f:
+            reg = yaml.safe_load(f)
+        return reg

@@ -1,17 +1,13 @@
 import os
 import pytest
-import random
 import time_machine
 import datetime as dt
 from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.tests.utils import rand_l, cube_local_hashes_generator
 from medperf.tests.mocks import MockCube, MockTar
-from medperf.tests.mocks.requests import cube_metadata_generator
 
 parent = config.storage
 data = utils.storage_path(config.data_storage)
@@ -32,11 +28,9 @@ def init_mock_isdir(existing_dirs):
 @pytest.fixture
 def datasets(request):
     size = request.param
-    uids = rand_l(1, 5000, size)
+    uids = list(range(size))
     uids = [str(x) for x in uids]
-    for i in range(size):
-        if random.randint(0, 1):
-            uids[i] = config.tmp_prefix + uids[i]
+    uids[-1] = config.tmp_prefix + uids[-1]
 
     return uids
 
@@ -44,15 +38,11 @@ def datasets(request):
 @pytest.fixture
 def dict_with_nones(request):
     num_keys = request.param
-    keys = rand_l(1, 5000, num_keys)
-    vals = [random.choice([None, x]) for x in keys]
+    keys = list(range(num_keys))
+    vals = list(range(num_keys))
+    vals[0] = None
+    vals[-1] = None
     return {k: v for k, v in zip(keys, vals)}
-
-
-@pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
 
 
 @pytest.fixture
@@ -95,10 +85,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [
-        random.sample(config_dirs, random.randint(0, len(config_dirs)))
-        for _ in range(20)
-    ],
+    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -129,7 +116,7 @@ def test_cleanup_removes_temporary_storage(mocker):
     spy.assert_called_once_with(tmp)
 
 
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 5), indirect=True)
+@pytest.mark.parametrize("datasets", [4, 297, 500, 898], indirect=True)
 def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
     # Arrange
     prefix = config.tmp_prefix
@@ -153,7 +140,7 @@ def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
-@pytest.mark.parametrize("datasets", rand_l(1, 1000, 2), indirect=True)
+@pytest.mark.parametrize("datasets", [4, 287], indirect=True)
 def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
     mock_walk_return = iter([(data, datasets, ())])
@@ -175,7 +162,7 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error(msg, ui)
+    utils.pretty_error(msg)
 
     # Assert
     printed_msg = spy.call_args_list[0][0][0]
@@ -190,7 +177,7 @@ def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
     mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error("test", ui, clean)
+    utils.pretty_error("test", clean)
 
     # Assert
     if clean:
@@ -206,14 +193,14 @@ def test_pretty_error_exits_program(mocker, ui):
     spy = mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
-    utils.pretty_error("test", ui)
+    utils.pretty_error("test")
 
     # Assert
     spy.assert_called_once()
 
 
 @pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-@pytest.mark.parametrize("salt", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("salt", [342, 87])
 def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     # Arrange
     datetime = dt.datetime(*timeparams)
@@ -240,7 +227,7 @@ def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
     cube = MockCube(is_valid)
 
     # Act
-    utils.check_cube_validity(cube, ui)
+    utils.check_cube_validity(cube)
 
     # Assert
     if not is_valid:
@@ -299,7 +286,7 @@ def test_approval_prompt_asks_for_user_input(mocker, ui):
     spy = mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
-    utils.approval_prompt("test", ui)
+    utils.approval_prompt("test")
 
     # Assert
     spy.assert_called_once()
@@ -322,25 +309,25 @@ def test_approval_prompt_repeats_until_valid_answer(mocker, ui, inputted_strs):
     spy = mocker.patch.object(ui, "prompt", side_effect=str_list)
 
     # Act
-    utils.approval_prompt("test prompt", ui)
+    utils.approval_prompt("test prompt")
 
     # Assert
     spy.call_count == exp_repeats
 
 
-@pytest.mark.parametrize("input_val", random.choices("YyNn", k=6))
+@pytest.mark.parametrize("input_val", ["Y", "y", "N", "n"])
 def test_approval_prompt_returns_approved_boolean(mocker, ui, input_val):
     # Arrange
     mocker.patch.object(ui, "prompt", return_value=input_val)
 
     # Act
-    approved = utils.approval_prompt("test approval return", ui)
+    approved = utils.approval_prompt("test approval return")
 
     # Assert
     assert approved == (input_val in "yY")
 
 
-@pytest.mark.parametrize("dict_with_nones", rand_l(0, 100, 5), indirect=True)
+@pytest.mark.parametrize("dict_with_nones", [32, 7, 90], indirect=True)
 def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones):
     # Arrange
     mocker.patch("typer.echo")
@@ -348,7 +335,7 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     exp_dict = {k: v for k, v in dict_with_nones.items() if v is not None}
 
     # Act
-    utils.dict_pretty_print(dict_with_nones, ui)
+    utils.dict_pretty_print(dict_with_nones)
 
     # Assert
     spy.assert_called_once_with(exp_dict)
@@ -398,46 +385,20 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
 
 
-@pytest.mark.parametrize("bmk", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("model", rand_l(1, 5000, 2))
-@pytest.mark.parametrize("gen_uid", rand_l(1, 5000, 2))
+@pytest.mark.parametrize("bmk", [1, 2])
+@pytest.mark.parametrize("model", [23, 84])
+@pytest.mark.parametrize("gen_uid", [43, 8])
 def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
     storage = config.storage
     res_storage = config.results_storage
-    res_file = config.results_filename
-    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}/{res_file}"
+    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}"
 
     # Act
     path = utils.results_path(bmk, model, gen_uid)
 
     # Assert
     assert path == expected_path
-
-
-@pytest.mark.parametrize("cube_uid", rand_l(1, 500, 3))
-def test_save_cube_metadata_saves_as_expected(mocker, cube_uid):
-    # Arrange
-    cube_uid = str(cube_uid)
-    meta = cube_metadata_generator()(cube_uid)
-    hashes = cube_local_hashes_generator()
-    cubes_path = utils.storage_path(config.cubes_storage)
-    meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
-    hashes_path = os.path.join(cubes_path, cube_uid, config.cube_hashes_filename)
-
-    mocker.patch("os.path.isdir", return_value=True)
-    meta_handler = mock_open().return_value
-    hash_handler = mock_open().return_value
-    open_spy = mocker.patch("builtins.open", side_effect=[meta_handler, hash_handler])
-    yaml_spy = mocker.patch("yaml.dump")
-
-    # Act
-    utils.save_cube_metadata(meta, hashes)
-
-    # Assert
-    open_spy.assert_has_calls([call(meta_path, "w"), call(hashes_path, "w")])
-    assert open_spy.call_count == 2
-    yaml_spy.assert_has_calls([call(meta, meta_handler), call(hashes, hash_handler)])
 
 
 @pytest.mark.parametrize(

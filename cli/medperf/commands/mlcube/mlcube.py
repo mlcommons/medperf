@@ -16,9 +16,7 @@ def list(all: bool = typer.Option(False, help="Display all mlcubes")):
     """List mlcubes registered by the user by default.
     Use "all" to display all mlcubes in the platform
     """
-    comms = config.comms
-    ui = config.ui
-    CubesList.run(comms, ui, all)
+    CubesList.run(all)
 
 
 @app.command("submit")
@@ -46,8 +44,6 @@ def submit(
     image_hash: str = typer.Option("", "--image-hash", help="SHA1 of image file"),
 ):
     """Submits a new cube to the platform"""
-    comms = config.comms
-    ui = config.ui
     mlcube_info = {
         "name": name,
         "mlcube_file": mlcube_file,
@@ -57,9 +53,9 @@ def submit(
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
     }
-    SubmitCube.run(mlcube_info, comms, ui)
+    SubmitCube.run(mlcube_info)
     cleanup()
-    ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("associate")
@@ -70,7 +66,5 @@ def associate(
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Associates an MLCube to a benchmark"""
-    comms = config.comms
-    ui = config.ui
-    AssociateCube.run(model_uid, benchmark_uid, comms, ui, approved=approval)
-    ui.print("✅ Done!")
+    AssociateCube.run(model_uid, benchmark_uid, approved=approval)
+    config.ui.print("✅ Done!")

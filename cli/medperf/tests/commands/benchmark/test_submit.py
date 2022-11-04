@@ -1,5 +1,7 @@
+from medperf.tests.mocks.requests import benchmark_body
 import pytest
 
+from medperf.entities.result import Result
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.benchmark.submit import SubmitBenchmark
 
@@ -17,6 +19,14 @@ DESC_MAX_LEN = 100
 #     "reference_model_mlcube": model_uid,
 #     "evaluator_mlcube": eval_uid,
 # }
+
+
+@pytest.fixture
+def result(mocker):
+    result_obj = mocker.create_autospec(spec=Result)
+    # mocker.patch.object(result_obj, "todict", return_value={})
+    result_obj.results = {}
+    return result_obj
 
 
 @pytest.fixture
@@ -61,7 +71,7 @@ def test_is_valid_passes_valid_fields(
         "reference_model_mlcube": model_uid[0],
         "evaluator_mlcube": eval_uid[0],
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     should_pass = all(
         [
             name[1],
@@ -81,29 +91,30 @@ def test_is_valid_passes_valid_fields(
     assert valid == should_pass
 
 
-def test_submit_uploads_benchmark_data(mocker, comms, ui):
+def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
     # Arrange
-    mock_body = {}
     benchmark_info = {
         "name": "",
         "description": "",
         "docs_url": "",
         "demo_url": "demo_url",
         "demo_hash": "",
-        "data_preparation_mlcube": "",
-        "reference_model_mlcube": "",
-        "evaluator_mlcube": "",
+        "data_preparation_mlcube": 0,
+        "reference_model_mlcube": 0,
+        "evaluator_mlcube": 0,
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
-    spy_todict = mocker.patch.object(submission, "todict", return_value=mock_body)
-    spy_upload = mocker.patch.object(comms, "upload_benchmark", return_value=1)
+    submission = SubmitBenchmark(benchmark_info)
+    submission.results = result
+    expected_data = Benchmark(submission.todict()).todict()
+    spy_upload = mocker.patch.object(
+        comms, "upload_benchmark", return_value=benchmark_body(1)
+    )
 
     # Act
     submission.submit()
 
     # Assert
-    spy_todict.assert_called_once()
-    spy_upload.assert_called_once_with(mock_body)
+    spy_upload.assert_called_once_with(expected_data)
 
 
 @pytest.mark.parametrize("demo_hash", ["demo_hash", "437289fa3d"])
@@ -123,7 +134,7 @@ def test_get_extra_information_retrieves_expected_info(
         "reference_model_mlcube": "",
         "evaluator_mlcube": "",
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value="demo_path")
     mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
     mocker.patch(
@@ -153,7 +164,7 @@ def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
         "reference_model_mlcube": "",
         "evaluator_mlcube": "",
     }
-    submission = SubmitBenchmark(benchmark_info, comms, ui)
+    submission = SubmitBenchmark(benchmark_info)
     tmp_bmk_spy = mocker.patch(
         PATCH_BENCHMARK.format("Benchmark.tmp"), return_value=bmk
     )
@@ -168,3 +179,58 @@ def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
     # Assert
     tmp_bmk_spy.assert_called_once()
     comp_spy.assert_called_once()
+
+
+def test_write_writes_using_entity(mocker, result, comms, ui):
+    # Arrange
+    benchmark_info = {
+        "name": "",
+        "description": "",
+        "docs_url": "",
+        "demo_url": "demo_url",
+        "demo_hash": "",
+        "data_preparation_mlcube": 0,
+        "reference_model_mlcube": 0,
+        "evaluator_mlcube": 0,
+    }
+    submission = SubmitBenchmark(benchmark_info)
+    submission.results = result
+    spy = mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
+    mockdata = Benchmark(submission.todict()).todict()
+
+    # Act
+    submission.write(mockdata)
+
+    # Assert
+    spy.assert_called_once_with()
+
+
+def test_run_executes_expected_flow(mocker, result, comms, ui):
+    # Arrange
+    benchmark_info = {
+        "name": "",
+        "description": "",
+        "docs_url": "",
+        "demo_url": "demo_url",
+        "demo_hash": "",
+        "data_preparation_mlcube": 0,
+        "reference_model_mlcube": 0,
+        "evaluator_mlcube": 0,
+    }
+    val_spy = mocker.patch(
+        PATCH_BENCHMARK.format("SubmitBenchmark.is_valid"), return_value=True
+    )
+    extra_spy = mocker.patch(
+        PATCH_BENCHMARK.format("SubmitBenchmark.get_extra_information")
+    )
+    sub_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.submit"))
+    wr_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.write"))
+
+    # Act
+    SubmitBenchmark.run(benchmark_info)
+
+    # Assert
+    val_spy.assert_called_once()
+    extra_spy.assert_called_once()
+    sub_spy.assert_called_once()
+    wr_spy.assert_called_once()

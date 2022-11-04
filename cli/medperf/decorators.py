@@ -2,8 +2,6 @@ import logging
 import functools
 from collections.abc import Callable
 
-from medperf.utils import cleanup
-
 
 def clean_except(func: Callable) -> Callable:
     """Decorator for handling unexpected errors. It allows logging
@@ -23,8 +21,6 @@ def clean_except(func: Callable) -> Callable:
             func(*args, **kwargs)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
-            logging.error(e)
-            cleanup()
-            raise e
+            logging.exception(e)
 
     return wrapper

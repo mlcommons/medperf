@@ -4,7 +4,6 @@ import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
-from medperf.tests.utils import rand_l
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.compatibility_test import CompatibilityTestExecution
@@ -31,6 +30,8 @@ def benchmark(mocker):
 def dataset(mocker):
     dataset = mocker.create_autospec(spec=Dataset)
     dataset.uid = "uid"
+    dataset.generated_uid = "gen_uid"
+    dataset.preparation_cube_uid = "cube_uid"
     return dataset
 
 
@@ -44,7 +45,7 @@ def default_setup(mocker, benchmark, dataset):
         return_value=("", ""),
     )
     mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value="")
-    mocker.patch(PATCH_TEST.format("Dataset"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Dataset.from_generated_uid"), return_value=dataset)
     return bmk
 
 
@@ -65,7 +66,7 @@ def test_validate_fails_if_incomplete_tmp_benchmark_passed(
     # Arrange
     in_params = test_params[0]
     should_be_valid = test_params[1]
-    exec = CompatibilityTestExecution(*in_params, comms, ui)
+    exec = CompatibilityTestExecution(*in_params)
     spy = mocker.patch(PATCH_TEST.format("pretty_error"))
 
     # Act
@@ -87,18 +88,16 @@ def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
     model = "3"
     eval = "4"
     get_spy = mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
-    tmp_spy = mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
+    exec = CompatibilityTestExecution(uid, data, prep, model, eval)
 
     # Act
     exec.prepare_test()
 
     # Assert
     if uid:
-        get_spy.assert_called_once_with(uid, comms)
-    tmp_spy.assert_called_once_with(
-        prep, model, eval, bmk.demo_dataset_url, bmk.demo_dataset_hash
-    )
+        get_spy.assert_called_once_with(uid)
+    else:
+        get_spy.assert_not_called()
 
 
 @pytest.mark.parametrize("uid", [None, "1"])
@@ -106,8 +105,7 @@ def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
     # Arrange
     bmk = benchmark(uid, 1, 2, 3)
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch.object(Benchmark, "write")
-    exec = CompatibilityTestExecution(uid, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(uid, None, None, None, None)
     spy = mocker.spy(exec, "set_cube_uid")
     attrs = ["data_prep", "model", "evaluator"]
     calls = [call(attr, ANY) for attr in attrs]
@@ -124,10 +122,10 @@ def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
 
 
 @pytest.mark.parametrize("attr", ["data_prep", "model", "evaluator"])
-@pytest.mark.parametrize("ref_uid", rand_l(1, 500, 1))
+@pytest.mark.parametrize("ref_uid", [436])
 def test_set_cube_uid_sets_ref_model_by_default(attr, ref_uid, comms, ui):
     # Arrange
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
 
     # Act
     exec.set_cube_uid(attr, ref_uid)
@@ -145,7 +143,7 @@ def test_set_cube_uid_creates_symlink_if_path_provided(mocker, src, dst, comms, 
     join_spy = mocker.patch("os.path.join", return_value=dst)
     syml_spy = mocker.patch("os.symlink")
     mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.model = src
     expected_path = Path(src).resolve()
 
@@ -167,7 +165,7 @@ def test_set_cube_uid_corrects_path_if_file(mocker, src, dst, comms, ui):
     mocker.patch("medperf.utils.cleanup")
     syml_spy = mocker.patch("os.symlink")
     mocker.patch(PATCH_TEST.format("storage_path"), return_value=cubes_loc)
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.model = src
     expected_src = Path(src).parent.resolve()
 
@@ -178,12 +176,12 @@ def test_set_cube_uid_corrects_path_if_file(mocker, src, dst, comms, ui):
     syml_spy.assert_called_once_with(expected_src, ANY)
 
 
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("model_uid", [418, 165])
 def test_set_cube_uid_keeps_passed_uid_intact_if_digit(
     mocker, default_setup, model_uid, comms, ui
 ):
     # Arrange
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.model = model_uid
     mocker.patch("os.symlink")
 
@@ -199,7 +197,7 @@ def test_set_cube_uid_fails_if_unrecognized_input(
     mocker, default_setup, model_uid, comms, ui
 ):
     # Arrange
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.model = model_uid
     mocker.patch("os.symlink")
     spy = mocker.patch(
@@ -219,7 +217,7 @@ def test_set_data_uid_retrieves_demo_data_by_default(mocker, default_setup, comm
         PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
         return_value=("", ""),
     )
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
 
     # Act
     exec.set_data_uid()
@@ -233,7 +231,7 @@ def test_set_data_uid_calls_DataPreparation_by_default(
 ):
     # Arrange
     spy = mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value="")
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
 
     # Act
     exec.set_data_uid()
@@ -242,13 +240,13 @@ def test_set_data_uid_calls_DataPreparation_by_default(
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("data_uid", [343, 324, 96, 443, 185])
 def test_set_data_uid_sets_demo_data_uid_by_default(
     mocker, default_setup, data_uid, comms, ui
 ):
     # Arrange
     mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value=data_uid)
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, None, None, None, None)
 
     # Act
     exec.set_data_uid()
@@ -257,11 +255,10 @@ def test_set_data_uid_sets_demo_data_uid_by_default(
     assert exec.data_uid == data_uid
 
 
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 5))
+@pytest.mark.parametrize("data_uid", [85, 388, 397])
 def test_set_data_uid_keeps_passed_data_uid(mocker, default_setup, data_uid, comms, ui):
     # Arrange
-    mocker.patch(PATCH_TEST.format("get_uids"), return_value=[str(data_uid)])
-    exec = CompatibilityTestExecution(1, data_uid, None, None, None, comms, ui)
+    exec = CompatibilityTestExecution(1, data_uid, None, None, None)
 
     # Act
     exec.set_data_uid()
@@ -275,8 +272,8 @@ def test_execute_benchmark_runs_benchmark_workflow(
 ):
     # Arrange
     spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
-    mocker.patch(PATCH_TEST.format("Result.get_results"), return_value=[])
-    exec = CompatibilityTestExecution(1, None, None, None, None, comms, ui)
+    mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
+    exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.dataset = dataset
 
     # Act
@@ -308,7 +305,7 @@ def test_run_executes_all_the_expected_steps(mocker, default_setup, comms, ui):
     ]
 
     # Act
-    CompatibilityTestExecution.run(1, comms, ui)
+    CompatibilityTestExecution.run(1)
 
     # Assert
     validate_spy.assert_called_once()
@@ -317,9 +314,9 @@ def test_run_executes_all_the_expected_steps(mocker, default_setup, comms, ui):
     execute_benchmark_spy.assert_called_once()
 
 
-@pytest.mark.parametrize("bmk_uid", rand_l(1, 500, 2))
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 2))
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 2))
+@pytest.mark.parametrize("bmk_uid", [255, 238])
+@pytest.mark.parametrize("data_uid", [312, 498])
+@pytest.mark.parametrize("model_uid", [241, 411])
 @pytest.mark.parametrize("results", [{}, {"AUC": 0.6}])
 def test_run_returns_uids(
     mocker, benchmark, bmk_uid, data_uid, model_uid, results, comms, ui
@@ -327,7 +324,6 @@ def test_run_returns_uids(
     # Arrange
     bmk = benchmark(bmk_uid, data_uid, model_uid, "3")
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_cube_uid"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_data_uid"))
@@ -338,7 +334,7 @@ def test_run_returns_uids(
 
     # Act
     ret_uids = CompatibilityTestExecution.run(
-        bmk_uid, comms, ui, data_uid=data_uid, model=model_uid
+        bmk_uid, data_uid=data_uid, model=model_uid
     )
 
     # Assert
@@ -357,10 +353,9 @@ def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, ha
     bmk.demo_dataset_url = "url"
     bmk.demo_dataset_hash = hash
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
-    exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
+    exec = CompatibilityTestExecution(uid, data, prep, model, eval)
     spy = mocker.patch(
         PATCH_TEST.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
     )
@@ -390,7 +385,6 @@ def test_download_demo_data_extracts_expected_paths(
     bmk.demo_dataset_url = "url"
     bmk.demo_dataset_hash = "hash"
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
 
@@ -402,7 +396,7 @@ def test_download_demo_data_extracts_expected_paths(
     exp_data_path = os.path.join(untar_path, paths[0])
     exp_labels_path = os.path.join(untar_path, paths[1])
 
-    exec = CompatibilityTestExecution(uid, data, prep, model, eval, comms, ui)
+    exec = CompatibilityTestExecution(uid, data, prep, model, eval)
     exec.prepare_test()
 
     # Act
@@ -413,30 +407,37 @@ def test_download_demo_data_extracts_expected_paths(
     assert labels_path == exp_labels_path
 
 
-@pytest.mark.parametrize("data_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("prep_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("model_uid", rand_l(1, 500, 1) + [None])
-@pytest.mark.parametrize("eval_uid", rand_l(1, 500, 1) + [None])
+@pytest.mark.parametrize("bmk_uid", [83, None])
+@pytest.mark.parametrize("data_uid", [254, None])
+@pytest.mark.parametrize("prep_uid", [466, None])
+@pytest.mark.parametrize("model_uid", [145, None])
+@pytest.mark.parametrize("eval_uid", [97, None])
 def test_run_uses_correct_uids(
-    mocker, benchmark, dataset, data_uid, prep_uid, model_uid, eval_uid, comms, ui
+    mocker,
+    benchmark,
+    dataset,
+    bmk_uid,
+    data_uid,
+    prep_uid,
+    model_uid,
+    eval_uid,
+    comms,
+    ui,
 ):
     # Arrange
-    bmk_uid = "1"
     bmk_prep_uid = "b1"
     bmk_model_uid = "b2"
     bmk_eval_uid = "b3"
     demo_dataset_uid = "d1"
     tmp_uid = "t1"
 
-    tmp_bmk = benchmark(tmp_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
     bmk = benchmark(bmk_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
     bmk.demo_dataset_url = "url"
     bmk.demo_dataset_hash = "hash"
 
-    mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
+    error_spy = mocker.patch(PATCH_TEST.format("pretty_error"))
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch("os.path.exists", return_value=False)
-    mocker.patch(PATCH_TEST.format("get_uids"), return_value=[str(data_uid)])
     mocker.patch(
         PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
         return_value=("", ""),
@@ -444,32 +445,37 @@ def test_run_uses_correct_uids(
     mocker.patch(
         PATCH_TEST.format("DataPreparation.run"), return_value=demo_dataset_uid
     )
-    mocker.patch(PATCH_TEST.format("Dataset"), return_value=dataset)
-    mocker.patch(PATCH_TEST.format("Result"))
+    mocker.patch(PATCH_TEST.format("Dataset.from_generated_uid"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
 
-    tmp_spy = mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=tmp_bmk)
+    def tmp_side_effect(prep, model, eval):
+        return benchmark(tmp_uid, prep, model, eval)
+
+    tmp_spy = mocker.patch(
+        PATCH_TEST.format("Benchmark.tmp"), side_effect=tmp_side_effect
+    )
     exec_spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
 
     exp_data_uid = demo_dataset_uid if data_uid is None else data_uid
-    exp_prep_uid = bmk_prep_uid if prep_uid is None else prep_uid
     exp_model_uid = bmk_model_uid if model_uid is None else model_uid
     exp_eval_uid = bmk_eval_uid if eval_uid is None else eval_uid
+    if prep_uid is not None:
+        exp_prep_uid = prep_uid
+    elif data_uid is not None:
+        exp_prep_uid = dataset.preparation_cube_uid
+    else:
+        exp_prep_uid = bmk_prep_uid
 
     # Act
-    CompatibilityTestExecution.run(
-        bmk_uid, comms, ui, data_uid, prep_uid, model_uid, eval_uid
-    )
+    CompatibilityTestExecution.run(bmk_uid, data_uid, prep_uid, model_uid, eval_uid)
 
     # Assert
-    tmp_spy.assert_called_once_with(
-        exp_prep_uid,
-        exp_model_uid,
-        exp_eval_uid,
-        bmk.demo_dataset_url,
-        bmk.demo_dataset_hash,
-    )
+    if error_spy.call_count != 0:
+        return
+
+    tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
     exec_spy.assert_called_once_with(
-        tmp_uid, exp_data_uid, exp_model_uid, comms, ui, run_test=True
+        tmp_uid, exp_data_uid, exp_model_uid, run_test=True
     )
 
 
@@ -500,7 +506,7 @@ def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_e
     open_spy = mocker.patch("builtins.open", mock_open())
     yml_spy = mocker.patch(PATCH_TEST.format("yaml.dump"))
     # Act
-    cls = CompatibilityTestExecution("1", None, None, model_path, None, comms, ui)
+    cls = CompatibilityTestExecution("1", None, None, model_path, None)
     cls.set_cube_uid("model")
 
     # Assert

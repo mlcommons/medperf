@@ -2,25 +2,23 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 
 from medperf.utils import (
-    approval_prompt,
-    save_cube_metadata,
     get_file_sha1,
     pretty_error,
     untar,
     combine_proc_sp_text,
     list_files,
     storage_path,
+    cleanup
 )
-from medperf.ui.interface import UI
+from medperf.entities.interface import Entity
 import medperf.config as config
-from medperf.comms.interface import Comms
 
 
-class Cube(object):
+class Cube(Entity):
     """
     Class representing an MLCube Container
 
@@ -30,35 +28,53 @@ class Cube(object):
     with standard metadata and a consistent file-system level interface.
     """
 
-    def __init__(
-        self,
-        uid: str,
-        meta: dict,
-        cube_path: str,
-        params_path: str = None,
-        additional_hash: str = None,
-        image_tarball_hash: str = None,
-    ):
+    def __init__(self, cube_dict):
         """Creates a Cube instance
 
         Args:
-            uid (str): UID of the cube.
-            meta (dict): Dict for additional information regarding the cube.
-            cube_path (str): path to the mlcube.yaml file associated with this cube.
-            params_path (str, optional): Location of the parameters.yaml file. if exists. Defaults to None.
-            additional_hash (str, optional): Hash of the tarball file, if exists. Defaults to None.
-            image_tarball_hash (str, optional): Hash of the image file, if exists. Defaults to None.
+            cube_dict (dict): Dict for information regarding the cube.
+
         """
-        self.uid = uid
-        self.meta = meta
-        self.name = meta["name"]
-        self.cube_path = cube_path
-        self.params_path = params_path
-        self.additional_hash = additional_hash
-        self.image_tarball_hash = image_tarball_hash
+        self.uid = cube_dict["id"]
+        self.name = cube_dict["name"]
+        self.git_mlcube_url = cube_dict["git_mlcube_url"]
+        self.git_parameters_url = cube_dict["git_parameters_url"]
+        self.image_tarball_url = cube_dict["image_tarball_url"]
+        self.image_tarball_hash = cube_dict["image_tarball_hash"]
+        if "tarball_url" in cube_dict:
+            # Backwards compatibility for cubes with
+            # tarball_url instead of additional_files_tarball_url
+            self.additional_files_tarball_url = cube_dict["tarball_url"]
+        else:
+            self.additional_files_tarball_url = cube_dict[
+                "additional_files_tarball_url"
+            ]
+
+        if "tarball_hash" in cube_dict:
+            # Backwards compatibility for cubes with
+            # tarball_hash instead of additional_files_tarball_hash
+            self.additional_hash = cube_dict["tarball_hash"]
+        else:
+            self.additional_hash = cube_dict["additional_files_tarball_hash"]
+
+        self.state = cube_dict["state"]
+        self.is_cube_valid = cube_dict["is_valid"]
+        self.owner = cube_dict["owner"]
+        self.metadata = cube_dict["metadata"]
+        self.user_metadata = cube_dict["user_metadata"]
+        self.created_at = cube_dict["created_at"]
+        self.modified_at = cube_dict["modified_at"]
+
+        cubes_storage = storage_path(config.cubes_storage)
+        self.cube_path = os.path.join(
+            cubes_storage, str(self.uid), config.cube_filename
+        )
+        self.params_path = os.path.join(
+            cubes_storage, str(self.uid), config.params_filename
+        )
 
     @classmethod
-    def all(cls, ui: UI) -> List["Cube"]:
+    def all(cls) -> List["Cube"]:
         """Class method for retrieving all cubes stored on the user's machine.
 
         Args:
@@ -74,92 +90,100 @@ class Cube(object):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg, ui)
+            pretty_error(msg)
 
         cubes = []
         for uid in uids:
-            cube_path = os.path.join(cubes_storage, uid, config.cube_filename)
-            meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
-            with open(meta_file, "r") as f:
-                meta = yaml.safe_load(f)
-
-            params_path = os.path.join(cubes_storage, uid, config.params_filename)
-            if not os.path.exists(params_path):
-                params_path = None
-
-            local_hashes_file = os.path.join(
-                cubes_storage, uid, config.cube_hashes_filename
-            )
-            with open(local_hashes_file, "r") as f:
-                local_hashes = yaml.safe_load(f)
-            additional_hash = local_hashes["additional_files_tarball_hash"]
-            image_tarball_hash = local_hashes["image_tarball_hash"]
-
-            cube = cls(
-                uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
-            )
+            meta = cls.__get_local_dict(uid)
+            cube = cls(meta)
             cubes.append(cube)
 
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: str, comms: Comms, ui: UI) -> "Cube":
+    def get(cls, cube_uid: str) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
             cube_uid (str): UID of the cube.
-            comms (Comms): Instance of the server interface.
-            ui (UI): Instance of an UI implementation.
 
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
         "Retrieve from local storage if cube already there"
+        logging.debug(f"Retrieving the cube {cube_uid}")
+        comms = config.comms
         local_cube = list(
-            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all(ui))
+            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
         )
         if len(local_cube) == 1:
+            logging.debug("Found cube locally")
             return local_cube[0]
 
         meta = comms.get_cube_metadata(cube_uid)
-        # Backwards compatibility for cubes with
-        # tarball_url instead of additional_files_tarball_url
-        old_files = "tarball_url"
-        old_hash = "tarball_hash"
-        add_files = "additional_files_tarball_url"
-        add_hash = "additional_files_tarball_hash"
-        if old_files in meta:
-            meta[add_files] = meta[old_files]
-            meta[add_hash] = meta[old_hash]
-        cube_path = comms.get_cube(meta["git_mlcube_url"], cube_uid)
-        params_path = None
-        additional_path = None
-        additional_hash = None
-        image_path = None
-        image_tarball_hash = None
-        if "git_parameters_url" in meta and meta["git_parameters_url"]:
-            url = meta["git_parameters_url"]
-            params_path = comms.get_cube_params(url, cube_uid)
-        if add_files in meta and meta[add_files]:
-            url = meta[add_files]
+        cube = cls(meta)
+        attempt = 0
+        while attempt < config.cube_get_max_attempts:
+            logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
+            cube.download()
+            if cube.is_valid():
+                cube.write()
+                return cube
+            attempt += 1
+        logging.error("Max download attempts reached")
+        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
+        cleanup([cube_path])
+        pretty_error("Could not successfully download the requested MLCube")
+
+    def download(self):
+        """Downloads the required elements for an mlcube to run locally.
+        """
+        comms = config.comms
+        ui = config.ui
+        cube_uid = self.uid
+        self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
+        local_additional_hash = ""
+        local_image_hash = ""
+        if self.git_parameters_url:
+            url = self.git_parameters_url
+            self.params_path = comms.get_cube_params(url, cube_uid)
+        if self.additional_files_tarball_url:
+            url = self.additional_files_tarball_url
             additional_path = comms.get_cube_additional(url, cube_uid)
-            additional_hash = get_file_sha1(additional_path)
+            if not self.additional_hash:
+                # log interactive ui only during submission
+                ui.text = "Generating additional file hash"
+            local_additional_hash = get_file_sha1(additional_path)
+            if not self.additional_hash:
+                ui.print("Additional file hash generated")
+                self.additional_hash = local_additional_hash
             untar(additional_path)
-        if "image_tarball_url" in meta and meta["image_tarball_url"]:
-            url = meta["image_tarball_url"]
+        if self.image_tarball_url:
+            url = self.image_tarball_url
             image_path = comms.get_cube_image(url, cube_uid)
-            image_tarball_hash = get_file_sha1(image_path)
+            if not self.image_tarball_hash:
+                # log interactive ui only during submission
+                ui.text = "Generating image file hash"
+            local_image_hash = get_file_sha1(image_path)
+            if not self.image_tarball_hash:
+                ui.print("Image file hash generated")
+                self.image_tarball_hash = local_image_hash
             untar(image_path)
+        else:
+            # Retrieve image from image registry
+            logging.debug(f"Retrieving {cube_uid} image")
+            cmd = f"mlcube configure --mlcube={self.cube_path}"
+            proc = pexpect.spawn(cmd)
+            proc_out = combine_proc_sp_text(proc)
+            logging.debug(proc_out)
+            proc.close()
 
         local_hashes = {
-            "additional_files_tarball_hash": additional_hash if additional_hash else "",
-            "image_tarball_hash": image_tarball_hash if image_tarball_hash else "",
+            "additional_files_tarball_hash": local_additional_hash,
+            "image_tarball_hash": local_image_hash,
         }
-        save_cube_metadata(meta, local_hashes)
-        return cls(
-            cube_uid, meta, cube_path, params_path, additional_hash, image_tarball_hash
-        )
+        self.store_local_hashes(local_hashes)
 
     def is_valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
@@ -167,44 +191,43 @@ class Cube(object):
         Returns:
             bool: Wether the cube and related files match the expeced hashes
         """
-        add_files = "additional_files_tarball_url"
-        add_hash = "additional_files_tarball_hash"
-        valid_cube = self.meta["is_valid"]
-        has_additional = add_files in self.meta and self.meta[add_files]
-        if has_additional:
-            valid_additional = self.additional_hash == self.meta[add_hash]
+        local_hashes = self.get_local_hashes()
+        local_additional_hash = local_hashes["additional_files_tarball_hash"]
+        local_image_hash = local_hashes["image_tarball_hash"]
+        valid_cube = self.is_cube_valid
+        if self.additional_files_tarball_url:
+            valid_additional = self.additional_hash == local_additional_hash
         else:
             valid_additional = True
 
-        has_image = "image_tarball_url" in self.meta and self.meta["image_tarball_url"]
-        if has_image:
-            valid_image = self.image_tarball_hash == self.meta["image_tarball_hash"]
+        if self.image_tarball_url:
+            valid_image = self.image_tarball_hash == local_image_hash
         else:
             valid_image = True
         return valid_cube and valid_additional and valid_image
 
-    def run(self, ui: UI, task: str, timeout: int = None, **kwargs):
+    def run(self, task: str, string_params: Dict[str, str] = {}, timeout: int = None, **kwargs):
         """Executes a given task on the cube instance
 
         Args:
-            ui (UI): an instance of an UI implementation
             task (str): task to run
+            string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
+                                                 Defaults to {}.
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
+        kwargs.update(string_params)
         cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
-        proc_out = combine_proc_sp_text(proc, ui)
+        proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
-            ui.text = "\n"
-            ui.print(proc_out)
-            pretty_error("There was an error while executing the cube", ui)
+            raise RuntimeError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
         return proc
@@ -243,18 +266,58 @@ class Cube(object):
 
         return out_path
 
-    def request_association_approval(self, benchmark: "Benchmark", ui: UI) -> bool:
-        """Prompts the user for approval concerning associating a cube with a benchmark.
+    def todict(self) -> Dict:
+        return {
+            "name": self.name,
+            "git_mlcube_url": self.git_mlcube_url,
+            "git_parameters_url": self.git_parameters_url,
+            "image_tarball_url": self.image_tarball_url,
+            "image_tarball_hash": self.image_tarball_hash,
+            "additional_files_tarball_url": self.additional_files_tarball_url,
+            "additional_files_tarball_hash": self.additional_hash,
+            "state": self.state,
+            "is_valid": self.is_cube_valid,
+            "id": self.uid,
+            "owner": self.owner,
+            "metadata": self.metadata,
+            "user_metadata": self.user_metadata,
+            "created_at": self.created_at,
+            "modified_at": self.modified_at,
+        }
 
-        Args:
-            benchmark (Benchmark): Benchmark to be associated with
-            ui (UI): Instance of an UI interface
+    def write(self):
+        cube_loc = str(Path(self.cube_path).parent)
+        meta_file = os.path.join(cube_loc, config.cube_metadata_filename)
+        os.makedirs(cube_loc, exist_ok=True)
+        with open(meta_file, "w") as f:
+            yaml.dump(self.todict(), f)
 
-        Returns:
-            bool: wether the user gave consent or not
-        """
+    def upload(self):
+        cube_dict = self.todict()
+        updated_cube_dict = config.comms.upload_mlcube(cube_dict)
+        return updated_cube_dict
 
-        msg = "Please confirm that you would like to associate "
-        msg += f"the MLCube '{self.name}' with the benchmark '{benchmark.name}' [Y/n]"
-        approved = approval_prompt(msg, ui)
-        return approved
+    def get_local_hashes(self):
+        cubes_storage = storage_path(config.cubes_storage)
+        local_hashes_file = os.path.join(
+            cubes_storage, str(self.uid), config.cube_hashes_filename
+        )
+        with open(local_hashes_file, "r") as f:
+            local_hashes = yaml.safe_load(f)
+        return local_hashes
+
+    def store_local_hashes(self, local_hashes):
+        cubes_storage = storage_path(config.cubes_storage)
+        local_hashes_file = os.path.join(
+            cubes_storage, str(self.uid), config.cube_hashes_filename
+        )
+        with open(local_hashes_file, "w") as f:
+            yaml.dump(local_hashes, f)
+
+    @classmethod
+    def __get_local_dict(cls, uid):
+        cubes_storage = storage_path(config.cubes_storage)
+        meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+        with open(meta_file, "r") as f:
+            meta = yaml.safe_load(f)
+        return meta

@@ -8,7 +8,7 @@ def test_retrieves_user_benchmarks(mocker, comms, ui):
     spy = mocker.patch.object(comms, "get_user_benchmarks", return_value=[])
 
     # Act
-    BenchmarksList.run(comms, ui)
+    BenchmarksList.run()
 
     # Assert
     spy.assert_called_once()
@@ -19,7 +19,7 @@ def test_all_retrieves_all_benchmarks(mocker, comms, ui):
     spy = mocker.patch.object(comms, "get_benchmarks", return_value=[])
 
     # Act
-    BenchmarksList.run(comms, ui, all=True)
+    BenchmarksList.run(all=True)
 
     # Assert
     spy.assert_called_once()

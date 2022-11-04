@@ -1,0 +1,7 @@
+numpy
+dicom
+nibabel
+scipy
+argparse
+pyYAML
+typer

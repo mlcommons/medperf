@@ -51,7 +51,7 @@ def login(
 ):
     """Login to the medperf server. Must be done only once.
     """
-    Login.run(config.comms, config.ui, username=username, password=password)
+    Login.run(username=username, password=password)
     config.ui.print("✅ Done!")
 
 
@@ -63,7 +63,7 @@ def passwd():
     comms = config.comms
     ui = config.ui
     comms.authenticate()
-    PasswordChange.run(comms, ui)
+    PasswordChange.run()
     ui.print("✅ Done!")
 
 
@@ -83,13 +83,9 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    comms = config.comms
-    ui = config.ui
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid, comms, ui)
-    ResultSubmission.run(
-        benchmark_uid, data_uid, model_uid, comms, ui, approved=approval
-    )
-    ui.print("✅ Done!")
+    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
+    config.ui.print("✅ Done!")
 
 
 @app.command("test")
@@ -130,12 +126,8 @@ def test(
     Executes a compatibility test for a determined benchmark.
     Can test prepared datasets, remote and local models independently.
     """
-    comms = config.comms
-    ui = config.ui
-    CompatibilityTestExecution.run(
-        benchmark_uid, comms, ui, data_uid, data_prep, model, evaluator
-    )
-    ui.print("✅ Done!")
+    CompatibilityTestExecution.run(benchmark_uid, data_uid, data_prep, model, evaluator)
+    config.ui.print("✅ Done!")
     cleanup()
 
 
@@ -172,9 +164,8 @@ def main(
     )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
-    # convert comms and ui from their string representations to their respective objects
     config.ui = UIFactory.create_ui(config.ui)
-    config.comms = CommsFactory.create_comms(config.comms, config.ui, config.server)
+    config.comms = CommsFactory.create_comms(config.comms, config.server)
 
     config.ui.print(f"MedPerf {config.version}")
 

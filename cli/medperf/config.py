@@ -16,7 +16,7 @@ customizable_params = [
 	]
 
 version = "0.0.0"
-server = "https://medperf.org"
+server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
@@ -31,7 +31,9 @@ demo_data_storage = "demo"
 cubes_storage = "cubes"
 predictions_storage = "predictions"
 results_storage = "results"
+statistics_filename = "tmp_statistics.yaml"
 results_filename = "result.yaml"
+results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 credentials_path = "credentials"
@@ -53,6 +55,7 @@ test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
+cube_get_max_attempts = 3
 
 profile="default"
 platform = "docker"

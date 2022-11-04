@@ -1,16 +1,17 @@
 from tabulate import tabulate
 
-from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
+from medperf import config
 from medperf.entities.result import Result
 
 
 class ResultsList:
     @staticmethod
-    def run(comms: Comms, ui: UI):
+    def run():
         """Lists all local datasets
         """
-        results = Result.all(ui)
+        comms = config.comms
+        ui = config.ui
+        results = Result.all()
         headers = ["Benchmark UID", "Model UID", "Data UID", "Submitted", "Local"]
         # Get local results data
         results_data = [

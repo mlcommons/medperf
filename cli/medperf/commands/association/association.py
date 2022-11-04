@@ -5,6 +5,7 @@ import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.association.list import ListAssociations
 from medperf.commands.association.approval import Approval
+from medperf.enums import Status
 
 app = typer.Typer()
 
@@ -18,9 +19,7 @@ def list(filter: Optional[str] = typer.Argument(None)):
         filter (str, optional): Filter associations by approval status.
             Defaults to displaying all user associations.
     """
-    comms = config.comms
-    ui = config.ui
-    ListAssociations.run(comms, ui, filter)
+    ListAssociations.run(filter)
 
 
 @clean_except
@@ -37,10 +36,8 @@ def approve(
         dataset_uid (int, optional): Dataset UID.
         mlcube_uid (int, optional): Model MLCube UID.
     """
-    comms = config.comms
-    ui = config.ui
-    Approval.run(benchmark_uid, "APPROVED", comms, ui, dataset_uid, mlcube_uid)
-    ui.print("✅ Done!")
+    Approval.run(benchmark_uid, Status.APPROVED, dataset_uid, mlcube_uid)
+    config.ui.print("✅ Done!")
 
 
 @clean_except
@@ -57,7 +54,5 @@ def reject(
         dataset_uid (int, optional): Dataset UID.
         mlcube_uid (int, optional): Model MLCube UID.
     """
-    comms = config.comms
-    ui = config.ui
-    Approval.run(benchmark_uid, "REJECT", comms, ui, dataset_uid, mlcube_uid)
-    ui.print("✅ Done!")
+    Approval.run(benchmark_uid, Status.REJECTED, dataset_uid, mlcube_uid)
+    config.ui.print("✅ Done!")

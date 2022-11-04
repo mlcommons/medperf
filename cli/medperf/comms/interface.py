@@ -219,6 +219,17 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_dataset(self, dset_uid: str) -> dict:
+        """Retrieves a specific dataset
+
+        Args:
+            dset_uid (str): Dataset UID
+
+        Returns:
+            dict: Dataset metadata
+        """
+
+    @abstractmethod
     def get_user_datasets(self) -> dict:
         """Retrieves all datasets registered by the user
 
@@ -235,6 +246,17 @@ class Comms(ABC):
 
         Returns:
             int: id of the created dataset registration.
+        """
+
+    @abstractmethod
+    def get_result(self, result_uid: str) -> dict:
+        """Retrieves a specific result data
+
+        Args:
+            result_uid (str): Result UID
+
+        Returns:
+            dict: Result metadata
         """
 
     @abstractmethod

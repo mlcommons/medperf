@@ -1,14 +1,15 @@
+import os
+import shutil
 import validators
 
-from medperf.ui.interface import UI
 import medperf.config as config
-from medperf.comms.interface import Comms
-from medperf.utils import get_file_sha1, pretty_error
+from medperf.entities.cube import Cube
+from medperf.utils import pretty_error, storage_path
 
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict, comms: Comms, ui: UI):
+    def run(cls, submit_info: dict):
         """Submits a new cube to the medperf platform
 
         Args:
@@ -21,29 +22,23 @@ class SubmitCube:
                     additional_files_tarball_hash,
                     image_tarball_url,
                     image_tarball_hash,
-            comms (Comms): Communication instance.
-            ui (UI): UI instance.
         """
-        submission = cls(submit_info, comms, ui)
+        ui = config.ui
+        submission = cls(submit_info)
         if not submission.is_valid():
-            pretty_error("MLCube submission is invalid", ui)
+            pretty_error("MLCube submission is invalid")
 
         with ui.interactive():
-
-            if submission.additional_file:
-                ui.text = "Generating additional file hash"
-                submission.get_additional_hash()
-                ui.print("Additional file hash generated")
-            if submission.image_file:
-                ui.text = "Generating image file hash"
-                submission.get_image_tarball_hash()
-                ui.print("Image file hash generated")
+            ui.text = "Validating MLCube can be downloaded"
+            submission.download()
             ui.text = "Submitting MLCube to MedPerf"
-            submission.submit()
+            updated_cube_dict = submission.upload()
+            submission.to_permanent_path(updated_cube_dict["id"])
+            submission.write(updated_cube_dict)
 
-    def __init__(self, submit_info: dict, comms: Comms, ui: UI):
-        self.comms = comms
-        self.ui = ui
+    def __init__(self, submit_info: dict):
+        self.comms = config.comms
+        self.ui = config.ui
         self.name = submit_info["name"]
         self.mlcube_file = submit_info["mlcube_file"]
         self.params_file = submit_info["params_file"]
@@ -93,38 +88,50 @@ class SubmitCube:
 
         return valid
 
-    def get_additional_hash(self):
-        tmp_cube_uid = config.cube_submission_id
-        add_file_path = self.comms.get_cube_additional(
-            self.additional_file, tmp_cube_uid
-        )
-        self.additional_hash = get_file_sha1(add_file_path)
-
-    def get_image_tarball_hash(self):
-        tmp_cube_uid = "tmp_submission"
-        image_path = self.comms.get_cube_image(self.image_file, tmp_cube_uid)
-        self.image_tarball_hash = get_file_sha1(image_path)
+    def download(self):
+        cube = Cube(self.todict())
+        cube.download()
+        self.additional_hash = cube.additional_hash
+        self.image_tarball_hash = cube.image_tarball_hash
+        if not cube.is_valid():
+            pretty_error("MLCube hash check failed. Submission aborted.")
 
     def todict(self):
         dict = {
             "name": self.name,
             "git_mlcube_url": self.mlcube_file,
             "git_parameters_url": self.params_file,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
-            "additional_files_tarball_url": "",
-            "additional_files_tarball_hash": "",
+            "image_tarball_url": self.image_file,
+            "image_tarball_hash": self.image_tarball_hash,
+            "additional_files_tarball_url": self.additional_file,
+            "additional_files_tarball_hash": self.additional_hash,
             "state": "OPERATION",
             "is_valid": True,
+            "id": config.cube_submission_id,
+            "owner": None,
+            "metadata": {},
+            "user_metadata": {},
+            "created_at": None,
+            "modified_at": None,
         }
-        if self.image_file:
-            dict["image_tarball_url"] = self.image_file
-            dict["image_tarball_hash"] = self.image_tarball_hash
-        if self.additional_file:
-            dict["additional_files_tarball_url"] = self.additional_file
-            dict["additional_files_tarball_hash"] = self.additional_hash
         return dict
 
-    def submit(self):
+    def upload(self):
         body = self.todict()
-        self.comms.upload_mlcube(body)
+        updated_body = Cube(body).upload()
+        return updated_body
+
+    def to_permanent_path(self, cube_uid):
+        """Renames the temporary cube submission to a permanent one using the uid of
+        the registered cube
+        """
+        cubes_storage = storage_path(config.cubes_storage)
+        old_cube_loc = os.path.join(cubes_storage, config.cube_submission_id)
+        new_cube_loc = os.path.join(cubes_storage, str(cube_uid))
+        if os.path.exists(new_cube_loc):
+            shutil.rmtree(new_cube_loc)
+        os.rename(old_cube_loc, new_cube_loc)
+
+    def write(self, updated_cube_dict):
+        cube = Cube(updated_cube_dict)
+        cube.write()
