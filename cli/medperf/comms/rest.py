@@ -2,6 +2,7 @@ from typing import List
 import requests
 import logging
 import os
+import configparser
 
 from medperf.enums import Role
 import medperf.config as config
@@ -66,15 +67,19 @@ class REST(Comms):
         return True
 
     def authenticate(self):
-        cred_path = storage_path(config.credentials_path)
-        if os.path.exists(cred_path):
-            with open(cred_path) as f:
-                self.token = f.readline()
-        else:
-            pretty_error(
-                "Couldn't find credentials file. Did you run 'medperf login' before?",
-                self.ui,
-            )
+        creds_path = os.path.join(config.storage, config.credentials_path)
+        profile = config.profile
+        if os.path.exists(creds_path):
+            creds = configparser.ConfigParser()
+            creds.read(creds_path)
+            if profile in creds:
+                self.token = creds[profile]["token"]
+                return
+
+        pretty_error(
+            "Couldn't authenticate. Did you run 'medperf login' before?",
+            self.ui,
+        )
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
