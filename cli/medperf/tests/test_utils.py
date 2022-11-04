@@ -392,7 +392,7 @@ def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
     storage = config.storage
     res_storage = config.results_storage
-    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}"
+    expected_path = f"{utils.storage_path(res_storage)}/{bmk}/{model}/{gen_uid}"
 
     # Act
     path = utils.results_path(bmk, model, gen_uid)
