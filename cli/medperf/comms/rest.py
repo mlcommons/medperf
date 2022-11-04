@@ -15,13 +15,19 @@ from medperf.utils import (
 )
 
 
-def log_response_error(res):
+def log_response_error(res, warn=False):
     # note: status 403 might be also returned if a requested resource doesn't exist
-    logging.error(f"Obtained response with status code: {res.status_code}")
+    if warn:
+        logging_method = logging.warning
+    else:
+        logging_method = logging.error
+
+    logging_method(f"Obtained response with status code: {res.status_code}")
     try:
-        logging.error(res.json())
+        logging_method(res.json())
     except Exception:
-        logging.error("JSON Response could not be parsed")
+        logging_method("JSON Response could not be parsed. Showing response content:")
+        logging_method(res.content)
 
 
 class REST(Comms):
@@ -147,9 +153,11 @@ class REST(Comms):
             paginated_url = f"{url}?limit={page_size}&offset={offset}"
             res = self.__auth_get(paginated_url)
             if res.status_code != 200:
-                log_response_error(res)
                 if not binary_reduction:
+                    log_response_error(res)
                     pretty_error("there was an error retrieving the current list.")
+
+                log_response_error(res, warn=True)
                 if page_size <= 1:
                     pretty_error(
                         "Could not retrieve list. Minimum page size achieved without success."
