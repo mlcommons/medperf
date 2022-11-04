@@ -21,7 +21,12 @@ import yaml
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls, benchmark_uid: int, data_uid: str, model_uid: int, run_test=False,
+        cls,
+        benchmark_uid: int,
+        data_uid: str,
+        model_uid: int,
+        run_test=False,
+        ignore_errors=False,
     ):
         """Benchmark execution flow.
 
@@ -30,7 +35,7 @@ class BenchmarkExecution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, run_test)
+        execution = cls(benchmark_uid, data_uid, model_uid, run_test, ignore_errors)
         execution.prepare()
         execution.validate()
         with execution.ui.interactive():
@@ -40,7 +45,12 @@ class BenchmarkExecution:
         execution.remove_temp_results()
 
     def __init__(
-        self, benchmark_uid: int, data_uid: int, model_uid: int, run_test=False,
+        self,
+        benchmark_uid: int,
+        data_uid: int,
+        model_uid: int,
+        run_test=False,
+        ignore_errors=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -50,6 +60,7 @@ class BenchmarkExecution:
         self.evaluator = None
         self.model_cube = None
         self.run_test = run_test
+        self.ignore_errors = ignore_errors
 
     def prepare(self):
         init_storage()
@@ -112,12 +123,18 @@ class BenchmarkExecution:
                 timeout=infer_timeout,
                 data_path=data_path,
                 output_path=preds_path,
-                string_params={
-                    "Ptasks.infer.parameters.input.data_path.opts": "ro"
-                },
+                string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
             )
             self.ui.print("> Model execution complete")
 
+        except RuntimeError as e:
+            if not self.ignore_errors:
+                logging.error(f"Model MLCube Execution failed: {e}")
+                cleanup([preds_path])
+                pretty_error("Benchmark execution failed")
+            else:
+                logging.warning(f"Model MLCube Execution failed: {e}")
+        try:
             self.ui.text = "Evaluating results"
             self.evaluator.run(
                 task="evaluate",
@@ -127,13 +144,16 @@ class BenchmarkExecution:
                 output_path=out_path,
                 string_params={
                     "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-                    "Ptasks.evaluate.parameters.input.labels.opts": "ro"
-                }
+                    "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+                },
             )
         except RuntimeError as e:
-            logging.error(f"MLCube Execution failed: {e}")
-            cleanup([preds_path, out_path])
-            pretty_error("Benchmark execution failed")
+            if not self.ignore_errors:
+                logging.error(f"Metrics MLCube Execution failed: {e}")
+                cleanup([preds_path, out_path])
+                pretty_error("Benchmark execution failed")
+            else:
+                logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
         data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
