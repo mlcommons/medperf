@@ -3,6 +3,7 @@ import typer
 import configparser
 
 from medperf import config
+from medperf.decorators import docstring_parameter
 from medperf.utils import parse_context_args, dict_pretty_print, pretty_error
 
 app = typer.Typer()
@@ -19,14 +20,19 @@ def write_config(config_p: configparser.ConfigParser):
 		config_p.write(f)
 
 @app.command("create", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@docstring_parameter(" | ".join(config.customizable_params))
 def create(
 	ctx: typer.Context,
 	name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
 ):
 	"""Creates a new profile for managing and customizing configuration
 
-	Extra options in the format "--key=value" will be handled as custom configuration
+	Extra arguments in the format "--key=value" will be handled as custom configuration
 	parameters that will be stored under the new profile
+
+	Arguments:
+
+	{0}
 	"""
 	args = parse_context_args(ctx.args)
 	config_p = read_config()
@@ -39,10 +45,15 @@ def create(
 	write_config(config_p)
 
 @app.command("set", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@docstring_parameter(" | ".join(config.customizable_params))
 def set(ctx: typer.Context):
 	"""Assign key-value configuration pairs to the current profile.
 
-	Extra options in the format "--key=value" will be handled as custom configuration
+	Extra arguments in the format "--key=value" will be handled as custom configuration
+
+	Available arguments:
+
+	{0}
 	"""
 	profile = config.profile
 	args = parse_context_args(ctx.args)
@@ -55,10 +66,15 @@ def set(ctx: typer.Context):
 	write_config(config_p)
 
 @app.command("unset", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@docstring_parameter(" | ".join(config.customizable_params))
 def unset(ctx: typer.Context):
 	"""Removes a set of custom configuration parameters assigned to the current profile.
 
 	A list of space-separated keys is expected
+
+	Available arguments:
+
+	{0}
 	"""
 	profile = config.profile
 	args = ctx.args
