@@ -34,7 +34,7 @@ def parse_context_args(ctx_args: List[str]) -> dict:
         dict: dictionary of key-value cli arguments
     """
     args = []
-    for arg in args:
+    for arg in ctx_args:
         args += arg.split("=")
 
     assert len(args) % 2 == 0, "A malformed set of arguments was passed"
