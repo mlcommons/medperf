@@ -1,7 +1,7 @@
 typer~=0.6.0
 rich~=12.5.0
 PyYAML>=5.4,<6
-requests==2.26.0
+requests>=2.26.0
 yaspin==2.1.0
 tabulate==0.8.9
 pexpect==4.8.0
