@@ -1,3 +1,6 @@
+# docstring_parameter decorator taken from 
+# https://stackoverflow.com/questions/10307696/how-to-put-a-variable-into-python-docstring
+
 import logging
 import functools
 from collections.abc import Callable
