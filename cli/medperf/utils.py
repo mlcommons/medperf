@@ -83,7 +83,7 @@ def load_config(profile: str) -> dict:
 def storage_path(subpath: str):
     """Helper function that converts a path to storage-related path"""
     server_path = config.server.split('//')[1]
-    server_path = server_path.replace('.', '_')
+    server_path = re.sub(r"[.:]", "_", server_path)
     return os.path.join(config.storage, server_path, subpath)
 
 
