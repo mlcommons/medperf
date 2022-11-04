@@ -61,6 +61,7 @@ class BenchmarkExecution:
         self.model_cube = None
         self.run_test = run_test
         self.ignore_errors = ignore_errors
+        self.metadata = {"partial": False}
 
     def prepare(self):
         init_storage()
@@ -133,6 +134,7 @@ class BenchmarkExecution:
                 cleanup([preds_path])
                 pretty_error("Benchmark execution failed")
             else:
+                self.metadata["partial"] = True
                 logging.warning(f"Model MLCube Execution failed: {e}")
         try:
             self.ui.text = "Evaluating results"
@@ -153,6 +155,7 @@ class BenchmarkExecution:
                 cleanup([preds_path, out_path])
                 pretty_error("Benchmark execution failed")
             else:
+                self.metadata["partial"] = True
                 logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
@@ -166,7 +169,7 @@ class BenchmarkExecution:
             "model": self.model_uid,
             "dataset": data_uid,
             "results": self.get_temp_results(),
-            "metadata": {},
+            "metadata": self.metadata,
             "approval_status": Status.PENDING.value,
             "approved_at": None,
             "created_at": None,
