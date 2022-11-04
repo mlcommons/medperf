@@ -3,7 +3,7 @@ import typer
 import configparser
 
 from medperf import config
-from medperf.utils import parse_context_args, dict_pretty_print
+from medperf.utils import parse_context_args, dict_pretty_print, pretty_error
 
 app = typer.Typer()
 
@@ -32,6 +32,9 @@ def create(
 	config_p = read_config()
 
 	filtered_params = {k:v for k, v in args.items() if k in config.customizable_params}
+	if name in config_p:
+		pretty_error("A profile with the same name already exists", config.ui)
+
 	config_p[name] = filtered_params
 	write_config(config_p)
 
