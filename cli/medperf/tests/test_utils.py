@@ -52,6 +52,85 @@ def filesystem():
     return [fs, files]
 
 
+@pytest.mark.parametrize("io", 
+    [
+        (["--key", "value"], {"key": "value"}),
+        (["--cert=test"], {"cert": "test"}),
+        ([], {}),
+    ])
+def test_parse_context_args_creates_expected_dict(io):
+    # Arrange
+    input_args, exp_dict = io
+
+    # Act
+    args_dict = utils.parse_context_args(input_args)
+
+    # Assert
+    assert args_dict == exp_dict
+
+
+@pytest.mark.parametrize("input_args", 
+    [
+        ["key", "value"],
+        ["--cert=test", "invalid"],
+        ["--test", "--test2"]
+    ])
+def test_parse_context_args_fails_on_malformed_input(mocker, input_args):
+    # Act
+    with pytest.raises(AssertionError):
+        utils.parse_context_args(input_args)
+
+
+def test_set_custom_config_modifies_config_params():
+    # Arrange
+    params = config.customizable_params
+    args = {param: param for param in params}
+    backup_args = {param: getattr(config, param) for param in params}
+
+    # Act
+    utils.set_custom_config(args)
+    mod_args = {param: getattr(config, param) for param in params}
+    utils.set_custom_config(backup_args)
+    recovered_args = {param: getattr(config, param) for param in params}
+
+    # Assert
+    assert mod_args == args
+    assert recovered_args == backup_args
+
+
+def test_set_custom_config_ignores_noncustomizable_params():
+    # Arrange
+    config_params = [item for item in dir(config) if not item.startswith("__")]
+    customizable_params = config.customizable_params
+    noncustomizable_params = list(set(config_params) - set(customizable_params))
+    args = {param: param for param in noncustomizable_params}
+    backup_args = {param: getattr(config, param) for param in noncustomizable_params}
+
+    # Act
+    utils.set_custom_config(args)
+    current_args = {param: getattr(config, param) for param in noncustomizable_params}
+
+    # Assert
+    assert backup_args == current_args
+
+
+def test_load_config_reads_profile_from_config_file(mocker):
+    # Arrange
+    profile = "profile"
+    exp_config = {"test": "test"}
+    config_path = os.path.join(config.storage, config.config_path)
+    spy_read = mocker.patch("configparser.ConfigParser.read")
+    spy_get = mocker.patch("configparser.ConfigParser.__getitem__", return_value=exp_config)
+
+    # Act
+    config_params = utils.load_config(profile)
+
+    # Assert
+    spy_read.assert_called_once_with(config_path)
+    spy_get.assert_called_once_with(profile)
+    assert config_params == exp_config
+
+
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
 def test_get_file_sha1_opens_specified_file(mocker, file):
     # Arrange

@@ -36,13 +36,16 @@ def parse_context_args(ctx_args: List[str]) -> dict:
     for arg in ctx_args:
         args += arg.split("=")
 
-    assert len(args) % 2 == 0, "A malformed set of arguments was passed"
+    malformed_msg = "A malformed set of arguments was passed"
+
+    assert len(args) % 2 == 0, malformed_msg
     cli_args = {}
     for idx in range(0, len(args), 2):
         key = args[idx]
         val = args[idx + 1]
         
         assert key[:2] == "--", "Could not identify an argument name"
+        assert val[:2] != "--", malformed_msg
         cli_args[key[2:]] = val
 
     return cli_args
@@ -56,10 +59,9 @@ def set_custom_config(args: dict):
     """
     params = config.customizable_params
     for param in params:
-        val = getattr(config, param)
         if param in args:
             val = args[param]
-        setattr(config, param, val)
+            setattr(config, param, val)
 
 
 def load_config(profile: str) -> dict:
