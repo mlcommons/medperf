@@ -151,7 +151,9 @@ def test_get_extra_information_retrieves_expected_info(
     assert submission.results == results
 
 
-def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
+def test_run_compatibility_test_executes_test_without_force_by_default(
+    mocker, benchmark, comms, ui
+):
     # Arrange
     bmk = benchmark("1", "2", "3", "4")
     benchmark_info = {
@@ -178,7 +180,7 @@ def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once()
+    comp_spy.assert_called_once_with("1", force_test=False)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):
