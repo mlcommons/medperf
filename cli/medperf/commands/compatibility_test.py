@@ -60,7 +60,7 @@ class CompatibilityTestExecution:
         data_prep: str,
         model: str,
         evaluator: str,
-        force_test: bool,
+        force_test: bool = False,
     ):
         self.benchmark_uid = benchmark_uid
         self.demo_dataset_url = None
