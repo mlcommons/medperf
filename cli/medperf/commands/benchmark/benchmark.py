@@ -44,6 +44,9 @@ def submit(
     evaluator_mlcube: str = typer.Option(
         ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
     ),
+    force_test: bool = typer.Option(
+        True, "--force-test", help="Execute the test even if results already exist",
+    ),
 ):
     """Submits a new benchmark to the platform"""
     benchmark_info = {
@@ -56,7 +59,7 @@ def submit(
         "reference_model_mlcube": reference_model_mlcube,
         "evaluator_mlcube": evaluator_mlcube,
     }
-    SubmitBenchmark.run(benchmark_info)
+    SubmitBenchmark.run(benchmark_info, force_test=force_test)
     cleanup()
     config.ui.print("✅ Done!")
 
@@ -74,8 +77,13 @@ def associate(
         None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    force_test: bool = typer.Option(
+        False, "--force-test", help="Execute the test even if results already exist",
+    ),
 ):
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
-    AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, approved=approval)
+    AssociateBenchmark.run(
+        benchmark_uid, model_uid, dataset_uid, approved=approval, force_test=force_test
+    )
     config.ui.print("✅ Done!")
