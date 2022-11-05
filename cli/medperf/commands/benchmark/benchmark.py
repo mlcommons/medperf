@@ -45,7 +45,7 @@ def submit(
         ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
     ),
     force_test: bool = typer.Option(
-        True, "--force-test", help="Execute the test even if results already exist",
+        False, "--force-test", help="Execute the test even if results already exist",
     ),
 ):
     """Submits a new benchmark to the platform"""
