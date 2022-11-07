@@ -4,7 +4,6 @@ import re
 import os
 import sys
 import yaml
-import typer
 import random
 import hashlib
 import logging
@@ -43,7 +42,7 @@ def parse_context_args(ctx_args: List[str]) -> dict:
     for idx in range(0, len(args), 2):
         key = args[idx]
         val = args[idx + 1]
-        
+
         assert key[:2] == "--", "Could not identify an argument name"
         assert val[:2] != "--", malformed_msg
         cli_args[key[2:]] = val
@@ -148,6 +147,7 @@ def init_config():
 
     with open(config_file, "w") as f:
         config_p.write(f)
+
 
 def set_unique_tmp_config():
     """Set current process' temporary unique names

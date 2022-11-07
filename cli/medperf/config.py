@@ -13,7 +13,7 @@ customizable_params = [
 	"evaluate_timeout",
 	"platform",
 	"cleanup"
-	]
+]
 
 version = "0.0.0"
 server = "https://api.medperf.org"
@@ -57,7 +57,7 @@ cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
 cube_get_max_attempts = 3
 
-profile="default"
+profile = "default"
 platform = "docker"
 git_file_domain = "https://raw.githubusercontent.com"
 comms = "REST"

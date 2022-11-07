@@ -1,4 +1,4 @@
-# docstring_parameter decorator taken from 
+# docstring_parameter decorator taken from
 # https://stackoverflow.com/questions/10307696/how-to-put-a-variable-into-python-docstring
 
 import logging
@@ -27,6 +27,7 @@ def clean_except(func: Callable) -> Callable:
             logging.exception(e)
 
     return wrapper
+
 
 def docstring_parameter(*args, **kwargs):
     def dec(obj):

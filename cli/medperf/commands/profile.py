@@ -8,16 +8,19 @@ from medperf.utils import parse_context_args, dict_pretty_print, pretty_error
 
 app = typer.Typer()
 
+
 def read_config():
     config_p = configparser.ConfigParser()
     config_path = os.path.join(config.storage, config.config_path)
     config_p.read(config_path)
     return config_p
 
+
 def write_config(config_p: configparser.ConfigParser):
     config_path = os.path.join(config.storage, config.config_path)
     with open(config_path, "w") as f:
         config_p.write(f)
+
 
 @app.command("create", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 @docstring_parameter(" | ".join(config.customizable_params))
@@ -44,6 +47,7 @@ def create(
     config_p[name] = filtered_params
     write_config(config_p)
 
+
 @app.command("set", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 @docstring_parameter(" | ".join(config.customizable_params))
 def set(ctx: typer.Context):
@@ -65,6 +69,7 @@ def set(ctx: typer.Context):
     config_p[profile] = current_config
     write_config(config_p)
 
+
 @app.command("unset", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 @docstring_parameter(" | ".join(config.customizable_params))
 def unset(ctx: typer.Context):
@@ -85,6 +90,7 @@ def unset(ctx: typer.Context):
             del config_p[profile][key]
     write_config(config_p)
 
+
 @app.command("ls")
 def list():
     """Lists all available profiles
@@ -93,6 +99,7 @@ def list():
     config_p = read_config()
     for profile in config_p:
         ui.print(profile)
+
 
 @app.command("view")
 def view(profile: str = typer.Argument(None)):
