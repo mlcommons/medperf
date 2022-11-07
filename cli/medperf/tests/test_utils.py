@@ -52,7 +52,7 @@ def filesystem():
     return [fs, files]
 
 
-@pytest.mark.parametrize("io", 
+@pytest.mark.parametrize("io",
     [
         (["--key", "value"], {"key": "value"}),
         (["--cert=test"], {"cert": "test"}),
@@ -69,7 +69,7 @@ def test_parse_context_args_creates_expected_dict(io):
     assert args_dict == exp_dict
 
 
-@pytest.mark.parametrize("input_args", 
+@pytest.mark.parametrize("input_args",
     [
         ["key", "value"],
         ["--cert=test", "invalid"],
@@ -498,7 +498,6 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
 @pytest.mark.parametrize("gen_uid", [43, 8])
 def test__results_path_returns_expected_path(bmk, model, gen_uid):
     # Arrange
-    storage = config.storage
     res_storage = config.results_storage
     expected_path = f"{utils.storage_path(res_storage)}/{bmk}/{model}/{gen_uid}"
 

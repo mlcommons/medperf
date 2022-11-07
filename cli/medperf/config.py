@@ -1,18 +1,18 @@
 from os.path import expanduser, abspath
 
 customizable_params = [
-	"server",
-	"certificate",
-	"comms",
-	"ui",
-	"loglevel",
-	"prepare_timeout",
-	"sanity_check_timeout",
-	"statistics_timeout",
-	"infer_timeout",
-	"evaluate_timeout",
-	"platform",
-	"cleanup"
+    "server",
+    "certificate",
+    "comms",
+    "ui",
+    "loglevel",
+    "prepare_timeout",
+    "sanity_check_timeout",
+    "statistics_timeout",
+    "infer_timeout",
+    "evaluate_timeout",
+    "platform",
+    "cleanup"
 ]
 
 version = "0.0.0"
