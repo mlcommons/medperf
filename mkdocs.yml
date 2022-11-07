@@ -3,11 +3,16 @@ site_url: https://medperf.com/
 repo_url: https://github.com/mlcommons/medperf
 repo_name: mlcommons/medperf
 nav:
-  - Home: index.md
-  - About: about.md
-  - CLI: cli/index.md
-  - Server: server/index.md
-  - Code Reference: reference/
+- Introduction: index.md
+- Benchmark Roles: roles.md
+- MedPerf Components: medperf_components.md
+- MLCubes: mlcubes.md
+- Workflow: workflow.md
+- General Instructions: general_instructions.md
+- Instructions for Data Owners: instructions_data_owners.md
+- Intrusctions for Model Owners: instructions_model_owners.md
+- Instructions for Bechmark Committee: instructions_benchmark_committee.md
+- Code Reference: reference/
 theme: 
   features:
     - search.suggest
