@@ -34,6 +34,7 @@ def test_assigns_credentials_to_profile(mocker, profile, comms, ui):
     profile_backup = config.profile
     config.profile = profile
     creds_path = os.path.join(config.storage, config.credentials_path)
+    mocker.patch("os.path.exists", return_value=True)
     spy_read = mocker.patch("configparser.ConfigParser.read")
     spy_set = mocker.patch("configparser.ConfigParser.__setitem__")
     mocker.patch("builtins.open", mock_open())
