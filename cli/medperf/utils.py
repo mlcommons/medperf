@@ -19,7 +19,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
-from medperf.exceptions import InvalidEntityError, CubeTimeoutError
+from medperf.exceptions import InvalidEntityError
 
 
 def storage_path(subpath: str):
