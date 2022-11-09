@@ -173,9 +173,7 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
         timeout=None,
         data_path="data_path",
         output_path=preds_path,
-        string_params={
-            'Ptasks.infer.parameters.input.data_path.opts': 'ro',
-        }
+        string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro",},
     )
     evaluate = call(
         task="evaluate",
@@ -184,9 +182,9 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
         labels="labels_path",
         output_path=result_path,
         string_params={
-            'Ptasks.evaluate.parameters.input.predictions.opts': 'ro',
-            'Ptasks.evaluate.parameters.input.labels.opts': 'ro'
-        }
+            "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
+            "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+        },
     )
 
     # Act
@@ -228,7 +226,13 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     out_path = "out_path"
     preds_path = "preds_path"
 
-    failed_cube = execution.model_cube if mlcube == "model" else execution.evaluator
+    if mlcube == "model":
+        failed_cube = execution.model_cube
+        exp_outpaths = [preds_path]
+    else:
+        failed_cube = execution.evaluator
+        exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
+
     mocker.patch.object(
         failed_cube,
         "run",
@@ -242,8 +246,6 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     )
     spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
     spy_error = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
-
-    exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
 
     # Act
     execution.run_cubes()
@@ -313,3 +315,43 @@ def test_remove_temp_results_removes_file(mocker, path, execution):
 
     # Assert
     spy.assert_called_once_with(deleted)
+
+
+@pytest.mark.parametrize("ignore_errors", [False, True])
+@pytest.mark.parametrize("mlcube", ["model", "eval"])
+def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_errors):
+    # Arrange
+    execution.dataset.data_path = "data_path"
+    execution.model_cube.cube_path = "cube_path"
+    execution.ignore_errors = ignore_errors
+    out_path = "out_path"
+    preds_path = "preds_path"
+
+    if mlcube == "model":
+        failed_cube = execution.model_cube
+    else:
+        failed_cube = execution.evaluator
+    mocker.patch.object(
+        failed_cube,
+        "run",
+        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("results_path"), return_value=out_path,
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
+    )
+    mocker.patch(PATCH_EXECUTION.format("cleanup"))
+    spy_error = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
+
+    # Act
+    execution.run_cubes()
+
+    # Assert
+    if ignore_errors:
+        spy_error.assert_not_called()
+        assert execution.metadata["partial"] is True
+    else:
+        spy_error.assert_called_once()
+        assert execution.metadata["partial"] is False

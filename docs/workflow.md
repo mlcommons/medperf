@@ -66,6 +66,7 @@ After submitting the Data Preparator MLCube, Model MLCube, and Metrics MLCube, t
 
 Once a reference benchmark is submitted by the Benchmark Committee, any user can submit their own Model MLCubes and request an association with the benchmark (check step 4 in the section “[Preparing a Dataset](instructions_data_owners.md#preparing-a-dataset)” if you are a Data Provider, or check [this section](instructions_model_owners.md#requesting-association-to-a-benchmark) if you are a Model Owner). This association request executes the benchmark locally with the given model to ensure compatibility. If the model successfully passes the compatibility test, and its association is approved by the Benchmark Committee, then it becomes part of the benchmark. 
 
+
 ![](./images/submitting_associating_additional_models_1.png)
 
 ## Dataset Preparation and Association
