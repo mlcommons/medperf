@@ -12,6 +12,6 @@ The backend server is implemented in Django, and it can be found in the [server 
 
 A command-line interface (CLI) is a text-based user interface (UI) used to run programs, manage files and interact with the computer. 
 
-The MedPerf CLI contains all the necessary tools to interact with the server, preparing datasets for benchmarks and running experiments on the local machine. It can be found in the [cli folder](https://github.com/mlcommons/medperf/tree/docs/cli) in the MedPerf Github repository. 
+The MedPerf CLI contains all the necessary tools to interact with the server, preparing datasets for benchmarks and running experiments on the local machine. It can be found in the [cli folder](https://github.com/mlcommons/medperf/tree/main/cli) in the MedPerf Github repository. 
 
 The CLI communicates to the server through the API to, for example, authenticate a user, retrieve benchmarks/MLcubes and send results.
