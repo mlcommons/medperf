@@ -44,9 +44,6 @@ def submit(
     evaluator_mlcube: str = typer.Option(
         ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
     ),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
-    ),
 ):
     """Submits a new benchmark to the platform"""
     benchmark_info = {
@@ -59,7 +56,7 @@ def submit(
         "reference_model_mlcube": reference_model_mlcube,
         "evaluator_mlcube": evaluator_mlcube,
     }
-    SubmitBenchmark.run(benchmark_info, force_test=force_test)
+    SubmitBenchmark.run(benchmark_info)
     cleanup()
     config.ui.print("✅ Done!")
 

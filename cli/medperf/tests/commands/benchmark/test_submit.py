@@ -180,7 +180,7 @@ def test_run_compatibility_test_executes_test_without_force_by_default(
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once_with("1", force_test=False)
+    comp_spy.assert_called_once_with("1", force_test=True)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):

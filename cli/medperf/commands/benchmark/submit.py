@@ -10,7 +10,7 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 class SubmitBenchmark:
     @classmethod
-    def run(cls, benchmark_info: dict, force_test: bool = False):
+    def run(cls, benchmark_info: dict, force_test: bool = True):
         """Submits a new cube to the medperf platform
         Args:
             benchmark_info (dict): benchmark information
@@ -38,7 +38,7 @@ class SubmitBenchmark:
         ui.print("Uploaded")
         submission.write(updated_benchmark_body)
 
-    def __init__(self, benchmark_info: dict, force_test: bool = False):
+    def __init__(self, benchmark_info: dict, force_test: bool = True):
         self.comms = config.comms
         self.ui = config.ui
         self.name = benchmark_info["name"]
