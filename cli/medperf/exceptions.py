@@ -16,7 +16,7 @@ class InvalidEntityError(Exception):
 
 class InvalidArgumentError(Exception):
     """Raised when an argument or set of arguments are consided invalid"""
-    
+
 
 class EntityRetrievalError(Exception):
     """Raised when an entity could not be retrieved"""
