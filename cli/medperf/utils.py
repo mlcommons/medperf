@@ -99,7 +99,7 @@ def cleanup(extra_paths: List[str] = []):
             try:
                 rmtree(path)
             except OSError as e:
-                logging.error(f"Could not remove clutter path")
+                logging.error("Could not remove clutter path")
                 raise e
 
     cleanup_dsets()

@@ -140,7 +140,6 @@ class Cube(Entity):
         """Downloads the required elements for an mlcube to run locally.
         """
         comms = config.comms
-        ui = config.ui
         cube_uid = self.uid
         self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
         local_additional_hash = ""

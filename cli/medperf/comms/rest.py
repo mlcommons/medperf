@@ -13,7 +13,7 @@ from medperf.utils import (
     sanitize_json,
 )
 from medperf.exceptions import (
-    CommunicationRetrievalError, 
+    CommunicationRetrievalError,
     CommunicationAuthenticationError,
     CommunicationRequestError
 )

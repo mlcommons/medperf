@@ -253,7 +253,6 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
 @pytest.mark.parametrize("is_valid", [True, False])
 def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
     # Arrange
-    spy = mocker.patch(patch_utils.format("pretty_error"))
     cube = MockCube(is_valid)
 
     # Act & Assert
