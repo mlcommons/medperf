@@ -227,6 +227,13 @@ class CompatibilityTestExecution:
         return data_path, labels_path
 
     def cached_result(self):
+        """checks the existance of, and retrieves if possible, the compatibility test
+        result. This method is called prior to the test execution.
+
+        Returns:
+            (Result|None): None if the result does not exist or if self.force_test is True,
+            otherwise it returns the found result.
+        """
         if self.force_test:
             return
         tmp_benchmark_uid = (
