@@ -87,10 +87,8 @@ def cleanup(extra_paths: List[str] = []):
             try:
                 rmtree(path)
             except OSError as e:
-                logging.error(f"Could not remove clutter path: {e}")
-                config.ui.print_error(
-                    "Could not remove clutter directory. For more information check the logs."
-                )
+                logging.error(f"Could not remove clutter path")
+                raise e
 
     cleanup_dsets()
     cleanup_cubes()
@@ -117,10 +115,8 @@ def cleanup_dsets():
             try:
                 rmtree(dset_path)
             except OSError as e:
-                logging.error(f"Could not remove dataset {dset}: {e}")
-                config.ui.print_error(
-                    f"Could not remove dataset {dset}. For more information check the logs."
-                )
+                logging.error(f"Could not remove dataset {dset}")
+                raise e
 
 
 def cleanup_cubes():
@@ -144,10 +140,8 @@ def cleanup_cubes():
                 else:
                     rmtree(cube_path)
             except OSError as e:
-                logging.error(f"Could not remove cube {cube}: {e}")
-                config.ui.print_error(
-                    f"Could not remove cube {cube}. For more information check the logs."
-                )
+                logging.error(f"Could not remove cube {cube}")
+                raise e
 
 
 def cleanup_benchmarks():
@@ -164,10 +158,8 @@ def cleanup_benchmarks():
             try:
                 rmtree(bmk_path)
             except OSError as e:
-                logging.error(f"Could not remove benchmark {bmk}: {e}")
-                config.ui.print_error(
-                    f"Could not remove benchmark {bmk}. For more information check the logs."
-                )
+                logging.error(f"Could not remove benchmark {bmk}")
+                raise e
 
 
 def get_uids(path: str) -> List[str]:
