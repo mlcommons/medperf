@@ -7,7 +7,6 @@ from pathlib import Path
 
 from medperf.utils import (
     get_file_sha1,
-    pretty_error,
     untar,
     combine_proc_sp_text,
     list_files,
@@ -15,6 +14,7 @@ from medperf.utils import (
     cleanup
 )
 from medperf.entities.interface import Entity
+from medperf.exceptions import InvalidEntityError
 import medperf.config as config
 
 
@@ -90,7 +90,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg)
+            raise RuntimeError(msg)
 
         cubes = []
         for uid in uids:
@@ -134,7 +134,7 @@ class Cube(Entity):
         logging.error("Max download attempts reached")
         cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
         cleanup([cube_path])
-        pretty_error("Could not successfully download the requested MLCube")
+        raise InvalidEntityError("Could not successfully download the requested MLCube")
 
     def download(self):
         """Downloads the required elements for an mlcube to run locally.

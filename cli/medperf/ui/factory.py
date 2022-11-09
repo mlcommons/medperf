@@ -1,7 +1,7 @@
 from .cli import CLI
 from .interface import UI
 from .stdin import StdIn
-from medperf.utils import pretty_error
+from medperf.exceptions import InvalidArgumentError
 
 
 class UIFactory:
@@ -13,4 +13,5 @@ class UIFactory:
         elif name == "stdin":
             return StdIn()
         else:
-            pretty_error(f"{name}: the indicated UI interface doesn't exist")
+            msg = f"{name}: the indicated UI interface doesn't exist"
+            raise InvalidArgumentError(msg)

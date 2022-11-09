@@ -19,6 +19,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
+from medperf.exceptions import InvalidEntityError, CubeTimeoutError
 
 
 def storage_path(subpath: str):
@@ -257,7 +258,7 @@ def check_cube_validity(cube: "Cube"):
     ui = config.ui
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        raise InvalidEntityError("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -343,8 +344,8 @@ def combine_proc_sp_text(proc: spawn) -> str:
         try:
             line = byte = proc.read(1)
         except TIMEOUT:
-            logging.info("Process timed out")
-            pretty_error("Process timed out")
+            logging.error("Process timed out")
+            raise TIMEOUT("Process timed out")
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -417,7 +418,7 @@ def results_ids():
     except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
-        pretty_error(msg)
+        raise StopIteration(msg)
     logging.debug(f"Results ids: {results_ids}")
     return results_ids
 
