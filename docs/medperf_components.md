@@ -6,7 +6,7 @@ MedPerf is currently composed of two main components:
 
 The server contains all the metadata necessary to coordinate and execute experiments. No code assets or datasets are stored on the server.
 
-The backend server is implemented in Django, and it can be found in the [server folder](https://github.com/mlcommons/medperf/tree/docs/server) in the MedPerf Github repository. 
+The backend server is implemented in Django, and it can be found in the [server folder](https://github.com/mlcommons/medperf/tree/main/server) in the MedPerf Github repository. 
 
 ## MedPerf Command-Line Interface (CLI) 
 
