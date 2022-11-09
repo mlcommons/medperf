@@ -73,6 +73,18 @@ def init_storage():
             logging.warning(f"Tried to create existing folder {dir}")
 
 
+def set_unique_tmp_config():
+    """Set current process' temporary unique names
+    Enables simultaneous execution without cleanup collision
+    """
+    pid = str(os.getpid())
+    config.tmp_storage += pid
+    config.tmp_prefix += pid
+    config.test_dset_prefix += pid
+    config.test_cube_prefix += pid
+    config.cube_submission_id += pid
+
+
 def cleanup(extra_paths: List[str] = []):
     """Removes clutter and unused files from the medperf folder structure.
     """
