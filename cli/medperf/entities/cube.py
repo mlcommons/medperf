@@ -7,7 +7,6 @@ from pathlib import Path
 
 from medperf.utils import (
     get_file_sha1,
-    pretty_error,
     untar,
     combine_proc_sp_text,
     list_files,
@@ -15,6 +14,7 @@ from medperf.utils import (
     cleanup
 )
 from medperf.entities.interface import Entity
+from medperf.exceptions import InvalidEntityError
 import medperf.config as config
 
 
@@ -90,7 +90,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            pretty_error(msg)
+            raise RuntimeError(msg)
 
         cubes = []
         for uid in uids:
@@ -134,13 +134,12 @@ class Cube(Entity):
         logging.error("Max download attempts reached")
         cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
         cleanup([cube_path])
-        pretty_error("Could not successfully download the requested MLCube")
+        raise InvalidEntityError("Could not successfully download the requested MLCube")
 
     def download(self):
         """Downloads the required elements for an mlcube to run locally.
         """
         comms = config.comms
-        ui = config.ui
         cube_uid = self.uid
         self.cube_path = comms.get_cube(self.git_mlcube_url, cube_uid)
         local_additional_hash = ""
@@ -151,23 +150,15 @@ class Cube(Entity):
         if self.additional_files_tarball_url:
             url = self.additional_files_tarball_url
             additional_path = comms.get_cube_additional(url, cube_uid)
-            if not self.additional_hash:
-                # log interactive ui only during submission
-                ui.text = "Generating additional file hash"
             local_additional_hash = get_file_sha1(additional_path)
             if not self.additional_hash:
-                ui.print("Additional file hash generated")
                 self.additional_hash = local_additional_hash
             untar(additional_path)
         if self.image_tarball_url:
             url = self.image_tarball_url
             image_path = comms.get_cube_image(url, cube_uid)
-            if not self.image_tarball_hash:
-                # log interactive ui only during submission
-                ui.text = "Generating image file hash"
             local_image_hash = get_file_sha1(image_path)
             if not self.image_tarball_hash:
-                ui.print("Image file hash generated")
                 self.image_tarball_hash = local_image_hash
             untar(image_path)
         else:
