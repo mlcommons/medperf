@@ -1,6 +1,6 @@
 from .rest import REST
 from .interface import Comms
-from medperf.utils import pretty_error
+from medperf.exceptions import InvalidArgumentError
 
 
 class CommsFactory:
@@ -10,4 +10,5 @@ class CommsFactory:
         if name == "rest":
             return REST(host)
         else:
-            pretty_error("the indicated communication interface doesn't exist")
+            msg = "the indicated communication interface doesn't exist"
+            raise InvalidArgumentError(msg)
