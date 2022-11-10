@@ -7,6 +7,7 @@ from typing import List
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.utils import storage_path
+from medperf.exceptions import CommunicationRetrievalError
 
 
 class Benchmark(Entity):
@@ -84,17 +85,20 @@ class Benchmark(Entity):
             Benchmark: a Benchmark instance with the retrieved data.
         """
         comms = config.comms
-        # Get local benchmarks
-        bmk_storage = storage_path(config.benchmarks_storage)
-        local_bmks = os.listdir(bmk_storage)
-        if str(benchmark_uid) in local_bmks and not force_update:
-            benchmark_dict = cls.__get_local_dict(benchmark_uid)
-        else:
-            # Download benchmark
+        # Try to download first
+        try:
             benchmark_dict = comms.get_benchmark(benchmark_uid)
             ref_model = benchmark_dict["reference_model_mlcube"]
             add_models = cls.get_models_uids(benchmark_uid)
             benchmark_dict["models"] = [ref_model] + add_models
+        except CommunicationRetrievalError:
+            # Get local benchmarks
+            logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
+            logging.info(f"Looking for benchmark {benchmark_uid} locally")
+            bmk_storage = storage_path(config.benchmarks_storage)
+            local_bmks = os.listdir(bmk_storage)
+            if str(benchmark_uid) in local_bmks and not force_update:
+                benchmark_dict = cls.__get_local_dict(benchmark_uid)
         benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
