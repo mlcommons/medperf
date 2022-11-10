@@ -160,11 +160,13 @@ class REST(Comms):
             if res.status_code != 200:
                 if not binary_reduction:
                     log_response_error(res)
-                    pretty_error("there was an error retrieving the current list.")
+                    raise CommunicationRetrievalError(
+                        "there was an error retrieving the current list."
+                    )
 
                 log_response_error(res, warn=True)
                 if page_size <= 1:
-                    pretty_error(
+                    raise CommunicationRetrievalError(
                         "Could not retrieve list. Minimum page size achieved without success."
                     )
                 page_size = page_size // 2

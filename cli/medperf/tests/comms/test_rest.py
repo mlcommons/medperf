@@ -331,13 +331,8 @@ def test__get_list_fails_if_failing_element_encountered(mocker, server):
     failing_body = MockResponse({}, 500)
     mocker.patch.object(server, "_REST__auth_get", return_value=failing_body)
 
-    def __side_effect(*args):
-        exit()
-
-    mocker.patch(patch_server.format("pretty_error"), side_effect=__side_effect)
-
     # Act & Assert
-    with pytest.raises(SystemExit):
+    with pytest.raises(Exception):
         server._REST__get_list(url, page_size=1)
 
 
