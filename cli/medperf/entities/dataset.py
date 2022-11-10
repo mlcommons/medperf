@@ -6,10 +6,10 @@ from typing import List
 
 from medperf.utils import (
     get_uids,
-    pretty_error,
     storage_path,
 )
 from medperf.entities.interface import Entity
+from medperf.exceptions import InvalidArgumentError
 import medperf.config as config
 
 
@@ -111,7 +111,7 @@ class Dataset(Entity):
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory")
+            raise RuntimeError("Couldn't iterate over the dataset directory")
         dsets = []
         for generated_uid in generated_uids:
             dsets.append(cls.from_generated_uid(generated_uid))
@@ -160,11 +160,12 @@ class Dataset(Entity):
         dsets = get_uids(data_storage)
         match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
         if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
+            msg = f"No dataset was found with uid hint {uid_hint}."
         elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
+            msg = f"Multiple datasets were found with uid hint {uid_hint}."
         else:
             return match[0]
+        raise InvalidArgumentError(msg)
 
     def write(self):
         logging.info(f"Updating registration information for dataset: {self.uid}")
