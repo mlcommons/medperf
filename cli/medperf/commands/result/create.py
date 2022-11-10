@@ -67,7 +67,7 @@ class BenchmarkExecution:
         init_storage()
         # If not running the test, redownload the benchmark
         update_bmk = not self.run_test
-        self.benchmark = Benchmark.get(self.benchmark_uid, force_update=update_bmk)
+        self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.from_generated_uid(self.data_uid)
         if not self.run_test:
