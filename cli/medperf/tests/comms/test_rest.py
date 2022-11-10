@@ -144,14 +144,11 @@ def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
     mocker.patch("requests.get", return_value=res)
     mocker.patch("requests.post", return_value=res)
     mocker.patch(patch_server.format("REST._REST__auth_req"), return_value=res)
-    spy = mocker.patch(patch_server.format("pretty_error"))
     method = getattr(server, method)
 
-    # Act
-    method(*args)
-
-    # Assert
-    spy.assert_called()
+    # Act & Assert
+    with pytest.raises(Exception):
+        method(*args)
 
 
 @pytest.mark.parametrize("uname", ["test", "admin", "user"])

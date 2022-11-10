@@ -70,10 +70,17 @@ def execute(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    ignore_errors: bool = typer.Option(
+        False,
+        "--ignore-errors",
+        help="Ignore failing cubes, allowing for submitting partial results",
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
+    BenchmarkExecution.run(
+        benchmark_uid, data_uid, model_uid, ignore_errors=ignore_errors
+    )
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
