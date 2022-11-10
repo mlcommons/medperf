@@ -151,9 +151,7 @@ def test_get_extra_information_retrieves_expected_info(
     assert submission.results == results
 
 
-def test_run_compatibility_test_executes_test_without_force_by_default(
-    mocker, benchmark, comms, ui
-):
+def test_run_compatibility_test_executes_test_with_force(mocker, benchmark, comms, ui):
     # Arrange
     bmk = benchmark("1", "2", "3", "4")
     benchmark_info = {
