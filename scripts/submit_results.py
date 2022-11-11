@@ -1,7 +1,11 @@
+import os
+import shutil
+from pathlib import Path
 import argparse
 import medperf
 from medperf import config
 from medperf.entities.result import Result
+from medperf.entities.benchmark import Benchmark
 from medperf.ui.factory import UIFactory
 from medperf.comms.factory import CommsFactory
 from medperf.commands.result.submit import ResultSubmission
@@ -17,9 +21,26 @@ def setup():
 def get_results(benchmark_uid: int):
     # Get all local results
     all_results = Result.all(config.ui)
+    # Get associted benchmark
+    benchmark = Benchmark.get(benchmark_uid, config.comms)
+    dataprep = benchmark.data_preparation
+    model = benchmark.reference_model
+    evaluator = benchmark.evaluator
+    benchmark_test_uid = f"{config.tmp_prefix}{dataprep}_{model}_{evaluator}"
     results = []
     for result in all_results:
         is_test = not result.benchmark_uid.isdigit()
+        is_related_test = result.benchmark_uid == benchmark_test_uid
+        uses_real_data = result.dataset_uid.isdigit()
+        if is_test and is_related_test and uses_real_data:
+            # Convert this test into an actual result
+            current_path = result.path
+            new_path = current_path.replace(benchmark_test_uid, str(benchmark_uid))
+            dir = str(Path(new_path).parent)
+            os.makedirs(dir, exist_ok=True)
+            shutil.move(current_path, new_path)
+            result = Result(benchmark_uid, result.dataset_uid, result.model_uid)
+            is_test = False
         is_submitted = result.uid is not None
         # Filter out temporary or submitted results
         if is_test or is_submitted:
