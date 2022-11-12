@@ -54,7 +54,7 @@ def test_run_associates_cube_with_comms(
 
 @pytest.mark.parametrize("cube_uid", [3081, 1554])
 @pytest.mark.parametrize("benchmark_uid", [3739, 4419])
-def test_run_calls_compatibility_test(
+def test_run_calls_compatibility_test_without_force_by_default(
     mocker, cube, benchmark, cube_uid, benchmark_uid, result, comms, ui
 ):
     # Arrange
@@ -68,4 +68,4 @@ def test_run_calls_compatibility_test(
     AssociateCube.run(cube_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(benchmark_uid, model=cube_uid)
+    spy.assert_called_once_with(benchmark_uid, model=cube_uid, force_test=False)
