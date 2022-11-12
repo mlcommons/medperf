@@ -42,7 +42,9 @@ class MlCubeTest(MedPerfTest):
         testmlcube = {
             "name": "testmlcube",
             "git_mlcube_url": "string",
+            "mlcube_hash": "string",
             "git_parameters_url": "string",
+            "parameters_hash": "string",
             "image_tarball_url": "string",
             "image_tarball_hash": "string",
             "additional_files_tarball_url": "string",

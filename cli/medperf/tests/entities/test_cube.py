@@ -15,7 +15,9 @@ from medperf.exceptions import InvalidEntityError
 PATCH_SERVER = "medperf.entities.benchmark.Comms.{}"
 PATCH_CUBE = "medperf.entities.cube.{}"
 CUBE_PATH = "cube_path"
+CUBE_HASH = "cube_hash"
 PARAMS_PATH = "params_path"
+PARAMS_HASH = "params_hash"
 TARBALL_PATH = "additional_files_tarball_path"
 TARBALL_HASH = "additional_files_tarball_hash"
 IMG_PATH = "image_tarball_url"
@@ -63,6 +65,9 @@ def basic_body(mocker, comms):
 
 @pytest.fixture
 def params_body(mocker, comms):
+    mocker.patch(
+        PATCH_CUBE.format("get_file_sha1"), side_effect=[CUBE_HASH, PARAMS_HASH]
+    )
     body_gen = cube_metadata_generator(with_params=True)
     mocker.patch.object(comms, "get_cube_metadata", side_effect=body_gen)
     mpexpect = MockPexpect(0)
@@ -75,7 +80,9 @@ def params_body(mocker, comms):
 
 @pytest.fixture
 def tar_body(mocker, comms):
-    mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=TARBALL_HASH)
+    mocker.patch(
+        PATCH_CUBE.format("get_file_sha1"), side_effect=[CUBE_HASH, TARBALL_HASH]
+    )
     body_gen = cube_metadata_generator(with_tarball=True)
     mocker.patch.object(comms, "get_cube_metadata", side_effect=body_gen)
     mpexpect = MockPexpect(0)
@@ -88,7 +95,7 @@ def tar_body(mocker, comms):
 
 @pytest.fixture
 def img_body(mocker, comms):
-    mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=IMG_HASH)
+    mocker.patch(PATCH_CUBE.format("get_file_sha1"), side_effect=[CUBE_HASH, IMG_HASH])
     body_gen = cube_metadata_generator(with_image=True)
     mocker.patch.object(comms, "get_cube_metadata", side_effect=body_gen)
     mocker.patch(PATCH_CUBE.format("Cube.store_local_hashes"))
@@ -249,7 +256,7 @@ def test_get_cube_with_tarball_generates_tarball_hash(
     Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(TARBALL_PATH)
+    spy.assert_has_calls([call(CUBE_PATH), call(TARBALL_PATH)])
 
 
 def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body, no_local):
@@ -338,7 +345,7 @@ def test_get_cube_with_image_generates_image_tarball_hash(
     Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(IMG_PATH)
+    spy.assert_has_calls([call(CUBE_PATH), call(IMG_PATH)])
 
 
 def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
@@ -477,7 +484,7 @@ def test_cube_is_invalid_if_invalidated(mocker, ui, comms, basic_body, no_local)
     uid = 1
     local_hashes = cube_local_hashes_generator()
     mocker.patch(PATCH_CUBE.format("Cube.get_local_hashes"), return_value=local_hashes)
-    cube = Cube.get(uid)
+    cube = Cube(cube_metadata_generator()(uid))
     cube.is_cube_valid = False
 
     # Act & Assert
