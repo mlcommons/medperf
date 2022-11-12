@@ -553,7 +553,6 @@ class REST(Comms):
             metadata (dict, optional): Additional metadata. Defaults to {}.
         """
         data = {
-            "results": {},
             "approval_status": Status.PENDING.value,
             "model_mlcube": cube_uid,
             "benchmark": benchmark_uid,
