@@ -23,8 +23,9 @@ class ModelResultList(GenericAPIView):
         List all results
         """
         modelresults = ModelResult.objects.all()
+        modelresults = self.paginate_queryset(modelresults)
         serializer = ModelResultSerializer(modelresults, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """

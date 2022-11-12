@@ -20,8 +20,9 @@ class BenchmarkList(GenericAPIView):
         List all benchmarks
         """
         benchmarks = Benchmark.objects.all()
+        benchmarks = self.paginate_queryset(benchmarks)
         serializer = BenchmarkSerializer(benchmarks, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """
@@ -53,8 +54,9 @@ class BenchmarkModelList(GenericAPIView):
         benchmark = self.get_object(pk)
         modelgroups = benchmark.benchmarkmodel_set.all()
         models = [gp.model_mlcube for gp in modelgroups]
+        models = self.paginate_queryset(models)
         serializer = MlCubeSerializer(models, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class BenchmarkDatasetList(GenericAPIView):
@@ -74,8 +76,9 @@ class BenchmarkDatasetList(GenericAPIView):
         benchmark = self.get_object(pk)
         datasetgroups = benchmark.benchmarkdataset_set.all()
         datasets = [gp.dataset for gp in datasetgroups]
+        datasets = self.paginate_queryset(datasets)
         serializer = DatasetSerializer(datasets, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class BenchmarkResultList(GenericAPIView):
@@ -95,8 +98,9 @@ class BenchmarkResultList(GenericAPIView):
         """
         benchmark = self.get_object(pk)
         results = benchmark.modelresult_set.all()
+        results = self.paginate_queryset(results)
         serializer = ModelResultSerializer(results, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class BenchmarkDetail(GenericAPIView):

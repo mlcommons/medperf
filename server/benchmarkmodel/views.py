@@ -44,8 +44,9 @@ class BenchmarkModelApproval(GenericAPIView):
         Retrieve all benchmarks associated with a model
         """
         benchmarkmodel = self.get_object(pk)
+        benchmarkmodel = self.paginate_queryset(benchmarkmodel)
         serializer = BenchmarkModelListSerializer(benchmarkmodel, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class ModelApproval(GenericAPIView):

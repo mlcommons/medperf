@@ -54,7 +54,7 @@ class UserTest(MedPerfTest):
 
         response = self.client.get("/users/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
         response = self.client.delete("/users/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

@@ -17,8 +17,9 @@ class MlCubeList(GenericAPIView):
         List all mlcubes
         """
         mlcubes = MlCube.objects.all()
+        mlcubes = self.paginate_queryset(mlcubes)
         serializer = MlCubeSerializer(mlcubes, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """
