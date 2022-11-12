@@ -18,8 +18,9 @@ class UserList(GenericAPIView):
         List all users
         """
         users = User.objects.all()
+        users = self.paginate_queryset(users)
         serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """

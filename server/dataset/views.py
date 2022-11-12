@@ -17,8 +17,9 @@ class DatasetList(GenericAPIView):
         List all datasets
         """
         datasets = Dataset.objects.all()
+        datasets = self.paginate_queryset(datasets)
         serializer = DatasetSerializer(datasets, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """

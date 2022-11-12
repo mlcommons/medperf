@@ -1,4 +1,4 @@
-from medperf.utils import approval_prompt, pretty_error
+from medperf.utils import approval_prompt, pretty_error, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
@@ -33,6 +33,7 @@ class DatasetRegistration:
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
             return
 
+        dict_pretty_print(dset.todict())
         msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
         approved = approved or approval_prompt(msg)
         dset.status = Status("APPROVED") if approved else Status("REJECTED")

@@ -64,9 +64,10 @@ class BenchmarkList(GenericAPIView):
         """
         Retrieve all benchmarks owned by the current user
         """
-        user = self.get_object(request.user.id)
-        serializer = BenchmarkSerializer(user, many=True)
-        return Response(serializer.data)
+        benchmarks = self.get_object(request.user.id)
+        benchmarks = self.paginate_queryset(benchmarks)
+        serializer = BenchmarkSerializer(benchmarks, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class MlCubeList(GenericAPIView):
@@ -84,8 +85,9 @@ class MlCubeList(GenericAPIView):
         Retrieve all mlcubes associated with the current user
         """
         mlcubes = self.get_object(request.user.id)
+        mlcubes = self.paginate_queryset(mlcubes)
         serializer = MlCubeSerializer(mlcubes, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class DatasetList(GenericAPIView):
@@ -103,8 +105,9 @@ class DatasetList(GenericAPIView):
         Retrieve all datasets associated with the current user
         """
         datasets = self.get_object(request.user.id)
+        datasets = self.paginate_queryset(datasets)
         serializer = DatasetSerializer(datasets, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class ModelResultList(GenericAPIView):
@@ -122,8 +125,9 @@ class ModelResultList(GenericAPIView):
         Retrieve all results associated with the current user
         """
         results = self.get_object(request.user.id)
+        results = self.paginate_queryset(results)
         serializer = ModelResultSerializer(results, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class DatasetAssociationList(GenericAPIView):
@@ -143,8 +147,9 @@ class DatasetAssociationList(GenericAPIView):
         Retrieve all dataset associations involving an asset of mine
         """
         benchmarkdatasets = self.get_object(request.user.id)
+        benchmarkdatasets = self.paginate_queryset(benchmarkdatasets)
         serializer = BenchmarkDatasetListSerializer(benchmarkdatasets, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class MlCubeAssociationList(GenericAPIView):
@@ -164,5 +169,6 @@ class MlCubeAssociationList(GenericAPIView):
         Retrieve all mlcube associations involving an asset of mine
         """
         benchmarkmodels = self.get_object(request.user.id)
+        benchmarkmodels = self.paginate_queryset(benchmarkmodels)
         serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)

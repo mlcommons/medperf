@@ -345,7 +345,7 @@ def seed(args):
         {
             "model_mlcube": model_executor1_mlcube,
             "benchmark": benchmark,
-            "results": {"key1": "value1", "key2": "value2"},
+            "metadata": {"key1": "value1", "key2": "value2"},
         },
         "approval_status",
     )

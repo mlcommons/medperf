@@ -43,6 +43,7 @@ cube_get_max_attempts = 3
 default_comms = "REST"
 default_ui = "CLI"
 platform = "docker"
+default_page_size = 32  # This number was chosen arbitrarily
 comms = None
 ui = None
 
