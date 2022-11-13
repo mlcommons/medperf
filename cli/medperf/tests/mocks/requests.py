@@ -47,6 +47,7 @@ def cube_metadata_generator(with_params=False, with_tarball=False, with_image=Fa
         [type]: [description]
     """
     params = "parameters_url" if with_params else ""
+    params_hash = "parameters_hash" if with_params else ""
     tarball = "additional_files_tarball_url" if with_tarball else ""
     tar_hash = "additional_files_tarball_hash" if with_tarball else ""
     image = "image_tarball_url" if with_image else ""
@@ -58,7 +59,9 @@ def cube_metadata_generator(with_params=False, with_tarball=False, with_image=Fa
                 "id": cube_uid,
                 "name": "test_cube",
                 "git_mlcube_url": "mlcube_url",
+                "mlcube_hash": "mlcube_hash",
                 "git_parameters_url": params,
+                "parameters_hash": params_hash,
                 "additional_files_tarball_url": tarball,
                 "additional_files_tarball_hash": tar_hash,
                 "image_tarball_url": image,
@@ -155,7 +158,9 @@ def cube_dict(kwargs={}):
     json_ = {
         "name": "",
         "git_mlcube_url": "",
+        "mlcube_hash": "",
         "git_parameters_url": "",
+        "parameters_hash": "",
         "image_tarball_url": "",
         "image_tarball_hash": "",
         "additional_files_tarball_url": "",

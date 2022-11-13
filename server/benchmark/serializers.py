@@ -62,6 +62,7 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
                 "is_active",
                 "user_metadata",
                 "approval_status",
+                "demo_dataset_tarball_url",
             ]
             for k, v in data.items():
                 if k not in editable_fields:

@@ -6,7 +6,12 @@ from medperf.commands.dataset.associate import AssociateDataset
 class AssociateBenchmark:
     @classmethod
     def run(
-        cls, benchmark_uid: str, model_uid: str, data_uid: str, approved=False,
+        cls,
+        benchmark_uid: str,
+        model_uid: str,
+        data_uid: str,
+        approved=False,
+        force_test=False,
     ):
         """Associates a dataset or model to the given benchmark
 
@@ -23,7 +28,11 @@ class AssociateBenchmark:
         if no_resource or too_many_resources:
             pretty_error("Invalid arguments. Must provide either a dataset or mlcube")
         if model_uid is not None:
-            AssociateCube.run(model_uid, benchmark_uid, approved=approved)
+            AssociateCube.run(
+                model_uid, benchmark_uid, approved=approved, force_test=force_test
+            )
 
         if data_uid is not None:
-            AssociateDataset.run(data_uid, benchmark_uid, approved=approved)
+            AssociateDataset.run(
+                data_uid, benchmark_uid, approved=approved, force_test=force_test
+            )
