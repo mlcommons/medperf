@@ -6,6 +6,7 @@ from medperf.decorators import clean_except
 from medperf.commands.benchmark.list import BenchmarksList
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
+from medperf.commands.benchmark.run import BenchmarkRunAll
 
 app = typer.Typer()
 
@@ -78,4 +79,25 @@ def associate(
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
     AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("run")
+@clean_except
+def run(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+    ignore_errors: bool = typer.Option(
+        False,
+        "--ignore-errors",
+        help="Ignore failing cubes, allowing for submitting partial results",
+    ),
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model
+    """
+    BenchmarkRunAll.run(benchmark_uid, data_uid, ignore_errors=ignore_errors)
     config.ui.print("✅ Done!")
