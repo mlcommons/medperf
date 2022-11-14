@@ -23,36 +23,6 @@ import medperf.config as config
 from medperf.exceptions import InvalidEntityError
 
 
-def parse_context_args(ctx_args: List[str]) -> dict:
-    """Parses extra arguments received from typer into a dictionary of args
-
-    Args:
-        ctx_args (List[str]): List of extra cli arguments
-
-    Returns:
-        dict: dictionary of key-value cli arguments
-    """
-    args = []
-    malformed_msg = "A malformed set of arguments was passed"
-
-    for arg in ctx_args:
-        eq_arg = list(filter(len, arg.split("=")))
-        assert 0 < len(eq_arg) <= 2, malformed_msg
-        args += eq_arg
-
-    assert len(args) % 2 == 0, malformed_msg
-    cli_args = {}
-    for idx in range(0, len(args), 2):
-        key = args[idx]
-        val = args[idx + 1]
-
-        assert key[:2] == "--", "Could not identify an argument name"
-        assert val[:2] != "--", malformed_msg
-        cli_args[key[2:]] = val
-
-    return cli_args
-
-
 def set_custom_config(args: dict):
     """Function to set parameters defined by the user
 
