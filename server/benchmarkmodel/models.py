@@ -11,7 +11,7 @@ class BenchmarkModel(models.Model):
     model_mlcube = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
     benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
     initiated_by = models.ForeignKey(User, on_delete=models.PROTECT)
-    results = models.JSONField()
+    metadata = models.JSONField()
     approval_status = models.CharField(
         choices=MODEL_STATUS, max_length=100, default="PENDING"
     )

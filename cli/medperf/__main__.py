@@ -81,10 +81,17 @@ def execute(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    ignore_errors: bool = typer.Option(
+        False,
+        "--ignore-errors",
+        help="Ignore failing cubes, allowing for submitting partial results",
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    BenchmarkExecution.run(benchmark_uid, data_uid, model_uid)
+    BenchmarkExecution.run(
+        benchmark_uid, data_uid, model_uid, ignore_errors=ignore_errors
+    )
     ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
@@ -122,12 +129,17 @@ def test(
         "-e",
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
+    force_test: bool = typer.Option(
+        False, "--force-test", help="Execute the test even if results already exist",
+    ),
 ):
     """
     Executes a compatibility test for a determined benchmark.
     Can test prepared datasets, remote and local models independently.
     """
-    CompatibilityTestExecution.run(benchmark_uid, data_uid, data_prep, model, evaluator)
+    CompatibilityTestExecution.run(
+        benchmark_uid, data_uid, data_prep, model, evaluator, force_test=force_test,
+    )
     config.ui.print("✅ Done!")
     cleanup()
 

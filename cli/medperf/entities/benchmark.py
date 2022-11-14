@@ -6,7 +6,7 @@ from typing import List
 
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.utils import storage_path, pretty_error
+from medperf.utils import storage_path
 
 
 class Benchmark(Entity):
@@ -63,7 +63,7 @@ class Benchmark(Entity):
         except StopIteration:
             msg = "Couldn't iterate over benchmarks directory"
             logging.warning(msg)
-            pretty_error(msg)
+            raise RuntimeError(msg)
 
         benchmarks = [cls.get(uid) for uid in uids]
 

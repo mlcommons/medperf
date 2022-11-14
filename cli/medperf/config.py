@@ -59,7 +59,7 @@ cube_get_max_attempts = 3
 
 profile = "default"
 platform = "docker"
-git_file_domain = "https://raw.githubusercontent.com"
+default_page_size = 32  # This number was chosen arbitrarily
 comms = "REST"
 ui = "CLI"
 

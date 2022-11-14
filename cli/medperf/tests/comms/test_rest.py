@@ -1,7 +1,7 @@
 import os
 import pytest
 import requests
-from unittest.mock import mock_open, ANY
+from unittest.mock import mock_open, ANY, call
 
 from medperf import config
 from medperf.enums import Role, Status
@@ -21,11 +21,19 @@ def server(mocker, ui):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", "get", 200, [1], [], (f"{url}/me/benchmarks",), {},),
+        (
+            "benchmark_association",
+            "get_list",
+            200,
+            [1],
+            [],
+            (f"{url}/me/benchmarks",),
+            {},
+        ),
         ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
-            "get",
+            "get_list",
             200,
             [1],
             [],
@@ -100,13 +108,13 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     # Arrange
     method, type, status, args, body, out_args, kwargs = method_params
     res = MockResponse(body, status)
-    if type == "get":
-        patch_method = patch_server.format("REST._REST__auth_get")
-    elif type == "put":
-        patch_method = patch_server.format("REST._REST__auth_put")
+    if type == "get_list":
+        patch_method = patch_server.format("REST._REST__get_list")
+        return_value = body
     else:
-        patch_method = patch_server.format("REST._REST__auth_post")
-    spy = mocker.patch(patch_method, return_value=res)
+        patch_method = patch_server.format(f"REST._REST__auth_{type}")
+        return_value = res
+    spy = mocker.patch(patch_method, return_value=return_value)
     method = getattr(server, method)
 
     # Act
@@ -120,9 +128,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("benchmark_association", [1], []),
         ("get_benchmark", [1], {}),
-        ("get_benchmark_models", [1], []),
         ("get_cube_metadata", [1], {}),
         ("_REST__get_cube_file", ["", 1, "", ""], {}),
         ("upload_dataset", [{}], {"id": 1}),
@@ -138,14 +144,11 @@ def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
     mocker.patch("requests.get", return_value=res)
     mocker.patch("requests.post", return_value=res)
     mocker.patch(patch_server.format("REST._REST__auth_req"), return_value=res)
-    spy = mocker.patch(patch_server.format("pretty_error"))
     method = getattr(server, method)
 
-    # Act
-    method(*args)
-
-    # Assert
-    spy.assert_called()
+    # Act & Assert
+    with pytest.raises(Exception):
+        method(*args)
 
 
 @pytest.mark.parametrize("uname", ["test", "admin", "user"])
@@ -252,6 +255,87 @@ def test__req_sanitizes_json(mocker, server):
     spy.assert_called_once_with(body)
 
 
+def test__get_list_uses_default_page_size(mocker, server):
+    # Arrange
+    exp_page_size = config.default_page_size
+    exp_url = f"{url}?limit={exp_page_size}&offset=0"
+    ret_body = MockResponse({"count": 1, "next": None, "results": []}, 200)
+    spy = mocker.patch.object(server, "_REST__auth_get", return_value=ret_body)
+
+    # Act
+    server._REST__get_list(url)
+
+    # Assert
+    spy.assert_called_once_with(exp_url)
+
+
+@pytest.mark.parametrize("num_pages", [3, 5, 10])
+def test__get_list_iterates_until_done(mocker, server, num_pages):
+    # Arrange
+    ret_body = MockResponse({"count": 1, "next": url, "results": ["element"]}, 200)
+    ret_last = MockResponse({"count": 1, "next": None, "results": ["element"]}, 200)
+    ret_bodies = [ret_body] * (num_pages - 1) + [ret_last]
+    spy = mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
+
+    # Act
+    server._REST__get_list(url)
+
+    # Assert
+    assert spy.call_count == num_pages
+
+
+@pytest.mark.parametrize("num_elements", [23, 178, 299])
+def test__get_list_returns_desired_number_of_elements(mocker, server, num_elements):
+    # Arrange
+    ret_body = MockResponse(
+        {"count": 32, "next": url, "results": ["element"] * 32}, 200
+    )
+    ret_last = MockResponse({"count": 1, "next": None, "results": ["element"]}, 200)
+    ret_bodies = [ret_body] * 500 + [ret_last]  # Default to a high number of pages
+    mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
+
+    # Act
+    elements = server._REST__get_list(url, num_elements=num_elements)
+
+    # Assert
+    assert len(elements) == num_elements
+
+
+def test__get_list_splits_page_size_on_error(mocker, server):
+    # Arrange
+    failing_body = MockResponse({}, 500)
+    reduced_body = MockResponse(
+        {"count": 16, "next": url, "results": ["element"] * 16}, 200
+    )
+    next_body = MockResponse(
+        {"count": 32, "next": None, "results": ["element"] * 32}, 200
+    )
+    ret_bodies = [failing_body, reduced_body, next_body]
+    gen_url = url + "?limit={}&offset={}"
+    exp_calls = [
+        call(gen_url.format(32, 0)),
+        call(gen_url.format(16, 0)),
+        call(gen_url.format(16, 16)),
+    ]
+    spy = mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
+
+    # Act
+    server._REST__get_list(url, binary_reduction=True)
+
+    # Assert
+    spy.assert_has_calls(exp_calls)
+
+
+def test__get_list_fails_if_failing_element_encountered(mocker, server):
+    # Arrange
+    failing_body = MockResponse({}, 500)
+    mocker.patch.object(server, "_REST__auth_get", return_value=failing_body)
+
+    # Act & Assert
+    with pytest.raises(Exception):
+        server._REST__get_list(url, page_size=1)
+
+
 @pytest.mark.parametrize("exp_role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
 def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
     # Arrange
@@ -259,8 +343,7 @@ def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
         {"benchmark": 1, "role": exp_role},
         {"benchmark": 2, "role": "DataOwner"},
     ]
-    res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
 
     # Act
     role = server.benchmark_association(1)
@@ -271,8 +354,7 @@ def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
 
 def test_benchmark_association_returns_none_if_not_found(mocker, server):
     # Arrange
-    res = MockResponse([], 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
 
     # Act
     role = server.benchmark_association(1)
@@ -306,8 +388,7 @@ def test_authorized_by_role_returns_true_when_authorized(
         {"benchmark": benchmark_uid, "role": role},
         {"benchmark": 501, "role": "DataOwner"},
     ]
-    res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
 
     # Act
     authorized = server.authorized_by_role(benchmark_uid, exp_role)
@@ -319,8 +400,7 @@ def test_authorized_by_role_returns_true_when_authorized(
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     # Arrange
-    res = MockResponse([body], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[body])
 
     # Act
     bmarks = server.get_benchmarks()
@@ -347,8 +427,7 @@ def test_get_benchmark_returns_benchmark_body(mocker, server, body):
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
     body = [{"id": uid} for uid in exp_uids]
-    res = MockResponse(body, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=body)
 
     # Act
     uids = server.get_benchmark_models(1)
@@ -363,8 +442,9 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
         {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
         {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
     ]
-    res = MockResponse(benchmarks, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(
+        patch_server.format("REST._REST__get_list"), return_value=benchmarks
+    )
 
     # Act
     server.get_user_benchmarks()
@@ -379,8 +459,7 @@ def test_get_user_benchmarks_returns_benchmarks(mocker, server):
         {"id": 1, "name": "benchmark1", "description": "desc", "state": "DEVELOPMENT"},
         {"id": 2, "name": "benchmark2", "description": "desc", "state": "OPERATION"},
     ]
-    res = MockResponse(benchmarks, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
 
     # Act
     retrieved_benchmarks = server.get_user_benchmarks()
@@ -392,8 +471,7 @@ def test_get_user_benchmarks_returns_benchmarks(mocker, server):
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
 def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     # Arrange
-    res = MockResponse([body], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[body])
 
     # Act
     cubes = server.get_cubes()
@@ -456,8 +534,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
         {"id": 1, "name": "name1", "state": "OPERATION"},
         {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
     ]
-    res = MockResponse(cubes, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=cubes)
 
     # Act
     server.get_user_cubes()
@@ -488,8 +565,7 @@ def test_get_cube_file_writes_to_file(mocker, server):
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
 def test_get_datasets_calls_datasets_path(mocker, server, body):
     # Arrange
-    res = MockResponse([body], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[body])
 
     # Act
     dsets = server.get_datasets()
@@ -520,8 +596,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
         {"id": 1, "name": "name1", "state": "OPERATION"},
         {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
     ]
-    res = MockResponse(cubes, 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=cubes)
 
     # Act
     server.get_user_datasets()
@@ -574,7 +649,6 @@ def test_upload_results_returns_result_body(mocker, server, body):
 def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchmark_uid):
     # Arrange
     data = {
-        "results": {},
         "approval_status": Status.PENDING.value,
         "model_mlcube": cube_uid,
         "benchmark": benchmark_uid,
@@ -632,8 +706,7 @@ def test_set_mlcube_association_approval_sets_approval(
 
 def test_get_datasets_associations_gets_associations(mocker, server):
     # Arrange
-    res = MockResponse([], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
     exp_path = f"{url}/me/datasets/associations/"
 
     # Act
@@ -645,8 +718,7 @@ def test_get_datasets_associations_gets_associations(mocker, server):
 
 def test_get_cubes_associations_gets_associations(mocker, server):
     # Arrange
-    res = MockResponse([], 200)
-    spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
+    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
     exp_path = f"{url}/me/mlcubes/associations/"
 
     # Act
