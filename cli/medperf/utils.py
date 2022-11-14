@@ -40,7 +40,6 @@ def parse_context_args(ctx_args: List[str]) -> dict:
         assert 0 < len(eq_arg) <= 2, malformed_msg
         args += eq_arg
 
-
     assert len(args) % 2 == 0, malformed_msg
     cli_args = {}
     for idx in range(0, len(args), 2):
