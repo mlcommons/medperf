@@ -49,6 +49,9 @@ def load_config(profile: str) -> dict:
     config_file = os.path.join(config.storage, config.config_path)
     config_p.read(config_file)
     # Set current profile
+    if profile == "active":
+        # Special case. Get the profile that has been assigned as active
+        profile = config_p[profile]["profile"]
     config.profile = profile
     return config_p[profile]
 
@@ -114,6 +117,7 @@ def init_config():
         return
     config_p = configparser.ConfigParser()
     config_p["default"] = {}
+    config_p["active"] = {"profile": "default"}
     config_p["test"] = {}
     config_p["test"]["server"] = config.local_server
     config_p["test"]["certificate"] = config.local_certificate

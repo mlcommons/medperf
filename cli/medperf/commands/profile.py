@@ -7,6 +7,9 @@ from medperf import config
 from medperf.decorators import docstring_parameter
 from medperf.utils import dict_pretty_print, pretty_error
 
+app = typer.Typer()
+
+
 def read_config():
     config_p = configparser.ConfigParser()
     config_path = os.path.join(config.storage, config.config_path)
@@ -25,8 +28,14 @@ def setup_parser():
     for arg, desc in config.customizable_params.items():
         parser.add_argument(f"--{arg}", help=desc)
 
-    
     return parser
+
+
+def parse_args(args):
+    parser = setup_parser()
+    args = vars(parser.parse_args(args))
+    args = {k: v for k, v in args.items() if v is not None}
+    return args
 
 
 def args_help():
@@ -38,8 +47,21 @@ def args_help():
     # Formatting used by typer requires the following join string
     return "\n\n\t".join(args_help)
 
-app = typer.Typer()
-parser = setup_parser()
+
+@app.command("active")
+def active(profile: str):
+    """Assigns the active profile, which is used by default
+
+    Args:
+        profile (str): Name of the profile to be used.
+    """
+    config_p = read_config()
+
+    if profile not in config_p:
+        pretty_error("The provided profile does not exists")
+
+    config_p["active"]["profile"] = profile
+    write_config(config_p)
 
 
 @app.command("create", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
@@ -56,7 +78,7 @@ def create(
     Available arguments:
     {0}
     """
-    args = parser.parse_args(ctx.args)
+    args = parse_args(ctx.args)
     config_p = read_config()
 
     if name in config_p:
@@ -77,7 +99,7 @@ def set_args(ctx: typer.Context):
     {0}
     """
     profile = config.profile
-    args = parser.parse_args(ctx.args)
+    args = parse_args(ctx.args)
     config_p = read_config()
 
     current_config = config_p[profile]

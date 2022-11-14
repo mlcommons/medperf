@@ -147,7 +147,7 @@ def test(
 @app.callback()
 def main(
     profile: str = typer.Option(
-        "default", help="Configuration profile to use"
+        config.profile, help="Configuration profile to use"
     )
 ):
     # Create medperf root path

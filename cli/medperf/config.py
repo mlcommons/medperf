@@ -57,7 +57,7 @@ cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
 cube_get_max_attempts = 3
 
-profile = "default"
+profile = "active"
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
 comms = "REST"
