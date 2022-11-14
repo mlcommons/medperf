@@ -53,34 +53,6 @@ def filesystem():
     return [fs, files]
 
 
-@pytest.mark.parametrize(
-    "io",
-    [
-        (["--key", "value"], {"key": "value"}),
-        (["--cert=test"], {"cert": "test"}),
-        ([], {}),
-    ],
-)
-def test_parse_context_args_creates_expected_dict(io):
-    # Arrange
-    input_args, exp_dict = io
-
-    # Act
-    args_dict = utils.parse_context_args(input_args)
-
-    # Assert
-    assert args_dict == exp_dict
-
-
-@pytest.mark.parametrize(
-    "input_args", [["key", "value"], ["--cert=test", "invalid"], ["--test", "--test2"]]
-)
-def test_parse_context_args_fails_on_malformed_input(mocker, input_args):
-    # Act
-    with pytest.raises(AssertionError):
-        utils.parse_context_args(input_args)
-
-
 def test_set_custom_config_modifies_config_params():
     # Arrange
     params = config.customizable_params
