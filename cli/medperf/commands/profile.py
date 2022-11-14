@@ -43,7 +43,7 @@ def args_help():
     for arg, desc in config.customizable_params.items():
         arg_help = f"--{arg}: {desc}"
         args_help.append(arg_help)
-    
+
     # Formatting used by typer requires the following join string
     return "\n\n\t".join(args_help)
 
