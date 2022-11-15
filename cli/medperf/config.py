@@ -1,20 +1,5 @@
 from os.path import expanduser, abspath
 
-customizable_params = {
-    "server": "URL of a hosted MedPerf API instance",
-    "certificate": "path to a valid SSL certificate",
-    "comms": "communications interface to use. [REST]",
-    "ui": "UI interface to use. [CLI]",
-    "loglevel": "Logging level [debug | info | warning | error]",
-    "prepare_timeout": "Maximum time in seconds before interrupting prepare task",
-    "sanity_check_timeout": "Maximum time in seconds before interrupting sanity_check task",
-    "statistics_timeout": "Maximum time in seconds before interrupting statistics task",
-    "infer_timeout": "Maximum time in seconds before interrupting infer task",
-    "evaluate_timeout": "Maximum time in seconds before interrupting evaluate task",
-    "platform": "Platform to use for MLCube. Valid options: docker, singularity",
-    "cleanup": "Wether to clean up temporary medperf storage after execution"
-}
-
 version = "0.0.0"
 server = "https://api.medperf.org"
 certificate = None

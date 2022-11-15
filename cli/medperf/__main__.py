@@ -6,7 +6,7 @@ from os.path import expanduser, abspath
 
 import medperf.config as config
 from medperf.ui.factory import UIFactory
-from medperf.decorators import clean_except
+from medperf.decorators import clean_except, configurable
 from medperf.comms.factory import CommsFactory
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
@@ -145,7 +145,9 @@ def test(
 
 
 @app.callback()
+@configurable()
 def main(
+    ctx: typer.Context,
     profile: str = typer.Option(
         config.profile, help="Configuration profile to use"
     )
@@ -154,8 +156,14 @@ def main(
     os.makedirs(config.storage, exist_ok=True)
     init_config()
 
+    # Set profile parameters
     profile_args = load_config(profile)
     set_custom_config(profile_args)
+
+    # Set inline parameters
+    inline_args = ctx.config_dict
+    set_custom_config(inline_args)
+
     if config.certificate is not None:
         config.certificate = abspath(expanduser(config.certificate))
 

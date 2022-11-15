@@ -29,11 +29,9 @@ def set_custom_config(args: dict):
     Args:
         args (dict): custom config params
     """
-    params = config.customizable_params
-    for param in params:
-        if param in args:
-            val = args[param]
-            setattr(config, param, val)
+    for param in args:
+        val = args[param]
+        setattr(config, param, val)
 
 
 def load_config(profile: str) -> dict:

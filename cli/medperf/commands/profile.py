@@ -4,7 +4,7 @@ import argparse
 import configparser
 
 from medperf import config
-from medperf.decorators import docstring_parameter
+from medperf.decorators import configurable
 from medperf.utils import dict_pretty_print, pretty_error
 
 app = typer.Typer()
@@ -21,31 +21,6 @@ def write_config(config_p: configparser.ConfigParser):
     config_path = os.path.join(config.storage, config.config_path)
     with open(config_path, "w") as f:
         config_p.write(f)
-
-
-def setup_parser():
-    parser = argparse.ArgumentParser(usage="", add_help=False)
-    for arg, desc in config.customizable_params.items():
-        parser.add_argument(f"--{arg}", help=desc)
-
-    return parser
-
-
-def parse_args(args):
-    parser = setup_parser()
-    args = vars(parser.parse_args(args))
-    args = {k: v for k, v in args.items() if v is not None}
-    return args
-
-
-def args_help():
-    args_help = [""]
-    for arg, desc in config.customizable_params.items():
-        arg_help = f"--{arg}: {desc}"
-        args_help.append(arg_help)
-
-    # Formatting used by typer requires the following join string
-    return "\n\n\t".join(args_help)
 
 
 @app.command("active")
@@ -65,20 +40,14 @@ def active(profile: str):
 
 
 @app.command("create", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
-@docstring_parameter(args_help())
+@configurable()
 def create(
     ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
 ):
     """Creates a new profile for managing and customizing configuration
-
-    Arguments in the format "--key=value" will be handled as custom configuration
-    parameters that will be stored under the new profile
-
-    Available arguments:
-    {0}
     """
-    args = parse_args(ctx.args)
+    args = ctx.config_dict
     config_p = read_config()
 
     if name in config_p:
@@ -89,17 +58,12 @@ def create(
 
 
 @app.command("set", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
-@docstring_parameter(args_help())
+@configurable()
 def set_args(ctx: typer.Context):
     """Assign key-value configuration pairs to the current profile.
-
-    Arguments in the format "--key=value" will be handled as custom configuration
-
-    Available arguments:
-    {0}
     """
     profile = config.profile
-    args = parse_args(ctx.args)
+    args = ctx.config_dict
     config_p = read_config()
 
     current_config = config_p[profile]
@@ -109,23 +73,16 @@ def set_args(ctx: typer.Context):
 
 
 @app.command("unset", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
-@docstring_parameter(args_help())
+@configurable(with_args=False)
 def unset(ctx: typer.Context):
     """Removes a set of custom configuration parameters assigned to the current profile.
-
-    A list of space-separated keys is expected
-
-    Available arguments:
-
-    {0}
     """
     profile = config.profile
-    args = ctx.args
+    args = ctx.config_dict
     config_p = read_config()
 
-    for key in args:
-        if key in config.customizable_params:
-            del config_p[profile][key]
+    for key in args.keys():
+        del config_p[profile][key]
     write_config(config_p)
 
 
