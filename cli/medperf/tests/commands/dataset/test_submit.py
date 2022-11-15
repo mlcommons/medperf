@@ -46,17 +46,10 @@ def test_run_fails_if_dataset_already_registered(
 ):
     # Arrange
     dataset.uid = uid
-    spy = mocker.patch(
-        PATCH_REGISTER.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(Exception):
         DatasetRegistration.run("1")
-
-    # Assert
-    spy.assert_called_once()
 
 
 def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote):
@@ -65,17 +58,10 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
     mocker.patch(
         PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
-    spy = mocker.patch(
-        PATCH_REGISTER.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
-    # Act
+    # Act & Assert
     DatasetRegistration.run("1")
-
-    # Assert
-    spy.assert_not_called()
 
 
 @pytest.mark.parametrize("dset_dict", [{"test": "test"}, {}])
@@ -84,7 +70,9 @@ def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
     dataset.uid = None
     spy_dict = mocker.patch.object(dataset, "todict", return_value=dset_dict)
     spy = mocker.patch(PATCH_REGISTER.format("dict_pretty_print"))
-    mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+    mocker.patch(
+        PATCH_REGISTER.format("approval_prompt"), return_value=True,
+    )
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
@@ -145,23 +133,6 @@ def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_ha
     write_spy.assert_called_once()
 
 
-def test_fails_if_request_approval_rejected(mocker, comms, ui, dataset):
-    # Arrange
-    dataset.uid = None
-    spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=False,)
-    mocker.patch(
-        PATCH_REGISTER.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
-
-    # Act
-    with pytest.raises(SystemExit):
-        DatasetRegistration.run("1")
-
-    # Assert
-    spy.assert_called_once()
-
-
 @pytest.mark.parametrize("approved", [True, False])
 class TestWithApproval:
     def test_run_uploads_dataset_if_approved(
@@ -174,7 +145,6 @@ class TestWithApproval:
         )
         spy = mocker.patch.object(dataset, "upload")
         mocker.patch(PATCH_REGISTER.format("Dataset.write"))
-        mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
         DatasetRegistration.run("1")
@@ -212,7 +182,6 @@ class TestWithApproval:
         )
         mocker.patch.object(dataset, "upload")
         spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
-        mocker.patch(PATCH_REGISTER.format("pretty_error"))
 
         # Act
         DatasetRegistration.run("1")

@@ -1,5 +1,5 @@
 from medperf import config
-from medperf.utils import pretty_error
+from medperf.exceptions import InvalidArgumentError
 
 
 class Approval:
@@ -24,7 +24,7 @@ class Approval:
         too_many_resources = dataset_uid and mlcube_uid
         no_resource = dataset_uid is None and mlcube_uid is None
         if no_resource or too_many_resources:
-            pretty_error("Invalid arguments. Must provide either a dataset or mlcube")
+            raise InvalidArgumentError("Must provide either a dataset or mlcube")
 
         if dataset_uid:
             comms.set_dataset_association_approval(

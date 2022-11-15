@@ -12,9 +12,9 @@ from medperf.utils import (
     generate_tmp_datapath,
     get_folder_sha1,
     init_storage,
-    pretty_error,
     cleanup,
 )
+from medperf.exceptions import ExecutionError, InvalidArgumentError
 import yaml
 
 
@@ -84,15 +84,15 @@ class DataPreparation:
 
     def validate(self):
         if not os.path.exists(self.data_path):
-            pretty_error("The provided data path doesn't exist")
+            raise InvalidArgumentError("The provided data path doesn't exist")
         if not os.path.exists(self.labels_path):
-            pretty_error("The provided labels path doesn't exist")
+            raise InvalidArgumentError("The provided labels path doesn't exist")
 
         too_many_resources = self.benchmark_uid and self.prep_cube_uid
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
         if no_resource or too_many_resources:
-            pretty_error(
-                "Invalid arguments. Must provide either a benchmark or a preparation mlcube"
+            raise InvalidArgumentError(
+                "Must provide either a benchmark or a preparation mlcube"
             )
 
     def get_prep_cube(self):
@@ -124,7 +124,7 @@ class DataPreparation:
         }
         prepare_str_params = {
             "Ptasks.prepare.parameters.input.data_path.opts": "ro",
-            "Ptasks.prepare.parameters.input.labels_path.opts": "ro"
+            "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
         }
 
         sanity_params = {
@@ -177,13 +177,13 @@ class DataPreparation:
                 task="statistics",
                 string_params=statistics_str_params,
                 timeout=statistics_timeout,
-                **statistics_params
+                **statistics_params,
             )
             self.ui.print("> Statistics complete")
         except RuntimeError as e:
             logging.error(f"MLCube Execution failed: {e}")
             cleanup([self.out_path])
-            pretty_error("Data preparation failed")
+            raise ExecutionError("Data preparation failed")
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths

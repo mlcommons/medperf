@@ -1,8 +1,9 @@
 from medperf import config
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
+from medperf.utils import dict_pretty_print, approval_prompt
 from medperf.commands.compatibility_test import CompatibilityTestExecution
+from medperf.exceptions import InvalidArgumentError
 
 
 class AssociateDataset:
@@ -19,12 +20,14 @@ class AssociateDataset:
         dset = Dataset.from_generated_uid(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
-            pretty_error(msg)
+            raise InvalidArgumentError(msg)
 
         benchmark = Benchmark.get(benchmark_uid)
 
         if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):
-            pretty_error("The specified dataset wasn't prepared for this benchmark")
+            raise InvalidArgumentError(
+                "The specified dataset wasn't prepared for this benchmark"
+            )
 
         _, _, _, result = CompatibilityTestExecution.run(
             benchmark_uid, data_uid=data_uid, force_test=force_test
@@ -43,6 +46,4 @@ class AssociateDataset:
             metadata = {"test_result": result.results}
             comms.associate_dset(dset.uid, benchmark_uid, metadata)
         else:
-            pretty_error(
-                "Dataset association operation cancelled", add_instructions=False
-            )
+            ui.print("Dataset association operation cancelled.")

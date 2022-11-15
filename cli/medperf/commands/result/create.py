@@ -9,12 +9,12 @@ from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
     init_storage,
-    pretty_error,
     results_path,
     storage_path,
     cleanup,
 )
 import medperf.config as config
+from medperf.exceptions import InvalidArgumentError, ExecutionError
 import yaml
 
 
@@ -85,15 +85,16 @@ class BenchmarkExecution:
 
         if self.dataset.uid is None and not self.run_test:
             msg = "The provided dataset is not registered."
-            pretty_error(msg)
+            raise InvalidArgumentError(msg)
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
-            pretty_error(msg)
+            raise InvalidArgumentError(msg)
 
         in_assoc_cubes = self.model_uid in self.benchmark.models
         if not self.run_test and not in_assoc_cubes:
-            pretty_error("The provided model is not part of the specified benchmark.")
+            msg = "The provided model is not part of the specified benchmark."
+            raise InvalidArgumentError(msg)
 
     def get_cubes(self):
         evaluator_uid = self.benchmark.evaluator
@@ -132,7 +133,7 @@ class BenchmarkExecution:
             if not self.ignore_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
                 cleanup([preds_path])
-                pretty_error("Benchmark execution failed")
+                raise ExecutionError("Benchmark execution failed")
             else:
                 self.metadata["partial"] = True
                 logging.warning(f"Model MLCube Execution failed: {e}")
@@ -153,7 +154,7 @@ class BenchmarkExecution:
             if not self.ignore_errors:
                 logging.error(f"Metrics MLCube Execution failed: {e}")
                 cleanup([preds_path, out_path])
-                pretty_error("Benchmark execution failed")
+                raise ExecutionError("Benchmark execution failed")
             else:
                 self.metadata["partial"] = True
                 logging.warning(f"Metrics MLCube Execution failed: {e}")

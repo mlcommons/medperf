@@ -52,25 +52,16 @@ def test_upload_results_requests_approval(mocker, submission, result):
 def test_upload_results_fails_if_not_approved(mocker, submission, result, approved):
     # Arrange
     mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=approved)
-    spy = mocker.patch(
-        PATCH_SUBMISSION.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
     upload_spy = mocker.patch.object(result, "upload")
     write_spy = mocker.patch.object(result, "write")
 
     # Act
-    try:
-        ResultSubmission.run(1, 1, 1)
-    except SystemExit:
-        pass
+    ResultSubmission.run(1, 1, 1)
 
     # Assert
     if approved:
         upload_spy.assert_called()
         write_spy.assert_called()
-        spy.assert_not_called()
     else:
         upload_spy.assert_not_called()
         write_spy.assert_not_called()
-        spy.assert_called()

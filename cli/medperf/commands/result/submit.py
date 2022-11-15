@@ -1,4 +1,4 @@
-from medperf.utils import pretty_error, dict_pretty_print, approval_prompt
+from medperf.utils import dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
@@ -26,4 +26,4 @@ class ResultSubmission:
             result = Result(updated_result_dict)
             result.write()
         else:
-            pretty_error("Results upload operation cancelled")
+            config.ui.print("Results upload operation cancelled")

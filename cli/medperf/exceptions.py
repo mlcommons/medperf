@@ -20,3 +20,7 @@ class InvalidArgumentError(Exception):
 
 class EntityRetrievalError(Exception):
     """Raised when an entity could not be retrieved"""
+
+
+class ExecutionError(Exception):
+    """Raised when an execution component fails"""

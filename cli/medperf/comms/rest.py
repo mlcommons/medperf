@@ -69,21 +69,17 @@ class REST(Comms):
         else:
             self.token = res.json()["token"]
 
-    def change_password(self, pwd: str) -> bool:
+    def change_password(self, pwd: str):
         """Sets a new password for the current user.
 
         Args:
             pwd (str): New password to be set
-            ui (UI): Instance of an implementation
-        Returns:
-            bool: Whether changing the password was successful or not
         """
         body = {"password": pwd}
         res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
         if res.status_code != 200:
             log_response_error(res)
             raise CommunicationRequestError("Unable to change the current password")
-        return True
 
     def authenticate(self):
         cred_path = storage_path(config.credentials_path)

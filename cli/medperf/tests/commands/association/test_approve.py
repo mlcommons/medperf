@@ -11,21 +11,13 @@ PATCH_APPROVE = "medperf.commands.association.approval.{}"
 def test_run_fails_if_invalid_arguments(mocker, comms, ui, dset_uid, mlcube_uid):
     # Arrange
     num_arguments = int(dset_uid is None) + int(mlcube_uid is None)
-    spy = mocker.patch(
-        PATCH_APPROVE.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
 
     # Act & Assert
     if num_arguments != 1:
-        with pytest.raises(SystemExit):
+        with pytest.raises(Exception):
             Approval.run("1", Status.APPROVED, dset_uid, mlcube_uid)
     else:
         Approval.run("1", Status.APPROVED, dset_uid, mlcube_uid)
-
-    # Assert
-    if num_arguments == 1:
-        spy.assert_not_called()
 
 
 @pytest.mark.parametrize("dset_uid", [402, 173])

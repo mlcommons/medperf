@@ -10,20 +10,17 @@ PATCH_ASSOC = "medperf.commands.benchmark.associate.{}"
 def test_run_fails_if_model_and_dset_passed(mocker, model_uid, data_uid, comms, ui):
     # Arrange
     num_arguments = int(data_uid is None) + int(model_uid is None)
-    spy = mocker.patch(PATCH_ASSOC.format("pretty_error"))
     mocker.patch.object(comms, "associate_cube")
     mocker.patch.object(comms, "associate_dset")
     mocker.patch(PATCH_ASSOC.format("AssociateCube.run"))
     mocker.patch(PATCH_ASSOC.format("AssociateDataset.run"))
 
-    # Act
-    AssociateBenchmark.run("1", model_uid, data_uid)
-
-    # Assert
+    # Act & Assert
     if num_arguments != 1:
-        spy.assert_called_once()
+        with pytest.raises(Exception):
+            AssociateBenchmark.run("1", model_uid, data_uid)
     else:
-        spy.assert_not_called()
+        AssociateBenchmark.run("1", model_uid, data_uid)
 
 
 @pytest.mark.parametrize("approved", [True, False])

@@ -56,22 +56,13 @@ class TestWithDefaultUID:
 
         mocker.patch("os.path.exists", side_effect=exists)
         should_fail = not data_exists or not labels_exist
-        spy = mocker.patch(
-            PATCH_DATAPREP.format("pretty_error"), side_effect=lambda *args: exit()
-        )
 
-        # Act
+        # Act & Assert
         if should_fail:
-            with pytest.raises(SystemExit):
+            with pytest.raises(Exception):
                 preparation.validate()
         else:
             preparation.validate()
-
-        # Assert
-        if should_fail:
-            spy.assert_called_once()
-        else:
-            spy.asset_not_called()
 
     @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
     def test_get_prep_cube_gets_prep_cube_if_provided(
@@ -131,22 +122,22 @@ class TestWithDefaultUID:
             labels_path=LABELS_PATH,
             output_path=OUT_DATAPATH,
             string_params={
-                'Ptasks.prepare.parameters.input.data_path.opts': 'ro',
-                'Ptasks.prepare.parameters.input.labels_path.opts': 'ro',
-            }
+                "Ptasks.prepare.parameters.input.data_path.opts": "ro",
+                "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
+            },
         )
         check = call(
             task="sanity_check",
-            string_params={'Ptasks.sanity_check.parameters.input.data_path.opts': 'ro'},
+            string_params={"Ptasks.sanity_check.parameters.input.data_path.opts": "ro"},
             data_path=OUT_DATAPATH,
-            timeout=None
+            timeout=None,
         )
         stats = call(
             task="statistics",
             data_path=OUT_DATAPATH,
             timeout=None,
             output_path=out_statistics_path,
-            string_params={'Ptasks.statistics.parameters.input.data_path.opts': 'ro'}
+            string_params={"Ptasks.statistics.parameters.input.data_path.opts": "ro"},
         )
         calls = [prepare, check, stats]
 
@@ -172,16 +163,16 @@ class TestWithDefaultUID:
             output_path=OUT_DATAPATH,
             output_labels_path=OUT_LABELSPATH,
             string_params={
-                'Ptasks.prepare.parameters.input.data_path.opts': 'ro',
-                'Ptasks.prepare.parameters.input.labels_path.opts': 'ro',
-            }
+                "Ptasks.prepare.parameters.input.data_path.opts": "ro",
+                "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
+            },
         )
         check = call(
             task="sanity_check",
             timeout=None,
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
-            string_params={'Ptasks.sanity_check.parameters.input.data_path.opts': 'ro'},
+            string_params={"Ptasks.sanity_check.parameters.input.data_path.opts": "ro"},
         )
         stats = call(
             task="statistics",
@@ -189,7 +180,7 @@ class TestWithDefaultUID:
             data_path=OUT_DATAPATH,
             labels_path=OUT_LABELSPATH,
             output_path=out_statistics_path,
-            string_params={'Ptasks.statistics.parameters.input.data_path.opts': 'ro'}
+            string_params={"Ptasks.statistics.parameters.input.data_path.opts": "ro"},
         )
         calls = [prepare, check, stats]
 
@@ -239,17 +230,16 @@ class TestWithDefaultUID:
         # Arrange
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
-        spy = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
-
         # Act
         preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5)
-        preparation.validate()
         # Assert
 
         if num_arguments != 1:
-            spy.assert_called_once()
+            with pytest.raises(Exception):
+                preparation.validate()
+
         else:
-            spy.assert_not_called()
+            preparation.validate()
 
     @pytest.mark.parametrize("in_path", ["data_path", "input_path", "/usr/data/path"])
     @pytest.mark.parametrize("out_path", ["out_path", "~/.medperf/data/123"])
@@ -407,13 +397,11 @@ def test_run_deletes_output_path_on_failure(mocker, preparation):
         side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
     )
     spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
-    spy_error = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
 
     exp_outpaths = [preparation.out_path]
 
-    # Act
-    preparation.run_cube_tasks()
+    # Act & Assert
+    with pytest.raises(Exception):
+        preparation.run_cube_tasks()
 
-    # Assert
     spy_clean.assert_called_once_with(exp_outpaths)
-    spy_error.assert_called_once()
