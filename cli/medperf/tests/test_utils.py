@@ -53,37 +53,21 @@ def filesystem():
     return [fs, files]
 
 
-def test_set_custom_config_modifies_config_params():
+@pytest.mark.parametrize("param", ["server", "platform", "prepare_timeout"])
+def test_set_custom_config_modifies_config_params(param):
     # Arrange
-    params = config.customizable_params
-    args = {param: param for param in params}
-    backup_args = {param: getattr(config, param) for param in params}
+    args = {param: param}
+    backup_args = {param: getattr(config, param)}
 
     # Act
     utils.set_custom_config(args)
-    mod_args = {param: getattr(config, param) for param in params}
+    mod_args = {param: getattr(config, param)}
     utils.set_custom_config(backup_args)
-    recovered_args = {param: getattr(config, param) for param in params}
+    recovered_args = {param: getattr(config, param)}
 
     # Assert
     assert mod_args == args
     assert recovered_args == backup_args
-
-
-def test_set_custom_config_ignores_noncustomizable_params():
-    # Arrange
-    config_params = [item for item in dir(config) if not item.startswith("__")]
-    customizable_params = config.customizable_params
-    noncustomizable_params = list(set(config_params) - set(customizable_params))
-    args = {param: param for param in noncustomizable_params}
-    backup_args = {param: getattr(config, param) for param in noncustomizable_params}
-
-    # Act
-    utils.set_custom_config(args)
-    current_args = {param: getattr(config, param) for param in noncustomizable_params}
-
-    # Assert
-    assert backup_args == current_args
 
 
 def test_load_config_reads_profile_from_config_file(mocker):
