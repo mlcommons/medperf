@@ -3,6 +3,7 @@ import functools
 from collections.abc import Callable
 
 from medperf.utils import pretty_error
+from medperf.exceptions import MedperfException
 
 
 def clean_except(func: Callable) -> Callable:
@@ -21,6 +22,9 @@ def clean_except(func: Callable) -> Callable:
         try:
             logging.info(f"Running function '{func.__name__}'")
             func(*args, **kwargs)
+        except MedperfException as e:
+            logging.exception(e)
+            pretty_error(str(e), clean=e.clean)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
             logging.exception(e)

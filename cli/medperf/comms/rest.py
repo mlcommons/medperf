@@ -30,7 +30,7 @@ def log_response_error(res, warn=False):
     logging_method(f"Obtained response with status code: {res.status_code}")
     try:
         logging_method(res.json())
-    except Exception:
+    except requests.exceptions.JSONDecodeError:
         logging_method("JSON Response could not be parsed. Showing response content:")
         logging_method(res.content)
 
