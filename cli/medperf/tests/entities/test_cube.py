@@ -579,7 +579,7 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_lo
     # Act & Assert
     uid = 1
     cube = Cube.get(uid)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(Exception):
         cube.run(task)
 
 

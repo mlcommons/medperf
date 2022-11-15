@@ -1,5 +1,6 @@
 import os
 from medperf import config
+from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.requests import result_dict
 import pytest
 from unittest.mock import MagicMock, call
@@ -206,10 +207,11 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
         failed_cube = execution.evaluator
         exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
 
+    def _side_effect(*args, **kwargs):
+        raise ExecutionError
+
     mocker.patch.object(
-        failed_cube,
-        "run",
-        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+        failed_cube, "run", side_effect=_side_effect,
     )
     mocker.patch(
         PATCH_EXECUTION.format("results_path"), return_value=out_path,
@@ -302,10 +304,12 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
         failed_cube = execution.model_cube
     else:
         failed_cube = execution.evaluator
+
+    def _side_effect(*args, **kwargs):
+        raise ExecutionError
+
     mocker.patch.object(
-        failed_cube,
-        "run",
-        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+        failed_cube, "run", side_effect=_side_effect,
     )
     mocker.patch(
         PATCH_EXECUTION.format("results_path"), return_value=out_path,

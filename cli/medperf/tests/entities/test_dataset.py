@@ -88,7 +88,7 @@ def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
 
     # Act & Assert
-    with pytest.raises(RuntimeError):
+    with pytest.raises(Exception):
         Dataset.all()
 
 
