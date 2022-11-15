@@ -1,6 +1,5 @@
 import os
 import typer
-import argparse
 import configparser
 
 from medperf import config
