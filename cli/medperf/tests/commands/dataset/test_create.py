@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import medperf.config as config
+from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, call
@@ -391,10 +392,12 @@ def test_run_deletes_output_path_on_failure(mocker, preparation):
     # Arrange
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
+
+    def _side_effect(*args, **kwargs):
+        raise ExecutionError
+
     mocker.patch.object(
-        preparation.cube,
-        "run",
-        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+        preparation.cube, "run", side_effect=_side_effect,
     )
     spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
 
