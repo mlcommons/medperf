@@ -5,6 +5,7 @@ import configparser
 from medperf import config
 from medperf.decorators import configurable
 from medperf.utils import dict_pretty_print, pretty_error
+from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
 
@@ -32,7 +33,7 @@ def active(profile: str):
     config_p = read_config()
 
     if profile not in config_p:
-        pretty_error("The provided profile does not exists")
+        raise InvalidArgumentError("The provided profile does not exists")
 
     config_p["active"]["profile"] = profile
     write_config(config_p)
@@ -50,7 +51,7 @@ def create(
     config_p = read_config()
 
     if name in config_p:
-        pretty_error("A profile with the same name already exists")
+        raise InvalidArgumentError("A profile with the same name already exists")
 
     config_p[name] = args
     write_config(config_p)
