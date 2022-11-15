@@ -7,6 +7,7 @@ from typing import List
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.utils import storage_path
+from medperf.exceptions import CommunicationRetrievalError
 
 
 class Benchmark(Entity):
@@ -59,13 +60,18 @@ class Benchmark(Entity):
         logging.info("Retrieving all benchmarks")
         bmks_storage = storage_path(config.benchmarks_storage)
         try:
+            bmks_meta = config.comms.get_benchmarks()
             uids = next(os.walk(bmks_storage))[1]
-        except StopIteration:
+        except CommunicationRetrievalError:
             msg = "Couldn't iterate over benchmarks directory"
             logging.warning(msg)
             raise RuntimeError(msg)
 
-        benchmarks = [cls.get(uid) for uid in uids]
+        benchmarks = []
+        for uid in uids:
+            meta = cls.__get_local_dict(uid)
+            benchmark = cls(meta)
+            benchmarks.append(benchmark)
 
         return benchmarks
 
