@@ -4,7 +4,7 @@ import configparser
 
 from medperf import config
 from medperf.decorators import configurable
-from medperf.utils import dict_pretty_print, pretty_error
+from medperf.utils import dict_pretty_print
 from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
