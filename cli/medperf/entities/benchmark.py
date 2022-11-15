@@ -1,5 +1,6 @@
 import os
 from medperf.enums import Status
+from medperf.exceptions import MedperfException
 import yaml
 import logging
 from typing import List
@@ -63,7 +64,7 @@ class Benchmark(Entity):
         except StopIteration:
             msg = "Couldn't iterate over benchmarks directory"
             logging.warning(msg)
-            raise RuntimeError(msg)
+            raise MedperfException(msg)
 
         benchmarks = [cls.get(uid) for uid in uids]
 

@@ -9,7 +9,7 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 import medperf.config as config
 
 
@@ -111,7 +111,7 @@ class Dataset(Entity):
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
             logging.warning("Couldn't iterate over the dataset directory")
-            raise RuntimeError("Couldn't iterate over the dataset directory")
+            raise MedperfException("Couldn't iterate over the dataset directory")
         dsets = []
         for generated_uid in generated_uids:
             dsets.append(cls.from_generated_uid(generated_uid))

@@ -13,6 +13,7 @@ from medperf.utils import (
     sanitize_json,
 )
 from medperf.exceptions import (
+    CommunicationError,
     CommunicationRetrievalError,
     CommunicationAuthenticationError,
     CommunicationRequestError,
@@ -116,7 +117,7 @@ class REST(Comms):
             return req_func(url, verify=self.cert, **kwargs)
         except requests.exceptions.SSLError as e:
             logging.error(f"Couldn't connect to {self.server_url}: {e}")
-            raise requests.exceptions.SSLError(
+            raise CommunicationError(
                 "Couldn't connect to server through HTTPS. If running locally, "
                 "remember to provide the server certificate through --certificate"
             )

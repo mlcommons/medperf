@@ -19,7 +19,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
-from medperf.exceptions import InvalidEntityError
+from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
 
 
 def storage_path(subpath: str):
@@ -100,7 +100,7 @@ def cleanup(extra_paths: List[str] = []):
                 rmtree(path)
             except OSError as e:
                 logging.error("Could not remove clutter path")
-                raise e
+                raise MedperfException(str(e))
 
     cleanup_dsets()
     cleanup_cubes()
@@ -128,7 +128,7 @@ def cleanup_dsets():
                 rmtree(dset_path)
             except OSError as e:
                 logging.error(f"Could not remove dataset {dset}")
-                raise e
+                raise MedperfException(str(e))
 
 
 def cleanup_cubes():
@@ -153,7 +153,7 @@ def cleanup_cubes():
                     rmtree(cube_path)
             except OSError as e:
                 logging.error(f"Could not remove cube {cube}")
-                raise e
+                raise MedperfException(str(e))
 
 
 def cleanup_benchmarks():
@@ -171,7 +171,7 @@ def cleanup_benchmarks():
                 rmtree(bmk_path)
             except OSError as e:
                 logging.error(f"Could not remove benchmark {bmk}")
-                raise e
+                raise MedperfException(str(e))
 
 
 def get_uids(path: str) -> List[str]:
@@ -349,7 +349,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
             line = byte = proc.read(1)
         except TIMEOUT:
             logging.error("Process timed out")
-            raise TIMEOUT("Process timed out")
+            raise ExecutionError("Process timed out")
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -422,7 +422,7 @@ def results_ids():
     except StopIteration:
         msg = "Couldn't iterate over the results directory"
         logging.warning(msg)
-        raise StopIteration(msg)
+        raise MedperfException(msg)
     logging.debug(f"Results ids: {results_ids}")
     return results_ids
 

@@ -180,7 +180,7 @@ class DataPreparation:
                 **statistics_params,
             )
             self.ui.print("> Statistics complete")
-        except RuntimeError as e:
+        except ExecutionError as e:
             logging.error(f"MLCube Execution failed: {e}")
             cleanup([self.out_path])
             raise ExecutionError("Data preparation failed")

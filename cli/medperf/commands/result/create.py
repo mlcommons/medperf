@@ -129,11 +129,11 @@ class BenchmarkExecution:
             )
             self.ui.print("> Model execution complete")
 
-        except RuntimeError as e:
+        except ExecutionError as e:
             if not self.ignore_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
                 cleanup([preds_path])
-                raise ExecutionError("Benchmark execution failed")
+                raise ExecutionError("Model MLCube failed")
             else:
                 self.metadata["partial"] = True
                 logging.warning(f"Model MLCube Execution failed: {e}")
@@ -150,11 +150,11 @@ class BenchmarkExecution:
                     "Ptasks.evaluate.parameters.input.labels.opts": "ro",
                 },
             )
-        except RuntimeError as e:
+        except ExecutionError as e:
             if not self.ignore_errors:
                 logging.error(f"Metrics MLCube Execution failed: {e}")
                 cleanup([preds_path, out_path])
-                raise ExecutionError("Benchmark execution failed")
+                raise ExecutionError("Metrics MLCube failed")
             else:
                 self.metadata["partial"] = True
                 logging.warning(f"Metrics MLCube Execution failed: {e}")
