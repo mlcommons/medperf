@@ -87,7 +87,7 @@ class Cube(Entity):
         Returns:
             List[Cube]: List containing all cubes found locally
         """
-        logging.info("Retrieving all local cubes")
+        logging.info("Retrieving all cubes")
         if not local_only:
             try:
                 cubes_meta = config.comms.get_cubes()
@@ -141,6 +141,7 @@ class Cube(Entity):
                 # Try to redownload elements if invalid
                 cube.download()
                 attempt += 1
+            cube.write()
         except CommunicationRetrievalError:
             logging.warning("Max download attempts reached")
             logging.warning(f"Getting MLCube {cube_uid} from comms failed")
