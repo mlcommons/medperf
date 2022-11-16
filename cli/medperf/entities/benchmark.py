@@ -54,6 +54,8 @@ class Benchmark(Entity):
     def all(cls, local_only: bool = False) -> List["Benchmark"]:
         """Gets and creates instances of all locally present benchmarks
 
+        Args:
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
         Returns:
             List[Benchmark]: a list of Benchmark instances.
         """
