@@ -14,7 +14,11 @@ from medperf.utils import (
     cleanup,
 )
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidEntityError, CommunicationRetrievalError
+from medperf.exceptions import (
+    InvalidArgumentError,
+    InvalidEntityError,
+    CommunicationRetrievalError,
+)
 import medperf.config as config
 
 
@@ -206,8 +210,7 @@ class Cube(Entity):
             return ""
 
     def download(self):
-        """Downloads the required elements for an mlcube to run locally.
-        """
+        """Downloads the required elements for an mlcube to run locally."""
 
         local_hashes = {
             "mlcube_hash": self.download_mlcube(),
@@ -361,6 +364,10 @@ class Cube(Entity):
     def __get_local_dict(cls, uid):
         cubes_storage = storage_path(config.cubes_storage)
         meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+        if not os.path.exists(meta_file):
+            raise InvalidArgumentError(
+                "The requested mlcube information could not be found locally"
+            )
         with open(meta_file, "r") as f:
             meta = yaml.safe_load(f)
         return meta
