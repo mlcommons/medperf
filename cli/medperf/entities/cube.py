@@ -85,7 +85,7 @@ class Cube(Entity):
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
 
         Returns:
-            List[Cube]: List containing all cubes found locally
+            List[Cube]: List containing all cubes
         """
         logging.info("Retrieving all cubes")
         if not local_only:
