@@ -184,7 +184,7 @@ After the Benchmark Committee approves your dataset submission and association, 
 There are basically two methods for generating and submitting results:
 
 1. [Creating an experiment](#creating-an-experiment) and then submitting the results separately;
-2. Using the run command to [create and submit results with just a command](#heading=h.yilj4o11z3ar).
+2. Using the run command to [create and submit results with just a command](#creating-an-experiment-and-submitting-results-with-a-single-command).
 
 **Note:** Both the dataset and the model must have been approved by the benchmark owner.
 
