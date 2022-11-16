@@ -51,18 +51,26 @@ class Benchmark(Entity):
         self.user_metadata = bmk_dict["user_metadata"]
 
     @classmethod
-    def all(cls) -> List["Benchmark"]:
+    def all(cls, local_only: bool = False) -> List["Benchmark"]:
         """Gets and creates instances of all locally present benchmarks
 
         Returns:
             List[Benchmark]: a list of Benchmark instances.
         """
         logging.info("Retrieving all benchmarks")
+        if not local_only:
+            try:
+                bmks_meta = config.comms.get_benchmarks()
+                benchmarks = [cls(meta) for meta in bmks_meta]
+                return benchmarks
+            except CommunicationRetrievalError:
+                msg = "Couldn't retrieve all benchmarks from the server"
+                logging.warning(msg)
+        
         bmks_storage = storage_path(config.benchmarks_storage)
         try:
-            bmks_meta = config.comms.get_benchmarks()
             uids = next(os.walk(bmks_storage))[1]
-        except CommunicationRetrievalError:
+        except StopIteration:
             msg = "Couldn't iterate over benchmarks directory"
             logging.warning(msg)
             raise RuntimeError(msg)
