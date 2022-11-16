@@ -210,6 +210,10 @@ class Dataset(Entity):
             storage_path(config.data_storage), str(generated_uid)
         )
         regfile = os.path.join(dataset_path, config.reg_file)
+        if not os.path.exists(regfile):
+            raise InvalidArgumentError(
+                "The requested dataset information could not be found locally"
+            )
         with open(regfile, "r") as f:
             reg = yaml.safe_load(f)
         return reg

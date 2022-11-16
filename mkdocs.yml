@@ -10,7 +10,7 @@ nav:
 - Workflow: workflow.md
 - General Instructions: general_instructions.md
 - Instructions for Data Owners: instructions_data_owners.md
-- Intrusctions for Model Owners: instructions_model_owners.md
+- Instructions for Model Owners: instructions_model_owners.md
 - Instructions for Bechmark Committee: instructions_benchmark_committee.md
 - Code Reference: reference/
 theme: 

@@ -11,7 +11,7 @@ from medperf.utils import (
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
-from medperf.exceptions import CommunicationRetrievalError
+from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
 class Result(Entity):
@@ -113,6 +113,10 @@ class Result(Entity):
             if len(local_result) == 1:
                 logging.debug("Found result locally")
                 result = local_result[0]
+            else:
+                raise InvalidArgumentError(
+                    f"The requested result {result_uid} could not be retrieved"
+                )
 
         result.write()
         return result

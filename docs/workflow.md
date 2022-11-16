@@ -4,7 +4,7 @@
 
 ## Creating a User
 
-Currently, the MedPerf administration is the only one able to create users, controlling access to the system and permissions to own a benchmark. For example, if a hospital (Data Provider) wants to have access to MedPerf, they need to contact the MedPerf administrator to add a user. You check more details on how to create a user, host the server, and install the CLI/MedPerf Dependencies [here](#general-instructions).
+Currently, the MedPerf administration is the only one able to create users, controlling access to the system and permissions to own a benchmark. For example, if a hospital (Data Provider) wants to have access to MedPerf, they need to contact the MedPerf administrator to add a user. You check more details on how to create a user, host the server, and install the CLI/MedPerf Dependencies [here](general_instructions.md#general-instructions).
 
 ## Establishing a Benchmark Committee
 
@@ -16,7 +16,7 @@ The benchmark committee recruits Data Providers and Model Owners either by invit
 
 ## MLCubes Submission
 
-MLCubes are the building blocks of an experiment. They are required in order to create a benchmark, thus the three MLCubes (Data Preparator MLCube, Model MLCube, and Metrics MLCube) need to be submitted. Check [this section](#mlcubes-submission) to understand how to submit your MLCubes. 
+MLCubes are the building blocks of an experiment. They are required in order to create a benchmark, thus the three MLCubes (Data Preparator MLCube, Model MLCube, and Metrics MLCube) need to be submitted. Check [this section](instructions_model_owners.md#submitting-your-mlcube) to understand how to submit your MLCubes. 
 
 The submission process is described as follows:
 
@@ -60,11 +60,12 @@ The submission process is described as follows:
 
 ## Benchmark Submission
 
-After submitting the Data Preparator MLCube, Model MLCube, and Metrics MLCube, the Benchmark Committee is now capable of creating a benchmark. Once a benchmark is submitted, the Medperf admin must approve it before it can be seen by other users. Check [this section](#benchmark-submission) to get the details on how to submit a benchmark. 
+After submitting the Data Preparator MLCube, Model MLCube, and Metrics MLCube, the Benchmark Committee is now capable of creating a benchmark. Once a benchmark is submitted, the Medperf admin must approve it before it can be seen by other users. Check [this section](instructions_benchmark_committee.md#submitting-your-benchmark) to get the details on how to submit a benchmark. 
 
 ## Submitting and Associating Additional Models
 
-Once a reference benchmark is submitted by the Benchmark Committee, any user can submit their own Model MLCubes and request an association with the benchmark (check step 4 in the section “[Preparing a Dataset](#preparing-a-dataset)” if you are a Data Provider, or check [this section](#requesting-association-to-a-benchmark) if you are a Model Owner). This association request executes the benchmark locally with the given model to ensure compatibility. If the model successfully passes the compatibility test, and its association is approved by the Benchmark Committee, then it becomes part of the benchmark. 
+Once a reference benchmark is submitted by the Benchmark Committee, any user can submit their own Model MLCubes and request an association with the benchmark (check step 4 in the section “[Preparing a Dataset](instructions_data_owners.md#preparing-a-dataset)” if you are a Data Provider, or check [this section](instructions_model_owners.md#requesting-association-to-a-benchmark) if you are a Model Owner). This association request executes the benchmark locally with the given model to ensure compatibility. If the model successfully passes the compatibility test, and its association is approved by the Benchmark Committee, then it becomes part of the benchmark. 
+
 
 ![](./images/submitting_associating_additional_models_1.png)
 
@@ -82,7 +83,7 @@ If the execution is successful and the dataset has successfully passed the compa
 
 ## Executing the Benchmark
 
-Once the benchmark, dataset, and models are registered to the benchmarking platform, the Benchmark Committee notifies Data Providers that models are available for benchmarking, thus they can generate results by executing a model with their local data (check the “[Running an Experiment](#running-an-experiment)” section to understand how to run an experiment). 
+Once the benchmark, dataset, and models are registered to the benchmarking platform, the Benchmark Committee notifies Data Providers that models are available for benchmarking, thus they can generate results by executing a model with their local data (check the “[Running an Experiment](instructions_data_owners.md#running-an-experiment)” section to understand how to run an experiment). 
 
 This procedure retrieves the specified Model MLCube and runs it with the indicated prepared dataset to generate predictions. The Model MLCube will execute the machine learning inference task to generate predictions based on the prepared data. 
 

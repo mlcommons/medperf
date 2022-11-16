@@ -7,7 +7,7 @@ from typing import List
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.utils import storage_path
-from medperf.exceptions import CommunicationRetrievalError
+from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
 class Benchmark(Entity):
@@ -114,6 +114,10 @@ class Benchmark(Entity):
             local_bmks = os.listdir(bmk_storage)
             if str(benchmark_uid) in local_bmks:
                 benchmark_dict = cls.__get_local_dict(benchmark_uid)
+            else:
+                raise InvalidArgumentError(
+                    "No benchmark with the given uid could be found"
+                )
         benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
