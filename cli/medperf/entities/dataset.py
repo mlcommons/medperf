@@ -99,19 +99,33 @@ class Dataset(Entity):
         return cls(reg)
 
     @classmethod
-    def all(cls) -> List["Dataset"]:
+    def all(cls, local_only: bool = False) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
+
+        Args:
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
 
         Returns:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
+        if not local_only:
+            try:
+                dsets_meta = config.comms.get_datasets()
+                dsets = [cls(meta) for meta in dsets_meta]
+                return dsets
+            except CommunicationRetrievalError:
+                msg = "Couldn't retrieve all datasets from the server"
+                logging.warning(msg)
+
         data_storage = storage_path(config.data_storage)
         try:
             generated_uids = next(os.walk(data_storage))[1]
         except StopIteration:
-            logging.warning("Couldn't iterate over the dataset directory")
-            raise RuntimeError("Couldn't iterate over the dataset directory")
+            msg = "Couldn't iterate over the dataset directory"
+            logging.warning(msg)
+            raise RuntimeError(msg)
+
         dsets = []
         for generated_uid in generated_uids:
             dsets.append(cls.from_generated_uid(generated_uid))
@@ -139,12 +153,8 @@ class Dataset(Entity):
             # Get from local cache
             logging.warning(f"Getting Dataset {dset_uid} from comms failed")
             logging.info(f"Looking for dataset {dset_uid} locally")
-            local_dset = list(
-                filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
-            )
-            if len(local_dset) == 1:
-                logging.debug("Found dataset locally")
-                dataset = local_dset[0]
+            local_meta = cls.__get_local_dict(dset_uid)
+            dataset = cls(local_meta)
 
         dataset.write()
         return dataset
