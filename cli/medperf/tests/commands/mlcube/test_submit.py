@@ -8,6 +8,18 @@ from medperf.commands.mlcube.submit import SubmitCube
 
 PATCH_MLCUBE = "medperf.commands.mlcube.submit.{}"
 
+SUBMIT_INFO = {
+    "name": "",
+    "mlcube_file": "",
+    "params_file": "",
+    "additional_files_tarball_url": "",
+    "additional_files_tarball_hash": "",
+    "image_tarball_url": "",
+    "image_tarball_hash": "",
+    "mlcube_hash": "",
+    "parameters_hash": "",
+}
+
 
 @pytest.fixture
 def cube(mocker):
@@ -25,7 +37,7 @@ def cube(mocker):
         ("", False),
         ("invalid", False),
         ("https://google.com", False),
-        (config.git_file_domain + "/mlcube.yaml", True),
+        ("https://google.com" + "/mlcube.yaml", True),
     ],
 )
 @pytest.mark.parametrize(
@@ -33,7 +45,7 @@ def cube(mocker):
     [
         ("invalid", False),
         ("https://google.com", False),
-        (config.git_file_domain + "/parameters.yaml", True),
+        ("https://google.com" + "/parameters.yaml", True),
     ],
 )
 @pytest.mark.parametrize("add_file", [("invalid", False), ("https://google.com", True)])
@@ -50,6 +62,8 @@ def test_is_valid_passes_valid_fields(
         "additional_files_tarball_hash": "",
         "image_tarball_url": img_file[0],
         "image_tarball_hash": "",
+        "mlcube_hash": "",
+        "parameters_hash": "",
     }
     submission = SubmitCube(submit_info)
     should_pass = all([name[1], mlc_file[1], params_file[1], add_file[1], img_file[1]])
@@ -65,15 +79,7 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
     # Arrange
     mock_body = cube_metadata_generator()(1)
     # Arrange
-    submit_info = {
-        "name": "",
-        "mlcube_file": "",
-        "params_file": "",
-        "additional_files_tarball_url": "",
-        "additional_files_tarball_hash": "",
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
-    }
+    submit_info = SUBMIT_INFO
     spy_isval = mocker.patch(
         PATCH_MLCUBE.format("SubmitCube.is_valid"), return_value=True
     )
@@ -98,15 +104,7 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
 @pytest.mark.parametrize("uid", [858, 2770, 2052])
 def test_to_permanent_path_renames_correctly(mocker, comms, ui, cube, uid):
     # Arrange
-    submit_info = {
-        "name": "",
-        "mlcube_file": "",
-        "params_file": "",
-        "additional_files_tarball_url": "",
-        "additional_files_tarball_hash": "",
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
-    }
+    submit_info = SUBMIT_INFO
     submission = SubmitCube(submit_info)
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.exists", return_value=False)
@@ -123,15 +121,7 @@ def test_to_permanent_path_renames_correctly(mocker, comms, ui, cube, uid):
 
 
 def test_write_writes_using_entity(mocker, comms, ui, cube):
-    submit_info = {
-        "name": "",
-        "mlcube_file": "",
-        "params_file": "",
-        "additional_files_tarball_url": "",
-        "additional_files_tarball_hash": "",
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
-    }
+    submit_info = SUBMIT_INFO
     submission = SubmitCube(submit_info)
     spy = mocker.patch(PATCH_MLCUBE.format("Cube.write"))
     mockdata = submission.todict()
@@ -144,15 +134,7 @@ def test_write_writes_using_entity(mocker, comms, ui, cube):
 
 
 def test_upload_uploads_using_entity(mocker, comms, ui, cube):
-    submit_info = {
-        "name": "",
-        "mlcube_file": "",
-        "params_file": "",
-        "additional_files_tarball_url": "",
-        "additional_files_tarball_hash": "",
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
-    }
+    submit_info = SUBMIT_INFO
     submission = SubmitCube(submit_info)
     spy = mocker.patch(PATCH_MLCUBE.format("Cube.upload"))
 
@@ -164,15 +146,7 @@ def test_upload_uploads_using_entity(mocker, comms, ui, cube):
 
 
 def test_download_executes_expected_commands(mocker, comms, ui, cube):
-    submit_info = {
-        "name": "",
-        "mlcube_file": "",
-        "params_file": "",
-        "additional_files_tarball_url": "",
-        "additional_files_tarball_hash": "",
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
-    }
+    submit_info = SUBMIT_INFO
     submission = SubmitCube(submit_info)
     down_spy = mocker.patch(PATCH_MLCUBE.format("Cube.download"))
     is_valid_spy = mocker.patch(PATCH_MLCUBE.format("Cube.is_valid"))

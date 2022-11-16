@@ -118,12 +118,17 @@ def test(
         "-e",
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
+    force_test: bool = typer.Option(
+        False, "--force-test", help="Execute the test even if results already exist",
+    ),
 ):
     """
     Executes a compatibility test for a determined benchmark.
     Can test prepared datasets, remote and local models independently.
     """
-    CompatibilityTestExecution.run(benchmark_uid, data_uid, data_prep, model, evaluator)
+    CompatibilityTestExecution.run(
+        benchmark_uid, data_uid, data_prep, model, evaluator, force_test=force_test,
+    )
     config.ui.print("✅ Done!")
     cleanup()
 

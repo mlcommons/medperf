@@ -78,6 +78,23 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
     spy.assert_not_called()
 
 
+@pytest.mark.parametrize("dset_dict", [{"test": "test"}, {}])
+def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
+    # Arrange
+    dataset.uid = None
+    spy_dict = mocker.patch.object(dataset, "todict", return_value=dset_dict)
+    spy = mocker.patch(PATCH_REGISTER.format("dict_pretty_print"))
+    mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+    mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+
+    # Act
+    DatasetRegistration.run("1")
+
+    # Assert
+    spy_dict.assert_called_once()
+    spy.assert_called_once_with(dset_dict)
+
+
 def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     # Arrange
     dataset.uid = None

@@ -7,6 +7,7 @@ class BenchmarkDatasetAdmin(admin.ModelAdmin):
         "dataset",
         "benchmark",
         "initiated_by",
+        "metadata",
         "approval_status",
         "approved_at",
         "created_at",
