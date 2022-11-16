@@ -57,7 +57,7 @@ class REST(Comms):
         res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
             log_response_error(res)
-            CommunicationAuthenticationError("Unable to authenticate user with provided credentials")
+            raise CommunicationAuthenticationError("Unable to authenticate user with provided credentials")
         else:
             self.token = res.json()["token"]
 
