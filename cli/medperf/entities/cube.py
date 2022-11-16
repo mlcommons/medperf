@@ -78,16 +78,25 @@ class Cube(Entity):
             )
 
     @classmethod
-    def all(cls) -> List["Cube"]:
-        """Class method for retrieving all cubes stored on the user's machine.
+    def all(cls, local_only: bool = False) -> List["Cube"]:
+        """Class method for retrieving all retrievable MLCubes
 
         Args:
-            ui (UI): Instance of an UI implementation.
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
 
         Returns:
             List[Cube]: List containing all cubes found locally
         """
         logging.info("Retrieving all local cubes")
+        if not local_only:
+            try:
+                cubes_meta = config.comms.get_cubes()
+                cubes = [cls(meta) for meta in cubes_meta]
+                return cubes
+            except CommunicationRetrievalError:
+                msg = "Couldn't retrieve all cubes from the server"
+                logging.warning(msg)
+
         cubes_storage = storage_path(config.cubes_storage)
         try:
             uids = next(os.walk(cubes_storage))[1]
@@ -136,12 +145,9 @@ class Cube(Entity):
             logging.warning("Max download attempts reached")
             logging.warning(f"Getting MLCube {cube_uid} from comms failed")
             logging.info(f"Retrieving MLCube {cube_uid} from local storage")
-            local_cube = list(
-                filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
-            )
-            if len(local_cube) == 1:
-                logging.debug("Found cube locally")
-                return local_cube[0]
+            local_meta = cls.__get_local_dict(cube_uid)
+            cube = cls(local_meta)
+            return cube
 
         logging.error("Could not find the requested MLCube")
         cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
