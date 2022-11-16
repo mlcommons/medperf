@@ -58,10 +58,25 @@ class Result(Entity):
         return cls(results_info)
 
     @classmethod
-    def all(cls) -> List["Result"]:
+    def all(cls, local_only: bool = True) -> List["Result"]:
         """Gets and creates instances of all the user's results
+
+        Args:
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+
+        Returns:
+            List[Result]: List containing all results
         """
         logging.info("Retrieving all results")
+        if not local_only:
+            try:
+                results_meta = config.comms.get_results()
+                results = [cls(meta) for meta in results_meta]
+                return results
+            except CommunicationRetrievalError:
+                msg = "Couldn't retrieve all results from the server"
+                logging.warning(msg)
+
         results_ids_tuple = results_ids()
         results = []
         for result_ids in results_ids_tuple:
