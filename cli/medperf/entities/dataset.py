@@ -145,6 +145,10 @@ class Dataset(Entity):
             if len(local_dset) == 1:
                 logging.debug("Found dataset locally")
                 dataset = local_dset[0]
+            else:
+                raise InvalidArgumentError(
+                    f"Requested dataset {dset_uid} could not be retrieved"
+                )
 
         dataset.write()
         return dataset
