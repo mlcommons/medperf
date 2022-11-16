@@ -9,7 +9,7 @@ from medperf.utils import (
     storage_path,
 )
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, CommunicationRetrievalError
 import medperf.config as config
 
 
@@ -130,15 +130,22 @@ class Dataset(Entity):
         """
         logging.debug(f"Retrieving dataset {dset_uid}")
         comms = config.comms
-        local_dset = list(
-            filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
-        )
-        if len(local_dset) == 1:
-            logging.debug("Found dataset locally")
-            return local_dset[0]
 
-        meta = comms.get_dataset(dset_uid)
-        dataset = cls(meta)
+        # Try first downloading the data
+        try:
+            meta = comms.get_dataset(dset_uid)
+            dataset = cls(meta)
+        except CommunicationRetrievalError:
+            # Get from local cache
+            logging.warning(f"Getting Dataset {dset_uid} from comms failed")
+            logging.info(f"Looking for dataset {dset_uid} locally")
+            local_dset = list(
+                filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
+            )
+            if len(local_dset) == 1:
+                logging.debug("Found dataset locally")
+                dataset = local_dset[0]
+
         dataset.write()
         return dataset
 

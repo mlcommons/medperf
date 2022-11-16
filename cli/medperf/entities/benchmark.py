@@ -86,7 +86,7 @@ class Benchmark(Entity):
         return benchmarks
 
     @classmethod
-    def get(cls, benchmark_uid: str, force_update: bool = False) -> "Benchmark":
+    def get(cls, benchmark_uid: str) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -94,23 +94,25 @@ class Benchmark(Entity):
         Args:
             benchmark_uid (str): UID of the benchmark.
             comms (Comms): Instance of a communication interface.
-            force_update (bool): Wether to download the benchmark regardless of cache. Defaults to False
 
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
         """
         comms = config.comms
-        # Get local benchmarks
-        bmk_storage = storage_path(config.benchmarks_storage)
-        local_bmks = os.listdir(bmk_storage)
-        if str(benchmark_uid) in local_bmks and not force_update:
-            benchmark_dict = cls.__get_local_dict(benchmark_uid)
-        else:
-            # Download benchmark
+        # Try to download first
+        try:
             benchmark_dict = comms.get_benchmark(benchmark_uid)
             ref_model = benchmark_dict["reference_model_mlcube"]
             add_models = cls.get_models_uids(benchmark_uid)
             benchmark_dict["models"] = [ref_model] + add_models
+        except CommunicationRetrievalError:
+            # Get local benchmarks
+            logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
+            logging.info(f"Looking for benchmark {benchmark_uid} locally")
+            bmk_storage = storage_path(config.benchmarks_storage)
+            local_bmks = os.listdir(bmk_storage)
+            if str(benchmark_uid) in local_bmks:
+                benchmark_dict = cls.__get_local_dict(benchmark_uid)
         benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
