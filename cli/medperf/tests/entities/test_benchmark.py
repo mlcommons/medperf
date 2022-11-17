@@ -28,11 +28,25 @@ def no_local(mocker):
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
 
 
-def test_all_looks_at_correct_path(mocker):
+def test_all_calls_comms(mocker, comms):
+    # Arrange
+    spy = mocker.patch.object(comms, "get_benchmarks", return_value=[])
+
+    # Act
+    Benchmark.all()
+
+    # Assert
+    spy.assert_called_once()
+
+
+def test_all_looks_at_correct_path_if_comms_failed(mocker, comms):
     # Arrange
     bmks_path = storage_path(config.benchmarks_storage)
     fs = iter([(".", (), ())])
     spy = mocker.patch("os.walk", return_value=fs)
+    mocker.patch.object(
+        comms, "get_benchmarks", side_effect=CommunicationRetrievalError
+    )
 
     # Act
     Benchmark.all()
@@ -41,19 +55,20 @@ def test_all_looks_at_correct_path(mocker):
     spy.assert_called_once_with(bmks_path)
 
 
-@pytest.mark.parametrize("bmk_uid", [29, 348, 219])
-def test_all_calls_get_with_correct_uid(mocker, bmk_uid):
+def test_all_doesnt_call_comms_if_only_local(mocker, comms):
     # Arrange
-    bmk = mocker.create_autospec(spec=Benchmark)
-    fs = iter([(".", ([bmk_uid]), ())])
+    bmks_path = storage_path(config.benchmarks_storage)
+    fs = iter([(".", (), ())])
     mocker.patch("os.walk", return_value=fs)
-    spy = mocker.patch(PATCH_BENCHMARK.format("Benchmark.get"), return_value=bmk)
+    spy = mocker.patch.object(
+        comms, "get_benchmarks", side_effect=CommunicationRetrievalError
+    )
 
     # Act
-    Benchmark.all()
+    Benchmark.all(local_only=True)
 
     # Assert
-    spy.assert_called_once_with(bmk_uid)
+    spy.assert_not_called()
 
 
 def test_get_benchmark_retrieves_benchmark_from_comms(mocker, no_local, comms):
@@ -101,9 +116,7 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
 
 
 @pytest.mark.parametrize("benchmarks_uids", [[449, 66, 337]])
-def test_get_benchmark_reads_remote_benchmark(
-    mocker, comms, benchmarks_uids
-):
+def test_get_benchmark_reads_remote_benchmark(mocker, comms, benchmarks_uids):
     # Arrange
     benchmarks_uids = [str(uid) for uid in benchmarks_uids]
     mocker.patch("os.listdir", return_value=benchmarks_uids)
@@ -125,6 +138,7 @@ def test_get_local_dict_reads_expected_file(mocker, comms, uid):
     # Arrange
     uid = str(uid)
     mocker.patch("os.listdir", return_value=[uid])
+    mocker.patch("os.path.exists", return_value=True)
     mocker.patch("yaml.safe_load", return_value=benchmark_dict())
     spy = mocker.patch("builtins.open", mock_open())
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
