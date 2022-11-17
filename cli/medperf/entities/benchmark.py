@@ -69,7 +69,7 @@ class Benchmark(Entity):
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all benchmarks from the server"
                 logging.warning(msg)
-        
+
         bmks_storage = storage_path(config.benchmarks_storage)
         try:
             uids = next(os.walk(bmks_storage))[1]
@@ -110,14 +110,7 @@ class Benchmark(Entity):
             # Get local benchmarks
             logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
             logging.info(f"Looking for benchmark {benchmark_uid} locally")
-            bmk_storage = storage_path(config.benchmarks_storage)
-            local_bmks = os.listdir(bmk_storage)
-            if str(benchmark_uid) in local_bmks:
-                benchmark_dict = cls.__get_local_dict(benchmark_uid)
-            else:
-                raise InvalidArgumentError(
-                    "No benchmark with the given uid could be found"
-                )
+            benchmark_dict = cls.__get_local_dict(benchmark_uid)
         benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
@@ -136,6 +129,8 @@ class Benchmark(Entity):
         storage = storage_path(config.benchmarks_storage)
         bmk_storage = os.path.join(storage, str(benchmark_uid))
         bmk_file = os.path.join(bmk_storage, config.benchmarks_filename)
+        if not os.path.exists(bmk_file):
+            raise InvalidArgumentError("No benchmark with the given uid could be found")
         with open(bmk_file, "r") as f:
             data = yaml.safe_load(f)
 
