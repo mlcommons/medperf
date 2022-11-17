@@ -109,11 +109,11 @@ class Dataset(Entity):
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
+        dsets = []
         if not local_only:
             try:
                 dsets_meta = config.comms.get_datasets()
                 dsets = [cls(meta) for meta in dsets_meta]
-                return dsets
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all datasets from the server"
                 logging.warning(msg)
@@ -126,7 +126,6 @@ class Dataset(Entity):
             logging.warning(msg)
             raise RuntimeError(msg)
 
-        dsets = []
         for generated_uid in generated_uids:
             dsets.append(cls.from_generated_uid(generated_uid))
         return dsets

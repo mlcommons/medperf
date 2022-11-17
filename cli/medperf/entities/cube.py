@@ -92,11 +92,11 @@ class Cube(Entity):
             List[Cube]: List containing all cubes
         """
         logging.info("Retrieving all cubes")
+        cubes = []
         if not local_only:
             try:
                 cubes_meta = config.comms.get_cubes()
                 cubes = [cls(meta) for meta in cubes_meta]
-                return cubes
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all cubes from the server"
                 logging.warning(msg)
@@ -109,7 +109,6 @@ class Cube(Entity):
             logging.warning(msg)
             raise RuntimeError(msg)
 
-        cubes = []
         for uid in uids:
             meta = cls.__get_local_dict(uid)
             cube = cls(meta)

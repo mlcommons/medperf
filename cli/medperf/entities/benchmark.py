@@ -61,11 +61,11 @@ class Benchmark(Entity):
             List[Benchmark]: a list of Benchmark instances.
         """
         logging.info("Retrieving all benchmarks")
+        benchmarks = []
         if not local_only:
             try:
                 bmks_meta = config.comms.get_benchmarks()
                 benchmarks = [cls(meta) for meta in bmks_meta]
-                return benchmarks
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all benchmarks from the server"
                 logging.warning(msg)
@@ -78,7 +78,6 @@ class Benchmark(Entity):
             logging.warning(msg)
             raise RuntimeError(msg)
 
-        benchmarks = []
         for uid in uids:
             meta = cls.__get_local_dict(uid)
             benchmark = cls(meta)

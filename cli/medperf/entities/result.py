@@ -68,17 +68,16 @@ class Result(Entity):
             List[Result]: List containing all results
         """
         logging.info("Retrieving all results")
+        results = []
         if not local_only:
             try:
                 results_meta = config.comms.get_results()
                 results = [cls(meta) for meta in results_meta]
-                return results
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all results from the server"
                 logging.warning(msg)
 
         results_ids_tuple = results_ids()
-        results = []
         for result_ids in results_ids_tuple:
             b_id, m_id, d_id = result_ids
             results.append(cls.from_entities_uids(b_id, m_id, d_id))
