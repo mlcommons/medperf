@@ -103,6 +103,17 @@ def img_body(mocker, comms):
     return body_gen
 
 
+def test_all_calls_comms(mocker, comms):
+    # Arrange
+    spy = mocker.patch.object(comms, "get_cubes", return_value=[])
+
+    # Act
+    Cube.all()
+
+    # Assert
+    spy.assert_called_once()
+
+
 def test_all_looks_at_correct_path_if_comms_failed(mocker, comms):
     # Arrange
     cubes_path = storage_path(config.cubes_storage)
@@ -157,6 +168,21 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid):
 
     # Assert
     spy.assert_called_once_with(ANY, cube_meta)
+
+
+def test_all_doesnt_call_comms_if_only_local(mocker, comms):
+    # Arrange
+    fs = iter([(".", (), ())])
+    mocker.patch("os.walk", return_value=fs)
+    spy = mocker.patch.object(
+        comms, "get_cubes", side_effect=CommunicationRetrievalError
+    )
+
+    # Act
+    Cube.all(local_only=True)
+
+    # Assert
+    spy.assert_not_called()
 
 
 def test_get_basic_cube_retrieves_metadata_from_comms(

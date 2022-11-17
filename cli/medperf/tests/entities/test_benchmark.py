@@ -57,7 +57,6 @@ def test_all_looks_at_correct_path_if_comms_failed(mocker, comms):
 
 def test_all_doesnt_call_comms_if_only_local(mocker, comms):
     # Arrange
-    bmks_path = storage_path(config.benchmarks_storage)
     fs = iter([(".", (), ())])
     mocker.patch("os.walk", return_value=fs)
     spy = mocker.patch.object(
