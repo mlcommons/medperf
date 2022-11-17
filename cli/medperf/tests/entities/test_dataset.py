@@ -72,6 +72,8 @@ def all_uids(mocker, basic_arrange, request):
 def test_all_calls_comms(mocker, comms):
     # Arrange
     spy = mocker.patch.object(comms, "get_datasets", return_value=[])
+    walk_out = iter([("", [], [])])
+    mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
 
     # Act
     Dataset.all()

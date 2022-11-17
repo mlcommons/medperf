@@ -106,6 +106,8 @@ def img_body(mocker, comms):
 def test_all_calls_comms(mocker, comms):
     # Arrange
     spy = mocker.patch.object(comms, "get_cubes", return_value=[])
+    walk_out = iter([("", [], [])])
+    mocker.patch(PATCH_CUBE.format("os.walk"), return_value=walk_out)
 
     # Act
     Cube.all()

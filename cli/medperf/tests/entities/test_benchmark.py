@@ -31,6 +31,8 @@ def no_local(mocker):
 def test_all_calls_comms(mocker, comms):
     # Arrange
     spy = mocker.patch.object(comms, "get_benchmarks", return_value=[])
+    walk_out = iter([("", [], [])])
+    mocker.patch(PATCH_BENCHMARK.format("os.walk"), return_value=walk_out)
 
     # Act
     Benchmark.all()
