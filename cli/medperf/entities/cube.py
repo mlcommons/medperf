@@ -14,7 +14,12 @@ from medperf.utils import (
     cleanup,
 )
 from medperf.entities.interface import Entity
-from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
+from medperf.exceptions import (
+    ExecutionError,
+    InvalidEntityError,
+    MedperfException,
+    CommunicationRetrievalError,
+)
 import medperf.config as config
 
 
@@ -115,30 +120,38 @@ class Cube(Entity):
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
-        "Retrieve from local storage if cube already there"
         logging.debug(f"Retrieving the cube {cube_uid}")
         comms = config.comms
-        local_cube = list(
-            filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
-        )
-        if len(local_cube) == 1:
-            logging.debug("Found cube locally")
-            return local_cube[0]
 
-        meta = comms.get_cube_metadata(cube_uid)
-        cube = cls(meta)
-        attempt = 0
-        while attempt < config.cube_get_max_attempts:
-            logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
-            cube.download()
-            if cube.is_valid():
-                cube.write()
-                return cube
-            attempt += 1
-        logging.error("Max download attempts reached")
+        # Try to download the cube first
+        try:
+            meta = comms.get_cube_metadata(cube_uid)
+            cube = cls(meta)
+            attempt = 0
+            while attempt < config.cube_get_max_attempts:
+                logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
+                # Check first if we already have the required files
+                if cube.is_valid():
+                    cube.write()
+                    return cube
+                # Try to redownload elements if invalid
+                cube.download()
+                attempt += 1
+        except CommunicationRetrievalError:
+            logging.warning("Max download attempts reached")
+            logging.warning(f"Getting MLCube {cube_uid} from comms failed")
+            logging.info(f"Retrieving MLCube {cube_uid} from local storage")
+            local_cube = list(
+                filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
+            )
+            if len(local_cube) == 1:
+                logging.debug("Found cube locally")
+                return local_cube[0]
+
+        logging.error("Could not find the requested MLCube")
         cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
         cleanup([cube_path])
-        raise InvalidEntityError("Could not successfully download the requested MLCube")
+        raise InvalidEntityError("Could not successfully get the requested MLCube")
 
     def download_mlcube(self):
         url = self.git_mlcube_url
@@ -208,9 +221,14 @@ class Cube(Entity):
         Returns:
             bool: Wether the cube and related files match the expeced hashes
         """
+        try:
+            local_hashes = self.get_local_hashes()
+        except FileNotFoundError:
+            logging.warning("Local MLCube files not found. Defaulting to invalid")
+            return False
+
         valid_cube = self.is_cube_valid
         valid_hashes = True
-        local_hashes = self.get_local_hashes()
         server_hashes = self.todict()
         for key in local_hashes:
             if local_hashes[key]:
