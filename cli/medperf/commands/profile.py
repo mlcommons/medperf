@@ -39,10 +39,7 @@ def active(profile: str):
     write_config(config_p)
 
 
-@app.command(
-    "create",
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
-)
+@app.command("create")
 @configurable()
 def create(
     ctx: typer.Context,
