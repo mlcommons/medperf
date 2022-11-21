@@ -39,7 +39,10 @@ def active(profile: str):
     write_config(config_p)
 
 
-@app.command("create", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    "create",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
 @configurable()
 def create(
     ctx: typer.Context,
@@ -57,7 +60,7 @@ def create(
     write_config(config_p)
 
 
-@app.command("set", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command("set")
 @configurable()
 def set_args(ctx: typer.Context):
     """Assign key-value configuration pairs to the current profile.
@@ -72,7 +75,7 @@ def set_args(ctx: typer.Context):
     write_config(config_p)
 
 
-@app.command("unset", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command("unset")
 @configurable(with_args=False)
 def unset(ctx: typer.Context):
     """Removes a set of custom configuration parameters assigned to the current profile.
