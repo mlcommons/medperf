@@ -18,7 +18,6 @@ class BenchmarkModel(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    priority = models.FloatField()
 
     class Meta:
-        ordering = ["priority"]
+        ordering = ["modified_at"]
