@@ -7,7 +7,7 @@ from medperf import config
 from medperf.commands.profile import app
 
 runner = CliRunner()
-config.profile = "test"
+profile_backup = config.profile
 PATCH_PROFILE = "medperf.commands.profile.{}"
 MOCKED_CONFIG = {
     "active": {"profile": "default"},
@@ -77,18 +77,21 @@ def test_create_fails_if_name_exists(mocker, config_p):
 @pytest.mark.parametrize("args", [(["--platform", "docker"], {"platform": "docker"})])
 def test_set_updates_profile_parameters(mocker, config_p, args):
     # Arrange
-    profile = config.profile
+    config.profile = "default"
     in_args, out_cfg = args
     write_spy = mocker.patch(PATCH_PROFILE.format("write_config"))
-    exp_cfg = deepcopy(config_p[profile])
+    exp_cfg = deepcopy(config_p[config.profile])
     exp_cfg.update(out_cfg)
 
     # Act
     runner.invoke(app, ["set"] + in_args)
 
     # Assert
-    assert config_p[profile] == exp_cfg
+    assert config_p[config.profile] == exp_cfg
     write_spy.assert_called_once()
+
+    # Clean
+    config.profile = profile_backup
 
 
 @pytest.mark.parametrize(
@@ -100,7 +103,7 @@ def test_set_updates_profile_parameters(mocker, config_p, args):
 )
 def test_unset_removes_profile_parameters(config_p, args):
     # Arrange
-    profile = config.profile
+    config.profile = "default"
     in_args, out_cfg = args
 
     # Act
@@ -108,7 +111,10 @@ def test_unset_removes_profile_parameters(config_p, args):
 
     # Assert
     for param in out_cfg.keys():
-        assert param not in config_p[profile]
+        assert param not in config_p[config.profile]
+
+    # Clean
+    config.profile = profile_backup
 
 
 def test_ls_prints_profile_names(mocker, config_p, ui):
