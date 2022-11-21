@@ -85,32 +85,42 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             "approved_at",
             "created_at",
             "modified_at",
+            "priority"
         ]
 
     def validate(self, data):
         if not self.instance:
             raise serializers.ValidationError("No model association found")
+        return data
+
+    def validate_approval_status(self, value):
         last_approval_status = self.instance.approval_status
-        cur_approval_status = data["approval_status"]
         if last_approval_status != "PENDING":
             raise serializers.ValidationError(
                 "User can approve or reject only a pending request"
             )
         initiated_user = self.instance.initiated_by
         current_user = self.context["request"].user
-        if (
-            last_approval_status != cur_approval_status
-            and cur_approval_status == "APPROVED"
-        ):
+        if last_approval_status != value and value == "APPROVED":
             if current_user.id == initiated_user.id:
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"
                 )
-        return data
+        return value
+
+    def validate_priority(self, value):
+        if self.instance.approval_status != "APPROVED":
+            raise serializers.ValidationError(
+                "The association should be approved before modifying its priority"
+            )
+        return value
 
     def update(self, instance, validated_data):
-        instance.approval_status = validated_data["approval_status"]
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
+        if "approval_status" in validated_data:
+            instance.approval_status = validated_data["approval_status"]
+            if instance.approval_status != "PENDING":
+                instance.approved_at = timezone.now()
+        if "priority" in validated_data:
+            instance.priority = validated_data["priority"]
         instance.save()
         return instance
