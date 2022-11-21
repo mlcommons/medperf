@@ -22,7 +22,7 @@ def comms(mocker):
 def result(mocker):
     mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.safe_load", return_value=MOCK_RESULTS_CONTENT)
-    result = Result.from_entities_uids(1, 1, 1)
+    result = Result.get(1)
     return result
 
 
@@ -43,6 +43,19 @@ def test_from_entities_uids_open_results_info_file(mocker, results_path):
     yaml_spy.assert_called_once()
 
 
+def test_all_calls_comms(mocker, comms):
+    # Arrange
+    spy = mocker.patch.object(comms, "get_results", return_value=[])
+    walk_out = iter([("", [], [])])
+    mocker.patch(PATCH_RESULT.format("os.walk"), return_value=walk_out)
+
+    # Act
+    Result.all()
+
+    # Assert
+    spy.assert_called_once()
+
+
 def test_all_gets_results_ids(mocker, ui):
     # Arrange
     spy = mocker.patch(PATCH_RESULT.format("results_ids"), return_value=[])
@@ -59,8 +72,7 @@ def test_all_creates_result_objects_with_correct_info(
 ):
     # Arrange
     mock_path = "results_filepath"
-    result_ids = ("b_id", "m_id", "d_id")
-    b_id, m_id, d_id = result_ids
+    result_ids = "_".join(["b_id", "m_id", "d_id"])
     mocker.patch(PATCH_RESULT.format("results_ids"), return_value=[result_ids])
     spy = mocker.spy(Result, "from_entities_uids")
     mocker.patch("os.path.join", return_value=mock_path)
@@ -69,7 +81,7 @@ def test_all_creates_result_objects_with_correct_info(
     Result.all()
 
     # Assert
-    spy.assert_has_calls([call(b_id, m_id, d_id)])
+    spy.assert_has_calls([call(result_ids)])
 
 
 @pytest.mark.parametrize("uid", [349, 2, 84])

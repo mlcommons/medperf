@@ -58,7 +58,7 @@ class Result(Entity):
         return cls(results_info)
 
     @classmethod
-    def all(cls, local_only: bool = True) -> List["Result"]:
+    def all(cls, local_only: bool = False) -> List["Result"]:
         """Gets and creates instances of all the user's results
 
         Args:
@@ -106,16 +106,8 @@ class Result(Entity):
             # Get local results
             logging.warning(f"Getting result {result_uid} from comms failed")
             logging.info(f"Looking for result {result_uid} locally")
-            local_result = list(
-                filter(lambda res: str(res.uid) == str(result_uid), cls.all())
-            )
-            if len(local_result) == 1:
-                logging.debug("Found result locally")
-                result = local_result[0]
-            else:
-                raise InvalidArgumentError(
-                    f"The requested result {result_uid} could not be retrieved"
-                )
+            local_meta = cls.__get_local_dict(result_uid)
+            result = cls(local_meta)
 
         result.write()
         return result
@@ -158,9 +150,14 @@ class Result(Entity):
             yaml.dump(self.todict(), f)
 
     @classmethod
-    def __get_local_dict(cls, benchmark_uid, model_uid, dataset_uid):
+    def __get_local_dict(cls, local_uid):
+        benchmark_uid, model_uid, dataset_uid = local_uid.split("_")
         path = results_path(benchmark_uid, model_uid, dataset_uid)
         path = os.path.join(path, config.results_info_file)
+        if not os.path.exists:
+            raise InvalidArgumentError(
+                f"The requested result {local_uid} could not be retrieved"
+            )
         with open(path, "r") as f:
             results_info = yaml.safe_load(f)
         return results_info
