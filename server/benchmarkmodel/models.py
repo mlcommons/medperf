@@ -18,7 +18,15 @@ class BenchmarkModel(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    priority = models.FloatField()
+    priority = models.FloatField(blank=True)
 
     class Meta:
         ordering = ["priority"]
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # when creating a new association, the priority is set to last
+            self.priority = (
+                self.benchmark.benchmarkmodel_set.all().last().priority + 1.0
+            )
+        super().save(*args, **kwargs)
