@@ -250,7 +250,7 @@ class REST(Comms):
             raise CommunicationRetrievalError("the specified benchmark doesn't exist")
         return res.json()
 
-    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
+    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:  # not used anymore
         """Retrieves all the models associated with a benchmark. reference model not included
 
         Args:
@@ -616,3 +616,15 @@ class REST(Comms):
         """
         assocs = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
         return assocs
+
+    def get_benchmark_model_associations(self, benchmark_uid: int) -> List[dict]:
+        """Retrieves all the model associations of a benchmark.
+
+        Args:
+            benchmark_uid (int): UID of the desired benchmark
+
+        Returns:
+            list[dict]: List of benchmark-model association specifications
+        """
+        benchmarkmodels = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/benchmarkmodels")
+        return benchmarkmodels
