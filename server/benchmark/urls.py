@@ -8,4 +8,5 @@ urlpatterns = [
     path("<int:pk>/models/", views.BenchmarkModelList.as_view()),
     path("<int:pk>/datasets/", views.BenchmarkDatasetList.as_view()),
     path("<int:pk>/results/", views.BenchmarkResultList.as_view()),
+    path("<int:pk>/benchmarkmodels/", views.BenchmarkModelAssociationList.as_view()),
 ]
