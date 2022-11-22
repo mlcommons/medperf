@@ -1,5 +1,4 @@
 from medperf import config
-from medperf.commands.association.priority import AssociationPriority
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, pretty_error, approval_prompt
@@ -9,12 +8,7 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 class AssociateCube:
     @classmethod
     def run(
-        cls,
-        cube_uid: str,
-        benchmark_uid: int,
-        approved=False,
-        force_test=False,
-        priority=-1,
+        cls, cube_uid: str, benchmark_uid: int, approved=False, force_test=False,
     ):
         """Associates a cube with a given benchmark
 
@@ -22,9 +16,6 @@ class AssociateCube:
             cube_uid (str): UID of model MLCube
             benchmark_uid (int): UID of benchmark
             approved (bool): Skip validation step. Defualts to False
-            priority (int): priority of the cube. defaults to -1 (least priority)
-                            This number will be ignored by the server if the initiator
-                            is not the benchmark owner.
         """
         comms = config.comms
         ui = config.ui
@@ -45,12 +36,7 @@ class AssociateCube:
         if approved:
             ui.print("Generating mlcube benchmark association")
             metadata = {"test_result": result.results}
-            float_priority = AssociationPriority(benchmark_uid, cube_uid, priority)
-            float_priority.validate()
-            float_priority.convert_priority_to_float()
-            float_priority.prevent_underflow()
-            # TODO
-            comms.associate_cube(cube_uid, benchmark_uid, metadata, float_priority)
+            comms.associate_cube(cube_uid, benchmark_uid, metadata)
         else:
             pretty_error(
                 "MLCube association operation cancelled", add_instructions=False
