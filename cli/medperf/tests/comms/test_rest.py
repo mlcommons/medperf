@@ -32,12 +32,12 @@ def server(mocker, ui):
         ),
         ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
-            "get_benchmark_models",
+            "get_benchmark_model_associations",
             "get_list",
             200,
             [1],
             [],
-            (f"{url}/benchmarks/1/models",),
+            (f"{url}/benchmarks/1/benchmarkmodels",),
             {},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
@@ -426,8 +426,10 @@ def test_get_benchmark_returns_benchmark_body(mocker, server, body):
 @pytest.mark.parametrize("exp_uids", [[142, 437, 196], [303, 27, 24], [40, 19, 399]])
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
-    body = [{"id": uid} for uid in exp_uids]
-    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=body)
+    body = [{"model_mlcube": uid} for uid in exp_uids]
+    mocker.patch(
+        patch_server.format("REST.get_benchmark_model_associations"), return_value=body
+    )
 
     # Act
     uids = server.get_benchmark_models(1)
