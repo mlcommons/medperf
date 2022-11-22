@@ -27,7 +27,6 @@ class AssociationPriority:
         self.priority = priority
         self.float_priority = None
         self.min_difference = None
-        self.comms = config.comms
 
     def validate(self):
         if self.priority < 1 and self.priority != -1:
@@ -40,10 +39,6 @@ class AssociationPriority:
         Priority values in the server are stored as float values (not integer ranks) for more efficient
         priority updates in terms of database operations. More information can be found here:
         https://questhenkart.medium.com/a-scalable-solution-to-ordering-data-by-priority-or-rank-19977d31817c
-
-        Args:
-            benchmark_uid (str): Benchmark UID of the mlcube association whose priority is given.
-            priority (int): priority value (rank). A positive integer or (-1) for least priority"
 
         Returns:
             float: the float value that corresponds to the given priority.
@@ -65,6 +60,6 @@ class AssociationPriority:
     def update(self):
         # this number is chosen arbitrarily
         rescale = self.min_difference and self.min_difference < 1e-10
-        self.comms.set_mlcube_association_priority(
+        config.comms.set_mlcube_association_priority(
             self.benchmark_uid, self.mlcube_uid, self.float_priority, rescale=rescale,
         )
