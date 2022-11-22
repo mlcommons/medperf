@@ -19,7 +19,6 @@ class AssociationPriority:
         priority_setter = AssociationPriority(benchmark_uid, mlcube_uid, priority)
         priority_setter.validate()
         priority_setter.convert_priority_to_float()
-        priority_setter.prevent_underflow()  # TODO: should be after update!?
         priority_setter.update()
 
     def __init__(self, benchmark_uid: str, mlcube_uid: str, priority: int):
@@ -63,16 +62,9 @@ class AssociationPriority:
             self.float_priority = (priority1 + priority2) / 2
             self.min_difference = (priority2 - priority1) / 2
 
-    def prevent_underflow(self):
-        # this number is chosen arbitrarily
-        if self.min_difference > 1e-10:
-            return
-        # TODO
-        # for i, bmk_model in enumerate(bmk_models):
-        #     bmk_model.priority = i + 1.0
-        # BenchmarkModel.objects.bulk_update(bmk_models, ["priority"])
-
     def update(self):
+        # this number is chosen arbitrarily
+        rescale = self.min_difference and self.min_difference < 1e-10
         self.comms.set_mlcube_association_priority(
-            self.benchmark_uid, self.mlcube_uid, self.float_priority
+            self.benchmark_uid, self.mlcube_uid, self.float_priority, rescale=rescale,
         )

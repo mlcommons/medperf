@@ -626,5 +626,27 @@ class REST(Comms):
         Returns:
             list[dict]: List of benchmark-model association specifications
         """
-        benchmarkmodels = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/benchmarkmodels")
+        benchmarkmodels = self.__get_list(
+            f"{self.server_url}/benchmarks/{benchmark_uid}/benchmarkmodels"
+        )
         return benchmarkmodels
+
+    def set_mlcube_association_priority(
+        self, benchmark_uid: str, mlcube_uid: str, priority: float, rescale: bool
+    ):
+        """Sets the priority of an mlcube-benchmark association
+
+        Args:
+            mlcube_uid (str): Dataset UID
+            benchmark_uid (str): Benchmark UID
+            priority (float): priority value to set for the association
+            rescale (bool): whether to rescale priority values
+        """
+        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+        data = {"priority": priority, "rescale": rescale}
+        res = self.__auth_put(url, json=data,)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(
+                f"Could not set the priority of mlcube {mlcube_uid} within the benchmark {benchmark_uid}"
+            )

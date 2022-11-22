@@ -76,6 +76,8 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
 
 
 class ModelApprovalSerializer(serializers.ModelSerializer):
+    rescale = serializers.BooleanField(default=False, write_only=True)
+
     class Meta:
         model = BenchmarkModel
         read_only_fields = ["initiated_by", "approved_at"]
@@ -85,7 +87,7 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             "approved_at",
             "created_at",
             "modified_at",
-            "priority"
+            "priority",
         ]
 
     def validate(self, data):
@@ -123,4 +125,9 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
         if "priority" in validated_data:
             instance.priority = validated_data["priority"]
         instance.save()
+        if validated_data["rescale"]:
+            bmk_models = self.instance.benchmark.benchmarkmodel_set.all()
+            for i, bmk_model in enumerate(bmk_models):
+                bmk_model.priority = i + 1.0
+            BenchmarkModel.objects.bulk_update(bmk_models, ["priority"])
         return instance
