@@ -250,7 +250,7 @@ class REST(Comms):
             raise CommunicationRetrievalError("the specified benchmark doesn't exist")
         return res.json()
 
-    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:  # not used anymore
+    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
         """Retrieves all the models associated with a benchmark. reference model not included
 
         Args:
@@ -259,8 +259,10 @@ class REST(Comms):
         Returns:
             list[int]: List of model UIDS
         """
-        models = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
-        model_uids = [model["id"] for model in models]
+        benchmarkmodels = self.get_benchmark_model_associations(benchmark_uid)
+        model_uids = [
+            benchmarkmodel["model_mlcube"] for benchmarkmodel in benchmarkmodels
+        ]
         return model_uids
 
     def get_benchmark_demo_dataset(
