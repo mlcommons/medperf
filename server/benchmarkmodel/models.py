@@ -26,7 +26,9 @@ class BenchmarkModel(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             # when creating a new association, the priority is set to last
-            self.priority = (
-                self.benchmark.benchmarkmodel_set.all().last().priority + 1.0
-            )
+            last_benchmarkmodel = self.benchmark.benchmarkmodel_set.all().last()
+            if last_benchmarkmodel:
+                self.priority = last_benchmarkmodel.priority + 1.0
+            else:
+                self.priority = 1.0
         super().save(*args, **kwargs)
