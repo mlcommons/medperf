@@ -1,3 +1,4 @@
+from medperf.exceptions import InvalidArgumentError
 import pytest
 from unittest.mock import call, ANY
 
@@ -33,7 +34,7 @@ def test_run_fails_if_password_mismatch(mocker, comms, ui):
     mocker.patch.object(ui, "hidden_prompt", side_effect=["pwd1", "pwd2"])
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         PasswordChange.run()
 
 
@@ -63,14 +64,11 @@ def test_run_deletes_outdated_token(mocker, comms, ui):
 
 def test_run_doesnt_delete_token_if_failed_passchange(mocker, comms, ui):
     # Arrange
-    def _side_effect(*args, **kwargs):
-        raise Exception
-
-    mocker.patch.object(comms, "change_password", side_effect=_side_effect)
+    mocker.patch.object(comms, "change_password", side_effect=InvalidArgumentError)
     spy = mocker.patch("os.remove")
 
     # Act
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         PasswordChange.run()
 
     # Assert

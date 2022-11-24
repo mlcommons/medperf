@@ -9,7 +9,7 @@ from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.entities.dataset import Dataset
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 
 
 REGISTRATION_MOCK = {
@@ -88,7 +88,7 @@ def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(MedperfException):
         Dataset.all()
 
 

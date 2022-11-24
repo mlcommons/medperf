@@ -1,3 +1,4 @@
+from medperf.exceptions import InvalidArgumentError
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
 
@@ -48,7 +49,7 @@ def test_run_fails_if_dataset_already_registered(
     dataset.uid = uid
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         DatasetRegistration.run("1")
 
 

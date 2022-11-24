@@ -1,3 +1,4 @@
+from medperf.exceptions import InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
@@ -43,7 +44,7 @@ def test_fails_if_dataset_incompatible_with_benchmark(
 ):
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         AssociateDataset.run(1, 1)
 
 
@@ -54,7 +55,7 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
     dataset.uid = None
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         AssociateDataset.run(1, 1)
 
 

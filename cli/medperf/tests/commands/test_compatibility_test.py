@@ -1,5 +1,6 @@
 import os
 from medperf import config
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
@@ -75,7 +76,7 @@ def test_validate_fails_if_incomplete_tmp_benchmark_passed(
     if should_be_valid:
         exec.validate()
     else:
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidArgumentError):
             exec.validate()
 
 
@@ -202,7 +203,7 @@ def test_set_cube_uid_fails_if_unrecognized_input(
     mocker.patch("os.symlink")
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         exec.set_cube_uid("model")
 
 
@@ -368,7 +369,7 @@ def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, ha
     exec.prepare_test()
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidEntityError):
         exec.download_demo_data()
 
 
@@ -473,7 +474,7 @@ def test_run_uses_correct_uids(
         CompatibilityTestExecution.run(
             bmk_uid, data_uid, prep_uid, model_uid, eval_uid, force_test=True
         )
-    except Exception:
+    except InvalidArgumentError:
         return
 
     # Assert

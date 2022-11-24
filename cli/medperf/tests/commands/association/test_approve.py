@@ -1,4 +1,5 @@
 from medperf.enums import Status
+from medperf.exceptions import InvalidArgumentError
 import pytest
 
 from medperf.commands.association.approval import Approval
@@ -14,7 +15,7 @@ def test_run_fails_if_invalid_arguments(mocker, comms, ui, dset_uid, mlcube_uid)
 
     # Act & Assert
     if num_arguments != 1:
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidArgumentError):
             Approval.run("1", Status.APPROVED, dset_uid, mlcube_uid)
     else:
         Approval.run("1", Status.APPROVED, dset_uid, mlcube_uid)

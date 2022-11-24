@@ -1,3 +1,4 @@
+from medperf.exceptions import InvalidArgumentError
 import pytest
 
 from medperf.commands.benchmark.associate import AssociateBenchmark
@@ -17,7 +18,7 @@ def test_run_fails_if_model_and_dset_passed(mocker, model_uid, data_uid, comms, 
 
     # Act & Assert
     if num_arguments != 1:
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidArgumentError):
             AssociateBenchmark.run("1", model_uid, data_uid)
     else:
         AssociateBenchmark.run("1", model_uid, data_uid)

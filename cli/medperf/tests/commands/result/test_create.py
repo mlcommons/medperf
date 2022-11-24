@@ -1,6 +1,6 @@
 import os
 from medperf import config
-from medperf.exceptions import ExecutionError
+from medperf.exceptions import ExecutionError, InvalidArgumentError
 from medperf.tests.mocks.requests import result_dict
 import pytest
 from unittest.mock import MagicMock, call
@@ -51,7 +51,7 @@ def test_validate_fails_if_preparation_cube_mismatch(mocker, execution):
     execution.benchmark.data_preparation = "bmark_prep_cube"
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         execution.validate()
 
 
@@ -61,7 +61,7 @@ def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
     execution.model_uid = model_uid  # model not in benchmark
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         execution.validate()
 
 
@@ -70,7 +70,7 @@ def test_validate_fails_if_dataset_is_not_registered(mocker, execution):
     execution.dataset.uid = None
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidArgumentError):
         execution.validate()
 
 
@@ -207,11 +207,8 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
         failed_cube = execution.evaluator
         exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
 
-    def _side_effect(*args, **kwargs):
-        raise ExecutionError
-
     mocker.patch.object(
-        failed_cube, "run", side_effect=_side_effect,
+        failed_cube, "run", side_effect=ExecutionError,
     )
     mocker.patch(
         PATCH_EXECUTION.format("results_path"), return_value=out_path,
@@ -222,7 +219,7 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(ExecutionError):
         execution.run_cubes()
 
     spy_clean.assert_called_once_with(exp_outpaths)
@@ -305,11 +302,8 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
     else:
         failed_cube = execution.evaluator
 
-    def _side_effect(*args, **kwargs):
-        raise ExecutionError
-
     mocker.patch.object(
-        failed_cube, "run", side_effect=_side_effect,
+        failed_cube, "run", side_effect=ExecutionError,
     )
     mocker.patch(
         PATCH_EXECUTION.format("results_path"), return_value=out_path,
@@ -325,6 +319,6 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
     if ignore_errors:
         execution.run_cubes()
     else:
-        with pytest.raises(Exception):
+        with pytest.raises(ExecutionError):
             execution.run_cubes()
     assert execution.metadata["partial"] == ignore_errors

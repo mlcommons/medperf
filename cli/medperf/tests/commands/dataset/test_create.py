@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import medperf.config as config
-from medperf.exceptions import ExecutionError
+from medperf.exceptions import ExecutionError, InvalidArgumentError
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, call
@@ -60,7 +60,7 @@ class TestWithDefaultUID:
 
         # Act & Assert
         if should_fail:
-            with pytest.raises(Exception):
+            with pytest.raises(InvalidArgumentError):
                 preparation.validate()
         else:
             preparation.validate()
@@ -236,7 +236,7 @@ class TestWithDefaultUID:
         # Assert
 
         if num_arguments != 1:
-            with pytest.raises(Exception):
+            with pytest.raises(InvalidArgumentError):
                 preparation.validate()
 
         else:
@@ -393,18 +393,15 @@ def test_run_deletes_output_path_on_failure(mocker, preparation):
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
 
-    def _side_effect(*args, **kwargs):
-        raise ExecutionError
-
     mocker.patch.object(
-        preparation.cube, "run", side_effect=_side_effect,
+        preparation.cube, "run", side_effect=ExecutionError,
     )
     spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
 
     exp_outpaths = [preparation.out_path]
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(ExecutionError):
         preparation.run_cube_tasks()
 
     spy_clean.assert_called_once_with(exp_outpaths)
