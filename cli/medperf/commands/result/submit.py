@@ -35,9 +35,8 @@ class ResultSubmission:
         return approved
 
     def upload_results(self):
-        result = Result.from_entities_uids(
-            self.benchmark_uid, self.model_uid, self.data_uid
-        )
+        uid = f"{self.benchmark_uid}_{self.model_uid}_{self.data_uid}"
+        result = Result.get(uid)
         approved = self.approved or self.request_approval(result)
 
         if not approved:

@@ -3,6 +3,8 @@ from medperf.enums import Status
 import yaml
 import logging
 from typing import List
+from pathlib import Path
+from shutil import rmtree
 
 import medperf.config as config
 from medperf.entities.interface import Entity
@@ -49,6 +51,18 @@ class Benchmark(Entity):
         self.approval_status = Status(bmk_dict["approval_status"])
         self.metadata = bmk_dict["metadata"]
         self.user_metadata = bmk_dict["user_metadata"]
+
+        self.tmp_uid = (
+            f"{self.data_preparation}_{self.reference_model}_{self.evaluator}"
+        )
+        path = storage_path(config.benchmarks_storage)
+        tmp_path = os.path.join(path, self.tmp_uid)
+        if not self.uid:
+            self.uid = self.tmp_uid
+
+        path = os.path.join(path, str(self.uid))
+        self.tmp_path = os.path.join(tmp_path, config.benchmarks_filename)
+        self.path = os.path.join(path, config.benchmarks_filename)
 
     @classmethod
     def all(cls, local_only: bool = False) -> List["Benchmark"]:
@@ -156,10 +170,10 @@ class Benchmark(Entity):
         Returns:
             Benchmark: a benchmark instance
         """
-        benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
+        name = f"{data_preparator}_{model}_{evaluator}"
         benchmark_dict = {
-            "id": benchmark_uid,
-            "name": benchmark_uid,
+            "id": None,
+            "name": name,
             "data_preparation_mlcube": data_preparator,
             "reference_model_mlcube": model,
             "data_evaluator_mlcube": evaluator,
@@ -236,15 +250,22 @@ class Benchmark(Entity):
         Returns:
             str: path to the created benchmark file
         """
+        if self.tmp_path != self.path and os.path.exists(self.tmp_path):
+            logging.debug(f"Moving benchmark to permanent location")
+            src = str(Path(self.tmp_path).parent)
+            dst = str(Path(self.path).parent)
+            if os.path.exists(dst):
+                # Permanent version already exists, remove temporary
+                rmtree(src)
+            else:
+                # Move temporary to permanent
+                os.rename(src, dst)
         data = self.todict()
-        storage = storage_path(config.benchmarks_storage)
-        bmk_path = os.path.join(storage, str(self.uid))
-        if not os.path.exists(bmk_path):
-            os.makedirs(bmk_path, exist_ok=True)
-        filepath = os.path.join(bmk_path, config.benchmarks_filename)
-        with open(filepath, "w") as f:
+        if not os.path.exists(self.path):
+            os.makedirs(Path(self.path).parent, exist_ok=True)
+        with open(self.path, "w") as f:
             yaml.dump(data, f)
-        return filepath
+        return self.path
 
     def upload(self):
         """Uploads a benchmark to the server

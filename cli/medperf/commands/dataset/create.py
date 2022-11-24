@@ -124,7 +124,7 @@ class DataPreparation:
         }
         prepare_str_params = {
             "Ptasks.prepare.parameters.input.data_path.opts": "ro",
-            "Ptasks.prepare.parameters.input.labels_path.opts": "ro"
+            "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
         }
 
         sanity_params = {
@@ -177,7 +177,7 @@ class DataPreparation:
                 task="statistics",
                 string_params=statistics_str_params,
                 timeout=statistics_timeout,
-                **statistics_params
+                **statistics_params,
             )
             self.ui.print("> Statistics complete")
         except RuntimeError as e:

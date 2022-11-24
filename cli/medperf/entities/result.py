@@ -4,11 +4,9 @@ from medperf.enums import Status
 import yaml
 import logging
 from typing import List
+from shutil import rmtree
 
-from medperf.utils import (
-    results_ids,
-    results_path,
-)
+from medperf.utils import results_ids, storage_path
 from medperf.entities.interface import Entity
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
@@ -47,15 +45,15 @@ class Result(Entity):
         self.created_at = results_info["created_at"]
         self.modified_at = results_info["modified_at"]
 
-        self.path = results_path(self.benchmark_uid, self.model_uid, self.dataset_uid)
-        self.path = os.path.join(self.path, config.results_info_file)
+        self.tmp_uid = f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}"
+        path = storage_path(config.results_storage)
+        tmp_path = os.path.join(path, self.tmp_uid)
+        if not self.uid:
+            self.uid = self.tmp_uid
+        path = os.path.join(path, str(self.uid))
 
-    @classmethod
-    def from_entities_uids(
-        cls, benchmark_uid: str, model_uid: str, dataset_uid: str
-    ) -> "Result":
-        results_info = cls.__get_local_dict(benchmark_uid, model_uid, dataset_uid)
-        return cls(results_info)
+        self.tmp_path = os.path.join(tmp_path, config.results_info_file)
+        self.path = os.path.join(path, config.results_info_file)
 
     @classmethod
     def all(cls, local_only: bool = False) -> List["Result"]:
@@ -100,15 +98,13 @@ class Result(Entity):
         comms = config.comms
         # Try to download first
         try:
-            meta = comms.get_result(result_uid)
-            result = cls(meta)
+            result_dict = comms.get_result(result_uid)
         except CommunicationRetrievalError:
             # Get local results
             logging.warning(f"Getting result {result_uid} from comms failed")
             logging.info(f"Looking for result {result_uid} locally")
-            local_meta = cls.__get_local_dict(result_uid)
-            result = cls(local_meta)
-
+            result_dict = cls.__get_local_dict(result_uid)
+        result = cls(result_dict)
         result.write()
         return result
 
@@ -139,6 +135,17 @@ class Result(Entity):
         return updated_results_info
 
     def write(self):
+        # Remove any temporary cache associated to this result
+        if self.tmp_path != self.path and os.path.exists(self.tmp_path):
+            logging.debug(f"Moving result to permanent location")
+            src = str(Path(self.tmp_path).parent)
+            dst = str(Path(self.path).parent)
+            if os.path.exists(dst):
+                # Permanent version already exists, remove temporary
+                rmtree(src)
+            else:
+                # Move temporary to permanent
+                os.rename(src, dst)
         if os.path.exists(self.path):
             write_access = os.access(self.path, os.W_OK)
             logging.debug(f"file has write access? {write_access}")
@@ -151,13 +158,12 @@ class Result(Entity):
 
     @classmethod
     def __get_local_dict(cls, local_uid):
-        benchmark_uid, model_uid, dataset_uid = local_uid.split("_")
-        path = results_path(benchmark_uid, model_uid, dataset_uid)
-        path = os.path.join(path, config.results_info_file)
-        if not os.path.exists:
+        result_path = os.path.join(storage_path(config.results_storage), str(local_uid))
+        result_file = os.path.join(result_path, config.results_info_file)
+        if not os.path.exists(result_file):
             raise InvalidArgumentError(
                 f"The requested result {local_uid} could not be retrieved"
             )
-        with open(path, "r") as f:
+        with open(result_file, "r") as f:
             results_info = yaml.safe_load(f)
         return results_info

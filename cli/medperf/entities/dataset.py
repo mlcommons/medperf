@@ -3,6 +3,8 @@ from medperf.enums import Status
 import yaml
 import logging
 from typing import List
+from pathlib import Path
+from shutil import rmtree
 
 from medperf.utils import (
     get_uids,
@@ -63,13 +65,19 @@ class Dataset(Entity):
         self.modified_at = dataset_dict["modified_at"]
         self.owner = dataset_dict["owner"]
 
-        self.dataset_path = os.path.join(
-            storage_path(config.data_storage), str(self.generated_uid)
-        )
-        self.data_path = os.path.join(self.dataset_path, "data")
+        self.tmp_uid = self.generated_uid
+        path = storage_path(config.data_storage)
+        tmp_path = os.path.join(path, self.tmp_uid)
+        if not self.uid:
+            self.uid = self.tmp_uid
+        path = os.path.join(path, str(self.uid))
+
+        self.path = path
+        self.tmp_path = tmp_path
+        self.data_path = os.path.join(self.path, "data")
         self.labels_path = self.data_path
         if self.separate_labels:
-            self.labels_path = os.path.join(self.dataset_path, "labels")
+            self.labels_path = os.path.join(self.path, "labels")
 
     def todict(self):
         return {
@@ -184,10 +192,20 @@ class Dataset(Entity):
         raise InvalidArgumentError(msg)
 
     def write(self):
+        if self.tmp_path != self.path and os.path.exists(self.tmp_path):
+            logging.debug(f"Moving dataset to permanent location")
+            src = str(self.tmp_path)
+            dst = str(self.path)
+            if os.path.exists(dst):
+                # Permanent version already exists, remove temporary
+                rmtree(src)
+            else:
+                # Move temporary to permanent
+                os.rename(src, dst)
         logging.info(f"Updating registration information for dataset: {self.uid}")
         logging.debug(f"registration information: {self.todict()}")
-        regfile = os.path.join(self.dataset_path, config.reg_file)
-        os.makedirs(self.dataset_path, exist_ok=True)
+        regfile = os.path.join(self.path, config.reg_file)
+        os.makedirs(self.path, exist_ok=True)
         with open(regfile, "w") as f:
             yaml.dump(self.todict(), f)
 
