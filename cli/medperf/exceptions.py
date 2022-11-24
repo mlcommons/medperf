@@ -1,5 +1,5 @@
 class MedperfException(Exception):
-    def __init__(self, message, clean=True):
+    def __init__(self, message="", clean=True):
         super().__init__(message)
         self.clean = clean
 
