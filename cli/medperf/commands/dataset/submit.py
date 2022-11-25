@@ -2,7 +2,7 @@ from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, CleanExit
 
 
 class DatasetRegistration:
@@ -42,4 +42,4 @@ class DatasetRegistration:
             updated_dset = Dataset(updated_dset_dict)
             updated_dset.write()
         else:
-            ui.print("Registration request cancelled.")
+            raise CleanExit("Registration request cancelled.")

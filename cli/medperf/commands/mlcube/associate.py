@@ -1,6 +1,7 @@
 from medperf import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
+from medperf.exceptions import CleanExit
 from medperf.utils import dict_pretty_print, approval_prompt
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
@@ -38,4 +39,4 @@ class AssociateCube:
             metadata = {"test_result": result.results}
             comms.associate_cube(cube_uid, benchmark_uid, metadata)
         else:
-            ui.print("MLCube association operation cancelled")
+            raise CleanExit("MLCube association operation cancelled")

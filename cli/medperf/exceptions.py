@@ -28,5 +28,9 @@ class InvalidArgumentError(MedperfException):
     """Raised when an argument or set of arguments are consided invalid"""
 
 
-class ExecutionError(Exception):
+class ExecutionError(MedperfException):
     """Raised when an execution component fails"""
+
+
+class CleanExit(MedperfException):
+    """Raised when Medperf needs to stop for non erroneous reasons"""

@@ -1,3 +1,4 @@
+from medperf.exceptions import CleanExit
 from medperf.utils import dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
@@ -26,4 +27,4 @@ class ResultSubmission:
             result = Result(updated_result_dict)
             result.write()
         else:
-            config.ui.print("Results upload operation cancelled")
+            raise CleanExit("Results upload operation cancelled")
