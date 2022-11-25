@@ -629,7 +629,7 @@ class REST(Comms):
             list[dict]: List of benchmark-model association specifications
         """
         benchmarkmodels = self.__get_list(
-            f"{self.server_url}/benchmarks/{benchmark_uid}/benchmarkmodels"
+            f"{self.server_url}/benchmarks/{benchmark_uid}/benchmarkmodels/"
         )
         return benchmarkmodels
 
