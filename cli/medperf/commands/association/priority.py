@@ -1,5 +1,5 @@
 from medperf import config
-from medperf.utils import pretty_error
+from medperf.exceptions import InvalidArgumentError
 
 
 class AssociationPriority:
@@ -27,12 +27,35 @@ class AssociationPriority:
         self.priority = priority
         self.float_priority = None
         self.min_difference = None
+        self.priorities = []
 
     def validate(self):
         if self.priority < 1 and self.priority != -1:
-            pretty_error(
-                "Invalid arguments. Priority value must be a positive integer or (-1) for least priority"
+            raise InvalidArgumentError(
+                "Priority value must be a positive integer or (-1) for least priority"
             )
+
+        self.assocs = config.comms.get_benchmark_model_associations(self.benchmark_uid)
+        if len(self.assocs) == 0:
+            raise InvalidArgumentError("The given benchmark has no cube associations")
+
+        associated_cubes = [str(assoc["model_mlcube"]) for assoc in self.assocs]
+        if self.mlcube_uid not in associated_cubes:
+            raise InvalidArgumentError(
+                "The given mlcube is not associated with the benchmark"
+            )
+
+        cube_priority = associated_cubes.index(self.mlcube_uid) + 1
+        abort_command = any(
+            [
+                cube_priority == len(self.assocs) and self.priority >= cube_priority,
+                cube_priority == len(self.assocs) and self.priority == -1,
+                cube_priority == self.priority,
+            ]
+        )
+        if abort_command:
+            # TODO: raise SafeExit
+            config.ui.print("The given mlcube already has the specified priority")
 
     def convert_priority_to_float(self):
         """Converts an integer-valued priority into a float value.
@@ -44,8 +67,7 @@ class AssociationPriority:
             float: the float value that corresponds to the given priority.
         """
 
-        bmk_models = config.comms.get_benchmark_model_associations(self.benchmark_uid)
-        priorities = [bmk_model["priority"] for bmk_model in bmk_models]
+        priorities = [assoc["priority"] for assoc in self.assocs]
 
         if self.priority == -1 or self.priority >= len(priorities):
             self.float_priority = priorities[-1] + 1.0
@@ -58,7 +80,7 @@ class AssociationPriority:
             self.min_difference = (priority2 - priority1) / 2
 
     def update(self):
-        # this number is chosen arbitrarily
+        # 1e-10 number is chosen arbitrarily
         rescale = self.min_difference and self.min_difference < 1e-10
         config.comms.set_mlcube_association_priority(
             self.benchmark_uid, self.mlcube_uid, self.float_priority, rescale=rescale,
