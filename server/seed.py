@@ -3,6 +3,7 @@ import argparse
 import requests
 import json
 import curlify
+from os.path import expanduser, abspath
 
 
 class Server:
@@ -393,6 +394,11 @@ if __name__ == "__main__":
     )
     parser.add_argument("--username", type=str, help="Admin username", default="admin")
     parser.add_argument("--password", type=str, help="Admin password", default="admin")
-    parser.add_argument("--cert", type=str, help="Server certificate")
+    parser.add_argument(
+        "--cert",
+        type=str,
+        help="Server certificate",
+        default=abspath(expanduser("~/.medperf.crt")),
+    )
     args = parser.parse_args()
     seed(args)

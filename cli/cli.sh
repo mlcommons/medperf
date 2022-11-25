@@ -1,31 +1,28 @@
 #! /bin/bash
-while getopts u:p:s:d:c:l:a: flag
+while getopts u:p:s:d:c:a: flag
 do
     case "${flag}" in
-        u) USERNAME=${OPTARG};;
+        u) USERNAME_=${OPTARG};;
         p) PASS=${OPTARG};;
         s) SERVER_URL=${OPTARG};;
         d) DIRECTORY=${OPTARG};;
         c) CLEANUP="true";;
-        l) LOCAL="true" ;;
         a) AUTH_CERT=${OPTARG};;
     esac
 done
-USERNAME="${USERNAME:-testdataowner}"
-PASS="${PASS:-test}"
+USERNAME_="${USERNAME_:-admin}"
+PASS="${PASS:-admin}"
 SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
-CERT_FILE="${AUTH_CERT:-~/.medperf_test.crt}"
+CERT_FILE="${AUTH_CERT:-$(realpath ~/.medperf.crt)}"
 MEDPERF_STORAGE=~/.medperf_test
 MEDPERF_LOG_STORAGE="${MEDPERF_STORAGE}/logs/medperf.log"
-LOCAL="${LOCAL:-""}"
 
-echo "username: $USERNAME"
+echo "username: $USERNAME_"
 echo "password: $PASS"
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_STORAGE"
-echo "Running local config: $LOCAL"
 echo "Certificate: $CERT_FILE"
 
 if ${CLEANUP}; then
@@ -46,9 +43,9 @@ chmod a+w $DIRECTORY/mock_chexpert
 ls $DIRECTORY/mock_chexpert
 ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
-echo "Logging the user with username: ${USERNAME} and password: ${PASS}"
+echo "Logging the user with username: ${USERNAME_} and password: ${PASS}"
 echo "====================================="
-medperf --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=${USERNAME} --password=${PASS}
+medperf --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=${USERNAME_} --password=${PASS}
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
   tail "$MEDPERF_LOG_STORAGE"
@@ -105,7 +102,7 @@ echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
 # log back as user
-medperf --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=${USERNAME} --password=${PASS}
+medperf --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=${USERNAME_} --password=${PASS}
 # Create results
 medperf --certificate $CERT_FILE --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE run -b 1 -d $DSET_UID -m 2 -y
 if [ "$?" -ne "0" ]; then

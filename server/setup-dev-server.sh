@@ -11,8 +11,8 @@ done
 
 DEPLOY="${DEPLOY:-1}"
 CERT_GENERATE="${CERT_GENERATE:-1}"
-CERT_FILE="${CERT_FILE:-~/.medperf.crt}"
-KEY_FILE="${KEY_FILE:-~/.medperf.key}"
+CERT_FILE="${CERT_FILE:-$(realpath ~/.medperf.crt)}"
+KEY_FILE="${KEY_FILE:-$(realpath ~/.medperf.key)}"
 RESET_DB="${RESET_DB:-0}"
 echo $CERT_FILE
 echo $KEY_FILE
