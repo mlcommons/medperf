@@ -1,4 +1,4 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
 
@@ -148,7 +148,11 @@ class TestWithApproval:
         mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
         # Act
-        DatasetRegistration.run("1")
+        if approved:
+            DatasetRegistration.run("1")
+        else:
+            with pytest.raises(CleanExit):
+                DatasetRegistration.run("1")
 
         # Assert
         if approved:
@@ -185,7 +189,11 @@ class TestWithApproval:
         spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
         # Act
-        DatasetRegistration.run("1")
+        if approved:
+            DatasetRegistration.run("1")
+        else:
+            with pytest.raises(CleanExit):
+                DatasetRegistration.run("1")
 
         # Assert
         if approved:

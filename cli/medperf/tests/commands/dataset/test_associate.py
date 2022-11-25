@@ -1,4 +1,4 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
@@ -114,7 +114,8 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
     assoc_spy = mocker.patch.object(comms, "associate_dset")
 
     # Act
-    AssociateDataset.run(1, 1)
+    with pytest.raises(CleanExit):
+        AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()

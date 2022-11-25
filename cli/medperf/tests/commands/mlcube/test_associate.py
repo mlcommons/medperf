@@ -1,3 +1,4 @@
+from medperf.exceptions import CleanExit
 import pytest
 from unittest.mock import ANY
 
@@ -81,8 +82,8 @@ def test_stops_if_not_approved(mocker, comms, ui, cube, result, benchmark):
     assoc_spy = mocker.patch.object(comms, "associate_cube")
 
     # Act
-    AssociateCube.run(1, 1)
-
+    with pytest.raises(CleanExit):
+        AssociateCube.run(1, 1)
     # Assert
     spy.assert_called_once()
     assoc_spy.assert_not_called()

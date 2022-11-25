@@ -1,3 +1,4 @@
+from medperf.exceptions import CleanExit
 import pytest
 
 from medperf.entities.result import Result
@@ -56,7 +57,11 @@ def test_upload_results_fails_if_not_approved(mocker, submission, result, approv
     write_spy = mocker.patch.object(result, "write")
 
     # Act
-    ResultSubmission.run(1, 1, 1)
+    if approved:
+        ResultSubmission.run(1, 1, 1)
+    else:
+        with pytest.raises(CleanExit):
+            ResultSubmission.run(1, 1, 1)
 
     # Assert
     if approved:
