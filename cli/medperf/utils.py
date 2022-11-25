@@ -187,15 +187,13 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, clean: bool = True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
         msg (str): Error message to show to the user
         clean (bool, optional):
             Run the cleanup process before exiting. Defaults to True.
-        add_instructions (bool, optional):
-            Show additional instructions to the user. Defualts to True.
     """
     ui = config.ui
     logging.warning(
@@ -203,8 +201,6 @@ def pretty_error(msg: str, clean: bool = True, add_instructions=True):
     )
     if msg[-1] != ".":
         msg = msg + "."
-    if add_instructions:
-        msg += f" See logs at {config.log_file} for more information"
     ui.print_error(msg)
     if clean:
         cleanup()
