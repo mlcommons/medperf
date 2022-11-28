@@ -1,10 +1,8 @@
-import os
 from medperf.tests.mocks.requests import result_dict
 import pytest
-from unittest.mock import MagicMock, call, ANY, mock_open
+from unittest.mock import MagicMock, ANY, mock_open
 
 from medperf.entities.result import Result
-from medperf.comms.interface import Comms
 from medperf.exceptions import CommunicationRetrievalError
 from medperf import config
 from medperf import utils
