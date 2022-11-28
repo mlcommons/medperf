@@ -80,6 +80,8 @@ class Result(Entity):
                 msg = "Couldn't retrieve all results from the server"
                 logging.warning(msg)
 
+        remote_uids = set([str(result.uid) for result in results])
+
         results_storage = storage_path(config.results_storage)
         try:
             uids = next(os.walk(results_storage))[1]
@@ -89,6 +91,8 @@ class Result(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
+            if uid in remote_uids:
+                continue
             local_meta = cls.__get_local_dict(uid)
             result = cls(local_meta)
             results.append(result)

@@ -10,8 +10,8 @@ class ResultsList:
         """Lists all local datasets
 
         Args:
-            local (bool, optional): Wether to get all local results only. Defaults to False.
-            mine (bool, optional): Wether to get all current-user results only. Defaults to False.
+            local (bool, optional): Display all local results. Defaults to False.
+            mine (bool, optional): Display all current-user results. Defaults to False.
         """
         ui = config.ui
         results = Result.all(local_only=local, mine_only=mine)
