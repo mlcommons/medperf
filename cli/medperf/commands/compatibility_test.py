@@ -112,12 +112,12 @@ class CompatibilityTestExecution:
             self.set_cube_uid("data_prep")
             self.set_cube_uid("model")
             self.set_cube_uid("evaluator")
-            benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
-            self.benchmark_uid = benchmark.tmp_uid
 
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
         """
+        benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
+        self.benchmark_uid = benchmark.tmp_uid
         BenchmarkExecution.run(
             self.benchmark_uid, self.data_uid, self.model, run_test=True,
         )
@@ -196,7 +196,7 @@ class CompatibilityTestExecution:
             self.data_uid = DataPreparation.run(
                 None, self.data_prep, data_path, labels_path, run_test=True,
             )
-            self.dataset = Dataset.from_generated_uid(self.data_uid)
+            self.dataset = Dataset.get(self.data_uid)
 
     def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark

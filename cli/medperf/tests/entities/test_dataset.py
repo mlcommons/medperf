@@ -32,12 +32,6 @@ TMP_PREFIX = config.tmp_prefix
 
 
 @pytest.fixture
-def ui(mocker):
-    ui = mocker.create_autospec(spec=UI)
-    return ui
-
-
-@pytest.fixture
 def basic_arrange(mocker):
     m = mock_open()
     mocker.patch("builtins.open", m, create=True)
@@ -65,7 +59,6 @@ def all_uids(mocker, basic_arrange, request):
 
     mocker.patch(PATCH_DATASET.format("yaml.safe_load"), side_effect=mock_reg_file)
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-    mocker.patch(PATCH_DATASET.format("get_uids"), return_value=uids)
     return uids
 
 
@@ -147,64 +140,19 @@ def test_dataset_metadata_is_backwards_compatible(mocker, ui):
     assert dset.generated_metadata == outdated_reg["metadata"]
 
 
-@pytest.mark.parametrize(
-    "all_uids", [["2", "3"], ["1", "12"], ["12", "1"]], indirect=True
-)
-def test_full_uid_fails_when_single_match_not_found(mocker, ui, all_uids):
-    # Arrange
-    uid = "1"
-
-    # Act & Assert
-    with pytest.raises(InvalidArgumentError):
-        Dataset.from_generated_uid(uid)
-
-
-@pytest.mark.parametrize("all_uids", [["12", "3"], ["3", "5", "12"]], indirect=True)
-def test_full_uid_finds_expected_match(mocker, ui, all_uids):
-    # Act
-    uid = "1"
-    dset = Dataset.from_generated_uid(uid)
-
-    # Assert
-    assert dset.generated_uid == "12"
-
-
-@pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
-def test_from_generated_uid_looks_for_registration_file(mocker, ui, all_uids):
-    # Arrange
-    uid = "1"
-    spy = mocker.spy(medperf.entities.dataset.os.path, "join")
-    mocker.patch(PATCH_DATASET.format("Dataset.__init__"), return_value=None)
-    dataset_path = os.path.join(utils.storage_path(config.data_storage), uid)
-    # Act
-    Dataset.from_generated_uid(uid)
-
-    # Assert
-    spy.assert_called_with(dataset_path, config.reg_file)
-
-
-@pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
-def test_from_generated_uid_loads_yaml_file(mocker, ui, all_uids):
-    # Arrange
-    uid = "1"
-    spy = mocker.spy(medperf.entities.dataset.yaml, "safe_load")
-
-    # Act
-    Dataset.from_generated_uid(uid)
-
-    # Assert
-    spy.assert_called_once()
-
-
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
 @pytest.mark.parametrize("comms_uid", [1, 4, 834, 12])
 def test_upload_returns_updated_info(mocker, all_uids, ui, comms_uid, comms):
     # Arrange
     uid = "1"
     updated_info = dataset_dict({"id": comms_uid})
+    mocker.patch("os.makedirs")
+    mocker.patch("os.path.exists", return_value=False)
+    open_spy = mocker.patch("builtins.open", MagicMock())
+    mocker.patch("yaml.dump", MagicMock())
 
     mocker.patch.object(comms, "upload_dataset", return_value=updated_info)
-    dset = Dataset.from_generated_uid(uid)
+    dset = Dataset.get(uid)
 
     # Act
     info = dset.upload()

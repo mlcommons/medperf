@@ -8,7 +8,7 @@ from medperf import config
 class ResultSubmission:
     @classmethod
     def run(cls, benchmark_uid, data_uid, model_uid, approved=False):
-        dset = Dataset.from_generated_uid(data_uid)
+        dset = Dataset.get(data_uid)
         sub = cls(benchmark_uid, dset.uid, model_uid, approved=approved)
         updated_result_dict = sub.upload_results()
         sub.write(updated_result_dict)

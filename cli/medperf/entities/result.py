@@ -75,10 +75,16 @@ class Result(Entity):
                 msg = "Couldn't retrieve all results from the server"
                 logging.warning(msg)
 
-        results_ids_tuple = results_ids()
-        for result_ids in results_ids_tuple:
-            b_id, m_id, d_id = result_ids
-            results.append(cls.from_entities_uids(b_id, m_id, d_id))
+        results_storage = storage_path(config.results_storage)
+        try:
+            uids = next(os.walk(results_storage))[1]
+        except StopIteration:
+            msg = "Couldn't iterate over the dataset directory"
+            logging.warning(msg)
+            raise RuntimeError(msg)
+
+        for uid in uids:
+            results.append(cls.__get_local_dict(uid))
 
         return results
 

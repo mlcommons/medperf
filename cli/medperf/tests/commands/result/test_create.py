@@ -159,7 +159,7 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
     labels_path = "labels_path"
     cube_path = "cube_path"
     model_uid = str(execution.model_cube.uid)
-    data_uid = execution.dataset.generated_uid
+    data_uid = str(execution.dataset.uid)
     preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
     preds_path = storage_path(preds_path)
     result_path = os.path.join(execution.out_path, config.results_filename)

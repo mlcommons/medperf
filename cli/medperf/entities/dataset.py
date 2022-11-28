@@ -6,10 +6,7 @@ from typing import List
 from pathlib import Path
 from shutil import rmtree
 
-from medperf.utils import (
-    get_uids,
-    storage_path,
-)
+from medperf.utils import storage_path
 from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError, CommunicationRetrievalError
 import medperf.config as config
@@ -67,7 +64,7 @@ class Dataset(Entity):
 
         self.tmp_uid = self.generated_uid
         path = storage_path(config.data_storage)
-        tmp_path = os.path.join(path, self.tmp_uid)
+        tmp_path = os.path.join(path, str(self.tmp_uid))
         if not self.uid:
             self.uid = self.tmp_uid
         path = os.path.join(path, str(self.uid))
@@ -101,12 +98,6 @@ class Dataset(Entity):
         }
 
     @classmethod
-    def from_generated_uid(cls, generated_uid: str) -> "Dataset":
-        generated_uid = cls.__full_uid(generated_uid)
-        reg = cls.__get_local_dict(generated_uid)
-        return cls(reg)
-
-    @classmethod
     def all(cls, local_only: bool = False) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
@@ -128,14 +119,14 @@ class Dataset(Entity):
 
         data_storage = storage_path(config.data_storage)
         try:
-            generated_uids = next(os.walk(data_storage))[1]
+            uids = next(os.walk(data_storage))[1]
         except StopIteration:
             msg = "Couldn't iterate over the dataset directory"
             logging.warning(msg)
             raise RuntimeError(msg)
 
-        for generated_uid in generated_uids:
-            dsets.append(cls.from_generated_uid(generated_uid))
+        for uid in uids:
+            dsets.append(cls.__get_local_dict(uid))
         return dsets
 
     @classmethod
@@ -165,31 +156,6 @@ class Dataset(Entity):
 
         dataset.write()
         return dataset
-
-    @staticmethod
-    def __full_uid(uid_hint: str) -> str:
-        """Returns the found UID that starts with the provided UID hint
-
-        Args:
-            uid_hint (int): a small initial portion of an existing local dataset UID
-
-        Raises:
-            NameError: If no dataset is found starting with the given hint, this is thrown.
-            NameError: If multiple datasets are found starting with the given hint, this is thrown.
-
-        Returns:
-            str: the complete UID
-        """
-        data_storage = storage_path(config.data_storage)
-        dsets = get_uids(data_storage)
-        match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
-        if len(match) == 0:
-            msg = f"No dataset was found with uid hint {uid_hint}."
-        elif len(match) > 1:
-            msg = f"Multiple datasets were found with uid hint {uid_hint}."
-        else:
-            return match[0]
-        raise InvalidArgumentError(msg)
 
     def write(self):
         if self.tmp_path != self.path and os.path.exists(self.tmp_path):

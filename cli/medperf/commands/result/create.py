@@ -68,15 +68,10 @@ class BenchmarkExecution:
         # If not running the test, redownload the benchmark
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset.from_generated_uid(self.data_uid)
-        if not self.run_test:
-            self.out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.uid
-            )
-        else:
-            self.out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
-            )
+        self.dataset = Dataset.get(self.data_uid)
+        self.out_path = results_path(
+            self.benchmark_uid, self.model_uid, self.dataset.uid
+        )
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -111,7 +106,7 @@ class BenchmarkExecution:
         evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
         model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.generated_uid)
+        data_uid = str(self.dataset.uid)
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
@@ -158,7 +153,7 @@ class BenchmarkExecution:
                 logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
-        data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
+        data_uid = self.dataset.uid
 
         return {
             "id": None,

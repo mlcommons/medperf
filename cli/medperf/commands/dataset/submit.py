@@ -14,7 +14,7 @@ class DatasetRegistration:
         """
         comms = config.comms
         ui = config.ui
-        dset = Dataset.from_generated_uid(data_uid)
+        dset = Dataset.get(data_uid)
 
         if dset.uid:
             # TODO: should get_dataset and update locally. solves existing issue?

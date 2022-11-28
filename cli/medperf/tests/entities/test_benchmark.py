@@ -208,7 +208,8 @@ def test_write_writes_to_expected_file(mocker, comms):
     # Arrange
     uid = 1
     mocker.patch("os.listdir", return_value=[])
-    mocker.patch("os.path.exists", return_value=True)
+    mocker.patch("os.path.exists", return_value=False)
+    mocker.patch("os.makedirs")
     open_spy = mocker.patch("builtins.open", mock_open())
     yaml_spy = mocker.patch("yaml.dump")
     exp_file = os.path.join(

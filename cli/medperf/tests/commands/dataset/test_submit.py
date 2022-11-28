@@ -10,7 +10,7 @@ PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 @pytest.fixture
 def dataset(mocker):
     dset = mocker.create_autospec(spec=Dataset)
-    mocker.patch(PATCH_REGISTER.format("Dataset.from_generated_uid"), return_value=dset)
+    mocker.patch(PATCH_REGISTER.format("Dataset.get"), return_value=dset)
     return dset
 
 
@@ -28,9 +28,7 @@ def test_run_retrieves_specified_dataset(
     mocker.patch(
         PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
-    spy = mocker.patch(
-        PATCH_REGISTER.format("Dataset.from_generated_uid"), return_value=dataset
-    )
+    spy = mocker.patch(PATCH_REGISTER.format("Dataset.get"), return_value=dataset)
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act
@@ -84,7 +82,9 @@ def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
     dataset.uid = None
     spy_dict = mocker.patch.object(dataset, "todict", return_value=dset_dict)
     spy = mocker.patch(PATCH_REGISTER.format("dict_pretty_print"))
-    mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
+    mocker.patch(
+        PATCH_REGISTER.format("approval_prompt"), return_value=True,
+    )
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
 
     # Act

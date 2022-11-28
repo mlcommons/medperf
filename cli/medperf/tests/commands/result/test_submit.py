@@ -28,9 +28,7 @@ def dataset(mocker):
 def submission(mocker, comms, ui, result, dataset):
     sub = ResultSubmission(1, 1, 1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
-    mocker.patch(
-        PATCH_SUBMISSION.format("Result.from_entities_uids"), return_value=result
-    )
+    mocker.patch(PATCH_SUBMISSION.format("Result.get"), return_value=result)
     mocker.patch(PATCH_SUBMISSION.format("Dataset"), return_value=dataset)
     return sub
 
@@ -69,10 +67,9 @@ def test_upload_results_fails_if_not_approved(mocker, submission, result, approv
 
 
 @pytest.mark.parametrize("approved", [True, False])
-def test_upload_results_uploads_if_approved(mocker, submission, result, approved):
+def test_upload_results_uploads_if_approved(mocker, result, submission, approved):
     # Arrange
     mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=approved)
-    spy = mocker.patch.object(result, "upload")
     mocker.patch(
         PATCH_SUBMISSION.format("pretty_error"),
         side_effect=lambda *args, **kwargs: exit(),
@@ -81,14 +78,14 @@ def test_upload_results_uploads_if_approved(mocker, submission, result, approved
     # Act
     try:
         submission.upload_results()
-    except SystemExit:
+    except:
         pass
 
     # Assert
     if approved:
-        spy.assert_called()
+        result.upload.assert_called()
     else:
-        spy.assert_not_called()
+        result.upload.assert_not_called()
 
 
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
