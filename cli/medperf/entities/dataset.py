@@ -125,7 +125,9 @@ class Dataset(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
-            dsets.append(cls.__get_local_dict(uid))
+            local_meta = cls.__get_local_dict(uid)
+            dset = cls(local_meta)
+            dsets.append(dset)
         return dsets
 
     @classmethod

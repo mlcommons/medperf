@@ -84,7 +84,9 @@ class Result(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
-            results.append(cls.__get_local_dict(uid))
+            local_meta = cls.__get_local_dict(uid)
+            result = cls(local_meta)
+            results.append(result)
 
         return results
 

@@ -24,13 +24,12 @@ class DatasetsList:
         else:
             remote_dsets = comms.get_user_datasets()
 
-        local_uids = set([dset.generated_uid for dset in local_dsets])
-        remote_uids = set([dset["generated_uid"] for dset in remote_dsets])
+        local_uids = set([dset.uid for dset in local_dsets])
+        remote_uids = set([dset["uid"] for dset in remote_dsets])
 
         # Build data table
         headers = [
             "UID",
-            "Server UID",
             "Name",
             "Data Preparation Cube UID",
             "Registered",
@@ -40,7 +39,6 @@ class DatasetsList:
         # Get local dsets information
         local_dsets_data = [
             [
-                dset.generated_uid,
                 dset.uid,
                 dset.name,
                 dset.preparation_cube_uid,
@@ -52,9 +50,9 @@ class DatasetsList:
 
         # Get remote dsets information filtered by local
         remote_dsets_data = [
-            [dset["generated_uid"], dset["id"], dset["name"], "-", True, False,]
+            [dset["id"], dset["name"], "-", True, False,]
             for dset in remote_dsets
-            if dset["generated_uid"] not in local_uids
+            if dset["id"] not in local_uids
         ]
 
         # Combine dsets
