@@ -78,7 +78,7 @@ def test_upload_results_uploads_if_approved(mocker, result, submission, approved
     # Act
     try:
         submission.upload_results()
-    except:
+    except SystemExit:
         pass
 
     # Assert

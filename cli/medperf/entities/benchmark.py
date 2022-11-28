@@ -251,7 +251,7 @@ class Benchmark(Entity):
             str: path to the created benchmark file
         """
         if self.tmp_path != self.path and os.path.exists(self.tmp_path):
-            logging.debug(f"Moving benchmark to permanent location")
+            logging.debug("Moving benchmark to permanent location")
             src = str(Path(self.tmp_path).parent)
             dst = str(Path(self.path).parent)
             if os.path.exists(dst):

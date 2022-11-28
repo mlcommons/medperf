@@ -3,7 +3,6 @@ from medperf.enums import Status
 import yaml
 import logging
 from typing import List
-from pathlib import Path
 from shutil import rmtree
 
 from medperf.utils import storage_path
@@ -159,7 +158,7 @@ class Dataset(Entity):
 
     def write(self):
         if self.tmp_path != self.path and os.path.exists(self.tmp_path):
-            logging.debug(f"Moving dataset to permanent location")
+            logging.debug("Moving dataset to permanent location")
             src = str(self.tmp_path)
             dst = str(self.path)
             if os.path.exists(dst):

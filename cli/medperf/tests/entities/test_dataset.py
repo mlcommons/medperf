@@ -1,15 +1,12 @@
-import os
-import medperf
 from medperf.enums import Status
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, mock_open
 
 from medperf import utils
-from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.entities.dataset import Dataset
-from medperf.exceptions import InvalidArgumentError, CommunicationRetrievalError
+from medperf.exceptions import CommunicationRetrievalError
 
 
 REGISTRATION_MOCK = {
@@ -148,7 +145,7 @@ def test_upload_returns_updated_info(mocker, all_uids, ui, comms_uid, comms):
     updated_info = dataset_dict({"id": comms_uid})
     mocker.patch("os.makedirs")
     mocker.patch("os.path.exists", return_value=False)
-    open_spy = mocker.patch("builtins.open", MagicMock())
+    mocker.patch("builtins.open", MagicMock())
     mocker.patch("yaml.dump", MagicMock())
 
     mocker.patch.object(comms, "upload_dataset", return_value=updated_info)

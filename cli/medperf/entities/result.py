@@ -6,7 +6,7 @@ import logging
 from typing import List
 from shutil import rmtree
 
-from medperf.utils import results_ids, storage_path
+from medperf.utils import storage_path
 from medperf.entities.interface import Entity
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
@@ -143,7 +143,7 @@ class Result(Entity):
     def write(self):
         # Remove any temporary cache associated to this result
         if self.tmp_path != self.path and os.path.exists(self.tmp_path):
-            logging.debug(f"Moving result to permanent location")
+            logging.debug("Moving result to permanent location")
             src = str(Path(self.tmp_path).parent)
             dst = str(Path(self.path).parent)
             if os.path.exists(dst):
