@@ -65,24 +65,38 @@ class Benchmark(Entity):
         self.path = os.path.join(path, config.benchmarks_filename)
 
     @classmethod
-    def all(cls, local_only: bool = False) -> List["Benchmark"]:
+    def all(
+        cls, local_only: bool = False, mine_only: bool = False
+    ) -> List["Benchmark"]:
         """Gets and creates instances of all retrievable benchmarks
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
 
         Returns:
             List[Benchmark]: a list of Benchmark instances.
         """
         logging.info("Retrieving all benchmarks")
         benchmarks = []
+        remote_func = config.comms.get_benchmarks
+        if mine_only:
+            remote_func = config.comms.get_user_benchmarks
+
         if not local_only:
             try:
-                bmks_meta = config.comms.get_benchmarks()
+                bmks_meta = remote_func()
+                for bmk_meta in bmks_meta:
+                    # Loading all related models for all benchmarks could be expensive.
+                    # Most probably not necessary when getting all benchmarks.
+                    # If associated models for a benchmark are needed then use Benchmark.get()
+                    bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
                 benchmarks = [cls(meta) for meta in bmks_meta]
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all benchmarks from the server"
                 logging.warning(msg)
+
+        remote_uids = set([str(bmk.uid) for bmk in benchmarks])
 
         bmks_storage = storage_path(config.benchmarks_storage)
         try:
@@ -93,6 +107,8 @@ class Benchmark(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
+            if uid in remote_uids:
+                continue
             meta = cls.__get_local_dict(uid)
             benchmark = cls(meta)
             benchmarks.append(benchmark)
