@@ -16,7 +16,7 @@ class DatasetRegistration:
         ui = config.ui
         dset = Dataset.get(data_uid)
 
-        if dset.uid:
+        if dset.uid != dset.tmp_uid:
             # TODO: should get_dataset and update locally. solves existing issue?
             pretty_error(
                 "This dataset has already been registered.", add_instructions=False

@@ -97,24 +97,31 @@ class Dataset(Entity):
         }
 
     @classmethod
-    def all(cls, local_only: bool = False) -> List["Dataset"]:
+    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
 
         Returns:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
         dsets = []
+        remote_func = config.comms.get_datasets
+        if mine_only:
+            remote_func = config.comms.get_user_datasets
+
         if not local_only:
             try:
-                dsets_meta = config.comms.get_datasets()
+                dsets_meta = remote_func()
                 dsets = [cls(meta) for meta in dsets_meta]
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all datasets from the server"
                 logging.warning(msg)
+
+        remote_uids = set([str(dset.uid) for dset in dsets])
 
         data_storage = storage_path(config.data_storage)
         try:
@@ -125,9 +132,12 @@ class Dataset(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
+            if uid in remote_uids:
+                continue
             local_meta = cls.__get_local_dict(uid)
             dset = cls(local_meta)
             dsets.append(dset)
+
         return dsets
 
     @classmethod
