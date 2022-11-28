@@ -56,20 +56,25 @@ class Result(Entity):
         self.path = os.path.join(path, config.results_info_file)
 
     @classmethod
-    def all(cls, local_only: bool = False) -> List["Result"]:
+    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Result"]:
         """Gets and creates instances of all the user's results
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
 
         Returns:
             List[Result]: List containing all results
         """
         logging.info("Retrieving all results")
         results = []
+        remote_func = config.comms.get_results
+        if mine_only:
+            remote_func = config.comms.get_user_results
+
         if not local_only:
             try:
-                results_meta = config.comms.get_results()
+                results_meta = remote_func()
                 results = [cls(meta) for meta in results_meta]
             except CommunicationRetrievalError:
                 msg = "Couldn't retrieve all results from the server"

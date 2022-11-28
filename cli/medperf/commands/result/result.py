@@ -56,6 +56,9 @@ def submit(
 
 @app.command("ls")
 @clean_except
-def list():
+def list(
+    local: bool = typer.Option(False, "--local", help="Get local results"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+):
     """List results stored locally and remotely from the user"""
-    ResultsList.run()
+    ResultsList.run(local, mine)
