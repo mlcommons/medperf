@@ -25,12 +25,12 @@ def config_p(mocker):
 
 
 @pytest.mark.parametrize("profile", ["test", "default"])
-def test_active_updates_active_profile(mocker, config_p, profile):
+def test_activate_updates_active_profile(mocker, config_p, profile):
     # Arrange
     write_spy = mocker.patch(PATCH_PROFILE.format("write_config"))
 
     # Act
-    runner.invoke(app, ["active", profile])
+    runner.invoke(app, ["activate", profile])
 
     # Assert
     assert config_p["active"]["profile"] == profile
