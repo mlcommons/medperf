@@ -79,25 +79,41 @@ class Benchmark(Entity):
         """
         logging.info("Retrieving all benchmarks")
         benchmarks = []
+
+        if not local_only:
+            benchmarks = cls.__remote_all(mine_only=mine_only)
+
+        remote_uids = set([bmk.uid for bmk in benchmarks])
+
+        local_benchmarks = cls.__local_all()
+
+        benchmarks += [bmk for bmk in local_benchmarks if bmk.uid not in remote_uids]
+
+        return benchmarks
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Benchmark"]:
         remote_func = config.comms.get_benchmarks
         if mine_only:
             remote_func = config.comms.get_user_benchmarks
 
-        if not local_only:
-            try:
-                bmks_meta = remote_func()
-                for bmk_meta in bmks_meta:
-                    # Loading all related models for all benchmarks could be expensive.
-                    # Most probably not necessary when getting all benchmarks.
-                    # If associated models for a benchmark are needed then use Benchmark.get()
-                    bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
-                benchmarks = [cls(meta) for meta in bmks_meta]
-            except CommunicationRetrievalError:
-                msg = "Couldn't retrieve all benchmarks from the server"
-                logging.warning(msg)
+        try:
+            bmks_meta = remote_func()
+            for bmk_meta in bmks_meta:
+                # Loading all related models for all benchmarks could be expensive.
+                # Most probably not necessary when getting all benchmarks.
+                # If associated models for a benchmark are needed then use Benchmark.get()
+                bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
+            benchmarks = [cls(meta) for meta in bmks_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all benchmarks from the server"
+            logging.warning(msg)
 
-        remote_uids = set([str(bmk.uid) for bmk in benchmarks])
+        return benchmarks
 
+    @classmethod
+    def __local_all(cls) -> List["Benchmark"]:
+        benchmarks = []
         bmks_storage = storage_path(config.benchmarks_storage)
         try:
             uids = next(os.walk(bmks_storage))[1]
@@ -107,8 +123,6 @@ class Benchmark(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
-            if uid in remote_uids:
-                continue
             meta = cls.__get_local_dict(uid)
             benchmark = cls(meta)
             benchmarks.append(benchmark)
