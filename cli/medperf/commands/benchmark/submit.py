@@ -1,10 +1,12 @@
+import os
+import shutil
 import logging
 from medperf.enums import Status
 import validators
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import get_file_sha1, generate_tmp_uid, pretty_error
+from medperf.utils import get_file_sha1, generate_tmp_uid, pretty_error, storage_path
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 
@@ -36,6 +38,7 @@ class SubmitBenchmark:
             ui.text = "Submitting Benchmark to MedPerf"
             updated_benchmark_body = submission.submit()
         ui.print("Uploaded")
+        submission.to_permanent_path(updated_benchmark_body)
         submission.write(updated_benchmark_body)
 
     def __init__(self, benchmark_info: dict, force_test: bool = True):
@@ -170,6 +173,20 @@ class SubmitBenchmark:
         body = self.todict()
         updated_body = Benchmark(body).upload()
         return updated_body
+
+    def to_permanent_path(self, bmk_dict: dict):
+        """Renames the temporary benchmark submission to a permanent one
+
+        Args:
+            bmk_dict (dict): dictionary containing updated information of the submitted benchmark
+        """
+        bmk = Benchmark(bmk_dict)
+        bmks_storage = storage_path(config.benchmarks_storage)
+        old_bmk_loc = os.path.join(bmks_storage, bmk.generated_uid)
+        new_bmk_loc = bmk.path
+        if os.path.exists(new_bmk_loc):
+            shutil.rmtree(new_bmk_loc)
+        os.rename(old_bmk_loc, new_bmk_loc)
 
     def write(self, updated_body):
         bmk = Benchmark(updated_body)

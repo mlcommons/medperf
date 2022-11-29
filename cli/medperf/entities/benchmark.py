@@ -52,16 +52,14 @@ class Benchmark(Entity):
         self.metadata = bmk_dict["metadata"]
         self.user_metadata = bmk_dict["user_metadata"]
 
-        self.tmp_uid = (
+        self.generated_uid = (
             f"{self.data_preparation}_{self.reference_model}_{self.evaluator}"
         )
         path = storage_path(config.benchmarks_storage)
-        tmp_path = os.path.join(path, self.tmp_uid)
-        if not self.uid:
-            self.uid = self.tmp_uid
-
-        path = os.path.join(path, str(self.uid))
-        self.tmp_path = os.path.join(tmp_path, config.benchmarks_filename)
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, self.generated_uid)
         self.path = os.path.join(path, config.benchmarks_filename)
 
     @classmethod

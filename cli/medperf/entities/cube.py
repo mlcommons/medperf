@@ -81,6 +81,8 @@ class Cube(Entity):
                 cubes_storage, str(self.uid), config.params_filename
             )
 
+        self.generated_uid = self.name
+
     @classmethod
     def all(cls, local_only: bool = False) -> List["Cube"]:
         """Class method for retrieving all retrievable MLCubes

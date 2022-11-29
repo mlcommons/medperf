@@ -1,4 +1,7 @@
-from medperf.utils import pretty_error, dict_pretty_print, approval_prompt
+import os
+import shutil
+
+from medperf.utils import pretty_error, dict_pretty_print, approval_prompt, storage_path
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
@@ -11,6 +14,7 @@ class ResultSubmission:
         dset = Dataset.get(data_uid)
         sub = cls(benchmark_uid, dset.uid, model_uid, approved=approved)
         updated_result_dict = sub.upload_results()
+        sub.to_permanent_path(updated_result_dict)
         sub.write(updated_result_dict)
 
     def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
@@ -45,6 +49,20 @@ class ResultSubmission:
 
         updated_result_dict = result.upload()
         return updated_result_dict
+
+    def to_permanent_path(self, result_dict: dict):
+        """Rename the temporary result submission to a permanent one
+
+        Args:
+            result_dict (dict): updated results dictionary
+        """
+        result = Result(result_dict)
+        result_storage = storage_path(config.results_storage)
+        old_res_loc = os.path.join(result_storage, result.generated_uid)
+        new_res_loc = result.path
+        if os.path.exists(new_res_loc):
+            shutil.rmtree(new_res_loc)
+        os.rename(old_res_loc, new_res_loc)
 
     def write(self, updated_result_dict):
         result = Result(updated_result_dict)

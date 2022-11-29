@@ -45,14 +45,13 @@ class Result(Entity):
         self.created_at = results_info["created_at"]
         self.modified_at = results_info["modified_at"]
 
-        self.tmp_uid = f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}"
+        self.generated_uid = f"{self.benchmark_uid}_{self.model_uid}_{self.dataset_uid}"
         path = storage_path(config.results_storage)
-        tmp_path = os.path.join(path, self.tmp_uid)
-        if not self.uid:
-            self.uid = self.tmp_uid
-        path = os.path.join(path, str(self.uid))
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, self.generated_uid)
 
-        self.tmp_path = os.path.join(tmp_path, config.results_info_file)
         self.path = os.path.join(path, config.results_info_file)
 
     @classmethod
@@ -152,17 +151,6 @@ class Result(Entity):
         return updated_results_info
 
     def write(self):
-        # Remove any temporary cache associated to this result
-        if self.tmp_path != self.path and os.path.exists(self.tmp_path):
-            logging.debug("Moving result to permanent location")
-            src = str(Path(self.tmp_path).parent)
-            dst = str(Path(self.path).parent)
-            if os.path.exists(dst):
-                # Permanent version already exists, remove temporary
-                rmtree(src)
-            else:
-                # Move temporary to permanent
-                os.rename(src, dst)
         if os.path.exists(self.path):
             write_access = os.access(self.path, os.W_OK)
             logging.debug(f"file has write access? {write_access}")

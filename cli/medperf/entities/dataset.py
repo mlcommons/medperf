@@ -61,15 +61,13 @@ class Dataset(Entity):
         self.modified_at = dataset_dict["modified_at"]
         self.owner = dataset_dict["owner"]
 
-        self.tmp_uid = self.generated_uid
         path = storage_path(config.data_storage)
-        tmp_path = os.path.join(path, str(self.tmp_uid))
-        if not self.uid:
-            self.uid = self.tmp_uid
-        path = os.path.join(path, str(self.uid))
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, str(self.generated_uid))
 
         self.path = path
-        self.tmp_path = tmp_path
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = self.data_path
         if self.separate_labels:
@@ -109,20 +107,35 @@ class Dataset(Entity):
         """
         logging.info("Retrieving all datasets")
         dsets = []
+        if not local_only:
+            dsets = cls.__remote_all(mine_only=mine_only)
+
+        remote_uids = set([str(dset.uid) for dset in dsets])
+
+        local_dsets = cls.__local_all()
+
+        dsets += [dset for dset in local_dsets if dset.uid not in remote_uids]
+
+        return dsets
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Dataset"]:
         remote_func = config.comms.get_datasets
         if mine_only:
             remote_func = config.comms.get_user_datasets
 
-        if not local_only:
-            try:
-                dsets_meta = remote_func()
-                dsets = [cls(meta) for meta in dsets_meta]
-            except CommunicationRetrievalError:
-                msg = "Couldn't retrieve all datasets from the server"
-                logging.warning(msg)
+        try:
+            dsets_meta = remote_func()
+            dsets = [cls(meta) for meta in dsets_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all datasets from the server"
+            logging.warning(msg)
 
-        remote_uids = set([str(dset.uid) for dset in dsets])
+        return dsets
 
+    @classmethod
+    def __local_all(cls) -> List["Dataset"]:
+        dsets = []
         data_storage = storage_path(config.data_storage)
         try:
             uids = next(os.walk(data_storage))[1]
@@ -132,8 +145,6 @@ class Dataset(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
-            if uid in remote_uids:
-                continue
             local_meta = cls.__get_local_dict(uid)
             dset = cls(local_meta)
             dsets.append(dset)
@@ -169,16 +180,6 @@ class Dataset(Entity):
         return dataset
 
     def write(self):
-        if self.tmp_path != self.path and os.path.exists(self.tmp_path):
-            logging.debug("Moving dataset to permanent location")
-            src = str(self.tmp_path)
-            dst = str(self.path)
-            if os.path.exists(dst):
-                # Permanent version already exists, remove temporary
-                rmtree(src)
-            else:
-                # Move temporary to permanent
-                os.rename(src, dst)
         logging.info(f"Updating registration information for dataset: {self.uid}")
         logging.debug(f"registration information: {self.todict()}")
         regfile = os.path.join(self.path, config.reg_file)

@@ -1,4 +1,7 @@
-from medperf.utils import approval_prompt, pretty_error, dict_pretty_print
+import os
+import shutil
+
+from medperf.utils import approval_prompt, pretty_error, dict_pretty_print, storage_path
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
@@ -16,7 +19,7 @@ class DatasetRegistration:
         ui = config.ui
         dset = Dataset.get(data_uid)
 
-        if dset.uid != dset.tmp_uid:
+        if dset.uid is not None:
             # TODO: should get_dataset and update locally. solves existing issue?
             pretty_error(
                 "This dataset has already been registered.", add_instructions=False
@@ -41,6 +44,14 @@ class DatasetRegistration:
             ui.print("Uploading...")
             updated_dset_dict = dset.upload()
             updated_dset = Dataset(updated_dset_dict)
+
+            dsets_storage = storage_path(config.data_storage)
+            old_dset_loc = os.path.join(dsets_storage, dset.generated_uid)
+            new_dset_loc = dset.path
+            if os.path.exists(new_dset_loc):
+                shutil.rmtree(new_dset_loc)
+            os.rename(old_dset_loc, new_dset_loc)
+
             updated_dset.write()
         else:
             pretty_error("Registration request cancelled.", add_instructions=False)
