@@ -110,6 +110,8 @@ def configurable(with_args: bool = True) -> Callable:
             **kwargs,
         ):
             assigned_params = [k for k, v in ctx.params.items() if v is not None]
+            # Remove parameters that are being passed as temporary inline options
+            # from the configuration dictionary
             config_assigned_params = set(assigned_params) - set(kwargs.keys())
             config_dict = {key: ctx.params[key] for key in config_assigned_params}
             ctx.config_dict = config_dict
