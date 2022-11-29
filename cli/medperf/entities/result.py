@@ -67,20 +67,36 @@ class Result(Entity):
         """
         logging.info("Retrieving all results")
         results = []
+        if not local_only:
+            results = cls.__remote_all(mine_only=mine_only)
+
+        remote_uids = set([str(result.uid) for result in results])
+
+        local_results = cls.__local_all()
+
+        results += [res for res in local_results if res.uid not in remote_uids]
+
+        return results
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Result"]:
+        results = []
         remote_func = config.comms.get_results
         if mine_only:
             remote_func = config.comms.get_user_results
 
-        if not local_only:
-            try:
-                results_meta = remote_func()
-                results = [cls(meta) for meta in results_meta]
-            except CommunicationRetrievalError:
-                msg = "Couldn't retrieve all results from the server"
-                logging.warning(msg)
+        try:
+            results_meta = remote_func()
+            results = [cls(meta) for meta in results_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all results from the server"
+            logging.warning(msg)
 
-        remote_uids = set([str(result.uid) for result in results])
+        return results
 
+    @classmethod
+    def __local_all(cls) -> List["Result"]:
+        results = []
         results_storage = storage_path(config.results_storage)
         try:
             uids = next(os.walk(results_storage))[1]
@@ -90,8 +106,6 @@ class Result(Entity):
             raise RuntimeError(msg)
 
         for uid in uids:
-            if uid in remote_uids:
-                continue
             local_meta = cls.__get_local_dict(uid)
             result = cls(local_meta)
             results.append(result)

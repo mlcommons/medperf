@@ -120,6 +120,7 @@ class Dataset(Entity):
 
     @classmethod
     def __remote_all(cls, mine_only: bool = False) -> List["Dataset"]:
+        dsets = []
         remote_func = config.comms.get_datasets
         if mine_only:
             remote_func = config.comms.get_user_datasets

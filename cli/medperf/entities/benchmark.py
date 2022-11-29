@@ -91,6 +91,7 @@ class Benchmark(Entity):
 
     @classmethod
     def __remote_all(cls, mine_only: bool = False) -> List["Benchmark"]:
+        benchmarks = []
         remote_func = config.comms.get_benchmarks
         if mine_only:
             remote_func = config.comms.get_user_benchmarks
@@ -278,16 +279,6 @@ class Benchmark(Entity):
         Returns:
             str: path to the created benchmark file
         """
-        if self.tmp_path != self.path and os.path.exists(self.tmp_path):
-            logging.debug("Moving benchmark to permanent location")
-            src = str(Path(self.tmp_path).parent)
-            dst = str(Path(self.path).parent)
-            if os.path.exists(dst):
-                # Permanent version already exists, remove temporary
-                rmtree(src)
-            else:
-                # Move temporary to permanent
-                os.rename(src, dst)
         data = self.todict()
         if not os.path.exists(self.path):
             os.makedirs(Path(self.path).parent, exist_ok=True)

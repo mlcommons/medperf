@@ -84,11 +84,12 @@ class Cube(Entity):
         self.generated_uid = self.name
 
     @classmethod
-    def all(cls, local_only: bool = False) -> List["Cube"]:
+    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Cube"]:
         """Class method for retrieving all retrievable MLCubes
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities.Defaults to False.
 
         Returns:
             List[Cube]: List containing all cubes
@@ -96,13 +97,35 @@ class Cube(Entity):
         logging.info("Retrieving all cubes")
         cubes = []
         if not local_only:
-            try:
-                cubes_meta = config.comms.get_cubes()
-                cubes = [cls(meta) for meta in cubes_meta]
-            except CommunicationRetrievalError:
-                msg = "Couldn't retrieve all cubes from the server"
-                logging.warning(msg)
+            cubes = cls.__remote_all(mine_only=mine_only)
 
+        remote_uids = set([cube.uid for cube in cubes])
+
+        local_cubes = cls.__local_all()
+
+        cubes += [cube for cube in local_cubes if cube.uid not in remote_uids]
+
+        return cubes
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Cube"]:
+        cubes = []
+        remote_func = config.comms.get_cubes
+        if mine_only:
+            remote_func = config.comms.get_user_cubes()
+
+        try:
+            cubes_meta = remote_func()
+            cubes = [cls(meta) for meta in cubes_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all cubes from the server"
+            logging.warning(msg)
+
+        return cubes
+
+    @classmethod
+    def __local_all(cls) -> List["Cube"]:
+        cubes = []
         cubes_storage = storage_path(config.cubes_storage)
         try:
             uids = next(os.walk(cubes_storage))[1]
