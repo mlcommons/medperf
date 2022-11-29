@@ -23,8 +23,8 @@ def write_config(config_p: configparser.ConfigParser):
         config_p.write(f)
 
 
-@app.command("active")
-def active(profile: str):
+@app.command("activate")
+def activate(profile: str):
     """Assigns the active profile, which is used by default
 
     Args:
