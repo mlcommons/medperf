@@ -28,10 +28,10 @@ class DatasetsList:
         # Get local dsets information
         dsets_data = [
             [
-                dset.uid,
+                dset.uid if dset.uid is not None else dset.generated_uid,
                 dset.name,
                 dset.preparation_cube_uid,
-                dset.uid != dset.tmp_uid,
+                dset.uid is not None,
                 True,
             ]
             for dset in dsets

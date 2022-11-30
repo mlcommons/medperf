@@ -20,7 +20,7 @@ class BenchmarksList:
 
         data = [
             [
-                bmark.uid,
+                bmark.uid if bmark.uid is not None else bmark.generated_uid,
                 bmark.name,
                 bmark.description,
                 bmark.state,

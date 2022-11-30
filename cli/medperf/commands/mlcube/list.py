@@ -16,7 +16,14 @@ class CubesList:
         ui = config.ui
         cubes = Cube.all(local_only=local, mine_only=mine)
         headers = ["MLCube UID", "Name", "State"]
-        cubes_data = [[cube["id"], cube["name"], cube["state"]] for cube in cubes]
+        cubes_data = [
+            [
+                cube.uid if cube.uid is not None else cube.generated_uid,
+                cube.name,
+                cube.state,
+            ]
+            for cube in cubes
+        ]
 
         tab = tabulate(cubes_data, headers=headers)
         ui.print(tab)
