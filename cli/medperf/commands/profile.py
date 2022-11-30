@@ -40,7 +40,7 @@ def activate(profile: str):
 
 
 @app.command("create")
-@configurable()
+@configurable(with_defaults=True)
 def create(
     ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
