@@ -48,4 +48,3 @@ def test_retrieves_user_results(mocker, comms, ui):
 
     # Assert
     spy.assert_called_once()
-

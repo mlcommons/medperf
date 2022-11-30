@@ -13,7 +13,6 @@ class CubesList:
             local (bool, optional): List only local cubes. Defaults to False.
             mine (bool, optional): List only cubes owned by the current user. Defaults to False
         """
-        comms = config.comms
         ui = config.ui
         cubes = Cube.all(local_only=local, mine_only=mine)
         headers = ["MLCube UID", "Name", "State"]

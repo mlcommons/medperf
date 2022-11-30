@@ -234,4 +234,5 @@ def test_run_executes_expected_flow(mocker, result, comms, ui):
     val_spy.assert_called_once()
     extra_spy.assert_called_once()
     sub_spy.assert_called_once()
+    mv_spy.assert_called_once()
     wr_spy.assert_called_once()
