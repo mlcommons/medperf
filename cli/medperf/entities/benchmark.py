@@ -4,7 +4,6 @@ import yaml
 import logging
 from typing import List
 from pathlib import Path
-from shutil import rmtree
 
 import medperf.config as config
 from medperf.entities.interface import Entity

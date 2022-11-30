@@ -4,7 +4,6 @@ from medperf.enums import Status
 import yaml
 import logging
 from typing import List
-from shutil import rmtree
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
