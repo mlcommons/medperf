@@ -10,6 +10,9 @@ PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 @pytest.fixture
 def dataset(mocker):
     dset = mocker.create_autospec(spec=Dataset)
+    dset.generated_uid = "generated_uid"
+    dset.path = "path"
+    dset.uid = None
     mocker.patch(PATCH_REGISTER.format("Dataset.get"), return_value=dset)
     return dset
 
@@ -24,12 +27,12 @@ def test_run_retrieves_specified_dataset(
     mocker, comms, ui, dataset, data_uid, no_remote
 ):
     # Arrange
-    dataset.uid = None
     mocker.patch(
         PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
     spy = mocker.patch(PATCH_REGISTER.format("Dataset.get"), return_value=dataset)
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+    mocker.patch("os.rename")
 
     # Act
     DatasetRegistration.run(data_uid)
@@ -59,7 +62,6 @@ def test_run_fails_if_dataset_already_registered(
 
 def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote):
     # Arrange
-    dataset.uid = None
     mocker.patch(
         PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
@@ -68,6 +70,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
         side_effect=lambda *args, **kwargs: exit(),
     )
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+    mocker.patch("os.rename")
 
     # Act
     DatasetRegistration.run("1")
@@ -79,13 +82,13 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
 @pytest.mark.parametrize("dset_dict", [{"test": "test"}, {}])
 def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
     # Arrange
-    dataset.uid = None
     spy_dict = mocker.patch.object(dataset, "todict", return_value=dset_dict)
     spy = mocker.patch(PATCH_REGISTER.format("dict_pretty_print"))
     mocker.patch(
         PATCH_REGISTER.format("approval_prompt"), return_value=True,
     )
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+    mocker.patch("os.rename")
 
     # Act
     DatasetRegistration.run("1")
@@ -97,9 +100,9 @@ def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
 
 def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     # Arrange
-    dataset.uid = None
     spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
     mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+    mocker.patch("os.rename")
 
     # Act
     DatasetRegistration.run("1")
@@ -168,13 +171,13 @@ class TestWithApproval:
         self, mocker, comms, ui, dataset, approved, no_remote
     ):
         # Arrange
-        dataset.uid = None
         mocker.patch(
             PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
         spy = mocker.patch.object(dataset, "upload")
         mocker.patch(PATCH_REGISTER.format("Dataset.write"))
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
+        mocker.patch("os.rename")
 
         # Act
         DatasetRegistration.run("1")
@@ -189,9 +192,9 @@ class TestWithApproval:
         self, mocker, comms, ui, dataset, approved
     ):
         # Arrange
-        dataset.uid = None
         spy = mocker.patch(PATCH_REGISTER.format("approval_prompt"), return_value=True,)
         mocker.patch(PATCH_REGISTER.format("Dataset.write"))
+        mocker.patch("os.rename")
 
         # Act
         DatasetRegistration.run("1", approved=approved)
@@ -206,13 +209,13 @@ class TestWithApproval:
         self, mocker, comms, ui, dataset, approved, no_remote
     ):
         # Arrange
-        dataset.uid = None
         mocker.patch(
             PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
         mocker.patch.object(dataset, "upload")
         spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
         mocker.patch(PATCH_REGISTER.format("pretty_error"))
+        mocker.patch("os.rename")
 
         # Act
         DatasetRegistration.run("1")

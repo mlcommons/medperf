@@ -8,7 +8,6 @@ class DatasetsList:
     @staticmethod
     def run(local: bool = False, mine: bool = False):
         """List all local and remote users created by user.
-        Use "all" to list all remote datasets in the platform
 
         Args:
             local (bool, optional): List only local datasets. Defaults to False.

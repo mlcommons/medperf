@@ -12,6 +12,8 @@ PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 def result(mocker):
     res = mocker.create_autospec(spec=Result)
     res.status = Status.PENDING
+    res.generated_uid = "generated_uid"
+    res.path = "path"
     res.results = {}
     return res
 
@@ -94,6 +96,7 @@ def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     up_spy = mocker.spy(ResultSubmission, "upload_results")
     write_spy = mocker.spy(ResultSubmission, "write")
     mocker.patch.object(ui, "prompt", return_value="y")
+    mocker.patch("os.rename")
 
     # Act
     ResultSubmission.run(bmark_uid, data_uid, model_uid)

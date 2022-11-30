@@ -82,6 +82,13 @@ class Cube(Entity):
             )
 
         self.generated_uid = self.name
+        path = storage_path(config.cubes_storage)
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, str(self.generated_uid))
+
+        self.path = path
 
     @classmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Cube"]:
@@ -112,7 +119,7 @@ class Cube(Entity):
         cubes = []
         remote_func = config.comms.get_cubes
         if mine_only:
-            remote_func = config.comms.get_user_cubes()
+            remote_func = config.comms.get_user_cubes
 
         try:
             cubes_meta = remote_func()

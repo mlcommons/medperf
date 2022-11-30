@@ -168,7 +168,6 @@ def test_set_results_writes_results_contents_to_file(mocker, result, write_acces
 def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
     # Arrange
     mocker.patch("os.path.exists", return_value=True)
-    mocker.patch(PATCH_RESULT.format("rmtree"))
     mocker.patch("os.access", return_value=write_access)
     spy = mocker.patch("os.remove")
     mocker.patch("builtins.open", MagicMock())
@@ -188,7 +187,6 @@ def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
 def test_set_results_check_access_only_if_file_exists(mocker, result, exists):
     # Arrange
     mocker.patch("os.path.exists", return_value=exists)
-    mocker.patch(PATCH_RESULT.format("rmtree"))
     spy = mocker.patch("os.access")
     mocker.patch("os.remove")
     mocker.patch("builtins.open", MagicMock())
