@@ -109,7 +109,7 @@ class Dataset(Entity):
         if not local_only:
             dsets = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([str(dset.uid) for dset in dsets])
+        remote_uids = set([dset.uid for dset in dsets])
 
         local_dsets = cls.__local_all()
 

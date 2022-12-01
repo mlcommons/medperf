@@ -69,7 +69,7 @@ class Result(Entity):
         if not local_only:
             results = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([str(result.uid) for result in results])
+        remote_uids = set([result.uid for result in results])
 
         local_results = cls.__local_all()
 
