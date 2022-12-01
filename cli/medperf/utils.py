@@ -23,6 +23,19 @@ import medperf.config as config
 from medperf.exceptions import InvalidEntityError
 
 
+def read_config():
+    config_p = configparser.ConfigParser()
+    config_path = os.path.join(config.storage, config.config_path)
+    config_p.read(config_path)
+    return config_p
+
+
+def write_config(config_p: configparser.ConfigParser):
+    config_path = os.path.join(config.storage, config.config_path)
+    with open(config_path, "w") as f:
+        config_p.write(f)
+
+
 def set_custom_config(args: dict):
     """Function to set parameters defined by the user
 
@@ -43,9 +56,7 @@ def load_config(profile: str) -> dict:
     Returns:
         dict: configuration parameters
     """
-    config_p = configparser.ConfigParser()
-    config_file = os.path.join(config.storage, config.config_path)
-    config_p.read(config_file)
+    config_p = read_config()
     # Set current profile
     if profile == "active":
         # Special case. Get the profile that has been assigned as active
@@ -56,7 +67,7 @@ def load_config(profile: str) -> dict:
 
 def storage_path(subpath: str):
     """Helper function that converts a path to storage-related path"""
-    server_path = config.server.split('//')[1]
+    server_path = config.server.split("//")[1]
     server_path = re.sub(r"[.:]", "_", server_path)
     return os.path.join(config.storage, server_path, subpath)
 

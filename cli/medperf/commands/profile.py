@@ -4,23 +4,10 @@ import configparser
 
 from medperf import config
 from medperf.decorators import configurable
-from medperf.utils import dict_pretty_print
+from medperf.utils import dict_pretty_print, read_config, write_config
 from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
-
-
-def read_config():
-    config_p = configparser.ConfigParser()
-    config_path = os.path.join(config.storage, config.config_path)
-    config_p.read(config_path)
-    return config_p
-
-
-def write_config(config_p: configparser.ConfigParser):
-    config_path = os.path.join(config.storage, config.config_path)
-    with open(config_path, "w") as f:
-        config_p.write(f)
 
 
 @app.command("activate")
