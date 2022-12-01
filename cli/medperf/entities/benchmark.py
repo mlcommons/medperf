@@ -59,7 +59,7 @@ class Benchmark(Entity):
             path = os.path.join(path, str(self.uid))
         else:
             path = os.path.join(path, self.generated_uid)
-        self.path = os.path.join(path, config.benchmarks_filename)
+        self.path = path
 
     @classmethod
     def all(
@@ -279,11 +279,12 @@ class Benchmark(Entity):
             str: path to the created benchmark file
         """
         data = self.todict()
-        if not os.path.exists(self.path):
-            os.makedirs(Path(self.path).parent, exist_ok=True)
-        with open(self.path, "w") as f:
+        bmk_file = os.path.join(self.path, config.benchmarks_filename)
+        if not os.path.exists(bmk_file):
+            os.makedirs(self.path, exist_ok=True)
+        with open(bmk_file, "w") as f:
             yaml.dump(data, f)
-        return self.path
+        return bmk_file
 
     def upload(self):
         """Uploads a benchmark to the server

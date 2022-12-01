@@ -51,7 +51,7 @@ class Result(Entity):
         else:
             path = os.path.join(path, self.generated_uid)
 
-        self.path = os.path.join(path, config.results_info_file)
+        self.path = path
 
     @classmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Result"]:
@@ -164,15 +164,17 @@ class Result(Entity):
         return updated_results_info
 
     def write(self):
-        if os.path.exists(self.path):
-            write_access = os.access(self.path, os.W_OK)
+        result_file = os.path.join(self.path, config.results_info_file)
+        if os.path.exists(result_file):
+            write_access = os.access(result_file, os.W_OK)
             logging.debug(f"file has write access? {write_access}")
             if not write_access:
                 logging.debug("removing outdated and inaccessible results")
-                os.remove(self.path)
-        os.makedirs(Path(self.path).parent, exist_ok=True)
-        with open(self.path, "w") as f:
+                os.remove(result_file)
+        os.makedirs(self.path, exist_ok=True)
+        with open(result_file, "w") as f:
             yaml.dump(self.todict(), f)
+        return result_file
 
     @classmethod
     def __get_local_dict(cls, local_uid):
