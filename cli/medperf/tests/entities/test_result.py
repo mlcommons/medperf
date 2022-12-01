@@ -1,3 +1,4 @@
+import os
 from medperf.tests.mocks.requests import result_dict
 import pytest
 from unittest.mock import MagicMock, ANY, mock_open
@@ -149,6 +150,7 @@ def test_upload_calls_server_method(mocker, result, comms):
 @pytest.mark.parametrize("write_access", [True, False])
 def test_set_results_writes_results_contents_to_file(mocker, result, write_access):
     # Arrange
+    filepath = os.path.join(result.path, config.results_info_file)
     mocker.patch("os.path.exists", return_value=False)
     mocker.patch("os.access", return_value=write_access)
     mocker.patch("os.remove")
@@ -160,13 +162,14 @@ def test_set_results_writes_results_contents_to_file(mocker, result, write_acces
     result.write()
 
     # arrange
-    open_spy.assert_called_once_with(result.path, "w")
+    open_spy.assert_called_once_with(filepath, "w")
     yaml_spy.assert_called_once_with(result.todict(), ANY)
 
 
 @pytest.mark.parametrize("write_access", [True, False])
 def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
     # Arrange
+    filepath = os.path.join(result.path, config.results_info_file)
     mocker.patch("os.path.exists", return_value=True)
     mocker.patch("os.access", return_value=write_access)
     spy = mocker.patch("os.remove")
@@ -178,7 +181,7 @@ def test_set_results_deletes_file_if_inaccessible(mocker, result, write_access):
 
     # arrange
     if not write_access:
-        spy.assert_called_once_with(result.path)
+        spy.assert_called_once_with(filepath)
     else:
         spy.assert_not_called()
 
