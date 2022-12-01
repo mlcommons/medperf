@@ -186,6 +186,7 @@ class Dataset(Entity):
         os.makedirs(self.path, exist_ok=True)
         with open(regfile, "w") as f:
             yaml.dump(self.todict(), f)
+        return regfile
 
     def upload(self):
         """Uploads the registration information to the comms.

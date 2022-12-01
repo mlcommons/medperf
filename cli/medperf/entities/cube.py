@@ -368,6 +368,7 @@ class Cube(Entity):
         os.makedirs(cube_loc, exist_ok=True)
         with open(meta_file, "w") as f:
             yaml.dump(self.todict(), f)
+        return meta_file
 
     def upload(self):
         cube_dict = self.todict()
