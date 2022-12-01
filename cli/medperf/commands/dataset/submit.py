@@ -45,9 +45,8 @@ class DatasetRegistration:
             updated_dset_dict = dset.upload()
             updated_dset = Dataset(updated_dset_dict)
 
-            dsets_storage = storage_path(config.data_storage)
-            old_dset_loc = os.path.join(dsets_storage, dset.generated_uid)
-            new_dset_loc = dset.path
+            old_dset_loc = dset.path
+            new_dset_loc = updated_dset.path
             if os.path.exists(new_dset_loc):
                 shutil.rmtree(new_dset_loc)
             os.rename(old_dset_loc, new_dset_loc)
