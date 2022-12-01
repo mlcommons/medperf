@@ -95,7 +95,7 @@ medperf --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE
 # Get association information
 ASSOC_INFO=$(medperf --certificate $CERT_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL association ls | head -n 4 | tail -n 1 | tr -s ' ')
 ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
-ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
+ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 3)
 # Mark dataset-benchmark association as approved
 medperf --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
 if [ "$?" -ne "0" ]; then
