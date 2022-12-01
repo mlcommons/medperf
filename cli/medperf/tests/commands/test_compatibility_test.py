@@ -49,7 +49,7 @@ def default_setup(mocker, benchmark, dataset):
     mocker.patch(
         PATCH_TEST.format("CompatibilityTestExecution.cached_result"), return_value=None
     )
-    bmk.tmp_uid = "tmp_uid"
+    bmk.generated_uid = "generated_uid"
     return bmk
 
 
@@ -447,7 +447,7 @@ def test_run_uses_correct_uids(
     bmk_model_uid = "b2"
     bmk_eval_uid = "b3"
     demo_dataset_uid = "d1"
-    tmp_uid = "t1"
+    generated_uid = "t1"
 
     bmk = benchmark(bmk_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
     bmk.demo_dataset_url = "url"
@@ -467,8 +467,8 @@ def test_run_uses_correct_uids(
     mocker.patch(PATCH_TEST.format("Result.get"))
 
     def tmp_side_effect(prep, model, eval):
-        bmk = benchmark(tmp_uid, prep, model, eval)
-        bmk.tmp_uid = tmp_uid
+        bmk = benchmark(generated_uid, prep, model, eval)
+        bmk.generated_uid = generated_uid
         return bmk
 
     tmp_spy = mocker.patch(
@@ -497,7 +497,7 @@ def test_run_uses_correct_uids(
 
     tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
     exec_spy.assert_called_once_with(
-        tmp_uid, exp_data_uid, exp_model_uid, run_test=True
+        generated_uid, exp_data_uid, exp_model_uid, run_test=True
     )
 
 

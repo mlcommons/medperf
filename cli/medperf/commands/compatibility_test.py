@@ -117,7 +117,7 @@ class CompatibilityTestExecution:
         """Runs the benchmark execution flow given the specified testing parameters
         """
         benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
-        self.benchmark_uid = benchmark.tmp_uid
+        self.benchmark_uid = benchmark.generated_uid
         BenchmarkExecution.run(
             self.benchmark_uid, self.data_uid, self.model, run_test=True,
         )
