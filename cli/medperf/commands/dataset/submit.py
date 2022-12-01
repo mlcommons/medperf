@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from medperf.utils import approval_prompt, pretty_error, dict_pretty_print, storage_path
+from medperf.utils import approval_prompt, pretty_error, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
