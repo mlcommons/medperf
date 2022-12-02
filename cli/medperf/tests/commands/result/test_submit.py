@@ -41,6 +41,7 @@ def test_upload_results_requests_approval(mocker, submission, result):
     spy = mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=True)
     mocker.patch.object(result, "upload")
     mocker.patch.object(result, "write")
+    mocker.patch("os.rename")
     # Act
     ResultSubmission.run(1, 1, 1)
 
@@ -55,10 +56,10 @@ def test_upload_results_fails_if_not_approved(mocker, submission, result, approv
 
     # Act & Assert
     if approved:
+        submission.upload_results()
+    else:
         with pytest.raises(CleanExit):
             submission.upload_results()
-    else:
-        submission.upload_results()
 
 
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
