@@ -1,4 +1,5 @@
 import os
+from medperf.exceptions import CommunicationRequestError, CommunicationRetrievalError
 import pytest
 import requests
 from unittest.mock import mock_open, ANY, call
@@ -128,18 +129,18 @@ def test_methods_run_authorized_method(mocker, server, method_params):
 @pytest.mark.parametrize(
     "method_params",
     [
-        ("get_benchmark", [1], {}),
-        ("get_cube_metadata", [1], {}),
-        ("_REST__get_cube_file", ["", 1, "", ""], {}),
-        ("upload_dataset", [{}], {"id": 1}),
-        ("upload_results", [{}], {"id": 1}),
-        ("associate_dset", [1, 1], {}),
-        ("change_password", [{}], {"password": "pwd"}),
+        ("get_benchmark", [1], {}, CommunicationRetrievalError),
+        ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
+        ("_REST__get_cube_file", ["", 1, "", ""], {}, CommunicationRetrievalError),
+        ("upload_dataset", [{}], {"id": 1}, CommunicationRequestError),
+        ("upload_results", [{}], {"id": 1}, CommunicationRequestError),
+        ("associate_dset", [1, 1], {}, CommunicationRequestError),
+        ("change_password", [{}], {"password": "pwd"}, CommunicationRequestError),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
     # Arrange
-    method, args, body = method_params
+    method, args, body, raised_exception = method_params
     res = MockResponse(body, status)
     mocker.patch("requests.get", return_value=res)
     mocker.patch("requests.post", return_value=res)
@@ -147,7 +148,7 @@ def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
     method = getattr(server, method)
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(raised_exception):
         method(*args)
 
 
@@ -332,7 +333,7 @@ def test__get_list_fails_if_failing_element_encountered(mocker, server):
     mocker.patch.object(server, "_REST__auth_get", return_value=failing_body)
 
     # Act & Assert
-    with pytest.raises(Exception):
+    with pytest.raises(CommunicationRetrievalError):
         server._REST__get_list(url, page_size=1)
 
 

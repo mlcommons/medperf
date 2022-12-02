@@ -16,7 +16,9 @@ from medperf.utils import (
 from medperf.entities.interface import Entity
 from medperf.exceptions import (
     InvalidArgumentError,
+    ExecutionError,
     InvalidEntityError,
+    MedperfException,
     CommunicationRetrievalError,
 )
 import medperf.config as config
@@ -139,7 +141,7 @@ class Cube(Entity):
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
-            raise RuntimeError(msg)
+            raise MedperfException(msg)
 
         for uid in uids:
             meta = cls.__get_local_dict(uid)
@@ -302,7 +304,7 @@ class Cube(Entity):
         proc.close()
         logging.debug(proc_out)
         if proc.exitstatus != 0:
-            raise RuntimeError("There was an error while executing the cube")
+            raise ExecutionError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
         return proc

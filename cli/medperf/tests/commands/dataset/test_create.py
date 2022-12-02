@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import medperf.config as config
+from medperf.exceptions import ExecutionError, InvalidArgumentError
 from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, call
@@ -56,22 +57,13 @@ class TestWithDefaultUID:
 
         mocker.patch("os.path.exists", side_effect=exists)
         should_fail = not data_exists or not labels_exist
-        spy = mocker.patch(
-            PATCH_DATAPREP.format("pretty_error"), side_effect=lambda *args: exit()
-        )
 
-        # Act
+        # Act & Assert
         if should_fail:
-            with pytest.raises(SystemExit):
+            with pytest.raises(InvalidArgumentError):
                 preparation.validate()
         else:
             preparation.validate()
-
-        # Assert
-        if should_fail:
-            spy.assert_called_once()
-        else:
-            spy.asset_not_called()
 
     @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
     def test_get_prep_cube_gets_prep_cube_if_provided(
@@ -239,17 +231,16 @@ class TestWithDefaultUID:
         # Arrange
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
-        spy = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
-
         # Act
         preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5)
-        preparation.validate()
         # Assert
 
         if num_arguments != 1:
-            spy.assert_called_once()
+            with pytest.raises(InvalidArgumentError):
+                preparation.validate()
+
         else:
-            spy.assert_not_called()
+            preparation.validate()
 
     @pytest.mark.parametrize("in_path", ["data_path", "input_path", "/usr/data/path"])
     @pytest.mark.parametrize("out_path", ["out_path", "~/.medperf/data/123"])
@@ -401,19 +392,16 @@ def test_run_deletes_output_path_on_failure(mocker, preparation):
     # Arrange
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
+
     mocker.patch.object(
-        preparation.cube,
-        "run",
-        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+        preparation.cube, "run", side_effect=ExecutionError,
     )
     spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
-    spy_error = mocker.patch(PATCH_DATAPREP.format("pretty_error"))
 
     exp_outpaths = [preparation.out_path]
 
-    # Act
-    preparation.run_cube_tasks()
+    # Act & Assert
+    with pytest.raises(ExecutionError):
+        preparation.run_cube_tasks()
 
-    # Assert
     spy_clean.assert_called_once_with(exp_outpaths)
-    spy_error.assert_called_once()

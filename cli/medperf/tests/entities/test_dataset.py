@@ -6,7 +6,10 @@ from unittest.mock import MagicMock, mock_open
 from medperf import utils
 import medperf.config as config
 from medperf.entities.dataset import Dataset
-from medperf.exceptions import CommunicationRetrievalError
+from medperf.exceptions import (
+    CommunicationRetrievalError,
+    MedperfException,
+)
 
 
 REGISTRATION_MOCK = {
@@ -93,7 +96,7 @@ def test_all_fails_if_cant_iterate_data_storage(mocker, comms, ui):
     mocker.patch.object(comms, "get_datasets", side_effect=CommunicationRetrievalError)
 
     # Act & Assert
-    with pytest.raises(RuntimeError):
+    with pytest.raises(MedperfException):
         Dataset.all()
 
 

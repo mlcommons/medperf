@@ -11,8 +11,8 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.result.create import BenchmarkExecution
-from medperf.utils import pretty_error, untar, get_file_sha1, storage_path
-from medperf.exceptions import InvalidArgumentError
+from medperf.utils import untar, get_file_sha1, storage_path
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
 class CompatibilityTestExecution:
@@ -83,19 +83,15 @@ class CompatibilityTestExecution:
         params = [self.data_uid, self.model, self.evaluator]
         none_params = [param is None for param in params]
         if self.benchmark_uid is None and any(none_params):
-            pretty_error(
-                "Invalid combination of arguments to test. Ensure you pass a benchmark or a complete mlcube flow"
+            raise InvalidArgumentError(
+                "Ensure you pass a benchmark or a complete mlcube flow"
             )
         # a redundant data preparation cube
         if self.data_uid is not None and self.data_prep is not None:
-            pretty_error(
-                "Invalid combination of arguments to test. The passed preparation cube will not be used"
-            )
+            raise InvalidArgumentError("The passed preparation cube will not be used")
         # a redundant benchmark
         if self.benchmark_uid is not None and not any(none_params):
-            pretty_error(
-                "Invalid combination of arguments to test. The passed benchmark will not be used"
-            )
+            raise InvalidArgumentError("The passed benchmark will not be used")
 
     def prepare_test(self):
         """Prepares all parameters so a test can be executed. Paths to cubes are
@@ -174,8 +170,8 @@ class CompatibilityTestExecution:
                     yaml.dump(hashes, f)
             return
 
-        logging.warning(f"mlcube {val} was not found as an existing mlcube")
-        pretty_error(
+        logging.error(f"mlcube {val} was not found as an existing mlcube")
+        raise InvalidArgumentError(
             f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube"
         )
 
@@ -213,7 +209,7 @@ class CompatibilityTestExecution:
         file_hash = get_file_sha1(file_path)
         # Alllow for empty datset hashes for benchmark registration purposes
         if dset_hash and file_hash != dset_hash:
-            pretty_error("Demo dataset hash doesn't match expected hash")
+            raise InvalidEntityError("Demo dataset hash doesn't match expected hash")
 
         untar_path = untar(file_path, remove=False)
 

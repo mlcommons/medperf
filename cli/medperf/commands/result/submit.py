@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from medperf.exceptions import CleanExit
 from medperf.utils import pretty_error, dict_pretty_print, approval_prompt, storage_path
 from medperf.entities.result import Result
 from medperf.entities.dataset import Dataset
@@ -44,8 +45,7 @@ class ResultSubmission:
         approved = self.approved or self.request_approval(result)
 
         if not approved:
-            msg = "Results upload operation cancelled"
-            pretty_error(msg, add_instructions=False)
+            raise CleanExit("Results upload operation cancelled")
 
         updated_result_dict = result.upload()
         return updated_result_dict

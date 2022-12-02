@@ -6,8 +6,9 @@ import validators
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import get_file_sha1, generate_tmp_uid, pretty_error, storage_path
+from medperf.utils import get_file_sha1, generate_tmp_uid, storage_path
 from medperf.commands.compatibility_test import CompatibilityTestExecution
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
 class SubmitBenchmark:
@@ -29,7 +30,7 @@ class SubmitBenchmark:
         ui = config.ui
         submission = cls(benchmark_info, force_test)
         if not submission.is_valid():
-            pretty_error("Invalid benchmark information")
+            raise InvalidArgumentError("Invalid benchmark information")
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -117,7 +118,9 @@ class SubmitBenchmark:
             logging.error(
                 f"Demo dataset hash mismatch: {demo_hash} != {self.demo_hash}"
             )
-            pretty_error("Demo dataset hash does not match the provided hash")
+            raise InvalidEntityError(
+                "Demo dataset hash does not match the provided hash"
+            )
         self.demo_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.demo_uid = demo_uid

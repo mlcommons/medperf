@@ -10,7 +10,11 @@ from medperf.utils import storage_path
 from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
-from medperf.exceptions import InvalidEntityError, CommunicationRetrievalError
+from medperf.exceptions import (
+    ExecutionError,
+    InvalidEntityError,
+    CommunicationRetrievalError,
+)
 
 PATCH_SERVER = "medperf.entities.benchmark.Comms.{}"
 PATCH_CUBE = "medperf.entities.cube.{}"
@@ -597,7 +601,7 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_lo
     # Act & Assert
     uid = 1
     cube = Cube.get(uid)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ExecutionError):
         cube.run(task)
 
 

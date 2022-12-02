@@ -6,7 +6,7 @@ from typing import List
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidArgumentError, CommunicationRetrievalError
+from medperf.exceptions import InvalidArgumentError, MedperfException, CommunicationRetrievalError
 import medperf.config as config
 
 
@@ -142,7 +142,7 @@ class Dataset(Entity):
         except StopIteration:
             msg = "Couldn't iterate over the dataset directory"
             logging.warning(msg)
-            raise RuntimeError(msg)
+            raise MedperfException(msg)
 
         for uid in uids:
             local_meta = cls.__get_local_dict(uid)
