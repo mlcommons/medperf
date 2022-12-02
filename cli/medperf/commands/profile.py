@@ -1,6 +1,4 @@
-import os
 import typer
-import configparser
 
 from medperf import config
 from medperf.decorators import configurable
