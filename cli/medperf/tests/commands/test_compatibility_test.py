@@ -1,5 +1,6 @@
 import os
 from medperf import config
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
@@ -70,16 +71,13 @@ def test_validate_fails_if_incomplete_tmp_benchmark_passed(
     in_params = test_params[0]
     should_be_valid = test_params[1]
     exec = CompatibilityTestExecution(*in_params)
-    spy = mocker.patch(PATCH_TEST.format("pretty_error"))
 
-    # Act
-    exec.validate()
-
-    # Assert
+    # Act & Assert
     if should_be_valid:
-        spy.assert_not_called()
+        exec.validate()
     else:
-        spy.assert_called()
+        with pytest.raises(InvalidArgumentError):
+            exec.validate()
 
 
 @pytest.mark.parametrize("uid", [None, "1"])
@@ -203,15 +201,10 @@ def test_set_cube_uid_fails_if_unrecognized_input(
     exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.model = model_uid
     mocker.patch("os.symlink")
-    spy = mocker.patch(
-        PATCH_TEST.format("pretty_error"), side_effect=lambda *args: exit()
-    )
 
     # Act & Assert
-    with pytest.raises(SystemExit):
+    with pytest.raises(InvalidArgumentError):
         exec.set_cube_uid("model")
-
-    spy.assert_called_once()
 
 
 def test_set_data_uid_retrieves_demo_data_by_default(mocker, default_setup, comms, ui):
@@ -373,17 +366,11 @@ def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, ha
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
     exec = CompatibilityTestExecution(uid, data, prep, model, eval)
-    spy = mocker.patch(
-        PATCH_TEST.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
-    )
     exec.prepare_test()
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(InvalidEntityError):
         exec.download_demo_data()
-
-    # Assert
-    spy.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -452,7 +439,6 @@ def test_run_uses_correct_uids(
     bmk.demo_dataset_url = "url"
     bmk.demo_dataset_hash = "hash"
 
-    error_spy = mocker.patch(PATCH_TEST.format("pretty_error"))
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch("os.path.exists", return_value=False)
     mocker.patch(
@@ -484,14 +470,14 @@ def test_run_uses_correct_uids(
         exp_prep_uid = bmk_prep_uid
 
     # Act
-    CompatibilityTestExecution.run(
-        bmk_uid, data_uid, prep_uid, model_uid, eval_uid, force_test=True
-    )
-
-    # Assert
-    if error_spy.call_count != 0:
+    try:
+        CompatibilityTestExecution.run(
+            bmk_uid, data_uid, prep_uid, model_uid, eval_uid, force_test=True
+        )
+    except InvalidArgumentError:
         return
 
+    # Assert
     tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
     exec_spy.assert_called_once_with(
         tmp_uid, exp_data_uid, exp_model_uid, run_test=True
