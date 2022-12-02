@@ -23,7 +23,7 @@ from medperf.utils import (
     init_storage,
     init_config,
     storage_path,
-    cleanup
+    cleanup,
 )
 import medperf.commands.association.association as association
 from medperf.commands.compatibility_test import CompatibilityTestExecution
@@ -148,9 +148,7 @@ def test(
 @configurable()
 def main(
     ctx: typer.Context,
-    profile: str = typer.Option(
-        config.profile, help="Configuration profile to use"
-    )
+    profile: str = typer.Option(config.profile, help="Configuration profile to use"),
 ):
     # Create medperf root path
     os.makedirs(config.storage, exist_ok=True)

@@ -55,10 +55,14 @@ def configurable(with_args: bool = True, with_defaults: bool = False) -> Callabl
         Callable: decorated function
     """
 
+    def default_val(default):
+        if with_defaults:
+            return default
+        return None
+
     def decorator(func):
         atype = str
         cleanup_opts = "--cleanup/--no-cleanup"
-        def_val = lambda def_val: def_val if with_defaults else None
         if not with_args:
             atype = bool
             cleanup_opts = "--cleanup"
@@ -67,58 +71,60 @@ def configurable(with_args: bool = True, with_defaults: bool = False) -> Callabl
         def wrapper(
             ctx: typer.Context,
             server: atype = typer.Option(
-                def_val(config.server, "--server"),
+                default_val(config.server),
+                "--server",
                 help="URL of a hosted MedPerf API instance",
             ),
             certificate: atype = typer.Option(
-                def_val(config.certificate),
+                default_val(config.certificate),
                 "--certificate",
                 help="path to a valid SSL certificate",
             ),
             comms: atype = typer.Option(
-                def_val(config.comms, "--comms"),
+                default_val(config.comms),
+                "--comms",
                 help="communications interface to use. [REST]",
             ),
             ui: atype = typer.Option(
-                def_val(config.ui, "--ui"), help="UI interface to use. [CLI]"
+                default_val(config.ui), "--ui", help="UI interface to use. [CLI]"
             ),
             loglevel: atype = typer.Option(
-                def_val(config.loglevel),
+                default_val(config.loglevel),
                 "--loglevel",
                 help="Logging level [debug | info | warning | error]",
             ),
             prepare_timeout: atype = typer.Option(
-                def_val(config.prepare_timeout),
+                default_val(config.prepare_timeout),
                 "--prepare_timeout",
                 help="Maximum time in seconds before interrupting prepare task",
             ),
             sanity_check_timeout: atype = typer.Option(
-                def_val(config.sanity_check_timeout),
+                default_val(config.sanity_check_timeout),
                 "--sanity_check_timeout",
                 help="Maximum time in seconds before interrupting sanity_check task",
             ),
             statistics_timeout: atype = typer.Option(
-                def_val(config.statistics_timeout),
+                default_val(config.statistics_timeout),
                 "--statistics_timeout",
                 help="Maximum time in seconds before interrupting statistics task",
             ),
             infer_timeout: atype = typer.Option(
-                def_val(config.infer_timeout),
+                default_val(config.infer_timeout),
                 "--infer_timeout",
                 help="Maximum time in seconds before interrupting infer task",
             ),
             evaluate_timeout: atype = typer.Option(
-                def_val(config.evaluate_timeout),
+                default_val(config.evaluate_timeout),
                 "--evaluate_timeout",
                 help="Maximum time in seconds before interrupting evaluate task",
             ),
             platform: atype = typer.Option(
-                def_val(config.platform),
+                default_val(config.platform),
                 "--platform",
                 help="Platform to use for MLCube. [docker | singularity]",
             ),
             cleanup: bool = typer.Option(
-                def_val(config.cleanup),
+                default_val(config.cleanup),
                 cleanup_opts,
                 help="Wether to clean up temporary medperf storage after execution",
             ),
