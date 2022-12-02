@@ -69,9 +69,10 @@ class BenchmarkExecution:
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.get(self.data_uid)
-        self.out_path = results_path(
-            self.benchmark_uid, self.model_uid, self.dataset.uid
-        )
+        dset_uid = self.dataset.uid
+        if dset_uid is None:
+            dset_uid = self.dataset.generated_uid
+        self.out_path = results_path(self.benchmark_uid, self.model_uid, dset_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
