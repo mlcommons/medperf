@@ -1,3 +1,4 @@
+from medperf.exceptions import CleanExit
 import pytest
 from unittest.mock import ANY
 
@@ -69,3 +70,20 @@ def test_run_calls_compatibility_test_without_force_by_default(
 
     # Assert
     spy.assert_called_once_with(benchmark_uid, model=cube_uid, force_test=False)
+
+
+def test_stops_if_not_approved(mocker, comms, ui, cube, result, benchmark):
+    # Arrange
+    comp_ret = ("", "", "", result)
+    mocker.patch(
+        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
+    )
+    spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
+    assoc_spy = mocker.patch.object(comms, "associate_cube")
+
+    # Act
+    with pytest.raises(CleanExit):
+        AssociateCube.run(1, 1)
+    # Assert
+    spy.assert_called_once()
+    assoc_spy.assert_not_called()

@@ -101,9 +101,7 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
 
 
 @pytest.mark.parametrize("benchmarks_uids", [[449, 66, 337]])
-def test_get_benchmark_reads_remote_benchmark(
-    mocker, comms, benchmarks_uids
-):
+def test_get_benchmark_reads_remote_benchmark(mocker, comms, benchmarks_uids):
     # Arrange
     benchmarks_uids = [str(uid) for uid in benchmarks_uids]
     mocker.patch("os.listdir", return_value=benchmarks_uids)

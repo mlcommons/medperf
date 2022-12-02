@@ -4,7 +4,8 @@ import validators
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import pretty_error, storage_path
+from medperf.utils import storage_path
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
 class SubmitCube:
@@ -28,7 +29,7 @@ class SubmitCube:
         ui = config.ui
         submission = cls(submit_info)
         if not submission.is_valid():
-            pretty_error("MLCube submission is invalid")
+            raise InvalidArgumentError("MLCube submission is invalid")
 
         with ui.interactive():
             ui.text = "Validating MLCube can be downloaded"
@@ -96,7 +97,7 @@ class SubmitCube:
         self.mlcube_hash = cube.mlcube_hash
         self.parameters_hash = cube.parameters_hash
         if not cube.is_valid():
-            pretty_error("MLCube hash check failed. Submission aborted.")
+            raise InvalidEntityError("MLCube hash check failed. Submission aborted.")
 
     def todict(self):
         dict = {

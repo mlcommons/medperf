@@ -10,7 +10,11 @@ from medperf.utils import storage_path
 from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
-from medperf.exceptions import InvalidEntityError, CommunicationRetrievalError
+from medperf.exceptions import (
+    ExecutionError,
+    InvalidEntityError,
+    CommunicationRetrievalError,
+)
 
 PATCH_SERVER = "medperf.entities.benchmark.Comms.{}"
 PATCH_CUBE = "medperf.entities.cube.{}"
@@ -278,7 +282,9 @@ def test_get_cube_calls_all(mocker, comms, basic_body):
     spy = mocker.patch(PATCH_CUBE.format("Cube.all"), return_value=[])
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=True)
     mocker.patch(PATCH_CUBE.format("cleanup"))
-    mocker.patch.object(comms, "get_cube_metadata", side_effect=CommunicationRetrievalError)
+    mocker.patch.object(
+        comms, "get_cube_metadata", side_effect=CommunicationRetrievalError
+    )
 
     # Act
     with pytest.raises(InvalidEntityError):
@@ -295,7 +301,9 @@ def test_get_cube_return_local_if_server_fails(mocker, comms, local_cubes):
     uid = local_cubes[0]
     cube.uid = uid
     spy = mocker.patch.object(Cube, "all", return_value=[cube])
-    metadata_spy = mocker.patch.object(comms, "get_cube_metadata", side_effect=CommunicationRetrievalError)
+    metadata_spy = mocker.patch.object(
+        comms, "get_cube_metadata", side_effect=CommunicationRetrievalError
+    )
 
     # Act
     cube = Cube.get(uid)
@@ -579,7 +587,7 @@ def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_lo
     # Act & Assert
     uid = 1
     cube = Cube.get(uid)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ExecutionError):
         cube.run(task)
 
 
