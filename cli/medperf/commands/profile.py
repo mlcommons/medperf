@@ -57,20 +57,6 @@ def set_args(ctx: typer.Context):
     write_config(config_p)
 
 
-@app.command("unset")
-@configurable(with_args=False)
-def unset(ctx: typer.Context):
-    """Removes a set of custom configuration parameters assigned to the current profile.
-    """
-    profile = config.profile
-    args = ctx.config_dict
-    config_p = read_config()
-
-    for key in args.keys():
-        del config_p[profile][key]
-    write_config(config_p)
-
-
 @app.command("ls")
 def list():
     """Lists all available profiles

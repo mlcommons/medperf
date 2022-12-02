@@ -94,29 +94,6 @@ def test_set_updates_profile_parameters(mocker, config_p, args):
     config.profile = profile_backup
 
 
-@pytest.mark.parametrize(
-    "args",
-    [
-        (["--server"], {"server": True}),
-        (["--certificate", "--server"], {"certificate": True, "server": True}),
-    ],
-)
-def test_unset_removes_profile_parameters(config_p, args):
-    # Arrange
-    config.profile = "default"
-    in_args, out_cfg = args
-
-    # Act
-    runner.invoke(app, ["unset"] + in_args)
-
-    # Assert
-    for param in out_cfg.keys():
-        assert param not in config_p[config.profile]
-
-    # Clean
-    config.profile = profile_backup
-
-
 def test_ls_prints_profile_names(mocker, config_p, ui):
     # Arrange
     spy = mocker.patch.object(ui, "print")
