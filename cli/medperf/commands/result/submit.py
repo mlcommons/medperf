@@ -11,7 +11,6 @@ from medperf import config
 
 class ResultSubmission:
     @classmethod
-    # TODO: Submit using result uid
     def run(cls, result_uid, approved=False):
         sub = cls(result_uid, approved=approved)
         updated_result_dict = sub.upload_results()

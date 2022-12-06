@@ -9,7 +9,6 @@ from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
     init_storage,
-    results_path,
     storage_path,
     cleanup,
 )
@@ -41,8 +40,9 @@ class BenchmarkExecution:
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
-        execution.write()
+        result_uid = execution.write()
         execution.remove_temp_results()
+        return result_uid
 
     def __init__(
         self,
@@ -69,10 +69,9 @@ class BenchmarkExecution:
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.get(self.data_uid)
-        dset_uid = self.dataset.uid
-        if dset_uid is None:
-            dset_uid = self.dataset.generated_uid
-        self.out_path = results_path(self.benchmark_uid, self.model_uid, dset_uid)
+        dset_uid = self.dataset.generated_uid
+        result_uid = f"b{self.benchmark_uid}m{self.model_uid}d{dset_uid}"
+        self.out_path = os.path.join(storage_path(config.results_storage), result_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -155,15 +154,13 @@ class BenchmarkExecution:
                 logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
-        data_uid = self.dataset.generated_uid
-
         return {
             "id": None,
-            "name": f"b{self.benchmark_uid}m{self.model_uid}d{data_uid}",
+            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
             "owner": None,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
-            "dataset": data_uid,
+            "dataset": self.data_uid,
             "results": self.get_temp_results(),
             "metadata": self.metadata,
             "approval_status": Status.PENDING.value,
@@ -186,3 +183,4 @@ class BenchmarkExecution:
         results_info = self.todict()
         result = Result(results_info)
         result.write()
+        return result.generated_uid

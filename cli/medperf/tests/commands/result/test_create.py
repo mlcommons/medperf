@@ -211,9 +211,6 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
         failed_cube, "run", side_effect=ExecutionError,
     )
     mocker.patch(
-        PATCH_EXECUTION.format("results_path"), return_value=out_path,
-    )
-    mocker.patch(
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
     )
     spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
@@ -304,9 +301,6 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
 
     mocker.patch.object(
         failed_cube, "run", side_effect=ExecutionError,
-    )
-    mocker.patch(
-        PATCH_EXECUTION.format("results_path"), return_value=out_path,
     )
     mocker.patch(
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
