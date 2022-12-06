@@ -291,7 +291,6 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
     execution.dataset.data_path = "data_path"
     execution.model_cube.cube_path = "cube_path"
     execution.ignore_errors = ignore_errors
-    out_path = "out_path"
     preds_path = "preds_path"
 
     if mlcube == "model":

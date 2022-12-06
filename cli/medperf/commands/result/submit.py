@@ -4,7 +4,6 @@ import shutil
 from medperf.exceptions import CleanExit
 from medperf.utils import dict_pretty_print, approval_prompt, storage_path
 from medperf.entities.result import Result
-from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
 
