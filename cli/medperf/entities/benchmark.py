@@ -52,7 +52,7 @@ class Benchmark(Entity):
         self.user_metadata = bmk_dict["user_metadata"]
 
         self.generated_uid = (
-            f"{self.data_preparation}_{self.reference_model}_{self.evaluator}"
+            f"p{self.data_preparation}m{self.reference_model}e{self.evaluator}"
         )
         path = storage_path(config.benchmarks_storage)
         if self.uid:
@@ -198,7 +198,7 @@ class Benchmark(Entity):
         Returns:
             Benchmark: a benchmark instance
         """
-        name = f"{data_preparator}_{model}_{evaluator}"
+        name = f"b{data_preparator}m{model}e{evaluator}"
         benchmark_dict = {
             "id": None,
             "name": name,

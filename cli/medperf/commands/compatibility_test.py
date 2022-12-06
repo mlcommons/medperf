@@ -120,7 +120,9 @@ class CompatibilityTestExecution:
         # Datasets associated with results of compatibility-test are identified
         # by the generated uid. Server uid is not be applicable in the case
         # of unregistered datasets.
-        result_tmp_uid = f"{self.benchmark_uid}_{self.model}_{self.dataset.uid}"
+        result_tmp_uid = (
+            f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"
+        )
         return Result.get(result_tmp_uid)
 
     def set_cube_uid(self, attr: str, fallback: any = None):
@@ -233,7 +235,9 @@ class CompatibilityTestExecution:
         """
         if self.force_test:
             return
-        tmp_result_uid = f"{self.benchmark_uid}_{self.model}_{self.dataset.uid}"
+        tmp_result_uid = (
+            f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"
+        )
         try:
             result = Result.get(tmp_result_uid)
         except InvalidArgumentError:

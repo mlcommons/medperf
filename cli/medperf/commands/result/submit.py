@@ -11,17 +11,15 @@ from medperf import config
 
 class ResultSubmission:
     @classmethod
-    def run(cls, benchmark_uid, data_uid, model_uid, approved=False):
-        dset = Dataset.get(data_uid)
-        sub = cls(benchmark_uid, dset.uid, model_uid, approved=approved)
+    # TODO: Submit using result uid
+    def run(cls, result_uid, approved=False):
+        sub = cls(result_uid, approved=approved)
         updated_result_dict = sub.upload_results()
         sub.to_permanent_path(updated_result_dict)
         sub.write(updated_result_dict)
 
-    def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
-        self.benchmark_uid = benchmark_uid
-        self.data_uid = data_uid
-        self.model_uid = model_uid
+    def __init__(self, result_uid, approved=False):
+        self.result_uid = result_uid
         self.comms = config.comms
         self.ui = config.ui
         self.approved = approved
@@ -40,8 +38,7 @@ class ResultSubmission:
         return approved
 
     def upload_results(self):
-        uid = f"{self.benchmark_uid}_{self.model_uid}_{self.data_uid}"
-        result = Result.get(uid)
+        result = Result.get(self.result_uid)
         approved = self.approved or self.request_approval(result)
 
         if not approved:

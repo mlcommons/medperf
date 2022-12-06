@@ -155,11 +155,11 @@ class BenchmarkExecution:
                 logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
-        data_uid = self.dataset.uid
+        data_uid = self.dataset.generated_uid
 
         return {
             "id": None,
-            "name": f"{self.benchmark_uid}_{self.model_uid}_{data_uid}",
+            "name": f"b{self.benchmark_uid}m{self.model_uid}d{data_uid}",
             "owner": None,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
