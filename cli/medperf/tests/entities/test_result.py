@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import MagicMock, ANY, mock_open
 
 from medperf.entities.result import Result
+from medperf.entities.dataset import Dataset
 from medperf.exceptions import CommunicationRetrievalError
 from medperf import config
 from medperf import utils
@@ -97,7 +98,10 @@ def test_all_fails_if_cant_iterate_storage(mocker, comms, ui):
 @pytest.mark.parametrize("all_uids", [[], ["1", "2", "3"]], indirect=True)
 def test_all_returns_list_of_expected_size(mocker, comms, ui, all_uids):
     # Arrange
+    dset = mocker.create_autospec(spec=Dataset)
+    dset.generated_uid = "generated_uid"
     mocker.patch.object(comms, "get_results", side_effect=CommunicationRetrievalError)
+    mocker.patch(PATCH_RESULT.format("Dataset.get"), return_value=dset)
 
     # Act
     dsets = Result.all()
@@ -110,6 +114,9 @@ def test_all_returns_list_of_expected_size(mocker, comms, ui, all_uids):
 def test_get_retrieves_results_from_comms(mocker, comms, uid):
     # Arrange
     uid = 0
+    dset = mocker.create_autospec(spec=Dataset)
+    dset.generated_uid = "generated_uid"
+    mocker.patch(PATCH_RESULT.format("Dataset.get"), return_value=dset)
     spy = mocker.patch.object(comms, "get_result", return_value=MOCK_RESULTS_CONTENT)
     mocker.patch(PATCH_RESULT.format("Result.all"), return_value=[])
     mocker.patch(PATCH_RESULT.format("Result.write"))
