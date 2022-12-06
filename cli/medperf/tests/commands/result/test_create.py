@@ -27,9 +27,11 @@ def cube(mocker):
 @pytest.fixture
 def execution(mocker, comms, ui, cube):
     mock_dset = mocker.create_autospec(spec=Dataset)
+    mock_dset.generated_uid = "gen_uid"
     mock_bmark = mocker.create_autospec(spec=Benchmark)
     mocker.patch(PATCH_EXECUTION.format("init_storage"))
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
+    mocker.patch("medperf.entities.result.Dataset.get", return_value=mock_dset)
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
     exec = BenchmarkExecution(0, 0, 0)
     exec.prepare()

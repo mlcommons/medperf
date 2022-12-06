@@ -29,10 +29,10 @@ def dataset(mocker):
 
 @pytest.fixture
 def submission(mocker, comms, ui, result, dataset):
-    sub = ResultSubmission(1, 1, 1)
+    sub = ResultSubmission(1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
     mocker.patch(PATCH_SUBMISSION.format("Result.get"), return_value=result)
-    mocker.patch(PATCH_SUBMISSION.format("Dataset"), return_value=dataset)
+    mocker.patch("medperf.entities.result.Dataset.get", return_vlaue=dataset)
     return sub
 
 
@@ -43,7 +43,7 @@ def test_upload_results_requests_approval(mocker, submission, result):
     mocker.patch.object(result, "write")
     mocker.patch("os.rename")
     # Act
-    ResultSubmission.run(1, 1, 1)
+    ResultSubmission.run(1)
 
     # Assert
     spy.assert_called_once()
@@ -64,14 +64,14 @@ def test_upload_results_fails_if_not_approved(mocker, submission, result, approv
 
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     # Arrange
-    bmark_uid = data_uid = model_uid = 1
+    result_uid = 1
     up_spy = mocker.spy(ResultSubmission, "upload_results")
     write_spy = mocker.spy(ResultSubmission, "write")
     mocker.patch.object(ui, "prompt", return_value="y")
     mocker.patch("os.rename")
 
     # Act
-    ResultSubmission.run(bmark_uid, data_uid, model_uid)
+    ResultSubmission.run(result_uid)
 
     # Assert
     up_spy.assert_called_once()

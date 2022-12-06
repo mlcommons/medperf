@@ -481,10 +481,16 @@ def test_run_uses_correct_uids(
         return
 
     # Assert
-    tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
-    exec_spy.assert_called_once_with(
-        generated_uid, exp_data_uid, exp_model_uid, run_test=True
-    )
+    if bmk_uid is None:
+        tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
+        exec_spy.assert_called_once_with(
+            generated_uid, exp_data_uid, exp_model_uid, run_test=True
+        )
+    else:
+        tmp_spy.assert_not_called()
+        exec_spy.assert_called_once_with(
+            bmk_uid, exp_data_uid, exp_model_uid, run_test=True
+        )
 
 
 @pytest.mark.parametrize("files_already_exist", [True, False])
