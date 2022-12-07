@@ -1,5 +1,6 @@
 import os
 from medperf import config
+from medperf.exceptions import ExecutionError, InvalidArgumentError
 from medperf.tests.mocks.requests import result_dict
 import pytest
 from unittest.mock import MagicMock, call
@@ -48,61 +49,34 @@ def test_validate_fails_if_preparation_cube_mismatch(mocker, execution):
     # Arrange
     execution.dataset.preparation_cube_uid = "dset_prep_cube"
     execution.benchmark.data_preparation = "bmark_prep_cube"
-    spy = mocker.patch(
-        PATCH_EXECUTION.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
         execution.validate()
-
-    # Assert
-    spy.assert_called_once()
 
 
 @pytest.mark.parametrize("model_uid", [4559, 3292, 1499])
 def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
     # Arrange
     execution.model_uid = model_uid  # model not in benchmark
-    spy = mocker.patch(
-        PATCH_EXECUTION.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
         execution.validate()
-
-    # Assert
-    spy.assert_called_once()
 
 
 def test_validate_fails_if_dataset_is_not_registered(mocker, execution):
     # Arrange
     execution.dataset.uid = None
-    spy = mocker.patch(
-        PATCH_EXECUTION.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
         execution.validate()
-
-    # Assert
-    spy.assert_called_once()
 
 
 def test_validate_passes_under_right_conditions(mocker, execution):
-    # Arrange
-    spy = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
-
-    # Act
+    # Act & Assert
     execution.validate()
-
-    # Assert
-    spy.assert_not_called()
 
 
 @pytest.mark.parametrize("evaluator_uid", [1965, 2164])
@@ -173,9 +147,7 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
         timeout=None,
         data_path="data_path",
         output_path=preds_path,
-        string_params={
-            'Ptasks.infer.parameters.input.data_path.opts': 'ro',
-        }
+        string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro",},
     )
     evaluate = call(
         task="evaluate",
@@ -184,9 +156,9 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
         labels="labels_path",
         output_path=result_path,
         string_params={
-            'Ptasks.evaluate.parameters.input.predictions.opts': 'ro',
-            'Ptasks.evaluate.parameters.input.labels.opts': 'ro'
-        }
+            "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
+            "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+        },
     )
 
     # Act
@@ -228,11 +200,15 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     out_path = "out_path"
     preds_path = "preds_path"
 
-    failed_cube = execution.model_cube if mlcube == "model" else execution.evaluator
+    if mlcube == "model":
+        failed_cube = execution.model_cube
+        exp_outpaths = [preds_path]
+    else:
+        failed_cube = execution.evaluator
+        exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
+
     mocker.patch.object(
-        failed_cube,
-        "run",
-        side_effect=lambda *args, **kwargs: exec("raise RuntimeError()"),
+        failed_cube, "run", side_effect=ExecutionError,
     )
     mocker.patch(
         PATCH_EXECUTION.format("results_path"), return_value=out_path,
@@ -241,16 +217,12 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
     )
     spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
-    spy_error = mocker.patch(PATCH_EXECUTION.format("pretty_error"))
 
-    exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
+    # Act & Assert
+    with pytest.raises(ExecutionError):
+        execution.run_cubes()
 
-    # Act
-    execution.run_cubes()
-
-    # Assert
     spy_clean.assert_called_once_with(exp_outpaths)
-    spy_error.assert_called_once()
 
 
 def test_todict_calls_get_temp_results(mocker, execution):
@@ -313,3 +285,40 @@ def test_remove_temp_results_removes_file(mocker, path, execution):
 
     # Assert
     spy.assert_called_once_with(deleted)
+
+
+@pytest.mark.parametrize("ignore_errors", [False, True])
+@pytest.mark.parametrize("mlcube", ["model", "eval"])
+def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_errors):
+    # Arrange
+    execution.dataset.data_path = "data_path"
+    execution.model_cube.cube_path = "cube_path"
+    execution.ignore_errors = ignore_errors
+    out_path = "out_path"
+    preds_path = "preds_path"
+
+    if mlcube == "model":
+        failed_cube = execution.model_cube
+    else:
+        failed_cube = execution.evaluator
+
+    mocker.patch.object(
+        failed_cube, "run", side_effect=ExecutionError,
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("results_path"), return_value=out_path,
+    )
+    mocker.patch(
+        PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
+    )
+    mocker.patch(PATCH_EXECUTION.format("cleanup"))
+
+    # Act & Assert
+
+    # Assert
+    if ignore_errors:
+        execution.run_cubes()
+    else:
+        with pytest.raises(ExecutionError):
+            execution.run_cubes()
+    assert execution.metadata["partial"] == ignore_errors

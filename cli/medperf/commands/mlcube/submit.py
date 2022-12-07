@@ -4,7 +4,8 @@ import validators
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import pretty_error, storage_path
+from medperf.utils import storage_path
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
 class SubmitCube:
@@ -17,7 +18,9 @@ class SubmitCube:
                 expected keys:
                     name,
                     mlcube_file,
+                    mlcube_hash
                     params_file,
+                    params_hash
                     additional_files_tarball_url,
                     additional_files_tarball_hash,
                     image_tarball_url,
@@ -26,7 +29,7 @@ class SubmitCube:
         ui = config.ui
         submission = cls(submit_info)
         if not submission.is_valid():
-            pretty_error("MLCube submission is invalid")
+            raise InvalidArgumentError("MLCube submission is invalid")
 
         with ui.interactive():
             ui.text = "Validating MLCube can be downloaded"
@@ -41,7 +44,9 @@ class SubmitCube:
         self.ui = config.ui
         self.name = submit_info["name"]
         self.mlcube_file = submit_info["mlcube_file"]
+        self.mlcube_hash = submit_info["mlcube_hash"]
         self.params_file = submit_info["params_file"]
+        self.parameters_hash = submit_info["parameters_hash"]
         self.additional_file = submit_info["additional_files_tarball_url"]
         self.additional_hash = submit_info["additional_files_tarball_hash"]
         self.image_file = submit_info["image_tarball_url"]
@@ -49,15 +54,11 @@ class SubmitCube:
 
     def is_valid(self):
         name_valid_length = 0 < len(self.name) < 20
-        mlcube_file_is_valid = (
-            self.mlcube_file.startswith(config.git_file_domain)
-            and validators.url(self.mlcube_file)
-            and self.mlcube_file.endswith(".yaml")
-        )
+        mlcube_file_is_valid = validators.url(
+            self.mlcube_file
+        ) and self.mlcube_file.endswith(".yaml")
         params_file_is_valid = self.params_file == "" or (
-            self.params_file.startswith(config.git_file_domain)
-            and validators.url(self.params_file)
-            and self.params_file.endswith(".yaml")
+            validators.url(self.params_file) and self.params_file.endswith(".yaml")
         )
         add_file_is_valid = self.additional_file == "" or validators.url(
             self.additional_file
@@ -93,14 +94,18 @@ class SubmitCube:
         cube.download()
         self.additional_hash = cube.additional_hash
         self.image_tarball_hash = cube.image_tarball_hash
+        self.mlcube_hash = cube.mlcube_hash
+        self.parameters_hash = cube.parameters_hash
         if not cube.is_valid():
-            pretty_error("MLCube hash check failed. Submission aborted.")
+            raise InvalidEntityError("MLCube hash check failed. Submission aborted.")
 
     def todict(self):
         dict = {
             "name": self.name,
             "git_mlcube_url": self.mlcube_file,
+            "mlcube_hash": self.mlcube_hash,
             "git_parameters_url": self.params_file,
+            "parameters_hash": self.parameters_hash,
             "image_tarball_url": self.image_file,
             "image_tarball_hash": self.image_tarball_hash,
             "additional_files_tarball_url": self.additional_file,

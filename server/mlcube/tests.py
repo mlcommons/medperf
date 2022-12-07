@@ -42,7 +42,9 @@ class MlCubeTest(MedPerfTest):
         testmlcube = {
             "name": "testmlcube",
             "git_mlcube_url": "string",
+            "mlcube_hash": "string",
             "git_parameters_url": "string",
+            "parameters_hash": "string",
             "image_tarball_url": "string",
             "image_tarball_hash": "string",
             "additional_files_tarball_url": "string",
@@ -62,7 +64,7 @@ class MlCubeTest(MedPerfTest):
 
         response = self.client.get("/mlcubes/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data["results"]), 1)
 
         newmlcube = {
             "name": "newtestmlcube",

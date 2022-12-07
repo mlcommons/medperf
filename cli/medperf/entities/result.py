@@ -11,6 +11,7 @@ from medperf.utils import (
 )
 from medperf.entities.interface import Entity
 import medperf.config as config
+from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
 class Result(Entity):
@@ -58,8 +59,7 @@ class Result(Entity):
 
     @classmethod
     def all(cls) -> List["Result"]:
-        """Gets and creates instances of all the user's results
-        """
+        """Gets and creates instances of all the user's results"""
         logging.info("Retrieving all results")
         results_ids_tuple = results_ids()
         results = []
@@ -83,15 +83,25 @@ class Result(Entity):
         """
         logging.debug(f"Retrieving result {result_uid}")
         comms = config.comms
-        local_result = list(
-            filter(lambda res: str(res.uid) == str(result_uid), cls.all())
-        )
-        if len(local_result) == 1:
-            logging.debug("Found result locally")
-            return local_result[0]
+        # Try to download first
+        try:
+            meta = comms.get_result(result_uid)
+            result = cls(meta)
+        except CommunicationRetrievalError:
+            # Get local results
+            logging.warning(f"Getting result {result_uid} from comms failed")
+            logging.info(f"Looking for result {result_uid} locally")
+            local_result = list(
+                filter(lambda res: str(res.uid) == str(result_uid), cls.all())
+            )
+            if len(local_result) == 1:
+                logging.debug("Found result locally")
+                result = local_result[0]
+            else:
+                raise InvalidArgumentError(
+                    f"The requested result {result_uid} could not be retrieved"
+                )
 
-        meta = comms.get_result(result_uid)
-        result = cls(meta)
         result.write()
         return result
 

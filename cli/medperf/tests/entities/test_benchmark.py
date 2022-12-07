@@ -7,6 +7,7 @@ from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 from medperf.entities.benchmark import Benchmark
 from medperf.tests.mocks.requests import benchmark_body, benchmark_dict
+from medperf.exceptions import CommunicationRetrievalError
 
 
 PATCH_BENCHMARK = "medperf.entities.benchmark.{}"
@@ -85,6 +86,7 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
     benchmarks_uids = [str(uid) for uid in benchmarks_uids]
     mocker.patch("os.listdir", return_value=benchmarks_uids)
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
+    mocker.patch.object(comms, "get_benchmark", side_effect=CommunicationRetrievalError)
     spy = mocker.patch(
         PATCH_BENCHMARK.format("Benchmark._Benchmark__get_local_dict"),
         return_value=benchmark_dict(),
@@ -99,9 +101,7 @@ def test_get_benchmark_retrieves_local_benchmarks(mocker, comms, benchmarks_uids
 
 
 @pytest.mark.parametrize("benchmarks_uids", [[449, 66, 337]])
-def test_get_benchmark_force_update_reads_remote_benchmark(
-    mocker, comms, benchmarks_uids
-):
+def test_get_benchmark_reads_remote_benchmark(mocker, comms, benchmarks_uids):
     # Arrange
     benchmarks_uids = [str(uid) for uid in benchmarks_uids]
     mocker.patch("os.listdir", return_value=benchmarks_uids)
@@ -112,7 +112,7 @@ def test_get_benchmark_force_update_reads_remote_benchmark(
     uid = benchmarks_uids[0]
 
     # Act
-    Benchmark.get(uid, force_update=True)
+    Benchmark.get(uid)
 
     # Assert
     spy.assert_not_called()
@@ -126,6 +126,7 @@ def test_get_local_dict_reads_expected_file(mocker, comms, uid):
     mocker.patch("yaml.safe_load", return_value=benchmark_dict())
     spy = mocker.patch("builtins.open", mock_open())
     mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
+    mocker.patch.object(comms, "get_benchmark", side_effect=CommunicationRetrievalError)
     exp_file = os.path.join(
         storage_path(config.benchmarks_storage), uid, config.benchmarks_filename
     )

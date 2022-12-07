@@ -1,3 +1,4 @@
+from medperf.exceptions import CleanExit, InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
@@ -41,17 +42,10 @@ def result(mocker):
 def test_fails_if_dataset_incompatible_with_benchmark(
     mocker, comms, ui, dataset, benchmark
 ):
-    # Arrange
-    spy = mocker.patch(
-        PATCH_ASSOC.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
         AssociateDataset.run(1, 1)
-
-    # Assert
-    spy.assert_called_once()
 
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
@@ -59,16 +53,10 @@ def test_fails_if_dataset_incompatible_with_benchmark(
 def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmark):
     # Arrange
     dataset.uid = None
-    spy = mocker.patch(
-        PATCH_ASSOC.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
         AssociateDataset.run(1, 1)
-
-    # Assert
-    spy.assert_called_once()
 
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
@@ -118,18 +106,41 @@ def test_associates_if_approved(
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
     # Arrange
-    mocker.patch(
-        PATCH_ASSOC.format("pretty_error"), side_effect=lambda *args, **kwargs: exit(),
-    )
     comp_ret = ("", "", "", result)
     mocker.patch(
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
     )
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
+    assoc_spy = mocker.patch.object(comms, "associate_dset")
 
     # Act
-    with pytest.raises(SystemExit):
+    with pytest.raises(CleanExit):
         AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()
+    assoc_spy.assert_not_called()
+
+
+@pytest.mark.parametrize("dataset", [1], indirect=True)
+@pytest.mark.parametrize("benchmark", [1], indirect=True)
+def test_associate_calls_comp_test_without_force_by_default(
+    mocker, comms, ui, dataset, result, benchmark
+):
+    # Arrange
+    data_uid = "1562"
+    benchmark_uid = 3557
+    assoc_func = "associate_dset"
+    mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
+    comp_ret = ("", "", "", result)
+    spy = mocker.patch(
+        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
+    )
+    mocker.patch.object(comms, assoc_func)
+    dataset.uid = data_uid
+
+    # Act
+    AssociateDataset.run(data_uid, benchmark_uid)
+
+    # Assert
+    spy.assert_called_once_with(benchmark_uid, data_uid=data_uid, force_test=False)
