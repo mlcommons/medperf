@@ -1,9 +1,9 @@
+import os
 import stat
 import pytest
 from unittest.mock import mock_open
 
 import medperf.config as config
-from medperf.utils import storage_path
 from medperf.commands.auth import Login
 
 
@@ -28,18 +28,26 @@ def test_runs_comms_login(mocker, comms, ui):
     spy.assert_called_once()
 
 
-def test_removes_previous_credentials(mocker, comms, ui):
+@pytest.mark.parametrize("profile", ["default", "test", "user"])
+def test_assigns_credentials_to_profile(mocker, profile, comms, ui):
     # Arrange
-    creds_path = storage_path(config.credentials_path)
-    spy = mocker.patch("os.remove")
-    mocker.patch("builtins.open", mock_open())
+    profile_backup = config.profile
+    config.profile = profile
+    creds_path = os.path.join(config.storage, config.credentials_path)
     mocker.patch("os.path.exists", return_value=True)
+    spy_read = mocker.patch("configparser.ConfigParser.read")
+    spy_set = mocker.patch("configparser.ConfigParser.__setitem__")
+    mocker.patch("builtins.open", mock_open())
 
     # Act
     Login.run("usr", "pwd")
 
     # Assert
-    spy.assert_called_once_with(creds_path)
+    spy_read.assert_called_once_with(creds_path)
+    spy_set.assert_called_once_with(profile, {"token": comms.token})
+
+    # Clean
+    config.profile = profile_backup
 
 
 @pytest.mark.parametrize(
@@ -47,24 +55,25 @@ def test_removes_previous_credentials(mocker, comms, ui):
 )
 def test_writes_new_credentials(mocker, comms, ui):
     # Arrange
-    m = mock_open()
-    creds_path = storage_path(config.credentials_path)
-    spy = mocker.patch("builtins.open", m)
+    creds_path = os.path.join(config.storage, config.credentials_path)
+    spy = mocker.patch("builtins.open", mock_open())
+    spy_write = mocker.patch("configparser.ConfigParser.write")
+    mocker.patch("os.path.exists", return_value=False)
 
     # Act
     Login.run("usr", "pwd")
 
     # Assert
     spy.assert_called_once_with(creds_path, "w")
-    handle = m()
-    handle.write.assert_called_once_with(comms.token)
+    spy_write.assert_called_once()
 
 
 def test_sets_credentials_permissions_to_read(mocker, comms, ui):
     # Arrange
-    creds_path = storage_path(config.credentials_path)
+    creds_path = os.path.join(config.storage, config.credentials_path)
     spy = mocker.patch("os.chmod")
     mocker.patch("builtins.open", mock_open())
+    mocker.patch("os.path.exists", return_value=False)
 
     # Act
     Login.run("usr", "pwd")

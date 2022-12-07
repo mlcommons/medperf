@@ -1,6 +1,6 @@
-from medperf.utils import pretty_error
 from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.exceptions import InvalidArgumentError
 
 
 class AssociateBenchmark:
@@ -26,7 +26,7 @@ class AssociateBenchmark:
         too_many_resources = data_uid and model_uid
         no_resource = data_uid is None and model_uid is None
         if no_resource or too_many_resources:
-            pretty_error("Invalid arguments. Must provide either a dataset or mlcube")
+            raise InvalidArgumentError("Must provide either a dataset or mlcube")
         if model_uid is not None:
             AssociateCube.run(
                 model_uid, benchmark_uid, approved=approved, force_test=force_test
