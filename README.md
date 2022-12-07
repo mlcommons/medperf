@@ -97,7 +97,7 @@ Here we used data and processes from Pilot #1 and #2.
 
 **Code**
 
-[github.com/mlcommons/medperf/tree/main/examples/Chest XRay](https://github.com/mlcommons/medperf/tree/main/examples/Chest%20XRay)
+[github.com/mlcommons/medperf/tree/main/examples/ChestXRay](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay)
 
 **Architecture**
 
