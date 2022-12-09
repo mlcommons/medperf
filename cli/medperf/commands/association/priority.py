@@ -1,5 +1,5 @@
 from medperf import config
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError
 
 
 class AssociationPriority:
@@ -46,25 +46,23 @@ class AssociationPriority:
             )
 
         cube_priority = associated_cubes.index(self.mlcube_uid) + 1
-        abort_command = any(
+        redundant_command = any(
             [
                 cube_priority == len(self.assocs) and self.priority >= cube_priority,
                 cube_priority == len(self.assocs) and self.priority == -1,
                 cube_priority == self.priority,
             ]
         )
-        if abort_command:
+        if redundant_command:
             # TODO: raise SafeExit
-            config.ui.print("The given mlcube already has the specified priority")
+            raise CleanExit("The given mlcube already has the specified priority")
 
     def convert_priority_to_float(self):
-        """Converts an integer-valued priority into a float value.
+        """Converts an integer-valued priority into a float value. Keeps track of the minimalfloat precision
+        reached
         Priority values in the server are stored as float values (not integer ranks) for more efficient
         priority updates in terms of database operations. More information can be found here:
         https://questhenkart.medium.com/a-scalable-solution-to-ordering-data-by-priority-or-rank-19977d31817c
-
-        Returns:
-            float: the float value that corresponds to the given priority.
         """
 
         priorities = [assoc["priority"] for assoc in self.assocs]
@@ -81,7 +79,7 @@ class AssociationPriority:
 
     def update(self):
         # 1e-10 number is chosen arbitrarily
-        rescale = self.min_difference and self.min_difference < 1e-10
+        rescale = self.min_difference is not None and self.min_difference < 1e-10
         config.comms.set_mlcube_association_priority(
             self.benchmark_uid, self.mlcube_uid, self.float_priority, rescale=rescale,
         )
