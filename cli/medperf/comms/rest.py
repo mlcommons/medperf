@@ -4,7 +4,7 @@ import logging
 import os
 import configparser
 
-from medperf.enums import Role, Status
+from medperf.enums import Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
@@ -197,36 +197,6 @@ class REST(Comms):
         data = {"approval_status": status}
         res = self.__auth_put(url, json=data,)
         return res
-
-    def benchmark_association(self, benchmark_uid: int) -> Role:
-        """Retrieves the benchmark association
-
-        Args:
-            benchmark_uid (int): UID of the benchmark
-
-        Returns:
-            Role: the association type between current user and benchmark
-        """
-        benchmarks = self.__get_list(f"{self.server_url}/me/benchmarks")
-        bm_dict = {bm["benchmark"]: bm for bm in benchmarks}
-        rolename = None
-        if benchmark_uid in bm_dict:
-            rolename = bm_dict[benchmark_uid]["role"]
-        return Role(rolename)
-
-    def authorized_by_role(self, benchmark_uid: int, role: str) -> bool:
-        """Indicates wether the current user is authorized to access
-        a benchmark based on desired role
-
-        Args:
-            benchmark_uid (int): UID of the benchmark
-            role (str): Desired role to check for authorization
-
-        Returns:
-            bool: Wether the user has the specified role for that benchmark
-        """
-        assoc_role = self.benchmark_association(benchmark_uid)
-        return assoc_role.name == role
 
     def get_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks in the platform.
