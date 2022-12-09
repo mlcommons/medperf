@@ -9,7 +9,7 @@ from .models import BenchmarkModel
 class BenchmarkModelListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BenchmarkModel
-        read_only_fields = ["initiated_by", "approved_at"]
+        read_only_fields = ["initiated_by", "approved_at", "priority"]
         fields = "__all__"
 
     def validate(self, data):
@@ -72,6 +72,13 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
             ):
                 validated_data["approval_status"] = "APPROVED"
                 validated_data["approved_at"] = timezone.now()
+        last_priority_benchmarkmodel = (
+            validated_data["benchmark"].benchmarkmodel_set.all().last()
+        )
+        if last_priority_benchmarkmodel:
+            validated_data["priority"] = last_priority_benchmarkmodel.priority + 1.0
+        else:
+            validated_data["priority"] = 1.0
         return BenchmarkModel.objects.create(**validated_data)
 
 
