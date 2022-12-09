@@ -36,9 +36,6 @@ class AssociationPriority:
             )
 
         self.assocs = config.comms.get_benchmark_model_associations(self.benchmark_uid)
-        if len(self.assocs) == 0:
-            raise InvalidArgumentError("The given benchmark has no cube associations")
-
         associated_cubes = [str(assoc["model_mlcube"]) for assoc in self.assocs]
         if self.mlcube_uid not in associated_cubes:
             raise InvalidArgumentError(
