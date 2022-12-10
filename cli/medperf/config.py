@@ -53,3 +53,4 @@ sanity_check_timeout = None
 statistics_timeout = None
 infer_timeout = None
 evaluate_timeout = None
+priority_min_precision = 1e-10  # This number was chosen arbitrarily

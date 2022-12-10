@@ -75,8 +75,10 @@ class AssociationPriority:
             self.min_difference = (priority2 - priority1) / 2
 
     def update(self):
-        # 1e-10 number is chosen arbitrarily
-        rescale = self.min_difference is not None and self.min_difference < 1e-10
+        rescale = (
+            self.min_difference is not None
+            and self.min_difference < config.priority_min_precision
+        )
         config.comms.set_mlcube_association_priority(
             self.benchmark_uid, self.mlcube_uid, self.float_priority, rescale=rescale,
         )
