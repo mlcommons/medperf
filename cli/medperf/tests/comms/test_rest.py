@@ -29,7 +29,7 @@ def server(mocker, ui):
             200,
             [1],
             [],
-            (f"{url}/benchmarks/1/benchmarkmodels",),
+            (f"{url}/benchmarks/1/benchmarkmodels/",),
             {},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
