@@ -29,6 +29,11 @@ def test_run_executes_expected_flow(mocker, comms, ui):
 def test_validate_validates_as_expected(mocker, comms, ui, priority_and_fails):
     # Arrange
     priority, fails = priority_and_fails
+    mocker.patch.object(
+        comms,
+        "get_benchmark_model_associations",
+        return_value=[{"model_mlcube": 1}, {"model_mlcube": 2}],
+    )
     setter = AssociationPriority(1, 1, priority)
 
     # Act & Assert
@@ -42,25 +47,42 @@ def test_validate_validates_as_expected(mocker, comms, ui, priority_and_fails):
 @pytest.mark.parametrize(
     "testcases",
     [
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
-        ([1.0, 3.0, 5.11, 7.230, 10.382], 1, 0.0),
+        [[-3.0, 0.0, 1.0, 3.0, 5.11, 7.230, 10.382], 1, -4.0],
+        [[-3.0, 0.0, 1.0, 3.0, 5.11, 7.230, 10.382], 4, 2.0],
+        [[1.0, 3.0, 5.11, 7.230, 10.382], -1, 11.382],
+        [[1.0, 3.0, 5.11, 7.230, 10.382], 10, 11.382],
     ],
 )
-def test_priority_is_correctly_converted_to_float(
-    mocker, comms, ui, mlcube_uid, status
-):
+def test_priority_is_correctly_converted_to_float(mocker, comms, ui, testcases):
     # Arrange
-    spy = mocker.patch.object(comms, "set_mlcube_association_approval")
+    priorities, priority, exp_float = testcases
+    setter = AssociationPriority(1, 1, priority)
+    setter.assocs = [{"priority": prio} for prio in priorities]
 
     # Act
-    Approval.run("1", status, mlcube_uid=mlcube_uid)
+    setter.convert_priority_to_float()
 
     # Assert
-    spy.assert_called_once_with("1", mlcube_uid, status.value)
+    assert setter.float_priority == pytest.approx(exp_float)
+
+
+@pytest.mark.parametrize(
+    "testcases",
+    [
+        [[-3.0, 0.0, 1.0, 3.0, 5.11, 7.230, 10.382], 1, False],
+        [[7e-10, 8e-10, 9e-10], 2, True],
+    ],
+)
+def test_update_rescales_if_necessary(mocker, comms, ui, testcases):
+    # Arrange
+    priorities, priority, rescales = testcases
+    setter = AssociationPriority(1, 1, priority)
+    spy = mocker.patch.object(comms, "set_mlcube_association_priority",)
+    setter.assocs = [{"priority": prio} for prio in priorities]
+    setter.convert_priority_to_float()
+
+    # Act
+    setter.update()
+
+    # Assert
+    spy.assert_called_once_with(1, 1, setter.float_priority, rescale=rescales)

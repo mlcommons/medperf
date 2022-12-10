@@ -36,7 +36,7 @@ class AssociationPriority:
             )
 
         self.assocs = config.comms.get_benchmark_model_associations(self.benchmark_uid)
-        associated_cubes = [str(assoc["model_mlcube"]) for assoc in self.assocs]
+        associated_cubes = [assoc["model_mlcube"] for assoc in self.assocs]
         if self.mlcube_uid not in associated_cubes:
             raise InvalidArgumentError(
                 "The given mlcube is not associated with the benchmark"
@@ -51,7 +51,6 @@ class AssociationPriority:
             ]
         )
         if redundant_command:
-            # TODO: raise SafeExit
             raise CleanExit("The given mlcube already has the specified priority")
 
     def convert_priority_to_float(self):
