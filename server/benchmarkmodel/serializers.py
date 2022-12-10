@@ -97,6 +97,7 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             "priority",
             "rescale",
         ]
+        extra_kwargs = {"priority": {"required": False}}
 
     def validate(self, data):
         if not self.instance:
