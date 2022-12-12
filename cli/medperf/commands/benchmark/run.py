@@ -1,7 +1,8 @@
 import medperf.config as config
 from medperf.commands.result.create import BenchmarkExecution
-from medperf.entities.benchmark import Benchmark
 from medperf.entities.result import Result
+from medperf.exceptions import ExecutionError, InvalidEntityError
+from medperf.utils import results_path
 from tabulate import tabulate
 
 
@@ -10,31 +11,42 @@ class BenchmarkRunAll:
     def run(
         cls, benchmark_uid: str, data_uid: str, ignore_errors=False,
     ):
-        """Submits a new cube to the medperf platform
+        """Runs all outstanding models of a benchmark
         Args:
             benchmark_uid:
-            data_uid: generated uid
+            data_uid: data uid
         """
         execution = cls(benchmark_uid, data_uid, ignore_errors)
-        execution.get_models()
-        execution.filter_models()
+        execution.prepare()
+        execution.validate()
+        execution.prepare_cubes()
         execution.run_models()
         execution.print_summary()
 
     def __init__(self, benchmark_uid: str, data_uid: str, ignore_errors=False):
-        self.comms = config.comms
-        self.ui = config.ui
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
-        self.ignore_errors = ignore_errors
+        self.model_execution = BenchmarkExecution(
+            benchmark_uid, data_uid, None, ignore_errors=ignore_errors,
+        )
+        self.outstanding_models = []
         self.summary = {}
 
-    def get_models(self):
-        self.models = Benchmark.get_models_uids(self.benchmark_uid)
-        self.summary["num_models"] = len(self.models)
+    def prepare(self):
+        self.model_execution.prepare()
+        self.model_execution.model_uid = self.model_execution.benchmark.models[0]
 
-    def filter_models(self):
-        # TODO: this should contain all (server+local)
+    def validate(self):
+        self.model_execution.validate()
+
+    def prepare_cubes(self):
+        self.model_execution.evaluator = self.model_execution.__get_cube(
+            self.model_execution.benchmark.evaluator, "Evaluator"
+        )
+        self.__filter_models()
+
+    def __filter_models(self):
+        benchmark_models = self.model_execution.benchmark.models
         results = Result.all()
         results = [
             result
@@ -43,70 +55,63 @@ class BenchmarkRunAll:
             and result.dataset_uid == self.data_uid
         ]
         done_models = [result.model_uid for result in results]
-        self.models = [model for model in self.models if model not in done_models]
+        self.outstanding_models = [
+            model for model in benchmark_models if model not in done_models
+        ]
         self.summary["skipped_models"] = len(done_models)
 
     def run_models(self):
         self.summary["executions"] = []
-        if len(self.models) == 0:
-            return
-        execution = BenchmarkExecution(
-            self.benchmark_uid,
-            self.data_uid,
-            self.models[0],
-            ignore_errors=self.ignore_errors,
-        )
-        execution.prepare()
-        try:
-            execution.validate()
-        except SystemExit:
-            # We are sure that if this happens then it is
-            # because of an invalid data uid
-            return
-        execution.evaluator = execution.__get_cube(
-            execution.benchmark.evaluator, "Evaluator"
-        )
-        for model in self.models:
+        for model in self.outstanding_models:
             exec_summary = {
                 "model": model,
                 "success": False,
                 "partial": "",
                 "error": "",
             }
+            # reset
+            self.model_execution.model_uid = model
+            self.model_execution.out_path = results_path(
+                self.benchmark_uid, model, self.model_execution.dataset.uid
+            )
+            self.model_execution.metadata["partial"] = False
 
             try:
-                execution.model_uid = model
-                execution.model_cube = execution.__get_cube(model, "Model")
-                execution.run_cubes()
-            except Exception as e:
-                self.ui.print_error(
-                    f"Cannot execute the benchmark with the model {model}: {e}"
+                self.model_execution.model_cube = self.model_execution.__get_cube(
+                    model, "Model"
+                )
+            except InvalidEntityError as e:
+                config.ui.print_error(
+                    f"There was an error when retrieving the model mlcube {model}: {e}"
+                )
+                exec_summary["error"] = str(e)
+                self.summary["executions"].append(exec_summary)
+                continue
+            try:
+                self.model_execution.run_cubes()
+            except ExecutionError as e:
+                config.ui.print_error(
+                    f"There was an error when executing the benchmark with the model {model}: {e}"
                 )
                 exec_summary["error"] = str(e)
                 self.summary["executions"].append(exec_summary)
                 continue
 
-            except SystemExit:  # TODO: to think what to do!
-                self.ui.print_error(f"Benchmark execution failed for model {model}")
-                exec_summary["error"] = "MLCube failure"
-                self.summary["executions"].append(exec_summary)
-                continue
-
-            # If an error is raised during the two commands below, it is not model-specific
-            execution.write()
-            execution.remove_temp_results()
+            self.model_execution.write()
+            self.model_execution.remove_temp_results()
 
             exec_summary["success"] = True
-            exec_summary["partial"] = execution.metadata["partial"]
+            exec_summary["partial"] = self.model_execution.metadata["partial"]
             self.summary["executions"].append(exec_summary)
 
     def print_summary(self):
         executions = self.summary["executions"]
 
-        num_total = self.summary["num_models"]
-        num_skipped = self.summary["skipped_models"]
         num_success = sum([exec_summary["success"] for exec_summary in executions])
-        num_failed = num_total - num_skipped - num_success
+        num_failed = len(executions) - num_success
+        num_skipped = self.summary["skipped_models"]
+        num_total = num_success + num_failed + num_skipped
+
         num_partial = sum(
             [exec_summary["partial"] is True for exec_summary in executions]
         )
@@ -120,5 +125,5 @@ class BenchmarkRunAll:
         msg += f"\t{num_failed} failed\n"
         msg += f"\t{num_success} ran successfully, with {num_partial} partial results\n"
 
-        self.ui.print(tab)
-        self.ui.print(msg)
+        config.ui.print(tab)
+        config.ui.print(msg)
