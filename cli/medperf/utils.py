@@ -147,6 +147,19 @@ def set_unique_tmp_config():
     config.cube_submission_id += pid
 
 
+def cleanup_path(path):
+    if os.path.exists(path):
+        logging.info(f"Removing clutter path: {path}")
+        try:
+            if os.path.islink(path):
+                os.unlink(path)
+            else:
+                rmtree(path)
+        except OSError as e:
+            logging.error(f"Cleanup failed: Could not remove {path}")
+            raise MedperfException(str(e))
+
+
 def cleanup(extra_paths: List[str] = []):
     """Removes clutter and unused files from the medperf folder structure.
     """
@@ -156,13 +169,7 @@ def cleanup(extra_paths: List[str] = []):
     tmp_path = storage_path(config.tmp_storage)
     extra_paths.append(tmp_path)
     for path in extra_paths:
-        if os.path.exists(path):
-            logging.info(f"Removing clutter path: {path}")
-            try:
-                rmtree(path)
-            except OSError as e:
-                logging.error("Could not remove clutter path")
-                raise MedperfException(str(e))
+        cleanup_path(path)
 
     cleanup_dsets()
     cleanup_cubes()
@@ -183,14 +190,8 @@ def cleanup_dsets():
     ]
 
     for dset in clutter_dsets:
-        logging.info(f"Removing clutter dataset: {dset}")
         dset_path = os.path.join(dsets_path, dset)
-        if os.path.exists(dset_path):
-            try:
-                rmtree(dset_path)
-            except OSError as e:
-                logging.error(f"Could not remove dataset {dset}")
-                raise MedperfException(str(e))
+        cleanup_path(dset_path)
 
 
 def cleanup_cubes():
@@ -205,17 +206,8 @@ def cleanup_cubes():
     ]
 
     for cube in clutter_cubes:
-        logging.info(f"Removing clutter cube: {cube}")
         cube_path = os.path.join(cubes_path, cube)
-        if os.path.exists(cube_path):
-            try:
-                if os.path.islink(cube_path):
-                    os.unlink(cube_path)
-                else:
-                    rmtree(cube_path)
-            except OSError as e:
-                logging.error(f"Could not remove cube {cube}")
-                raise MedperfException(str(e))
+        cleanup_path(cube_path)
 
 
 def cleanup_benchmarks():
@@ -226,14 +218,8 @@ def cleanup_benchmarks():
     clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
 
     for bmk in clutter_bmks:
-        logging.info(f"Removing clutter benchmark: {bmk}")
         bmk_path = os.path.join(bmks_path, bmk)
-        if os.path.exists(bmk_path):
-            try:
-                rmtree(bmk_path)
-            except OSError as e:
-                logging.error(f"Could not remove benchmark {bmk}")
-                raise MedperfException(str(e))
+        cleanup_path(bmk_path)
 
 
 def get_uids(path: str) -> List[str]:

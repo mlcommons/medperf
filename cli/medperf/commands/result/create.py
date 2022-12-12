@@ -11,7 +11,7 @@ from medperf.utils import (
     init_storage,
     results_path,
     storage_path,
-    cleanup,
+    cleanup_path,
 )
 import medperf.config as config
 from medperf.exceptions import InvalidArgumentError, ExecutionError
@@ -131,7 +131,7 @@ class BenchmarkExecution:
         except ExecutionError as e:
             if not self.ignore_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
-                cleanup([preds_path])
+                cleanup_path(preds_path)
                 raise ExecutionError("Model MLCube failed")
             else:
                 self.metadata["partial"] = True
@@ -152,7 +152,8 @@ class BenchmarkExecution:
         except ExecutionError as e:
             if not self.ignore_errors:
                 logging.error(f"Metrics MLCube Execution failed: {e}")
-                cleanup([preds_path, out_path])
+                cleanup_path(preds_path)
+                cleanup_path(out_path)
                 raise ExecutionError("Metrics MLCube failed")
             else:
                 self.metadata["partial"] = True
