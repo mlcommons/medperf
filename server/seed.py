@@ -254,7 +254,7 @@ def seed(args):
         {
             "name": "xrv",
             "description": "benchmark-sample",
-            "docs_url": "string",
+            "docs_url": "",
             "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_demo_data.tar.gz",
             "demo_dataset_tarball_hash": "137950e4e7b8de3baa4a9982c3ebea6a52bd33d3",
             "demo_dataset_generated_uid": "f35c2d89caf140edb78e187a54d048c0590cb3ea",
