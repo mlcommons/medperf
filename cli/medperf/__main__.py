@@ -1,11 +1,12 @@
+import os
 import typer
 import logging
 import logging.handlers
-from os.path import abspath, expanduser
+from os.path import expanduser, abspath
 
 import medperf.config as config
 from medperf.ui.factory import UIFactory
-from medperf.decorators import clean_except
+from medperf.decorators import clean_except, configurable
 from medperf.comms.factory import CommsFactory
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
@@ -14,7 +15,16 @@ import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 from medperf.commands.auth import Login, PasswordChange
 import medperf.commands.benchmark.benchmark as benchmark
-from medperf.utils import init_storage, storage_path, cleanup, set_unique_tmp_config
+import medperf.commands.profile as profile
+from medperf.utils import (
+    set_custom_config,
+    load_config,
+    set_unique_tmp_config,
+    init_storage,
+    init_config,
+    storage_path,
+    cleanup,
+)
 import medperf.commands.association.association as association
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
@@ -27,6 +37,7 @@ app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(association.app, name="association", help="Manage associations")
+app.add_typer(profile.app, name="profile", help="Manage profiles")
 
 
 @app.command("login")
@@ -134,54 +145,33 @@ def test(
 
 
 @app.callback()
+@configurable()
 def main(
-    log: str = "INFO",
-    log_file: str = None,
-    comms: str = config.default_comms,
-    ui: str = config.default_ui,
-    host: str = config.server,
-    storage: str = config.storage,
-    prepare_timeout: int = config.prepare_timeout,
-    sanity_check_timeout: int = config.sanity_check_timeout,
-    statistics_timeout: int = config.statistics_timeout,
-    infer_timeout: int = config.infer_timeout,
-    evaluate_timeout: int = config.evaluate_timeout,
-    platform: str = config.platform,
-    cleanup: bool = True,
-    certificate: str = config.certificate,
-    local: bool = typer.Option(
-        False, help="Run the CLI with local server configuration"
-    ),
+    ctx: typer.Context,
+    profile: str = typer.Option(config.profile, help="Configuration profile to use"),
 ):
-    # Set configuration variables
-    config.storage = abspath(expanduser(storage))
-    config.prepare_timeout = prepare_timeout
-    config.sanity_check_timeout = sanity_check_timeout
-    config.statistics_timeout = statistics_timeout
-    config.infer_timeout = infer_timeout
-    config.evaluate_timeout = evaluate_timeout
-    config.platform = platform
-    config.cleanup = cleanup
+    # Create medperf root path
+    os.makedirs(config.storage, exist_ok=True)
+    init_config()
+
+    # Set profile parameters
+    profile_args = load_config(profile)
+    set_custom_config(profile_args)
+
+    # Set inline parameters
+    inline_args = ctx.config_dict
+    set_custom_config(inline_args)
+
+    if config.certificate is not None:
+        config.certificate = abspath(expanduser(config.certificate))
 
     set_unique_tmp_config()
 
-    if log_file is None:
-        log_file = storage_path(config.log_file)
-    else:
-        log_file = abspath(expanduser(log_file))
-    if local:
-        config.server = config.local_server
-        config.certificate = abspath(expanduser(config.local_certificate))
-    else:
-        config.server = host
-        if certificate is not None:
-            config.certificate = abspath(expanduser(certificate))
-    config.log_file = log_file
-
     init_storage()
-    log = log.upper()
+    log = config.loglevel.upper()
     log_lvl = getattr(logging, log)
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    log_file = storage_path(config.log_file)
     handler = logging.handlers.RotatingFileHandler(
         log_file, maxBytes=10000000, backupCount=5
     )
@@ -195,8 +185,8 @@ def main(
     )
     logging.info(f"Running MedPerf v{config.version} on {log} logging level")
 
-    config.ui = UIFactory.create_ui(ui)
-    config.comms = CommsFactory.create_comms(comms, config.server)
+    config.ui = UIFactory.create_ui(config.ui)
+    config.comms = CommsFactory.create_comms(config.comms, config.server)
 
     config.ui.print(f"MedPerf {config.version}")
 
