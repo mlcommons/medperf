@@ -122,7 +122,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
