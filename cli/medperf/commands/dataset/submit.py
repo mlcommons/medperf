@@ -1,7 +1,8 @@
-from medperf.utils import approval_prompt, pretty_error
+from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
+from medperf.exceptions import InvalidArgumentError, CleanExit
 
 
 class DatasetRegistration:
@@ -18,9 +19,7 @@ class DatasetRegistration:
 
         if dset.uid:
             # TODO: should get_dataset and update locally. solves existing issue?
-            pretty_error(
-                "This dataset has already been registered.", add_instructions=False
-            )
+            raise InvalidArgumentError("This dataset has already been registered")
         remote_dsets = comms.get_user_datasets()
         remote_dset = [
             remote_dset
@@ -33,6 +32,7 @@ class DatasetRegistration:
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
             return
 
+        dict_pretty_print(dset.todict())
         msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
         approved = approved or approval_prompt(msg)
         dset.status = Status("APPROVED") if approved else Status("REJECTED")
@@ -42,4 +42,4 @@ class DatasetRegistration:
             updated_dset = Dataset(updated_dset_dict)
             updated_dset.write()
         else:
-            pretty_error("Registration request cancelled.", add_instructions=False)
+            raise CleanExit("Registration request cancelled.")

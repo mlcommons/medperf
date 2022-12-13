@@ -9,6 +9,7 @@ from medperf import utils
 from medperf.ui.interface import UI
 import medperf.config as config
 from medperf.entities.dataset import Dataset
+from medperf.exceptions import InvalidArgumentError, MedperfException
 
 
 REGISTRATION_MOCK = {
@@ -85,16 +86,10 @@ def test_all_fails_if_cant_iterate_data_storage(mocker, ui):
     # Arrange
     walk_out = iter([])
     mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-    spy = mocker.patch(
-        PATCH_DATASET.format("pretty_error"), side_effect=lambda *args, **kwargs: exit()
-    )
 
-    # Act
-    with pytest.raises(SystemExit):
+    # Act & Assert
+    with pytest.raises(MedperfException):
         Dataset.all()
-
-    # Assert
-    spy.assert_called_once()
 
 
 @pytest.mark.parametrize("all_uids", [[], ["1", "2", "3"]], indirect=True)
@@ -124,14 +119,11 @@ def test_dataset_metadata_is_backwards_compatible(mocker, ui):
 )
 def test_full_uid_fails_when_single_match_not_found(mocker, ui, all_uids):
     # Arrange
-    spy = mocker.patch(PATCH_DATASET.format("pretty_error"))
-
-    # Act
     uid = "1"
-    Dataset.from_generated_uid(uid)
 
-    # Arrange
-    spy.assert_called_once()
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        Dataset.from_generated_uid(uid)
 
 
 @pytest.mark.parametrize("all_uids", [["12", "3"], ["3", "5", "12"]], indirect=True)

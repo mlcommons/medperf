@@ -5,7 +5,7 @@ server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = "~/.medperf.crt"
+local_certificate = "~/.medperf_test.crt"
 
 storage = abspath(expanduser("~/.medperf"))
 tmp_prefix = "tmp_"
@@ -22,6 +22,7 @@ results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 credentials_path = "credentials"
+config_path = "config"
 workspace_path = "workspace"
 cleanup = True
 
@@ -32,6 +33,7 @@ tarball_filename = "tmp.tar.gz"
 image_path = "workspace/.image"
 reg_file = "registration-info.yaml"
 log_file = "logs/medperf.log"
+loglevel = "info"
 test_cube_prefix = "test_"
 cube_submission_id = "tmp_submission"
 test_dset_prefix = "test_"
@@ -40,12 +42,11 @@ cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
 cube_get_max_attempts = 3
 
-default_comms = "REST"
-default_ui = "CLI"
+profile = "active"
 platform = "docker"
-git_file_domain = "https://raw.githubusercontent.com"
-comms = None
-ui = None
+default_page_size = 32  # This number was chosen arbitrarily
+comms = "REST"
+ui = "CLI"
 
 prepare_timeout = None
 sanity_check_timeout = None

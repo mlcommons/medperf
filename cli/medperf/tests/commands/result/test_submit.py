@@ -1,3 +1,4 @@
+from medperf.exceptions import CleanExit
 import pytest
 
 from medperf.entities.result import Result
@@ -26,21 +27,23 @@ def dataset(mocker):
 
 @pytest.fixture
 def submission(mocker, comms, ui, result, dataset):
-    sub = ResultSubmission(1, 1, 1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
     mocker.patch(
         PATCH_SUBMISSION.format("Result.from_entities_uids"), return_value=result
     )
-    mocker.patch(PATCH_SUBMISSION.format("Dataset"), return_value=dataset)
-    return sub
+    mocker.patch(
+        PATCH_SUBMISSION.format("Dataset.from_generated_uid"), return_value=dataset
+    )
+    mocker.patch(PATCH_SUBMISSION.format("dict_pretty_print"))
 
 
 def test_upload_results_requests_approval(mocker, submission, result):
     # Arrange
     spy = mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=True)
-
+    mocker.patch.object(result, "upload")
+    mocker.patch.object(result, "write")
     # Act
-    submission.upload_results()
+    ResultSubmission.run(1, 1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -50,68 +53,20 @@ def test_upload_results_requests_approval(mocker, submission, result):
 def test_upload_results_fails_if_not_approved(mocker, submission, result, approved):
     # Arrange
     mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=approved)
-    spy = mocker.patch(
-        PATCH_SUBMISSION.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
+    upload_spy = mocker.patch.object(result, "upload")
+    write_spy = mocker.patch.object(result, "write")
 
     # Act
-    try:
-        submission.upload_results()
-    except SystemExit:
-        pass
+    if approved:
+        ResultSubmission.run(1, 1, 1)
+    else:
+        with pytest.raises(CleanExit):
+            ResultSubmission.run(1, 1, 1)
 
     # Assert
     if approved:
-        spy.assert_not_called()
+        upload_spy.assert_called()
+        write_spy.assert_called()
     else:
-        spy.assert_called()
-
-
-@pytest.mark.parametrize("approved", [True, False])
-def test_upload_results_uploads_if_approved(mocker, submission, result, approved):
-    # Arrange
-    mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=approved)
-    spy = mocker.patch.object(result, "upload")
-    mocker.patch(
-        PATCH_SUBMISSION.format("pretty_error"),
-        side_effect=lambda *args, **kwargs: exit(),
-    )
-
-    # Act
-    try:
-        submission.upload_results()
-    except SystemExit:
-        pass
-
-    # Assert
-    if approved:
-        spy.assert_called()
-    else:
-        spy.assert_not_called()
-
-
-def test_run_executes_upload_procedure(mocker, comms, ui, submission):
-    # Arrange
-    bmark_uid = data_uid = model_uid = 1
-    up_spy = mocker.spy(ResultSubmission, "upload_results")
-    write_spy = mocker.spy(ResultSubmission, "write")
-    mocker.patch.object(ui, "prompt", return_value="y")
-
-    # Act
-    ResultSubmission.run(bmark_uid, data_uid, model_uid)
-
-    # Assert
-    up_spy.assert_called_once()
-    write_spy.assert_called_once()
-
-
-def test_write_writes_results_using_entity(mocker, submission, result):
-    # Arrange
-    spy = mocker.patch.object(result, "write")
-
-    # Act
-    submission.write({})
-
-    # Assert
-    spy.assert_called()
+        upload_spy.assert_not_called()
+        write_spy.assert_not_called()

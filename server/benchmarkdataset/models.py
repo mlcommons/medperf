@@ -11,6 +11,7 @@ class BenchmarkDataset(models.Model):
     dataset = models.ForeignKey("dataset.Dataset", on_delete=models.PROTECT)
     benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
     initiated_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    metadata = models.JSONField()
     approval_status = models.CharField(
         choices=DATASET_STATUS, max_length=100, default="PENDING"
     )

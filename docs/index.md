@@ -1,131 +1,49 @@
+# Introduction
+Medical Artificial Intelligence (AI) has the potential to revolutionize healthcare by advancing evidence-based medicine, personalizing patient care, and reducing costs. Unlocking this potential requires reliable methods for evaluating the efficacy of medical machine learning (ML) models on large-scale heterogeneous data while maintaining patient privacy. 
 
+## What is MedPerf?
+MedPerf is an open-source framework for benchmarking ML models to deliver clinical efficacy while prioritizing patient privacy and mitigating legal and regulatory risks. It enables federated evaluation in which models are securely distributed to different facilities for evaluation. The goal of federated evaluation is to make it simple and reliable to share models with many Data Providers, evaluate those models against their data in controlled settings, then aggregate and analyze the findings. 
 
-# Welcome to the MedPerf Documentation.
-MedPerf is an open-source platform for benchmarking AI models to deliver clinical efficacy.
+The MedPerf approach empowers healthcare organizations to assess and verify the performance of ML models in an efficient and human-supervised process without sharing any patient data across facilities during the process. 
 
-## Our goal - Build powerful medical benchmarks securely.
----
+## Why MedPerf?
+MedPerf reduces the risks and costs associated with data sharing, maximizing medical and patient outcomes. The platform leads to an effective, broader, cost-effective adoption of medical ML and improves patient outcomes.
 
-MedPerf is an open-source framework for benchmarking AI models to deliver clinical efficacy while prioritizing patient privacy and mitigating legal and regulatory risks. It enables federated evaluation in which AI models are securely distributed to various facilities for evaluation.
+Anyone who joins our platform can get several benefits, regardless of the role they will assume. 
 
-The MedPerf approach empowers healthcare organizations to assess and verify the performance of AI models in an efficient and human-supervised process without sharing any patient data across facilities during the process. It reduces the risks and costs associated with data sharing, towards maximizing medical and patient outcomes.
+**Benefits if you are a [Data Providers](roles.md#data-providers):**
 
----
-# What's included here
+* Evaluate how well machine learning models perform on your population’s data;
+* Connect to Model Owners to help them improve medical ML in a specific domain 
+* Help define impactful medical ML benchmarks;
 
+**Benefits if you are a [Model Owner](roles.md#model-owners):**
 
-- ## MedPerf Server:
-  
-  [How to start and test the MedPerf API Server](/docs/server/index.md)
+* Measure model performance on private datasets that you would never have access to;
+* Connect to specific Data Providers that can help you increase the performance of your model;
 
-  [API documentation](https://api.medperf.org/)
+**Benefits if you own a benchmark ([Benchmark Committee](roles.md#benchmark-committee)):**
 
-- ### MedPerf CLI:
-  Command Line Interface for interacting with the server. 
-  [CLI Commands](/docs/cli/index.md)
+* Hold a leading role in the MedPerf ecosystem by defining specifications of a benchmark for a particular medical ML task;
+* Get help to create a strong community around a specific area; 
+* Rule point on creating the guidelines to generate impactful ML for a specific area;
+* Help improve best practices in your area of interest;
+* Ensure the choice of the metrics as well as the proper reference implementations
 
-## How to run
-In order to run MedPerf locally, you must host the server in your machine, and install the CLI.
+**Benefits to the Broad Community**
 
-1. ## Install dependencies
-   MedPerf has some dependencies that must be installed by the user before being able to run. This are mlcube and the required runners (right now there's docker and singularity runners). Depending on the runner you're going to use, you also need to download the runner engine. For this demo, we will be using Docker, so make sure to get the [Docker Engine](https://docs.docker.com/get-docker/)
+* Provide consistent and rigorous approaches for evaluating the accuracy of ML models for real-world use in a standardized manner;
+* Enable model usability measurement across institutions while maintaining data privacy and model reliability;
+* Connect with a community of expert groups to employ scientific evaluation methodologies and technical approaches to operate benchmarks that not only have well-defined clinical aspects, such as clinical impact, clinical workflow integration and patient outcome, but also support robust technical aspects, including proper metrics, data preprocessing and reference implementation. 
 
-      ```
-      pip install mlcube mlcube-docker mlcube-singularity
-      ```
+# What is a benchmark in the MedPerf perspective?
 
-2. ## Host the server:
-   To host the server, please follow the instructions inside the [server](server/index.md) website.
+A benchmark is a collection of assets used by the platform to test the performance of ML models for a specific clinical problem. The primary components of a benchmark are:
 
-3. ## Install the CLI:
-   To install the CLI, please follow the instructions inside the [CLI](cli/index.md) website.
-
-## Demo
-The server comes with prepared users and cubes for demonstration purposes. A toy benchmark was created beforehand for benchmarking XRay models. To execute it you need to:
-
-### Get the data
-The toy benchmark uses the [TorchXRayVision]() library behind the curtain for both data preparation and model implementations. To run the benchmark, you need to have a compatible dataset. The supported dataset formats are:
-
-- RSNA_Pneumonia
-- CheX
-- NIH
-- NIH_Google
-- PC
-- COVID19
-- SIIM_Pneumothorax
-- VinBrain
-- NLMTB
-
-As an example, we're going to use the CheXpert Dataset for the rest of this guide. You can get it [here](https://stanfordmlgroup.github.io/competitions/chexpert/). Even though you could use any version of the dataset, we're going to be using the downsample version for this demo. Once you retrieve it, keep track of where it is located on your system. For this demonstration, we're going to assume the dataset was unpacked to this location: 
-
-```
-~/CheXpert-v1.0-small
-```
-
-We're going to be using the validation split
-
-### Authenticate the CLI
-If you followed the server hosting instructions, then your instance of the server already has some toy users to play with. The CLI needs to be authenticated with a user to be able to execute commands and interact with the server. For this, you can run:
-
-```
-medperf login
-```
-
-And provide `testdataowner` as user and `test` as password. You only need to authenticate once. All following commands will be authenticated with that user.
-
-### Run the data preparation step
-Benchmarks will usually require a data owner to generate a new version of the dataset that has been preprocessed for a specific benchmark. The command to do that has the following structure
-
-```
-medperf dataset create -b <BENCHMARK_UID> -d <PATH_TO_DATASET> -l <PATH_TO_LABELS>
-```
-
-for the CheXpert dataset, this would be the command to execute:
-
-```
-medperf dataset create -b 1 -d ~/CheXpert-v1.0-small -l ~/CheXpert-v1.0-small/valid.csv
-```
-
-Where we're executing the benchmark with UID `1`, since is the first and only benchmark in the server. By doing this, the CLI retrieves the data preparation cube from the benchmark and processes the raw dataset. You will be prompted for additional information and confirmations for the dataset to be prepared and registered onto the server.
-
-### Run the benchmark execution step
-Once the dataset is prepared and registered, you can execute the benchmark with a given model mlcube. The command to do this has the following structure
-
-```
-medperf run -b <BENCHMARK_UID> -d <DATA_UID> -m <MODEL_UID>
-```
-
-For this demonstration, you would execute the following command:
-
-```
-medperf run -b 1 -d 1 -m 2
-```
-
-Given that the prepared dataset was assigned the UID of 1. You can find out what UID your prepared dataset has with the following command:
-
-```
-medperf dataset ls
-```
-
-Additional models have been provided to the benchmark, this is the list of models you can execute:
-
-- `2`: CheXpert DenseNet Model
-- `4`: ResNet Model
-
-During model execution, you will be asked for confirmation of uploading the metrics results to the server.
-
-## Automated Test
-A `test.sh` script is provided for automatically running the whole demo on a public mock dataset.
-
-### Requirements for running the test
-- It is assumed that the `medperf` command is already installed (See instructions on `cli/README.md`) and that all dependencies for the server are also installed (See instructions on `server/README.md`).
-- `mlcube` command is also required (See instructions on `cli/README.md`)
-- The docker engine must be running
-- A connection to internet is required for retrieving the demo dataset and mlcubes
-
-Once all the requirements are met, running `sh test.sh` will:
-- cleanup any leftover medperf-related files (__WARNING!__ Running this will delete the medperf workspace, along with prepared datasets, cubes and results!)
-- Instantiate and seed the server using `server/seed.py`
-- Retrieve the demo dataset
-- Run the CLI demo using `cli/cli.sh`
-- cleanup temporary files
+1. **Specifications**: precise definition of the clinical setting (e.g., problem or task and specific patient population) on which trained ML models are to be evaluated. It also includes the labeling (annotation) methodology as well as the choice of evaluation metrics. 
+2. **Dataset Preparation**: a process that prepares datasets for use in evaluation, and can also test the prepared datasets for quality and compatibility. This is implemented as an MLCube (see [Data Preparator MLCube](mlcubes.md#data-preparator-mlcube)).  
+3. **Registered Datasets**: a list of registered datasets prepared according to the benchmark criteria and approved for evaluation use by their owners (e.g. patient data from multiple facilities representing (as a whole) a diverse patient population). 
+4. **Evaluation**: a consistent implementation of the testing pipelines and evaluation metrics. 
+5. **Reference Implementation**: a detailed example of a benchmark submission consisting of example model code, the evaluation component, and de-identified or synthetic publicly available sample data. 
+6. **Registered Models**: a list of registered models to run in this benchmark. 
+7. **Documentation**: documents for understanding and using the benchmark.
