@@ -30,10 +30,6 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key &
 
-    - name: Run integration tests
-      working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
-
     - name: Install Docker
       run: |
         sudo apt-get update -y
