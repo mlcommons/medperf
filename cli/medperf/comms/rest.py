@@ -65,7 +65,7 @@ class REST(Comms):
         res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
         if res.status_code != 200:
             log_response_error(res)
-            CommunicationAuthenticationError(
+            raise CommunicationAuthenticationError(
                 "Unable to authenticate user with provided credentials"
             )
         else:
@@ -486,6 +486,18 @@ class REST(Comms):
         if res.status_code != 201:
             log_response_error(res)
             raise CommunicationRequestError("Could not upload the dataset")
+        return res.json()
+
+    def get_results(self) -> List[dict]:
+        """Retrieves all results
+
+        Returns:
+            List[dict]: List of results
+        """
+        res = self.__get_list(f"{self.server_url}/results")
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRetrievalError("Could not retrieve results")
         return res.json()
 
     def get_result(self, result_uid: str) -> dict:

@@ -13,12 +13,13 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def datasets(
-    all: bool = typer.Option(False, help="Get all datasets from the platform")
+    local: bool = typer.Option(False, "--local", help="Get local datasets"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
 ):
     """Lists all datasets from the user by default.
     Use all to get all datasets in the platform
     """
-    DatasetsList.run(all)
+    DatasetsList.run(local, mine)
 
 
 @app.command("create")
