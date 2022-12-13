@@ -2,6 +2,7 @@ from typing import List
 import requests
 import logging
 import os
+import configparser
 
 from medperf.enums import Role, Status
 import medperf.config as config
@@ -13,6 +14,7 @@ from medperf.utils import (
     sanitize_json,
 )
 from medperf.exceptions import (
+    CommunicationError,
     CommunicationRetrievalError,
     CommunicationAuthenticationError,
     CommunicationRequestError,
@@ -29,7 +31,7 @@ def log_response_error(res, warn=False):
     logging_method(f"Obtained response with status code: {res.status_code}")
     try:
         logging_method(res.json())
-    except Exception:
+    except requests.exceptions.JSONDecodeError:
         logging_method("JSON Response could not be parsed. Showing response content:")
         logging_method(res.content)
 
@@ -69,31 +71,31 @@ class REST(Comms):
         else:
             self.token = res.json()["token"]
 
-    def change_password(self, pwd: str) -> bool:
+    def change_password(self, pwd: str):
         """Sets a new password for the current user.
 
         Args:
             pwd (str): New password to be set
-            ui (UI): Instance of an implementation
-        Returns:
-            bool: Whether changing the password was successful or not
         """
         body = {"password": pwd}
         res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
         if res.status_code != 200:
             log_response_error(res)
             raise CommunicationRequestError("Unable to change the current password")
-        return True
 
     def authenticate(self):
-        cred_path = storage_path(config.credentials_path)
-        if os.path.exists(cred_path):
-            with open(cred_path) as f:
-                self.token = f.readline()
-        else:
-            raise CommunicationAuthenticationError(
-                "Couldn't find credentials file. Did you run 'medperf login' before?"
-            )
+        creds_path = os.path.join(config.storage, config.credentials_path)
+        profile = config.profile
+        if os.path.exists(creds_path):
+            creds = configparser.ConfigParser()
+            creds.read(creds_path)
+            if profile in creds:
+                self.token = creds[profile]["token"]
+                return
+
+        raise CommunicationAuthenticationError(
+            "Couldn't find credentials file. Did you run 'medperf login' before?"
+        )
 
     def __auth_get(self, url, **kwargs):
         return self.__auth_req(url, requests.get, **kwargs)
@@ -120,7 +122,7 @@ class REST(Comms):
             return req_func(url, verify=self.cert, **kwargs)
         except requests.exceptions.SSLError as e:
             logging.error(f"Couldn't connect to {self.server_url}: {e}")
-            raise requests.exceptions.SSLError(
+            raise CommunicationError(
                 "Couldn't connect to server through HTTPS. If running locally, "
                 "remember to provide the server certificate through --certificate"
             )
