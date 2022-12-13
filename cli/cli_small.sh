@@ -1,47 +1,51 @@
 #! /bin/bash
-while getopts s:d:c:a: flag
+while getopts s:d:c:a:f flag
 do
     case "${flag}" in
         s) SERVER_URL=${OPTARG};;
         d) DIRECTORY=${OPTARG};;
         c) CLEANUP="true";;
         a) AUTH_CERT=${OPTARG};;
+        f) FRESH="true";;
     esac
 done
 
 SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
+FRESH="${FRESH:-false}"
 CERT_FILE="${AUTH_CERT:-$(realpath ~/.medperf.crt)}"
-MEDPERF_STORAGE=~/.medperf_test
-MEDPERF_LOG_STORAGE="${MEDPERF_STORAGE}/logs/medperf.log"
-MEDCLEAN=--no-cleanup
+MEDPERF_STORAGE=~/.medperf
+MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
+MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
 
 echo "Server URL: $SERVER_URL"
-echo "Storage location: $MEDPERF_STORAGE"
+echo "Storage location: $MEDPERF_SUBSTORAGE"
 echo "Certificate: $CERT_FILE"
 
 # frequently used
 clean(){
-  if ${CLEANUP}; then
-    echo "====================================="
-    echo "Cleaning up medperf tmp files"
-    echo "====================================="
-    rm -fr $DIRECTORY
-    rm -fr $MEDPERF_STORAGE
-  fi
+  echo "====================================="
+  echo "Cleaning up medperf tmp files"
+  echo "====================================="
+  rm -fr $DIRECTORY
+  rm -fr $MEDPERF_SUBSTORAGE
 }
 checkFailed(){
   if [ "$?" -ne "0" ]; then
     echo $1
     tail "$MEDPERF_LOG_STORAGE"
-    clean
+    if ${CLEANUP}; then
+      clean
+    fi
     exit 1
   fi
 }
 
 
-clean
+if ${FRESH}; then
+  clean
+fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
@@ -72,16 +76,6 @@ METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 # admin token
 ADMIN_TOKEN=$(curl -sk -X POST https://127.0.0.1:8000/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
 
-# UIDs
-BMK_UID=1
-
-PREP_UID=1
-MODEL1_UID=2
-METRICS_UID=3
-MODEL2_UID=4
-MODEL3_UID=5
-MODEL4_UID=6
-
 # create users
 curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "model", "last_name": "owner", "username": "testmodelowner", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "testbenchmarkowner", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
@@ -91,6 +85,18 @@ curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "data", "last_
 ################### Start Testing ########################
 ##########################################################
 
+
+##########################################################
+echo "=========================================="
+echo "Setting and activating the testing profile"
+echo "=========================================="
+medperf profile create -n localtest --server=${SERVER_URL} --certificate=${CERT_FILE}
+checkFailed "Profile creation failed"
+medperf profile activate localtest
+checkFailed "Profile activation failed"
+##########################################################
+
+echo "\n"
 
 ##########################################################
 echo "====================================="
@@ -110,8 +116,8 @@ echo "\n"
 echo "====================================="
 echo "Login with testmodelowner"
 echo "====================================="
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=testmodelowner --password=test
-checkFailed "Login failed"
+medperf login --username=testmodelowner --password=test
+checkFailed "testmodelowner login failed"
 ##########################################################
 
 echo "\n"
@@ -120,23 +126,30 @@ echo "\n"
 echo "====================================="
 echo "Submit cubes"
 echo "====================================="
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
+
+medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
+PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
 checkFailed "Model1 submission failed"
+MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
-checkFailed "Metrics submission failed"
-
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
 checkFailed "Model2 submission failed"
+MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD
 checkFailed "Model3 submission failed"
+MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE mlcube submit --name model4 -m $MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model4 -m $MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
 checkFailed "Model4 submission failed"
+MODEL4_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
+medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
+checkFailed "Metrics submission failed"
+METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -145,8 +158,8 @@ echo "\n"
 echo "====================================="
 echo "Login with testbenchmarkowner"
 echo "====================================="
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=testbenchmarkowner --password=test
-checkFailed "Login failed"
+medperf login --username=testbenchmarkowner --password=test
+checkFailed "testbenchmarkowner login failed"
 ##########################################################
 
 echo "\n"
@@ -155,10 +168,12 @@ echo "\n"
 echo "====================================="
 echo "Submit benchmark"
 echo "====================================="
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID
+medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID
 checkFailed "Benchmark submission failed"
+BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
 curl -sk -X PUT https://127.0.0.1:8000/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-checkFailed "Benchmatk approval failed"
+checkFailed "Benchmark approval failed"
 ##########################################################
 
 echo "\n"
@@ -167,8 +182,8 @@ echo "\n"
 echo "====================================="
 echo "Login with testdataowner"
 echo "====================================="
-medperf $MEDCLEAN --certificate $CERT_FILE --host=${SERVER_URL} --storage=$MEDPERF_STORAGE login --username=testdataowner --password=test
-checkFailed "Login failed"
+medperf login --username=testdataowner --password=test
+checkFailed "testdataowner login failed"
 ##########################################################
 
 echo "\n"
@@ -177,10 +192,107 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf $MEDCLEAN --certificate $CERT_FILE --host=$SERVER_URL --log=DEBUG --storage=$MEDPERF_STORAGE dataset create -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a"
+medperf dataset create -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a"
 checkFailed "Data preparation step failed"
+DSET_A_GENUID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
 
-clean
+##########################################################
+echo "====================================="
+echo "Running data submission step"
+echo "====================================="
+medperf dataset submit -d $DSET_A_GENUID -y
+checkFailed "Data submission step failed"
+DSET_A_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data association step"
+echo "====================================="
+medperf dataset associate -d $DSET_A_GENUID -b $BMK_UID -y
+checkFailed "Data association step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Login with testbenchmarkowner"
+echo "====================================="
+medperf login --username=testbenchmarkowner --password=test
+checkFailed "testbenchmarkowner login failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Approve association"
+echo "====================================="
+ASSOC_INFO=$(medperf association ls | head -n 4 | tail -n 1 | tr -s ' ')
+# Get association information
+ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
+ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
+# Mark dataset-benchmark association as approved
+medperf --profile=localtest association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
+checkFailed "Data association approval failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running model2 association"
+echo "====================================="
+medperf mlcube associate -m $MODEL2_UID -b $BMK_UID -y
+checkFailed "Model2 association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running model3 association"
+echo "====================================="
+medperf mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+checkFailed "Model3 association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running model4 association"
+echo "====================================="
+medperf mlcube associate -m $MODEL4_UID -b $BMK_UID -y
+checkFailed "Model4 association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Login with testdataowner"
+echo "====================================="
+medperf login --username=testdataowner --password=test
+checkFailed "testbenchmarkowner login failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running model1"
+echo "====================================="
+medperf run -b $BMK_UID -d $DSET_A_GENUID -m $MODEL1_UID -y
+checkFailed "Model1 run failed"
+##########################################################
+
+if ${CLEANUP}; then
+  clean
+fi
