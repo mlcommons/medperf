@@ -81,7 +81,7 @@ if [ "$?" -ne "0" ]; then
   tail "$MEDPERF_LOG_STORAGE"
   exit 2
 fi
-DSET_UID=$(medperf --certificate $CERT_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+DSET_UID=$(medperf --profile=localtest dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "Dataset UID: $DSET_UID"
 echo "====================================="
 echo "Creating dataset benchmark association"
@@ -98,7 +98,7 @@ echo "====================================="
 # Log in as the benchmark owner
 medperf --profile=localtest login --username=testbenchmarkowner --password=test
 # Get association information
-ASSOC_INFO=$(medperf --certificate $CERT_FILE --storage=$MEDPERF_STORAGE --host=$SERVER_URL association ls | head -n 4 | tail -n 1 | tr -s ' ')
+ASSOC_INFO=$(medperf --profile=localtest association ls | head -n 4 | tail -n 1 | tr -s ' ')
 ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
 ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 3)
 # Mark dataset-benchmark association as approved
