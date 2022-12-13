@@ -50,4 +50,4 @@ jobs:
 
     - name: Run client integration tests
       working-directory: .
-      run: sh cli/cli.sh -s https://127.0.0.1:8000 -d ~ -u admin -p admin -a server/cert.crt
+      run: sh cli/cli_small.sh
