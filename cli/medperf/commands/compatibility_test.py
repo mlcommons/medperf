@@ -98,12 +98,12 @@ class CompatibilityTestExecution:
         transformed to cube uids and benchmark is mocked/obtained.
         """
         if self.benchmark_uid:
-            benchmark = Benchmark.get(self.benchmark_uid)
-            self.set_cube_uid("data_prep", benchmark.data_preparation)
-            self.set_cube_uid("model", benchmark.reference_model)
-            self.set_cube_uid("evaluator", benchmark.evaluator)
-            self.demo_dataset_url = benchmark.demo_dataset_url
-            self.demo_dataset_hash = benchmark.demo_dataset_hash
+            self.benchmark = Benchmark.get(self.benchmark_uid)
+            self.set_cube_uid("data_prep", self.benchmark.data_preparation)
+            self.set_cube_uid("model", self.benchmark.reference_model)
+            self.set_cube_uid("evaluator", self.benchmark.evaluator)
+            self.demo_dataset_url = self.benchmark.demo_dataset_url
+            self.demo_dataset_hash = self.benchmark.demo_dataset_hash
         else:
             self.set_cube_uid("data_prep")
             self.set_cube_uid("model")
@@ -112,16 +112,16 @@ class CompatibilityTestExecution:
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
         """
-        benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
+        if not self.benchmark_uid:
+            benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
+            self.benchmark_uid = benchmark.generated_uid
         BenchmarkExecution.run(
-            benchmark.uid, self.data_uid, self.model, run_test=True,
+            self.benchmark_uid, self.data_uid, self.model, run_test=True,
         )
-        # Datasets associated with results of compatibility-test are identified
-        # by the generated uid. Server uid is not be applicable in the case
-        # of unregistered datasets.
-        return Result.from_entities_uids(
-            benchmark.uid, self.model, self.dataset.generated_uid
+        result_tmp_uid = (
+            f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"
         )
+        return Result.get(result_tmp_uid)
 
     def set_cube_uid(self, attr: str, fallback: any = None):
         """Assigns the attr used for testing according to the initialization parameters.
@@ -183,7 +183,7 @@ class CompatibilityTestExecution:
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
         if self.data_uid is not None:
-            self.dataset = Dataset.from_generated_uid(self.data_uid)
+            self.dataset = Dataset.get(self.data_uid)
             # to avoid 'None' as a uid
             self.data_prep = self.dataset.preparation_cube_uid
         else:
@@ -192,7 +192,7 @@ class CompatibilityTestExecution:
             self.data_uid = DataPreparation.run(
                 None, self.data_prep, data_path, labels_path, run_test=True,
             )
-            self.dataset = Dataset.from_generated_uid(self.data_uid)
+            self.dataset = Dataset.get(self.data_uid)
 
     def download_demo_data(self):
         """Retrieves the demo dataset associated to the specified benchmark
@@ -233,14 +233,12 @@ class CompatibilityTestExecution:
         """
         if self.force_test:
             return
-        tmp_benchmark_uid = (
-            f"{config.tmp_prefix}{self.data_prep}_{self.model}_{self.evaluator}"
+        tmp_result_uid = (
+            f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"
         )
         try:
-            result = Result.from_entities_uids(
-                tmp_benchmark_uid, self.model, self.dataset.generated_uid
-            )
-        except FileNotFoundError:
+            result = Result.get(tmp_result_uid)
+        except InvalidArgumentError:
             return
 
         logging.info(f"Existing results at {result.path} were detected.")

@@ -13,7 +13,7 @@ PATCH_ASSOC = "medperf.commands.dataset.associate.{}"
 @pytest.fixture
 def dataset(mocker, request):
     dset = mocker.create_autospec(spec=Dataset)
-    mocker.patch(PATCH_ASSOC.format("Dataset.from_generated_uid"), return_value=dset)
+    mocker.patch(PATCH_ASSOC.format("Dataset.get"), return_value=dset)
     dset.name = "test"
     dset.preparation_cube_uid = request.param
     dset.uid = 1
