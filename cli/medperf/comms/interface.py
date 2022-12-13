@@ -249,6 +249,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_results(self) -> List[dict]:
+        """Retrieves all results
+
+        Returns:
+            List[dict]: List of results
+        """
+
+    @abstractmethod
     def get_result(self, result_uid: str) -> dict:
         """Retrieves a specific result data
 
