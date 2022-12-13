@@ -216,13 +216,13 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
     mocker.patch(
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
     )
-    spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup"))
+    spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
 
     # Act & Assert
     with pytest.raises(ExecutionError):
         execution.run_cubes()
 
-    spy_clean.assert_called_once_with(exp_outpaths)
+    spy_clean.assert_has_calls([call(exp_path) for exp_path in exp_outpaths])
 
 
 def test_todict_calls_get_temp_results(mocker, execution):
@@ -311,7 +311,7 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
     mocker.patch(
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
     )
-    mocker.patch(PATCH_EXECUTION.format("cleanup"))
+    mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
 
     # Act & Assert
 
