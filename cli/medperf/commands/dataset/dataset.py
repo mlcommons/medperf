@@ -2,7 +2,8 @@ import typer
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.dataset.list import DatasetsList
+from medperf.entities.dataset import Dataset
+from medperf.commands.list import EntityList
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.dataset.submit import DatasetRegistration
 from medperf.commands.dataset.associate import AssociateDataset
@@ -12,14 +13,12 @@ app = typer.Typer()
 
 @app.command("ls")
 @clean_except
-def datasets(
+def list(
     local: bool = typer.Option(False, "--local", help="Get local datasets"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
 ):
-    """Lists all datasets from the user by default.
-    Use all to get all datasets in the platform
-    """
-    DatasetsList.run(local, mine)
+    """List datasets stored locally and remotely from the user"""
+    EntityList.run(Dataset, local, mine, fields=["id", "name", "preparation_cube_uid"])
 
 
 @app.command("create")

@@ -2,7 +2,8 @@ import typer
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.result.list import ResultsList
+from medperf.entities.result import Result
+from medperf.commands.list import EntityList
 from medperf.commands.result.create import BenchmarkExecution
 from medperf.commands.result.submit import ResultSubmission
 
@@ -55,4 +56,4 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
 ):
     """List results stored locally and remotely from the user"""
-    ResultsList.run(local, mine)
+    EntityList.run(Result, local, mine, fields=["id", "benchmark", "model", "dataset"])

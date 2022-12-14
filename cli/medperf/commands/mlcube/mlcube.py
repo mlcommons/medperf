@@ -3,7 +3,8 @@ import typer
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
-from medperf.commands.mlcube.list import CubesList
+from medperf.entities.cube import Cube
+from medperf.commands.list import EntityList
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 
@@ -12,11 +13,12 @@ app = typer.Typer()
 
 @app.command("ls")
 @clean_except
-def list(all: bool = typer.Option(False, help="Display all mlcubes")):
-    """List mlcubes registered by the user by default.
-    Use "all" to display all mlcubes in the platform
-    """
-    CubesList.run(all)
+def list(
+    local: bool = typer.Option(False, "--local", help="Get local mlcubes"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
+):
+    """List mlcubes stored locally and remotely from the user"""
+    EntityList.run(Cube, local, mine, fields=["id", "name", "state"])
 
 
 @app.command("submit")

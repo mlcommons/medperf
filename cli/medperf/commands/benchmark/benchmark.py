@@ -3,7 +3,8 @@ import typer
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
-from medperf.commands.benchmark.list import BenchmarksList
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.list import EntityList
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
 
@@ -13,15 +14,16 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Display all local benchmarks"),
-    mine: bool = typer.Option(
-        False, "--mine", help="Display all current-user benchmarks"
-    ),
+    local: bool = typer.Option(False, "--local", help="Get local benchmarks"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
 ):
-    """Lists all benchmarks created by the user
-    If --all is used, displays all benchmarks in the platform
-    """
-    BenchmarksList.run(local, mine)
+    """List benchmarks stored locally and remotely from the user"""
+    EntityList.run(
+        Benchmark,
+        local,
+        mine,
+        fields=["id", "name", "description", "state", "approval_status"],
+    )
 
 
 @app.command("submit")
