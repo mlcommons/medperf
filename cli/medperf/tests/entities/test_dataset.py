@@ -3,7 +3,6 @@ from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, mock_open
 
-from medperf import utils
 import medperf.config as config
 from medperf.entities.dataset import Dataset
 
