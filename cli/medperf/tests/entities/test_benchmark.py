@@ -6,7 +6,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import storage_path
 from medperf.entities.benchmark import Benchmark
-from medperf.tests.mocks.requests import benchmark_body, benchmark_dict
+from medperf.tests.mocks.requests import benchmark_body
 
 
 PATCH_BENCHMARK = "medperf.entities.benchmark.{}"
