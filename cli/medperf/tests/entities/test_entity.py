@@ -3,7 +3,16 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.result import Result
-from medperf.tests.entities.utils import *
+from medperf.tests.entities.utils import (
+    setup_benchmark_fs,
+    setup_benchmark_comms,
+    setup_cube_fs,
+    setup_cube_comms,
+    setup_dset_fs,
+    setup_dset_comms,
+    setup_result_fs,
+    setup_result_comms,
+)
 from medperf.exceptions import InvalidArgumentError
 
 
