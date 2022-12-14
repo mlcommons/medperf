@@ -6,10 +6,6 @@ from unittest.mock import MagicMock, mock_open
 from medperf import utils
 import medperf.config as config
 from medperf.entities.dataset import Dataset
-from medperf.exceptions import (
-    CommunicationRetrievalError,
-    MedperfException,
-)
 
 
 REGISTRATION_MOCK = {

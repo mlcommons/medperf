@@ -4,10 +4,7 @@ import pytest
 from unittest.mock import MagicMock, ANY, mock_open
 
 from medperf.entities.result import Result
-from medperf.entities.dataset import Dataset
-from medperf.exceptions import CommunicationRetrievalError
 from medperf import config
-from medperf import utils
 
 PATCH_RESULT = "medperf.entities.result.{}"
 MOCK_RESULTS_CONTENT = result_dict({"id": "1", "results": {}})
