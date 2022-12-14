@@ -278,4 +278,3 @@ def setup_result_comms(mocker, comms, all_ids, user_ids, uploaded):
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ids, user_ids, uploaded
     )
-
