@@ -77,9 +77,12 @@ METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 ADMIN_TOKEN=$(curl -sk -X POST https://127.0.0.1:8000/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
 
 # create users
-curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "model", "last_name": "owner", "username": "testmodelowner", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "testbenchmarkowner", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "data", "last_name": "owner", "username": "testdataowner", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+MODELOWNER="modelowner"
+DATAOWNER="dataowner"
+BENCHMARKOWNER="benchmarkowner"
+curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "model", "last_name": "owner", "username": "'"$MODELOWNER"'", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "'"$BENCHMARKOWNER"'", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "data", "last_name": "owner", "username": "'"$DATAOWNER"'", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 
 ##########################################################
 ################### Start Testing ########################
@@ -90,9 +93,9 @@ curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "data", "last_
 echo "=========================================="
 echo "Setting and activating the testing profile"
 echo "=========================================="
-medperf profile create -n localtest --server=${SERVER_URL} --certificate=${CERT_FILE}
+medperf profile create -n mocktest --server=${SERVER_URL} --certificate=${CERT_FILE}
 checkFailed "Profile creation failed"
-medperf profile activate localtest
+medperf profile activate mocktest
 checkFailed "Profile activation failed"
 ##########################################################
 
@@ -114,10 +117,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with testmodelowner"
+echo "Login with modelowner"
 echo "====================================="
-medperf login --username=testmodelowner --password=test
-checkFailed "testmodelowner login failed"
+medperf login --username=$MODELOWNER --password=test
+checkFailed "modelowner login failed"
 ##########################################################
 
 echo "\n"
@@ -156,10 +159,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with testbenchmarkowner"
+echo "Login with benchmarkowner"
 echo "====================================="
-medperf login --username=testbenchmarkowner --password=test
-checkFailed "testbenchmarkowner login failed"
+medperf login --username=$BENCHMARKOWNER --password=test
+checkFailed "benchmarkowner login failed"
 ##########################################################
 
 echo "\n"
@@ -180,10 +183,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with testdataowner"
+echo "Login with dataowner"
 echo "====================================="
-medperf login --username=testdataowner --password=test
-checkFailed "testdataowner login failed"
+medperf login --username=$DATAOWNER --password=test
+checkFailed "dataowner login failed"
 ##########################################################
 
 echo "\n"
@@ -222,10 +225,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with testbenchmarkowner"
+echo "Login with benchmarkowner"
 echo "====================================="
-medperf login --username=testbenchmarkowner --password=test
-checkFailed "testbenchmarkowner login failed"
+medperf login --username=$BENCHMARKOWNER --password=test
+checkFailed "benchmarkowner login failed"
 ##########################################################
 
 echo "\n"
@@ -277,10 +280,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with testdataowner"
+echo "Login with dataowner"
 echo "====================================="
-medperf login --username=testdataowner --password=test
-checkFailed "testbenchmarkowner login failed"
+medperf login --username=$DATAOWNER --password=test
+checkFailed "dataowner login failed"
 ##########################################################
 
 echo "\n"
