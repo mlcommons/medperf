@@ -166,7 +166,7 @@ class TestToDict:
     "setup", [{"local": ["36"]}], indirect=True,
 )
 class TestUpload:
-    def test_upload_adds_to_remote(self, mocker, comms, Implementation, setup):
+    def test_upload_adds_to_remote(self, Implementation, setup):
         # Arrange
         id = str(setup["local"][0])
         uploaded_entities = setup["uploaded"]
@@ -177,3 +177,14 @@ class TestUpload:
 
         # Assert
         assert ent.todict() in uploaded_entities
+
+    def test_upload_returns_dict(self, Implementation, setup):
+        # Arrange
+        id = str(setup["local"][0])
+
+        # Act
+        ent = Implementation.get(id)
+        ent_dict = ent.upload()
+
+        # Assert
+        assert ent_dict == ent.todict()

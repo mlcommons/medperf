@@ -62,71 +62,6 @@ def all_uids(mocker, basic_arrange, request):
     return uids
 
 
-def test_all_calls_comms(mocker, comms):
-    # Arrange
-    spy = mocker.patch.object(comms, "get_datasets", return_value=[])
-    walk_out = iter([("", [], [])])
-    mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-
-    # Act
-    Dataset.all()
-
-    # Assert
-    spy.assert_called_once()
-
-
-@pytest.mark.parametrize("all_uids", [[]], indirect=True)
-def test_all_looks_at_correct_path_if_comms_failed(mocker, comms, ui, all_uids):
-    # Arrange
-    walk_out = iter([("", [], [])])
-    spy = mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-    mocker.patch.object(comms, "get_datasets", side_effect=CommunicationRetrievalError)
-
-    # Act
-    Dataset.all()
-
-    # Assert
-    spy.assert_called_once_with(utils.storage_path(config.data_storage))
-
-
-def test_all_fails_if_cant_iterate_data_storage(mocker, comms, ui):
-    # Arrange
-    walk_out = iter([])
-    mocker.patch(PATCH_DATASET.format("os.walk"), return_value=walk_out)
-    mocker.patch.object(comms, "get_datasets", side_effect=CommunicationRetrievalError)
-
-    # Act & Assert
-    with pytest.raises(MedperfException):
-        Dataset.all()
-
-
-@pytest.mark.parametrize("all_uids", [[], ["1", "2", "3"]], indirect=True)
-def test_all_returns_list_of_expected_size(mocker, comms, ui, all_uids):
-    # Arrange
-    mocker.patch.object(comms, "get_datasets", side_effect=CommunicationRetrievalError)
-
-    # Act
-    dsets = Dataset.all()
-
-    # Assert
-    assert len(dsets) == len(all_uids)
-
-
-def test_all_doesnt_call_comms_if_only_local(mocker, comms):
-    # Arrange
-    fs = iter([(".", (), ())])
-    mocker.patch("os.walk", return_value=fs)
-    spy = mocker.patch.object(
-        comms, "get_datasets", side_effect=CommunicationRetrievalError
-    )
-
-    # Act
-    Dataset.all(local_only=True)
-
-    # Assert
-    spy.assert_not_called()
-
-
 def test_dataset_metadata_is_backwards_compatible(mocker, ui):
     # Arrange
     outdated_reg = REGISTRATION_MOCK.copy()
@@ -138,27 +73,6 @@ def test_dataset_metadata_is_backwards_compatible(mocker, ui):
 
     # Assert
     assert dset.generated_metadata == outdated_reg["metadata"]
-
-
-@pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
-@pytest.mark.parametrize("comms_uid", [1, 4, 834, 12])
-def test_upload_returns_updated_info(mocker, all_uids, ui, comms_uid, comms):
-    # Arrange
-    uid = "1"
-    updated_info = dataset_dict({"id": comms_uid})
-    mocker.patch("os.makedirs")
-    mocker.patch("os.path.exists", return_value=False)
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch("yaml.dump", MagicMock())
-
-    mocker.patch.object(comms, "upload_dataset", return_value=updated_info)
-    dset = Dataset.get(uid)
-
-    # Act
-    info = dset.upload()
-
-    # Assert
-    assert info == updated_info
 
 
 @pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
