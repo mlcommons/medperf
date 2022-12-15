@@ -68,20 +68,3 @@ def test_dataset_metadata_is_backwards_compatible(mocker, ui):
 
     # Assert
     assert dset.generated_metadata == outdated_reg["metadata"]
-
-
-@pytest.mark.parametrize("all_uids", [["1"]], indirect=True)
-@pytest.mark.parametrize("filepath", ["filepath"])
-def test_write_writes_to_desired_file(mocker, all_uids, filepath):
-    # Arrange
-    mocker.patch("os.path.join", return_value=filepath)
-    open_spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch("yaml.dump", MagicMock())
-    mocker.patch("os.makedirs")
-    mocker.patch(PATCH_DATASET.format("Dataset.todict"), return_value={})
-    dset = Dataset(REGISTRATION_MOCK)
-    # Act
-    dset.write()
-
-    # Assert
-    open_spy.assert_called_once_with(filepath, "w")

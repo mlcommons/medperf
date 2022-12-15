@@ -1,3 +1,4 @@
+import os
 import pytest
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
@@ -122,7 +123,7 @@ class TestGet:
         self, mocker, Implementation, setup
     ):
         # Arrange
-        id = str(setup["local"][0])
+        id = setup["local"][0]
         # Disable cube download procedure
         mocker.patch.object(Cube, "is_valid", return_value=True)
 
@@ -148,7 +149,7 @@ class TestGet:
 class TestToDict:
     def test_todict_returns_dict_representation(self, Implementation, setup):
         # Arrange
-        id = str(setup["local"][0])
+        id = setup["local"][0]
 
         # Act
         ent = Implementation.get(id)
@@ -159,7 +160,7 @@ class TestToDict:
 
     def test_todict_can_recreate_object(self, Implementation, setup):
         # Arrange
-        id = str(setup["local"][0])
+        id = setup["local"][0]
 
         # Act
         ent = Implementation.get(id)
@@ -177,7 +178,7 @@ class TestToDict:
 class TestUpload:
     def test_upload_adds_to_remote(self, Implementation, setup):
         # Arrange
-        id = str(setup["local"][0])
+        id = setup["local"][0]
         uploaded_entities = setup["uploaded"]
 
         # Act
@@ -189,7 +190,7 @@ class TestUpload:
 
     def test_upload_returns_dict(self, Implementation, setup):
         # Arrange
-        id = str(setup["local"][0])
+        id = setup["local"][0]
 
         # Act
         ent = Implementation.get(id)
@@ -197,3 +198,21 @@ class TestUpload:
 
         # Assert
         assert ent_dict == ent.todict()
+
+
+@pytest.mark.parametrize(
+    "setup", [{"remote": ["284"]}], indirect=True,
+)
+class TestWrite:
+    def test_write_stores_entity_locally(self, mocker, Implementation, setup):
+        # Arrange
+        id = setup["remote"][0]
+        # Disable cube download procedure
+        mocker.patch.object(Cube, "is_valid", return_value=True)
+
+        # Act
+        ent = Implementation.get(id)
+        stored_path = ent.write()
+
+        # Assert
+        assert os.path.exists(stored_path)

@@ -38,6 +38,17 @@ class Entity(ABC):
         """
 
     @abstractmethod
-    def upload(self):
+    def upload(self) -> Dict:
         """Upload the entity-related information to the communication's interface
+
+        Returns:
+            Dict: Dictionary with the updated entity information
+        """
+
+    @abstractmethod
+    def write(self) -> str:
+        """Writes the entity to the local storage
+
+        Returns:
+            str: Path to the stored entity
         """
