@@ -201,7 +201,9 @@ class TestUpload:
 
 
 @pytest.mark.parametrize(
-    "setup", [{"remote": ["284"]}], indirect=True,
+    "setup",
+    [{"remote": ["284"]}, {"remote": ["753"], "local": ["753"]}],
+    indirect=True,
 )
 class TestWrite:
     def test_write_stores_entity_locally(self, mocker, Implementation, setup):
