@@ -20,9 +20,14 @@ def list(
     """List benchmarks stored locally and remotely from the user"""
     EntityList.run(
         Benchmark,
-        local,
-        mine,
-        fields=["id", "name", "description", "state", "approval_status"],
+        fields_mapping={
+            "Name": "name",
+            "Description": "description",
+            "State": "state",
+            "Approval Status": "approval_status",
+        },
+        local=local,
+        mine=mine,
     )
 
 

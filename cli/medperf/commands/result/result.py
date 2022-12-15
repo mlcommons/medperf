@@ -56,4 +56,13 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
 ):
     """List results stored locally and remotely from the user"""
-    EntityList.run(Result, local, mine, fields=["id", "benchmark", "model", "dataset"])
+    EntityList.run(
+        Result,
+        fields_mapping={
+            "Benchmark UID": "benchmark",
+            "Model UID": "model",
+            "Data UID": "dataset",
+        },
+        local=local,
+        mine=mine,
+    )

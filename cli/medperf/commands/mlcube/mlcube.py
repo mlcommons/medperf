@@ -18,7 +18,9 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
 ):
     """List mlcubes stored locally and remotely from the user"""
-    EntityList.run(Cube, local, mine, fields=["id", "name", "state"])
+    EntityList.run(
+        Cube, fields_mapping={"Name": "name", "State": "state"}, local=local, mine=mine,
+    )
 
 
 @app.command("submit")

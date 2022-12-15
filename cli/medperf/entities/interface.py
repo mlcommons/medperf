@@ -40,3 +40,10 @@ class Entity(ABC):
     def upload(self):
         """Upload the entity-related information to the communication's interface
         """
+
+    @property
+    def identifier(self):
+        return self.id or self.generated_uid
+
+    def is_registered(self):
+        return self.id is not None
