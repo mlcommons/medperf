@@ -80,3 +80,24 @@ def view(profile: str = typer.Argument(None)):
     config_p = read_config()
     profile_config = config_p[profile]
     dict_pretty_print(profile_config)
+
+
+@app.command("delete")
+def delete(profile: str):
+    """Deletes a profile's configuration.
+
+    Args:
+        profile (str): Profile to delete.
+    """
+    config_p = read_config()
+    if profile not in config_p:
+        raise InvalidArgumentError("The provided profile does not exists")
+
+    if profile in config.reserved_profiles:
+        raise InvalidArgumentError("Cannot delete reserved profiles")
+
+    if profile == config_p["active"]["profile"]:
+        raise InvalidArgumentError("Cannot delete a currently activated profile")
+
+    del config_p[profile]
+    write_config(config_p)
