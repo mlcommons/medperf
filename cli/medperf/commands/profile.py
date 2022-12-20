@@ -80,7 +80,11 @@ def view(profile: str = typer.Argument(None)):
     if profile:
         profile_config = config_p[profile]
 
-    dict_pretty_print(profile_config)
+    # dict_pretty_print skips None values
+    printable_profile_config = {
+        key: val if val is not None else "None" for key, val in profile_config.items()
+    }
+    dict_pretty_print(printable_profile_config)
 
 
 @app.command("delete")

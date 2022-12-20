@@ -54,3 +54,18 @@ sanity_check_timeout = None
 statistics_timeout = None
 infer_timeout = None
 evaluate_timeout = None
+
+configurable_parameters = [
+    "server",
+    "certificate",
+    "comms",
+    "ui",
+    "loglevel",
+    "prepare_timeout",
+    "sanity_check_timeout",
+    "statistics_timeout",
+    "infer_timeout",
+    "evaluate_timeout",
+    "platform",
+    "cleanup",
+]

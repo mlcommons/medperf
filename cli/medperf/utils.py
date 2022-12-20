@@ -23,6 +23,10 @@ import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
 
 
+def default_profile():
+    return {param: getattr(config, param) for param in config.configurable_parameters}
+
+
 def read_config():
     config_p = ConfigManager()
     config_path = os.path.join(config.storage, config.config_path)
@@ -105,12 +109,12 @@ def init_config():
     config_file = os.path.join(config.storage, config.config_path)
     if os.path.exists(config_file):
         return
+
     config_p = ConfigManager()
-    config_p[config.default_profile_name] = {}
-    config_p[config.test_profile_name] = {
-        "server": config.local_server,
-        "certificate": config.local_certificate,
-    }
+    config_p[config.default_profile_name] = default_profile()
+    config_p[config.test_profile_name] = default_profile()
+    config_p[config.test_profile_name]["server"] = config.local_server
+    config_p[config.test_profile_name]["certificate"] = config.local_certificate
 
     config_p.activate(config.default_profile_name)
     config_p.write(config_file)
