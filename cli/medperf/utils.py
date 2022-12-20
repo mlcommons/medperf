@@ -106,6 +106,7 @@ def init_storage():
 def init_config():
     """builds the initial configuration file
     """
+    os.makedirs(config.storage, exist_ok=True)
     config_file = os.path.join(config.storage, config.config_path)
     if os.path.exists(config_file):
         return

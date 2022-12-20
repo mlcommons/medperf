@@ -35,6 +35,7 @@ def create(
     args = ctx.params
     args.pop("name")
     config_p = read_config()
+
     if name in config_p:
         raise InvalidArgumentError("A profile with the same name already exists")
 

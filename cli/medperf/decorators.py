@@ -1,8 +1,8 @@
 import typer
 import logging
 import functools
-from collections.abc import Callable
 from merge_args import merge_args
+from collections.abc import Callable
 from medperf.utils import (
     pretty_error,
     cleanup,
@@ -12,7 +12,6 @@ from medperf.utils import (
 )
 from medperf.exceptions import MedperfException, CleanExit
 import medperf.config as config
-import os
 
 
 def clean_except(func: Callable) -> Callable:
@@ -56,7 +55,7 @@ def configurable(func: Callable) -> Callable:
     Returns:
         Callable: decorated function
     """
-    os.makedirs(config.storage, exist_ok=True)
+    # initialize config if it is not yet initialized
     init_config()
     # Set profile parameters
     config_p = read_config()
