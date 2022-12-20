@@ -9,6 +9,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
     cube_path,
+    read_config,
     storage_path,
     generate_tmp_uid,
     sanitize_json,
@@ -85,7 +86,7 @@ class REST(Comms):
 
     def authenticate(self):
         creds_path = os.path.join(config.storage, config.credentials_path)
-        profile = config.profile
+        profile = read_config().active_profile_name
         if os.path.exists(creds_path):
             creds = configparser.ConfigParser()
             creds.read(creds_path)

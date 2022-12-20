@@ -3,6 +3,7 @@ import stat
 import configparser
 
 import medperf.config as config
+from medperf.utils import read_config
 
 
 class Login:
@@ -19,7 +20,7 @@ class Login:
         token = comms.token
 
         creds = configparser.ConfigParser()
-        profile = config.profile
+        profile = read_config().active_profile_name
         if os.path.exists(cred_path):
             creds.read(cred_path)
             os.chmod(cred_path, stat.S_IWRITE)
