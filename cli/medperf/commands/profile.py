@@ -63,10 +63,9 @@ def list():
     config_p = read_config()
     for profile in config_p:
         if config_p.is_profile_active(profile):
-            line = f"\033[92m* {profile}\033[0m"
+            ui.print_green("* " + profile)
         else:
-            line = f"  {profile}"
-        ui.print(line)
+            ui.print("  " + profile)
 
 
 @app.command("view")
