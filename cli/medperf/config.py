@@ -22,7 +22,7 @@ results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 credentials_path = "credentials"
-config_path = "config"
+config_path = "config.yaml"
 workspace_path = "workspace"
 cleanup = True
 
@@ -42,7 +42,8 @@ cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
 cube_get_max_attempts = 3
 
-profile = "active"
+default_profile_name = "default"
+test_profile_name = "test"
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
 comms = "REST"

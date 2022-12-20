@@ -8,7 +8,7 @@ import random
 import hashlib
 import logging
 import tarfile
-import configparser
+from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
@@ -24,16 +24,15 @@ from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfExcept
 
 
 def read_config():
-    config_p = configparser.ConfigParser()
+    config_p = ConfigManager()
     config_path = os.path.join(config.storage, config.config_path)
     config_p.read(config_path)
     return config_p
 
 
-def write_config(config_p: configparser.ConfigParser):
+def write_config(config_p: ConfigManager):
     config_path = os.path.join(config.storage, config.config_path)
-    with open(config_path, "w") as f:
-        config_p.write(f)
+    config_p.write(config_path)
 
 
 def set_custom_config(args: dict):
@@ -45,24 +44,6 @@ def set_custom_config(args: dict):
     for param in args:
         val = args[param]
         setattr(config, param, val)
-
-
-def load_config(profile: str) -> dict:
-    """Loads the configuration parameters associated to a profile
-
-    Args:
-        profile (str): profile name
-
-    Returns:
-        dict: configuration parameters
-    """
-    config_p = read_config()
-    # Set current profile
-    if profile == "active":
-        # Special case. Get the profile that has been assigned as active
-        profile = config_p[profile]["profile"]
-    config.profile = profile
-    return config_p[profile]
 
 
 def storage_path(subpath: str):
@@ -124,15 +105,15 @@ def init_config():
     config_file = os.path.join(config.storage, config.config_path)
     if os.path.exists(config_file):
         return
-    config_p = configparser.ConfigParser()
-    config_p["default"] = {}
-    config_p["active"] = {"profile": "default"}
-    config_p["test"] = {}
-    config_p["test"]["server"] = config.local_server
-    config_p["test"]["certificate"] = config.local_certificate
+    config_p = ConfigManager()
+    config_p[config.default_profile_name] = {}
+    config_p[config.test_profile_name] = {
+        "server": config.local_server,
+        "certificate": config.local_certificate,
+    }
 
-    with open(config_file, "w") as f:
-        config_p.write(f)
+    config_p.activate(config.default_profile_name)
+    config_p.write(config_file)
 
 
 def set_unique_tmp_config():
