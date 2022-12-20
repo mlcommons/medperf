@@ -2,7 +2,7 @@ import typer
 import logging
 import functools
 from collections.abc import Callable
-
+from merge_args import merge_args
 from medperf.utils import (
     pretty_error,
     cleanup,
@@ -62,8 +62,9 @@ def configurable(func: Callable) -> Callable:
     config_p = read_config()
     set_custom_config(config_p.active_profile)
 
+    @merge_args(func)
     def wrapper(
-        ctx: typer.Context,
+        *args,
         server: str = typer.Option(
             config.server, "--server", help="URL of a hosted MedPerf API instance",
         ),
@@ -114,7 +115,8 @@ def configurable(func: Callable) -> Callable:
             "--cleanup/--no-cleanup",
             help="Wether to clean up temporary medperf storage after execution",
         ),
+        **kwargs,
     ):
-        return func(ctx)
+        return func(*args, **kwargs)
 
     return wrapper
