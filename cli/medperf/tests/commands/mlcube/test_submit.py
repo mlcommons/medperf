@@ -97,7 +97,7 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
     spy_isval.assert_called_once()
     spy_download.assert_called_once()
     spy_cube_upload.assert_called_once()
-    spy_toper.assert_called_once_with(mock_body["id"])
+    spy_toper.assert_called_once_with(mock_body)
     spy_write.assert_called_once_with(mock_body)
 
 
@@ -105,16 +105,15 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
 def test_to_permanent_path_renames_correctly(mocker, comms, ui, cube, uid):
     # Arrange
     submit_info = SUBMIT_INFO
+    mock_body = cube_metadata_generator()(uid)
     submission = SubmitCube(submit_info)
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.exists", return_value=False)
-    old_path = os.path.join(
-        storage_path(config.cubes_storage), config.cube_submission_id
-    )
+    old_path = os.path.join(storage_path(config.cubes_storage), mock_body["name"])
     new_path = os.path.join(storage_path(config.cubes_storage), str(uid))
 
     # Act
-    submission.to_permanent_path(uid)
+    submission.to_permanent_path(mock_body)
 
     # Assert
     spy.assert_called_once_with(old_path, new_path)

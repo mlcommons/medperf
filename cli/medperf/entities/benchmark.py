@@ -51,14 +51,67 @@ class Benchmark(Entity):
         self.metadata = bmk_dict["metadata"]
         self.user_metadata = bmk_dict["user_metadata"]
 
+        self.generated_uid = (
+            f"p{self.data_preparation}m{self.reference_model}e{self.evaluator}"
+        )
+        path = storage_path(config.benchmarks_storage)
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, self.generated_uid)
+        self.path = path
+
     @classmethod
-    def all(cls) -> List["Benchmark"]:
-        """Gets and creates instances of all locally present benchmarks
+    def all(
+        cls, local_only: bool = False, mine_only: bool = False
+    ) -> List["Benchmark"]:
+        """Gets and creates instances of all retrievable benchmarks
+
+        Args:
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
 
         Returns:
             List[Benchmark]: a list of Benchmark instances.
         """
         logging.info("Retrieving all benchmarks")
+        benchmarks = []
+
+        if not local_only:
+            benchmarks = cls.__remote_all(mine_only=mine_only)
+
+        remote_uids = set([bmk.uid for bmk in benchmarks])
+
+        local_benchmarks = cls.__local_all()
+
+        benchmarks += [bmk for bmk in local_benchmarks if bmk.uid not in remote_uids]
+
+        return benchmarks
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Benchmark"]:
+        benchmarks = []
+        remote_func = config.comms.get_benchmarks
+        if mine_only:
+            remote_func = config.comms.get_user_benchmarks
+
+        try:
+            bmks_meta = remote_func()
+            for bmk_meta in bmks_meta:
+                # Loading all related models for all benchmarks could be expensive.
+                # Most probably not necessary when getting all benchmarks.
+                # If associated models for a benchmark are needed then use Benchmark.get()
+                bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
+            benchmarks = [cls(meta) for meta in bmks_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all benchmarks from the server"
+            logging.warning(msg)
+
+        return benchmarks
+
+    @classmethod
+    def __local_all(cls) -> List["Benchmark"]:
+        benchmarks = []
         bmks_storage = storage_path(config.benchmarks_storage)
         try:
             uids = next(os.walk(bmks_storage))[1]
@@ -67,7 +120,10 @@ class Benchmark(Entity):
             logging.warning(msg)
             raise MedperfException(msg)
 
-        benchmarks = [cls.get(uid) for uid in uids]
+        for uid in uids:
+            meta = cls.__get_local_dict(uid)
+            benchmark = cls(meta)
+            benchmarks.append(benchmark)
 
         return benchmarks
 
@@ -95,14 +151,7 @@ class Benchmark(Entity):
             # Get local benchmarks
             logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
             logging.info(f"Looking for benchmark {benchmark_uid} locally")
-            bmk_storage = storage_path(config.benchmarks_storage)
-            local_bmks = os.listdir(bmk_storage)
-            if str(benchmark_uid) in local_bmks:
-                benchmark_dict = cls.__get_local_dict(benchmark_uid)
-            else:
-                raise InvalidArgumentError(
-                    "No benchmark with the given uid could be found"
-                )
+            benchmark_dict = cls.__get_local_dict(benchmark_uid)
         benchmark = cls(benchmark_dict)
         benchmark.write()
         return benchmark
@@ -121,6 +170,8 @@ class Benchmark(Entity):
         storage = storage_path(config.benchmarks_storage)
         bmk_storage = os.path.join(storage, str(benchmark_uid))
         bmk_file = os.path.join(bmk_storage, config.benchmarks_filename)
+        if not os.path.exists(bmk_file):
+            raise InvalidArgumentError("No benchmark with the given uid could be found")
         with open(bmk_file, "r") as f:
             data = yaml.safe_load(f)
 
@@ -147,10 +198,10 @@ class Benchmark(Entity):
         Returns:
             Benchmark: a benchmark instance
         """
-        benchmark_uid = f"{config.tmp_prefix}{data_preparator}_{model}_{evaluator}"
+        name = f"b{data_preparator}m{model}e{evaluator}"
         benchmark_dict = {
-            "id": benchmark_uid,
-            "name": benchmark_uid,
+            "id": None,
+            "name": name,
             "data_preparation_mlcube": data_preparator,
             "reference_model_mlcube": model,
             "data_evaluator_mlcube": evaluator,
@@ -228,14 +279,12 @@ class Benchmark(Entity):
             str: path to the created benchmark file
         """
         data = self.todict()
-        storage = storage_path(config.benchmarks_storage)
-        bmk_path = os.path.join(storage, str(self.uid))
-        if not os.path.exists(bmk_path):
-            os.makedirs(bmk_path, exist_ok=True)
-        filepath = os.path.join(bmk_path, config.benchmarks_filename)
-        with open(filepath, "w") as f:
+        bmk_file = os.path.join(self.path, config.benchmarks_filename)
+        if not os.path.exists(bmk_file):
+            os.makedirs(self.path, exist_ok=True)
+        with open(bmk_file, "w") as f:
             yaml.dump(data, f)
-        return filepath
+        return bmk_file
 
     def upload(self):
         """Uploads a benchmark to the server

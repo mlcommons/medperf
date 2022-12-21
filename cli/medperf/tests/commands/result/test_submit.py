@@ -13,6 +13,8 @@ PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 def result(mocker):
     res = mocker.create_autospec(spec=Result)
     res.status = Status.PENDING
+    res.generated_uid = "generated_uid"
+    res.path = "path"
     res.results = {}
     return res
 
@@ -27,14 +29,11 @@ def dataset(mocker):
 
 @pytest.fixture
 def submission(mocker, comms, ui, result, dataset):
+    sub = ResultSubmission(1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
-    mocker.patch(
-        PATCH_SUBMISSION.format("Result.from_entities_uids"), return_value=result
-    )
-    mocker.patch(
-        PATCH_SUBMISSION.format("Dataset.from_generated_uid"), return_value=dataset
-    )
-    mocker.patch(PATCH_SUBMISSION.format("dict_pretty_print"))
+    mocker.patch(PATCH_SUBMISSION.format("Result.get"), return_value=result)
+    mocker.patch("medperf.entities.result.Dataset.get", return_vlaue=dataset)
+    return sub
 
 
 def test_upload_results_requests_approval(mocker, submission, result):
@@ -42,8 +41,9 @@ def test_upload_results_requests_approval(mocker, submission, result):
     spy = mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=True)
     mocker.patch.object(result, "upload")
     mocker.patch.object(result, "write")
+    mocker.patch("os.rename")
     # Act
-    ResultSubmission.run(1, 1, 1)
+    ResultSubmission.run(1)
 
     # Assert
     spy.assert_called_once()
@@ -53,20 +53,37 @@ def test_upload_results_requests_approval(mocker, submission, result):
 def test_upload_results_fails_if_not_approved(mocker, submission, result, approved):
     # Arrange
     mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=approved)
-    upload_spy = mocker.patch.object(result, "upload")
-    write_spy = mocker.patch.object(result, "write")
 
-    # Act
+    # Act & Assert
     if approved:
-        ResultSubmission.run(1, 1, 1)
+        submission.upload_results()
     else:
         with pytest.raises(CleanExit):
-            ResultSubmission.run(1, 1, 1)
+            submission.upload_results()
+
+
+def test_run_executes_upload_procedure(mocker, comms, ui, submission):
+    # Arrange
+    result_uid = 1
+    up_spy = mocker.spy(ResultSubmission, "upload_results")
+    write_spy = mocker.spy(ResultSubmission, "write")
+    mocker.patch.object(ui, "prompt", return_value="y")
+    mocker.patch("os.rename")
+
+    # Act
+    ResultSubmission.run(result_uid)
 
     # Assert
-    if approved:
-        upload_spy.assert_called()
-        write_spy.assert_called()
-    else:
-        upload_spy.assert_not_called()
-        write_spy.assert_not_called()
+    up_spy.assert_called_once()
+    write_spy.assert_called_once()
+
+
+def test_write_writes_results_using_entity(mocker, submission, result):
+    # Arrange
+    spy = mocker.patch.object(result, "write")
+
+    # Act
+    submission.write({})
+
+    # Assert
+    spy.assert_called()
