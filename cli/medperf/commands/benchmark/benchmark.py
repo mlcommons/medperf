@@ -14,12 +14,15 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def list(
-    all: bool = typer.Option(False, help="Display all benchmarks in the platform")
+    local: bool = typer.Option(False, "--local", help="Display all local benchmarks"),
+    mine: bool = typer.Option(
+        False, "--mine", help="Display all current-user benchmarks"
+    ),
 ):
     """Lists all benchmarks created by the user
     If --all is used, displays all benchmarks in the platform
     """
-    BenchmarksList.run(all)
+    BenchmarksList.run(local, mine)
 
 
 @app.command("submit")

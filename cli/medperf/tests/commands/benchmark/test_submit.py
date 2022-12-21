@@ -224,6 +224,7 @@ def test_run_executes_expected_flow(mocker, result, comms, ui):
         PATCH_BENCHMARK.format("SubmitBenchmark.get_extra_information")
     )
     sub_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.submit"))
+    mv_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.to_permanent_path"))
     wr_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.write"))
 
     # Act
@@ -233,4 +234,5 @@ def test_run_executes_expected_flow(mocker, result, comms, ui):
     val_spy.assert_called_once()
     extra_spy.assert_called_once()
     sub_spy.assert_called_once()
+    mv_spy.assert_called_once()
     wr_spy.assert_called_once()

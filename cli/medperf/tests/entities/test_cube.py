@@ -107,11 +107,25 @@ def img_body(mocker, comms):
     return body_gen
 
 
-def test_all_looks_for_cubes_in_correct_path(mocker):
+def test_all_calls_comms(mocker, comms):
+    # Arrange
+    spy = mocker.patch.object(comms, "get_cubes", return_value=[])
+    walk_out = iter([("", [], [])])
+    mocker.patch(PATCH_CUBE.format("os.walk"), return_value=walk_out)
+
+    # Act
+    Cube.all()
+
+    # Assert
+    spy.assert_called_once()
+
+
+def test_all_looks_at_correct_path_if_comms_failed(mocker, comms):
     # Arrange
     cubes_path = storage_path(config.cubes_storage)
     fs = iter([(".", (), ())])
     spy = mocker.patch("os.walk", return_value=fs)
+    mocker.patch.object(comms, "get_cubes", side_effect=CommunicationRetrievalError)
 
     # Act
     Cube.all()
@@ -121,7 +135,7 @@ def test_all_looks_for_cubes_in_correct_path(mocker):
 
 
 @pytest.mark.parametrize("cube_uid", [40, 426, 418])
-def test_all_reads_local_cube_metadata(mocker, cube_uid):
+def test_all_reads_local_cube_metadata(mocker, cube_uid, comms):
     # Arrange
     cube_uid = str(cube_uid)
     cubes_path = storage_path(config.cubes_storage)
@@ -130,7 +144,8 @@ def test_all_reads_local_cube_metadata(mocker, cube_uid):
     spy = mocker.patch("builtins.open", return_value=mock_open().return_value)
     cube_meta = cube_metadata_generator()(cube_uid)
     mocker.patch("yaml.safe_load", return_value=cube_meta)
-
+    mocker.patch.object(comms, "get_cubes", side_effect=CommunicationRetrievalError)
+    mocker.patch("os.path.exists", return_value=True)
     meta_path = os.path.join(cubes_path, cube_uid, config.cube_metadata_filename)
 
     # Act
@@ -148,16 +163,32 @@ def test_all_creates_cube_with_expected_content(mocker, cube_uid):
     mocker.patch("os.walk", return_value=fs)
     mocker.patch("builtins.open", mock_open())
     cube_meta = cube_metadata_generator()(cube_uid)
+    mocker.patch("os.path.exists", return_value=True)
     mocker.patch(
         PATCH_CUBE.format("Cube._Cube__get_local_dict"), return_value=cube_meta
     )
     spy = mocker.spy(Cube, "__init__")
 
     # Act
-    Cube.all()
+    Cube.all(local_only=True)
 
     # Assert
     spy.assert_called_once_with(ANY, cube_meta)
+
+
+def test_all_doesnt_call_comms_if_only_local(mocker, comms):
+    # Arrange
+    fs = iter([(".", (), ())])
+    mocker.patch("os.walk", return_value=fs)
+    spy = mocker.patch.object(
+        comms, "get_cubes", side_effect=CommunicationRetrievalError
+    )
+
+    # Act
+    Cube.all(local_only=True)
+
+    # Assert
+    spy.assert_not_called()
 
 
 def test_get_basic_cube_retrieves_metadata_from_comms(
@@ -276,31 +307,14 @@ def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body, no_local):
     spy.assert_called_once_with(TARBALL_PATH)
 
 
-def test_get_cube_calls_all(mocker, comms, basic_body):
-    # Arrange
-    uid = 1
-    spy = mocker.patch(PATCH_CUBE.format("Cube.all"), return_value=[])
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=True)
-    mocker.patch(PATCH_CUBE.format("cleanup"))
-    mocker.patch.object(
-        comms, "get_cube_metadata", side_effect=CommunicationRetrievalError
-    )
-
-    # Act
-    with pytest.raises(InvalidEntityError):
-        Cube.get(uid)
-
-    # Assert
-    spy.assert_called_once()
-
-
 @pytest.mark.parametrize("local_cubes", [[32, 87, 9]])
 def test_get_cube_return_local_if_server_fails(mocker, comms, local_cubes):
     # Arrange
     cube = mocker.create_autospec(spec=Cube)
     uid = local_cubes[0]
     cube.uid = uid
-    spy = mocker.patch.object(Cube, "all", return_value=[cube])
+    cube_meta = cube_metadata_generator()(uid)
+    spy = mocker.patch.object(Cube, "_Cube__get_local_dict", return_value=cube_meta)
     metadata_spy = mocker.patch.object(
         comms, "get_cube_metadata", side_effect=CommunicationRetrievalError
     )
@@ -675,7 +689,7 @@ def test_default_output_returns_path_with_params(mocker, comms, params_body, no_
 @pytest.mark.parametrize("with_tarball", [True, False])
 @pytest.mark.parametrize("with_image", [True, False])
 def test_local_cubes_validity_can_be_detected(
-    mocker, cube_uid, is_valid, with_tarball, with_image
+    mocker, cube_uid, is_valid, with_tarball, with_image, comms, ui
 ):
     # Arrange
     if not any([is_valid, with_tarball, with_image]):
@@ -687,6 +701,7 @@ def test_local_cubes_validity_can_be_detected(
     mocker.patch("builtins.open", mock_open())
     cube_meta = cube_metadata_generator(False, with_tarball, with_image)(cube_uid)
     cube_local_hashes = cube_local_hashes_generator(is_valid, with_tarball, with_image)
+    mocker.patch.object(comms, "get_cubes", side_effect=CommunicationRetrievalError)
     mocker.patch("yaml.safe_load", side_effect=[cube_meta, cube_local_hashes])
     mocker.patch("os.path.exists")
 

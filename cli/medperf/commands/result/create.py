@@ -9,7 +9,6 @@ from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
     init_storage,
-    results_path,
     storage_path,
     cleanup_path,
 )
@@ -41,8 +40,9 @@ class BenchmarkExecution:
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
-        execution.write()
+        result_uid = execution.write()
         execution.remove_temp_results()
+        return result_uid
 
     def __init__(
         self,
@@ -68,15 +68,10 @@ class BenchmarkExecution:
         # If not running the test, redownload the benchmark
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset.from_generated_uid(self.data_uid)
-        if not self.run_test:
-            self.out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.uid
-            )
-        else:
-            self.out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
-            )
+        self.dataset = Dataset.get(self.data_uid)
+        dset_uid = self.dataset.generated_uid
+        result_uid = f"b{self.benchmark_uid}m{self.model_uid}d{dset_uid}"
+        self.out_path = os.path.join(storage_path(config.results_storage), result_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -112,7 +107,7 @@ class BenchmarkExecution:
         evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
         model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.generated_uid)
+        data_uid = str(self.dataset.uid)
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
@@ -160,15 +155,13 @@ class BenchmarkExecution:
                 logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
-        data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
-
         return {
             "id": None,
-            "name": f"{self.benchmark_uid}_{self.model_uid}_{data_uid}",
+            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
             "owner": None,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
-            "dataset": data_uid,
+            "dataset": self.data_uid,
             "results": self.get_temp_results(),
             "metadata": self.metadata,
             "approval_status": Status.PENDING.value,
@@ -191,3 +184,4 @@ class BenchmarkExecution:
         results_info = self.todict()
         result = Result(results_info)
         result.write()
+        return result.generated_uid

@@ -437,40 +437,6 @@ def get_folder_sha1(path: str) -> str:
     return hash_val
 
 
-def results_path(benchmark_uid, model_uid, data_uid):
-    out_path = storage_path(config.results_storage)
-    bmark_uid = str(benchmark_uid)
-    model_uid = str(model_uid)
-    data_uid = str(data_uid)
-    out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-    return out_path
-
-
-def results_ids():
-    results_storage = storage_path(config.results_storage)
-    logging.debug("Getting results ids")
-    results_ids = []
-    try:
-        bmk_uids = next(os.walk(results_storage))[1]
-        for bmk_uid in bmk_uids:
-            bmk_storage = os.path.join(results_storage, bmk_uid)
-            model_uids = next(os.walk(bmk_storage))[1]
-            for model_uid in model_uids:
-                bmk_model_storage = os.path.join(bmk_storage, model_uid)
-                data_uids = next(os.walk(bmk_model_storage))[1]
-                bmk_model_data_list = [
-                    (bmk_uid, model_uid, data_uid) for data_uid in data_uids
-                ]
-                results_ids += bmk_model_data_list
-
-    except StopIteration:
-        msg = "Couldn't iterate over the results directory"
-        logging.warning(msg)
-        raise MedperfException(msg)
-    logging.debug(f"Results ids: {results_ids}")
-    return results_ids
-
-
 def setup_logger(logger, log_lvl):
     fh = logging.FileHandler(config.log_file)
     fh.setLevel(log_lvl)

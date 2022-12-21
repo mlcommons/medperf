@@ -4,9 +4,12 @@ from abc import ABC, abstractmethod
 
 class Entity(ABC):
     @abstractmethod
-    def all(cls) -> List["Entity"]:
+    def all(cls, local_only: bool = False) -> List["Entity"]:
         """Gets a list of all instances of the respective entity.
         Wether the list is local or remote depends on the implementation.
+
+        Args:
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
 
         Returns:
             List[Entity]: a list of entities.
