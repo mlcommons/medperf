@@ -15,6 +15,7 @@ from medperf.utils import (
 )
 from medperf.entities.interface import Entity
 from medperf.exceptions import (
+    InvalidArgumentError,
     ExecutionError,
     InvalidEntityError,
     MedperfException,
@@ -82,17 +83,58 @@ class Cube(Entity):
                 cubes_storage, str(self.uid), config.params_filename
             )
 
+        self.generated_uid = self.name
+        path = storage_path(config.cubes_storage)
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, str(self.generated_uid))
+
+        self.path = path
+
     @classmethod
-    def all(cls) -> List["Cube"]:
-        """Class method for retrieving all cubes stored on the user's machine.
+    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Cube"]:
+        """Class method for retrieving all retrievable MLCubes
 
         Args:
-            ui (UI): Instance of an UI implementation.
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities.Defaults to False.
 
         Returns:
-            List[Cube]: List containing all cubes found locally
+            List[Cube]: List containing all cubes
         """
-        logging.info("Retrieving all local cubes")
+        logging.info("Retrieving all cubes")
+        cubes = []
+        if not local_only:
+            cubes = cls.__remote_all(mine_only=mine_only)
+
+        remote_uids = set([cube.uid for cube in cubes])
+
+        local_cubes = cls.__local_all()
+
+        cubes += [cube for cube in local_cubes if cube.uid not in remote_uids]
+
+        return cubes
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Cube"]:
+        cubes = []
+        remote_func = config.comms.get_cubes
+        if mine_only:
+            remote_func = config.comms.get_user_cubes
+
+        try:
+            cubes_meta = remote_func()
+            cubes = [cls(meta) for meta in cubes_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all cubes from the server"
+            logging.warning(msg)
+
+        return cubes
+
+    @classmethod
+    def __local_all(cls) -> List["Cube"]:
+        cubes = []
         cubes_storage = storage_path(config.cubes_storage)
         try:
             uids = next(os.walk(cubes_storage))[1]
@@ -101,7 +143,6 @@ class Cube(Entity):
             logging.warning(msg)
             raise MedperfException(msg)
 
-        cubes = []
         for uid in uids:
             meta = cls.__get_local_dict(uid)
             cube = cls(meta)
@@ -137,16 +178,14 @@ class Cube(Entity):
                 # Try to redownload elements if invalid
                 cube.download()
                 attempt += 1
+            cube.write()
         except CommunicationRetrievalError:
             logging.warning("Max download attempts reached")
             logging.warning(f"Getting MLCube {cube_uid} from comms failed")
             logging.info(f"Retrieving MLCube {cube_uid} from local storage")
-            local_cube = list(
-                filter(lambda cube: str(cube.uid) == str(cube_uid), cls.all())
-            )
-            if len(local_cube) == 1:
-                logging.debug("Found cube locally")
-                return local_cube[0]
+            local_meta = cls.__get_local_dict(cube_uid)
+            cube = cls(local_meta)
+            return cube
 
         logging.error("Could not find the requested MLCube")
         cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
@@ -204,8 +243,7 @@ class Cube(Entity):
             return ""
 
     def download(self):
-        """Downloads the required elements for an mlcube to run locally.
-        """
+        """Downloads the required elements for an mlcube to run locally."""
 
         local_hashes = {
             "mlcube_hash": self.download_mlcube(),
@@ -332,6 +370,7 @@ class Cube(Entity):
         os.makedirs(cube_loc, exist_ok=True)
         with open(meta_file, "w") as f:
             yaml.dump(self.todict(), f)
+        return meta_file
 
     def upload(self):
         cube_dict = self.todict()
@@ -359,6 +398,10 @@ class Cube(Entity):
     def __get_local_dict(cls, uid):
         cubes_storage = storage_path(config.cubes_storage)
         meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+        if not os.path.exists(meta_file):
+            raise InvalidArgumentError(
+                "The requested mlcube information could not be found locally"
+            )
         with open(meta_file, "r") as f:
             meta = yaml.safe_load(f)
         return meta

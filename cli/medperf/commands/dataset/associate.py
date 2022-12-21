@@ -17,7 +17,7 @@ class AssociateDataset:
         """
         comms = config.comms
         ui = config.ui
-        dset = Dataset.from_generated_uid(data_uid)
+        dset = Dataset.get(data_uid)
         if dset.uid is None:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
