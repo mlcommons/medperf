@@ -356,7 +356,7 @@ def approval_prompt(msg: str) -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict):
+def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -366,7 +366,8 @@ def dict_pretty_print(in_dict: dict):
     ui = config.ui
     ui.print()
     ui.print("=" * 20)
-    in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+    if skip_none_values:
+        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
     ui.print(yaml.dump(in_dict))
     logging.debug(f"Dictionary printed to the user: {in_dict}")
     ui.print("=" * 20)
