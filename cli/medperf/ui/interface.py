@@ -56,3 +56,11 @@ class UI(ABC):
         Returns:
             str: user input
         """
+
+    @abstractmethod
+    def print_green(self, msg: str = ""):
+        """Display a message on the command line with green color
+
+        Args:
+            msg (str): message to print
+        """
