@@ -80,6 +80,7 @@ def view(profile: str = typer.Argument(None)):
     if profile:
         profile_config = config_p[profile]
 
+    profile_config.pop(config.credentials_keyword, None)
     dict_pretty_print(profile_config, skip_none_values=False)
 
 

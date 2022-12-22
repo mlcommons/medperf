@@ -1,9 +1,5 @@
-import os
-import stat
-import configparser
-
 import medperf.config as config
-from medperf.utils import read_config
+from medperf.utils import read_config, write_config
 
 
 class Login:
@@ -13,20 +9,11 @@ class Login:
         """
         comms = config.comms
         ui = config.ui
-        cred_path = os.path.join(config.storage, config.credentials_path)
         user = username if username else ui.prompt("username: ")
         pwd = password if password else ui.hidden_prompt("password: ")
         comms.login(user, pwd)
         token = comms.token
 
-        creds = configparser.ConfigParser()
-        profile = read_config().active_profile_name
-        if os.path.exists(cred_path):
-            creds.read(cred_path)
-            os.chmod(cred_path, stat.S_IWRITE)
-
-        creds[profile] = {"token": token}
-        with open(cred_path, "w") as f:
-            creds.write(f)
-
-        os.chmod(cred_path, stat.S_IREAD)
+        config_p = read_config()
+        config_p.active_profile[config.credentials_keyword] = token
+        write_config(config_p)
