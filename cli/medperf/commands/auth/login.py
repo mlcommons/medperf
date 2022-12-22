@@ -1,5 +1,5 @@
 import medperf.config as config
-from medperf.utils import read_config, write_config
+from medperf.utils import set_credentials
 
 
 class Login:
@@ -14,6 +14,4 @@ class Login:
         comms.login(user, pwd)
         token = comms.token
 
-        config_p = read_config()
-        config_p.active_profile[config.credentials_keyword] = token
-        write_config(config_p)
+        set_credentials(token)

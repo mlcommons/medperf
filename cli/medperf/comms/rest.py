@@ -8,7 +8,7 @@ import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
     cube_path,
-    read_config,
+    read_credentials,
     storage_path,
     generate_tmp_uid,
     sanitize_json,
@@ -84,8 +84,7 @@ class REST(Comms):
             raise CommunicationRequestError("Unable to change the current password")
 
     def authenticate(self):
-        config_p = read_config()
-        token = config_p.active_profile.get(config.credentials_keyword, None)
+        token = read_credentials()
         if token is not None:
             self.token = token
             return

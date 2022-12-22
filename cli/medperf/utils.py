@@ -23,6 +23,24 @@ import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
 
 
+def delete_credentials():
+    config_p = read_config()
+    del config_p.active_profile[config.credentials_keyword]
+    write_config(config_p)
+
+
+def set_credentials(token):
+    config_p = read_config()
+    config_p.active_profile[config.credentials_keyword] = token
+    write_config(config_p)
+
+
+def read_credentials():
+    config_p = read_config()
+    token = config_p.active_profile.get(config.credentials_keyword, None)
+    return token
+
+
 def default_profile():
     return {param: getattr(config, param) for param in config.configurable_parameters}
 

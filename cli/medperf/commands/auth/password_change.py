@@ -1,5 +1,5 @@
 import medperf.config as config
-from medperf.utils import read_config, write_config
+from medperf.utils import delete_credentials
 from medperf.exceptions import InvalidArgumentError
 
 
@@ -18,7 +18,5 @@ class PasswordChange:
             )
 
         comms.change_password(pwd)
-        config_p = read_config()
-        del config_p.active_profile[config.credentials_keyword]
-        write_config(config_p)
+        delete_credentials()
         ui.print("Password changed. Please log back in with medperf login")
