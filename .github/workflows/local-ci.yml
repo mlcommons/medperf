@@ -30,6 +30,10 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh &
 
+    - name: Run integration tests
+      working-directory: ./server
+      run: pip install -r test-requirements.txt --user && python seed.py
+
     - name: Install Docker
       run: |
         sudo apt-get update -y
@@ -44,6 +48,10 @@ jobs:
         $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get install moby-engine moby-cli containerd.io
 
+    - name: Run xrv demo
+      working-directory: .
+      run: sh cli/cli_xrv_demo.sh
+
     - name: Run client integration tests
       working-directory: .
-      run: sh cli/cli_small.sh
+      run: sh cli/cli_tests.sh
