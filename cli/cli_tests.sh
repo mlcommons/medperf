@@ -217,7 +217,7 @@ echo "\n"
 echo "====================================="
 echo "Running data association step"
 echo "====================================="
-medperf dataset associate -d $DSET_A_GENUID -b $BMK_UID -y
+medperf dataset associate -d $DSET_A_UID -b $BMK_UID -y
 checkFailed "Data association step failed"
 ##########################################################
 
@@ -237,12 +237,8 @@ echo "\n"
 echo "====================================="
 echo "Approve association"
 echo "====================================="
-ASSOC_INFO=$(medperf association ls | head -n 4 | tail -n 1 | tr -s ' ')
-# Get association information
-ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
-ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
 # Mark dataset-benchmark association as approved
-medperf --profile=localtest association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
+medperf association approve -b $BMK_UID -d $DSET_A_UID
 checkFailed "Data association approval failed"
 ##########################################################
 
@@ -292,7 +288,7 @@ echo "\n"
 echo "====================================="
 echo "Running model1"
 echo "====================================="
-medperf run -b $BMK_UID -d $DSET_A_GENUID -m $MODEL1_UID -y
+medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL1_UID -y
 checkFailed "Model1 run failed"
 ##########################################################
 
