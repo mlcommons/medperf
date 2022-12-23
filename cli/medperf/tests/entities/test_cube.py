@@ -214,10 +214,10 @@ def test_get_basic_cube_retrieves_cube_manifest(mocker, comms, basic_body, no_lo
     # Act
     uid = 1
     body = basic_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["git_mlcube_url"], uid)
+    spy.assert_called_once_with(body["git_mlcube_url"], cube.path)
 
 
 def test_get_basic_cube_doesnt_retrieve_parameters(mocker, comms, basic_body, no_local):
@@ -259,10 +259,10 @@ def test_get_cube_with_parameters_retrieves_parameters(
     # Act
     uid = 1
     body = params_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["git_parameters_url"], uid)
+    spy.assert_called_once_with(body["git_parameters_url"], cube.path)
 
 
 def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body, no_local):
@@ -273,10 +273,10 @@ def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body, no_loc
     # Act
     uid = 1
     body = tar_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["additional_files_tarball_url"], uid)
+    spy.assert_called_once_with(body["additional_files_tarball_url"], cube.path)
 
 
 def test_get_cube_with_tarball_generates_tarball_hash(
@@ -349,10 +349,10 @@ def test_get_cube_with_image_retrieves_image(mocker, comms, img_body, no_local):
     # Act
     uid = 1
     body = img_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["image_tarball_url"], uid)
+    spy.assert_called_once_with(body["image_tarball_url"], cube.path)
 
 
 def test_get_cube_with_image_generates_image_tarball_hash(

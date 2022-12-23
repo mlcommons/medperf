@@ -144,7 +144,6 @@ def set_unique_tmp_config():
     config.tmp_prefix += pid
     config.test_dset_prefix += pid
     config.test_cube_prefix += pid
-    config.cube_submission_id += pid
 
 
 def cleanup(extra_paths: List[str] = []):
@@ -199,10 +198,7 @@ def cleanup_cubes():
     cubes_path = storage_path(config.cubes_storage)
     cubes = get_uids(cubes_path)
     test_prefix = config.test_cube_prefix
-    submission = config.cube_submission_id
-    clutter_cubes = [
-        cube for cube in cubes if cube.startswith(test_prefix) or cube == submission
-    ]
+    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
 
     for cube in clutter_cubes:
         logging.info(f"Removing clutter cube: {cube}")
@@ -267,18 +263,6 @@ def pretty_error(msg: str, clean: bool = True):
     if clean:
         cleanup()
     sys.exit(1)
-
-
-def cube_path(uid: int) -> str:
-    """Gets the path for a given cube.
-
-    Args:
-        uid (int): Cube UID.
-
-    Returns:
-        str: Location of the cube folder structure.
-    """
-    return os.path.join(storage_path(config.cubes_storage), str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
