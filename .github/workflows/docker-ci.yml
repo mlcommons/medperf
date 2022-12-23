@@ -43,7 +43,7 @@ jobs:
 
     - name: Run integration tests
       working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py
+      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
 
     - name: Install dependencies
       run: |
