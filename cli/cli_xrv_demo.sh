@@ -1,37 +1,34 @@
 #! /bin/bash
-while getopts u:p:s:d:c:a: flag
+while getopts s:d:c:a:f flag
 do
     case "${flag}" in
-        u) USERNAME_=${OPTARG};;
-        p) PASS=${OPTARG};;
         s) SERVER_URL=${OPTARG};;
         d) DIRECTORY=${OPTARG};;
         c) CLEANUP="true";;
         a) AUTH_CERT=${OPTARG};;
+        f) FRESH="true";;
     esac
 done
-USERNAME_="${USERNAME_:-admin}"
-PASS="${PASS:-admin}"
+
 SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
-DIRECTORY="${DIRECTORY:-/tmp}"
+DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
+FRESH="${FRESH:-false}"
 CERT_FILE="${AUTH_CERT:-$(realpath server/cert.crt)}"
 MEDPERF_STORAGE=~/.medperf
-MEDPERF_LOG_STORAGE="${MEDPERF_STORAGE}/logs/medperf.log"
+MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
+MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
 
-echo "username: $USERNAME_"
-echo "password: $PASS"
 echo "Server URL: $SERVER_URL"
-echo "Storage location: $MEDPERF_STORAGE"
+echo "Storage location: $MEDPERF_SUBSTORAGE"
 echo "Certificate: $CERT_FILE"
 
-if ${CLEANUP}; then
+if ${FRESH}; then
   echo "====================================="
   echo "Cleaning up medperf tmp files"
   echo "====================================="
-  rm $DIRECTORY/mock_chexpert.tar.gz
-  rm -fr $DIRECTORY/mock_chexpert
-  rm -fr $MEDPERF_STORAGE/${SERVER_URL}
+  rm -fr $DIRECTORY
+  rm -fr $MEDPERF_SUBSTORAGE
 fi
 echo "====================================="
 echo "Retrieving mock dataset"
@@ -48,9 +45,9 @@ echo "====================================="
 medperf profile create -n localtest --server=${SERVER_URL} --certificate=${CERT_FILE}
 medperf profile activate localtest
 echo "====================================="
-echo "Logging the user with username: ${USERNAME_} and password: ${PASS}"
+echo "Logging the user with username: testdataowner and password: test"
 echo "====================================="
-medperf login --username=${USERNAME_} --password=${PASS}
+medperf login --username=testdataowner --password=test
 if [ "$?" -ne "0" ]; then
   echo "Login failed"
   tail "$MEDPERF_LOG_STORAGE"
@@ -109,7 +106,7 @@ echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
 # log back as user
-medperf login --username=${USERNAME_} --password=${PASS}
+medperf login --username=testdataowner --password=test
 # Create results
 medperf run -b 1 -d $DSET_UID -m 2 -y
 if [ "$?" -ne "0" ]; then
@@ -121,7 +118,6 @@ if ${CLEANUP}; then
   echo "====================================="
   echo "Cleaning up medperf tmp files"
   echo "====================================="
-  rm $DIRECTORY/mock_chexpert.tar.gz
-  rm -fr $DIRECTORY/mock_chexpert
-  rm -fr $MEDPERF_STORAGE/${SERVER_URL}
+  rm -fr $DIRECTORY
+  rm -fr $MEDPERF_SUBSTORAGE
 fi
