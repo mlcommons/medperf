@@ -1,4 +1,4 @@
-while getopts c:k:d:g:r:s: flag
+while getopts c:k:d:g:r: flag
 do
     case "${flag}" in
         c) CERT_FILE=${OPTARG};;
@@ -6,7 +6,6 @@ do
         d) DEPLOY=${OPTARG};;
         g) CERT_GENERATE=${OPTARG};;
         r) RESET_DB=${OPTARG};;
-        s) SEED_DB=${OPTARG};;
     esac
 done
 
@@ -15,14 +14,12 @@ CERT_GENERATE="${CERT_GENERATE:-1}"
 CERT_FILE="${CERT_FILE:-$(realpath cert.crt)}"
 KEY_FILE="${KEY_FILE:-$(realpath cert.key)}"
 RESET_DB="${RESET_DB:-0}"
-SEED_DB="${SEED_DB:-0}"
 echo $CERT_FILE
 echo $KEY_FILE
 echo $DEPLOY
 echo $CERT_GENERATE
 echo $CERT_PATH
 echo $RESET_DB
-echo $SEED_DB
 
 
 if [ -z "$CERT_FILE" ]
@@ -50,13 +47,6 @@ then
   # Clean DB for a fresh start
   echo "Cleaning DB as RESET_DB flag is enabled"
   rm db.sqlite3
-fi
-
-if [ "$SEED_DB" -eq 1 ]
-then
-  # Seed DB
-  echo "Seeding DB as SEED_DB flag is enabled"
-  python seed.py --cert $CERT_FILE
 fi
 
 if [ "$DEPLOY" -eq 0 ]
