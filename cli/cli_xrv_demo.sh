@@ -78,6 +78,8 @@ if [ "$?" -ne "0" ]; then
   tail "$MEDPERF_LOG_STORAGE"
   exit 2
 fi
+DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "Dataset UID: $DSET_UID"
 echo "====================================="
 echo "Creating dataset benchmark association"
 echo "====================================="
