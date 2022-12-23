@@ -398,7 +398,7 @@ if __name__ == "__main__":
         "--cert",
         type=str,
         help="Server certificate",
-        default=abspath(expanduser("~/.medperf.crt")),
+        default=abspath(expanduser("cert.crt")),
     )
     args = parser.parse_args()
     seed(args)

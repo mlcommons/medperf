@@ -15,7 +15,7 @@ PASS="${PASS:-admin}"
 SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
 DIRECTORY="${DIRECTORY:-/tmp}"
 CLEANUP="${CLEANUP:-false}"
-CERT_FILE="${AUTH_CERT:-$(realpath ~/.medperf.crt)}"
+CERT_FILE="${AUTH_CERT:-$(realpath ../server/cert.crt)}"
 MEDPERF_STORAGE=~/.medperf
 MEDPERF_LOG_STORAGE="${MEDPERF_STORAGE}/logs/medperf.log"
 
