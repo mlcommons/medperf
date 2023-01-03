@@ -1,5 +1,5 @@
 # Utility functions for mocking comms and its methods
-from typing import Dict, List
+from typing import Dict, List, Callable
 from unittest.mock import MagicMock
 from pytest_mock.plugin import MockFixture
 
@@ -9,7 +9,7 @@ from medperf.exceptions import CommunicationRetrievalError
 def mock_comms_entity_gets(
     mocker: MockFixture,
     comms: MagicMock,
-    generate_fn: function,
+    generate_fn: Callable,
     comms_calls: Dict[str, str],
     all_ids: List[str],
     user_ids: List[str],
@@ -21,7 +21,7 @@ def mock_comms_entity_gets(
     Args:
         mocker (pytest_mock.plugin.MockFixture): Mocker object
         comms (unittest.mock.MagicMock): A mocked comms instance
-        generate_fn (function): A function that generates entity dictionaries
+        generate_fn (Callable): A function that generates entity dictionaries
         comms_calls (Dict[str, str]): Dictionary specifying the endpoints used by the entity.
             Expected keys:
             - get_all
@@ -49,11 +49,11 @@ def mock_comms_entity_gets(
     mocker.patch.object(comms, upload_instance, side_effect=upload_behavior)
 
 
-def get_comms_instance_behavior(generate_fn: function, ids: List[str]) -> function:
+def get_comms_instance_behavior(generate_fn: Callable, ids: List[str]) -> Callable:
     """Function that defines a GET behavior
 
     Args:
-        generate_fn (function): Function to generate entity dictionaries
+        generate_fn (Callable): Function to generate entity dictionaries
         ids (List[str]): List of IDs that are allowed to return
 
     Return:
@@ -71,14 +71,14 @@ def get_comms_instance_behavior(generate_fn: function, ids: List[str]) -> functi
     return get_behavior
 
 
-def upload_comms_instance_behavior(uploaded: List) -> function:
+def upload_comms_instance_behavior(uploaded: List) -> Callable:
     """Function that defines the comms mocked behavior when uploading entities
 
     Args:
         uploaded (List): List that will be updated with uploaded entities
 
     Returns:
-        function: Function containing the desired behavior
+        Callable: Function containing the desired behavior
     """
 
     def upload_behavior(entity_dict):
