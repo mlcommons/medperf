@@ -1,30 +1,28 @@
-import os
 import pytest
-from unittest.mock import mock_open, ANY
 
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.utils import storage_path
 from medperf.entities.benchmark import Benchmark
 from medperf.tests.mocks.requests import benchmark_body
+from medperf.tests.entities.utils import setup_benchmark_fs, setup_benchmark_comms
 
 
 PATCH_BENCHMARK = "medperf.entities.benchmark.{}"
 
 
-@pytest.fixture
-def comms(mocker):
-    comms = mocker.create_autospec(spec=Comms)
-    mocker.patch.object(comms, "get_benchmark", side_effect=benchmark_body)
-    mocker.patch.object(comms, "get_benchmark_models", return_value=[])
-    config.comms = comms
-    return comms
+@pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
+def setup(request, mocker, comms, fs):
+    local_ids = request.param.get("local", [])
+    remote_ids = request.param.get("remote", [])
+    user_ids = request.param.get("user", [])
+    # Have a list that will contain all uploaded entities of the given type
+    uploaded = []
 
+    setup_benchmark_fs(local_ids, fs)
+    setup_benchmark_comms(mocker, comms, remote_ids, user_ids, uploaded)
+    request.param["uploaded"] = uploaded
 
-@pytest.fixture
-def no_local(mocker):
-    mocker.patch("os.listdir", return_value=[])
-    mocker.patch(PATCH_BENCHMARK.format("Benchmark.write"))
+    return request.param
 
 
 @pytest.mark.parametrize("data_prep", [12, 78])
@@ -49,10 +47,13 @@ def test_tmp_creates_and_writes_temporary_benchmark(mocker, data_prep, model, ev
     assert benchmark.evaluator == eval
 
 
-def test_benchmark_includes_reference_model_in_models(comms, no_local):
+@pytest.mark.parametrize(
+    "setup", [{"local": [], "remote": ["27", "1", "2"], "user": ["2"]}], indirect=True,
+)
+def test_benchmark_includes_reference_model_in_models(setup):
     # Act
-    uid = 1
-    benchmark = Benchmark.get(uid)
+    id = setup["remote"][0]
+    benchmark = Benchmark.get(id)
 
     # Assert
     assert benchmark.reference_model in benchmark.models
@@ -62,15 +63,16 @@ def test_benchmark_includes_reference_model_in_models(comms, no_local):
     "models",
     [[4975, 573, 269, 3172], [556, 1588, 3398, 2724], [3531, 1423, 2275, 4223]],
 )
-def test_benchmark_includes_additional_models_in_models(
-    mocker, comms, models, no_local
-):
+@pytest.mark.parametrize(
+    "setup", [{"local": [], "remote": ["27", "1", "2"], "user": ["2"]}], indirect=True,
+)
+def test_benchmark_includes_additional_models_in_models(mocker, comms, models, setup):
     # Arrange
+    id = setup["remote"][0]
     mocker.patch.object(comms, "get_benchmark_models", return_value=models)
 
     # Act
-    uid = 1
-    benchmark = Benchmark.get(uid)
+    benchmark = Benchmark.get(id)
 
     # Assert
     assert set(models).issubset(set(benchmark.models))
