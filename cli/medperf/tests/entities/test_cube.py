@@ -8,6 +8,7 @@ from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
 from medperf.tests.utils import cube_local_hashes_generator
+from medperf.tests.entities.utils import setup_cube_fs, setup_cube_comms
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.tests.mocks.requests import cube_metadata_generator
 from medperf.exceptions import (
@@ -32,6 +33,22 @@ OUT_KEY = "out_key"
 VALUE = "value"
 PARAM_KEY = "param_key"
 PARAM_VALUE = "param_value"
+
+
+@pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
+def setup(request, mocker, comms, fs):
+    local_ids = request.param.get("local", [])
+    remote_ids = request.param.get("remote", [])
+    user_ids = request.param.get("user", [])
+    # Have a list that will contain all uploaded entities of the given type
+    uploaded = []
+
+    setup_cube_fs(local_ids, fs)
+    setup_cube_comms(mocker, comms, remote_ids, user_ids, uploaded)
+    request.param["uploaded"] = uploaded
+
+    # TODO: See how to setup everything so that the other fixtures are removed
+    return request.param
 
 
 @pytest.fixture
