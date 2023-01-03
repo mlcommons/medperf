@@ -4,46 +4,7 @@ from medperf import config
 import yaml
 
 from medperf.enums import Status
-from medperf.exceptions import CommunicationRetrievalError
-
-
-def get_comms_instance_behavior(generate_fn, ids):
-    def get_behavior(id):
-        if id in ids:
-            id = str(id)
-            return generate_fn(id=id)
-        else:
-            raise CommunicationRetrievalError
-
-    return get_behavior
-
-
-def upload_comms_instance_behavior(uploaded):
-    def upload_behavior(entity_dict):
-        uploaded.append(entity_dict)
-        return entity_dict
-
-    return upload_behavior
-
-
-def mock_comms_entity_gets(
-    mocker, comms, generate_fn, comms_calls, all_ids, user_ids, uploaded
-):
-    get_all = comms_calls["get_all"]
-    get_user = comms_calls["get_user"]
-    get_instance = comms_calls["get_instance"]
-    upload_instance = comms_calls["upload_instance"]
-
-    instances = [generate_fn(id=id) for id in all_ids]
-    user_instances = [generate_fn(id=id) for id in user_ids]
-    mocker.patch.object(comms, get_all, return_value=instances)
-    mocker.patch.object(comms, get_user, return_value=user_instances)
-    get_behavior = get_comms_instance_behavior(generate_fn, all_ids)
-    mocker.patch.object(
-        comms, get_instance, side_effect=get_behavior,
-    )
-    upload_behavior = upload_comms_instance_behavior(uploaded)
-    mocker.patch.object(comms, upload_instance, side_effect=upload_behavior)
+from medperf.tests.mocks.comms import mock_comms_entity_gets
 
 
 # BENCHMARK MOCKING
