@@ -4,6 +4,7 @@ from medperf import config
 import yaml
 
 from medperf.enums import Status
+from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
 
@@ -40,12 +41,15 @@ def generate_benchmark(**kwargs):
     }
 
 
-def setup_benchmark_fs(ids, fs):
+def setup_benchmark_fs(ents, fs):
     bmks_path = storage_path(config.benchmarks_storage)
-    for id in ids:
-        id = str(id)
+    for ent in ents:
+        if type(ent) != dict:
+            # Assume we're passing ids
+            ent = {"id": str(ent)}
+        id = ent["id"]
         bmk_filepath = os.path.join(bmks_path, id, config.benchmarks_filename)
-        bmk_contents = generate_benchmark(id=id)
+        bmk_contents = generate_benchmark(**ent)
         cubes_ids = bmk_contents["models"]
         cubes_ids.append(bmk_contents["data_preparation_mlcube"])
         cubes_ids.append(bmk_contents["reference_model_mlcube"])
@@ -58,7 +62,7 @@ def setup_benchmark_fs(ids, fs):
             pass
 
 
-def setup_benchmark_comms(mocker, comms, all_ids, user_ids, uploaded):
+def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
     generate_fn = generate_benchmark
     comms_calls = {
         "get_all": "get_benchmarks",
@@ -68,26 +72,28 @@ def setup_benchmark_comms(mocker, comms, all_ids, user_ids, uploaded):
     }
     mocker.patch.object(comms, "get_benchmark_models", return_value=[])
     mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ids, user_ids, uploaded
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )
 
 
 # MLCUBE MOCKING
 def generate_cube(**kwargs):
+    # Default to hashes of empty files for cube download validation
+    empty_file_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     return {
         "id": kwargs.get("id", 1),
         "name": kwargs.get("name", "name"),
         "git_mlcube_url": kwargs.get("git_mlcube_url", "git_mlcube_url"),
-        "mlcube_hash": kwargs.get("mlcube_hash", "mlcube_hash"),
+        "mlcube_hash": kwargs.get("mlcube_hash", empty_file_hash),
         "git_parameters_url": kwargs.get("git_parameters_url", "git_parameters_url"),
-        "parameters_hash": kwargs.get("parameters_hash", "parameters_hash"),
+        "parameters_hash": kwargs.get("parameters_hash", empty_file_hash),
         "image_tarball_url": kwargs.get("image_tarball_url", "image_tarball_url"),
-        "image_tarball_hash": kwargs.get("image_tarball_hash", "image_tarball_hash"),
+        "image_tarball_hash": kwargs.get("image_tarball_hash", empty_file_hash),
         "additional_files_tarball_url": kwargs.get(
             "additional_files_tarball_url", "additional_files_tarball_url"
         ),
         "additional_files_tarball_hash": kwargs.get(
-            "additional_files_tarball_hash", "additional_files_tarball_hash"
+            "additional_files_tarball_hash", empty_file_hash
         ),
         "state": kwargs.get("state", "PRODUCTION"),
         "is_valid": kwargs.get("is_valid", True),
@@ -108,14 +114,17 @@ def generate_cube_hashes(**kwargs):
     }
 
 
-def setup_cube_fs(ids, fs):
+def setup_cube_fs(ents, fs):
     cubes_path = storage_path(config.cubes_storage)
-    for id in ids:
-        id = str(id)
+    for ent in ents:
+        if type(ent) != dict:
+            # Assume we're passing ids
+            ent = {"id": str(ent)}
+        id = ent["id"]
         meta_cube_file = os.path.join(cubes_path, id, config.cube_metadata_filename)
         hash_cube_file = os.path.join(cubes_path, id, config.cube_hashes_filename)
         meta = generate_cube(id=id)
-        hashes = generate_cube_hashes(id=id)
+        hashes = generate_cube_hashes(**ent)
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
             fs.create_file(hash_cube_file, contents=yaml.dump(hashes))
@@ -123,7 +132,7 @@ def setup_cube_fs(ids, fs):
             pass
 
 
-def setup_cube_comms(mocker, comms, all_ids, user_ids, uploaded):
+def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
     generate_fn = generate_cube
     comms_calls = {
         "get_all": "get_cubes",
@@ -132,8 +141,47 @@ def setup_cube_comms(mocker, comms, all_ids, user_ids, uploaded):
         "upload_instance": "upload_mlcube",
     }
     mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ids, user_ids, uploaded
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )
+
+
+def generate_cubefile_fn(fs, all_ents, path, filename):
+    all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
+
+    def cubefile_fn(_, id):
+        if id not in all_ids:
+            raise CommunicationRetrievalError
+
+        cube_path = os.path.join(storage_path(config.cubes_storage), id)
+        filepath = os.path.join(cube_path, path, filename)
+        try:
+            fs.create_file(filepath)
+        except FileExistsError:
+            pass
+        return filepath
+
+    return cubefile_fn
+
+
+def setup_cube_comms_downloads(mocker, comms, fs, all_ents):
+    cube_path = ""
+    cube_file = config.cube_filename
+    params_path = config.workspace_path
+    params_file = config.params_filename
+    add_path = config.additional_path
+    add_file = config.tarball_filename
+    img_path = config.image_path
+    img_file = "img.tar.gz"
+
+    get_cube_fn = generate_cubefile_fn(fs, all_ents, cube_path, cube_file)
+    get_params_fn = generate_cubefile_fn(fs, all_ents, params_path, params_file)
+    get_add_fn = generate_cubefile_fn(fs, all_ents, add_path, add_file)
+    get_img_fn = generate_cubefile_fn(fs, all_ents, img_path, img_file)
+
+    mocker.patch.object(comms, "get_cube", side_effect=get_cube_fn)
+    mocker.patch.object(comms, "get_cube_params", side_effect=get_params_fn)
+    mocker.patch.object(comms, "get_cube_additional", side_effect=get_add_fn)
+    mocker.patch.object(comms, "get_cube_image", side_effect=get_img_fn)
 
 
 # DATASET MOCKING
@@ -159,12 +207,15 @@ def generate_dset(**kwargs):
     }
 
 
-def setup_dset_fs(ids, fs):
+def setup_dset_fs(ents, fs):
     dsets_path = storage_path(config.data_storage)
-    for id in ids:
-        id = str(id)
+    for ent in ents:
+        if type(ent) != dict:
+            # Assume passing ids
+            ent = {"id": str(ent)}
+        id = ent["id"]
         reg_dset_file = os.path.join(dsets_path, id, config.reg_file)
-        dset_contents = generate_dset(id=id)
+        dset_contents = generate_dset(**ent)
         cube_id = dset_contents["data_preparation_mlcube"]
         setup_cube_fs([cube_id], fs)
         try:
@@ -173,7 +224,7 @@ def setup_dset_fs(ids, fs):
             pass
 
 
-def setup_dset_comms(mocker, comms, all_ids, user_ids, uploaded):
+def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
     generate_fn = generate_dset
     comms_calls = {
         "get_all": "get_datasets",
@@ -182,7 +233,7 @@ def setup_dset_comms(mocker, comms, all_ids, user_ids, uploaded):
         "upload_instance": "upload_dataset",
     }
     mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ids, user_ids, uploaded
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )
 
 
@@ -204,12 +255,15 @@ def generate_result(**kwargs):
     }
 
 
-def setup_result_fs(ids, fs):
+def setup_result_fs(ents, fs):
     results_path = storage_path(config.results_storage)
-    for id in ids:
-        id = str(id)
+    for ent in ents:
+        if type(ent) != dict:
+            # Assume passing ids
+            ent = {"id": str(ent)}
+        id = ent["id"]
         result_file = os.path.join(results_path, id, config.results_info_file)
-        result_contents = generate_result(id=id)
+        result_contents = generate_result(**ent)
         bmk_id = result_contents["benchmark"]
         cube_id = result_contents["model"]
         dataset_id = result_contents["dataset"]
@@ -222,7 +276,7 @@ def setup_result_fs(ids, fs):
             pass
 
 
-def setup_result_comms(mocker, comms, all_ids, user_ids, uploaded):
+def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
     generate_fn = generate_result
     def_result = generate_result()
     comms_calls = {
@@ -237,5 +291,5 @@ def setup_result_comms(mocker, comms, all_ids, user_ids, uploaded):
         mocker, comms, [def_result["dataset"]], [def_result["dataset"]], uploaded
     )
     mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ids, user_ids, uploaded
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )
