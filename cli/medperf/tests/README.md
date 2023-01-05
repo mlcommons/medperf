@@ -19,14 +19,12 @@ The following are some code style and structure tips to keep testing consistent
 
 - **Implement a `setup` fixture to mock the state**: This setup fixture should be configurable and applicable to all tests for the given interface/instance.
   
-  _Example: Entity Setup_
   https://github.com/aristizabal95/medperf-2/blob/cfc9d3dda3bc0a9363ec5a6db33d69b0d68d005a/cli/medperf/tests/entities/test_entity.py#L27-L56
   
 - **Keep states minimalistic**: Only recreate what is needed for a test to work. Don't overcomplicate your mocked state.
 - **Group tests by method/functionality with classes**: By grouping tests is possible to share fixture configuration, and makes it easier to read both in code and through the IDE testing interface.
 - **Move common test setup to class fixtures**: Another benefit of grouping tests by classes is that you can use class-specific fixtures. These can be used to move common configuration steps into a single location.
 
-  _Example: Cube TestRun Configuration_
   https://github.com/aristizabal95/medperf-2/blob/cfc9d3dda3bc0a9363ec5a6db33d69b0d68d005a/cli/medperf/tests/entities/test_cube.py#L194-L202
 
 - **Use describable names**: Tests are supposed to be self-documenting if done correctly. With a name that briefly describes what is being tested, accompanied by a clean implementation, tests become easy to read.
