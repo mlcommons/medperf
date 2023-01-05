@@ -295,4 +295,3 @@ class TestDefaultOutput:
 
         # Assert
         assert out_path == exp_path
-
