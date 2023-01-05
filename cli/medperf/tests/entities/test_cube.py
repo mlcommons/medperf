@@ -1,25 +1,21 @@
 import os
 import yaml
 import pytest
-from unittest.mock import MagicMock, mock_open, ANY, call
+from unittest.mock import ANY, call
 
 import medperf
 import medperf.config as config
-from medperf.comms.interface import Comms
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
-from medperf.tests.utils import cube_local_hashes_generator
 from medperf.tests.entities.utils import (
     setup_cube_fs,
     setup_cube_comms,
     setup_cube_comms_downloads,
 )
 from medperf.tests.mocks.pexpect import MockPexpect
-from medperf.tests.mocks.requests import cube_metadata_generator
 from medperf.exceptions import (
     ExecutionError,
     InvalidEntityError,
-    CommunicationRetrievalError,
 )
 
 PATCH_CUBE = "medperf.entities.cube.{}"
@@ -47,9 +43,6 @@ INVALID_CUBES = [
 CUBE_CONTENTS = {
     "tasks": {"task": {"parameters": {"outputs": {"out_key": "out_value"}}}}
 }
-
-PARAM_KEY = "param_key"
-PARAM_VALUE = "param_value"
 
 
 @pytest.fixture(
