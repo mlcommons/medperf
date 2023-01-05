@@ -266,7 +266,7 @@ class TestDefaultOutput:
             out_val_path = out_value["default"]
         self.output = os.path.join(self.cube_path, config.workspace_path, out_val_path)
 
-    def test_default_output_returns_path(self, task, out_key):
+    def test_default_output_returns_expected_path(self, task, out_key):
         # Arrange
         cube = Cube.get(self.uid)
 
