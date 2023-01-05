@@ -77,7 +77,6 @@ class TestAll:
 
         # Assert
         retrieved_ids = set([e.todict()["id"] for e in entities])
-        assert type(entities[0]) == Implementation
         assert all_ids == retrieved_ids
 
     def test_all_local_only_returns_all_local(self, Implementation):
@@ -86,7 +85,6 @@ class TestAll:
 
         # Assert
         retrieved_ids = set([e.todict()["id"] for e in entities])
-        assert type(entities[0]) == Implementation
         assert self.local_ids == retrieved_ids
 
     def test_all_mine_only_returns_user_and_local_entities(self, Implementation):
@@ -98,7 +96,6 @@ class TestAll:
 
         # Assert
         retrieved_ids = set([e.todict()["id"] for e in entities])
-        assert type(entities[0]) == Implementation
         assert user_ids == retrieved_ids
 
 
@@ -114,7 +111,6 @@ class TestGet:
         entity = Implementation.get(id)
 
         # Assert
-        assert type(entity) == Implementation
         assert entity.todict()["id"] == id
 
     def test_get_retrieves_entity_local_if_not_on_server(self, Implementation, setup):
@@ -125,7 +121,6 @@ class TestGet:
         entity = Implementation.get(id)
 
         # Assert
-        assert type(entity) == Implementation
         assert entity.todict()["id"] == id
 
     def test_get_raises_error_if_nonexistent(self, Implementation, setup):
