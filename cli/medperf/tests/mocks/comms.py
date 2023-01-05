@@ -92,4 +92,3 @@ def upload_comms_instance_behavior(uploaded: List) -> Callable:
         return entity_dict
 
     return upload_behavior
-
