@@ -1,6 +1,5 @@
 import os
 import pytest
-import medperf
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
