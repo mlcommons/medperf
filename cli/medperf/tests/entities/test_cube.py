@@ -1,4 +1,5 @@
 import os
+import yaml
 import pytest
 from unittest.mock import MagicMock, mock_open, ANY, call
 
@@ -43,9 +44,10 @@ INVALID_CUBES = [
     {"remote": [{"id": "286", "additional_files_tarball_hash": "incorrect"}]},
 ]
 
-TASK = "task"
-OUT_KEY = "out_key"
-VALUE = "value"
+CUBE_CONTENTS = {
+    "tasks": {"task": {"parameters": {"outputs": {"out_key": "out_value"}}}}
+}
+
 PARAM_KEY = "param_key"
 PARAM_VALUE = "param_value"
 
@@ -246,82 +248,58 @@ class TestRun:
             cube.run(task)
 
 
-def test_default_output_reads_cube_manifest(mocker, comms, basic_body, no_local):
-    # Arrange
-    # TODO: allow passing contents to mocked files
-    cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
-    spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-    m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
+@pytest.mark.parametrize("setup", [{"local": [BASIC_CUBE]}], indirect=True)
+@pytest.mark.parametrize("task", ["task"])
+@pytest.mark.parametrize(
+    "out_key,out_value",
+    [["predictions_path", "preds"], ["path", {"default": "results"}]],
+)
+class TestDefaultOutput:
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, fs, setup, task, out_key, out_value):
+        self.uid = setup["local"][0]["id"]
 
-    # Act
-    uid = 1
-    cube = Cube.get(uid)
-    cube.get_default_output(TASK, OUT_KEY)
+        # Create a manifest file with minimum required contents
+        self.cube_contents = {
+            "tasks": {task: {"parameters": {"outputs": {out_key: out_value}}}}
+        }
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.uid)
+        self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
+        fs.create_file(self.manifest_path, contents=yaml.dump(self.cube_contents))
 
-    # Assert
-    spy.assert_called_once_with(CUBE_PATH, "r")
+        # Construct the expected output path
+        out_val_path = out_value
+        if type(out_value) == dict:
+            out_val_path = out_value["default"]
+        self.output = os.path.join(self.cube_path, config.workspace_path, out_val_path)
 
+    def test_default_output_returns_path(self, task, out_key):
+        # Arrange
+        cube = Cube.get(self.uid)
 
-def test_default_output_returns_specified_path(mocker, comms, basic_body, no_local):
-    # Arrange
-    cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-    m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
+        # Act
+        default_output = cube.get_default_output(task, out_key)
 
-    exp_path = f"./workspace/{VALUE}"
+        # Assert
+        assert default_output == self.output
 
-    # Act
-    uid = 1
-    cube = Cube.get(uid)
-    out_path = cube.get_default_output(TASK, OUT_KEY)
+    @pytest.mark.parametrize("param_key,param_val", [["key", "val"]])
+    def test_default_output_returns_path_with_params(
+        self, fs, task, out_key, param_key, param_val
+    ):
+        # Arrange
+        # Create a params file with minimal content
+        params_contents = {param_key: param_val}
+        params_path = os.path.join(self.cube_path, config.params_filename)
+        fs.create_file(params_path, contents=yaml.dump(params_contents))
 
-    # Assert
-    assert out_path == exp_path
+        # Construct the expected path
+        exp_path = os.path.join(self.output, param_val)
 
+        # Act
+        cube = Cube.get(self.uid)
+        out_path = cube.get_default_output(task, out_key, param_key)
 
-def test_default_output_returns_specified_dict_path(
-    mocker, comms, basic_body, no_local
-):
-    # Arrange
-    cube_contents = {
-        "tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: {"default": VALUE}}}}}
-    }
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-    m = MagicMock(side_effect=[cube_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
-
-    exp_path = f"./workspace/{VALUE}"
-
-    # Act
-    uid = 1
-    cube = Cube.get(uid)
-    out_path = cube.get_default_output(TASK, OUT_KEY)
-
-    # Assert
-    assert out_path == exp_path
-
-
-def test_default_output_returns_path_with_params(mocker, comms, params_body, no_local):
-    # Arrange
-    cube_contents = {"tasks": {TASK: {"parameters": {"outputs": {OUT_KEY: VALUE}}}}}
-    params_contents = {PARAM_KEY: PARAM_VALUE}
-    mocker.patch("builtins.open", MagicMock())
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-    m = MagicMock(side_effect=[cube_contents, params_contents])
-    mocker.patch(PATCH_CUBE.format("yaml.safe_load"), m)
-
-    exp_path = f"./workspace/{VALUE}/{PARAM_VALUE}"
-
-    # Act
-    uid = 1
-    cube = Cube.get(uid)
-    out_path = cube.get_default_output(TASK, OUT_KEY, PARAM_KEY)
-
-    # Assert
-    assert out_path == exp_path
+        # Assert
+        assert out_path == exp_path
 
