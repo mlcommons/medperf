@@ -61,12 +61,16 @@ def setup(request, mocker, comms, Implementation, fs):
     indirect=True,
 )
 class TestAll:
-    def test_all_returns_all_remote_and_local(self, Implementation, setup):
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, setup):
+        self.ids = setup
+        self.local_ids = set(self.ids["local"])
+        self.remote_ids = set(self.ids["remote"])
+        self.user_ids = set(self.ids["user"])
+
+    def test_all_returns_all_remote_and_local(self, Implementation):
         # Arrange
-        ids = setup
-        local_ids = set(ids["local"])
-        remote_ids = set(ids["remote"])
-        all_ids = local_ids.union(remote_ids)
+        all_ids = self.local_ids.union(self.remote_ids)
 
         # Act
         entities = Implementation.all()
@@ -76,27 +80,18 @@ class TestAll:
         assert type(entities[0]) == Implementation
         assert all_ids == retrieved_ids
 
-    def test_all_local_only_returns_all_local(self, Implementation, setup):
-        # Arrange
-        ids = setup
-        local_ids = set(ids["local"])
-
+    def test_all_local_only_returns_all_local(self, Implementation):
         # Act
         entities = Implementation.all(local_only=True)
 
         # Assert
         retrieved_ids = set([e.todict()["id"] for e in entities])
         assert type(entities[0]) == Implementation
-        assert local_ids == retrieved_ids
+        assert self.local_ids == retrieved_ids
 
-    def test_all_mine_only_returns_user_and_local_entities(
-        self, Implementation, setup, fs
-    ):
+    def test_all_mine_only_returns_user_and_local_entities(self, Implementation):
         # Arrange
-        ids = setup
-        user_ids = set(ids["user"])
-        local_ids = set(ids["local"])
-        user_ids = user_ids.union(local_ids)
+        user_ids = self.user_ids.union(self.local_ids)
 
         # Act
         entities = Implementation.all(mine_only=True)
@@ -146,23 +141,25 @@ class TestGet:
     "setup", [{"local": ["742"]}], indirect=True,
 )
 class TestToDict:
-    def test_todict_returns_dict_representation(self, Implementation, setup):
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, setup):
+        self.id = setup["local"][0]
+
+    def test_todict_returns_dict_representation(self, Implementation):
         # Arrange
-        id = setup["local"][0]
+        ent = Implementation.get(self.id)
 
         # Act
-        ent = Implementation.get(id)
         ent_dict = ent.todict()
 
         # Assert
         assert type(ent_dict) == dict
 
-    def test_todict_can_recreate_object(self, Implementation, setup):
+    def test_todict_can_recreate_object(self, Implementation):
         # Arrange
-        id = setup["local"][0]
+        ent = Implementation.get(self.id)
 
         # Act
-        ent = Implementation.get(id)
         ent_dict = ent.todict()
         ent_copy = Implementation(ent_dict)
         ent_copy_dict = ent_copy.todict()
@@ -175,24 +172,26 @@ class TestToDict:
     "setup", [{"local": ["36"]}], indirect=True,
 )
 class TestUpload:
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, setup):
+        self.id = setup["local"][0]
+
     def test_upload_adds_to_remote(self, Implementation, setup):
         # Arrange
-        id = setup["local"][0]
         uploaded_entities = setup["uploaded"]
+        ent = Implementation.get(self.id)
 
         # Act
-        ent = Implementation.get(id)
         ent.upload()
 
         # Assert
         assert ent.todict() in uploaded_entities
 
-    def test_upload_returns_dict(self, Implementation, setup):
+    def test_upload_returns_dict(self, Implementation):
         # Arrange
-        id = setup["local"][0]
+        ent = Implementation.get(self.id)
 
         # Act
-        ent = Implementation.get(id)
         ent_dict = ent.upload()
 
         # Assert
@@ -208,8 +207,6 @@ class TestWrite:
     def test_write_stores_entity_locally(self, mocker, Implementation, setup):
         # Arrange
         id = setup["remote"][0]
-        # Disable cube download procedure
-        mocker.patch.object(Cube, "is_valid", return_value=True)
 
         # Act
         ent = Implementation.get(id)
