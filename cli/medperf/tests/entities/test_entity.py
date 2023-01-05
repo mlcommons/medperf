@@ -199,7 +199,7 @@ class TestUpload:
     indirect=True,
 )
 class TestWrite:
-    def test_write_stores_entity_locally(self, mocker, Implementation, setup):
+    def test_write_stores_entity_locally(self, Implementation, setup):
         # Arrange
         id = setup["remote"][0]
 
