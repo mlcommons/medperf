@@ -62,16 +62,7 @@ class TestTmp:
 
 
 @pytest.mark.parametrize(
-    "setup",
-    [
-        {
-            "local": [],
-            "remote": ["27", "1", "2"],
-            "user": ["2"],
-            "models": ["37", "2783", "495"],
-        }
-    ],
-    indirect=True,
+    "setup", [{"remote": ["721"], "models": ["37", "23", "495"],}], indirect=True,
 )
 class TestModels:
     def test_benchmark_includes_reference_model_in_models(self, setup):
