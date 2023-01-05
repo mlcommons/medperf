@@ -1,5 +1,6 @@
 import os
 import pytest
+import medperf
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
@@ -9,6 +10,7 @@ from medperf.tests.entities.utils import (
     setup_benchmark_comms,
     setup_cube_fs,
     setup_cube_comms,
+    setup_cube_comms_downloads,
     setup_dset_fs,
     setup_dset_comms,
     setup_result_fs,
@@ -38,6 +40,8 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Cube:
         setup_fs = setup_cube_fs
         setup_comms = setup_cube_comms
+        setup_cube_comms_downloads(mocker, comms, fs, remote_ids)
+        mocker.patch("medperf.entities.cube.untar")
     elif Implementation == Dataset:
         setup_fs = setup_dset_fs
         setup_comms = setup_dset_comms
@@ -108,11 +112,9 @@ class TestAll:
     "setup", [{"local": ["78"], "remote": ["479", "42", "7", "1"]}], indirect=True,
 )
 class TestGet:
-    def test_get_retrieves_entity_from_server(self, mocker, Implementation, setup):
+    def test_get_retrieves_entity_from_server(self, Implementation, setup):
         # Arrange
         id = setup["remote"][0]
-        # Disable cube download procedure
-        mocker.patch.object(Cube, "is_valid", return_value=True)
 
         # Act
         entity = Implementation.get(id)
@@ -121,13 +123,9 @@ class TestGet:
         assert type(entity) == Implementation
         assert entity.todict()["id"] == id
 
-    def test_get_retrieves_entity_local_if_not_on_server(
-        self, mocker, Implementation, setup
-    ):
+    def test_get_retrieves_entity_local_if_not_on_server(self, Implementation, setup):
         # Arrange
         id = setup["local"][0]
-        # Disable cube download procedure
-        mocker.patch.object(Cube, "is_valid", return_value=True)
 
         # Act
         entity = Implementation.get(id)
