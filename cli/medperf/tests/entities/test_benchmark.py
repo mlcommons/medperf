@@ -34,9 +34,9 @@ def setup(request, mocker, comms, fs):
     return request.param
 
 
-@pytest.mark.parametrize("data_prep", ["12", "78"])
-@pytest.mark.parametrize("model", ["654", "4"])
-@pytest.mark.parametrize("eval", ["6", "354"])
+@pytest.mark.parametrize(
+    "data_prep,model,eval", [["12", "654", "6"], ["78", "4", "354"]]
+)
 class TestTmp:
     def test_tmp_creates_temporary_benchmark(self, data_prep, model, eval):
         # Act
