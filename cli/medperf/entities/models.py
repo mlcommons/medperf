@@ -62,3 +62,24 @@ class CubeModel(MedPerfModel):
     additional_files_tarball_hash: str = Field(..., alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
+
+
+class DatasetModel(MedPerfModel):
+    name: str = Field(..., max_length=20)
+    description: Optional[str] = Field(..., max_length=20)
+    location: str = Field(..., max_length=20)
+    data_preparation_mlcube: int
+    input_data_hash: str
+    generated_uid: str
+    split_seed: Optional[int]
+    generated_metadata: dict = Field(..., alias="metadata")
+    status: Status = None
+    separate_labels: Optional[bool]
+    user_metadata: dict = {}
+
+    @validator("status", pre=True, always=True)
+    def default_status(cls, v, *, values, **kwargs):
+        default = Status.PENDING
+        if values["id"] is not None:
+            default = Status.APPROVED
+        return Status(v) or default

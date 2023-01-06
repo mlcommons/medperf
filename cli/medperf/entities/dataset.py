@@ -6,7 +6,12 @@ from typing import List
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidArgumentError, MedperfException, CommunicationRetrievalError
+from medperf.entities.models import DatasetModel
+from medperf.exceptions import (
+    InvalidArgumentError,
+    MedperfException,
+    CommunicationRetrievalError,
+)
 import medperf.config as config
 
 
@@ -29,40 +34,11 @@ class Dataset(Entity):
         Raises:
             NameError: If the dataset with the given UID can't be found, this is thrown.
         """
-
-        self.generated_uid = dataset_dict["generated_uid"]
-        self.name = dataset_dict["name"]
-        self.description = dataset_dict["description"]
-        self.location = dataset_dict["location"]
-        self.preparation_cube_uid = dataset_dict["data_preparation_mlcube"]
-        self.input_data_hash = dataset_dict["input_data_hash"]
-        self.separate_labels = dataset_dict.get(
-            "separate_labels", None
-        )  # not in the server
-        self.split_seed = dataset_dict["split_seed"]
-        if "metadata" in dataset_dict:
-            # Make sure it is backwards-compatible
-            self.generated_metadata = dataset_dict["metadata"]
-        else:
-            self.generated_metadata = dataset_dict["generated_metadata"]
-        if "status" in dataset_dict:
-            self.status = Status(dataset_dict["status"])  # not in the server
-        else:
-            self.status = (
-                Status.PENDING if dataset_dict["id"] is None else Status.APPROVED
-            )
-        self.state = dataset_dict["state"]
-        self.is_valid = dataset_dict["is_valid"]
-        self.user_metadata = dataset_dict["user_metadata"]
-
-        self.uid = dataset_dict["id"]
-        self.created_at = dataset_dict["created_at"]
-        self.modified_at = dataset_dict["modified_at"]
-        self.owner = dataset_dict["owner"]
+        self.model = DatasetModel(**dataset_dict)
 
         path = storage_path(config.data_storage)
-        if self.uid:
-            path = os.path.join(path, str(self.uid))
+        if self.model.id:
+            path = os.path.join(path, str(self.model.id))
         else:
             path = os.path.join(path, str(self.generated_uid))
 
@@ -73,25 +49,7 @@ class Dataset(Entity):
             self.labels_path = os.path.join(self.path, "labels")
 
     def todict(self):
-        return {
-            "id": self.uid,
-            "name": self.name,
-            "description": self.description,
-            "location": self.location,
-            "data_preparation_mlcube": self.preparation_cube_uid,
-            "input_data_hash": self.input_data_hash,
-            "generated_uid": self.generated_uid,
-            "split_seed": self.split_seed,
-            "generated_metadata": self.generated_metadata,
-            "status": self.status.value,  # not in the server
-            "state": self.state,
-            "separate_labels": self.separate_labels,  # not in the server
-            "is_valid": self.is_valid,
-            "user_metadata": self.user_metadata,
-            "created_at": self.created_at,
-            "modified_at": self.modified_at,
-            "owner": self.owner,
-        }
+        return self.model.extended_dict()
 
     @classmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Dataset"]:
@@ -109,11 +67,11 @@ class Dataset(Entity):
         if not local_only:
             dsets = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([dset.uid for dset in dsets])
+        remote_uids = set([dset.model.id for dset in dsets])
 
         local_dsets = cls.__local_all()
 
-        dsets += [dset for dset in local_dsets if dset.uid not in remote_uids]
+        dsets += [dset for dset in local_dsets if dset.model.id not in remote_uids]
 
         return dsets
 
@@ -180,7 +138,7 @@ class Dataset(Entity):
         return dataset
 
     def write(self):
-        logging.info(f"Updating registration information for dataset: {self.uid}")
+        logging.info(f"Updating registration information for dataset: {self.model.id}")
         logging.debug(f"registration information: {self.todict()}")
         regfile = os.path.join(self.path, config.reg_file)
         os.makedirs(self.path, exist_ok=True)
