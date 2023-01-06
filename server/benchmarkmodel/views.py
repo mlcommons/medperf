@@ -3,6 +3,7 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 from .permissions import IsAdmin, IsMlCubeOwner, IsBenchmarkOwner
 from .serializers import (
@@ -39,6 +40,7 @@ class BenchmarkModelApproval(GenericAPIView):
         except BenchmarkModel.DoesNotExist:
             raise Http404
 
+    @extend_schema(operation_id="mlcubes_benchmarks_retrieve_all")
     def get(self, request, pk, format=None):
         """
         Retrieve all benchmarks associated with a model

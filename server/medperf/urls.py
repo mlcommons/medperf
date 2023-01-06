@@ -17,37 +17,26 @@ from django.contrib import admin
 from django.urls import include, re_path, path
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from django.conf import settings
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="MedPerf API",
-        default_version="v1",
-        description="MedPerf API description",
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+from utils.views import ServerAPIVersion
 
 urlpatterns = [
-    re_path(
-        r"^swagger(?P<format>\.json|\.yaml)$",
-        schema_view.without_ui(cache_timeout=0),
-        name="schema-json",
-    ),
-    re_path(
-        r"^swagger/$",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
-    ),
-    re_path(r"^$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc",),
-    path("admin/", admin.site.urls),
-    path("benchmarks/", include("benchmark.urls")),
-    path("mlcubes/", include("mlcube.urls")),
-    path("datasets/", include("dataset.urls")),
-    path("results/", include("result.urls")),
-    path("users/", include("user.urls")),
-    path("me/", include("utils.urls")),
-    path("auth-token/", obtain_auth_token, name="auth-token"),
+    path("schema/", SpectacularAPIView.as_view(api_version=settings.SERVER_API_VERSION), name="schema"),
+    path("swagger/", SpectacularSwaggerView.as_view(), name="swagger-ui"),
+    re_path(r"^$", SpectacularRedocView.as_view(), name="redoc"),
+    path("admin/", admin.site.urls, name="admin"),
+    path("version", ServerAPIVersion.as_view(), name="get-version"),
+    path('api/', include([
+        path('v1/', include([
+            path("benchmarks/", include("benchmark.urls", namespace="v1"), name="benchmark"),
+            path("mlcubes/", include("mlcube.urls", namespace="v1"), name="mlcube"),
+            path("datasets/", include("dataset.urls", namespace="v1"), name="dataset"),
+            path("results/", include("result.urls", namespace="v1"), name="result"),
+            path("users/", include("user.urls", namespace="v1"), name="users"),
+            path("me/", include("utils.urls", namespace="v1"), name="me"),
+            path("auth-token/", obtain_auth_token, name="auth-token"),
+        ])),
+    ])),
 ]
