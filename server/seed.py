@@ -38,7 +38,7 @@ class Server:
         if token:
             headers = {"Authorization": "Token " + token}
         headers.update(
-                {"accept": "application/json", "Content-Type": "application/json"}
+            {"accept": "application/json", "Content-Type": "application/json"}
         )
         try:
             resp = requests.request(
