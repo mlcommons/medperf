@@ -34,7 +34,7 @@ class MedPerfModel(BaseModel):
 
 class BenchmarkModel(MedPerfModel):
     name: str = Field(..., max_length=20)
-    description: str = Field(..., max_length=20)
+    description: Optional[str] = Field(..., max_length=20)
     docs_url: Optional[HttpUrl]
     demo_dataset_tarball_url: HttpUrl
     demo_dataset_tarball_hash: str
