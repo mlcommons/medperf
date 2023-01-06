@@ -27,9 +27,11 @@ def cube(mocker):
 @pytest.fixture
 def execution(mocker, comms, ui, cube):
     mock_dset = mocker.create_autospec(spec=Dataset)
+    mock_dset.generated_uid = "gen_uid"
     mock_bmark = mocker.create_autospec(spec=Benchmark)
     mocker.patch(PATCH_EXECUTION.format("init_storage"))
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
+    mocker.patch("medperf.entities.result.Dataset.get", return_value=mock_dset)
     mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
     exec = BenchmarkExecution(0, 0, 0)
     exec.prepare()
@@ -133,7 +135,7 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
     labels_path = "labels_path"
     cube_path = "cube_path"
     model_uid = str(execution.model_cube.uid)
-    data_uid = execution.dataset.generated_uid
+    data_uid = str(execution.dataset.uid)
     preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
     preds_path = storage_path(preds_path)
     result_path = os.path.join(execution.out_path, config.results_filename)
@@ -209,9 +211,6 @@ def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
 
     mocker.patch.object(
         failed_cube, "run", side_effect=ExecutionError,
-    )
-    mocker.patch(
-        PATCH_EXECUTION.format("results_path"), return_value=out_path,
     )
     mocker.patch(
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
@@ -294,7 +293,6 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
     execution.dataset.data_path = "data_path"
     execution.model_cube.cube_path = "cube_path"
     execution.ignore_errors = ignore_errors
-    out_path = "out_path"
     preds_path = "preds_path"
 
     if mlcube == "model":
@@ -304,9 +302,6 @@ def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_
 
     mocker.patch.object(
         failed_cube, "run", side_effect=ExecutionError,
-    )
-    mocker.patch(
-        PATCH_EXECUTION.format("results_path"), return_value=out_path,
     )
     mocker.patch(
         PATCH_EXECUTION.format("storage_path"), return_value=preds_path,

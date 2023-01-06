@@ -36,7 +36,7 @@ class SubmitCube:
             submission.download()
             ui.text = "Submitting MLCube to MedPerf"
             updated_cube_dict = submission.upload()
-            submission.to_permanent_path(updated_cube_dict["id"])
+            submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
 
     def __init__(self, submit_info: dict):
@@ -126,13 +126,14 @@ class SubmitCube:
         updated_body = Cube(body).upload()
         return updated_body
 
-    def to_permanent_path(self, cube_uid):
+    def to_permanent_path(self, cube_dict):
         """Renames the temporary cube submission to a permanent one using the uid of
         the registered cube
         """
+        cube = Cube(cube_dict)
         cubes_storage = storage_path(config.cubes_storage)
-        old_cube_loc = os.path.join(cubes_storage, config.cube_submission_id)
-        new_cube_loc = os.path.join(cubes_storage, str(cube_uid))
+        old_cube_loc = os.path.join(cubes_storage, cube.generated_uid)
+        new_cube_loc = cube.path
         if os.path.exists(new_cube_loc):
             shutil.rmtree(new_cube_loc)
         os.rename(old_cube_loc, new_cube_loc)

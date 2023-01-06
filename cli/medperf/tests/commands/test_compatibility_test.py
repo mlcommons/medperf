@@ -46,10 +46,11 @@ def default_setup(mocker, benchmark, dataset):
         return_value=("", ""),
     )
     mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value="")
-    mocker.patch(PATCH_TEST.format("Dataset.from_generated_uid"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Dataset.get"), return_value=dataset)
     mocker.patch(
         PATCH_TEST.format("CompatibilityTestExecution.cached_result"), return_value=None
     )
+    bmk.generated_uid = "generated_uid"
     return bmk
 
 
@@ -268,7 +269,7 @@ def test_execute_benchmark_runs_benchmark_workflow(
 ):
     # Arrange
     spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
-    mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
+    mocker.patch(PATCH_TEST.format("Result.get"))
     exec = CompatibilityTestExecution(1, None, None, None, None)
     exec.dataset = dataset
 
@@ -433,7 +434,7 @@ def test_run_uses_correct_uids(
     bmk_model_uid = "b2"
     bmk_eval_uid = "b3"
     demo_dataset_uid = "d1"
-    tmp_uid = "t1"
+    generated_uid = "t1"
 
     bmk = benchmark(bmk_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
     bmk.demo_dataset_url = "url"
@@ -448,11 +449,13 @@ def test_run_uses_correct_uids(
     mocker.patch(
         PATCH_TEST.format("DataPreparation.run"), return_value=demo_dataset_uid
     )
-    mocker.patch(PATCH_TEST.format("Dataset.from_generated_uid"), return_value=dataset)
-    mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
+    mocker.patch(PATCH_TEST.format("Dataset.get"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Result.get"))
 
     def tmp_side_effect(prep, model, eval):
-        return benchmark(tmp_uid, prep, model, eval)
+        bmk = benchmark(generated_uid, prep, model, eval)
+        bmk.generated_uid = generated_uid
+        return bmk
 
     tmp_spy = mocker.patch(
         PATCH_TEST.format("Benchmark.tmp"), side_effect=tmp_side_effect
@@ -478,10 +481,16 @@ def test_run_uses_correct_uids(
         return
 
     # Assert
-    tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
-    exec_spy.assert_called_once_with(
-        tmp_uid, exp_data_uid, exp_model_uid, run_test=True
-    )
+    if bmk_uid is None:
+        tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
+        exec_spy.assert_called_once_with(
+            generated_uid, exp_data_uid, exp_model_uid, run_test=True
+        )
+    else:
+        tmp_spy.assert_not_called()
+        exec_spy.assert_called_once_with(
+            bmk_uid, exp_data_uid, exp_model_uid, run_test=True
+        )
 
 
 @pytest.mark.parametrize("files_already_exist", [True, False])
@@ -526,7 +535,7 @@ def test_cached_result_looks_for_result_if_not_force(
     # Arrange
     cls = CompatibilityTestExecution("1", "1", "1", "1", None, force_test=force_test)
     cls.dataset = dataset
-    spy = mocker.patch(PATCH_TEST.format("Result.from_entities_uids"))
+    spy = mocker.patch(PATCH_TEST.format("Result.get"))
 
     # Act
     cls.cached_result()
