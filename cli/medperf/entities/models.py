@@ -7,6 +7,7 @@ from medperf.enums import Status
 
 class MedPerfModel(BaseModel):
     id: Optional[Union[int, str]]
+    name: str = Field(..., max_length=20)
     owner: Optional[int]
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
@@ -32,8 +33,16 @@ class MedPerfModel(BaseModel):
         return v
 
 
-class BenchmarkModel(MedPerfModel):
-    name: str = Field(..., max_length=20)
+class ApprovableModel(MedPerfModel):
+    approved_at: Optional[datetime]
+    approval_status: Status = None
+
+    @validator("approval_status", pre=True, always=True)
+    def default_status(cls, v):
+        return Status(v) or Status.PENDING
+
+
+class BenchmarkModel(ApprovableModel):
     description: Optional[str] = Field(..., max_length=20)
     docs_url: Optional[HttpUrl]
     demo_dataset_tarball_url: HttpUrl
@@ -45,13 +54,10 @@ class BenchmarkModel(MedPerfModel):
     models: List[int]
     metadata: dict = {}
     user_metadata: dict = {}
-    approved_at: Optional[datetime]
-    approval_status: Status = Status.PENDING
     is_active: bool = True
 
 
 class CubeModel(MedPerfModel):
-    name: str = Field(..., max_length=20)
     git_mlcube_url: HttpUrl
     mlcube_hash: str
     git_parameters_url: HttpUrl
@@ -65,7 +71,6 @@ class CubeModel(MedPerfModel):
 
 
 class DatasetModel(MedPerfModel):
-    name: str = Field(..., max_length=20)
     description: Optional[str] = Field(..., max_length=20)
     location: str = Field(..., max_length=20)
     data_preparation_mlcube: int
@@ -83,3 +88,11 @@ class DatasetModel(MedPerfModel):
         if values["id"] is not None:
             default = Status.APPROVED
         return Status(v) or default
+
+
+class ResultModel(ApprovableModel):
+    benchmark: int
+    model: int
+    dataset: int
+    results: dict
+    metadata: dict = {}

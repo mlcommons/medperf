@@ -6,6 +6,7 @@ from typing import List
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
+from medperf.entities.models import ResultModel
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
@@ -31,26 +32,15 @@ class Result(Entity):
             model_uid (str): UID of the model used.
             results()
         """
-        self.uid = results_info["id"]
-        self.name = results_info["name"]
-        self.owner = results_info["owner"]
-        self.benchmark_uid = results_info["benchmark"]
-        self.model_uid = results_info["model"]
-        self.dataset_uid = results_info["dataset"]
-        self.results = results_info["results"]
-        self.status = Status(results_info["approval_status"])
-        self.metadata = results_info["metadata"]
-        self.approved_at = results_info["approved_at"]
-        self.created_at = results_info["created_at"]
-        self.modified_at = results_info["modified_at"]
+        self.model = ResultModel(**results_info)
 
-        dset = Dataset.get(self.dataset_uid)
+        dset = Dataset.get(self.model.dataset)
         self.generated_uid = (
-            f"b{self.benchmark_uid}m{self.model_uid}d{dset.generated_uid}"
+            f"b{self.model.benchmark}m{self.model.model}d{dset.generated_uid}"
         )
         path = storage_path(config.results_storage)
-        if self.uid:
-            path = os.path.join(path, str(self.uid))
+        if self.model.id:
+            path = os.path.join(path, str(self.model.id))
         else:
             path = os.path.join(path, self.generated_uid)
 
@@ -72,11 +62,11 @@ class Result(Entity):
         if not local_only:
             results = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([result.uid for result in results])
+        remote_uids = set([result.model.id for result in results])
 
         local_results = cls.__local_all()
 
-        results += [res for res in local_results if res.uid not in remote_uids]
+        results += [res for res in local_results if res.model.id not in remote_uids]
 
         return results
 
@@ -141,20 +131,7 @@ class Result(Entity):
         return result
 
     def todict(self):
-        return {
-            "id": self.uid,
-            "name": self.name,
-            "owner": self.owner,
-            "benchmark": self.benchmark_uid,
-            "model": self.model_uid,
-            "dataset": self.dataset_uid,
-            "results": self.results,
-            "metadata": self.metadata,
-            "approval_status": self.status.value,
-            "approved_at": self.approved_at,
-            "created_at": self.created_at,
-            "modified_at": self.modified_at,
-        }
+        return self.model.extended_dict()
 
     def upload(self):
         """Uploads the results to the comms
