@@ -1,10 +1,11 @@
 import os
 import shutil
 import logging
-from medperf.enums import Status
 import validators
+from pydantic import ValidationError
 
 import medperf.config as config
+from medperf.enums import Status
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import get_file_sha1, generate_tmp_uid, storage_path
 from medperf.commands.compatibility_test import CompatibilityTestExecution
@@ -29,8 +30,6 @@ class SubmitBenchmark:
         """
         ui = config.ui
         submission = cls(benchmark_info, force_test)
-        if not submission.is_valid():
-            raise InvalidArgumentError("Invalid benchmark information")
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -43,18 +42,9 @@ class SubmitBenchmark:
         submission.write(updated_benchmark_body)
 
     def __init__(self, benchmark_info: dict, force_test: bool = True):
+        self.benchmark_info = benchmark_info
         self.comms = config.comms
         self.ui = config.ui
-        self.name = benchmark_info["name"]
-        self.description = benchmark_info["description"]
-        self.docs_url = benchmark_info["docs_url"]
-        self.demo_url = benchmark_info["demo_url"]
-        self.demo_hash = benchmark_info["demo_hash"]
-        self.demo_uid = None
-        self.data_preparation_mlcube = benchmark_info["data_preparation_mlcube"]
-        self.reference_model_mlcube = benchmark_info["reference_model_mlcube"]
-        self.data_evaluator_mlcube = benchmark_info["evaluator_mlcube"]
-        self.results = None
         self.force_test = force_test
 
     def is_valid(self) -> bool:
@@ -63,20 +53,12 @@ class SubmitBenchmark:
         Returns:
             bool: Wether or not the benchmark information is valid
         """
-        name_valid_length = 0 < len(self.name) < 20
-        desc_valid_length = len(self.description) < 100
-        docs_url_valid = self.docs_url == "" or validators.url(self.docs_url)
-        demo_url_valid = self.demo_url == "" or validators.url(self.demo_url)
         demo_hash_if_no_url = self.demo_url or self.demo_hash
         prep_uid_valid = self.data_preparation_mlcube.isdigit()
         model_uid_valid = self.reference_model_mlcube.isdigit()
         eval_uid_valid = self.data_evaluator_mlcube.isdigit()
 
         valid_tests = [
-            ("name", name_valid_length, "Name is invalid"),
-            ("description", desc_valid_length, "Description is too long"),
-            ("docs_url", docs_url_valid, "Documentation URL is invalid"),
-            ("demo_url", demo_url_valid, "Demo Dataset Tarball URL is invalid"),
             (
                 "demo_hash",
                 demo_hash_if_no_url,

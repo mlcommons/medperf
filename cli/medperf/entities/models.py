@@ -43,10 +43,10 @@ class ApprovableModel(MedPerfModel):
 
 
 class BenchmarkModel(ApprovableModel):
-    description: Optional[str] = Field(..., max_length=20)
+    description: Optional[str] = Field(..., max_length=100)
     docs_url: Optional[HttpUrl]
-    demo_dataset_tarball_url: HttpUrl
-    demo_dataset_tarball_hash: str
+    demo_dataset_tarball_url: Optional[HttpUrl]
+    demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]
     data_preparation_mlcube: int
     reference_model_mlcube: int
@@ -55,6 +55,11 @@ class BenchmarkModel(ApprovableModel):
     metadata: dict = {}
     user_metadata: dict = {}
     is_active: bool = True
+
+    @validator("demo_dataset_tarball_hash")
+    def hash_exists_if_no_url(cls, v, values, **kwargs):
+        if v is None and values["demo_dataset_tarball_url"] is None:
+            raise KeyError("demo_dataset_tarball_url")
 
 
 class CubeModel(MedPerfModel):
