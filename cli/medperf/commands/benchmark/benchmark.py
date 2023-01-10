@@ -6,7 +6,7 @@ from medperf.decorators import clean_except
 from medperf.commands.benchmark.list import BenchmarksList
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
-from medperf.commands.benchmark.run import BenchmarkRunAll
+from medperf.commands.result.create import BenchmarkExecution
 
 app = typer.Typer()
 
@@ -107,5 +107,12 @@ def run(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    BenchmarkRunAll.run(benchmark_uid, data_uid, ignore_errors=ignore_errors)
+    BenchmarkExecution.run(
+        benchmark_uid,
+        data_uid,
+        models_uids=None,
+        ignore_errors=ignore_errors,
+        show_summary=True,
+        ignore_failed_experiments=True
+    )
     config.ui.print("✅ Done!")

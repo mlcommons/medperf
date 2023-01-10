@@ -116,7 +116,7 @@ class CompatibilityTestExecution:
             benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
             self.benchmark_uid = benchmark.generated_uid
         BenchmarkExecution.run(
-            self.benchmark_uid, self.data_uid, self.model, run_test=True,
+            self.benchmark_uid, self.data_uid, [self.model], run_test=True,
         )
         result_tmp_uid = (
             f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"

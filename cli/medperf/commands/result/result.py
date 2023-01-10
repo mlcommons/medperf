@@ -30,7 +30,7 @@ def create(
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
     BenchmarkExecution.run(
-        benchmark_uid, data_uid, model_uid, ignore_errors=ignore_errors
+        benchmark_uid, data_uid, [model_uid], ignore_errors=ignore_errors
     )
     config.ui.print("✅ Done!")
 

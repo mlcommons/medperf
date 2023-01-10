@@ -89,10 +89,10 @@ def execute(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    result_uid = BenchmarkExecution.run(
-        benchmark_uid, data_uid, model_uid, ignore_errors=ignore_errors
+    results_uids = BenchmarkExecution.run(
+        benchmark_uid, data_uid, [model_uid], ignore_errors=ignore_errors
     )
-    ResultSubmission.run(result_uid, approved=approval)
+    ResultSubmission.run(results_uids[model_uid], approved=approval)
     config.ui.print("✅ Done!")
 
 
