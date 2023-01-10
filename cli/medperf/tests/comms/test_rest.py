@@ -9,7 +9,8 @@ from medperf.enums import Role, Status
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
 
-url = "https://mock.url"
+url = f"https://mock.url"
+full_url = f"{url}{config.api_path}"
 patch_server = "medperf.comms.rest.{}"
 
 
@@ -28,27 +29,27 @@ def server(mocker, ui):
             200,
             [1],
             [],
-            (f"{url}/me/benchmarks",),
+            (f"{full_url}/me/benchmarks",),
             {},
         ),
-        ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
+        ("get_benchmark", "get", 200, [1], {}, (f"{full_url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
             "get_list",
             200,
             [1],
             [],
-            (f"{url}/benchmarks/1/models",),
+            (f"{full_url}/benchmarks/1/models",),
             {},
         ),
-        ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
+        ("get_cube_metadata", "get", 200, [1], {}, (f"{full_url}/mlcubes/1/",), {}),
         (
             "upload_dataset",
             "post",
             201,
             [{}],
             {"id": 1},
-            (f"{url}/datasets/",),
+            (f"{full_url}/datasets/",),
             {"json": {}},
         ),
         (
@@ -57,7 +58,7 @@ def server(mocker, ui):
             201,
             [{}],
             {"id": 1},
-            (f"{url}/results/",),
+            (f"{full_url}/results/",),
             {"json": {}},
         ),
         (
@@ -66,7 +67,7 @@ def server(mocker, ui):
             201,
             [1, 1],
             {},
-            (f"{url}/datasets/benchmarks/",),
+            (f"{full_url}/datasets/benchmarks/",),
             {
                 "json": {
                     "benchmark": 1,
@@ -80,18 +81,18 @@ def server(mocker, ui):
             "_REST__set_approval_status",
             "put",
             200,
-            [f"{url}/mlcubes/1/benchmarks/1", Status.APPROVED.value],
+            [f"{full_url}/mlcubes/1/benchmarks/1", Status.APPROVED.value],
             {},
-            (f"{url}/mlcubes/1/benchmarks/1",),
+            (f"{full_url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": Status.APPROVED.value}},
         ),
         (
             "_REST__set_approval_status",
             "put",
             200,
-            [f"{url}/mlcubes/1/benchmarks/1", Status.REJECTED.value],
+            [f"{full_url}/mlcubes/1/benchmarks/1", Status.REJECTED.value],
             {},
-            (f"{url}/mlcubes/1/benchmarks/1",),
+            (f"{full_url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": Status.REJECTED.value}},
         ),
         (
@@ -100,7 +101,7 @@ def server(mocker, ui):
             200,
             ["pwd"],
             {},
-            (f"{url}/me/password/",),
+            (f"{full_url}/me/password/",),
             {"json": {"password": "pwd"}},
         ),
     ],
@@ -159,7 +160,7 @@ def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
     res = MockResponse({"token": ""}, 200)
     spy = mocker.patch("requests.post", return_value=res)
     exp_body = {"username": uname, "password": pwd}
-    exp_path = f"{url}/auth-token/"
+    exp_path = f"{full_url}/auth-token/"
     cert_verify = config.certificate or True
 
     # Act
@@ -259,12 +260,12 @@ def test__req_sanitizes_json(mocker, server):
 def test__get_list_uses_default_page_size(mocker, server):
     # Arrange
     exp_page_size = config.default_page_size
-    exp_url = f"{url}?limit={exp_page_size}&offset=0"
+    exp_url = f"{full_url}?limit={exp_page_size}&offset=0"
     ret_body = MockResponse({"count": 1, "next": None, "results": []}, 200)
     spy = mocker.patch.object(server, "_REST__auth_get", return_value=ret_body)
 
     # Act
-    server._REST__get_list(url)
+    server._REST__get_list(full_url)
 
     # Assert
     spy.assert_called_once_with(exp_url)
@@ -407,7 +408,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     bmarks = server.get_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/benchmarks/")
+    spy.assert_called_once_with(f"{full_url}/benchmarks/")
     assert bmarks == [body]
 
 
@@ -451,7 +452,7 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/benchmarks/")
+    spy.assert_called_once_with(f"{full_url}/me/benchmarks/")
 
 
 def test_get_user_benchmarks_returns_benchmarks(mocker, server):
@@ -478,7 +479,7 @@ def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     cubes = server.get_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/mlcubes/")
+    spy.assert_called_once_with(f"{full_url}/mlcubes/")
     assert cubes == [body]
 
 
@@ -541,7 +542,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/mlcubes/")
+    spy.assert_called_once_with(f"{full_url}/me/mlcubes/")
 
 
 def test_get_cube_file_writes_to_file(mocker, server):
@@ -572,7 +573,7 @@ def test_get_datasets_calls_datasets_path(mocker, server, body):
     dsets = server.get_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/datasets/")
+    spy.assert_called_once_with(f"{full_url}/datasets/")
     assert dsets == [body]
 
 
@@ -587,7 +588,7 @@ def test_get_dataset_calls_specific_dataset_path(mocker, server, uid, body):
     dset = server.get_dataset(uid)
 
     # Assert
-    spy.assert_called_once_with(f"{url}/datasets/{uid}/")
+    spy.assert_called_once_with(f"{full_url}/datasets/{uid}/")
     assert dset == body
 
 
@@ -603,7 +604,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{url}/me/datasets/")
+    spy.assert_called_once_with(f"{full_url}/me/datasets/")
 
 
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
@@ -676,7 +677,7 @@ def test_set_dataset_association_approval_sets_approval(
     spy = mocker.patch(
         patch_server.format("REST._REST__set_approval_status"), return_value=res
     )
-    exp_url = f"{url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+    exp_url = f"{full_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
     server.set_dataset_association_approval(benchmark_uid, dataset_uid, status)
@@ -696,7 +697,7 @@ def test_set_mlcube_association_approval_sets_approval(
     spy = mocker.patch(
         patch_server.format("REST._REST__set_approval_status"), return_value=res
     )
-    exp_url = f"{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+    exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
     server.set_mlcube_association_approval(benchmark_uid, mlcube_uid, status)
@@ -708,7 +709,7 @@ def test_set_mlcube_association_approval_sets_approval(
 def test_get_datasets_associations_gets_associations(mocker, server):
     # Arrange
     spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
-    exp_path = f"{url}/me/datasets/associations/"
+    exp_path = f"{full_url}/me/datasets/associations/"
 
     # Act
     server.get_datasets_associations()
@@ -720,7 +721,7 @@ def test_get_datasets_associations_gets_associations(mocker, server):
 def test_get_cubes_associations_gets_associations(mocker, server):
     # Arrange
     spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
-    exp_path = f"{url}/me/mlcubes/associations/"
+    exp_path = f"{full_url}/me/mlcubes/associations/"
 
     # Act
     server.get_cubes_associations()
@@ -735,7 +736,7 @@ def test_get_result_calls_specified_path(mocker, server, uid, body):
     # Arrange
     res = MockResponse(body, 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
-    exp_path = f"{url}/results/{uid}/"
+    exp_path = f"{full_url}/results/{uid}/"
 
     # Act
     result = server.get_result(uid)
