@@ -9,7 +9,7 @@ from medperf.enums import Role, Status
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
 
-url = f"https://mock.url"
+url = "https://mock.url"
 full_url = f"{url}{config.api_path}"
 patch_server = "medperf.comms.rest.{}"
 
