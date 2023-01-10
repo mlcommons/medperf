@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 from os.path import expanduser, abspath
 
+from medperf import __version__
 import medperf.config as config
 from medperf.ui.factory import UIFactory
 from medperf.decorators import clean_except, configurable
@@ -183,12 +184,12 @@ def main(
         datefmt="%Y-%m-%d %H:%M:%S",
         force=True,
     )
-    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
+    logging.info(f"Running MedPerf v{__version__} on {log} logging level")
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
 
-    config.ui.print(f"MedPerf {config.version}")
+    config.ui.print(f"MedPerf {__version__}")
 
 
 if __name__ == "__main__":
