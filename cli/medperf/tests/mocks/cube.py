@@ -24,4 +24,3 @@ def generate_cube(**kwargs):
         "created_at": kwargs.get("created_at", "created_at"),
         "modified_at": kwargs.get("modified_at", "modified_at"),
     }
-
