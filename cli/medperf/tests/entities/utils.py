@@ -3,44 +3,15 @@ from medperf.utils import storage_path
 from medperf import config
 import yaml
 
-from medperf.enums import Status
 from medperf.exceptions import CommunicationRetrievalError
+from medperf.tests.mocks.benchmark import generate_benchmark
+from medperf.tests.mocks.dataset import generate_dset
+from medperf.tests.mocks.result import generate_result
+from medperf.tests.mocks.cube import generate_cube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
 
-# BENCHMARK MOCKING
-def generate_benchmark(**kwargs):
-    return {
-        "id": kwargs.get("id", 1),
-        "name": kwargs.get("name", "name"),
-        "description": kwargs.get("description", "description"),
-        "docs_url": kwargs.get("docs_url", ""),
-        "created_at": kwargs.get("created_at", "created_at"),
-        "modified_at": kwargs.get("modified_at", "modified_at"),
-        "approved_at": kwargs.get("approved_at", "approved_at"),
-        "owner": kwargs.get("owner", 1),
-        "demo_dataset_tarball_url": kwargs.get(
-            "demo_dataset_tarball_url", "demo_dataset_tarball_url"
-        ),
-        "demo_dataset_tarball_hash": kwargs.get(
-            "demo_dataset_tarball_hash", "demo_dataset_tarball_hash"
-        ),
-        "demo_dataset_generated_uid": kwargs.get(
-            "demo_dataset_generated_uid", "demo_dataset_generated_uid"
-        ),
-        "data_preparation_mlcube": kwargs.get("data_preparation_mlcube", 1),
-        "reference_model_mlcube": kwargs.get("reference_model_mlcube", 2),
-        "models": kwargs.get("models", [2]),
-        "data_evaluator_mlcube": kwargs.get("data_evaluator_mlcube", 3),
-        "state": kwargs.get("state", "PRODUCTION"),
-        "is_valid": kwargs.get("is_valid", True),
-        "is_active": kwargs.get("is_active", True),
-        "approval_status": kwargs.get("approval_status", Status.APPROVED.value),
-        "metadata": kwargs.get("metadata", {}),
-        "user_metadata": kwargs.get("user_metadata", {}),
-    }
-
-
+# Setup Benchmark
 def setup_benchmark_fs(ents, fs):
     bmks_path = storage_path(config.benchmarks_storage)
     for ent in ents:
@@ -76,35 +47,7 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
     )
 
 
-# MLCUBE MOCKING
-def generate_cube(**kwargs):
-    # Default to hashes of empty files for cube download validation
-    empty_file_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-    return {
-        "id": kwargs.get("id", 1),
-        "name": kwargs.get("name", "name"),
-        "git_mlcube_url": kwargs.get("git_mlcube_url", "git_mlcube_url"),
-        "mlcube_hash": kwargs.get("mlcube_hash", empty_file_hash),
-        "git_parameters_url": kwargs.get("git_parameters_url", "git_parameters_url"),
-        "parameters_hash": kwargs.get("parameters_hash", empty_file_hash),
-        "image_tarball_url": kwargs.get("image_tarball_url", "image_tarball_url"),
-        "image_tarball_hash": kwargs.get("image_tarball_hash", empty_file_hash),
-        "additional_files_tarball_url": kwargs.get(
-            "additional_files_tarball_url", "additional_files_tarball_url"
-        ),
-        "additional_files_tarball_hash": kwargs.get(
-            "additional_files_tarball_hash", empty_file_hash
-        ),
-        "state": kwargs.get("state", "PRODUCTION"),
-        "is_valid": kwargs.get("is_valid", True),
-        "owner": kwargs.get("owner", 1),
-        "metadata": kwargs.get("metadata", {}),
-        "user_metadata": kwargs.get("user_metadata", {}),
-        "created_at": kwargs.get("created_at", "created_at"),
-        "modified_at": kwargs.get("modified_at", "modified_at"),
-    }
-
-
+# Setup Cube
 def generate_cube_hashes(**kwargs):
     return {
         "additional_files_tarball_hash": kwargs.get(
@@ -184,29 +127,7 @@ def setup_cube_comms_downloads(mocker, comms, fs, all_ents):
     mocker.patch.object(comms, "get_cube_image", side_effect=get_img_fn)
 
 
-# DATASET MOCKING
-def generate_dset(**kwargs):
-    return {
-        "id": kwargs.get("id", 1),
-        "name": kwargs.get("name", "name"),
-        "description": kwargs.get("description", "description"),
-        "location": kwargs.get("location", "location"),
-        "data_preparation_mlcube": kwargs.get("data_preparation_mlcube", 1),
-        "input_data_hash": kwargs.get("input_data_hash", "input_data_hash"),
-        "generated_uid": kwargs.get("generated_uid", "generated_uid"),
-        "split_seed": kwargs.get("split_seed", "split_seed"),
-        "generated_metadata": kwargs.get("generated_metadata", "generated_metadata"),
-        "status": kwargs.get("status", Status.APPROVED.value),  # not in the server
-        "state": kwargs.get("state", "PRODUCTION"),
-        "separate_labels": kwargs.get("separate_labels", False),  # not in the server
-        "is_valid": kwargs.get("is_valid", True),
-        "user_metadata": kwargs.get("user_metadata", {}),
-        "created_at": kwargs.get("created_at", "created_at"),
-        "modified_at": kwargs.get("modified_at", "modified_at"),
-        "owner": kwargs.get("owner", 1),
-    }
-
-
+# Setup Dataset
 def setup_dset_fs(ents, fs):
     dsets_path = storage_path(config.data_storage)
     for ent in ents:
@@ -237,24 +158,7 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
     )
 
 
-# RESULT MOCKING
-def generate_result(**kwargs):
-    return {
-        "id": kwargs.get("id", 1),
-        "name": kwargs.get("name", "name"),
-        "owner": kwargs.get("owner", 1),
-        "benchmark": kwargs.get("benchmark", 1),
-        "model": kwargs.get("model", 1),
-        "dataset": kwargs.get("dataset", 1),
-        "results": kwargs.get("results", {}),
-        "metadata": kwargs.get("metadata", {}),
-        "approval_status": kwargs.get("approval_status", Status.APPROVED.value),
-        "approved_at": kwargs.get("approved_at", "approved_at"),
-        "created_at": kwargs.get("created_at", "created_at"),
-        "modified_at": kwargs.get("modified_at", "modified_at"),
-    }
-
-
+# Setup Result
 def setup_result_fs(ents, fs):
     results_path = storage_path(config.results_storage)
     for ent in ents:
