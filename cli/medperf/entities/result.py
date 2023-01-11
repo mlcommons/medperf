@@ -163,7 +163,7 @@ class Result(Entity):
             comms (Comms): Instance of the communications interface.
         """
         results_info = self.todict()
-        updated_results_info = config.comms.upload_results(results_info)
+        updated_results_info = config.comms.upload_result(results_info)
         return updated_results_info
 
     def write(self):

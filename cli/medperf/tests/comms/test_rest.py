@@ -53,7 +53,7 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "upload_results",
+            "upload_result",
             "post",
             201,
             [{}],
@@ -134,7 +134,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
         ("_REST__get_cube_file", ["", 1, "", ""], {}, CommunicationRetrievalError),
         ("upload_dataset", [{}], {"id": 1}, CommunicationRequestError),
-        ("upload_results", [{}], {"id": 1}, CommunicationRequestError),
+        ("upload_result", [{}], {"id": 1}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
         ("change_password", [{}], {"password": "pwd"}, CommunicationRequestError),
     ],
@@ -640,7 +640,7 @@ def test_upload_results_returns_result_body(mocker, server, body):
     mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    exp_body = server.upload_results({})
+    exp_body = server.upload_result({})
 
     # Assert
     assert body == exp_body

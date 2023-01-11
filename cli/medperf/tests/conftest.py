@@ -20,7 +20,7 @@ def disable_network_calls(monkeypatch):
     monkeypatch.setattr(requests, "post", lambda *args, **kwargs: stunted_post())
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def disable_fs_IO_operations(monkeypatch):
     def stunted_walk():
         raise Exception("There was an attempt at walking through the filesystem")

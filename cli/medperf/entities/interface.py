@@ -4,12 +4,13 @@ from abc import ABC, abstractmethod
 
 class Entity(ABC):
     @abstractmethod
-    def all(cls, local_only: bool = False) -> List["Entity"]:
+    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Entity"]:
         """Gets a list of all instances of the respective entity.
         Wether the list is local or remote depends on the implementation.
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
 
         Returns:
             List[Entity]: a list of entities.
@@ -37,6 +38,17 @@ class Entity(ABC):
         """
 
     @abstractmethod
-    def upload(self):
+    def upload(self) -> Dict:
         """Upload the entity-related information to the communication's interface
+
+        Returns:
+            Dict: Dictionary with the updated entity information
+        """
+
+    @abstractmethod
+    def write(self) -> str:
+        """Writes the entity to the local storage
+
+        Returns:
+            str: Path to the stored entity
         """
