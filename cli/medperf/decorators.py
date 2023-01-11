@@ -61,6 +61,8 @@ def configurable(func: Callable) -> Callable:
     config_p = read_config()
     set_custom_config(config_p.active_profile)
 
+    # NOTE: changing parameters here should be accompanied
+    #       by changing configurable_parameters
     @merge_args(func)
     def wrapper(
         *args,
