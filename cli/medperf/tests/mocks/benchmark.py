@@ -1,6 +1,12 @@
 from medperf.enums import Status
 
 
+class Benchmark:
+    def __init__(self):
+        self.name = "MockedBenchmark"
+        self.data_preparation = 1
+
+
 def generate_benchmark(**kwargs):
     return {
         "id": kwargs.get("id", 1),

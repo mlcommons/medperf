@@ -1,3 +1,19 @@
+class MockCube:
+    def __init__(self, is_valid):
+        self.name = "Test"
+        self.valid = is_valid
+        self.uid = "1"
+
+    def is_valid(self):
+        return self.valid
+
+    def run(self):
+        pass
+
+    def get_default_output(self, *args, **kwargs):
+        return "out_path"
+
+
 def generate_cube(**kwargs):
     # Default to hashes of empty files for cube download validation
     empty_file_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
