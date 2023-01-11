@@ -105,7 +105,7 @@ def test_set_updates_profile_parameters(mocker, config_p, args):
 def test_ls_prints_profile_names(mocker, config_p, ui):
     # Arrange
     spy = mocker.patch.object(ui, "print")
-    green_spy = mocker.patch.object(ui, "print_green")
+    green_spy = mocker.patch.object(ui, "print_highlight")
 
     calls = [
         call("  " + profile)

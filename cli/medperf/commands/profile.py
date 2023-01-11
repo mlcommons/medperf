@@ -63,7 +63,7 @@ def list():
     config_p = read_config()
     for profile in config_p:
         if config_p.is_profile_active(profile):
-            ui.print_green("* " + profile)
+            ui.print_highlight("* " + profile)
         else:
             ui.print("  " + profile)
 
