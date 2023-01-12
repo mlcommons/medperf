@@ -20,19 +20,20 @@ def activate(profile: str):
     if profile not in config_p:
         raise InvalidArgumentError("The provided profile does not exists")
 
-    config_p["active"]["profile"] = profile
+    config_p.activate(profile)
     write_config(config_p)
 
 
 @app.command("create")
-@configurable(with_defaults=True)
+@configurable
 def create(
     ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
 ):
     """Creates a new profile for managing and customizing configuration
     """
-    args = ctx.config_dict
+    args = ctx.params
+    args.pop("name")
     config_p = read_config()
 
     if name in config_p:
@@ -43,17 +44,14 @@ def create(
 
 
 @app.command("set")
-@configurable()
+@configurable
 def set_args(ctx: typer.Context):
     """Assign key-value configuration pairs to the current profile.
     """
-    profile = config.profile
-    args = ctx.config_dict
+    args = ctx.params
     config_p = read_config()
 
-    current_config = config_p[profile]
-    current_config.update(args)
-    config_p[profile] = current_config
+    config_p.active_profile.update(args)
     write_config(config_p)
 
 
@@ -64,7 +62,10 @@ def list():
     ui = config.ui
     config_p = read_config()
     for profile in config_p:
-        ui.print(profile)
+        if config_p.is_profile_active(profile):
+            ui.print_highlight("* " + profile)
+        else:
+            ui.print("  " + profile)
 
 
 @app.command("view")
@@ -74,9 +75,31 @@ def view(profile: str = typer.Argument(None)):
     Args:
         profile (str, optional): Profile to display information from. Defaults to active profile.
     """
-    if profile is None:
-        profile = config.profile
-
     config_p = read_config()
-    profile_config = config_p[profile]
-    dict_pretty_print(profile_config)
+    profile_config = config_p.active_profile
+    if profile:
+        profile_config = config_p[profile]
+
+    profile_config.pop(config.credentials_keyword, None)
+    dict_pretty_print(profile_config, skip_none_values=False)
+
+
+@app.command("delete")
+def delete(profile: str):
+    """Deletes a profile's configuration.
+
+    Args:
+        profile (str): Profile to delete.
+    """
+    config_p = read_config()
+    if profile not in config_p.profiles:
+        raise InvalidArgumentError("The provided profile does not exists")
+
+    if profile in [config.default_profile_name, config.test_profile_name]:
+        raise InvalidArgumentError("Cannot delete reserved profiles")
+
+    if config_p.is_profile_active(profile):
+        raise InvalidArgumentError("Cannot delete a currently activated profile")
+
+    del config_p[profile]
+    write_config(config_p)
