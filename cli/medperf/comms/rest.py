@@ -520,8 +520,8 @@ class REST(Comms):
         results = self.__get_list(f"{self.server_url}/me/results/")
         return results
 
-    def upload_results(self, results_dict: dict) -> int:
-        """Uploads results to the server.
+    def upload_result(self, results_dict: dict) -> int:
+        """Uploads result to the server.
 
         Args:
             results_dict (dict): Dictionary containing results information.
