@@ -14,7 +14,7 @@ class UserTest(MedPerfTest):
         self.api_prefix = "/api/v1"
         self.client = APIClient()
         response = self.client.post(
-            self.api_prefix+"/auth-token/", {"username": username, "password": password}, format="json",
+            self.api_prefix + "/auth-token/", {"username": username, "password": password}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.token = response.data["token"]
@@ -22,15 +22,15 @@ class UserTest(MedPerfTest):
 
     def test_unauthenticated_user(self):
         client = APIClient()
-        response = client.get(self.api_prefix+"/users/1/")
+        response = client.get(self.api_prefix + "/users/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.delete(self.api_prefix+"/users/1/")
+        response = client.delete(self.api_prefix + "/users/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.put(self.api_prefix+"/users/1/")
+        response = client.put(self.api_prefix + "/users/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.post(self.api_prefix+"/users/", {})
+        response = client.post(self.api_prefix + "/users/", {})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.get(self.api_prefix+"/users/")
+        response = client.get(self.api_prefix + "/users/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_crud_user(self):
@@ -42,24 +42,24 @@ class UserTest(MedPerfTest):
             "last_name": "owner",
         }
 
-        response = self.client.post(self.api_prefix+"/users/", testuser, format="json")
+        response = self.client.post(self.api_prefix + "/users/", testuser, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         uid = response.data["id"]
-        response = self.client.get(self.api_prefix+"/users/{0}/".format(uid))
+        response = self.client.get(self.api_prefix + "/users/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for k, v in response.data.items():
             if k in testuser:
                 self.assertEqual(testuser[k], v)
 
-        response = self.client.get(self.api_prefix+"/users/")
+        response = self.client.get(self.api_prefix + "/users/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 2)
 
-        response = self.client.delete(self.api_prefix+"/users/{0}/".format(uid))
+        response = self.client.delete(self.api_prefix + "/users/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        response = self.client.get(self.api_prefix+"/users/{0}/".format(uid))
+        response = self.client.get(self.api_prefix + "/users/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_duplicate_usernames(self):
@@ -71,10 +71,10 @@ class UserTest(MedPerfTest):
             "last_name": "owner",
         }
 
-        response = self.client.post(self.api_prefix+"/users/", testuser, format="json")
+        response = self.client.post(self.api_prefix + "/users/", testuser, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.post(self.api_prefix+"/users/", testuser, format="json")
+        response = self.client.post(self.api_prefix + "/users/", testuser, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_duplicate_emails(self):
@@ -86,7 +86,7 @@ class UserTest(MedPerfTest):
             "last_name": "owner",
         }
 
-        response = self.client.post(self.api_prefix+"/users/", testuser, format="json")
+        response = self.client.post(self.api_prefix + "/users/", testuser, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         testuser = {
@@ -97,12 +97,12 @@ class UserTest(MedPerfTest):
             "last_name": "owner",
         }
 
-        response = self.client.post(self.api_prefix+"/users/", testuser, format="json")
+        response = self.client.post(self.api_prefix + "/users/", testuser, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_user(self):
         invalid_uid = 9999
-        response = self.client.get(self.api_prefix+"/users/{0}/".format(invalid_uid))
+        response = self.client.get(self.api_prefix + "/users/{0}/".format(invalid_uid))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_optional_fields(self):

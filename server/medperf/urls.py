@@ -21,7 +21,7 @@ from django.conf import settings
 
 from utils.views import ServerAPIVersion
 
-API_PREFIX='api/'+settings.SERVER_API_VERSION+'/'
+API_PREFIX = 'api/' + settings.SERVER_API_VERSION + '/'
 
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(api_version=settings.SERVER_API_VERSION), name="schema"),

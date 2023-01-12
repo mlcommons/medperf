@@ -19,7 +19,7 @@ class DatasetTest(MedPerfTest):
         self.api_prefix = "/api/v1"
         self.client = APIClient()
         response = self.client.post(
-            self.api_prefix+"/auth-token/", {"username": username, "password": password}, format="json",
+            self.api_prefix + "/auth-token/", {"username": username, "password": password}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.token = response.data["token"]
@@ -37,21 +37,21 @@ class DatasetTest(MedPerfTest):
             "metadata": {"key": "value"},
         }
 
-        response = self.client.post(self.api_prefix+"/mlcubes/", data_preproc_mlcube, format="json")
+        response = self.client.post(self.api_prefix + "/mlcubes/", data_preproc_mlcube, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.data_preproc_mlcube_id = response.data["id"]
 
     def test_unauthenticated_user(self):
         client = APIClient()
-        response = client.get(self.api_prefix+"/datasets/1/")
+        response = client.get(self.api_prefix + "/datasets/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.delete(self.api_prefix+"/datasets/1/")
+        response = client.delete(self.api_prefix + "/datasets/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.put(self.api_prefix+"/datasets/1/")
+        response = client.put(self.api_prefix + "/datasets/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.post(self.api_prefix+"/datasets/", {})
+        response = client.post(self.api_prefix + "/datasets/", {})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.get(self.api_prefix+"/datasets/")
+        response = client.get(self.api_prefix + "/datasets/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_crud_user(self):
@@ -66,17 +66,17 @@ class DatasetTest(MedPerfTest):
             "data_preparation_mlcube": self.data_preproc_mlcube_id,
         }
 
-        response = self.client.post(self.api_prefix+"/datasets/", testdataset, format="json")
+        response = self.client.post(self.api_prefix + "/datasets/", testdataset, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         uid = response.data["id"]
-        response = self.client.get(self.api_prefix+"/datasets/{0}/".format(uid))
+        response = self.client.get(self.api_prefix + "/datasets/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for k, v in response.data.items():
             if k in testdataset:
                 self.assertEqual(testdataset[k], v)
 
-        response = self.client.get(self.api_prefix+"/datasets/")
+        response = self.client.get(self.api_prefix + "/datasets/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
 
@@ -92,10 +92,10 @@ class DatasetTest(MedPerfTest):
         }
 
         response = self.client.put(
-            self.api_prefix+"/datasets/{0}/".format(uid), newtestdataset, format="json"
+            self.api_prefix + "/datasets/{0}/".format(uid), newtestdataset, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(self.api_prefix+"/datasets/{0}/".format(uid))
+        response = self.client.get(self.api_prefix + "/datasets/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for k, v in response.data.items():
@@ -103,15 +103,15 @@ class DatasetTest(MedPerfTest):
                 self.assertEqual(newtestdataset[k], v)
 
         # TODO Revisit when delete permissions are fixed
-        # response = self.client.delete(self.api_prefix+"/datasets/{0}/".format(uid))
+        # response = self.client.delete(self.api_prefix + "/datasets/{0}/".format(uid))
         # self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # response = self.client.get(self.api_prefix+"/datasets/{0}/".format(uid))
+        # response = self.client.get(self.api_prefix + "/datasets/{0}/".format(uid))
         # self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_invalid_dataset(self):
         invalid_id = 9999
-        response = self.client.get(self.api_prefix+"/datasets/{0}/".format(invalid_id))
+        response = self.client.get(self.api_prefix + "/datasets/{0}/".format(invalid_id))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_duplicate_gen_uid(self):
@@ -127,10 +127,10 @@ class DatasetTest(MedPerfTest):
             "data_preparation_mlcube": self.data_preproc_mlcube_id,
         }
 
-        response = self.client.post(self.api_prefix+"/datasets/", testdataset, format="json")
+        response = self.client.post(self.api_prefix + "/datasets/", testdataset, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.post(self.api_prefix+"/datasets/", testdataset, format="json")
+        response = self.client.post(self.api_prefix + "/datasets/", testdataset, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_optional_fields(self):
