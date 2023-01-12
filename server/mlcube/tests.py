@@ -12,14 +12,14 @@ class MlCubeTest(MedPerfTest):
 
     def setUp(self):
         super(MlCubeTest, self).setUp()
-
         username = "mlcubeowner"
         password = "".join(random.choice(string.ascii_letters) for m in range(10))
         user = User.objects.create_user(username=username, password=password,)
         user.save()
+        self.api_prefix = "/api/v1"
         self.client = APIClient()
         response = self.client.post(
-            "/api/v1/auth-token/", {"username": username, "password": password}, format="json",
+            self.api_prefix+"/auth-token/", {"username": username, "password": password}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.token = response.data["token"]
@@ -27,15 +27,15 @@ class MlCubeTest(MedPerfTest):
 
     def test_unauthenticated_user(self):
         client = APIClient()
-        response = client.get("/api/v1/mlcubes/1/")
+        response = client.get(self.api_prefix+"/mlcubes/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.delete("/api/v1/mlcubes/1/")
+        response = client.delete(self.api_prefix+"/mlcubes/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.put("/api/v1/mlcubes/1/")
+        response = client.put(self.api_prefix+"/mlcubes/1/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.post("/api/v1/mlcubes/", {})
+        response = client.post(self.api_prefix+"/mlcubes/", {})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        response = client.get("/api/v1/mlcubes/")
+        response = client.get(self.api_prefix+"/mlcubes/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_crud_user(self):
@@ -52,17 +52,17 @@ class MlCubeTest(MedPerfTest):
             "metadata": {"key": "value"},
         }
 
-        response = self.client.post("/api/v1/mlcubes/", testmlcube, format="json")
+        response = self.client.post(self.api_prefix+"/mlcubes/", testmlcube, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         uid = response.data["id"]
-        response = self.client.get("/api/v1/mlcubes/{0}/".format(uid))
+        response = self.client.get(self.api_prefix+"/mlcubes/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for k, v in response.data.items():
             if k in testmlcube:
                 self.assertEqual(testmlcube[k], v)
 
-        response = self.client.get("/api/v1/mlcubes/")
+        response = self.client.get(self.api_prefix+"/mlcubes/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
 
@@ -76,10 +76,10 @@ class MlCubeTest(MedPerfTest):
         }
 
         response = self.client.put(
-            "/api/v1/mlcubes/{0}/".format(uid), newmlcube, format="json"
+            self.api_prefix+"/mlcubes/{0}/".format(uid), newmlcube, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get("/api/v1/mlcubes/{0}/".format(uid))
+        response = self.client.get(self.api_prefix+"/mlcubes/{0}/".format(uid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for k, v in response.data.items():
@@ -87,15 +87,15 @@ class MlCubeTest(MedPerfTest):
                 self.assertEqual(newmlcube[k], v)
 
         # TODO Revisit when delete permissions are fixed
-        # response = self.client.delete("/api/v1/mlcubes/{0}/".format(uid))
+        # response = self.client.delete(self.api_prefix+"/mlcubes/{0}/".format(uid))
         # self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # response = self.client.get("/api/v1/mlcubes/{0}/".format(uid))
+        # response = self.client.get(self.api_prefix+"/mlcubes/{0}/".format(uid))
         # self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_invalid_mlcube(self):
         invalid_id = 9999
-        response = self.client.get("/api/v1/mlcubes/{0}/".format(invalid_id))
+        response = self.client.get(self.api_prefix+"/mlcubes/{0}/".format(invalid_id))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_optional_fields(self):
