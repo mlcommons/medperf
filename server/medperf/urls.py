@@ -21,21 +21,22 @@ from django.conf import settings
 
 from utils.views import ServerAPIVersion
 
-API_PREFIX = 'api/' + settings.SERVER_API_VERSION + '/'
+API_VERSION = settings.SERVER_API_VERSION
+API_PREFIX = 'api/' + API_VERSION + '/'
 
 urlpatterns = [
-    path("schema/", SpectacularAPIView.as_view(api_version=settings.SERVER_API_VERSION), name="schema"),
+    path("schema/", SpectacularAPIView.as_view(api_version=API_VERSION), name="schema"),
     path("swagger/", SpectacularSwaggerView.as_view(), name="swagger-ui"),
     re_path(r"^$", SpectacularRedocView.as_view(), name="redoc"),
     path("admin/", admin.site.urls, name="admin"),
     path("version", ServerAPIVersion.as_view(), name="get-version"),
     path(API_PREFIX, include([
-        path("benchmarks/", include("benchmark.urls", namespace="v1"), name="benchmark"),
-        path("mlcubes/", include("mlcube.urls", namespace="v1"), name="mlcube"),
-        path("datasets/", include("dataset.urls", namespace="v1"), name="dataset"),
-        path("results/", include("result.urls", namespace="v1"), name="result"),
-        path("users/", include("user.urls", namespace="v1"), name="users"),
-        path("me/", include("utils.urls", namespace="v1"), name="me"),
+        path("benchmarks/", include("benchmark.urls", namespace=API_VERSION), name="benchmark"),
+        path("mlcubes/", include("mlcube.urls", namespace=API_VERSION), name="mlcube"),
+        path("datasets/", include("dataset.urls", namespace=API_VERSION), name="dataset"),
+        path("results/", include("result.urls", namespace=API_VERSION), name="result"),
+        path("users/", include("user.urls", namespace=API_VERSION), name="users"),
+        path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
         path("auth-token/", obtain_auth_token, name="auth-token"),
     ])),
 ]

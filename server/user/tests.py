@@ -1,5 +1,6 @@
 from rest_framework.test import APIClient
 from rest_framework import status
+from django.conf import settings
 
 from medperf.tests import MedPerfTest
 
@@ -11,7 +12,7 @@ class UserTest(MedPerfTest):
         super(UserTest, self).setUp()
         username = "admin"
         password = "admin"
-        self.api_prefix = "/api/v1"
+        self.api_prefix = "/api/" + settings.SERVER_API_VERSION
         self.client = APIClient()
         response = self.client.post(
             self.api_prefix + "/auth-token/", {"username": username, "password": password}, format="json",
