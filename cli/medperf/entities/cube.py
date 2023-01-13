@@ -2,7 +2,7 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List, Dict
+from typing import List, Dict, Union
 from pathlib import Path
 
 from medperf.utils import (
@@ -35,14 +35,17 @@ class Cube(Entity):
     with standard metadata and a consistent file-system level interface.
     """
 
-    def __init__(self, cube_dict):
+    def __init__(self, cube_desc: Union[dict, CubeModel]):
         """Creates a Cube instance
 
         Args:
-            cube_dict (dict): Dict for information regarding the cube.
-
+            cube_desc (Union[dict, CubeModel]): MLCube Instance description
         """
-        self.model = CubeModel(**cube_dict)
+
+        self.model = cube_desc
+        if isinstance(self.model, dict):
+            self.model = CubeModel(**cube_desc)
+
         cubes_storage = storage_path(config.cubes_storage)
         self.cube_path = os.path.join(
             cubes_storage, str(self.model.id), config.cube_filename

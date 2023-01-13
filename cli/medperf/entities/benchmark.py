@@ -1,9 +1,8 @@
 import os
-from medperf.enums import Status
 from medperf.exceptions import MedperfException
 import yaml
 import logging
-from typing import List
+from typing import List, Union
 
 import medperf.config as config
 from medperf.entities.interface import Entity
@@ -23,13 +22,15 @@ class Benchmark(Entity):
     what models to run and how to evaluate them.
     """
 
-    def __init__(self, bmk_dict: dict):
+    def __init__(self, bmk_desc: Union[dict, BenchmarkModel]):
         """Creates a new benchmark instance
 
         Args:
-            bmk_model (dict): Dictionary representation of a Benchmark
+            bmk_desc (Union[dict, BenchmarkModel]): Benchmark instance description
         """
-        self.model = BenchmarkModel(**bmk_dict)
+        self.model = bmk_desc
+        if isinstance(self.model, dict):
+            self.model = BenchmarkModel(**bmk_desc)
 
         self.generated_uid = (
             f"p{self.data_preparation}m{self.reference_model}e{self.evaluator}"

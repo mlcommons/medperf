@@ -1,8 +1,7 @@
 import os
-from medperf.enums import Status
 import yaml
 import logging
-from typing import List
+from typing import List, Union
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
@@ -23,16 +22,16 @@ class Result(Entity):
     benchmark results and how to upload them to the backend.
     """
 
-    def __init__(self, results_info: dict):
+    def __init__(self, result_desc: Union[dict, ResultModel]):
         """Creates a new result instance
 
         Args:
-            benchmark_uid (str): UID of the executed benchmark.
-            dataset_uid (str): UID of the dataset used.
-            model_uid (str): UID of the model used.
-            results()
+            result_desc (Union[dict, ResultModel]): Result instance description
         """
-        self.model = ResultModel(**results_info)
+
+        self.model = result_desc
+        if isinstance(self.model, dict):
+            self.model = ResultModel(**result_desc)
 
         dset = Dataset.get(self.model.dataset)
         self.generated_uid = (

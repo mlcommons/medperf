@@ -1,7 +1,7 @@
 import os
 import yaml
 import logging
-from typing import List
+from typing import List, Union
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
@@ -24,16 +24,16 @@ class Dataset(Entity):
     data preparation output.
     """
 
-    def __init__(self, dataset_dict: dict):
+    def __init__(self, dset_desc: Union[dict, DatasetModel]):
         """Creates a new dataset instance
 
         Args:
-            data_uid (int): The dataset UID as found inside ~/medperf/data/
-
-        Raises:
-            NameError: If the dataset with the given UID can't be found, this is thrown.
+            dset_desc (Union[dict, DatasetModel]): Dataset instance description.
         """
-        self.model = DatasetModel(**dataset_dict)
+
+        self.model = dset_desc
+        if isinstance(self.model, dict):
+            self.model = DatasetModel(**dset_desc)
 
         path = storage_path(config.data_storage)
         if self.model.id:
