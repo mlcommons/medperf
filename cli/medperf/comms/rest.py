@@ -7,7 +7,6 @@ from medperf.enums import Role, Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
-    full_url,
     cube_path,
     read_credentials,
     storage_path,
