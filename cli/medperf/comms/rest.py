@@ -7,6 +7,7 @@ from medperf.enums import Role, Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
+    full_url,
     cube_path,
     read_credentials,
     storage_path,
@@ -52,7 +53,7 @@ class REST(Comms):
         if len(url_sections) > 1:
             url = "".join(url_sections[1:])
 
-        return f"https://{url}{api_path}"
+        return f"https://{full_url()}"
 
     def login(self, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints

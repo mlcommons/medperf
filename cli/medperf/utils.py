@@ -68,6 +68,15 @@ def set_custom_config(args: dict):
         setattr(config, param, val)
 
 
+def full_url() -> str:
+    """Helper function that returns the versioned API URL
+
+    Returns:
+        str: URL with API path
+    """
+    return f"{config.server}{config.api_path}"
+
+
 def storage_path(subpath: str):
     """Helper function that converts a path to storage-related path"""
     server_path = config.server.split("//")[1]

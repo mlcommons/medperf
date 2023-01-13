@@ -5,12 +5,13 @@ import requests
 from unittest.mock import mock_open, ANY, call
 
 from medperf import config
+from medperf.utils import full_url
 from medperf.enums import Role, Status
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
 
 url = "https://mock.url"
-full_url = f"{url}{config.api_path}"
+full_url = f"{full_url()}"
 patch_server = "medperf.comms.rest.{}"
 
 
