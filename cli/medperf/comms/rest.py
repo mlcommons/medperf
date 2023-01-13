@@ -2,13 +2,13 @@ from typing import List
 import requests
 import logging
 import os
-import configparser
 
 from medperf.enums import Role, Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
     cube_path,
+    read_credentials,
     storage_path,
     generate_tmp_uid,
     sanitize_json,
@@ -84,14 +84,10 @@ class REST(Comms):
             raise CommunicationRequestError("Unable to change the current password")
 
     def authenticate(self):
-        creds_path = os.path.join(config.storage, config.credentials_path)
-        profile = config.profile
-        if os.path.exists(creds_path):
-            creds = configparser.ConfigParser()
-            creds.read(creds_path)
-            if profile in creds:
-                self.token = creds[profile]["token"]
-                return
+        token = read_credentials()
+        if token is not None:
+            self.token = token
+            return
 
         raise CommunicationAuthenticationError(
             "Couldn't find credentials file. Did you run 'medperf login' before?"

@@ -70,25 +70,6 @@ def test_set_custom_config_modifies_config_params(param):
     assert recovered_args == backup_args
 
 
-def test_load_config_reads_profile_from_config_file(mocker):
-    # Arrange
-    profile = "profile"
-    exp_config = {"test": "test"}
-    config_path = os.path.join(config.storage, config.config_path)
-    spy_read = mocker.patch("configparser.ConfigParser.read")
-    spy_get = mocker.patch(
-        "configparser.ConfigParser.__getitem__", return_value=exp_config
-    )
-
-    # Act
-    config_params = utils.load_config(profile)
-
-    # Assert
-    spy_read.assert_called_once_with(config_path)
-    spy_get.assert_called_once_with(profile)
-    assert config_params == exp_config
-
-
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
 def test_get_file_sha1_opens_specified_file(mocker, file):
     # Arrange
