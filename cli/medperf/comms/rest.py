@@ -48,12 +48,11 @@ class REST(Comms):
 
     def __parse_url(self, url):
         url_sections = url.split("://")
-        api_path = config.api_path
         # Remove protocol if passed
         if len(url_sections) > 1:
             url = "".join(url_sections[1:])
 
-        return f"https://{full_url()}"
+        return f"https://{full_url(url)}"
 
     def login(self, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints

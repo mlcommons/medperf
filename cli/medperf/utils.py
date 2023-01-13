@@ -68,13 +68,16 @@ def set_custom_config(args: dict):
         setattr(config, param, val)
 
 
-def full_url() -> str:
+def full_url(url: str) -> str:
     """Helper function that returns the versioned API URL
+
+    Args:
+        url (str): Base url that must be converted to versioned API URL
 
     Returns:
         str: URL with API path
     """
-    return f"{config.server}{config.api_path}"
+    return f"{url}{config.api_path}"
 
 
 def storage_path(subpath: str):
