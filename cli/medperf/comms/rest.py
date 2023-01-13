@@ -45,7 +45,8 @@ class REST(Comms):
             # No certificate provided, default to normal verification
             self.cert = True
 
-    def parse_url(self, url: str) -> str:
+    @classmethod
+    def parse_url(cls, url: str) -> str:
         """Parse the source URL so that it can be used by the comms implementation.
         It should handle protocols and versioning to be able to communicate with the API.
 

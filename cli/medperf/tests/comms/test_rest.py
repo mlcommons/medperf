@@ -10,7 +10,7 @@ from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
 
 url = "https://mock.url"
-full_url = full_url(url)
+full_url = REST.parse_url(url)
 patch_server = "medperf.comms.rest.{}"
 
 
