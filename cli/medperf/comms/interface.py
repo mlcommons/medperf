@@ -16,8 +16,8 @@ class Comms(ABC):
             token (str, Optional): authentication token to be used throughout communication. Defaults to None.
         """
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def parse_url(self, url: str) -> str:
         """Parse the source URL so that it can be used by the comms implementation.
         It should handle protocols and versioning to be able to communicate with the API.
