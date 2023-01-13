@@ -17,6 +17,18 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def parse_url(self, url: str) -> str:
+        """Parse the source URL so that it can be used by the comms implementation.
+        It should handle protocols and versioning to be able to communicate with the API.
+
+        Args:
+            url (str): base URL
+
+        Returns:
+            str: parsed URL with protocol and version
+        """
+
+    @abstractmethod
     def login(self, ui: UI):
         """Authenticate the comms instance for further interactions
 

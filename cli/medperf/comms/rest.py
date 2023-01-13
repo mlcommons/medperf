@@ -39,20 +39,30 @@ def log_response_error(res, warn=False):
 
 class REST(Comms):
     def __init__(self, source: str, token=None):
-        self.server_url = self.__parse_url(source)
+        self.server_url = self.parse_url(source)
         self.token = token
         self.cert = config.certificate
         if self.cert is None:
             # No certificate provided, default to normal verification
             self.cert = True
 
-    def __parse_url(self, url):
+    def parse_url(self, url: str) -> str:
+        """Parse the source URL so that it can be used by the comms implementation.
+        It should handle protocols and versioning to be able to communicate with the API.
+
+        Args:
+            url (str): base URL
+
+        Returns:
+            str: parsed URL with protocol and version
+        """
         url_sections = url.split("://")
+        api_path = f"/api/v{config.major_version}"
         # Remove protocol if passed
         if len(url_sections) > 1:
             url = "".join(url_sections[1:])
 
-        return f"https://{full_url(url)}"
+        return f"https://{url}{api_path}"
 
     def login(self, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
