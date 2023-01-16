@@ -268,7 +268,7 @@ class Cube(Entity):
                 if local_hashes[key] != server_hashes[key]:
                     valid_hashes = False
                     msg = f"{key.replace('_', ' ')} doesn't match"
-                    config.ui.print_error(msg)
+                    logging.warning(msg)
 
         return valid_cube and valid_hashes
 

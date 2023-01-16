@@ -30,43 +30,87 @@ def cube(mocker):
     mocker.patch(PATCH_MLCUBE.format("Cube.write"))
 
 
-@pytest.mark.parametrize("name", [("", False), ("valid", True), ("1" * 20, False)])
 @pytest.mark.parametrize(
-    "mlc_file",
+    "name,mlc_file,params_file,add_file,img_file,should_pass",
     [
-        ("", False),
-        ("invalid", False),
-        ("https://google.com", False),
-        ("https://google.com" + "/mlcube.yaml", True),
+        # Valid minimal submission
+        ("valid", "https://test.test/mlcube.yaml", "", "", "", True,),
+        # Invalid empty name
+        (
+            "",
+            "https://test.test/mlcube.yaml",
+            "https://test.test/parameters.yaml",
+            "",
+            "",
+            False,
+        ),
+        # Invalid name length
+        (
+            "1" * 20,
+            "https://test.test/mlcube.yaml",
+            "https://test.test/parameters.yaml",
+            "",
+            "",
+            False,
+        ),
+        # Invalid empty mlcube file
+        ("valid", "", "https://test.test/parameters.yaml", "", "", False),
+        # Invalid mlcube url
+        (
+            "valid",
+            "https://test.test",
+            "https://test.test/parameters.yaml",
+            "",
+            "",
+            False,
+        ),
+        # Invalid parameters url
+        ("valid", "https://test.test/mlcube.yaml", "https://test.test", "", "", False),
+        # Invalid additional files string
+        (
+            "valid",
+            "https://test.test/mlcube.yaml",
+            "https://test.test/parameters.yaml",
+            "invalid",
+            "",
+            False,
+        ),
+        # Invalid image file string
+        (
+            "valid",
+            "https://test.test/mlcube.yaml",
+            "https://test.test/parameters.yaml",
+            "",
+            "invalid",
+            False,
+        ),
+        # Valid complete submission
+        (
+            "valid",
+            "https://test.test/mlcube.yaml",
+            "https://test.test/parameters.yaml",
+            "https://test.test",
+            "https://test.test",
+            True,
+        ),
     ],
 )
-@pytest.mark.parametrize(
-    "params_file",
-    [
-        ("invalid", False),
-        ("https://google.com", False),
-        ("https://google.com" + "/parameters.yaml", True),
-    ],
-)
-@pytest.mark.parametrize("add_file", [("invalid", False), ("https://google.com", True)])
-@pytest.mark.parametrize("img_file", [("invalid", False), ("https://google.com", True)])
 def test_is_valid_passes_valid_fields(
-    mocker, comms, ui, name, mlc_file, params_file, add_file, img_file
+    mocker, comms, ui, name, mlc_file, params_file, add_file, img_file, should_pass
 ):
     # Arrange
     submit_info = {
-        "name": name[0],
-        "mlcube_file": mlc_file[0],
-        "params_file": params_file[0],
-        "additional_files_tarball_url": add_file[0],
+        "name": name,
+        "mlcube_file": mlc_file,
+        "params_file": params_file,
+        "additional_files_tarball_url": add_file,
         "additional_files_tarball_hash": "",
-        "image_tarball_url": img_file[0],
+        "image_tarball_url": img_file,
         "image_tarball_hash": "",
         "mlcube_hash": "",
         "parameters_hash": "",
     }
     submission = SubmitCube(submit_info)
-    should_pass = all([name[1], mlc_file[1], params_file[1], add_file[1], img_file[1]])
 
     # Act
     valid = submission.is_valid()

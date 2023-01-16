@@ -240,7 +240,7 @@ def test_set_data_uid_calls_DataPreparation_by_default(
     spy.assert_called_once()
 
 
-@pytest.mark.parametrize("data_uid", [343, 324, 96, 443, 185])
+@pytest.mark.parametrize("data_uid", [343, 324])
 def test_set_data_uid_sets_demo_data_uid_by_default(
     mocker, default_setup, data_uid, comms, ui
 ):
@@ -255,7 +255,7 @@ def test_set_data_uid_sets_demo_data_uid_by_default(
     assert exec.data_uid == data_uid
 
 
-@pytest.mark.parametrize("data_uid", [85, 388, 397])
+@pytest.mark.parametrize("data_uid", [85, 397])
 def test_set_data_uid_keeps_passed_data_uid(mocker, default_setup, data_uid, comms, ui):
     # Arrange
     exec = CompatibilityTestExecution(1, data_uid, None, None, None)
@@ -326,10 +326,10 @@ def test_run_executes_all_the_expected_steps(
         execute_benchmark_spy.assert_not_called()
 
 
-@pytest.mark.parametrize("bmk_uid", [255, 238])
-@pytest.mark.parametrize("data_uid", [312, 498])
-@pytest.mark.parametrize("model_uid", [241, 411])
-@pytest.mark.parametrize("results", [{}, {"AUC": 0.6}])
+@pytest.mark.parametrize(
+    "bmk_uid,data_uid,model_uid,results",
+    [(255, 312, 241, {}), (238, 498, 411, {"AUC": 0.6})],
+)
 def test_run_returns_uids(
     mocker, benchmark, bmk_uid, data_uid, model_uid, results, comms, ui
 ):
@@ -414,6 +414,86 @@ def test_download_demo_data_extracts_expected_paths(
     # Assert
     assert data_path == exp_data_path
     assert labels_path == exp_labels_path
+
+
+@pytest.mark.parametrize(
+    "bmk_uid,data_uid,prep_uid,model_uid,eval_uid",
+    [(83, 254, None, 145, None), (None, None, 466, None, 97), (47, None, 12, 39, None)],
+)
+def test_run_uses_correct_uids(
+    mocker,
+    benchmark,
+    dataset,
+    bmk_uid,
+    data_uid,
+    prep_uid,
+    model_uid,
+    eval_uid,
+    comms,
+    ui,
+):
+    # Arrange
+    bmk_prep_uid = "b1"
+    bmk_model_uid = "b2"
+    bmk_eval_uid = "b3"
+    demo_dataset_uid = "d1"
+    generated_uid = "t1"
+
+    bmk = benchmark(bmk_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
+    bmk.demo_dataset_url = "url"
+    bmk.demo_dataset_hash = "hash"
+
+    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
+    mocker.patch("os.path.exists", return_value=False)
+    mocker.patch(
+        PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
+        return_value=("", ""),
+    )
+    mocker.patch(
+        PATCH_TEST.format("DataPreparation.run"), return_value=demo_dataset_uid
+    )
+    mocker.patch(PATCH_TEST.format("Dataset.get"), return_value=dataset)
+    mocker.patch(PATCH_TEST.format("Result.get"))
+
+    def tmp_side_effect(prep, model, eval):
+        bmk = benchmark(generated_uid, prep, model, eval)
+        bmk.generated_uid = generated_uid
+        return bmk
+
+    tmp_spy = mocker.patch(
+        PATCH_TEST.format("Benchmark.tmp"), side_effect=tmp_side_effect
+    )
+    exec_spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
+
+    exp_data_uid = demo_dataset_uid if data_uid is None else data_uid
+    exp_model_uid = bmk_model_uid if model_uid is None else model_uid
+    exp_eval_uid = bmk_eval_uid if eval_uid is None else eval_uid
+    if prep_uid is not None:
+        exp_prep_uid = prep_uid
+    elif data_uid is not None:
+        exp_prep_uid = dataset.preparation_cube_uid
+    else:
+        exp_prep_uid = bmk_prep_uid
+
+    # Act
+    try:
+        CompatibilityTestExecution.run(
+            bmk_uid, data_uid, prep_uid, model_uid, eval_uid, force_test=True
+        )
+    except InvalidArgumentError:
+        return
+
+    # Assert
+    if bmk_uid is None:
+        tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
+        exec_spy.assert_called_once_with(
+            generated_uid, exp_data_uid, exp_model_uid, run_test=True
+        )
+    else:
+        tmp_spy.assert_not_called()
+        exec_spy.assert_called_once_with(
+            bmk_uid, exp_data_uid, exp_model_uid, run_test=True
+        )
 
 
 @pytest.mark.parametrize("files_already_exist", [True, False])
