@@ -34,18 +34,16 @@ def setup(request, mocker, comms, fs):
     return request.param
 
 
-@pytest.mark.parametrize(
-    "data_prep,model,eval", [["12", "654", "6"], ["78", "4", "354"]]
-)
+@pytest.mark.parametrize("data_prep,model,eval", [[12, 654, 6], [78, 4, 354]])
 class TestTmp:
     def test_tmp_creates_temporary_benchmark(self, data_prep, model, eval):
         # Act
         benchmark = Benchmark.tmp(data_prep, model, eval)
 
         # Assert
-        assert benchmark.data_preparation == data_prep
-        assert benchmark.reference_model == model
-        assert benchmark.evaluator == eval
+        assert benchmark.data_preparation_mlcube == data_prep
+        assert benchmark.reference_model_mlcube == model
+        assert benchmark.data_evaluator_mlcube == eval
 
     def test_tmp_writes_temporary_benchmark(self, data_prep, model, eval):
         # Arrange
@@ -62,7 +60,7 @@ class TestTmp:
 
 
 @pytest.mark.parametrize(
-    "setup", [{"remote": ["721"], "models": ["37", "23", "495"],}], indirect=True,
+    "setup", [{"remote": ["721"], "models": [37, 23, 495],}], indirect=True,
 )
 class TestModels:
     def test_benchmark_includes_reference_model_in_models(self, setup):
@@ -71,7 +69,7 @@ class TestModels:
         benchmark = Benchmark.get(id)
 
         # Assert
-        assert benchmark.reference_model in benchmark.models
+        assert benchmark.reference_model_mlcube in benchmark.models
 
     def test_benchmark_includes_additional_models_in_models(self, setup):
         # Arrange

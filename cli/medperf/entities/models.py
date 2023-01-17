@@ -43,7 +43,10 @@ class ApprovableModel(MedPerfModel):
 
     @validator("approval_status", pre=True, always=True)
     def default_status(cls, v):
-        return Status(v) or Status.PENDING
+        status = Status.PENDING
+        if v is not None:
+            status = Status(v)
+        return status
 
 
 class DatasetModel(MedPerfModel):

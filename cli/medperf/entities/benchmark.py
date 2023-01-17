@@ -26,7 +26,7 @@ class Benchmark(Entity, ApprovableModel):
     description: Optional[str] = Field(None, max_length=20)
     docs_url: Optional[HttpUrl]
     demo_dataset_tarball_url: Optional[HttpUrl]
-    demo_dataset_tarball_hash: str
+    demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]
     data_preparation_mlcube: int
     reference_model_mlcube: int
