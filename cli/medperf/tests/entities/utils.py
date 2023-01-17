@@ -4,7 +4,7 @@ from medperf import config
 import yaml
 
 from medperf.exceptions import CommunicationRetrievalError
-from medperf.tests.mocks.benchmark import generate_benchmark
+from medperf.tests.mocks.benchmark import TestBenchmarkModel
 from medperf.tests.mocks.dataset import generate_dset
 from medperf.tests.mocks.result import generate_result
 from medperf.tests.mocks.cube import generate_cube
@@ -20,21 +20,21 @@ def setup_benchmark_fs(ents, fs):
             ent = {"id": str(ent)}
         id = ent["id"]
         bmk_filepath = os.path.join(bmks_path, id, config.benchmarks_filename)
-        bmk_contents = generate_benchmark(**ent)
-        cubes_ids = bmk_contents["models"]
-        cubes_ids.append(bmk_contents["data_preparation_mlcube"])
-        cubes_ids.append(bmk_contents["reference_model_mlcube"])
-        cubes_ids.append(bmk_contents["data_evaluator_mlcube"])
+        bmk_contents = TestBenchmarkModel(**ent)
+        cubes_ids = bmk_contents.models
+        cubes_ids.append(bmk_contents.data_preparation_mlcube)
+        cubes_ids.append(bmk_contents.reference_model_mlcube)
+        cubes_ids.append(bmk_contents.data_evaluator_mlcube)
         cubes_ids = list(set(cubes_ids))
         setup_cube_fs(cubes_ids, fs)
         try:
-            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents))
+            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents.dict()))
         except FileExistsError:
             pass
 
 
 def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_benchmark
+    generate_fn = TestBenchmarkModel
     comms_calls = {
         "get_all": "get_benchmarks",
         "get_user": "get_user_benchmarks",
