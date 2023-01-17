@@ -43,7 +43,7 @@ class ApprovableModel(MedPerfModel):
 
 
 class BenchmarkModel(ApprovableModel):
-    description: Optional[str] = Field(..., max_length=20)
+    description: Optional[str] = Field(None, max_length=20)
     docs_url: Optional[HttpUrl]
     demo_dataset_tarball_url: Optional[HttpUrl]
     demo_dataset_tarball_hash: str
@@ -71,7 +71,7 @@ class CubeModel(MedPerfModel):
 
 
 class DatasetModel(MedPerfModel):
-    description: Optional[str] = Field(..., max_length=20)
+    description: Optional[str] = Field(None, max_length=20)
     location: str = Field(..., max_length=20)
     data_preparation_mlcube: int
     input_data_hash: str
