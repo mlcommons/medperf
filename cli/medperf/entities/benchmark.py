@@ -2,16 +2,17 @@ import os
 from medperf.exceptions import MedperfException
 import yaml
 import logging
-from typing import List, Union
+from typing import List, Optional
+from pydantic import HttpUrl, Field
 
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
-from medperf.entities.models import BenchmarkModel
+from medperf.entities.models import ApprovableModel
 
 
-class Benchmark(Entity):
+class Benchmark(Entity, ApprovableModel):
     """
     Class representing a Benchmark
 
@@ -22,22 +23,31 @@ class Benchmark(Entity):
     what models to run and how to evaluate them.
     """
 
-    def __init__(self, bmk_desc: Union[dict, BenchmarkModel]):
+    description: Optional[str] = Field(None, max_length=20)
+    docs_url: Optional[HttpUrl]
+    demo_dataset_tarball_url: Optional[HttpUrl]
+    demo_dataset_tarball_hash: str
+    demo_dataset_generated_uid: Optional[str]
+    data_preparation_mlcube: int
+    reference_model_mlcube: int
+    data_evaluator_mlcube: int
+    models: List[int]
+    metadata: dict = {}
+    user_metadata: dict = {}
+    is_active: bool = True
+
+    def __init__(self, *args, **kwargs):
         """Creates a new benchmark instance
 
         Args:
             bmk_desc (Union[dict, BenchmarkModel]): Benchmark instance description
         """
-        self.model = bmk_desc
-        if isinstance(self.model, dict):
-            self.model = BenchmarkModel(**bmk_desc)
+        super().__init__(*args, **kwargs)
 
-        self.generated_uid = (
-            f"p{self.data_preparation}m{self.reference_model}e{self.evaluator}"
-        )
+        self.generated_uid = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
         path = storage_path(config.benchmarks_storage)
-        if self.model.id:
-            path = os.path.join(path, str(self.model.id))
+        if self.id:
+            path = os.path.join(path, str(self.id))
         else:
             path = os.path.join(path, self.generated_uid)
         self.path = path
@@ -61,11 +71,11 @@ class Benchmark(Entity):
         if not local_only:
             benchmarks = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([bmk.uid for bmk in benchmarks])
+        remote_uids = set([bmk.id for bmk in benchmarks])
 
         local_benchmarks = cls.__local_all()
 
-        benchmarks += [bmk for bmk in local_benchmarks if bmk.uid not in remote_uids]
+        benchmarks += [bmk for bmk in local_benchmarks if bmk.id not in remote_uids]
 
         return benchmarks
 
@@ -83,7 +93,7 @@ class Benchmark(Entity):
                 # Most probably not necessary when getting all benchmarks.
                 # If associated models for a benchmark are needed then use Benchmark.get()
                 bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
-            benchmarks = [cls(meta) for meta in bmks_meta]
+            benchmarks = [cls(**meta) for meta in bmks_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all benchmarks from the server"
             logging.warning(msg)
@@ -103,7 +113,7 @@ class Benchmark(Entity):
 
         for uid in uids:
             meta = cls.__get_local_dict(uid)
-            benchmark = cls(meta)
+            benchmark = cls(**meta)
             benchmarks.append(benchmark)
 
         return benchmarks
@@ -133,7 +143,7 @@ class Benchmark(Entity):
             logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
             logging.info(f"Looking for benchmark {benchmark_uid} locally")
             benchmark_dict = cls.__get_local_dict(benchmark_uid)
-        benchmark = cls(benchmark_dict)
+        benchmark = cls(**benchmark_dict)
         benchmark.write()
         return benchmark
 
@@ -190,7 +200,7 @@ class Benchmark(Entity):
             "demo_dataset_tarball_hash": demo_hash,
             "models": [model],  # not in the server (OK)
         }
-        benchmark = cls(benchmark_dict)
+        benchmark = cls(**benchmark_dict)
         benchmark.write()
         return benchmark
 
@@ -213,7 +223,7 @@ class Benchmark(Entity):
         Returns:
         dict: Dictionary containing benchmark information
         """
-        return self.model.dict()
+        return self.extended_dict()
 
     def write(self) -> str:
         """Writes the benchmark into disk

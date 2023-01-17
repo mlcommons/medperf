@@ -4,10 +4,10 @@ from medperf import config
 import yaml
 
 from medperf.exceptions import CommunicationRetrievalError
-from medperf.tests.mocks.benchmark import TestBenchmarkModel
+from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import generate_dset
 from medperf.tests.mocks.result import generate_result
-from medperf.tests.mocks.cube import generate_cube
+from medperf.tests.mocks.cube import TestCubeModel
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
 
@@ -20,7 +20,7 @@ def setup_benchmark_fs(ents, fs):
             ent = {"id": str(ent)}
         id = ent["id"]
         bmk_filepath = os.path.join(bmks_path, id, config.benchmarks_filename)
-        bmk_contents = TestBenchmarkModel(**ent)
+        bmk_contents = TestBenchmark(**ent)
         cubes_ids = bmk_contents.models
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
         cubes_ids.append(bmk_contents.reference_model_mlcube)
@@ -34,7 +34,7 @@ def setup_benchmark_fs(ents, fs):
 
 
 def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = TestBenchmarkModel
+    generate_fn = TestBenchmark
     comms_calls = {
         "get_all": "get_benchmarks",
         "get_user": "get_user_benchmarks",
@@ -66,8 +66,10 @@ def setup_cube_fs(ents, fs):
         id = ent["id"]
         meta_cube_file = os.path.join(cubes_path, id, config.cube_metadata_filename)
         hash_cube_file = os.path.join(cubes_path, id, config.cube_hashes_filename)
-        meta = generate_cube(id=id)
-        hashes = generate_cube_hashes(**ent)
+        cube = TestCubeModel(**ent)
+        meta = cube.dict()
+        hash_keys = ("additional_files_tarball_hash", "image_tarball_hash")
+        hashes = {k: v for k, v in meta.items() if k in hash_keys}
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
             fs.create_file(hash_cube_file, contents=yaml.dump(hashes))
@@ -76,7 +78,7 @@ def setup_cube_fs(ents, fs):
 
 
 def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_cube
+    generate_fn = TestCubeModel
     comms_calls = {
         "get_all": "get_cubes",
         "get_user": "get_user_cubes",

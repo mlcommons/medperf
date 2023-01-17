@@ -1,15 +1,9 @@
 from typing import List
 from medperf.enums import Status
-from medperf.entities.models import BenchmarkModel
+from medperf.entities.benchmark import Benchmark
 
 
-class Benchmark:
-    def __init__(self):
-        self.name = "MockedBenchmark"
-        self.data_preparation = 1
-
-
-class TestBenchmarkModel(BenchmarkModel):
+class TestBenchmark(Benchmark):
     id: int = 1
     name: str = "name"
     demo_dataset_tarball_hash: str = "tarball_hash"

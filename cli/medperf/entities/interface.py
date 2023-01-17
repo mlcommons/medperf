@@ -5,14 +5,6 @@ from abc import ABC, abstractmethod
 
 class Entity(ABC):
     @abstractmethod
-    def __init__(self, entity_desc: Union[dict, MedPerfModel]):
-        """Entity instantiation method
-
-        Args:
-            entity_desc (Union[dict, MedPerfModel]): Entity description
-        """
-
-    @abstractmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Entity"]:
         """Gets a list of all instances of the respective entity.
         Wether the list is local or remote depends on the implementation.

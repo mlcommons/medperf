@@ -156,7 +156,7 @@ class TestToDict:
 
         # Act
         ent_dict = ent.todict()
-        ent_copy = Implementation(ent_dict)
+        ent_copy = Implementation(**ent_dict)
         ent_copy_dict = ent_copy.todict()
 
         # Assert

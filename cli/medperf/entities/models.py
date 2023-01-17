@@ -6,7 +6,7 @@ from medperf.enums import Status
 
 
 class MedPerfModel(BaseModel):
-    id: Optional[Union[int, str]]
+    id: Optional[Union[str, int]]
     name: str = Field(..., max_length=20)
     owner: Optional[int]
     created_at: Optional[datetime]
@@ -27,10 +27,14 @@ class MedPerfModel(BaseModel):
 
     @validator("*", pre=True)
     def empty_str_to_none(cls, v):
-        print(v)
         if v == "":
             return None
         return v
+
+    class Config:
+        allow_population_by_field_name = True
+        extra = "allow"
+        use_enum_values = True
 
 
 class ApprovableModel(MedPerfModel):
@@ -40,21 +44,6 @@ class ApprovableModel(MedPerfModel):
     @validator("approval_status", pre=True, always=True)
     def default_status(cls, v):
         return Status(v) or Status.PENDING
-
-
-class BenchmarkModel(ApprovableModel):
-    description: Optional[str] = Field(None, max_length=20)
-    docs_url: Optional[HttpUrl]
-    demo_dataset_tarball_url: Optional[HttpUrl]
-    demo_dataset_tarball_hash: str
-    demo_dataset_generated_uid: Optional[str]
-    data_preparation_mlcube: int
-    reference_model_mlcube: int
-    data_evaluator_mlcube: int
-    models: List[int]
-    metadata: dict = {}
-    user_metadata: dict = {}
-    is_active: bool = True
 
 
 class CubeModel(MedPerfModel):
