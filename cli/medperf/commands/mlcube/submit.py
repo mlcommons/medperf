@@ -96,7 +96,7 @@ class SubmitCube:
         self.image_tarball_hash = cube.image_tarball_hash
         self.mlcube_hash = cube.mlcube_hash
         self.parameters_hash = cube.parameters_hash
-        if not cube.is_valid():
+        if not cube.valid():
             raise InvalidEntityError("MLCube hash check failed. Submission aborted.")
 
     def todict(self):

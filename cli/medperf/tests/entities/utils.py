@@ -7,7 +7,7 @@ from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import generate_dset
 from medperf.tests.mocks.result import generate_result
-from medperf.tests.mocks.cube import TestCubeModel
+from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
 
@@ -66,7 +66,7 @@ def setup_cube_fs(ents, fs):
         id = ent["id"]
         meta_cube_file = os.path.join(cubes_path, id, config.cube_metadata_filename)
         hash_cube_file = os.path.join(cubes_path, id, config.cube_hashes_filename)
-        cube = TestCubeModel(**ent)
+        cube = TestCube(**ent)
         meta = cube.dict()
         hash_keys = ("additional_files_tarball_hash", "image_tarball_hash")
         hashes = {k: v for k, v in meta.items() if k in hash_keys}
@@ -78,7 +78,7 @@ def setup_cube_fs(ents, fs):
 
 
 def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = TestCubeModel
+    generate_fn = TestCube
     comms_calls = {
         "get_all": "get_cubes",
         "get_user": "get_user_cubes",

@@ -46,19 +46,6 @@ class ApprovableModel(MedPerfModel):
         return Status(v) or Status.PENDING
 
 
-class CubeModel(MedPerfModel):
-    git_mlcube_url: HttpUrl
-    mlcube_hash: str
-    git_parameters_url: HttpUrl
-    parameters_hash: str
-    image_tarball_url: HttpUrl
-    image_tarball_hash: str
-    additional_files_tarball_url: HttpUrl = Field(..., alias="tarball_url")
-    additional_files_tarball_hash: str = Field(..., alias="tarball_hash")
-    metadata: dict = {}
-    user_metadata: dict = {}
-
-
 class DatasetModel(MedPerfModel):
     description: Optional[str] = Field(None, max_length=20)
     location: str = Field(..., max_length=20)
