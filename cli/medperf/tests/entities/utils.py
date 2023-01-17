@@ -6,7 +6,7 @@ import yaml
 from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.tests.mocks.result import generate_result
+from medperf.tests.mocks.result import TestResult
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
@@ -169,22 +169,21 @@ def setup_result_fs(ents, fs):
             ent = {"id": str(ent)}
         id = ent["id"]
         result_file = os.path.join(results_path, id, config.results_info_file)
-        result_contents = generate_result(**ent)
-        bmk_id = result_contents["benchmark"]
-        cube_id = result_contents["model"]
-        dataset_id = result_contents["dataset"]
+        bmk_id = ent.get("benchmark", 1)
+        cube_id = ent.get("model", 1)
+        dataset_id = ent.get("dataset", 1)
         setup_benchmark_fs([bmk_id], fs)
         setup_cube_fs([cube_id], fs)
         setup_dset_fs([dataset_id], fs)
+        result_contents = TestResult(**ent)
         try:
-            fs.create_file(result_file, contents=yaml.dump(result_contents))
+            fs.create_file(result_file, contents=yaml.dump(result_contents.dict()))
         except FileExistsError:
             pass
 
 
 def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_result
-    def_result = generate_result()
+    generate_fn = TestResult
     comms_calls = {
         "get_all": "get_results",
         "get_user": "get_user_results",
@@ -193,9 +192,7 @@ def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
     }
 
     # Enable dset retrieval since its required for result creation
-    setup_dset_comms(
-        mocker, comms, [def_result["dataset"]], [def_result["dataset"]], uploaded
-    )
+    setup_dset_comms(mocker, comms, [1], [1], uploaded)
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )

@@ -5,13 +5,13 @@ from typing import List, Union
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
-from medperf.entities.models import ResultModel
+from medperf.entities.models import ApprovableModel
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-class Result(Entity):
+class Result(Entity, ApprovableModel):
     """
     Class representing a Result entry
 
@@ -22,24 +22,25 @@ class Result(Entity):
     benchmark results and how to upload them to the backend.
     """
 
-    def __init__(self, result_desc: Union[dict, ResultModel]):
+    benchmark: int
+    model: int
+    dataset: int
+    results: dict
+    metadata: dict = {}
+
+    def __init__(self, *args, **kwargs):
         """Creates a new result instance
 
         Args:
             result_desc (Union[dict, ResultModel]): Result instance description
         """
+        super().__init__(*args, **kwargs)
 
-        self.model = result_desc
-        if isinstance(self.model, dict):
-            self.model = ResultModel(**result_desc)
-
-        dset = Dataset.get(self.model.dataset)
-        self.generated_uid = (
-            f"b{self.model.benchmark}m{self.model.model}d{dset.generated_uid}"
-        )
+        dset = Dataset.get(self.dataset)
+        self.generated_uid = f"b{self.benchmark}m{self.model}d{dset.generated_uid}"
         path = storage_path(config.results_storage)
-        if self.model.id:
-            path = os.path.join(path, str(self.model.id))
+        if self.id:
+            path = os.path.join(path, str(self.id))
         else:
             path = os.path.join(path, self.generated_uid)
 
@@ -61,11 +62,11 @@ class Result(Entity):
         if not local_only:
             results = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([result.model.id for result in results])
+        remote_uids = set([result.id for result in results])
 
         local_results = cls.__local_all()
 
-        results += [res for res in local_results if res.model.id not in remote_uids]
+        results += [res for res in local_results if res.id not in remote_uids]
 
         return results
 
@@ -78,7 +79,7 @@ class Result(Entity):
 
         try:
             results_meta = remote_func()
-            results = [cls(meta) for meta in results_meta]
+            results = [cls(**meta) for meta in results_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all results from the server"
             logging.warning(msg)
@@ -98,7 +99,7 @@ class Result(Entity):
 
         for uid in uids:
             local_meta = cls.__get_local_dict(uid)
-            result = cls(local_meta)
+            result = cls(**local_meta)
             results.append(result)
 
         return results
@@ -110,7 +111,7 @@ class Result(Entity):
         the local instance
 
         Args:
-            result_uid (str): UID of the Result instance
+            result_uid (str): UID /f the Result instance
 
         Returns:
             Result: Specified Result instance
@@ -125,12 +126,12 @@ class Result(Entity):
             logging.warning(f"Getting result {result_uid} from comms failed")
             logging.info(f"Looking for result {result_uid} locally")
             result_dict = cls.__get_local_dict(result_uid)
-        result = cls(result_dict)
+        result = cls(**result_dict)
         result.write()
         return result
 
     def todict(self):
-        return self.model.extended_dict()
+        return self.extended_dict()
 
     def upload(self):
         """Uploads the results to the comms
