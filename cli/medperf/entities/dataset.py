@@ -1,8 +1,8 @@
 import os
 import yaml
 import logging
-from pydantic import Field
-from typing import List, Union, Optional
+from pydantic import Field, validator
+from typing import List, Optional
 
 from medperf.utils import storage_path
 from medperf.enums import Status
@@ -36,6 +36,13 @@ class Dataset(Entity, MedPerfModel):
     status: Status = None
     separate_labels: Optional[bool]
     user_metadata: dict = {}
+
+    @validator("status", pre=True, always=True)
+    def default_status(cls, v, *, values, **kwargs):
+        default = Status.PENDING
+        if values["id"] is not None:
+            default = Status.APPROVED
+        return Status(v) or default
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
