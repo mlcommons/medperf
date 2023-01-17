@@ -9,11 +9,11 @@ EMPTY_FILE_HASH = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 class MockCube:
     def __init__(self, is_valid):
         self.name = "Test"
-        self.valid = is_valid
+        self.is_valid = is_valid
         self.uid = "1"
 
     def valid(self):
-        return self.valid
+        return self.is_valid
 
     def run(self):
         pass
