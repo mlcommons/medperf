@@ -29,6 +29,7 @@ if ${FRESH}; then
   echo "====================================="
   rm -fr $DIRECTORY
   rm -fr $MEDPERF_SUBSTORAGE
+  medperf profile delete localtest
 fi
 echo "====================================="
 echo "Retrieving mock dataset"
@@ -120,4 +121,5 @@ if ${CLEANUP}; then
   echo "====================================="
   rm -fr $DIRECTORY
   rm -fr $MEDPERF_SUBSTORAGE
+  medperf profile delete localtest
 fi

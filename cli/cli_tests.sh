@@ -30,6 +30,7 @@ clean(){
   echo "====================================="
   rm -fr $DIRECTORY
   rm -fr $MEDPERF_SUBSTORAGE
+  medperf profile delete mocktest
 }
 checkFailed(){
   if [ "$?" -ne "0" ]; then
@@ -290,6 +291,14 @@ echo "Running model1"
 echo "====================================="
 medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL1_UID -y
 checkFailed "Model1 run failed"
+##########################################################
+
+##########################################################
+echo "====================================="
+echo "Delete mocktest profile"
+echo "====================================="
+medperf profile delete mocktest
+checkFailed "Profile deletion failed"
 ##########################################################
 
 if ${CLEANUP}; then
