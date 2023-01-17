@@ -241,7 +241,7 @@ class TestRun:
             cube.run(task)
 
 
-@pytest.mark.parametrize("setup", [{"local": [BASIC_CUBE]}], indirect=True)
+@pytest.mark.parametrize("setup", [{"local": [DEFAULT_CUBE]}], indirect=True)
 @pytest.mark.parametrize("task", ["task"])
 @pytest.mark.parametrize(
     "out_key,out_value",

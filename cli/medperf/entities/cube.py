@@ -2,7 +2,7 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List, Dict, Union
+from typing import List, Dict, Optional
 from pydantic import HttpUrl, Field
 from pathlib import Path
 
@@ -37,13 +37,13 @@ class Cube(Entity, MedPerfModel):
     """
 
     git_mlcube_url: HttpUrl
-    mlcube_hash: str
-    git_parameters_url: HttpUrl
-    parameters_hash: str
-    image_tarball_url: HttpUrl
-    image_tarball_hash: str
-    additional_files_tarball_url: HttpUrl = Field(..., alias="tarball_url")
-    additional_files_tarball_hash: str = Field(..., alias="tarball_hash")
+    mlcube_hash: Optional[str]
+    git_parameters_url: Optional[HttpUrl]
+    parameters_hash: Optional[str]
+    image_tarball_url: Optional[HttpUrl]
+    image_tarball_hash: Optional[str]
+    additional_files_tarball_url: Optional[HttpUrl] = Field(None, alias="tarball_url")
+    additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
 
