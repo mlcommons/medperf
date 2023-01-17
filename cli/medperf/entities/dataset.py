@@ -1,11 +1,13 @@
 import os
 import yaml
 import logging
-from typing import List, Union
+from pydantic import Field
+from typing import List, Union, Optional
 
 from medperf.utils import storage_path
+from medperf.enums import Status
 from medperf.entities.interface import Entity
-from medperf.entities.models import DatasetModel
+from medperf.entities.models import MedPerfModel
 from medperf.exceptions import (
     InvalidArgumentError,
     MedperfException,
@@ -14,7 +16,7 @@ from medperf.exceptions import (
 import medperf.config as config
 
 
-class Dataset(Entity):
+class Dataset(Entity, MedPerfModel):
     """
     Class representing a Dataset
 
@@ -24,20 +26,23 @@ class Dataset(Entity):
     data preparation output.
     """
 
-    def __init__(self, dset_desc: Union[dict, DatasetModel]):
-        """Creates a new dataset instance
+    description: Optional[str] = Field(None, max_length=20)
+    location: str = Field(..., max_length=20)
+    data_preparation_mlcube: int
+    input_data_hash: str
+    generated_uid: str
+    split_seed: Optional[int]
+    generated_metadata: dict = Field(..., alias="metadata")
+    status: Status = None
+    separate_labels: Optional[bool]
+    user_metadata: dict = {}
 
-        Args:
-            dset_desc (Union[dict, DatasetModel]): Dataset instance description.
-        """
-
-        self.model = dset_desc
-        if isinstance(self.model, dict):
-            self.model = DatasetModel(**dset_desc)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         path = storage_path(config.data_storage)
-        if self.model.id:
-            path = os.path.join(path, str(self.model.id))
+        if self.id:
+            path = os.path.join(path, str(self.id))
         else:
             path = os.path.join(path, str(self.generated_uid))
 
@@ -48,7 +53,7 @@ class Dataset(Entity):
             self.labels_path = os.path.join(self.path, "labels")
 
     def todict(self):
-        return self.model.extended_dict()
+        return self.extended_dict()
 
     @classmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Dataset"]:
@@ -66,11 +71,11 @@ class Dataset(Entity):
         if not local_only:
             dsets = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([dset.model.id for dset in dsets])
+        remote_uids = set([dset.id for dset in dsets])
 
         local_dsets = cls.__local_all()
 
-        dsets += [dset for dset in local_dsets if dset.model.id not in remote_uids]
+        dsets += [dset for dset in local_dsets if dset.id not in remote_uids]
 
         return dsets
 
@@ -83,7 +88,7 @@ class Dataset(Entity):
 
         try:
             dsets_meta = remote_func()
-            dsets = [cls(meta) for meta in dsets_meta]
+            dsets = [cls(**meta) for meta in dsets_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all datasets from the server"
             logging.warning(msg)
@@ -103,7 +108,7 @@ class Dataset(Entity):
 
         for uid in uids:
             local_meta = cls.__get_local_dict(uid)
-            dset = cls(local_meta)
+            dset = cls(**local_meta)
             dsets.append(dset)
 
         return dsets
@@ -125,19 +130,19 @@ class Dataset(Entity):
         # Try first downloading the data
         try:
             meta = comms.get_dataset(dset_uid)
-            dataset = cls(meta)
+            dataset = cls(**meta)
         except CommunicationRetrievalError:
             # Get from local cache
             logging.warning(f"Getting Dataset {dset_uid} from comms failed")
             logging.info(f"Looking for dataset {dset_uid} locally")
             local_meta = cls.__get_local_dict(dset_uid)
-            dataset = cls(local_meta)
+            dataset = cls(**local_meta)
 
         dataset.write()
         return dataset
 
     def write(self):
-        logging.info(f"Updating registration information for dataset: {self.model.id}")
+        logging.info(f"Updating registration information for dataset: {self.id}")
         logging.debug(f"registration information: {self.todict()}")
         regfile = os.path.join(self.path, config.reg_file)
         os.makedirs(self.path, exist_ok=True)

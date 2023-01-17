@@ -5,7 +5,7 @@ import yaml
 
 from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
-from medperf.tests.mocks.dataset import generate_dset
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.result import generate_result
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
@@ -138,17 +138,17 @@ def setup_dset_fs(ents, fs):
             ent = {"id": str(ent)}
         id = ent["id"]
         reg_dset_file = os.path.join(dsets_path, id, config.reg_file)
-        dset_contents = generate_dset(**ent)
-        cube_id = dset_contents["data_preparation_mlcube"]
+        dset_contents = TestDataset(**ent)
+        cube_id = dset_contents.data_preparation_mlcube
         setup_cube_fs([cube_id], fs)
         try:
-            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents))
+            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents.dict()))
         except FileExistsError:
             pass
 
 
 def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_dset
+    generate_fn = TestDataset
     comms_calls = {
         "get_all": "get_datasets",
         "get_user": "get_user_datasets",
