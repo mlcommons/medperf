@@ -23,13 +23,31 @@ echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
 echo "Certificate: $CERT_FILE"
 
-if ${FRESH}; then
+# frequently used
+clean(){
   echo "====================================="
   echo "Cleaning up medperf tmp files"
   echo "====================================="
   rm -fr $DIRECTORY
   rm -fr $MEDPERF_SUBSTORAGE
+  # errors of the commands below are ignored
+  medperf profile activate default
   medperf profile delete localtest
+}
+checkFailed(){
+  if [ "$?" -ne "0" ]; then
+    echo $1
+    tail "$MEDPERF_LOG_STORAGE"
+    if ${CLEANUP}; then
+      clean
+    fi
+    exit 1
+  fi
+}
+
+
+if ${FRESH}; then
+  clean
 fi
 echo "====================================="
 echo "Retrieving mock dataset"
@@ -49,21 +67,14 @@ echo "====================================="
 echo "Logging the user with username: testdataowner and password: test"
 echo "====================================="
 medperf login --username=testdataowner --password=test
-if [ "$?" -ne "0" ]; then
-  echo "Login failed"
-  tail "$MEDPERF_LOG_STORAGE"
-  exit 1
-fi
+checkFailed "Login failed"
 echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
 medperf dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert --name="mock_chexpert" --description="mock dataset" --location="mock location"
-if [ "$?" -ne "0" ]; then
-  echo "Data preparation step failed"
-  tail "$MEDPERF_LOG_STORAGE"
-  exit 2
-fi
+checkFailed "Data preparation step failed"
+
 echo "\n"
 DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 echo "Dataset UID: $DSET_UID"
@@ -71,22 +82,16 @@ echo "====================================="
 echo "Registering dataset with medperf"
 echo "====================================="
 medperf dataset submit -d $DSET_UID -y
-if [ "$?" -ne "0" ]; then
-  echo "Data registration step failed"
-  tail "$MEDPERF_LOG_STORAGE"
-  exit 2
-fi
+checkFailed "Data registration step failed"
+
 DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "Dataset UID: $DSET_UID"
 echo "====================================="
 echo "Creating dataset benchmark association"
 echo "====================================="
 medperf dataset associate -d $DSET_UID -b 1 -y
-if [ "$?" -ne "0" ]; then
-  echo "Data registration step failed"
-  tail "$MEDPERF_LOG_STORAGE"
-  exit 2
-fi
+checkFailed "Data association step failed"
+
 echo "====================================="
 echo "Approving dataset association"
 echo "====================================="
@@ -98,11 +103,8 @@ ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
 ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
 # Mark dataset-benchmark association as approved
 medperf association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
-if [ "$?" -ne "0" ]; then
-  echo "Association approval failed"
-  tail "$MEDPERF_LOG_STORAGE"
-  exit 2
-fi
+checkFailed "Association approval failed"
+
 echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
@@ -110,16 +112,16 @@ echo "====================================="
 medperf login --username=testdataowner --password=test
 # Create results
 medperf run -b 1 -d $DSET_UID -m 2 -y
-if [ "$?" -ne "0" ]; then
-  echo "Benchmark execution step failed"
-  tail $MEDPERF_LOG_STORAGE
-  exit 3
-fi
+checkFailed "Benchmark execution step failed"
+
+echo "====================================="
+echo "Delete localtest profile"
+echo "====================================="
+medperf profile activate default
+checkFailed "default profile activation failed"
+medperf profile delete localtest
+checkFailed "Profile deletion failed"
+
 if ${CLEANUP}; then
-  echo "====================================="
-  echo "Cleaning up medperf tmp files"
-  echo "====================================="
-  rm -fr $DIRECTORY
-  rm -fr $MEDPERF_SUBSTORAGE
-  medperf profile delete localtest
+  clean
 fi

@@ -30,6 +30,8 @@ clean(){
   echo "====================================="
   rm -fr $DIRECTORY
   rm -fr $MEDPERF_SUBSTORAGE
+  # errors of the commands below are ignored
+  medperf profile activate default
   medperf profile delete mocktest
 }
 checkFailed(){
@@ -297,6 +299,8 @@ checkFailed "Model1 run failed"
 echo "====================================="
 echo "Delete mocktest profile"
 echo "====================================="
+medperf profile activate default
+checkFailed "default profile activation failed"
 medperf profile delete mocktest
 checkFailed "Profile deletion failed"
 ##########################################################
