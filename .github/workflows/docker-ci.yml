@@ -53,8 +53,8 @@ jobs:
 
     - name: Run xrv demo
       working-directory: .
-      run: sh cli/cli_xrv_demo.sh
+      run: sh cli/cli_xrv_demo.sh -f
 
     - name: Run client integration tests
       working-directory: .
-      run: sh cli/cli_tests.sh
+      run: sh cli/cli_tests.sh -f
