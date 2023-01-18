@@ -3,7 +3,7 @@ from medperf.exceptions import MedperfException
 import yaml
 import logging
 from typing import List, Optional
-from pydantic import HttpUrl, Field
+from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
 from medperf.entities.interface import Entity
@@ -31,10 +31,17 @@ class Benchmark(Entity, ApprovableModel):
     data_preparation_mlcube: int
     reference_model_mlcube: int
     data_evaluator_mlcube: int
-    models: List[int]
+    models: List[int] = None
     metadata: dict = {}
     user_metadata: dict = {}
     is_active: bool = True
+
+    @validator("models", pre=True, always=True)
+    def set_default_models_value(cls, value, values, **kwargs):
+        if not value:
+            # Empty or None value assigned
+            return [values["reference_model_mlcube"]]
+        return value
 
     def __init__(self, *args, **kwargs):
         """Creates a new benchmark instance
