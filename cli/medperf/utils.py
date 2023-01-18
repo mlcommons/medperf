@@ -42,6 +42,8 @@ def read_credentials():
 
 
 def default_profile():
+    # NOTE: this function is only usable before config is actually initialized.
+    # using this function when another profile is activated will not load the defaults
     return {param: getattr(config, param) for param in config.configurable_parameters}
 
 
