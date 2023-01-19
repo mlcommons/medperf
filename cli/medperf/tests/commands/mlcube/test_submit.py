@@ -1,5 +1,4 @@
 import os
-from medperf.tests.mocks.requests import cube_metadata_generator
 from medperf.utils import storage_path
 import pytest
 
@@ -22,7 +21,7 @@ def cube(mocker):
 
 def test_run_runs_expected_flow(mocker, comms, ui, cube):
     # Arrange
-    mock_body = cube_metadata_generator()(1)
+    mock_body = cube.todict()
     # Arrange
     spy_download = mocker.patch(PATCH_MLCUBE.format("SubmitCube.download"))
     spy_cube_upload = mocker.patch(

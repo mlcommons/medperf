@@ -1,14 +1,12 @@
 import os
 import shutil
 import logging
-from medperf.enums import Status
-import validators
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import get_file_sha1, generate_tmp_uid, storage_path
 from medperf.commands.compatibility_test import CompatibilityTestExecution
-from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+from medperf.exceptions import InvalidEntityError
 
 
 class SubmitBenchmark:

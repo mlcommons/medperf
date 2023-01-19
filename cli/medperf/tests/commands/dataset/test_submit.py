@@ -1,5 +1,4 @@
 from medperf.exceptions import CleanExit, InvalidArgumentError
-from medperf.tests.mocks.requests import dataset_dict
 import pytest
 
 from medperf.tests.mocks.dataset import TestDataset

@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
-from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, call
 
@@ -21,8 +20,6 @@ LABELS_PATH = "labels_path"
 NAME = "name"
 DESCRIPTION = "description"
 LOCATION = "location"
-
-REG_DICT_KEYS = list(dataset_dict().keys())
 
 
 @pytest.fixture

@@ -1,4 +1,3 @@
-from medperf.enums import Status
 from medperf.entities.result import Result
 
 

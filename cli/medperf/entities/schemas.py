@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from medperf.enums import Status
 

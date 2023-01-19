@@ -1,8 +1,7 @@
-from medperf.tests.mocks.requests import benchmark_body
+from medperf.tests.mocks.benchmark import TestBenchmark
 import pytest
 
 from medperf.entities.result import Result
-from medperf.entities.benchmark import Benchmark
 from medperf.commands.benchmark.submit import SubmitBenchmark
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
@@ -29,27 +28,13 @@ def result(mocker):
     return result_obj
 
 
-@pytest.fixture
-def benchmark(mocker):
-    def benchmark_gen(uid, data_prep, reference_model, evaluator):
-        bmk = mocker.create_autospec(spec=Benchmark)
-        bmk.id = uid
-        bmk.data_preparation = data_prep
-        bmk.reference_model = reference_model
-        bmk.evaluator = evaluator
-        bmk.generated_uid = f"p{bmk.data_preparation}m{bmk.reference_model}e{bmk.evaluator}"
-        return bmk
-
-    return benchmark_gen
-
-
 def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
     # Arrange
     submission = SubmitBenchmark(BENCHMARK_INFO)
     submission.bmk.metadata = {"results": result}
     expected_data = submission.bmk.todict()
     spy_upload = mocker.patch.object(
-        comms, "upload_benchmark", return_value=benchmark_body(1)
+        comms, "upload_benchmark", return_value=TestBenchmark()
     )
 
     # Act

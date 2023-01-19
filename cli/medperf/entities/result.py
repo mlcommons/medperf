@@ -1,7 +1,7 @@
 import os
 import yaml
 import logging
-from typing import List, Union
+from typing import List
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity

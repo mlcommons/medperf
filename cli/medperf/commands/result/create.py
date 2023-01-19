@@ -1,6 +1,5 @@
 import os
 from medperf.entities.result import Result
-from medperf.enums import Status
 import logging
 
 from medperf.entities.cube import Cube

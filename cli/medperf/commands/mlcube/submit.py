@@ -1,11 +1,10 @@
 import os
 import shutil
-import validators
 
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.utils import storage_path
-from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+from medperf.exceptions import InvalidEntityError
 
 
 class SubmitCube:
