@@ -1,5 +1,4 @@
-from typing import List, Dict, Union
-from medperf.entities.models import MedPerfModel
+from typing import List, Dict
 from abc import ABC, abstractmethod
 
 

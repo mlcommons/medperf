@@ -1,9 +1,10 @@
+from typing import Optional
 from medperf.enums import Status
 from medperf.entities.dataset import Dataset
 
 
 class TestDataset(Dataset):
-    id: int = 1
+    id: Optional[int] = 1
     name: str = "name"
     location: str = "location"
     data_preparation_mlcube: int = 1

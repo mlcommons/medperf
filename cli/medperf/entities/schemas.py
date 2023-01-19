@@ -1,11 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel, HttpUrl, Field, validator
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Union
 
 from medperf.enums import Status
 
 
-class MedPerfModel(BaseModel):
+class MedperfSchema(BaseModel):
     id: Optional[Union[str, int]]
     name: str = Field(..., max_length=20)
     owner: Optional[int]
@@ -13,6 +13,25 @@ class MedPerfModel(BaseModel):
     modified_at: Optional[datetime]
     state: str = "DEVELOPMENT"
     is_valid: bool = True
+
+    def dict(self, *args, **kwargs) -> dict:
+        """Overrides dictionary implementation so it filters out
+        fields not defined in the pydantic model
+
+        Returns:
+            dict: filtered dictionary
+        """
+        fields = self.__fields__
+        valid_fields = []
+        # Gather all the field names, both original an alias names
+        for field_name, field_item in fields.items():
+            valid_fields.append(field_name)
+            valid_fields.append(field_item.alias)
+        # Remove duplicates
+        valid_fields = set(valid_fields)
+        model_dict = super().dict(*args, **kwargs)
+        out_dict = {k: v for k, v in model_dict.items() if k in valid_fields}
+        return out_dict
 
     def extended_dict(self) -> dict:
         """Dictionary containing both original and alias fields
@@ -37,7 +56,7 @@ class MedPerfModel(BaseModel):
         use_enum_values = True
 
 
-class ApprovableModel(MedPerfModel):
+class ApprovableSchema(MedperfSchema):
     approved_at: Optional[datetime]
     approval_status: Status = None
 
@@ -49,7 +68,7 @@ class ApprovableModel(MedPerfModel):
         return status
 
 
-class ResultModel(ApprovableModel):
+class ResultModel(ApprovableSchema):
     benchmark: int
     model: int
     dataset: int

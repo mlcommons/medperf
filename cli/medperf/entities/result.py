@@ -5,13 +5,13 @@ from typing import List, Union
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
-from medperf.entities.models import ApprovableModel
+from medperf.entities.schemas import ApprovableSchema
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-class Result(Entity, ApprovableModel):
+class Result(Entity, ApprovableSchema):
     """
     Class representing a Result entry
 

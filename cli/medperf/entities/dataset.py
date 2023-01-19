@@ -7,7 +7,7 @@ from typing import List, Optional
 from medperf.utils import storage_path
 from medperf.enums import Status
 from medperf.entities.interface import Entity
-from medperf.entities.models import MedPerfModel
+from medperf.entities.schemas import MedperfSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     MedperfException,
@@ -16,7 +16,7 @@ from medperf.exceptions import (
 import medperf.config as config
 
 
-class Dataset(Entity, MedPerfModel):
+class Dataset(Entity, MedperfSchema):
     """
     Class representing a Dataset
 
