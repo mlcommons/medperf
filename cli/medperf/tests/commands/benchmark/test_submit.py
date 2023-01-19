@@ -34,7 +34,7 @@ def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
     submission.bmk.metadata = {"results": result}
     expected_data = submission.bmk.todict()
     spy_upload = mocker.patch.object(
-        comms, "upload_benchmark", return_value=TestBenchmark()
+        comms, "upload_benchmark", return_value=TestBenchmark().todict()
     )
 
     # Act
@@ -68,9 +68,9 @@ def test_get_extra_information_retrieves_expected_info(
     assert submission.bmk.metadata["results"] == results
 
 
-def test_run_compatibility_test_executes_test_with_force(mocker, benchmark, comms, ui):
+def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
     # Arrange
-    bmk = benchmark("1", "2", "3", "4")
+    bmk = TestBenchmark()
     submission = SubmitBenchmark(BENCHMARK_INFO)
     tmp_bmk_spy = mocker.patch(
         PATCH_BENCHMARK.format("Benchmark.tmp"), return_value=bmk
