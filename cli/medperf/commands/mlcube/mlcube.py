@@ -27,7 +27,7 @@ def submit(
         ..., "--mlcube-file", "-m", help="URL to mlcube file"
     ),
     mlcube_hash: str = typer.Option("", "--mlcube-hash", help="SHA1 of mlcube file"),
-    params_file: str = typer.Option(
+    parameters_file: str = typer.Option(
         "", "--parameters-file", "-p", help="URL to parameters file"
     ),
     parameters_hash: str = typer.Option(
@@ -52,7 +52,7 @@ def submit(
         "name": name,
         "mlcube_file": mlcube_file,
         "mlcube_hash": mlcube_hash,
-        "params_file": params_file,
+        "parameters_file": parameters_file,
         "parameters_hash": parameters_hash,
         "image_tarball_url": image_file,
         "image_tarball_hash": image_hash,
