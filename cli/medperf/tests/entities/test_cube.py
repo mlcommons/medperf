@@ -57,7 +57,7 @@ def setup(request, mocker, comms, fs):
 
     setup_cube_fs(local_ents, fs)
     setup_cube_comms(mocker, comms, remote_ents, user_ents, uploaded)
-    setup_cube_comms_downloads(mocker, comms, fs, remote_ents)
+    setup_cube_comms_downloads(mocker, comms, fs)
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements

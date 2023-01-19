@@ -55,22 +55,19 @@ class Cube(Entity, MedperfSchema):
         """
         super().__init__(*args, **kwargs)
 
-        cubes_storage = storage_path(config.cubes_storage)
-        self.cube_path = os.path.join(cubes_storage, str(self.id), config.cube_filename)
-        self.params_path = None
-        if self.git_parameters_url:
-            self.params_path = os.path.join(
-                cubes_storage, str(self.id), config.params_filename
-            )
-
         self.generated_uid = self.name
         path = storage_path(config.cubes_storage)
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
             path = os.path.join(path, str(self.generated_uid))
-
+        # NOTE: maybe have these as @property, to have the same entity reusable
+        #       before and after submission
         self.path = path
+        self.cube_path = os.path.join(path, config.cube_filename)
+        self.params_path = None
+        if self.git_parameters_url:
+            self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Cube"]:
@@ -174,7 +171,7 @@ class Cube(Entity, MedperfSchema):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path = config.comms.get_cube(url, self.id)
+        path = config.comms.get_cube(url, self.path)
         local_hash = get_file_sha1(path)
         if not self.mlcube_hash:
             self.mlcube_hash = local_hash
@@ -184,7 +181,7 @@ class Cube(Entity, MedperfSchema):
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path = config.comms.get_cube_params(url, self.id)
+            path = config.comms.get_cube_params(url, self.path)
             local_hash = get_file_sha1(path)
             if not self.parameters_hash:
                 self.parameters_hash = local_hash
@@ -195,7 +192,7 @@ class Cube(Entity, MedperfSchema):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path = config.comms.get_cube_additional(url, self.id)
+            path = config.comms.get_cube_additional(url, self.path)
             local_hash = get_file_sha1(path)
             if not self.additional_files_tarball_hash:
                 self.additional_files_tarball_hash = local_hash
@@ -206,7 +203,7 @@ class Cube(Entity, MedperfSchema):
     def download_image(self):
         url = self.image_tarball_url
         if url:
-            path = config.comms.get_cube_image(url, self.id)
+            path = config.comms.get_cube_image(url, self.path)
             local_hash = get_file_sha1(path)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
@@ -340,19 +337,13 @@ class Cube(Entity, MedperfSchema):
         return updated_cube_dict
 
     def get_local_hashes(self):
-        cubes_storage = storage_path(config.cubes_storage)
-        local_hashes_file = os.path.join(
-            cubes_storage, str(self.id), config.cube_hashes_filename
-        )
+        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
         with open(local_hashes_file, "r") as f:
             local_hashes = yaml.safe_load(f)
         return local_hashes
 
     def store_local_hashes(self, local_hashes):
-        cubes_storage = storage_path(config.cubes_storage)
-        local_hashes_file = os.path.join(
-            cubes_storage, str(self.id), config.cube_hashes_filename
-        )
+        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
         with open(local_hashes_file, "w") as f:
             yaml.dump(local_hashes, f)
 

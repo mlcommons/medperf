@@ -90,14 +90,12 @@ def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
     )
 
 
-def generate_cubefile_fn(fs, all_ents, path, filename):
-    all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
+def generate_cubefile_fn(fs, path, filename):
+    # all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
 
-    def cubefile_fn(_, id):
-        if id not in all_ids:
+    def cubefile_fn(url, cube_path):
+        if url == "broken_url":
             raise CommunicationRetrievalError
-
-        cube_path = os.path.join(storage_path(config.cubes_storage), id)
         filepath = os.path.join(cube_path, path, filename)
         try:
             fs.create_file(filepath)
@@ -108,7 +106,7 @@ def generate_cubefile_fn(fs, all_ents, path, filename):
     return cubefile_fn
 
 
-def setup_cube_comms_downloads(mocker, comms, fs, all_ents):
+def setup_cube_comms_downloads(mocker, comms, fs):
     cube_path = ""
     cube_file = config.cube_filename
     params_path = config.workspace_path
@@ -118,10 +116,10 @@ def setup_cube_comms_downloads(mocker, comms, fs, all_ents):
     img_path = config.image_path
     img_file = "img.tar.gz"
 
-    get_cube_fn = generate_cubefile_fn(fs, all_ents, cube_path, cube_file)
-    get_params_fn = generate_cubefile_fn(fs, all_ents, params_path, params_file)
-    get_add_fn = generate_cubefile_fn(fs, all_ents, add_path, add_file)
-    get_img_fn = generate_cubefile_fn(fs, all_ents, img_path, img_file)
+    get_cube_fn = generate_cubefile_fn(fs, cube_path, cube_file)
+    get_params_fn = generate_cubefile_fn(fs, params_path, params_file)
+    get_add_fn = generate_cubefile_fn(fs, add_path, add_file)
+    get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
 
     mocker.patch.object(comms, "get_cube", side_effect=get_cube_fn)
     mocker.patch.object(comms, "get_cube_params", side_effect=get_params_fn)

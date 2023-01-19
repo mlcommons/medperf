@@ -7,7 +7,6 @@ from medperf.enums import Role, Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
-    cube_path,
     read_credentials,
     storage_path,
     generate_tmp_uid,
@@ -325,18 +324,18 @@ class REST(Comms):
             raise CommunicationRetrievalError("the specified cube doesn't exist")
         return res.json()
 
-    def get_cube(self, url: str, cube_uid: int) -> str:
+    def get_cube(self, url: str, cube_path: str) -> str:
         """Downloads and writes an mlcube.yaml file from the server
 
         Args:
             url (str): URL where the mlcube.yaml file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
         cube_file = config.cube_filename
-        return self.__get_cube_file(url, cube_uid, "", cube_file)
+        return self.__get_cube_file(url, cube_path, "", cube_file)
 
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
@@ -347,57 +346,56 @@ class REST(Comms):
         cubes = self.__get_list(f"{self.server_url}/me/mlcubes/")
         return cubes
 
-    def get_cube_params(self, url: str, cube_uid: int) -> str:
+    def get_cube_params(self, url: str, cube_path: str) -> str:
         """Retrieves the cube parameters.yaml file from the server
 
         Args:
             url (str): URL where the parameters.yaml file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
         ws = config.workspace_path
         params_file = config.params_filename
-        return self.__get_cube_file(url, cube_uid, ws, params_file)
+        return self.__get_cube_file(url, cube_path, ws, params_file)
 
-    def get_cube_additional(self, url: str, cube_uid: int) -> str:
+    def get_cube_additional(self, url: str, cube_path: str) -> str:
         """Retrieves and stores the additional_files.tar.gz file from the server
 
         Args:
             url (str): URL where the additional_files.tar.gz file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
         add_path = config.additional_path
         tball_file = config.tarball_filename
-        return self.__get_cube_file(url, cube_uid, add_path, tball_file)
+        return self.__get_cube_file(url, cube_path, add_path, tball_file)
 
-    def get_cube_image(self, url: str, cube_uid: int) -> str:
+    def get_cube_image(self, url: str, cube_path: str) -> str:
         """Retrieves and stores the image file from the server
 
         Args:
             url (str): URL where the image file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: Location where the image file is stored locally.
         """
         image_path = config.image_path
         image_name = url.split("/")[-1]
-        return self.__get_cube_file(url, cube_uid, image_path, image_name)
+        return self.__get_cube_file(url, cube_path, image_path, image_name)
 
-    def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
+    def __get_cube_file(self, url: str, cube_path: str, path: str, filename: str):
         res = requests.get(url)
         if res.status_code != 200:
             log_response_error(res)
             msg = "There was a problem retrieving the specified file at " + url
             raise CommunicationRetrievalError(msg)
         else:
-            c_path = cube_path(cube_uid)
-            path = os.path.join(c_path, path)
+            path = os.path.join(cube_path, path)
             if not os.path.isdir(path):
                 os.makedirs(path, exist_ok=True)
             filepath = os.path.join(path, filename)
