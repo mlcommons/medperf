@@ -6,7 +6,9 @@ from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, call
 
-from medperf.tests.mocks import Benchmark, MockCube
+from medperf.tests.mocks import MockCube
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.dataset.create import DataPreparation
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
@@ -30,7 +32,7 @@ def preparation(mocker, comms, ui):
     mocker.patch(
         PATCH_DATAPREP.format("generate_tmp_datapath"), return_value=OUT_PATH,
     )
-    mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
+    mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=TestBenchmark())
     preparation = DataPreparation(
         BENCHMARK_UID, None, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION,
     )
@@ -86,8 +88,7 @@ class TestWithDefaultUID:
         self, mocker, preparation, cube_uid, comms, ui
     ):
         # Arrange
-        benchmark = Benchmark()
-        benchmark.data_preparation = cube_uid
+        benchmark = TestBenchmark(data_preparation_mlcube=cube_uid)
         mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=benchmark)
         spy = mocker.patch(
             PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
@@ -351,7 +352,7 @@ class TestWithDefaultUID:
 
     def test_write_calls_dataset_write(self, mocker, preparation):
         # Arrange
-        data_dict = dataset_dict()
+        data_dict = TestDataset().todict()
         mocker.patch(
             PATCH_DATAPREP.format("DataPreparation.todict"), return_value=data_dict
         )
