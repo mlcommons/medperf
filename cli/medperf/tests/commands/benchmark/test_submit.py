@@ -37,6 +37,7 @@ def benchmark(mocker):
         bmk.data_preparation = data_prep
         bmk.reference_model = reference_model
         bmk.evaluator = evaluator
+        bmk.generated_uid = f"p{bmk.data_preparation}m{bmk.reference_model}e{bmk.evaluator}"
         return bmk
 
     return benchmark_gen
@@ -201,7 +202,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, benchmark, comm
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once_with("1", force_test=True)
+    comp_spy.assert_called_once_with(bmk.generated_uid, force_test=True)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):

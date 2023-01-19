@@ -546,18 +546,17 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
 
 def test_get_cube_file_writes_to_file(mocker, server):
     # Arrange
-    cube_uid = 1
+    cube_path = "path/to/cube"
     path = "path"
     filename = "filename"
     res = MockResponse({}, 200)
     mocker.patch("requests.get", return_value=res)
-    mocker.patch(patch_server.format("cube_path"), return_value="")
     mocker.patch("os.path.isdir", return_value=True)
-    filepath = os.path.join(path, filename)
+    filepath = os.path.join(cube_path, path, filename)
     spy = mocker.patch("builtins.open", mock_open())
 
     # Act
-    server._REST__get_cube_file(url, cube_uid, path, filename)
+    server._REST__get_cube_file(url, cube_path, path, filename)
 
     # Assert
     spy.assert_called_once_with(filepath, "wb+")
