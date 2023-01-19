@@ -54,4 +54,4 @@ jobs:
 
     - name: Run client integration tests
       working-directory: .
-      run: sh cli/cli_tests.sh -f
+      run: sh cli/cli_tests.sh
