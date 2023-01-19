@@ -55,7 +55,7 @@ class Entity(ABC):
 
     @property
     def identifier(self):
-        return self.id or self.generated_uid
+        return self.uid or self.generated_uid
 
     def is_registered(self):
-        return self.id is not None
+        return self.uid is not None
