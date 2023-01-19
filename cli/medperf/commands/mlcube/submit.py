@@ -112,7 +112,7 @@ class SubmitCube:
             "additional_files_tarball_hash": self.additional_hash,
             "state": "OPERATION",
             "is_valid": True,
-            "id": config.cube_submission_id,
+            "id": None,
             "owner": None,
             "metadata": {},
             "user_metadata": {},
