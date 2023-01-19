@@ -58,11 +58,7 @@ def list(
     """List results stored locally and remotely from the user"""
     EntityList.run(
         Result,
-        fields_mapping={
-            "Benchmark UID": "benchmark",
-            "Model UID": "model",
-            "Data UID": "dataset",
-        },
-        local=local,
-        mine=mine,
+        fields=["UID", "Benchmark", "Model", "Data", "Registered"],
+        local_only=local,
+        mine_only=mine,
     )

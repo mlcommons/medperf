@@ -297,3 +297,19 @@ class Benchmark(Entity):
         updated_body = config.comms.upload_benchmark(body)
         updated_body["models"] = body["models"]
         return updated_body
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Description": self.description,
+            "Documentation": self.docs_url,
+            "Created At": self.created_at,
+            "Data Preparation MLCube": int(self.data_preparation),
+            "Reference Model MLCube": int(self.reference_model),
+            "Associated Models": ",".join(map(str, self.models)),
+            "Data Evaluator MLCube": int(self.evaluator),
+            "State": self.state,
+            "Approval Status": self.approval_status.value,
+            "Registered": self.is_registered(),
+        }

@@ -6,7 +6,11 @@ from typing import List
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidArgumentError, MedperfException, CommunicationRetrievalError
+from medperf.exceptions import (
+    InvalidArgumentError,
+    MedperfException,
+    CommunicationRetrievalError,
+)
 import medperf.config as config
 
 
@@ -213,3 +217,17 @@ class Dataset(Entity):
         with open(regfile, "r") as f:
             reg = yaml.safe_load(f)
         return reg
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Description": self.description,
+            "Location": self.location,
+            "Data Preparation Cube UID": self.preparation_cube_uid,
+            "Generated Hash": self.generated_uid,
+            "Status": self.status.value,
+            "State": self.state,
+            "Created At": self.created_at,
+            "Registered": self.is_registered(),
+        }

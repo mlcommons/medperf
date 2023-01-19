@@ -190,3 +190,16 @@ class Result(Entity):
         with open(result_file, "r") as f:
             results_info = yaml.safe_load(f)
         return results_info
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Benchmark": self.benchmark_uid,
+            "Model": self.model_uid,
+            "Dataset": self.dataset_uid,
+            "Partial": self.metadata["partial"],
+            "Approval Status": self.status.value,
+            "Created At": self.created_at,
+            "Registered": self.is_registered(),
+        }

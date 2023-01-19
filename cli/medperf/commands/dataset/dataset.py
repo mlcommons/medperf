@@ -20,12 +20,9 @@ def list(
     """List datasets stored locally and remotely from the user"""
     EntityList.run(
         Dataset,
-        fields_mapping={
-            "Name": "name",
-            "Data Preparation Cube UID": "preparation_cube_uid",
-        },
-        local=local,
-        mine=mine,
+        fields=["UID", "Name", "Data Preparation Cube UID", "Registered"],
+        local_only=local,
+        mine_only=mine,
     )
 
 

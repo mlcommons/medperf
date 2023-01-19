@@ -1,3 +1,4 @@
+from medperf.exceptions import InvalidArgumentError
 from tabulate import tabulate
 
 from medperf import config
@@ -5,23 +6,22 @@ from medperf import config
 
 class EntityList:
     @staticmethod
-    def run(
-        entity_class, fields_mapping, local_only: bool = False, mine_only: bool = False
-    ):
+    def run(entity_class, fields, local_only: bool = False, mine_only: bool = False):
         """Lists all local datasets
 
         Args:
             local_only (bool, optional): Display all local results. Defaults to False.
             mine_only (bool, optional): Display all current-user results. Defaults to False.
         """
-        entity_list = EntityList(entity_class, fields_mapping, local_only, mine_only)
+        entity_list = EntityList(entity_class, fields, local_only, mine_only)
         entity_list.prepare()
-        entity_list.filter_fields()
+        entity_list.validate()
+        entity_list.filter()
         entity_list.display()
 
-    def __init__(self, entity_class, fields_mapping, local_only, mine_only):
+    def __init__(self, entity_class, fields, local_only, mine_only):
         self.entity_class = entity_class
-        self.fields_mapping = fields_mapping
+        self.fields = fields
         self.local_only = local_only
         self.mine_only = mine_only
         self.data = []
@@ -30,23 +30,25 @@ class EntityList:
         entities = self.entity_class.all(
             local_only=self.local_only, mine_only=self.mine_only
         )
-        self.data = [entity.todict() for entity in entities]
-        self.extra_data = [
-            {"UID": entity.identifier, "Registered": entity.is_registered()}
-            for entity in entities
-        ]
+        self.data = [entity.display_dict() for entity in entities]
 
-    def filter_fields(self):
-        fields = list(self.fields_mapping.values())
+    def validate(self):
+        if self.data:
+            valid_fields = set(self.data[0].keys())
+            chosen_fields = set(self.fields)
+            if not chosen_fields.issubset(valid_fields):
+                invalid_fields = chosen_fields.difference(valid_fields)
+                invalid_fields = ", ".join(invalid_fields)
+                raise InvalidArgumentError(f"Invalid field(s): {invalid_fields}")
+
+    def filter(self):
         self.data = [
-            {field: entity_dict[field] for field in fields} for entity_dict in self.data
+            {field: entity_dict[field] for field in self.fields}
+            for entity_dict in self.data
         ]
 
     def display(self):
-        headers = list(self.extra_data.keys()) + list(self.fields_mapping.keys())
-        data_lists = [
-            list(extra_dict.values()) + list(entity_dict.values())
-            for extra_dict, entity_dict in zip(self.extra_data, self.data)
-        ]
+        headers = self.fields
+        data_lists = [list(entity_dict.values()) for entity_dict in self.data]
         tab = tabulate(data_lists, headers=headers)
         config.ui.print(tab)

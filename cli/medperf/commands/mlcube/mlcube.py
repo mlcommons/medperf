@@ -19,7 +19,10 @@ def list(
 ):
     """List mlcubes stored locally and remotely from the user"""
     EntityList.run(
-        Cube, fields_mapping={"Name": "name", "State": "state"}, local=local, mine=mine,
+        Cube,
+        fields=["UID", "Name", "State", "Registered"],
+        local_only=local,
+        mine_only=mine,
     )
 
 

@@ -394,3 +394,13 @@ class Cube(Entity):
         with open(meta_file, "r") as f:
             meta = yaml.safe_load(f)
         return meta
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Config File": self.git_mlcube_url,
+            "State": self.state,
+            "Created At": self.created_at,
+            "Registered": self.is_registered(),
+        }
