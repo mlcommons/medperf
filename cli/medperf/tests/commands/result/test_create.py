@@ -1,7 +1,7 @@
 import os
 from medperf import config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
-from medperf.tests.mocks.requests import result_dict
+from medperf.tests.mocks.result import TestResult
 import pytest
 from unittest.mock import MagicMock, call
 
@@ -234,20 +234,9 @@ def test_todict_calls_get_temp_results(mocker, execution):
     spy.assert_called_once()
 
 
-def test_todict_returns_expected_keys(mocker, execution):
-    # Arrange
-    mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_temp_results"))
-
-    # Act
-    keys = execution.todict().keys()
-
-    # Assert
-    assert set(keys) == set(result_dict().keys())
-
-
 def test_write_calls_result_write(mocker, execution):
     # Arrange
-    result_info = result_dict()
+    result_info = TestResult().todict()
     mocker.patch(
         PATCH_EXECUTION.format("BenchmarkExecution.todict"), return_value=result_info
     )

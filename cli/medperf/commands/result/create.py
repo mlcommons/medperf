@@ -155,18 +155,12 @@ class BenchmarkExecution:
 
     def todict(self):
         return {
-            "id": None,
             "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
-            "owner": None,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
             "dataset": self.data_uid,
             "results": self.get_temp_results(),
             "metadata": self.metadata,
-            "approval_status": Status.PENDING.value,
-            "approved_at": None,
-            "created_at": None,
-            "modified_at": None,
         }
 
     def get_temp_results(self):
@@ -181,6 +175,6 @@ class BenchmarkExecution:
 
     def write(self):
         results_info = self.todict()
-        result = Result(results_info)
+        result = Result(**results_info)
         result.write()
         return result.generated_uid
