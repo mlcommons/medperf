@@ -45,7 +45,7 @@ def test_run_fails_if_dataset_already_registered(
     mocker, comms, ui, dataset, uid, no_remote
 ):
     # Arrange
-    dataset.uid = uid
+    dataset.id = uid
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):

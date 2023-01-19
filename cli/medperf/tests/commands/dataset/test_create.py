@@ -269,16 +269,6 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once()
 
-    def test_todict_returns_expected_keys(self, mocker, preparation):
-        # Arrange
-        mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_temp_stats"))
-
-        # Act
-        keys = preparation.todict().keys()
-
-        # Assert
-        assert set(keys) == set(REG_DICT_KEYS)
-
     @pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
     def test_get_temp_stats_opens_stats_path(self, mocker, path, preparation):
         # Arrange
