@@ -42,6 +42,9 @@ class MedperfSchema(BaseModel):
         og_dict = self.dict()
         alias_dict = self.dict(by_alias=True)
         og_dict.update(alias_dict)
+        for k, v in og_dict.items():
+            if v is None:
+                og_dict[k] = ""
         return og_dict
 
     @validator("*", pre=True)
