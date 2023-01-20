@@ -1,4 +1,3 @@
-from benchmarkmodel.serializers import BenchmarkModelListSerializer
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
 from result.serializers import ModelResultSerializer
@@ -149,24 +148,3 @@ class BenchmarkDetail(GenericAPIView):
         benchmark = self.get_object(pk)
         benchmark.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class BenchmarkModelAssociationList(GenericAPIView):
-    serializer_class = BenchmarkModelListSerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            return Benchmark.objects.get(pk=pk)
-        except Benchmark.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        """
-        Retrieve models associations of a benchmark instance.
-        """
-        benchmark = self.get_object(pk)
-        model_associations = benchmark.benchmarkmodel_set.all()
-        model_associations = self.paginate_queryset(model_associations)
-        serializer = BenchmarkModelListSerializer(model_associations, many=True)
-        return self.get_paginated_response(serializer.data)

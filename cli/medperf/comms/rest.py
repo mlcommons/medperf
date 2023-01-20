@@ -231,10 +231,8 @@ class REST(Comms):
         Returns:
             list[int]: List of model UIDS
         """
-        benchmarkmodels = self.get_benchmark_model_associations(benchmark_uid)
-        model_uids = [
-            benchmarkmodel["model_mlcube"] for benchmarkmodel in benchmarkmodels
-        ]
+        models = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
+        model_uids = [model["id"] for model in models]
         return model_uids
 
     def get_benchmark_demo_dataset(
@@ -603,33 +601,18 @@ class REST(Comms):
         assocs = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
         return assocs
 
-    def get_benchmark_model_associations(self, benchmark_uid: int) -> List[dict]:
-        """Retrieves all the model associations of a benchmark.
-
-        Args:
-            benchmark_uid (int): UID of the desired benchmark
-
-        Returns:
-            list[dict]: List of benchmark-model association specifications
-        """
-        benchmarkmodels = self.__get_list(
-            f"{self.server_url}/benchmarks/{benchmark_uid}/benchmarkmodels/"
-        )
-        return benchmarkmodels
-
     def set_mlcube_association_priority(
-        self, benchmark_uid: str, mlcube_uid: str, priority: float, rescale: bool
+        self, benchmark_uid: str, mlcube_uid: str, priority: int
     ):
         """Sets the priority of an mlcube-benchmark association
 
         Args:
-            mlcube_uid (str): Dataset UID
+            mlcube_uid (str): MLCube UID
             benchmark_uid (str): Benchmark UID
-            priority (float): priority value to set for the association
-            rescale (bool): whether to rescale priority values
+            priority (int): priority value to set for the association
         """
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
-        data = {"priority": priority, "rescale": rescale}
+        data = {"priority": priority}
         res = self.__auth_put(url, json=data,)
         if res.status_code != 200:
             log_response_error(res)

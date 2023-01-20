@@ -72,19 +72,10 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
             ):
                 validated_data["approval_status"] = "APPROVED"
                 validated_data["approved_at"] = timezone.now()
-        last_priority_benchmarkmodel = (
-            validated_data["benchmark"].benchmarkmodel_set.all().last()
-        )
-        if last_priority_benchmarkmodel:
-            validated_data["priority"] = last_priority_benchmarkmodel.priority + 1.0
-        else:
-            validated_data["priority"] = 1.0
         return BenchmarkModel.objects.create(**validated_data)
 
 
 class ModelApprovalSerializer(serializers.ModelSerializer):
-    rescale = serializers.BooleanField(default=False, write_only=True)
-
     class Meta:
         model = BenchmarkModel
         read_only_fields = ["initiated_by", "approved_at"]
@@ -95,36 +86,28 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             "created_at",
             "modified_at",
             "priority",
-            "rescale",
         ]
-        extra_kwargs = {"priority": {"required": False}}
 
     def validate(self, data):
         if not self.instance:
             raise serializers.ValidationError("No model association found")
-        return data
-
-    def validate_approval_status(self, value):
         last_approval_status = self.instance.approval_status
+        cur_approval_status = data["approval_status"]
         if last_approval_status != "PENDING":
             raise serializers.ValidationError(
                 "User can approve or reject only a pending request"
             )
         initiated_user = self.instance.initiated_by
         current_user = self.context["request"].user
-        if last_approval_status != value and value == "APPROVED":
+        if (
+            last_approval_status != cur_approval_status
+            and cur_approval_status == "APPROVED"
+        ):
             if current_user.id == initiated_user.id:
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"
                 )
-        return value
-
-    def validate_priority(self, value):
-        if self.instance.approval_status != "APPROVED":
-            raise serializers.ValidationError(
-                "The association should be approved before modifying its priority"
-            )
-        return value
+        return data
 
     def update(self, instance, validated_data):
         if "approval_status" in validated_data:
@@ -134,9 +117,4 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
         if "priority" in validated_data:
             instance.priority = validated_data["priority"]
         instance.save()
-        if validated_data["rescale"]:
-            bmk_models = self.instance.benchmark.benchmarkmodel_set.all()
-            for i, bmk_model in enumerate(bmk_models):
-                bmk_model.priority = i + 1.0
-            BenchmarkModel.objects.bulk_update(bmk_models, ["priority"])
         return instance
