@@ -322,25 +322,13 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_benchmark_model_associations(self, benchmark_uid: int) -> List[dict]:
-        """Retrieves all the model associations of a benchmark.
-
-        Args:
-            benchmark_uid (int): UID of the desired benchmark
-
-        Returns:
-            list[dict]: List of benchmark-model association specifications
-        """
-
-    @abstractmethod
     def set_mlcube_association_priority(
-        self, benchmark_uid: str, mlcube_uid: str, priority: float, rescale: bool
+        self, benchmark_uid: str, mlcube_uid: str, priority: int
     ):
         """Sets the priority of an mlcube-benchmark association
 
         Args:
-            mlcube_uid (str): Dataset UID
+            mlcube_uid (str): MLCube UID
             benchmark_uid (str): Benchmark UID
-            priority (float): priority value to set for the association
-            rescale (bool): whether to rescale priority values
+            priority (int): priority value to set for the association
         """
