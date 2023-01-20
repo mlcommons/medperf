@@ -43,7 +43,7 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "upload_results",
+            "upload_result",
             "post",
             201,
             [{}],
@@ -124,7 +124,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
         ("_REST__get_cube_file", ["", 1, "", ""], {}, CommunicationRetrievalError),
         ("upload_dataset", [{}], {"id": 1}, CommunicationRequestError),
-        ("upload_results", [{}], {"id": 1}, CommunicationRequestError),
+        ("upload_result", [{}], {"id": 1}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
         ("change_password", [{}], {"password": "pwd"}, CommunicationRequestError),
     ],
@@ -478,18 +478,17 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
 
 def test_get_cube_file_writes_to_file(mocker, server):
     # Arrange
-    cube_uid = 1
+    cube_path = "path/to/cube"
     path = "path"
     filename = "filename"
     res = MockResponse({}, 200)
     mocker.patch("requests.get", return_value=res)
-    mocker.patch(patch_server.format("cube_path"), return_value="")
     mocker.patch("os.path.isdir", return_value=True)
-    filepath = os.path.join(path, filename)
+    filepath = os.path.join(cube_path, path, filename)
     spy = mocker.patch("builtins.open", mock_open())
 
     # Act
-    server._REST__get_cube_file(url, cube_uid, path, filename)
+    server._REST__get_cube_file(url, cube_path, path, filename)
 
     # Assert
     spy.assert_called_once_with(filepath, "wb+")
@@ -571,7 +570,7 @@ def test_upload_results_returns_result_body(mocker, server, body):
     mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    exp_body = server.upload_results({})
+    exp_body = server.upload_result({})
 
     # Assert
     assert body == exp_body
