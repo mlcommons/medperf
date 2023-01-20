@@ -64,23 +64,25 @@ def reject(
 def set_priority(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     mlcube_uid: int = typer.Option(..., "--mlcube", "-m", help="MLCube UID"),
-    priority: int = typer.Option(
-        ...,
-        "--priority",
-        "-p",
-        help="Priority Rank. A positive integer or -1 (for least priority)",
-    ),
+    priority: int = typer.Option(..., "--priority", "-p", help="Priority, an integer",),
 ):
-    """Updates the priority of a benchmark-model association. Priorities define
-    the order of execution of the benchmark's models; a model with priority 1 will be
-    executed before a model with priority 2.
-    Setting a model's priority to -1, or to a number greater than the number of the
-    benchmark's models, will make this model the last one being executed.
+    """Updates the priority of a benchmark-model association. Model priorities within
+    a benchmark define which models need to be executed before others when
+    this benchmark is run. A model with a higher priority is executed before
+    a model with lower priority. The order of execution of models of the same priority
+    is arbitrary.
+    Examples:
+    Assume there are three models of IDs (1,2,3), associated with a certain benchmark,
+    all having priority = 0.
+    - By setting the priority of model (2) to the value of 1, the client will make
+    sure that model (2) is executed before models (1,3).
+    - By setting the priority of model (1) to the value of -5, the client will make
+    sure that models (2,3) are executed before model (1).
 
     Args:
         benchmark_uid (int): Benchmark UID.
         mlcube_uid (int): Model MLCube UID.
-        priority (int): Priority Rank. A positive integer or -1 (for least priority)
+        priority (int): Priority, an integer
     """
     AssociationPriority.run(benchmark_uid, mlcube_uid, priority)
     config.ui.print("✅ Done!")
