@@ -73,8 +73,9 @@ def set_priority(
 ):
     """Updates the priority of a benchmark-model association. Priorities define
     the order of execution of the benchmark's models; a model with priority 1 will be
-    executed before a model with priority 2. Setting a model's priority to -1 will
-    make this model the last one being executed.
+    executed before a model with priority 2.
+    Setting a model's priority to -1, or to a number greater than the number of the
+    benchmark's models, will make this model the last one being executed.
 
     Args:
         benchmark_uid (int): Benchmark UID.
