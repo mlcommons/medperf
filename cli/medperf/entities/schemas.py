@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, HttpUrl
 from typing import Optional, Union
 
 from medperf.enums import Status
@@ -11,7 +11,8 @@ class MedperfSchema(BaseModel):
     owner: Optional[int]
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
-    state: str = "DEVELOPMENT"
+    # TODO: This must change after allowing edits
+    state: str = "OPERATION"
     is_valid: bool = True
 
     def dict(self, *args, **kwargs) -> dict:
@@ -45,6 +46,8 @@ class MedperfSchema(BaseModel):
         for k, v in og_dict.items():
             if v is None:
                 og_dict[k] = ""
+            if isinstance(v, HttpUrl):
+                og_dict[k] = str(v)
         return og_dict
 
     @validator("*", pre=True)

@@ -42,7 +42,9 @@ class Dataset(Entity, MedperfSchema):
         default = Status.PENDING
         if values["id"] is not None:
             default = Status.APPROVED
-        return Status(v) or default
+        if v is None:
+            return default
+        return Status(v)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

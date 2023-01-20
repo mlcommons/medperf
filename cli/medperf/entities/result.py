@@ -1,7 +1,7 @@
 import os
 import yaml
 import logging
-from typing import List
+from typing import List, Union
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
@@ -22,9 +22,9 @@ class Result(Entity, ApprovableSchema):
     benchmark results and how to upload them to the backend.
     """
 
-    benchmark: int
+    benchmark: Union[int, str]  # This is required for compatibility tests
     model: int
-    dataset: int
+    dataset: Union[int, str]  # This is required for compatibility tests
     results: dict
     metadata: dict = {}
 
