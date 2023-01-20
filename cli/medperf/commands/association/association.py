@@ -71,7 +71,10 @@ def set_priority(
         help="Priority Rank. A positive integer or -1 (for least priority)",
     ),
 ):
-    """Rejects an association between a benchmark and a dataset or model mlcube
+    """Updates the priority of a benchmark-model association. Priorities define
+    the order of execution of the benchmark's models; a model with priority 1 will be
+    executed before a model with priority 2. Setting a model's priority to -1 will
+    make this model the last one being executed.
 
     Args:
         benchmark_uid (int): Benchmark UID.
