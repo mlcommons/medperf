@@ -1,88 +1,83 @@
+from copy import deepcopy
 from medperf.exceptions import InvalidArgumentError
+from medperf.tests.mocks.benchmarkmodel import generate_benchmarkmodel
 import pytest
 
 from medperf.commands.association.priority import AssociationPriority
 
-PATCH_PRIORITY = "medperf.commands.association.priority.{}"
+TEST_ASSOCIATIONS = [
+    generate_benchmarkmodel(priority=0, model_mlcube=1),
+    generate_benchmarkmodel(priority=0, model_mlcube=2),
+    generate_benchmarkmodel(priority=0, model_mlcube=3),
+]
 
 
-def test_run_executes_expected_flow(mocker, comms, ui):
-    # Arrange
-    spy_validate = mocker.patch(PATCH_PRIORITY.format("AssociationPriority.validate"),)
-    spy_convert = mocker.patch(
-        PATCH_PRIORITY.format("AssociationPriority.convert_priority_to_float"),
-    )
-    spy_update = mocker.patch(PATCH_PRIORITY.format("AssociationPriority.update"),)
+def set_priority_behavior(associations):
+    def func(benchmark_uid, mlcube_uid, priority):
+        for assoc in associations:
+            if assoc["model_mlcube"] == mlcube_uid:
+                assoc["priority"] = priority
 
-    # Act
-    AssociationPriority.run(1, 1, 1)
-
-    # Assert
-    spy_validate.assert_called_once()
-    spy_convert.assert_called_once()
-    spy_update.assert_called_once()
+    return func
 
 
-@pytest.mark.parametrize(
-    "priority_and_fails", [(-2, True), (-1, False), (1330, False), (0, True)]
-)
-def test_validate_validates_as_expected(mocker, comms, ui, priority_and_fails):
-    # Arrange
-    priority, fails = priority_and_fails
+def get_benchmark_models_behavior(associations):
+    def func(benchmark_uid):
+        return [assoc["model_mlcube"] for assoc in associations]
+
+    return func
+
+
+def setup_comms(mocker, comms, associations):
     mocker.patch.object(
         comms,
-        "get_benchmark_model_associations",
-        return_value=[{"model_mlcube": 1}, {"model_mlcube": 2}],
+        "get_benchmark_models",
+        side_effect=get_benchmark_models_behavior(associations),
     )
-    setter = AssociationPriority(1, 1, priority)
+    mocker.patch.object(
+        comms,
+        "set_mlcube_association_priority",
+        side_effect=set_priority_behavior(associations),
+    )
 
-    # Act & Assert
-    if fails:
+
+@pytest.fixture(params={"associations": TEST_ASSOCIATIONS})
+def setup(request, mocker, comms):
+    associations = request.param.get("associations")
+    setup_comms(mocker, comms, associations)
+    return request.param
+
+
+@pytest.mark.parametrize(
+    "setup", [{"associations": TEST_ASSOCIATIONS}], indirect=True,
+)
+class TestRun:
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, setup):
+        self.assets = setup
+        self.associations = setup["associations"]
+
+    @pytest.mark.parametrize("model_uid,priority", [(1, 4)])
+    def test_run_modifies_priority(self, model_uid, priority):
+        # Arrange
+        expected_associations = [
+            generate_benchmarkmodel(priority=4, model_mlcube=1),
+            generate_benchmarkmodel(priority=0, model_mlcube=2),
+            generate_benchmarkmodel(priority=0, model_mlcube=3),
+        ]
+
+        # Act
+        AssociationPriority.run(1, model_uid, priority)
+
+        # Assert
+        assert expected_associations == self.associations
+
+    @pytest.mark.parametrize("model_uid", [(55)])
+    def test_run_fails_if_cube_not_associated(self, model_uid):
+        # Arrange
+        original_assocs = deepcopy(self.associations)
+        # Act & Assert
         with pytest.raises(InvalidArgumentError):
-            setter.validate()
-    else:
-        setter.validate()
+            AssociationPriority.run(1, model_uid, 1)
 
-
-@pytest.mark.parametrize(
-    "testcases",
-    [
-        [[-3.0, 0.0, 1.0, 3.0, 5.11, 7.230, 10.382], 1, -4.0],
-        [[-3.0, 0.0, 1.0, 3.0, 5.11, 7.230, 10.382], 4, 2.0],
-        [[1.0, 3.0, 5.11, 7.230, 10.382], -1, 11.382],
-        [[1.0, 3.0, 5.11, 7.230, 10.382], 10, 11.382],
-    ],
-)
-def test_priority_is_correctly_converted_to_float(mocker, comms, ui, testcases):
-    # Arrange
-    priorities, priority, exp_float = testcases
-    setter = AssociationPriority(1, 1, priority)
-    setter.assocs = [{"priority": prio} for prio in priorities]
-
-    # Act
-    setter.convert_priority_to_float()
-
-    # Assert
-    assert setter.float_priority == pytest.approx(exp_float)
-
-
-@pytest.mark.parametrize(
-    "testcases",
-    [
-        [[-3.0, 0.0, 1.0, 3.0, 5.11, 7.230, 10.382], 1, False],
-        [[7e-10, 8e-10, 9e-10], 2, True],
-    ],
-)
-def test_update_rescales_if_necessary(mocker, comms, ui, testcases):
-    # Arrange
-    priorities, priority, rescales = testcases
-    setter = AssociationPriority(1, 1, priority)
-    spy = mocker.patch.object(comms, "set_mlcube_association_priority",)
-    setter.assocs = [{"priority": prio} for prio in priorities]
-    setter.convert_priority_to_float()
-
-    # Act
-    setter.update()
-
-    # Assert
-    spy.assert_called_once_with(1, 1, setter.float_priority, rescale=rescales)
+        assert original_assocs == self.associations

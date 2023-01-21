@@ -24,12 +24,12 @@ def server(mocker, ui):
     [
         ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
-            "get_benchmark_model_associations",
+            "get_benchmark_models",
             "get_list",
             200,
             [1],
             [],
-            (f"{url}/benchmarks/1/benchmarkmodels/",),
+            (f"{url}/benchmarks/1/models",),
             {},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{url}/mlcubes/1/",), {}),
@@ -357,10 +357,8 @@ def test_get_benchmark_returns_benchmark_body(mocker, server, body):
 @pytest.mark.parametrize("exp_uids", [[142, 437, 196], [303, 27, 24], [40, 19, 399]])
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
-    body = [{"model_mlcube": uid} for uid in exp_uids]
-    mocker.patch(
-        patch_server.format("REST.get_benchmark_model_associations"), return_value=body
-    )
+    body = [{"id": uid} for uid in exp_uids]
+    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=body)
 
     # Act
     uids = server.get_benchmark_models(1)
@@ -689,27 +687,11 @@ def test_upload_benchmark_returns_benchmark_body(mocker, server, body):
     assert body == exp_body
 
 
-@pytest.mark.parametrize("benchmark_uid", [142, 437, 196])
-def test_get_benchmark_model_associations_gets_associations(
-    mocker, server, benchmark_uid
-):
-    # Arrange
-    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
-    exp_path = f"{url}/benchmarks/{benchmark_uid}/benchmarkmodels/"
-
-    # Act
-    server.get_benchmark_model_associations(benchmark_uid)
-
-    # Assert
-    spy.assert_called_once_with(exp_path)
-
-
 @pytest.mark.parametrize("mlcube_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
-@pytest.mark.parametrize("priority", [2.456, 100.50140])
-@pytest.mark.parametrize("rescale", [True, False])
+@pytest.mark.parametrize("priority", [2, -10])
 def test_set_mlcube_association_priority_sets_priority(
-    mocker, server, mlcube_uid, benchmark_uid, priority, rescale
+    mocker, server, mlcube_uid, benchmark_uid, priority
 ):
     # Arrange
     res = MockResponse({}, 200)
@@ -717,9 +699,7 @@ def test_set_mlcube_association_priority_sets_priority(
     exp_url = f"{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_mlcube_association_priority(benchmark_uid, mlcube_uid, priority, rescale)
+    server.set_mlcube_association_priority(benchmark_uid, mlcube_uid, priority)
 
     # Assert
-    spy.assert_called_once_with(
-        exp_url, json={"priority": priority, "rescale": rescale}
-    )
+    spy.assert_called_once_with(exp_url, json={"priority": priority})
