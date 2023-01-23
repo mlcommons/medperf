@@ -1,4 +1,3 @@
-import os
 import typer
 import logging
 import logging.handlers
@@ -18,10 +17,8 @@ import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
 from medperf.utils import (
     set_custom_config,
-    load_config,
     set_unique_tmp_config,
     init_storage,
-    init_config,
     storage_path,
     cleanup,
 )
@@ -145,21 +142,10 @@ def test(
 
 
 @app.callback()
-@configurable()
-def main(
-    ctx: typer.Context,
-    profile: str = typer.Option(config.profile, help="Configuration profile to use"),
-):
-    # Create medperf root path
-    os.makedirs(config.storage, exist_ok=True)
-    init_config()
-
-    # Set profile parameters
-    profile_args = load_config(profile)
-    set_custom_config(profile_args)
-
+@configurable
+def main(ctx: typer.Context):
     # Set inline parameters
-    inline_args = ctx.config_dict
+    inline_args = ctx.params
     set_custom_config(inline_args)
 
     if config.certificate is not None:

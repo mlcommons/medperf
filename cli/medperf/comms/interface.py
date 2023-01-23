@@ -133,12 +133,12 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_cube(self, url: str, cube_uid: int) -> str:
+    def get_cube(self, url: str, cube_path: str) -> str:
         """Downloads and writes an mlcube.yaml file from the server
 
         Args:
             url (str): URL where the mlcube.yaml file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: location where the mlcube.yaml file is stored locally.
@@ -153,24 +153,24 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_cube_params(self, url: str, cube_uid: int) -> str:
+    def get_cube_params(self, url: str, cube_path: str) -> str:
         """Retrieves the cube parameters.yaml file from the server
 
         Args:
             url (str): URL where the parameters.yaml file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
 
     @abstractmethod
-    def get_cube_additional(self, url: str, cube_uid: int) -> str:
+    def get_cube_additional(self, url: str, cube_path: str) -> str:
         """Retrieves and stores the additional_files.tar.gz file from the server
 
         Args:
             url (str): URL where the additional_files.tar.gz file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
@@ -188,12 +188,12 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_cube_image(self, url: str, cube_uid: int) -> str:
+    def get_cube_image(self, url: str, cube_path: str) -> str:
         """Retrieves and stores the image file from the server
 
         Args:
             url (str): URL where the image file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Cube location.
 
         Returns:
             str: Location where the image file is stored locally.
@@ -276,8 +276,8 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def upload_results(self, results_dict: dict) -> int:
-        """Uploads results to the server.
+    def upload_result(self, results_dict: dict) -> int:
+        """Uploads result to the server.
 
         Args:
             results_dict (dict): Dictionary containing results information.

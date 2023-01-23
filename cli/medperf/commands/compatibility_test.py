@@ -3,7 +3,7 @@ import yaml
 import logging
 from time import time
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import medperf.config as config
 from medperf.entities.result import Result
@@ -19,17 +19,18 @@ class CompatibilityTestExecution:
     @classmethod
     def run(
         cls,
-        benchmark_uid: int,
+        benchmark_uid: Union[int, str],
         data_uid: str = None,
         data_prep: str = None,
         model: str = None,
         evaluator: str = None,
         force_test: bool = False,
     ) -> List:
-        """Execute a test workflow for a specific benchmark
+        """Execute a test workflow. Components of a complete workflow should be passed.
 
         Args:
-            benchmark_uid (int): Benchmark to run the test workflow for
+            benchmark_uid (int, str): Benchmark to run the test workflow for.
+                Either a server uid or an unregistered benchmark generated uid
             data_uid (str, optional): registered dataset uid.
                 If none provided, it defaults to benchmark test dataset.
             data_prep (str, optional): data prep mlcube uid or local path.
@@ -112,9 +113,13 @@ class CompatibilityTestExecution:
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
         """
-        if not self.benchmark_uid:
-            benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
-            self.benchmark_uid = benchmark.generated_uid
+        if (
+            not self.benchmark_uid
+            or self.benchmark.data_preparation != self.data_prep
+            or self.benchmark.evaluator != self.evaluator
+        ):
+            self.benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
+            self.benchmark_uid = self.benchmark.generated_uid
         BenchmarkExecution.run(
             self.benchmark_uid, self.data_uid, [self.model], run_test=True,
         )
