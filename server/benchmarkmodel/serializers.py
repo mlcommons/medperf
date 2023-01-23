@@ -91,8 +91,10 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if not self.instance:
             raise serializers.ValidationError("No model association found")
+        return data
+
+    def validate_approval_status(self, cur_approval_status):
         last_approval_status = self.instance.approval_status
-        cur_approval_status = data["approval_status"]
         if last_approval_status != "PENDING":
             raise serializers.ValidationError(
                 "User can approve or reject only a pending request"
@@ -107,7 +109,7 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"
                 )
-        return data
+        return cur_approval_status
 
     def update(self, instance, validated_data):
         if "approval_status" in validated_data:
