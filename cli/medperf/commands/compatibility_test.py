@@ -6,12 +6,12 @@ from pathlib import Path
 from typing import List, Union
 
 import medperf.config as config
-from medperf.entities.result import Result
+from medperf.commands.execution import Execution
+from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.create import DataPreparation
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.utils import untar, get_file_sha1, storage_path
+from medperf.utils import check_cube_validity, untar, get_file_sha1, storage_path
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
@@ -52,8 +52,12 @@ class CompatibilityTestExecution:
         test_exec.validate()
         test_exec.prepare_test()
         test_exec.set_data_uid()
-        result = test_exec.cached_result() or test_exec.execute_benchmark()
-        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model, result
+        test_exec.set_path()
+        results = test_exec.cached_results()
+        if results is None:
+            results = test_exec.execute_benchmark()
+            test_exec.write(results)
+        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model, results
 
     def __init__(
         self,
@@ -110,23 +114,26 @@ class CompatibilityTestExecution:
             self.set_cube_uid("model")
             self.set_cube_uid("evaluator")
 
+        self.model_cube = self.__get_cube(self.model, "Model")
+        self.evaluator_cube = self.__get_cube(self.evaluator, "Evaluator")
+
+    def __get_cube(self, uid: int, name: str) -> Cube:
+        self.ui.text = f"Retrieving {name} cube"
+        cube = Cube.get(uid)
+        self.ui.print(f"> {name} cube download complete")
+        check_cube_validity(cube)
+        return cube
+
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
         """
-        if (
-            not self.benchmark_uid
-            or self.benchmark.data_preparation != self.data_prep
-            or self.benchmark.evaluator != self.evaluator
-        ):
-            self.benchmark = Benchmark.tmp(self.data_prep, self.model, self.evaluator)
-            self.benchmark_uid = self.benchmark.generated_uid
-        BenchmarkExecution.run(
-            self.benchmark_uid, self.data_uid, [self.model], run_test=True,
+        execution_summary = Execution.run(
+            dataset=self.dataset,
+            model=self.model_cube,
+            evaluator=self.evaluator_cube,
+            ignore_errors=False,
         )
-        result_tmp_uid = (
-            f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"
-        )
-        return Result.get(result_tmp_uid)
+        return execution_summary["results"]
 
     def set_cube_uid(self, attr: str, fallback: any = None):
         """Assigns the attr used for testing according to the initialization parameters.
@@ -228,24 +235,25 @@ class CompatibilityTestExecution:
         labels_path = os.path.join(untar_path, paths["labels_path"])
         return data_path, labels_path
 
-    def cached_result(self):
+    def set_path(self):
+        uid = f"{self.benchmark_uid}_{self.data_uid}_{self.data_prep}_{self.model}_{self.evaluator}"
+        path = os.path.join(config.test_storage, uid)
+        self.path = storage_path(path)
+
+    def cached_results(self):
         """checks the existance of, and retrieves if possible, the compatibility test
         result. This method is called prior to the test execution.
 
         Returns:
-            (Result|None): None if the result does not exist or if self.force_test is True,
+            (dict|None): None if the result does not exist or if self.force_test is True,
             otherwise it returns the found result.
         """
-        if self.force_test:
-            return
-        tmp_result_uid = (
-            f"b{self.benchmark_uid}m{self.model}d{self.dataset.generated_uid}"
-        )
-        try:
-            result = Result.get(tmp_result_uid)
-        except InvalidArgumentError:
-            return
+        if os.path.exists(self.path) and not self.force_test:
+            logging.info(f"Existing results at {self.path} were detected.")
+            logging.info("The compatibilty test will not be re-executed.")
+            with open(self.path, "r") as f:
+                return yaml.safe_load(f)
 
-        logging.info(f"Existing results at {result.path} were detected.")
-        logging.info("The compatibilty test will not be re-executed.")
-        return result
+    def write(self, results):
+        with open(self.path, "w") as f:
+            yaml.dump(results, f)
