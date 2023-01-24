@@ -6,7 +6,6 @@ from typing import List
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
-from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
@@ -44,9 +43,8 @@ class Result(Entity):
         self.created_at = results_info["created_at"]
         self.modified_at = results_info["modified_at"]
 
-        dset = Dataset.get(self.dataset_uid)
         self.generated_uid = (
-            f"b{self.benchmark_uid}m{self.model_uid}d{dset.generated_uid}"
+            f"b{self.benchmark_uid}m{self.model_uid}d{self.dataset_uid}"
         )
         path = storage_path(config.results_storage)
         if self.uid:
