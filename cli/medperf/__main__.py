@@ -83,13 +83,22 @@ def execute(
         "--ignore-errors",
         help="Ignore failing cubes, allowing for submitting partial results",
     ),
+    ignore_cache: bool = typer.Option(
+        False,
+        "--ignore-cache",
+        help="Ignore existing results. The experiment then will be rerun",
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    results_uids = BenchmarkExecution.run(
-        benchmark_uid, data_uid, [model_uid], ignore_errors=ignore_errors
-    )
-    ResultSubmission.run(results_uids[model_uid], approved=approval)
+    result = BenchmarkExecution.run(
+        benchmark_uid,
+        data_uid,
+        [model_uid],
+        ignore_errors=ignore_errors,
+        use_cache=not ignore_cache,
+    )[0]
+    ResultSubmission.run(result.generated_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 

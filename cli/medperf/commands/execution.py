@@ -110,4 +110,5 @@ class Execution:
     def get_temp_results(self):
         with open(self.out_path, "r") as f:
             results = yaml.safe_load(f)
+        cleanup_path(self.out_path)
         return results

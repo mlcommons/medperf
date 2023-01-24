@@ -99,10 +99,23 @@ def run(
     data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
+    file: str = typer.Option(
+        None,
+        "--models-from-file",
+        "-f",
+        help="""A file containing the model UIDs to be executed.
+        The file should contain a single line as a list of
+        comma-separated integers corresponding to the model UIDs""",
+    ),
     ignore_errors: bool = typer.Option(
         False,
         "--ignore-errors",
         help="Ignore failing cubes, allowing for submitting partial results",
+    ),
+    ignore_cache: bool = typer.Option(
+        False,
+        "--ignore-cache",
+        help="Ignore existing results. The experiment then will be rerun",
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
@@ -111,8 +124,10 @@ def run(
         benchmark_uid,
         data_uid,
         models_uids=None,
+        use_cache=not ignore_cache,
+        models_input_file=file,
         ignore_errors=ignore_errors,
         show_summary=True,
-        ignore_failed_experiments=True
+        ignore_failed_experiments=True,
     )
     config.ui.print("✅ Done!")
