@@ -434,12 +434,10 @@ def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_e
 
 
 @pytest.mark.parametrize("force_test", [True, False])
-def test_cached_result_looks_for_result_if_not_force(
-    mocker, comms, ui, dataset, force_test
-):
+def test_cached_result_looks_for_result_if_not_force(mocker, comms, ui, force_test):
     # Arrange
     cls = CompatibilityTestExecution("1", "1", "1", "1", None, force_test=force_test)
-    cls.dataset = dataset
+    cls.dataset = TestDataset()
     spy = mocker.patch(PATCH_TEST.format("Result.get"))
 
     # Act

@@ -33,13 +33,14 @@ def execution(mocker, comms, ui):
     exec.benchmark.models = [0]
     exec.evaluator = TestCube(id=3)
     exec.model_cube = TestCube(id=2)
+    mocker.patch.object(TestCube, "run")
     return exec
 
 
 def test_validate_fails_if_preparation_cube_mismatch(mocker, execution):
     # Arrange
-    execution.dataset.preparation_cube_uid = "dset_prep_cube"
-    execution.benchmark.data_preparation = "bmark_prep_cube"
+    execution.dataset.data_preparation_mlcube = "dset_prep_cube"
+    execution.benchmark.data_preparation_mlcube = "bmark_prep_cube"
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -58,7 +59,7 @@ def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
 
 def test_validate_fails_if_dataset_is_not_registered(mocker, execution):
     # Arrange
-    execution.dataset.uid = None
+    execution.dataset.id = None
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -106,8 +107,9 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     spy.assert_called_once_with(cube_uid)
 
 
-def test__get_cube_checks_cube_validity(mocker, execution, cube):
+def test__get_cube_checks_cube_validity(mocker, execution):
     # Arrange
+    cube = TestCube()
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), return_value=cube)
     spy = mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
