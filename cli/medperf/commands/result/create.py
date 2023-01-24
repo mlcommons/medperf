@@ -112,11 +112,13 @@ class BenchmarkExecution:
             raise InvalidArgumentError("The given file does not exist")
         with open(self.models_input_file) as f:
             text = f.read()
-        models = text.strip().split("\n")
+        models = text.strip().split(",")
         try:
             return list(map(int, models))
         except ValueError as e:
-            raise InvalidArgumentError(f"Cannot parse the given file: {e}")
+            msg = f"Could not parse the given file: {e}. "
+            msg += "The file should contain a list of comma-separated integers"
+            raise InvalidArgumentError(msg)
 
     def validate_models(self):
         in_assoc_cubes = set(self.models_uids).issubset(set(self.benchmark.models))
