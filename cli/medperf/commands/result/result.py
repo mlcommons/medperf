@@ -1,7 +1,10 @@
 import typer
+from typing import Optional, Union
 
 import medperf.config as config
 from medperf.decorators import clean_except
+from medperf.commands.view import EntityView
+from medperf.entities.result import Result
 from medperf.commands.result.list import ResultsList
 from medperf.commands.result.create import BenchmarkExecution
 from medperf.commands.result.submit import ResultSubmission
@@ -56,3 +59,21 @@ def list(
 ):
     """List results stored locally and remotely from the user"""
     ResultsList.run(local, mine)
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(False, "--local", help="Get local results"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+):
+    """Displays the information of one or more results
+    """
+    EntityView.run(entity_id, Result, format, local, mine)
