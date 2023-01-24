@@ -6,42 +6,17 @@ from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
 from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 PATCH_TEST = "medperf.commands.compatibility_test.{}"
 
 
 @pytest.fixture
-def benchmark(mocker):
-    def benchmark_gen(uid, data_prep, reference_model, evaluator):
-        bmk = mocker.create_autospec(spec=Benchmark)
-        bmk.uid = uid
-        bmk.data_preparation = data_prep
-        bmk.reference_model = reference_model
-        bmk.evaluator = evaluator
-        bmk.demo_dataset_url = None
-        bmk.demo_dataset_hash = None
-        bmk.generated_uid = (
-            f"p{bmk.data_preparation}m{bmk.reference_model}e{bmk.evaluator}"
-        )
-        return bmk
-
-    return benchmark_gen
-
-
-@pytest.fixture
-def dataset(mocker):
-    dataset = mocker.create_autospec(spec=Dataset)
-    dataset.uid = "uid"
-    dataset.generated_uid = "gen_uid"
-    dataset.preparation_cube_uid = "cube_uid"
-    return dataset
-
-
-@pytest.fixture
-def default_setup(mocker, benchmark, dataset):
-    bmk = benchmark(1, 1, 2, 3)
+def default_setup(mocker):
+    bmk = TestBenchmark()
+    dataset = TestDataset()
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch(
@@ -85,9 +60,9 @@ def test_validate_fails_if_incomplete_tmp_benchmark_passed(
 
 
 @pytest.mark.parametrize("uid", [None, "1"])
-def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
+def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, comms, ui):
     # Arrange
-    bmk = benchmark(uid, 1, 2, 3)
+    bmk = TestBenchmark(id=uid)
     data = "1"
     prep = "2"
     model = "3"
@@ -106,9 +81,9 @@ def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
 
 
 @pytest.mark.parametrize("uid", [None, "1"])
-def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
+def test_prepare_test_sets_uids(mocker, uid, comms, ui):
     # Arrange
-    bmk = benchmark(uid, 1, 2, 3)
+    bmk = TestBenchmark(id=uid)
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     exec = CompatibilityTestExecution(uid, None, None, None, None)
     spy = mocker.spy(exec, "set_cube_uid")
@@ -267,15 +242,13 @@ def test_set_data_uid_keeps_passed_data_uid(mocker, default_setup, data_uid, com
     assert exec.data_uid == data_uid
 
 
-def test_execute_benchmark_runs_benchmark_workflow(
-    mocker, dataset, default_setup, comms, ui, benchmark
-):
+def test_execute_benchmark_runs_benchmark_workflow(mocker, default_setup, comms, ui):
     # Arrange
     spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
     mocker.patch(PATCH_TEST.format("Result.get"))
     exec = CompatibilityTestExecution(1, None, None, None, None)
-    exec.dataset = dataset
-    exec.benchmark = benchmark("1", "2", "3", "4")
+    exec.dataset = TestDataset()
+    exec.benchmark = TestBenchmark()
 
     # Act
     exec.execute_benchmark()
@@ -307,9 +280,9 @@ def test_run_executes_all_the_expected_steps(
     )
     bmk = default_setup
     cube_uid_calls = [
-        call("data_prep", bmk.data_preparation),
-        call("model", bmk.reference_model),
-        call("evaluator", bmk.evaluator),
+        call("data_prep", bmk.data_preparation_mlcube),
+        call("model", bmk.reference_model_mlcube),
+        call("evaluator", bmk.data_evaluator_mlcube),
     ]
 
     # Act
@@ -330,11 +303,14 @@ def test_run_executes_all_the_expected_steps(
     "bmk_uid,data_uid,model_uid,results",
     [(255, 312, 241, {}), (238, 498, 411, {"AUC": 0.6})],
 )
-def test_run_returns_uids(
-    mocker, benchmark, bmk_uid, data_uid, model_uid, results, comms, ui
-):
+def test_run_returns_uids(mocker, bmk_uid, data_uid, model_uid, results, comms, ui):
     # Arrange
-    bmk = benchmark(bmk_uid, data_uid, model_uid, "3")
+    bmk = TestBenchmark(
+        id=bmk_uid,
+        data_preparation_mlcube=data_uid,
+        reference_model_mlcube=model_uid,
+        data_evaluator_mlcube=3,
+    )
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
     mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_cube_uid"))
@@ -357,16 +333,20 @@ def test_run_returns_uids(
 
 
 @pytest.mark.parametrize("hash", ["test", "invalid"])
-def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, hash, ui):
+def test_download_demo_data_fails_if_incorrect_hash(mocker, comms, hash, ui):
     # Arrange
-    uid = "1"
-    data = "1"
-    prep = "2"
-    model = "3"
-    eval = "4"
-    bmk = benchmark(uid, prep, model, eval)
-    bmk.demo_dataset_url = "url"
-    bmk.demo_dataset_hash = hash
+    uid = 1
+    data = 1
+    prep = 2
+    model = 3
+    eval = 4
+    bmk = TestBenchmark(
+        id=uid,
+        data_preparation_mlcube=prep,
+        reference_model_mlcube=model,
+        data_evaluator_mlcube=eval,
+        demo_dataset_tarball_hash=hash,
+    )
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
@@ -381,18 +361,20 @@ def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, ha
 @pytest.mark.parametrize(
     "paths", [("data", "labels"), ("path/to/data", "path/to/labels")]
 )
-def test_download_demo_data_extracts_expected_paths(
-    mocker, benchmark, paths, comms, ui
-):
+def test_download_demo_data_extracts_expected_paths(mocker, paths, comms, ui):
     # Arrange
-    uid = "1"
-    data = "1"
-    prep = "2"
-    model = "3"
-    eval = "4"
-    bmk = benchmark("1", "2", "3", "4")
-    bmk.demo_dataset_url = "url"
-    bmk.demo_dataset_hash = "hash"
+    uid = 1
+    data = 1
+    prep = 2
+    model = 3
+    eval = 4
+    bmk = TestBenchmark(
+        id=uid,
+        data_preparation_mlcube=prep,
+        reference_model_mlcube=model,
+        data_evaluator_mlcube=eval,
+        demo_dataset_tarball_hash="hash",
+    )
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
     mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")

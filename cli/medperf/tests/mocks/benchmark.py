@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 from medperf.enums import Status
 from medperf.entities.benchmark import Benchmark
 
 
 class TestBenchmark(Benchmark):
-    id: int = 1
+    id: Optional[int] = 1
     name: str = "name"
     demo_dataset_tarball_hash: str = "tarball_hash"
     data_preparation_mlcube: int = 1
