@@ -113,8 +113,9 @@ def init_storage():
     bmks = storage_path(config.benchmarks_storage)
     demo = storage_path(config.demo_data_storage)
     log = storage_path(config.logs_storage)
+    tests = storage_path(config.test_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp, demo, log]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, tests]
     for dir in dirs:
         logging.info(f"Creating {dir} directory")
         try:

@@ -23,6 +23,7 @@ benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 config_path = "config.yaml"
 workspace_path = "workspace"
+test_storage = "tests"
 cleanup = True
 
 cube_filename = "mlcube.yaml"
