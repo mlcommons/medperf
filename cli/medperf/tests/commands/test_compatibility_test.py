@@ -5,7 +5,6 @@ import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
-from medperf.entities.dataset import Dataset
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.compatibility_test import CompatibilityTestExecution
