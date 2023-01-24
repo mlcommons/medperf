@@ -285,6 +285,18 @@ def generate_tmp_uid() -> str:
     return ts
 
 
+def generate_tmp_path() -> str:
+    """Generates a temporary path by means of getting the current timestamp
+    with a random salt
+
+    Returns:
+        str: generated temporary path
+    """
+    tmp_path = os.path.join(config.tmp_storage, generate_tmp_uid())
+    tmp_path = storage_path(tmp_path)
+    return os.path.abspath(tmp_path)
+
+
 def check_cube_validity(cube: "Cube"):
     """Helper function for pretty printing the cube validity process.
 
