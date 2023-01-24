@@ -46,7 +46,9 @@ class Execution:
     def prepare(self):
         model_uid = self.model.uid
         data_uid = self.dataset.uid
-        preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
+        preds_path = os.path.join(
+            config.predictions_storage, str(model_uid), str(data_uid)
+        )
 
         self.partial = False
         self.out_path = generate_tmp_path()
@@ -110,5 +112,5 @@ class Execution:
     def get_temp_results(self):
         with open(self.out_path, "r") as f:
             results = yaml.safe_load(f)
-        cleanup_path(self.out_path)
+        os.remove(self.out_path)
         return results
