@@ -71,8 +71,8 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(False, "--local", help="Get local results"),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    local: bool = typer.Option(False, "--local", help="Display local results"),
+    mine: bool = typer.Option(False, "--mine", help="Display current-user results"),
     output: str = typer.Option(
         None, "--output", "-o", help="Output file to store contents"
     ),

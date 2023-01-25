@@ -87,19 +87,19 @@ def associate(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    entity_id: Optional[int] = typer.Argument(None, help="MLCube ID"),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(False, "--local", help="Get local results"),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    local: bool = typer.Option(False, "--local", help="Display local mlcubes"),
+    mine: bool = typer.Option(False, "--mine", help="Display current-user mlcubes"),
     output: str = typer.Option(
         None, "--output", "-o", help="Output file to store contents"
     ),
 ):
-    """Displays the information of one or more results
+    """Displays the information of one or more mlcubes
     """
     EntityView.run(entity_id, Cube, format, local, mine, output)
