@@ -52,7 +52,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/ebecacaf22689ec9ea0d20826c805a206e2c63e0"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/451e95e3bd62a7112ffd3336302d4cddd895d0cb"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -65,6 +65,7 @@ PREP_MLCUBE="$ASSETS_URL/prep/mlcube/mlcube.yaml"
 PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
 
 # model cubes
+FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
@@ -149,9 +150,9 @@ medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model4 -m $MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
-checkFailed "Model4 submission failed"
-MODEL4_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
+checkFailed "failing model submission failed"
+FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
@@ -269,10 +270,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model4 association"
+echo "Running failing model association"
 echo "====================================="
-medperf mlcube associate -m $MODEL4_UID -b $BMK_UID -y
-checkFailed "Model4 association failed"
+medperf mlcube associate -m $FAILING_MODEL_UID -b $BMK_UID -y
+checkFailed "Failing model association failed"
 ##########################################################
 
 echo "\n"
@@ -289,14 +290,14 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Approve model2,3,4 associations"
+echo "Approve model2,3,F, associations"
 echo "====================================="
 medperf association approve -b $BMK_UID -m $MODEL2_UID
 checkFailed "Model2 association approval failed"
 medperf association approve -b $BMK_UID -m $MODEL3_UID
 checkFailed "Model3 association approval failed"
-medperf association approve -b $BMK_UID -m $MODEL4_UID
-checkFailed "Model4 association approval failed"
+medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
+checkFailed "failing model association approval failed"
 ##########################################################
 
 echo "\n"
@@ -327,6 +328,16 @@ echo "Running outstanding models"
 echo "====================================="
 medperf benchmark run -b $BMK_UID -d $DSET_A_UID
 checkFailed "Model2 run failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Run failing cube with ignore errors"
+echo "====================================="
+medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-errors
+checkFailed "Failing mlcube run failed"
 ##########################################################
 
 echo "\n"
