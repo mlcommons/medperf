@@ -1,8 +1,11 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
+from medperf.entities.cube import Cube
+from medperf.commands.view import EntityView
 from medperf.commands.mlcube.list import CubesList
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
@@ -79,3 +82,24 @@ def associate(
         model_uid, benchmark_uid, approved=approval, force_test=force_test
     )
     config.ui.print("✅ Done!")
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(False, "--local", help="Get local results"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output file to store contents"
+    ),
+):
+    """Displays the information of one or more results
+    """
+    EntityView.run(entity_id, Cube, format, local, mine, output)

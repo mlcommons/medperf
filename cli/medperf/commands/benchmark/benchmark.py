@@ -1,8 +1,11 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
+from medperf.entities.benchmark import Benchmark
+from medperf.commands.view import EntityView
 from medperf.commands.benchmark.list import BenchmarksList
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
@@ -87,3 +90,24 @@ def associate(
         benchmark_uid, model_uid, dataset_uid, approved=approval, force_test=force_test
     )
     config.ui.print("✅ Done!")
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(False, "--local", help="Get local results"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output file to store contents"
+    ),
+):
+    """Displays the information of one or more results
+    """
+    EntityView.run(entity_id, Benchmark, format, local, mine, output)

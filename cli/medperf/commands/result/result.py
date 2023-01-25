@@ -73,7 +73,10 @@ def view(
     ),
     local: bool = typer.Option(False, "--local", help="Get local results"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output file to store contents"
+    ),
 ):
     """Displays the information of one or more results
     """
-    EntityView.run(entity_id, Result, format, local, mine)
+    EntityView.run(entity_id, Result, format, local, mine, output)

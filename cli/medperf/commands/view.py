@@ -15,6 +15,7 @@ class EntityView:
         format: str = "yaml",
         local_only: bool = False,
         mine_only: bool = False,
+        output: str = None,
     ):
         """Displays the contents of a single or multiple entities of a given type
 
@@ -24,18 +25,31 @@ class EntityView:
             local_only (bool, optional): Display all local entities. Defaults to False.
             mine_only (bool, optional): Display all current-user entities. Defaults to False.
             format (str, optional): What format to use to display the contents. Valid formats: [yaml, json]. Defaults to yaml.
+            output (str, optional): Path to a file for storing the result(s) contents. If not provided, the contents are printed.
         """
-        entity_view = EntityView(entity_id, entity_class, format, local_only, mine_only)
+        entity_view = EntityView(
+            entity_id, entity_class, format, local_only, mine_only, output
+        )
+        entity_view.validate()
         entity_view.prepare()
-        entity_view.display()
+        if output is None:
+            entity_view.display()
+        else:
+            entity_view.store()
 
-    def __init__(self, entity_id, entity_class, format, local_only, mine_only):
+    def __init__(self, entity_id, entity_class, format, local_only, mine_only, output):
         self.entity_id = entity_id
         self.entity_class = entity_class
         self.format = format
         self.local_only = local_only
         self.mine_only = mine_only
+        self.output = output
         self.data = []
+
+    def validate(self):
+        valid_formats = set(["yaml", "json"])
+        if self.format not in valid_formats:
+            raise InvalidArgumentError("The provided format is not supported")
 
     def prepare(self):
         if self.entity_id is not None:
@@ -46,16 +60,26 @@ class EntityView:
             )
         self.data = [entity.todict() for entity in entities]
 
+        if self.entity_id is not None:
+            # User expects a single entity if id provided
+            # Don't output the view as a list of entities
+            self.data = self.data[0]
+
     def display(self):
-        valid_formats = set("yaml", "json")
-        if self.format not in valid_formats:
-            raise InvalidArgumentError("The provided format is not supported")
-
         if self.format == "json":
-            formatter = json
+            formatter = json.dumps
         if self.format == "yaml":
-            formatter = yaml
+            formatter = yaml.dump
 
-        formatted_data = formatter.dumps(self.data)
+        formatted_data = formatter(self.data)
         config.ui.print(formatted_data)
+
+    def store(self):
+        if self.format == "json":
+            formatter = json.dump
+        if self.format == "yaml":
+            formatter = yaml.dump
+
+        with open(self.output, "w") as f:
+            formatter(self.data, f)
 

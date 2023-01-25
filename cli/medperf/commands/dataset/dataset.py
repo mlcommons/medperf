@@ -1,7 +1,10 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
+from medperf.entities.dataset import Dataset
+from medperf.commands.view import EntityView
 from medperf.commands.dataset.list import DatasetsList
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.dataset.submit import DatasetRegistration
@@ -106,3 +109,24 @@ def associate(
     ui.print(
         f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"
     )
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(False, "--local", help="Get local results"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output file to store contents"
+    ),
+):
+    """Displays the information of one or more results
+    """
+    EntityView.run(entity_id, Dataset, format, local, mine, output)
