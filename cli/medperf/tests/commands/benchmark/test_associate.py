@@ -35,7 +35,7 @@ def test_run_executes_cube_association(mocker, approved, comms, ui):
     AssociateBenchmark.run(bmk_uid, model_uid, None, approved=approved)
 
     # Assert
-    spy.assert_called_once_with(model_uid, bmk_uid, approved=approved, force_test=False)
+    spy.assert_called_once_with(model_uid, bmk_uid, approved=approved, no_cache=False)
 
 
 @pytest.mark.parametrize("bmk_uid", [243, 217])
@@ -51,4 +51,4 @@ def test_run_executes_dset_association(mocker, bmk_uid, dset_uid, approved, comm
     AssociateBenchmark.run(bmk_uid, None, dset_uid, approved=approved)
 
     # Assert
-    spy.assert_called_once_with(dset_uid, bmk_uid, approved=approved, force_test=False)
+    spy.assert_called_once_with(dset_uid, bmk_uid, approved=approved, no_cache=False)

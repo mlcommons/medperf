@@ -11,7 +11,7 @@ class AssociateBenchmark:
         model_uid: str,
         data_uid: str,
         approved=False,
-        force_test=False,
+        no_cache=False,
     ):
         """Associates a dataset or model to the given benchmark
 
@@ -29,10 +29,10 @@ class AssociateBenchmark:
             raise InvalidArgumentError("Must provide either a dataset or mlcube")
         if model_uid is not None:
             AssociateCube.run(
-                model_uid, benchmark_uid, approved=approved, force_test=force_test
+                model_uid, benchmark_uid, approved=approved, no_cache=no_cache
             )
 
         if data_uid is not None:
             AssociateDataset.run(
-                data_uid, benchmark_uid, approved=approved, force_test=force_test
+                data_uid, benchmark_uid, approved=approved, no_cache=no_cache
             )

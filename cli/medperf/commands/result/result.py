@@ -15,7 +15,7 @@ def create(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: str = typer.Option(
+    data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     model_uid: int = typer.Option(
@@ -26,11 +26,18 @@ def create(
         "--ignore-errors",
         help="Ignore failing cubes, allowing for submitting partial results",
     ),
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute even if results already exist",
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
     BenchmarkExecution.run(
-        benchmark_uid, data_uid, [model_uid], ignore_errors=ignore_errors
+        benchmark_uid,
+        data_uid,
+        [model_uid],
+        no_cache=no_cache,
+        ignore_errors=ignore_errors,
     )
     config.ui.print("✅ Done!")
 

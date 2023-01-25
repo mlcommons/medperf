@@ -33,7 +33,7 @@ class DatasetRegistration:
             dset = Dataset(remote_dset[0])
             dset.write()
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
-            return
+            return dset.uid
 
         dict_pretty_print(dset.todict())
         msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
@@ -51,5 +51,6 @@ class DatasetRegistration:
             os.rename(old_dset_loc, new_dset_loc)
 
             updated_dset.write()
+            return updated_dset.uid
         else:
             raise CleanExit("Registration request cancelled.")

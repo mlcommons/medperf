@@ -1,4 +1,5 @@
 import os
+from typing import List, Optional
 from medperf.commands.execution import Execution
 from medperf.entities.result import Result
 from medperf.enums import Status
@@ -22,13 +23,13 @@ class BenchmarkExecution:
     def run(
         cls,
         benchmark_uid: int,
-        data_uid: str,
-        models_uids=None,
-        models_input_file=None,
-        use_cache=True,
+        data_uid: int,
+        models_uids: Optional[List[int]] = None,
+        models_input_file: Optional[str] = None,
         ignore_errors=False,
-        show_summary=False,
         ignore_failed_experiments=False,
+        no_cache=False,
+        show_summary=False,
     ):
         """Benchmark execution flow.
 
@@ -36,11 +37,9 @@ class BenchmarkExecution:
             benchmark_uid (int): UID of the desired benchmark
             data_uid (str): Registered Dataset UID
             models_uids (List|None): list of model UIDs to execute.
-                                    if None, model_source will be used
-            models_source: can be:
-                    str: filename to read from
-                    list: list of model uids
-                    None: use all benchmark models
+                                    if None, models_input_file will be used
+            models_input_file: filename to read from
+            if models_uids and models_input_file are None, use all benchmark models
         """
         execution = cls(
             benchmark_uid,
@@ -54,7 +53,7 @@ class BenchmarkExecution:
         execution.validate()
         execution.prepare_models()
         execution.validate_models()
-        if use_cache:
+        if not no_cache:
             execution.load_cached_results()
         with execution.ui.interactive():
             results = execution.run_experiments()
@@ -66,7 +65,7 @@ class BenchmarkExecution:
         self,
         benchmark_uid: int,
         data_uid: int,
-        models_uids: int,
+        models_uids,
         models_input_file: str = None,
         ignore_errors=False,
         ignore_failed_experiments=False,
@@ -103,9 +102,11 @@ class BenchmarkExecution:
 
     def prepare_models(self):
         if self.models_input_file:
-            self.models_uids = self.__get_models_from_file()
+            models_uids = self.__get_models_from_file()
         elif self.models_uids is None:
-            self.models_uids = self.benchmark.models
+            models_uids = self.benchmark.models
+
+        self.models_uids = list(map(str, models_uids))
 
     def __get_models_from_file(self):
         if not os.path.exists(self.models_input_file):
@@ -121,7 +122,9 @@ class BenchmarkExecution:
             raise InvalidArgumentError(msg)
 
     def validate_models(self):
-        in_assoc_cubes = set(self.models_uids).issubset(set(self.benchmark.models))
+        models_set = set(self.models_uids)
+        benchmark_models_set = set(map(str, self.benchmark.models))
+        in_assoc_cubes = models_set.issubset(benchmark_models_set)
         if not in_assoc_cubes:
             msg = "Some of the provided models is not part of the specified benchmark."
             raise InvalidArgumentError(msg)
@@ -135,7 +138,7 @@ class BenchmarkExecution:
             and result.dataset_uid == self.data_uid
         ]
         self.cached_results = {
-            result.model_uid: result for result in benchmark_dset_results
+            str(result.model_uid): result for result in benchmark_dset_results
         }
 
     def __get_cube(self, uid: int, name: str) -> Cube:
@@ -150,7 +153,7 @@ class BenchmarkExecution:
             if model_uid in self.cached_results:
                 self.experiments.append(
                     {
-                        "model_uid": str(model_uid),
+                        "model_uid": model_uid,
                         "result": self.cached_results[model_uid],
                         "cached": True,
                         "error": "",
@@ -170,7 +173,7 @@ class BenchmarkExecution:
                 self.__handle_experiment_error(model_uid, e)
                 self.experiments.append(
                     {
-                        "model_uid": str(model_uid),
+                        "model_uid": model_uid,
                         "result": None,
                         "cached": False,
                         "error": str(e),
@@ -184,7 +187,7 @@ class BenchmarkExecution:
 
             self.experiments.append(
                 {
-                    "model_uid": str(model_uid),
+                    "model_uid": model_uid,
                     "result": result,
                     "cached": False,
                     "error": "",

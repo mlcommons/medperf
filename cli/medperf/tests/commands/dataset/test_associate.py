@@ -143,4 +143,4 @@ def test_associate_calls_comp_test_without_force_by_default(
     AssociateDataset.run(data_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(benchmark_uid, data_uid=data_uid, force_test=False)
+    spy.assert_called_once_with(benchmark_uid, data_uid=data_uid, no_cache=False)

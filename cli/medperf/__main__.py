@@ -71,7 +71,7 @@ def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: str = typer.Option(
+    data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     model_uid: int = typer.Option(
@@ -83,9 +83,9 @@ def execute(
         "--ignore-errors",
         help="Ignore failing cubes, allowing for submitting partial results",
     ),
-    ignore_cache: bool = typer.Option(
+    no_cache: bool = typer.Option(
         False,
-        "--ignore-cache",
+        "--no-cache",
         help="Ignore existing results. The experiment then will be rerun",
     ),
 ):
@@ -96,7 +96,7 @@ def execute(
         data_uid,
         [model_uid],
         ignore_errors=ignore_errors,
-        use_cache=not ignore_cache,
+        no_cache=no_cache,
     )[0]
     ResultSubmission.run(result.generated_uid, approved=approval)
     config.ui.print("✅ Done!")
@@ -115,7 +115,7 @@ def test(
         None,
         "--data_uid",
         "-d",
-        help="Registered Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
+        help="Prepared Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
     ),
     data_prep: str = typer.Option(
         None,
@@ -135,8 +135,8 @@ def test(
         "-e",
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute the test even if results already exist",
     ),
 ):
     """
@@ -144,7 +144,7 @@ def test(
     Can test prepared datasets, remote and local models independently.
     """
     CompatibilityTestExecution.run(
-        benchmark_uid, data_uid, data_prep, model, evaluator, force_test=force_test,
+        benchmark_uid, data_uid, data_prep, model, evaluator, no_cache=no_cache,
     )
     config.ui.print("✅ Done!")
     cleanup()

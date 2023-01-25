@@ -39,13 +39,13 @@ def submit(
     demo_hash: str = typer.Option(
         "", "--demo-hash", help="SHA1 of demonstration dataset tarball file"
     ),
-    data_preparation_mlcube: str = typer.Option(
+    data_preparation_mlcube: int = typer.Option(
         ..., "--data-preparation-mlcube", "-p", help="Data Preparation MLCube UID"
     ),
-    reference_model_mlcube: str = typer.Option(
+    reference_model_mlcube: int = typer.Option(
         ..., "--reference-model-mlcube", "-m", help="Reference Model MLCube UID"
     ),
-    evaluator_mlcube: str = typer.Option(
+    evaluator_mlcube: int = typer.Option(
         ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
     ),
 ):
@@ -56,9 +56,9 @@ def submit(
         "docs_url": docs_url,
         "demo_url": demo_url,
         "demo_hash": demo_hash,
-        "data_preparation_mlcube": data_preparation_mlcube,
-        "reference_model_mlcube": reference_model_mlcube,
-        "evaluator_mlcube": evaluator_mlcube,
+        "data_preparation_mlcube": str(data_preparation_mlcube),
+        "reference_model_mlcube": str(reference_model_mlcube),
+        "evaluator_mlcube": str(evaluator_mlcube),
     }
     SubmitBenchmark.run(benchmark_info)
     cleanup()
@@ -68,24 +68,24 @@ def submit(
 @app.command("associate")
 @clean_except
 def associate(
-    benchmark_uid: str = typer.Option(
+    benchmark_uid: int = typer.Option(
         ..., "--benchmark_uid", "-b", help="UID of benchmark to associate with"
     ),
-    model_uid: str = typer.Option(
+    model_uid: int = typer.Option(
         None, "--model_uid", "-m", help="UID of model MLCube to associate"
     ),
-    dataset_uid: str = typer.Option(
+    dataset_uid: int = typer.Option(
         None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute the test even if results already exist",
     ),
 ):
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
     AssociateBenchmark.run(
-        benchmark_uid, model_uid, dataset_uid, approved=approval, force_test=force_test
+        benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
     config.ui.print("✅ Done!")
 
@@ -112,10 +112,8 @@ def run(
         "--ignore-errors",
         help="Ignore failing cubes, allowing for submitting partial results",
     ),
-    ignore_cache: bool = typer.Option(
-        False,
-        "--ignore-cache",
-        help="Ignore existing results. The experiment then will be rerun",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute even if results already exist",
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
@@ -124,7 +122,7 @@ def run(
         benchmark_uid,
         data_uid,
         models_uids=None,
-        use_cache=not ignore_cache,
+        no_cache=no_cache,
         models_input_file=file,
         ignore_errors=ignore_errors,
         show_summary=True,

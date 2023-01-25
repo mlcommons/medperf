@@ -70,12 +70,10 @@ def associate(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute the test even if results already exist",
     ),
 ):
     """Associates an MLCube to a benchmark"""
-    AssociateCube.run(
-        model_uid, benchmark_uid, approved=approval, force_test=force_test
-    )
+    AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     config.ui.print("✅ Done!")

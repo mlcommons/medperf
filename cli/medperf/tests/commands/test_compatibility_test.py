@@ -349,7 +349,7 @@ def test_run_returns_uids(
 
     # Act
     ret_uids = CompatibilityTestExecution.run(
-        bmk_uid, data_uid=data_uid, model=model_uid, force_test=True
+        bmk_uid, data_uid=data_uid, model=model_uid, no_cache=True
     )
 
     # Assert
@@ -451,12 +451,12 @@ def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_e
     assert yml_spy.call_count == num_calls_expected
 
 
-@pytest.mark.parametrize("force_test", [True, False])
+@pytest.mark.parametrize("no_cache", [True, False])
 def test_cached_result_looks_for_result_if_not_force(
-    mocker, comms, ui, dataset, force_test
+    mocker, comms, ui, dataset, no_cache
 ):
     # Arrange
-    cls = CompatibilityTestExecution("1", "1", "1", "1", None, force_test=force_test)
+    cls = CompatibilityTestExecution("1", "1", "1", "1", None, no_cache=no_cache)
     cls.dataset = dataset
     spy = mocker.patch(PATCH_TEST.format("Result.get"))
 
@@ -464,7 +464,7 @@ def test_cached_result_looks_for_result_if_not_force(
     cls.cached_result()
 
     # Assert
-    if force_test:
+    if no_cache:
         spy.assert_not_called()
     else:
         spy.assert_called_once()
