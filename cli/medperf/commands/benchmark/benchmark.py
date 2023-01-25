@@ -103,8 +103,8 @@ def run(
         None,
         "--models-from-file",
         "-f",
-        help="""A file containing the model UIDs to be executed.
-        The file should contain a single line as a list of
+        help="""A file containing the model UIDs to be executed.\n
+        The file should contain a single line as a list of\n
         comma-separated integers corresponding to the model UIDs""",
     ),
     ignore_errors: bool = typer.Option(

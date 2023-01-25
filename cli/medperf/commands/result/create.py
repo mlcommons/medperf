@@ -102,11 +102,11 @@ class BenchmarkExecution:
 
     def prepare_models(self):
         if self.models_input_file:
-            models_uids = self.__get_models_from_file()
+            self.models_uids = self.__get_models_from_file()
         elif self.models_uids is None:
-            models_uids = self.benchmark.models
+            self.models_uids = self.benchmark.models
 
-        self.models_uids = list(map(str, models_uids))
+        self.models_uids = list(map(str, self.models_uids))
 
     def __get_models_from_file(self):
         if not os.path.exists(self.models_input_file):
@@ -134,8 +134,8 @@ class BenchmarkExecution:
         benchmark_dset_results = [
             result
             for result in results
-            if result.benchmark_uid == self.benchmark_uid
-            and result.dataset_uid == self.data_uid
+            if str(result.benchmark_uid) == str(self.benchmark_uid)
+            and str(result.dataset_uid) == str(self.data_uid)
         ]
         self.cached_results = {
             str(result.model_uid): result for result in benchmark_dset_results
@@ -232,7 +232,7 @@ class BenchmarkExecution:
         return result
 
     def print_summary(self):
-        headers = ["model", "result_uid", "partial", "from cache" "error"]
+        headers = ["model", "local result UID", "partial result", "from cache", "error"]
         data_lists_for_display = []
 
         num_total = len(self.experiments)

@@ -279,6 +279,30 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Login with modelowner"
+echo "====================================="
+medperf login --username=$MODELOWNER --password=test
+checkFailed "modelowner login failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Approve model2,3,4 associations"
+echo "====================================="
+medperf association approve -b $BMK_UID -m $MODEL2_UID
+checkFailed "Model2 association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL3_UID
+checkFailed "Model3 association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL4_UID
+checkFailed "Model4 association approval failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Login with dataowner"
 echo "====================================="
 medperf login --username=$DATAOWNER --password=test
@@ -289,11 +313,23 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model1"
+echo "Running model2"
 echo "====================================="
-medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL1_UID -y
-checkFailed "Model1 run failed"
+medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID -y
+checkFailed "Model2 run failed"
 ##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running outstanding models"
+echo "====================================="
+medperf benchmark run -b $BMK_UID -d $DSET_A_UID
+checkFailed "Model2 run failed"
+##########################################################
+
+echo "\n"
 
 ##########################################################
 echo "====================================="
