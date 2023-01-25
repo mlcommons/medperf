@@ -1,5 +1,5 @@
 import typer
-from typing import Optional, Union
+from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except

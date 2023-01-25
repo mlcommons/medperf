@@ -25,7 +25,7 @@ class EntityView:
             local_only (bool, optional): Display all local entities. Defaults to False.
             mine_only (bool, optional): Display all current-user entities. Defaults to False.
             format (str, optional): What format to use to display the contents. Valid formats: [yaml, json]. Defaults to yaml.
-            output (str, optional): Path to a file for storing the result(s) contents. If not provided, the contents are printed.
+            output (str, optional): Path to a file for storing the entity contents. If not provided, the contents are printed.
         """
         entity_view = EntityView(
             entity_id, entity_class, format, local_only, mine_only, output
@@ -82,4 +82,3 @@ class EntityView:
 
         with open(self.output, "w") as f:
             formatter(self.data, f)
-
