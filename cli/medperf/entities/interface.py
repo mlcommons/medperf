@@ -53,6 +53,16 @@ class Entity(ABC):
             str: Path to the stored entity
         """
 
+    @abstractmethod
+    def display_dict(self) -> dict:
+        """Returns a dictionary of entity properties that can be displayed
+        to a user interface using a verbose name of the property rather than
+        the internal names
+
+        Returns:
+            dict: the display dictionary
+        """
+
     @property
     def identifier(self):
         return self.uid or self.generated_uid
