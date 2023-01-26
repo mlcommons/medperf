@@ -110,10 +110,7 @@ MedPerf will then be able to download, verify and reposition those files in the 
 
 4. __`project`__: 
    
-    Contains the actual implementation of the mlcube. This includes:
-All project-specific code 
-`Dockerfile` – for building docker containers of the project 
-Requirements for running the code.
+       Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
 
 5. __`project/mlcube.py`__:
    
