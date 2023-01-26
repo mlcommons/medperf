@@ -5,9 +5,7 @@ This Hello World implementation follows the structure and conventions MedPerf us
 At the time of writing, Data Preparators are in charge of standardizing the input data format models expect to receive. Additionally, they provide tools for testing the integrity of the data and extracting valuable insights from it.
 
 ## How to run:
-This template was built in a way it works out of the box. 
-
-Follow the next steps:
+This template was built in a way it works out of the box. You can follow the next steps to get started:
 
 1. Clone the repository
 2. Navigate to the `mlcube_examples` directory within the repository
