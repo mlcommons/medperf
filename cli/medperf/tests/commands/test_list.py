@@ -1,152 +1,88 @@
-import os
-import pytest
-from medperf.entities.benchmark import Benchmark
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
-from medperf.entities.result import Result
-from medperf.tests.mocks.benchmark import generate_benchmark
-from medperf.tests.mocks.cube import generate_cube
-from medperf.tests.mocks.dataset import generate_dset
-from medperf.tests.mocks.result import generate_result
-
+from medperf.commands.list import EntityList
+import medperf.commands.list as list_module
 from medperf.exceptions import InvalidArgumentError
+import pytest
+from medperf.entities.interface import Entity
+
+"""
+Inputs:
+    entity_class
+    fields
+    local_only
+    mine_only
+Interactions:
+    Entity:
+        all (1):
+            spy how it was called
+            mock the return value
+        display_dict (multiple):
+            no need to spy.
+            mock the return value
+
+    ui:
+        print (1): spy how it was called
+"""
 
 
-def dset_get(id):
-    return Dataset(generate_dset(id=id))
+def generate_display_dicts():
+    """Generates a list of dicts returned by Entity.display_dict
+    """
+    return [{f"k{j}": f"v{i}{j}" for j in range(4)} for i in range(3)]
 
 
-@pytest.fixture(params=[Benchmark, Cube, Dataset, Result])
-def EntityClass(request):
-    return request.param
+@pytest.fixture()
+def setup(request, mocker, ui):
+    display_dicts = request.param.get("display_dicts", generate_display_dicts())
 
+    entity_object = mocker.create_autospec(spec=Entity)
+    generated_entities = [entity_object for _ in display_dicts]
+    all_spy = mocker.patch(
+        "medperf.entities.interface.Entity.all", return_value=generated_entities
+    )
+    mocker.patch.object(entity_object, "display_dict", side_effect=display_dicts)
+    ui_spy = mocker.patch.object(ui, "print")
+    tabulate_spy = mocker.spy(list_module, "tabulate")
 
-@pytest.fixture(params={"uids": ["1", "2", "3"]})
-def setup(request, mocker, EntityClass):
-    uids = request.param.get("uids", [])
-    if EntityClass == Benchmark:
-        generate_fn = generate_benchmark
-    elif EntityClass == Cube:
-        generate_fn = generate_cube
-    elif EntityClass == Dataset:
-        generate_fn = generate_dset
-    elif EntityClass == Result:
-        mocker.patch(Dataset.get, side_effect=dset_get)
-        generate_fn = generate_result
-
-    generated_entities = [EntityClass(generate_fn(id=id)) for id in uids]
-    mocker.patch(EntityClass.all, return_value=generated_entities)
-
-    return request.param
+    spies = {"ui": ui_spy, "all": all_spy, "tabulate": tabulate_spy}
+    return request.param, spies
 
 
 @pytest.mark.parametrize(
-    "setup", [{"uids": ["283", "17", "493"]}], indirect=True,
+    "setup", [{"display_dicts": generate_display_dicts()}], indirect=True
 )
-class TestRun:
-    def test_run_(self, EntityClass, setup):
-        # Arrange
-        id = setup["remote"][0]
-
+class TestEntityList:
+    @pytest.mark.parametrize("local_only", [False, True])
+    @pytest.mark.parametrize("mine_only", [False, True])
+    def test_entity_all_is_called_properly(self, setup, local_only, mine_only):
         # Act
-        entity = EntityClass.get(id)
+        EntityList.run(Entity, [], local_only, mine_only)
 
         # Assert
-        assert entity.todict()["id"] == id
+        setup[1]["all"].assert_called_once_with(
+            local_only=local_only, mine_only=mine_only
+        )
 
-    def test_get_retrieves_entity_local_if_not_on_server(self, EntityClass, setup):
-        # Arrange
-        id = setup["local"][0]
-
-        # Act
-        entity = EntityClass.get(id)
-
-        # Assert
-        assert entity.todict()["id"] == id
-
-    def test_get_raises_error_if_nonexistent(self, EntityClass, setup):
-        # Arrange
-        id = str(19283)
-
+    @pytest.mark.parametrize(
+        "fields,raises", [([], False), (["k1", "k2"], False), (["k1", "k5"], True)]
+    )
+    def test_exception_raised_for_invalid_input(self, setup, fields, raises):
         # Act & Assert
-        with pytest.raises(InvalidArgumentError):
-            EntityClass.get(id)
+        if raises:
+            with pytest.raises(InvalidArgumentError):
+                EntityList.run(Entity, fields)
+        else:
+            EntityList.run(Entity, fields)
 
-
-@pytest.mark.parametrize(
-    "setup", [{"local": ["742"]}], indirect=True,
-)
-class TestToDict:
-    @pytest.fixture(autouse=True)
-    def set_common_attributes(self, setup):
-        self.id = setup["local"][0]
-
-    def test_todict_returns_dict_representation(self, EntityClass):
+    @pytest.mark.parametrize("fields", [["k1", "k2"], ["k0"]])
+    def test_display_calls_tabulate_and_ui_as_expected(self, setup, fields):
         # Arrange
-        ent = EntityClass.get(self.id)
+        expected_list = [
+            [dict_[field] for field in fields] for dict_ in setup[0]["display_dicts"]
+        ]
 
         # Act
-        ent_dict = ent.todict()
+        EntityList.run(Entity, fields)
 
         # Assert
-        assert type(ent_dict) == dict
-
-    def test_todict_can_recreate_object(self, EntityClass):
-        # Arrange
-        ent = EntityClass.get(self.id)
-
-        # Act
-        ent_dict = ent.todict()
-        ent_copy = EntityClass(ent_dict)
-        ent_copy_dict = ent_copy.todict()
-
-        # Assert
-        assert ent_dict == ent_copy_dict
-
-
-@pytest.mark.parametrize(
-    "setup", [{"local": ["36"]}], indirect=True,
-)
-class TestUpload:
-    @pytest.fixture(autouse=True)
-    def set_common_attributes(self, setup):
-        self.id = setup["local"][0]
-
-    def test_upload_adds_to_remote(self, EntityClass, setup):
-        # Arrange
-        uploaded_entities = setup["uploaded"]
-        ent = EntityClass.get(self.id)
-
-        # Act
-        ent.upload()
-
-        # Assert
-        assert ent.todict() in uploaded_entities
-
-    def test_upload_returns_dict(self, EntityClass):
-        # Arrange
-        ent = EntityClass.get(self.id)
-
-        # Act
-        ent_dict = ent.upload()
-
-        # Assert
-        assert ent_dict == ent.todict()
-
-
-@pytest.mark.parametrize(
-    "setup",
-    [{"remote": ["284"]}, {"remote": ["753"], "local": ["753"]}],
-    indirect=True,
-)
-class TestWrite:
-    def test_write_stores_entity_locally(self, EntityClass, setup):
-        # Arrange
-        id = setup["remote"][0]
-
-        # Act
-        ent = EntityClass.get(id)
-        stored_path = ent.write()
-
-        # Assert
-        assert os.path.exists(stored_path)
+        setup[1]["tabulate"].assert_called_once_with(expected_list, headers=fields)
+        setup[1]["ui"].assert_called_once_with(setup[1]["tabulate"].return_value)
