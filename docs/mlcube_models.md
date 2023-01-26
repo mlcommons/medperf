@@ -98,7 +98,7 @@ MLCubes usually share a similar folder structure and files. Here's a brief descr
 
 4. __`project`__: 
    
-   Contains the actual implementation of the mlcube. This includes all project-specific code, `Dockerfile` for building docker containers of the project and requirements for running the code.
+       Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
 
 5. __`project/mlcube.py`__:
    
