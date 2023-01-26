@@ -119,7 +119,7 @@ Requirements for running the code.
    
    MLCube expects an entry point to the project to run the code and the specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `evaluate`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
 
-An example of the expected interface is:
+   An example of the expected interface is:
 
    ```bash
     python3 project/mlcube.py evaluate --predictions=<PREDICTIONS_PATH>  --labels=<LABELS_PATH> --parameters_file=<PARAMETERS_FILE> --output_path=<OUTPUT_PATH>
@@ -129,11 +129,7 @@ An example of the expected interface is:
 
    #### __What is that “hotfix” function I see in mlcube.py?__
 
-To summarize, this issue is benign and can be safely ignored. It prevents a potential issue with the CLI and does not require further action.
-
-If you use the `typer/click ` library for your command-line interface (CLI) and have only one @app.command, the command line may not be parsed as expected by mlcube. This is due to a known issue that can be resolved by adding more than one task to the mlcube interface.
-
-To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using typer/click, you don't need this dummy command.
+   To summarize, this issue is benign and can be safely ignored. It prevents a potential issue with the CLI and does not require further action. If you use the `typer/click ` library for your command-line interface (CLI) and have only one @app.command, the command line may not be parsed as expected by mlcube. This is due to a known issue that can be resolved by adding more than one task to the mlcube interface. To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using typer/click, you don't need this dummy command.
 
 ## How to modify
 
