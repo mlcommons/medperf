@@ -45,25 +45,28 @@ MLCubes usually share a similar folder structure and files. Here's a brief descr
    The `mlcube.yaml` file in your project contains metadata about your model, including its interface. To use your model with MedPerf, the `mlcube.yaml` file must define an infer function that takes in at least two arguments: `data_path` and `parameters_file`, and produces prediction artifacts in the `output_path`. This definition can be found in the `mlcube.yaml` file as:
 
     ```yml
-tasks:
-  # The infer task takes input data and configuration parameters and generates predictions
-  infer:
-    parameters:
-      inputs:
-        # Required. Folder containing data to run predictions on
-        data_path: data
-        # Required. Helper file with additional arguments (must be named parameters.yaml)
-        parameters_file: parameters.yaml
-        # Optional. Additional files not included in the mlcube image (e.g. model weights)
-        # Example: greetings file
-        greetings: additional_files/greetings.csv
-      outputs:
-        # Required. Folder to store prediction artifacts
-        output_path:
-          type: directory
-          default: predictions
- ```
+    tasks:
+      # Model MLCubes require only a single task: `infer`.
+      # This task takes input data, as well as configuration parameters
+      # and/or extra artifacts, and generates predictions on the data
+      infer:
+         parameters:
+            inputs: {
+               data_path: data,                                    # Required. Where to find the data to run predictions on. MUST be a folder
+               parameters_file: parameters.yaml,                   # Required. Helper file to provide additional arguments. Value MUST be parameters.yaml
+               # If you need any additional files that should 
+               # not be included inside the mlcube image, 
+               # add them inside `additional_files` folder
+               # E.g. model weights
 
+               # Toy Hello World example
+               greetings: additional_files/greetings.csv
+            }
+            outputs: {
+               output_path: {type: directory, default: predictions} # Required. Where to store prediction artifacts. MUST be a folder
+            }
+
+    ```
     In this case, we’ve added an extra “greetings” argument to our infer function. Note that the default value will always be used.
 
 2. __`mlcube/workspace/parameters.yaml`__:
@@ -71,43 +74,37 @@ tasks:
    This file provides ways to parameterize your model. You can set any key-value pairs that should be easily modifiable to adjust your model's behavior. Current example shows a primary usage case for changing generated Hello world examples to uppercase:
 
    ```yml
+    # Here you can store any key-value arguments that should be easily modifiable
+    # by external users. E.g. batch_size
 
-# Modifiable key-value arguments (e.g., batch_size)
-# Example argument for Hello World:
-uppercase: false
-
+    # example argument for Hello World
+    uppercase: false
    ```
+   To perform inference on large volumes while conserving memory, you can enable patching by including the "patching" setting in your `parameters.yaml` file. You can register multiple "mlcubes" with different parameters to apply different parameter settings.yaml files. This allows you to customize the behavior of your model for different scenarios.
 
-To perform inference on large volumes while conserving memory, you can enable patching by including the "patching" setting in your `parameters.yaml` file. You can register multiple "mlcubes" with different parameters to apply different parameter settings.yaml files. This allows you to customize the behavior of your model for different scenarios.
+   Though we use the term “registering in mlcube”, really you register a mlcube and `parameters.yaml` file, such that you have separate registrations for different configurations of your cube. In this way, one registered “mlcube” might be your model with “patching: true”, and another might be “patching: false”. These two registered cubes share the same image file, and medperf/mlcube will re-use the downloaded image while downloading each parameter.yaml files. 
 
-Though we use the term “registering in mlcube”, really you register a mlcube and `parameters.yaml` file, such that you have separate registrations for different configurations of your cube. 
-
-In this way, one registered “mlcube” might be your model with “patching: true”, and another might be “patching: false”. These two registered cubes share the same image file, and medperf/mlcube will re-use the downloaded image while downloading each parameter.yaml files. 
-
-In our example, we have implemented one cube and registered it twice, each with different `parameters.yaml ` files and our benchmark will now compare our model with patching against our model without patching.
+   In our example, we have implemented one cube and registered it twice, each with different `parameters.yaml ` files and our benchmark will now compare our model with patching against our model without patching.
 
 3. __`mlcube/workspace/additional_files/*`__:
    
    Due to size or usability constraints, you may require additional files that should not be packaged inside the mlcube, like weights. For these cases, we provide an additional folder called `additional_files`. 
 
-Here, you can provide any other files that should be present during inference. At the time of mlcube registration, this folder must be compressed into a tarball `.tar.gz` and hosted somewhere on the web. 
+   Here, you can provide any other files that should be present during inference. At the time of mlcube registration, this folder must be compressed into a tarball `.tar.gz` and hosted somewhere on the web. 
 
-MedPerf will then be able to download, verify and reposition those files in the expected location for model execution. To reference such files, you can provide additional parameters to the `mlcube.yaml` task definition, as we demonstrate with the `greetings` parameter.
+   MedPerf will then be able to download, verify and reposition those files in the expected location for model execution. To reference such files, you can provide additional parameters to the `mlcube.yaml` task definition, as we demonstrate with the `greetings` parameter.
 
 
 
 4. __`project`__: 
    
-   Contains the actual implementation of the mlcube. This includes:
-All project-specific code 
-`Dockerfile` – for building docker containers of the project 
-Requirements for running the code.
+   Contains the actual implementation of the mlcube. This includes all project-specific code, `Dockerfile` for building docker containers of the project and requirements for running the code.
 
 5. __`project/mlcube.py`__:
    
    MLCube expects an entry point to the project to run the code and the specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `infer`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
 
-An example of the expected interface is:
+   An example of the expected interface is:
 
    ```bash
     python3 project/mlcube.py infer --data_path=<DATA_PATH> --parameters_file=<PARAMETERS_FILE> --greetings=<GREETINGS_FILE> --output_path=<OUTPUT_PATH>
@@ -117,11 +114,11 @@ An example of the expected interface is:
 
    #### __What is that “hotfix” function I see in mlcube.py?__
 
-To summarize, this issue is benign and can be safely ignored. It prevents a potential issue with the CLI and does not require further action.
+   To summarize, this issue is benign and can be safely ignored. It prevents a potential issue with the CLI and does not require further action.
 
-If you use the typer/click library for your command-line interface (CLI) and have only one @app.command, the command line may not be parsed as expected by mlcube. This is due to a known issue that can be resolved by adding more than one task to the mlcube interface.
-
-To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using typer/click, you don't need this dummy command.
+   If you use the typer/click library for your command-line interface (CLI) and have only one @app.command, the command line may not be parsed as expected by mlcube. This is due to a known issue that can be resolved by adding more than one task to the mlcube interface.
+   
+   To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using typer/click, you don't need this dummy command.
 
 ## How to modify
 
