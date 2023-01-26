@@ -201,5 +201,5 @@ class Result(Entity):
             "Partial": self.metadata["partial"],
             "Approval Status": self.status.value,
             "Created At": self.created_at,
-            "Registered": self.is_registered(),
+            "Registered": self.is_registered,
         }

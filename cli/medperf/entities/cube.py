@@ -402,5 +402,5 @@ class Cube(Entity):
             "Config File": self.git_mlcube_url,
             "State": self.state,
             "Created At": self.created_at,
-            "Registered": self.is_registered(),
+            "Registered": self.is_registered,
         }

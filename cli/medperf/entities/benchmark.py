@@ -311,5 +311,5 @@ class Benchmark(Entity):
             "Data Evaluator MLCube": int(self.evaluator),
             "State": self.state,
             "Approval Status": self.approval_status.value,
-            "Registered": self.is_registered(),
+            "Registered": self.is_registered,
         }

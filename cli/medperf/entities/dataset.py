@@ -229,5 +229,5 @@ class Dataset(Entity):
             "Status": self.status.value,
             "State": self.state,
             "Created At": self.created_at,
-            "Registered": self.is_registered(),
+            "Registered": self.is_registered,
         }
