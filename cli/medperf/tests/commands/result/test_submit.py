@@ -32,7 +32,6 @@ def submission(mocker, comms, ui, result, dataset):
     sub = ResultSubmission(1)
     mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
     mocker.patch(PATCH_SUBMISSION.format("Result.get"), return_value=result)
-    mocker.patch("medperf.entities.result.Dataset.get", return_vlaue=dataset)
     return sub
 
 

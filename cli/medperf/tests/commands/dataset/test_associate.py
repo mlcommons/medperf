@@ -26,6 +26,7 @@ def benchmark(mocker, request):
     mocker.patch(PATCH_ASSOC.format("Benchmark"), return_value=bm)
     mocker.patch(PATCH_ASSOC.format("Benchmark.get"), return_value=bm)
     bm.data_preparation = request.param
+    bm.reference_model = "0"
     bm.name = "name"
     return bm
 
@@ -39,7 +40,7 @@ def result(mocker):
 
 @pytest.mark.parametrize("dataset", [1, 4, 381], indirect=True)
 @pytest.mark.parametrize("benchmark", [2, 12, 32], indirect=True)
-def test_fails_if_dataset_incompatible_with_benchmark(
+def test_fails_if_dataset_inexecatible_with_benchmark(
     mocker, comms, ui, dataset, benchmark
 ):
 
@@ -64,10 +65,8 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
 def test_requests_approval_from_user(mocker, comms, ui, dataset, result, benchmark):
     # Arrange
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
-    comp_ret = ("", "", "", result)
-    mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
-    )
+    exec_ret = [result]
+    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     dataset.uid = 1
     dataset.name = "test"
 
@@ -88,10 +87,8 @@ def test_associates_if_approved(
     # Arrange
     assoc_func = "associate_dset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
-    comp_ret = ("", "", "", result)
-    mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
-    )
+    exec_ret = [result]
+    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch.object(comms, assoc_func)
     dataset.uid = data_uid
 
@@ -106,10 +103,8 @@ def test_associates_if_approved(
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
     # Arrange
-    comp_ret = ("", "", "", result)
-    mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
-    )
+    exec_ret = [result]
+    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
     assoc_spy = mocker.patch.object(comms, "associate_dset")
 
@@ -124,7 +119,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-def test_associate_calls_comp_test_without_force_by_default(
+def test_associate_calls_allows_cache_by_default(
     mocker, comms, ui, dataset, result, benchmark
 ):
     # Arrange
@@ -132,9 +127,9 @@ def test_associate_calls_comp_test_without_force_by_default(
     benchmark_uid = 3557
     assoc_func = "associate_dset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
-    comp_ret = ("", "", "", result)
+    exec_ret = [result]
     spy = mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
+        PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret
     )
     mocker.patch.object(comms, assoc_func)
     dataset.uid = data_uid
@@ -143,4 +138,6 @@ def test_associate_calls_comp_test_without_force_by_default(
     AssociateDataset.run(data_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(benchmark_uid, data_uid=data_uid, no_cache=False)
+    spy.assert_called_once_with(
+        benchmark_uid, data_uid, [benchmark.reference_model], no_cache=False,
+    )
