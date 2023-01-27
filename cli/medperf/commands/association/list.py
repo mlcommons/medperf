@@ -27,6 +27,11 @@ class ListAssociations:
                 assoc["benchmark"],
                 assoc["initiated_by"],
                 assoc["approval_status"],
+                assoc.get("priority", None),
+                # NOTE: We should find a better way to show priorities, since a priority
+                # is better shown when listing cube associations only, of a specific
+                # benchmark. Maybe this is resolved after we add a general filtering
+                # feature to list commands.
             )
             assocs_info.append(assoc_info)
 
@@ -36,6 +41,7 @@ class ListAssociations:
             "Benchmark UID",
             "Initiated by",
             "Status",
+            "Priority",
         ]
         tab = tabulate(assocs_info, headers=headers)
         ui.print(tab)
