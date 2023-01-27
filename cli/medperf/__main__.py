@@ -98,7 +98,14 @@ def execute(
         ignore_errors=ignore_errors,
         no_cache=no_cache,
     )[0]
-    ResultSubmission.run(result.generated_uid, approved=approval)
+    if result.uid:  # TODO: use result.is_registered once PR #338 is merged
+        config.ui.print(  # TODO: msg should be colored yellow
+            """An existing registered result for the requested execution has been\n
+            found. If you wish to submit a new result for the same execution,\n
+            please run the command again with the --no-cache option.\n"""
+        )
+    else:
+        ResultSubmission.run(result.generated_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 
