@@ -87,7 +87,7 @@ def mock_cube(mocker, system_inputs):
 def mock_execution(mocker, system_inputs):
     models_props = system_inputs["models_props"]
 
-    def __exec_side_effect(dataset, model, evaluator, ignore_errors):
+    def __exec_side_effect(dataset, model, evaluator, ignore_model_errors):
         if models_props[model.uid] == "exec_error":
             raise ExecutionError
         return models_props[model.uid]
@@ -247,16 +247,25 @@ class TestDefaultSetup:
             )
             self.spies["ui_error"].assert_called_once()
 
-    @pytest.mark.parametrize("ignore_errors", [False, True])
-    def test_execution_is_called_with_correct_ignore_errors(
-        self, mocker, setup, ignore_errors
+    @pytest.mark.parametrize("ignore_model_errors", [False, True])
+    def test_execution_is_called_with_correct_ignore_model_errors(
+        self, mocker, setup, ignore_model_errors
     ):
         # Act
-        BenchmarkExecution.run("1", "2", models_uids=["5"], ignore_errors=ignore_errors)
+        BenchmarkExecution.run(
+            "1", "2", models_uids=["5"], ignore_model_errors=ignore_model_errors
+        )
 
         # Assert
         self.spies["exec"].assert_has_calls(
-            [call(dataset=ANY, model=ANY, evaluator=ANY, ignore_errors=ignore_errors)]
+            [
+                call(
+                    dataset=ANY,
+                    model=ANY,
+                    evaluator=ANY,
+                    ignore_model_errors=ignore_model_errors,
+                )
+            ]
         )
 
     @pytest.mark.parametrize("no_cache", [False, True])

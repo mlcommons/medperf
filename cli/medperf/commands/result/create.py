@@ -26,7 +26,7 @@ class BenchmarkExecution:
         data_uid: int,
         models_uids: Optional[List[int]] = None,
         models_input_file: Optional[str] = None,
-        ignore_errors=False,
+        ignore_model_errors=False,
         ignore_failed_experiments=False,
         no_cache=False,
         show_summary=False,
@@ -46,7 +46,7 @@ class BenchmarkExecution:
             data_uid,
             models_uids,
             models_input_file,
-            ignore_errors,
+            ignore_model_errors,
             ignore_failed_experiments,
         )
         execution.prepare()
@@ -67,7 +67,7 @@ class BenchmarkExecution:
         data_uid: int,
         models_uids,
         models_input_file: str = None,
-        ignore_errors=False,
+        ignore_model_errors=False,
         ignore_failed_experiments=False,
     ):
         self.benchmark_uid = benchmark_uid
@@ -76,7 +76,7 @@ class BenchmarkExecution:
         self.models_input_file = models_input_file
         self.ui = config.ui
         self.evaluator = None
-        self.ignore_errors = ignore_errors
+        self.ignore_model_errors = ignore_model_errors
         self.ignore_failed_experiments = ignore_failed_experiments
         self.cached_results = {}
         self.experiments = []
@@ -167,7 +167,7 @@ class BenchmarkExecution:
                     dataset=self.dataset,
                     model=model_cube,
                     evaluator=self.evaluator,
-                    ignore_errors=self.ignore_errors,
+                    ignore_model_errors=self.ignore_model_errors,
                 )
             except MedperfException as e:
                 self.__handle_experiment_error(model_uid, e)

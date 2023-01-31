@@ -21,10 +21,10 @@ def create(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
-    ignore_errors: bool = typer.Option(
+    ignore_model_errors: bool = typer.Option(
         False,
-        "--ignore-errors",
-        help="Ignore failing cubes, allowing for submitting partial results",
+        "--ignore-model-errors",
+        help="Ignore failing model cubes, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False, "--no-cache", help="Execute even if results already exist",
@@ -37,7 +37,7 @@ def create(
         data_uid,
         [model_uid],
         no_cache=no_cache,
-        ignore_errors=ignore_errors,
+        ignore_model_errors=ignore_model_errors,
     )
     config.ui.print("✅ Done!")
 

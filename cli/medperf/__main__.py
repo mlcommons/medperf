@@ -78,10 +78,10 @@ def execute(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    ignore_errors: bool = typer.Option(
+    ignore_model_errors: bool = typer.Option(
         False,
-        "--ignore-errors",
-        help="Ignore failing cubes, allowing for submitting partial results",
+        "--ignore-model-errors",
+        help="Ignore failing model cubes, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False,
@@ -95,7 +95,7 @@ def execute(
         benchmark_uid,
         data_uid,
         [model_uid],
-        ignore_errors=ignore_errors,
+        ignore_model_errors=ignore_model_errors,
         no_cache=no_cache,
     )[0]
     if result.uid:  # TODO: use result.is_registered once PR #338 is merged

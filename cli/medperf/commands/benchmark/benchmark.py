@@ -107,10 +107,10 @@ def run(
         The file should contain a single line as a list of\n
         comma-separated integers corresponding to the model UIDs""",
     ),
-    ignore_errors: bool = typer.Option(
+    ignore_model_errors: bool = typer.Option(
         False,
-        "--ignore-errors",
-        help="Ignore failing cubes, allowing for submitting partial results",
+        "--ignore-model-errors",
+        help="Ignore failing model cubes, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False, "--no-cache", help="Execute even if results already exist",
@@ -124,7 +124,7 @@ def run(
         models_uids=None,
         no_cache=no_cache,
         models_input_file=file,
-        ignore_errors=ignore_errors,
+        ignore_model_errors=ignore_model_errors,
         show_summary=True,
         ignore_failed_experiments=True,
     )

@@ -76,7 +76,7 @@ class TestFailures:
         # Act & Assert
         with pytest.raises(ExecutionError):
             Execution.run(
-                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_errors=False
+                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=False
             )
         spies = setup[1]
         spies["cleanup"].assert_called_once()
@@ -86,7 +86,7 @@ class TestFailures:
         # Act & Assert
         with pytest.raises(ExecutionError):
             Execution.run(
-                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_errors=True
+                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
             )
         spies = setup[1]
         spies["cleanup"].assert_called_once()
@@ -94,7 +94,9 @@ class TestFailures:
     @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
     def test_no_failure_with_ignore_error(mocker, setup):
         # Act
-        Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_errors=True)
+        Execution.run(
+            INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
+        )
 
         # Assert
         spies = setup[1]
@@ -105,7 +107,7 @@ class TestFailures:
 def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
     # Act
     execution_summary = Execution.run(
-        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_errors=True
+        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
     )
     # Assert
     assert execution_summary["partial"]
@@ -132,7 +134,9 @@ def test_results_are_returned(mocker, setup):
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
     preds_path = os.path.join(
-        storage_path(config.predictions_storage), str(INPUT_MODEL.uid), str(INPUT_DATASET.uid)
+        storage_path(config.predictions_storage),
+        str(INPUT_MODEL.uid),
+        str(INPUT_DATASET.uid),
     )
     exp_model_call = call(
         task="infer",

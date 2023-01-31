@@ -346,7 +346,7 @@ echo "\n"
 echo "====================================="
 echo "Run failing cube with ignore errors"
 echo "====================================="
-medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-errors
+medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
 checkFailed "Failing mlcube run failed"
 ##########################################################
 

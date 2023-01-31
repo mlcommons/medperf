@@ -16,7 +16,7 @@ import yaml
 class Execution:
     @classmethod
     def run(
-        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_errors=False,
+        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
     ):
         """Benchmark execution flow.
 
@@ -25,7 +25,7 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(dataset, model, evaluator, ignore_errors,)
+        execution = cls(dataset, model, evaluator, ignore_model_errors,)
         execution.prepare()
         with execution.ui.interactive():
             execution.run_inference()
@@ -33,7 +33,7 @@ class Execution:
         return execution.todict()
 
     def __init__(
-        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_errors=False,
+        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
     ):
 
         self.comms = config.comms
@@ -41,7 +41,7 @@ class Execution:
         self.dataset = dataset
         self.model = model
         self.evaluator = evaluator
-        self.ignore_errors = ignore_errors
+        self.ignore_model_errors = ignore_model_errors
 
     def prepare(self):
         model_uid = self.model.uid
@@ -70,7 +70,7 @@ class Execution:
             self.ui.print("> Model execution complete")
 
         except ExecutionError as e:
-            if not self.ignore_errors:
+            if not self.ignore_model_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
                 cleanup_path(preds_path)
                 raise ExecutionError("Model MLCube failed")

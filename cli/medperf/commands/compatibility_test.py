@@ -129,7 +129,7 @@ class CompatibilityTestExecution:
             dataset=self.dataset,
             model=self.model_cube,
             evaluator=self.evaluator_cube,
-            ignore_errors=False,
+            ignore_model_errors=False,
         )
         return execution_summary["results"]
 
