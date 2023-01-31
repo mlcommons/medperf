@@ -1,9 +1,12 @@
+import os
+from unittest.mock import ANY, call
 from medperf.commands.execution import Execution
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import generate_cube
 from medperf.tests.mocks.dataset import generate_dset
+from medperf.utils import storage_path
 import pytest
-
+from medperf import config
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 import yaml
@@ -123,3 +126,37 @@ def test_results_are_returned(mocker, setup):
     # Assert
     system_inputs = setup[0]
     assert execution_summary["results"] == system_inputs["execution_results"]
+
+
+@pytest.mark.parametrize("setup", [{}], indirect=True)
+def test_cube_run_are_called_properly(mocker, setup):
+    # Arrange
+    preds_path = os.path.join(
+        storage_path(config.predictions_storage), str(INPUT_MODEL.uid), str(INPUT_DATASET.uid)
+    )
+    exp_model_call = call(
+        task="infer",
+        timeout=config.infer_timeout,
+        data_path=INPUT_DATASET.data_path,
+        output_path=preds_path,
+        string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
+    )
+    exp_eval_call = call(
+        task="evaluate",
+        timeout=config.evaluate_timeout,
+        predictions=preds_path,
+        labels=INPUT_DATASET.labels_path,
+        output_path=ANY,
+        string_params={
+            "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
+            "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+        },
+    )
+    # Act
+    Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    # Assert
+    spies = setup[1]
+    spies["model_run"].assert_has_calls([exp_model_call])
+    spies["eval_run"].assert_has_calls([exp_eval_call])
+    spies["model_run"].assert_called_once()
+    spies["eval_run"].assert_called_once()
