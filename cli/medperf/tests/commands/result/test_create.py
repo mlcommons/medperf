@@ -1,319 +1,317 @@
 import os
+from unittest.mock import ANY, call
 from medperf import config
-from medperf.exceptions import ExecutionError, InvalidArgumentError
-from medperf.tests.mocks.requests import result_dict
-import pytest
-from unittest.mock import MagicMock, call
-
+from medperf.entities.result import Result
+from medperf.exceptions import ExecutionError, InvalidArgumentError, InvalidEntityError
+from medperf.tests.mocks.benchmark import generate_benchmark
+from medperf.tests.mocks.cube import generate_cube
+from medperf.tests.mocks.dataset import generate_dset
+from medperf.tests.mocks.result import generate_result
 from medperf.utils import storage_path
+import pytest
+
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.result.create import BenchmarkExecution
+import medperf.commands.result.create as create_module
+import yaml
+
 
 PATCH_EXECUTION = "medperf.commands.result.create.{}"
 
 
-@pytest.fixture
-def cube(mocker):
-    def cube_gen():
-        cube = mocker.create_autospec(spec=Cube)
-        cube.uid = 1
-        return cube
+def mock_benchmark(mocker, system_inputs):
+    benchmark_prep_cube = system_inputs["benchmark_prep_cube"]
+    benchmark_models = system_inputs["benchmark_models"]
+    evaluator = system_inputs["evaluator"]
 
-    return cube_gen
+    def __get_side_effect(id):
+        return Benchmark(
+            generate_benchmark(
+                id=id,
+                name="bmk name",
+                data_evaluator_mlcube=evaluator["uid"],
+                data_preparation_mlcube=benchmark_prep_cube,
+                reference_model_mlcube=benchmark_models[0],
+                models=benchmark_models,
+            )
+        )
 
-
-@pytest.fixture
-def execution(mocker, comms, ui, cube):
-    mock_dset = mocker.create_autospec(spec=Dataset)
-    mock_dset.generated_uid = "gen_uid"
-    mock_bmark = mocker.create_autospec(spec=Benchmark)
-    mocker.patch(PATCH_EXECUTION.format("init_storage"))
-    mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
-    mocker.patch("medperf.entities.result.Dataset.get", return_value=mock_dset)
-    mocker.patch(PATCH_EXECUTION.format("Benchmark"), side_effect=mock_bmark)
-    exec = BenchmarkExecution(0, 0, 0)
-    exec.prepare()
-    exec.out_path = "out_path"
-    exec.dataset.uid = 1
-    exec.dataset.generated_uid = "data_uid"
-    exec.dataset.preparation_cube_uid = "prep_cube"
-    exec.dataset.labels_path = "labels_path"
-    exec.benchmark.data_preparation = "prep_cube"
-    exec.benchmark.models = [0]
-    exec.evaluator = cube()
-    exec.model_cube = cube()
-    return exec
+    mocker.patch(PATCH_EXECUTION.format("Benchmark.get"), side_effect=__get_side_effect)
 
 
-def test_validate_fails_if_preparation_cube_mismatch(mocker, execution):
-    # Arrange
-    execution.dataset.preparation_cube_uid = "dset_prep_cube"
-    execution.benchmark.data_preparation = "bmark_prep_cube"
+def mock_dataset(mocker, system_inputs):
+    dataset_prep_cube = system_inputs["dataset_prep_cube"]
 
-    # Act & Assert
-    with pytest.raises(InvalidArgumentError):
-        execution.validate()
+    def __get_side_effect(id):
+        return Dataset(generate_dset(id=id, data_preparation_mlcube=dataset_prep_cube,))
 
-
-@pytest.mark.parametrize("model_uid", [4559, 3292, 1499])
-def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
-    # Arrange
-    execution.model_uid = model_uid  # model not in benchmark
-
-    # Act & Assert
-    with pytest.raises(InvalidArgumentError):
-        execution.validate()
+    mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
 
 
-def test_validate_fails_if_dataset_is_not_registered(mocker, execution):
-    # Arrange
-    execution.dataset.uid = None
-
-    # Act & Assert
-    with pytest.raises(InvalidArgumentError):
-        execution.validate()
-
-
-def test_validate_passes_under_right_conditions(mocker, execution):
-    # Act & Assert
-    execution.validate()
+def mock_result_all(mocker, system_inputs):
+    cached_results_triplets = system_inputs["cached_results_triplets"]
+    results = [
+        Result(
+            generate_result(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
+        )
+        for triplet in cached_results_triplets
+    ]
+    mocker.patch(PATCH_EXECUTION.format("Result.all"), return_value=results)
 
 
-@pytest.mark.parametrize("evaluator_uid", [1965, 2164])
-@pytest.mark.parametrize("model_uid", [3791, 2383])
-def test_get_cubes_retrieves_expected_cubes(
-    mocker, execution, evaluator_uid, model_uid
-):
-    # Arrange
-    spy = mocker.patch(
-        PATCH_EXECUTION.format("BenchmarkExecution._BenchmarkExecution__get_cube")
+def mock_cube(mocker, system_inputs):
+    models_props = system_inputs["models_props"]
+    evaluator = system_inputs["evaluator"]
+
+    def __get_side_effect(id):
+        return Cube(generate_cube(id=id))
+
+    mocker.patch(PATCH_EXECUTION.format("Cube.get"), side_effect=__get_side_effect)
+
+    def __valid_side_effect(cube):
+        if cube.uid == evaluator["uid"]:
+            if evaluator["invalid"]:
+                raise InvalidEntityError
+            else:
+                return
+        if models_props[cube.uid] == "invalid":
+            raise InvalidEntityError
+
+    mocker.patch(
+        PATCH_EXECUTION.format("check_cube_validity"), side_effect=__valid_side_effect
     )
-    execution.benchmark.evaluator = evaluator_uid
-    execution.model_uid = model_uid
-    evaluator_call = call(evaluator_uid, "Evaluator")
-    model_call = call(model_uid, "Model")
-    calls = [evaluator_call, model_call]
-
-    # Act
-    execution.get_cubes()
-
-    # Assert
-    spy.assert_has_calls(calls)
 
 
-@pytest.mark.parametrize("cube_uid", [3889, 4669])
-def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
-    # Arrange
-    name = "872"
-    spy = mocker.patch(PATCH_EXECUTION.format("Cube.get"))
-    mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
+def mock_execution(mocker, system_inputs):
+    models_props = system_inputs["models_props"]
 
-    # Act
-    execution._BenchmarkExecution__get_cube(cube_uid, name)
+    def __exec_side_effect(dataset, model, evaluator, ignore_errors):
+        if models_props[model.uid] == "exec_error":
+            raise ExecutionError
+        return models_props[model.uid]
 
-    # Assert
-    spy.assert_called_once_with(cube_uid)
-
-
-def test__get_cube_checks_cube_validity(mocker, execution, cube):
-    # Arrange
-    mocker.patch(PATCH_EXECUTION.format("Cube.get"), return_value=cube)
-    spy = mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
-
-    # Act
-    execution._BenchmarkExecution__get_cube(1, "test")
-
-    # Assert
-    spy.assert_called_once_with(cube)
-
-
-def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
-    # Arrange
-    data_path = "data_path"
-    labels_path = "labels_path"
-    cube_path = "cube_path"
-    model_uid = str(execution.model_cube.uid)
-    data_uid = str(execution.dataset.uid)
-    preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
-    preds_path = storage_path(preds_path)
-    result_path = os.path.join(execution.out_path, config.results_filename)
-    execution.dataset.data_path = data_path
-    execution.dataset.labels_path = labels_path
-    execution.model_cube.cube_path = cube_path
-    model_spy = mocker.patch.object(execution.model_cube, "run")
-    eval_spy = mocker.patch.object(execution.evaluator, "run")
-    infer = call(
-        task="infer",
-        timeout=None,
-        data_path="data_path",
-        output_path=preds_path,
-        string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro",},
+    return mocker.patch(
+        PATCH_EXECUTION.format("Execution.run"), side_effect=__exec_side_effect
     )
-    evaluate = call(
-        task="evaluate",
-        timeout=None,
-        predictions=preds_path,
-        labels="labels_path",
-        output_path=result_path,
-        string_params={
-            "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-            "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+
+
+@pytest.fixture()
+def setup(request, mocker, ui, fs):
+    # system inputs
+    system_inputs = {
+        "benchmark_prep_cube": "1",
+        "benchmark_models": [2, 4, 5, 6, 7],
+        "dataset_prep_cube": "1",
+        "cached_results_triplets": [["1", "2", "1"], ["2", "4", "1"]],
+        "models_props": {
+            "2": {"results": {"res": 41}, "partial": False,},
+            "4": {"results": {"res": 1}, "partial": False,},
+            "5": {"results": {"res": 66}, "partial": True,},
+            "6": "exec_error",
+            "7": "invalid",
         },
-    )
+        "evaluator": {"uid": "3", "invalid": False},
+    }
+    system_inputs.update(request.param)
 
-    # Act
-    execution.run_cubes()
+    # mocks
+    mock_benchmark(mocker, system_inputs)
+    mock_dataset(mocker, system_inputs)
+    mock_result_all(mocker, system_inputs)
+    mock_cube(mocker, system_inputs)
+    exec_spy = mock_execution(mocker, system_inputs)
 
-    # Assert
-    model_spy.assert_has_calls([infer])
-    eval_spy.assert_has_calls([evaluate])
+    # spies
+    ui_error_spy = mocker.patch.object(ui, "print_error")
+    ui_print_spy = mocker.patch.object(ui, "print")
+    tabulate_spy = mocker.spy(create_module, "tabulate")
 
-
-def test_run_executes_expected_flow(mocker, comms, ui, execution):
-    # Arrange
-    prep_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.prepare"))
-    val_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.validate"))
-    get_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_cubes"))
-    run_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.run_cubes"))
-    write_spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.write"))
-    remove_spy = mocker.patch(
-        PATCH_EXECUTION.format("BenchmarkExecution.remove_temp_results")
-    )
-
-    # Act
-    BenchmarkExecution.run(1, 1, 1)
-
-    # Assert
-    prep_spy.assert_called_once()
-    val_spy.assert_called_once()
-    get_spy.assert_called_once()
-    run_spy.assert_called_once()
-    write_spy.assert_called_once()
-    remove_spy.assert_called_once()
+    spies = {
+        "ui_error": ui_error_spy,
+        "ui_print": ui_print_spy,
+        "tabulate": tabulate_spy,
+        "exec": exec_spy,
+    }
+    return system_inputs, spies
 
 
-@pytest.mark.parametrize("mlcube", ["model", "eval"])
-def test_run_deletes_output_path_on_failure(mocker, execution, mlcube):
-    # Arrange
-    execution.dataset.data_path = "data_path"
-    execution.model_cube.cube_path = "cube_path"
-    out_path = "out_path"
-    preds_path = "preds_path"
-
-    if mlcube == "model":
-        failed_cube = execution.model_cube
-        exp_outpaths = [preds_path]
-    else:
-        failed_cube = execution.evaluator
-        exp_outpaths = [preds_path, os.path.join(out_path, config.results_filename)]
-
-    mocker.patch.object(
-        failed_cube, "run", side_effect=ExecutionError,
-    )
-    mocker.patch(
-        PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
-    )
-    spy_clean = mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
-
+@pytest.mark.parametrize("setup", [{}], indirect=True)
+def test_failure_with_unregistered_dset(mocker, setup):
     # Act & Assert
-    with pytest.raises(ExecutionError):
-        execution.run_cubes()
-
-    spy_clean.assert_has_calls([call(exp_path) for exp_path in exp_outpaths])
+    with pytest.raises(InvalidArgumentError):
+        BenchmarkExecution.run("1", data_uid=None)
 
 
-def test_todict_calls_get_temp_results(mocker, execution):
-    # Arrange
-    spy = mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_temp_results"))
-    # Act
-    execution.todict()
-
-    # Assert
-    spy.assert_called_once()
-
-
-def test_todict_returns_expected_keys(mocker, execution):
-    # Arrange
-    mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_temp_results"))
-
-    # Act
-    keys = execution.todict().keys()
-
-    # Assert
-    assert set(keys) == set(result_dict().keys())
-
-
-def test_write_calls_result_write(mocker, execution):
-    # Arrange
-    result_info = result_dict()
-    mocker.patch(
-        PATCH_EXECUTION.format("BenchmarkExecution.todict"), return_value=result_info
-    )
-    spy = mocker.patch(PATCH_EXECUTION.format("Result.write"))
-    # Act
-    execution.write()
-
-    # Assert
-    spy.assert_called_once()
-
-
-@pytest.mark.parametrize("path", ["res_path", "path/to/folder"])
-def test_get_temp_results_opens_results_path(mocker, path, execution):
-    # Arrange
-    execution.out_path = path
-    spy = mocker.patch("builtins.open", MagicMock())
-    mocker.patch(PATCH_EXECUTION.format("yaml.safe_load"), return_value={})
-    opened_path = os.path.join(path, config.results_filename)
-    # Act
-    execution.get_temp_results()
-
-    # Assert
-    spy.assert_called_once_with(opened_path, "r")
-
-
-@pytest.mark.parametrize("path", ["res_path", "path/to/folder"])
-def test_remove_temp_results_removes_file(mocker, path, execution):
-    # Arrange
-    execution.out_path = path
-    spy = mocker.patch(PATCH_EXECUTION.format("os.remove"))
-    deleted = os.path.join(path, config.results_filename)
-    # Act
-    execution.remove_temp_results()
-
-    # Assert
-    spy.assert_called_once_with(deleted)
-
-
-@pytest.mark.parametrize("ignore_errors", [False, True])
-@pytest.mark.parametrize("mlcube", ["model", "eval"])
-def test_run_cubes_ignore_errors_if_specified(mocker, execution, mlcube, ignore_errors):
-    # Arrange
-    execution.dataset.data_path = "data_path"
-    execution.model_cube.cube_path = "cube_path"
-    execution.ignore_errors = ignore_errors
-    preds_path = "preds_path"
-
-    if mlcube == "model":
-        failed_cube = execution.model_cube
-    else:
-        failed_cube = execution.evaluator
-
-    mocker.patch.object(
-        failed_cube, "run", side_effect=ExecutionError,
-    )
-    mocker.patch(
-        PATCH_EXECUTION.format("storage_path"), return_value=preds_path,
-    )
-    mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
-
+@pytest.mark.parametrize(
+    "setup", [{"benchmark_prep_cube": "11", "dataset_prep_cube": "7"}], indirect=True
+)
+def test_failure_with_unmatching_prep(mocker, setup):
     # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        BenchmarkExecution.run("1", "2")
 
-    # Assert
-    if ignore_errors:
-        execution.run_cubes()
-    else:
-        with pytest.raises(ExecutionError):
-            execution.run_cubes()
-    assert execution.metadata["partial"] == ignore_errors
+
+@pytest.mark.parametrize(
+    "setup", [{"evaluator": {"uid": "3", "invalid": True}}], indirect=True
+)
+def test_failure_with_invalid_eval(mocker, setup):
+    # Act & Assert
+    with pytest.raises(InvalidEntityError):
+        BenchmarkExecution.run("1", "2")
+
+
+@pytest.mark.parametrize("setup", [{}], indirect=True)
+class TestInputFile:
+    def test_failure_with_nonexisting_file(mocker, setup):
+        # Arrange
+        models_input_file = "inputs.txt"
+
+        # Act & Assert
+        with pytest.raises(InvalidArgumentError):
+            BenchmarkExecution.run("1", "2", models_input_file=models_input_file)
+
+    def test_failure_with_invalid_content(mocker, setup, fs):
+        # Arrange
+        models_input_file = "inputs.txt"
+        fs.create_file(models_input_file, contents="1,2,text,3")
+
+        # Act & Assert
+        with pytest.raises(InvalidArgumentError):
+            BenchmarkExecution.run("1", "2", models_input_file=models_input_file)
+
+    def test_no_failure(mocker, setup, fs):
+        # Arrange
+        models_input_file = "inputs.txt"
+        fs.create_file(models_input_file, contents="2,4")
+
+        # Act & Assert
+        BenchmarkExecution.run("1", "2", models_input_file=models_input_file)
+
+
+@pytest.mark.parametrize("setup", [{}], indirect=True)
+class TestDefaultSetup:
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, setup):
+        system_inputs, spies = setup
+        self.system_inputs = system_inputs
+        self.spies = spies
+
+    def test_failure_with_unassociated_model(mocker, setup):
+        # Act & Assert
+        with pytest.raises(InvalidArgumentError):
+            BenchmarkExecution.run("1", "2", models_uids=[3, 10])
+
+    @pytest.mark.parametrize("ignore_failed_experiments", [False, True])
+    def test_failure_if_failed_exec_and_errors_not_ignored(
+        self, mocker, setup, ignore_failed_experiments
+    ):
+        # Arrange
+        fail_model_uid = "6"
+        # Act & Assert
+        if not ignore_failed_experiments:
+            with pytest.raises(ExecutionError):
+                BenchmarkExecution.run(
+                    "1",
+                    "2",
+                    models_uids=[fail_model_uid],
+                    ignore_failed_experiments=False,
+                )
+        else:
+            BenchmarkExecution.run(
+                "1", "2", models_uids=[fail_model_uid], ignore_failed_experiments=True,
+            )
+            self.spies["ui_error"].assert_called_once()
+
+    @pytest.mark.parametrize("ignore_failed_experiments", [False, True])
+    def test_failure_if_invalid_model_and_errors_not_ignored(
+        self, mocker, setup, ignore_failed_experiments
+    ):
+        invalid_model_uid = "7"
+        # Act & Assert
+        if not ignore_failed_experiments:
+            with pytest.raises(InvalidEntityError):
+                BenchmarkExecution.run(
+                    "1",
+                    "2",
+                    models_uids=[invalid_model_uid],
+                    ignore_failed_experiments=False,
+                )
+        else:
+            BenchmarkExecution.run(
+                "1",
+                "2",
+                models_uids=[invalid_model_uid],
+                ignore_failed_experiments=True,
+            )
+            self.spies["ui_error"].assert_called_once()
+
+    @pytest.mark.parametrize("ignore_errors", [False, True])
+    def test_execution_is_called_with_correct_ignore_errors(
+        self, mocker, setup, ignore_errors
+    ):
+        # Act
+        BenchmarkExecution.run("1", "2", models_uids=["5"], ignore_errors=ignore_errors)
+
+        # Assert
+        self.spies["exec"].assert_has_calls(
+            [call(dataset=ANY, model=ANY, evaluator=ANY, ignore_errors=ignore_errors)]
+        )
+
+    @pytest.mark.parametrize("no_cache", [False, True])
+    def test_execution_not_called_with_cached_result(self, mocker, setup, no_cache):
+        # Arrange
+        cached_model = "2"  # system inputs contains the triplet b1m2d1 as cached
+
+        # Act
+        BenchmarkExecution.run("1", "1", models_uids=[cached_model], no_cache=no_cache)
+
+        # Assert
+        if no_cache:
+            self.spies["exec"].assert_called_once()
+        else:
+            self.spies["exec"].assert_not_called()
+
+    @pytest.mark.parametrize("model_uid", ["4", "5"])
+    def test_execution_of_multiple_models_with_summary(self, mocker, setup, model_uid):
+        # Arrange
+        exec_res = self.system_inputs["models_props"][model_uid]
+        headers = ["model", "local result UID", "partial result", "from cache", "error"]
+        dset_uid = "2"
+        bmk_uid = "1"
+        expected_datalist = [
+            [
+                model_uid,
+                f"b{bmk_uid}m{model_uid}d{dset_uid}",
+                exec_res["partial"],
+                False,
+                "",
+            ]
+        ]
+        # Act
+        BenchmarkExecution.run("1", "2", models_uids=[model_uid], show_summary=True)
+
+        # Assert
+        self.spies["tabulate"].assert_called_once_with(
+            expected_datalist, headers=headers
+        )
+
+    def test_execution_of_one_model_writes_result(self, mocker, setup):
+        # Arrange
+        model_uid = "4"
+        dset_uid = "2"
+        bmk_uid = "1"
+        expected_file = os.path.join(
+            storage_path(config.results_storage),
+            f"b{bmk_uid}m{model_uid}d{dset_uid}",
+            config.results_info_file,
+        )
+        # Act
+        BenchmarkExecution.run(bmk_uid, dset_uid, models_uids=[model_uid])
+
+        # Assert
+        assert (
+            yaml.load(open(expected_file))["results"]
+            == self.system_inputs["models_props"][model_uid]["results"]
+        )
