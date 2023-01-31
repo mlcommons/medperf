@@ -99,8 +99,8 @@ class Execution:
             )
         except ExecutionError as e:
             logging.error(f"Metrics MLCube Execution failed: {e}")
+            # NOTE: the line below should be removed if we want to cache predictions
             cleanup_path(preds_path)
-            cleanup_path(out_path)
             raise ExecutionError("Metrics MLCube failed")
 
     def todict(self):
