@@ -9,7 +9,7 @@ from .models import BenchmarkModel
 class BenchmarkModelListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BenchmarkModel
-        read_only_fields = ["initiated_by", "approved_at"]
+        read_only_fields = ["initiated_by", "approved_at", "priority"]
         fields = "__all__"
 
     def validate(self, data):
@@ -85,13 +85,16 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             "approved_at",
             "created_at",
             "modified_at",
+            "priority",
         ]
 
     def validate(self, data):
         if not self.instance:
             raise serializers.ValidationError("No model association found")
+        return data
+
+    def validate_approval_status(self, cur_approval_status):
         last_approval_status = self.instance.approval_status
-        cur_approval_status = data["approval_status"]
         if last_approval_status != "PENDING":
             raise serializers.ValidationError(
                 "User can approve or reject only a pending request"
@@ -106,11 +109,14 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"
                 )
-        return data
+        return cur_approval_status
 
     def update(self, instance, validated_data):
-        instance.approval_status = validated_data["approval_status"]
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
+        if "approval_status" in validated_data:
+            instance.approval_status = validated_data["approval_status"]
+            if instance.approval_status != "PENDING":
+                instance.approved_at = timezone.now()
+        if "priority" in validated_data:
+            instance.priority = validated_data["priority"]
         instance.save()
         return instance
