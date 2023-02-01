@@ -37,11 +37,15 @@ PARAM_VALUE = "param_value"
 @pytest.fixture
 def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
-    mocker.patch.object(comms, "get_cube", return_value=CUBE_PATH)
-    mocker.patch.object(comms, "get_cube_params", return_value=PARAMS_PATH)
-    mocker.patch.object(comms, "get_cube_additional", return_value=TARBALL_PATH)
+    mocker.patch.object(comms, "get_cube", return_value=(CUBE_PATH, CUBE_HASH))
+    mocker.patch.object(
+        comms, "get_cube_params", return_value=(PARAMS_PATH, PARAMS_HASH)
+    )
+    mocker.patch.object(
+        comms, "get_cube_additional", return_value=(TARBALL_PATH, TARBALL_HASH)
+    )
     mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value=TARBALL_HASH)
-    mocker.patch.object(comms, "get_cube_image", return_value=IMG_PATH)
+    mocker.patch.object(comms, "get_cube_image", return_value=(IMG_PATH, IMG_HASH))
     mocker.patch(PATCH_CUBE.format("untar"))
     config.comms = comms
     return comms
@@ -214,10 +218,10 @@ def test_get_basic_cube_retrieves_cube_manifest(mocker, comms, basic_body, no_lo
     # Act
     uid = 1
     body = basic_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["git_mlcube_url"], uid)
+    spy.assert_called_once_with(body["git_mlcube_url"], cube.path)
 
 
 def test_get_basic_cube_doesnt_retrieve_parameters(mocker, comms, basic_body, no_local):
@@ -259,10 +263,10 @@ def test_get_cube_with_parameters_retrieves_parameters(
     # Act
     uid = 1
     body = params_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["git_parameters_url"], uid)
+    spy.assert_called_once_with(body["git_parameters_url"], cube.path)
 
 
 def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body, no_local):
@@ -273,25 +277,10 @@ def test_get_cube_with_tarball_retrieves_tarball(mocker, comms, tar_body, no_loc
     # Act
     uid = 1
     body = tar_body(uid)
-    Cube.get(uid)
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["additional_files_tarball_url"], uid)
-
-
-def test_get_cube_with_tarball_generates_tarball_hash(
-    mocker, comms, tar_body, no_local
-):
-    # Arrange
-    spy = mocker.spy(medperf.entities.cube, "get_file_sha1")
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-
-    # Act
-    uid = 1
-    Cube.get(uid)
-
-    # Assert
-    spy.assert_has_calls([call(CUBE_PATH), call(TARBALL_PATH)])
+    spy.assert_called_once_with(body["additional_files_tarball_url"], cube.path)
 
 
 def test_get_cube_with_tarball_untars_files(mocker, comms, tar_body, no_local):
@@ -349,25 +338,12 @@ def test_get_cube_with_image_retrieves_image(mocker, comms, img_body, no_local):
     # Act
     uid = 1
     body = img_body(uid)
-    Cube.get(uid)
+    url = body["image_tarball_url"]
+    hash = body["image_tarball_hash"]
+    cube = Cube.get(uid)
 
     # Assert
-    spy.assert_called_once_with(body["image_tarball_url"], uid)
-
-
-def test_get_cube_with_image_generates_image_tarball_hash(
-    mocker, comms, img_body, no_local
-):
-    # Arrange
-    spy = mocker.spy(medperf.entities.cube, "get_file_sha1")
-    mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-
-    # Act
-    uid = 1
-    Cube.get(uid)
-
-    # Assert
-    spy.assert_has_calls([call(CUBE_PATH), call(IMG_PATH)])
+    spy.assert_called_once_with(url, hash, cube.path)
 
 
 def test_get_cube_with_image_untars_image(mocker, comms, img_body, no_local):
@@ -808,7 +784,6 @@ def test_download_does_not_ignore_hashes_if_precalculated(
 
     cube = Cube(meta)
     mocker.patch(PATCH_CUBE.format("Cube.store_local_hashes"))
-    mocker.patch(PATCH_CUBE.format("get_file_sha1"), return_value="some_local_hash")
     # Act
     cube.download()
 
@@ -817,8 +792,8 @@ def test_download_does_not_ignore_hashes_if_precalculated(
         assert cube.additional_hash == meta["additional_files_tarball_hash"]
         assert cube.image_tarball_hash == meta["image_tarball_hash"]
     else:
-        assert cube.additional_hash == "some_local_hash"
-        assert cube.image_tarball_hash == "some_local_hash"
+        assert cube.additional_hash == TARBALL_HASH
+        assert cube.image_tarball_hash == IMG_HASH
 
 
 @pytest.mark.parametrize("cube_uid", [269, 90, 374])
