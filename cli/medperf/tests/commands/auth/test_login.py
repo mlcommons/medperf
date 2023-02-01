@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import mock_open
 
 import medperf.config as config
+from medperf.utils import base_storage_path
 from medperf.commands.auth import Login
 
 
@@ -33,7 +34,7 @@ def test_assigns_credentials_to_profile(mocker, profile, comms, ui):
     # Arrange
     profile_backup = config.profile
     config.profile = profile
-    creds_path = os.path.join(config.storage, config.credentials_path)
+    creds_path = base_storage_path(config.credentials_path)
     mocker.patch("os.path.exists", return_value=True)
     spy_read = mocker.patch("configparser.ConfigParser.read")
     spy_set = mocker.patch("configparser.ConfigParser.__setitem__")
@@ -55,7 +56,7 @@ def test_assigns_credentials_to_profile(mocker, profile, comms, ui):
 )
 def test_writes_new_credentials(mocker, comms, ui):
     # Arrange
-    creds_path = os.path.join(config.storage, config.credentials_path)
+    creds_path = base_storage_path(config.credentials_path)
     spy = mocker.patch("builtins.open", mock_open())
     spy_write = mocker.patch("configparser.ConfigParser.write")
     mocker.patch("os.path.exists", return_value=False)
@@ -70,7 +71,7 @@ def test_writes_new_credentials(mocker, comms, ui):
 
 def test_sets_credentials_permissions_to_read(mocker, comms, ui):
     # Arrange
-    creds_path = os.path.join(config.storage, config.credentials_path)
+    creds_path = base_storage_path(config.credentials_path)
     spy = mocker.patch("os.chmod")
     mocker.patch("builtins.open", mock_open())
     mocker.patch("os.path.exists", return_value=False)

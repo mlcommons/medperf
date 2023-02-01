@@ -2,16 +2,18 @@ from typing import List
 import requests
 import logging
 import os
+import shutil
 import configparser
 
 from medperf.enums import Role, Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
-    cube_path,
+    base_storage_path,
     storage_path,
     generate_tmp_uid,
     sanitize_json,
+    get_file_sha1,
 )
 from medperf.exceptions import (
     CommunicationError,
@@ -84,7 +86,7 @@ class REST(Comms):
             raise CommunicationRequestError("Unable to change the current password")
 
     def authenticate(self):
-        creds_path = os.path.join(config.storage, config.credentials_path)
+        creds_path = base_storage_path(config.credentials_path)
         profile = config.profile
         if os.path.exists(creds_path):
             creds = configparser.ConfigParser()
@@ -329,18 +331,18 @@ class REST(Comms):
             raise CommunicationRetrievalError("the specified cube doesn't exist")
         return res.json()
 
-    def get_cube(self, url: str, cube_uid: int) -> str:
+    def get_cube(self, url: str, cube_path: str) -> str:
         """Downloads and writes an mlcube.yaml file from the server
 
         Args:
             url (str): URL where the mlcube.yaml file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Path to the cube contents.
 
         Returns:
             str: location where the mlcube.yaml file is stored locally.
         """
         cube_file = config.cube_filename
-        return self.__get_cube_file(url, cube_uid, "", cube_file)
+        return self.__get_cube_file(url, cube_path, "", cube_file)
 
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
@@ -351,62 +353,90 @@ class REST(Comms):
         cubes = self.__get_list(f"{self.server_url}/me/mlcubes/")
         return cubes
 
-    def get_cube_params(self, url: str, cube_uid: int) -> str:
+    def get_cube_params(self, url: str, cube_path: str) -> str:
         """Retrieves the cube parameters.yaml file from the server
 
         Args:
             url (str): URL where the parameters.yaml file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Path to the cube contents.
 
         Returns:
             str: Location where the parameters.yaml file is stored locally.
         """
         ws = config.workspace_path
         params_file = config.params_filename
-        return self.__get_cube_file(url, cube_uid, ws, params_file)
+        return self.__get_cube_file(url, cube_path, ws, params_file)
 
-    def get_cube_additional(self, url: str, cube_uid: int) -> str:
+    def get_cube_additional(self, url: str, cube_path: str) -> str:
         """Retrieves and stores the additional_files.tar.gz file from the server
 
         Args:
             url (str): URL where the additional_files.tar.gz file can be downloaded.
-            cube_uid (int): Cube UID.
+            cube_path (str): Path to the cube contents.
 
         Returns:
             str: Location where the additional_files.tar.gz file is stored locally.
         """
         add_path = config.additional_path
         tball_file = config.tarball_filename
-        return self.__get_cube_file(url, cube_uid, add_path, tball_file)
+        return self.__get_cube_file(url, cube_path, add_path, tball_file)
 
-    def get_cube_image(self, url: str, cube_uid: int) -> str:
-        """Retrieves and stores the image file from the server
+    def get_cube_image(self, url: str, hash: str, cube_path: str) -> str:
+        """Retrieves and stores the image file from the server. Stores images
+        on a shared location, and retrieves a cached image by hash if found locally.
+        Creates a symbolic link to the cube storage.
 
         Args:
             url (str): URL where the image file can be downloaded.
-            cube_uid (int): Cube UID.
+            hash (str): File hash to store under shared storage.
+            cube_path (path): Cube UID.
 
         Returns:
             str: Location where the image file is stored locally.
         """
         image_path = config.image_path
         image_name = url.split("/")[-1]
-        return self.__get_cube_file(url, cube_uid, image_path, image_name)
+        image_cube_path = os.path.join(cube_path, image_path)
+        os.makedirs(image_cube_path, exist_ok=True)
+        image_cube_file = os.path.join(image_cube_path, image_name)
+        imgs_storage = base_storage_path(config.images_storage)
 
-    def __get_cube_file(self, url: str, cube_uid: int, path: str, filename: str):
+        if not hash:
+            # No hash provided, we need to download the file first
+            _, local_hash = self.__get_cube_file(url, cube_path, image_path, image_name)
+            img_storage = os.path.join(imgs_storage, local_hash)
+            shutil.move(image_cube_file, img_storage)
+        else:
+            img_storage = os.path.join(imgs_storage, hash)
+
+        if not os.path.exists(img_storage):
+            # If image doesn't exist locally, download it normally
+            # And move it to shared storage
+            _, local_hash = self.__get_cube_file(url, cube_path, image_path, image_name)
+            shutil.move(image_cube_file, img_storage)
+
+        # Create a symbolic link to individual cube storage
+        if os.path.exists(image_cube_file):
+            # Remove existing links
+            os.unlink(image_cube_file)
+        os.symlink(img_storage, image_cube_file)
+        local_hash = get_file_sha1(img_storage)
+        return image_cube_file, local_hash
+
+    def __get_cube_file(self, url: str, cube_path: str, path: str, filename: str):
         res = requests.get(url)
         if res.status_code != 200:
             log_response_error(res)
             msg = "There was a problem retrieving the specified file at " + url
             raise CommunicationRetrievalError(msg)
         else:
-            c_path = cube_path(cube_uid)
-            path = os.path.join(c_path, path)
+            path = os.path.join(cube_path, path)
             if not os.path.isdir(path):
                 os.makedirs(path, exist_ok=True)
             filepath = os.path.join(path, filename)
             open(filepath, "wb+").write(res.content)
-            return filepath
+            hash = get_file_sha1(filepath)
+            return filepath, hash
 
     def upload_benchmark(self, benchmark_dict: dict) -> int:
         """Uploads a new benchmark to the server.

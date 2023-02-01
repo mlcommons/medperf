@@ -3,6 +3,7 @@ import stat
 import configparser
 
 import medperf.config as config
+from medperf.utils import base_storage_path
 
 
 class Login:
@@ -12,7 +13,7 @@ class Login:
         """
         comms = config.comms
         ui = config.ui
-        cred_path = os.path.join(config.storage, config.credentials_path)
+        cred_path = base_storage_path(config.credentials_path)
         user = username if username else ui.prompt("username: ")
         pwd = password if password else ui.hidden_prompt("password: ")
         comms.login(user, pwd)

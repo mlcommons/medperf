@@ -74,7 +74,7 @@ def test_load_config_reads_profile_from_config_file(mocker):
     # Arrange
     profile = "profile"
     exp_config = {"test": "test"}
-    config_path = os.path.join(config.storage, config.config_path)
+    config_path = utils.base_storage_path(config.config_path)
     spy_read = mocker.patch("configparser.ConfigParser.read")
     spy_get = mocker.patch(
         "configparser.ConfigParser.__getitem__", return_value=exp_config
@@ -122,7 +122,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
