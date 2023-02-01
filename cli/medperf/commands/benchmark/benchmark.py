@@ -13,12 +13,15 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def list(
-    all: bool = typer.Option(False, help="Display all benchmarks in the platform")
+    local: bool = typer.Option(False, "--local", help="Display all local benchmarks"),
+    mine: bool = typer.Option(
+        False, "--mine", help="Display all current-user benchmarks"
+    ),
 ):
     """Lists all benchmarks created by the user
     If --all is used, displays all benchmarks in the platform
     """
-    BenchmarksList.run(all)
+    BenchmarksList.run(local, mine)
 
 
 @app.command("submit")
@@ -74,8 +77,13 @@ def associate(
         None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    force_test: bool = typer.Option(
+        False, "--force-test", help="Execute the test even if results already exist",
+    ),
 ):
     """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
     """
-    AssociateBenchmark.run(benchmark_uid, model_uid, dataset_uid, approved=approval)
+    AssociateBenchmark.run(
+        benchmark_uid, model_uid, dataset_uid, approved=approval, force_test=force_test
+    )
     config.ui.print("✅ Done!")

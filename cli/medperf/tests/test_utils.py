@@ -8,6 +8,7 @@ from unittest.mock import mock_open, call, ANY
 from medperf import utils
 import medperf.config as config
 from medperf.tests.mocks import MockCube, MockTar
+from medperf.exceptions import InvalidEntityError
 
 parent = config.storage
 data = utils.storage_path(config.data_storage)
@@ -50,6 +51,23 @@ def filesystem():
     fs = iter([("/foo", ("bar",), ("baz",)), ("/foo/bar", (), ("spam", "eggs"))])
     files = ["/foo/baz", "/foo/bar/spam", "/foo/bar/eggs"]
     return [fs, files]
+
+
+@pytest.mark.parametrize("param", ["server", "platform", "prepare_timeout"])
+def test_set_custom_config_modifies_config_params(param):
+    # Arrange
+    args = {param: param}
+    backup_args = {param: getattr(config, param)}
+
+    # Act
+    utils.set_custom_config(args)
+    mod_args = {param: getattr(config, param)}
+    utils.set_custom_config(backup_args)
+    recovered_args = {param: getattr(config, param)}
+
+    # Assert
+    assert mod_args == args
+    assert recovered_args == backup_args
 
 
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
@@ -100,6 +118,32 @@ def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
 
     # Assert
     spy.assert_has_calls(exp_calls, any_order=True)
+
+
+@pytest.mark.parametrize("pid", [37, 864, 2890])
+def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
+    # Arrange
+    mocker.patch("os.getpid", return_value=pid)
+    tmp_storage = utils.config.tmp_storage
+    tmp_prefix = utils.config.tmp_prefix
+    test_dset_prefix = utils.config.test_dset_prefix
+    test_cube_prefix = utils.config.test_cube_prefix
+    pid = str(pid)
+
+    # Act
+    utils.set_unique_tmp_config()
+
+    # Assert
+    assert utils.config.tmp_storage.endswith(pid)
+    assert utils.config.tmp_prefix.endswith(pid)
+    assert utils.config.test_dset_prefix.endswith(pid)
+    assert utils.config.test_cube_prefix.endswith(pid)
+
+    # Cleanup
+    utils.config.tmp_storage = tmp_storage
+    utils.config.tmp_prefix = tmp_prefix
+    utils.config.test_dset_prefix = test_dset_prefix
+    utils.config.test_cube_prefix = test_cube_prefix
 
 
 def test_cleanup_removes_temporary_storage(mocker):
@@ -223,17 +267,14 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
 @pytest.mark.parametrize("is_valid", [True, False])
 def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
     # Arrange
-    spy = mocker.patch(patch_utils.format("pretty_error"))
     cube = MockCube(is_valid)
 
-    # Act
-    utils.check_cube_validity(cube)
-
-    # Assert
+    # Act & Assert
     if not is_valid:
-        spy.assert_called_once()
+        with pytest.raises(InvalidEntityError):
+            utils.check_cube_validity(cube)
     else:
-        spy.assert_not_called()
+        utils.check_cube_validity(cube)
 
 
 @pytest.mark.parametrize("file", ["test.tar.bz", "path/to/file.tar.bz"])
@@ -383,22 +424,6 @@ def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
 
     # Assert
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
-
-
-@pytest.mark.parametrize("bmk", [1, 2])
-@pytest.mark.parametrize("model", [23, 84])
-@pytest.mark.parametrize("gen_uid", [43, 8])
-def test__results_path_returns_expected_path(bmk, model, gen_uid):
-    # Arrange
-    storage = config.storage
-    res_storage = config.results_storage
-    expected_path = f"{storage}/{res_storage}/{bmk}/{model}/{gen_uid}"
-
-    # Act
-    path = utils.results_path(bmk, model, gen_uid)
-
-    # Assert
-    assert path == expected_path
 
 
 @pytest.mark.parametrize(

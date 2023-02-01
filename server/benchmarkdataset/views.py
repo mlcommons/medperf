@@ -44,8 +44,9 @@ class BenchmarkDatasetApproval(GenericAPIView):
         Retrieve all benchmarks associated with a dataset
         """
         benchmarkdataset = self.get_object(pk)
+        benchmarkdataset = self.paginate_queryset(benchmarkdataset)
         serializer = BenchmarkDatasetListSerializer(benchmarkdataset, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class DatasetApproval(GenericAPIView):

@@ -8,6 +8,7 @@ import random
 import hashlib
 import logging
 import tarfile
+from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
@@ -19,11 +20,61 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
+from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
+
+
+def delete_credentials():
+    config_p = read_config()
+    del config_p.active_profile[config.credentials_keyword]
+    write_config(config_p)
+
+
+def set_credentials(token):
+    config_p = read_config()
+    config_p.active_profile[config.credentials_keyword] = token
+    write_config(config_p)
+
+
+def read_credentials():
+    config_p = read_config()
+    token = config_p.active_profile.get(config.credentials_keyword, None)
+    return token
+
+
+def default_profile():
+    # NOTE: this function is only usable before config is actually initialized.
+    # using this function when another profile is activated will not load the defaults
+    return {param: getattr(config, param) for param in config.configurable_parameters}
+
+
+def read_config():
+    config_p = ConfigManager()
+    config_path = os.path.join(config.storage, config.config_path)
+    config_p.read(config_path)
+    return config_p
+
+
+def write_config(config_p: ConfigManager):
+    config_path = os.path.join(config.storage, config.config_path)
+    config_p.write(config_path)
+
+
+def set_custom_config(args: dict):
+    """Function to set parameters defined by the user
+
+    Args:
+        args (dict): custom config params
+    """
+    for param in args:
+        val = args[param]
+        setattr(config, param, val)
 
 
 def storage_path(subpath: str):
     """Helper function that converts a path to storage-related path"""
-    return os.path.join(config.storage, subpath)
+    server_path = config.server.split("//")[1]
+    server_path = re.sub(r"[.:]", "_", server_path)
+    return os.path.join(config.storage, server_path, subpath)
 
 
 def get_file_sha1(path: str) -> str:
@@ -72,6 +123,35 @@ def init_storage():
             logging.warning(f"Tried to create existing folder {dir}")
 
 
+def init_config():
+    """builds the initial configuration file
+    """
+    os.makedirs(config.storage, exist_ok=True)
+    config_file = os.path.join(config.storage, config.config_path)
+    if os.path.exists(config_file):
+        return
+
+    config_p = ConfigManager()
+    config_p[config.default_profile_name] = default_profile()
+    config_p[config.test_profile_name] = default_profile()
+    config_p[config.test_profile_name]["server"] = config.local_server
+    config_p[config.test_profile_name]["certificate"] = config.local_certificate
+
+    config_p.activate(config.default_profile_name)
+    config_p.write(config_file)
+
+
+def set_unique_tmp_config():
+    """Set current process' temporary unique names
+    Enables simultaneous execution without cleanup collision
+    """
+    pid = str(os.getpid())
+    config.tmp_storage += pid
+    config.tmp_prefix += pid
+    config.test_dset_prefix += pid
+    config.test_cube_prefix += pid
+
+
 def cleanup(extra_paths: List[str] = []):
     """Removes clutter and unused files from the medperf folder structure.
     """
@@ -86,10 +166,8 @@ def cleanup(extra_paths: List[str] = []):
             try:
                 rmtree(path)
             except OSError as e:
-                logging.error(f"Could not remove clutter path: {e}")
-                config.ui.print_error(
-                    "Could not remove clutter directory. For more information check the logs."
-                )
+                logging.error("Could not remove clutter path")
+                raise MedperfException(str(e))
 
     cleanup_dsets()
     cleanup_cubes()
@@ -116,10 +194,8 @@ def cleanup_dsets():
             try:
                 rmtree(dset_path)
             except OSError as e:
-                logging.error(f"Could not remove dataset {dset}: {e}")
-                config.ui.print_error(
-                    f"Could not remove dataset {dset}. For more information check the logs."
-                )
+                logging.error(f"Could not remove dataset {dset}")
+                raise MedperfException(str(e))
 
 
 def cleanup_cubes():
@@ -128,10 +204,7 @@ def cleanup_cubes():
     cubes_path = storage_path(config.cubes_storage)
     cubes = get_uids(cubes_path)
     test_prefix = config.test_cube_prefix
-    submission = config.cube_submission_id
-    clutter_cubes = [
-        cube for cube in cubes if cube.startswith(test_prefix) or cube == submission
-    ]
+    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
 
     for cube in clutter_cubes:
         logging.info(f"Removing clutter cube: {cube}")
@@ -143,10 +216,8 @@ def cleanup_cubes():
                 else:
                     rmtree(cube_path)
             except OSError as e:
-                logging.error(f"Could not remove cube {cube}: {e}")
-                config.ui.print_error(
-                    f"Could not remove cube {cube}. For more information check the logs."
-                )
+                logging.error(f"Could not remove cube {cube}")
+                raise MedperfException(str(e))
 
 
 def cleanup_benchmarks():
@@ -163,10 +234,8 @@ def cleanup_benchmarks():
             try:
                 rmtree(bmk_path)
             except OSError as e:
-                logging.error(f"Could not remove benchmark {bmk}: {e}")
-                config.ui.print_error(
-                    f"Could not remove benchmark {bmk}. For more information check the logs."
-                )
+                logging.error(f"Could not remove benchmark {bmk}")
+                raise MedperfException(str(e))
 
 
 def get_uids(path: str) -> List[str]:
@@ -182,15 +251,13 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, clean: bool = True, add_instructions=True):
+def pretty_error(msg: str, clean: bool = True):
     """Prints an error message with typer protocol and exits the script
 
     Args:
         msg (str): Error message to show to the user
         clean (bool, optional):
             Run the cleanup process before exiting. Defaults to True.
-        add_instructions (bool, optional):
-            Show additional instructions to the user. Defualts to True.
     """
     ui = config.ui
     logging.warning(
@@ -198,24 +265,10 @@ def pretty_error(msg: str, clean: bool = True, add_instructions=True):
     )
     if msg[-1] != ".":
         msg = msg + "."
-    if add_instructions:
-        msg += f" See logs at {config.log_file} for more information"
     ui.print_error(msg)
     if clean:
         cleanup()
     sys.exit(1)
-
-
-def cube_path(uid: int) -> str:
-    """Gets the path for a given cube.
-
-    Args:
-        uid (int): Cube UID.
-
-    Returns:
-        str: Location of the cube folder structure.
-    """
-    return os.path.join(storage_path(config.cubes_storage), str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
@@ -257,7 +310,7 @@ def check_cube_validity(cube: "Cube"):
     ui = config.ui
     ui.text = "Checking cube MD5 hash..."
     if not cube.is_valid():
-        pretty_error("MD5 hash doesn't match")
+        raise InvalidEntityError("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
 
@@ -307,7 +360,7 @@ def approval_prompt(msg: str) -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict):
+def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -317,7 +370,8 @@ def dict_pretty_print(in_dict: dict):
     ui = config.ui
     ui.print()
     ui.print("=" * 20)
-    in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+    if skip_none_values:
+        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
     ui.print(yaml.dump(in_dict))
     logging.debug(f"Dictionary printed to the user: {in_dict}")
     ui.print("=" * 20)
@@ -343,8 +397,8 @@ def combine_proc_sp_text(proc: spawn) -> str:
         try:
             line = byte = proc.read(1)
         except TIMEOUT:
-            logging.info("Process timed out")
-            pretty_error("Process timed out")
+            logging.error("Process timed out")
+            raise ExecutionError("Process timed out")
 
         while byte and not re.match(b"[\r\n]", byte):
             byte = proc.read(1)
@@ -386,40 +440,6 @@ def get_folder_sha1(path: str) -> str:
     hash_val = sha1.hexdigest()
     logging.debug(f"Folder hash: {hash_val}")
     return hash_val
-
-
-def results_path(benchmark_uid, model_uid, data_uid):
-    out_path = storage_path(config.results_storage)
-    bmark_uid = str(benchmark_uid)
-    model_uid = str(model_uid)
-    data_uid = str(data_uid)
-    out_path = os.path.join(out_path, bmark_uid, model_uid, data_uid)
-    return out_path
-
-
-def results_ids():
-    results_storage = storage_path(config.results_storage)
-    logging.debug("Getting results ids")
-    results_ids = []
-    try:
-        bmk_uids = next(os.walk(results_storage))[1]
-        for bmk_uid in bmk_uids:
-            bmk_storage = os.path.join(results_storage, bmk_uid)
-            model_uids = next(os.walk(bmk_storage))[1]
-            for model_uid in model_uids:
-                bmk_model_storage = os.path.join(bmk_storage, model_uid)
-                data_uids = next(os.walk(bmk_model_storage))[1]
-                bmk_model_data_list = [
-                    (bmk_uid, model_uid, data_uid) for data_uid in data_uids
-                ]
-                results_ids += bmk_model_data_list
-
-    except StopIteration:
-        msg = "Couldn't iterate over the results directory"
-        logging.warning(msg)
-        pretty_error(msg)
-    logging.debug(f"Results ids: {results_ids}")
-    return results_ids
 
 
 def setup_logger(logger, log_lvl):

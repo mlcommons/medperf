@@ -1,22 +1,23 @@
-from medperf.utils import pretty_error, dict_pretty_print, approval_prompt
+import os
+import shutil
+
+from medperf.exceptions import CleanExit
+from medperf.utils import dict_pretty_print, approval_prompt, storage_path
 from medperf.entities.result import Result
-from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
 
 
 class ResultSubmission:
     @classmethod
-    def run(cls, benchmark_uid, data_uid, model_uid, approved=False):
-        dset = Dataset.from_generated_uid(data_uid)
-        sub = cls(benchmark_uid, dset.uid, model_uid, approved=approved)
+    def run(cls, result_uid, approved=False):
+        sub = cls(result_uid, approved=approved)
         updated_result_dict = sub.upload_results()
+        sub.to_permanent_path(updated_result_dict)
         sub.write(updated_result_dict)
 
-    def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
-        self.benchmark_uid = benchmark_uid
-        self.data_uid = data_uid
-        self.model_uid = model_uid
+    def __init__(self, result_uid, approved=False):
+        self.result_uid = result_uid
         self.comms = config.comms
         self.ui = config.ui
         self.approved = approved
@@ -35,17 +36,28 @@ class ResultSubmission:
         return approved
 
     def upload_results(self):
-        result = Result.from_entities_uids(
-            self.benchmark_uid, self.model_uid, self.data_uid
-        )
+        result = Result.get(self.result_uid)
         approved = self.approved or self.request_approval(result)
 
         if not approved:
-            msg = "Results upload operation cancelled"
-            pretty_error(msg, add_instructions=False)
+            raise CleanExit("Results upload operation cancelled")
 
         updated_result_dict = result.upload()
         return updated_result_dict
+
+    def to_permanent_path(self, result_dict: dict):
+        """Rename the temporary result submission to a permanent one
+
+        Args:
+            result_dict (dict): updated results dictionary
+        """
+        result = Result(result_dict)
+        result_storage = storage_path(config.results_storage)
+        old_res_loc = os.path.join(result_storage, result.generated_uid)
+        new_res_loc = result.path
+        if os.path.exists(new_res_loc):
+            shutil.rmtree(new_res_loc)
+        os.rename(old_res_loc, new_res_loc)
 
     def write(self, updated_result_dict):
         result = Result(updated_result_dict)

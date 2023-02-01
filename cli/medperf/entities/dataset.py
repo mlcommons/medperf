@@ -4,12 +4,9 @@ import yaml
 import logging
 from typing import List
 
-from medperf.utils import (
-    get_uids,
-    pretty_error,
-    storage_path,
-)
+from medperf.utils import storage_path
 from medperf.entities.interface import Entity
+from medperf.exceptions import InvalidArgumentError, MedperfException, CommunicationRetrievalError
 import medperf.config as config
 
 
@@ -63,13 +60,17 @@ class Dataset(Entity):
         self.modified_at = dataset_dict["modified_at"]
         self.owner = dataset_dict["owner"]
 
-        self.dataset_path = os.path.join(
-            storage_path(config.data_storage), str(self.generated_uid)
-        )
-        self.data_path = os.path.join(self.dataset_path, "data")
+        path = storage_path(config.data_storage)
+        if self.uid:
+            path = os.path.join(path, str(self.uid))
+        else:
+            path = os.path.join(path, str(self.generated_uid))
+
+        self.path = path
+        self.data_path = os.path.join(self.path, "data")
         self.labels_path = self.data_path
         if self.separate_labels:
-            self.labels_path = os.path.join(self.dataset_path, "labels")
+            self.labels_path = os.path.join(self.path, "labels")
 
     def todict(self):
         return {
@@ -93,28 +94,61 @@ class Dataset(Entity):
         }
 
     @classmethod
-    def from_generated_uid(cls, generated_uid: str) -> "Dataset":
-        generated_uid = cls.__full_uid(generated_uid)
-        reg = cls.__get_local_dict(generated_uid)
-        return cls(reg)
-
-    @classmethod
-    def all(cls) -> List["Dataset"]:
+    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
+
+        Args:
+            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
 
         Returns:
             List[Dataset]: a list of Dataset instances.
         """
         logging.info("Retrieving all datasets")
+        dsets = []
+        if not local_only:
+            dsets = cls.__remote_all(mine_only=mine_only)
+
+        remote_uids = set([dset.uid for dset in dsets])
+
+        local_dsets = cls.__local_all()
+
+        dsets += [dset for dset in local_dsets if dset.uid not in remote_uids]
+
+        return dsets
+
+    @classmethod
+    def __remote_all(cls, mine_only: bool = False) -> List["Dataset"]:
+        dsets = []
+        remote_func = config.comms.get_datasets
+        if mine_only:
+            remote_func = config.comms.get_user_datasets
+
+        try:
+            dsets_meta = remote_func()
+            dsets = [cls(meta) for meta in dsets_meta]
+        except CommunicationRetrievalError:
+            msg = "Couldn't retrieve all datasets from the server"
+            logging.warning(msg)
+
+        return dsets
+
+    @classmethod
+    def __local_all(cls) -> List["Dataset"]:
+        dsets = []
         data_storage = storage_path(config.data_storage)
         try:
-            generated_uids = next(os.walk(data_storage))[1]
+            uids = next(os.walk(data_storage))[1]
         except StopIteration:
-            logging.warning("Couldn't iterate over the dataset directory")
-            pretty_error("Couldn't iterate over the dataset directory")
-        dsets = []
-        for generated_uid in generated_uids:
-            dsets.append(cls.from_generated_uid(generated_uid))
+            msg = "Couldn't iterate over the dataset directory"
+            logging.warning(msg)
+            raise MedperfException(msg)
+
+        for uid in uids:
+            local_meta = cls.__get_local_dict(uid)
+            dset = cls(local_meta)
+            dsets.append(dset)
+
         return dsets
 
     @classmethod
@@ -130,49 +164,29 @@ class Dataset(Entity):
         """
         logging.debug(f"Retrieving dataset {dset_uid}")
         comms = config.comms
-        local_dset = list(
-            filter(lambda dset: str(dset.uid) == str(dset_uid), cls.all())
-        )
-        if len(local_dset) == 1:
-            logging.debug("Found dataset locally")
-            return local_dset[0]
 
-        meta = comms.get_dataset(dset_uid)
-        dataset = cls(meta)
+        # Try first downloading the data
+        try:
+            meta = comms.get_dataset(dset_uid)
+            dataset = cls(meta)
+        except CommunicationRetrievalError:
+            # Get from local cache
+            logging.warning(f"Getting Dataset {dset_uid} from comms failed")
+            logging.info(f"Looking for dataset {dset_uid} locally")
+            local_meta = cls.__get_local_dict(dset_uid)
+            dataset = cls(local_meta)
+
         dataset.write()
         return dataset
-
-    @staticmethod
-    def __full_uid(uid_hint: str) -> str:
-        """Returns the found UID that starts with the provided UID hint
-
-        Args:
-            uid_hint (int): a small initial portion of an existing local dataset UID
-
-        Raises:
-            NameError: If no dataset is found starting with the given hint, this is thrown.
-            NameError: If multiple datasets are found starting with the given hint, this is thrown.
-
-        Returns:
-            str: the complete UID
-        """
-        data_storage = storage_path(config.data_storage)
-        dsets = get_uids(data_storage)
-        match = [uid for uid in dsets if uid.startswith(str(uid_hint))]
-        if len(match) == 0:
-            pretty_error(f"No dataset was found with uid hint {uid_hint}.")
-        elif len(match) > 1:
-            pretty_error(f"Multiple datasets were found with uid hint {uid_hint}.")
-        else:
-            return match[0]
 
     def write(self):
         logging.info(f"Updating registration information for dataset: {self.uid}")
         logging.debug(f"registration information: {self.todict()}")
-        regfile = os.path.join(self.dataset_path, config.reg_file)
-        os.makedirs(self.dataset_path, exist_ok=True)
+        regfile = os.path.join(self.path, config.reg_file)
+        os.makedirs(self.path, exist_ok=True)
         with open(regfile, "w") as f:
             yaml.dump(self.todict(), f)
+        return regfile
 
     def upload(self):
         """Uploads the registration information to the comms.
@@ -192,6 +206,10 @@ class Dataset(Entity):
             storage_path(config.data_storage), str(generated_uid)
         )
         regfile = os.path.join(dataset_path, config.reg_file)
+        if not os.path.exists(regfile):
+            raise InvalidArgumentError(
+                "The requested dataset information could not be found locally"
+            )
         with open(regfile, "r") as f:
             reg = yaml.safe_load(f)
         return reg

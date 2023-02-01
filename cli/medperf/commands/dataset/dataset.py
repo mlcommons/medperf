@@ -13,12 +13,13 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def datasets(
-    all: bool = typer.Option(False, help="Get all datasets from the platform")
+    local: bool = typer.Option(False, "--local", help="Get local datasets"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
 ):
     """Lists all datasets from the user by default.
     Use all to get all datasets in the platform
     """
-    DatasetsList.run(all)
+    DatasetsList.run(local, mine)
 
 
 @app.command("create")
@@ -90,12 +91,17 @@ def associate(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    force_test: bool = typer.Option(
+        False, "--force-test", help="Execute the test even if results already exist",
+    ),
 ):
     """Associate a registered dataset with a specific benchmark.
     The dataset and benchmark must share the same data preparation cube.
     """
     ui = config.ui
-    AssociateDataset.run(data_uid, benchmark_uid, approved=approval)
+    AssociateDataset.run(
+        data_uid, benchmark_uid, approved=approval, force_test=force_test
+    )
     ui.print("✅ Done!")
     ui.print(
         f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"

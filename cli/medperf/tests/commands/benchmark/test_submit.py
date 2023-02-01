@@ -37,52 +37,76 @@ def benchmark(mocker):
         bmk.data_preparation = data_prep
         bmk.reference_model = reference_model
         bmk.evaluator = evaluator
+        bmk.generated_uid = f"p{bmk.data_preparation}m{bmk.reference_model}e{bmk.evaluator}"
         return bmk
 
     return benchmark_gen
 
 
 @pytest.mark.parametrize(
-    "name", [("", False), ("valid", True), ("1" * NAME_MAX_LEN, False)]
+    "name,desc,docs_url,demo_url,prep_uid,model_uid,eval_uid,should_pass",
+    [
+        # Valid minimal submission
+        ("valid", "", "", "", "1", "1", "1", True),
+        # Invalid empty name
+        ("", "", "", "", "1", "1", "1", False),
+        # Invalid name length
+        ("1" * NAME_MAX_LEN, "", "", "", "1", "1", "1", False),
+        # Invalid desc length
+        ("valid", "1" * DESC_MAX_LEN, "", "", "1", "1", "1", False),
+        # Invalid docs_url string
+        ("valid", "", "invalid", "", "1", "1", "1", False),
+        # Invalid demo_url
+        ("valid", "", "", "invalid", "1", "1", "1", False),
+        # Invalid empty prep_uid
+        ("valid", "", "", "", "", "1", "1", False),
+        # Invalid prep_uid string
+        ("valid", "", "", "", "invalid", "1", "1", False),
+        # Invalid empty prep_uid
+        ("valid", "", "", "", "1", "", "1", False),
+        # Invalid prep_uid string
+        ("valid", "", "", "", "1", "invalid", "1", False),
+        # Invalid empty prep_uid
+        ("valid", "", "", "", "1", "1", "", False),
+        # Invalid prep_uid string
+        ("valid", "", "", "", "1", "1", "invalid", False),
+        # Valid full submission
+        (
+            "valid",
+            "desc",
+            "https://test.test",
+            "https://test.test",
+            "1",
+            "1",
+            "1",
+            True,
+        ),
+    ],
 )
-@pytest.mark.parametrize(
-    "desc", [("", True), ("valid", True), ("1" * DESC_MAX_LEN, False)]
-)
-@pytest.mark.parametrize(
-    "docs_url", [("", True), ("invalid", False), ("https://test.test", True)]
-)
-@pytest.mark.parametrize(
-    "demo_url", [("", True), ("invalid", False), ("https://test.test", True)]
-)
-@pytest.mark.parametrize("prep_uid", [("", False), ("1", True), ("test", False)])
-@pytest.mark.parametrize("model_uid", [("", False), ("1", True), ("test", False)])
-@pytest.mark.parametrize("eval_uid", [("", False), ("1", True), ("test", False)])
 def test_is_valid_passes_valid_fields(
-    comms, ui, name, desc, docs_url, demo_url, prep_uid, model_uid, eval_uid
+    comms,
+    ui,
+    name,
+    desc,
+    docs_url,
+    demo_url,
+    prep_uid,
+    model_uid,
+    eval_uid,
+    should_pass,
 ):
     # Arrange
     benchmark_info = {
-        "name": name[0],
-        "description": desc[0],
-        "docs_url": docs_url[0],
-        "demo_url": demo_url[0],
+        "name": name,
+        "description": desc,
+        "docs_url": docs_url,
+        "demo_url": demo_url,
         "demo_hash": "test",
-        "data_preparation_mlcube": prep_uid[0],
-        "reference_model_mlcube": model_uid[0],
-        "evaluator_mlcube": eval_uid[0],
+        "data_preparation_mlcube": prep_uid,
+        "reference_model_mlcube": model_uid,
+        "evaluator_mlcube": eval_uid,
     }
     submission = SubmitBenchmark(benchmark_info)
-    should_pass = all(
-        [
-            name[1],
-            desc[1],
-            docs_url[1],
-            demo_url[1],
-            prep_uid[1],
-            model_uid[1],
-            eval_uid[1],
-        ]
-    )
 
     # Act
     valid = submission.is_valid()
@@ -151,7 +175,7 @@ def test_get_extra_information_retrieves_expected_info(
     assert submission.results == results
 
 
-def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
+def test_run_compatibility_test_executes_test_with_force(mocker, benchmark, comms, ui):
     # Arrange
     bmk = benchmark("1", "2", "3", "4")
     benchmark_info = {
@@ -178,7 +202,7 @@ def test_run_compatibility_test_executes_test(mocker, benchmark, comms, ui):
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once()
+    comp_spy.assert_called_once_with(bmk.generated_uid, force_test=True)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):
@@ -224,6 +248,7 @@ def test_run_executes_expected_flow(mocker, result, comms, ui):
         PATCH_BENCHMARK.format("SubmitBenchmark.get_extra_information")
     )
     sub_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.submit"))
+    mv_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.to_permanent_path"))
     wr_spy = mocker.patch(PATCH_BENCHMARK.format("SubmitBenchmark.write"))
 
     # Act
@@ -233,4 +258,5 @@ def test_run_executes_expected_flow(mocker, result, comms, ui):
     val_spy.assert_called_once()
     extra_spy.assert_called_once()
     sub_spy.assert_called_once()
+    mv_spy.assert_called_once()
     wr_spy.assert_called_once()

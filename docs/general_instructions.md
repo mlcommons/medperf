@@ -2,7 +2,7 @@
 
 ## Installing MedPerf Dependencies
 
-MedPerf has some dependencies that must be installed by the user before being able to run it, including [MLCube ](#medperf-mlcubes)and the required runners (right now there are Docker and Singularity runners). Use the following command to install the dependencies:
+MedPerf has some dependencies that must be installed by the user before being able to run it, including [MLCube ](mlcubes.md#medperf-mlcubes)and the required runners (right now there are Docker and Singularity runners). Use the following command to install the dependencies:
 
 ```
 pip install mlcube mlcube-docker mlcube-singularity

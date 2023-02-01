@@ -11,18 +11,18 @@ MedPerf reduces the risks and costs associated with data sharing, maximizing med
 
 Anyone who joins our platform can get several benefits, regardless of the role they will assume. 
 
-**Benefits if you are a [Data Providers](#data-providers):**
+**Benefits if you are a [Data Providers](roles.md#data-providers):**
 
 * Evaluate how well machine learning models perform on your population’s data;
 * Connect to Model Owners to help them improve medical ML in a specific domain 
 * Help define impactful medical ML benchmarks;
 
-**Benefits if you are a [Model Owner](#model-owners):**
+**Benefits if you are a [Model Owner](roles.md#model-owners):**
 
 * Measure model performance on private datasets that you would never have access to;
 * Connect to specific Data Providers that can help you increase the performance of your model;
 
-**Benefits if you own a benchmark ([Benchmark Committee](#benchmark-committee)):**
+**Benefits if you own a benchmark ([Benchmark Committee](roles.md#benchmark-committee)):**
 
 * Hold a leading role in the MedPerf ecosystem by defining specifications of a benchmark for a particular medical ML task;
 * Get help to create a strong community around a specific area; 
@@ -41,7 +41,7 @@ Anyone who joins our platform can get several benefits, regardless of the role t
 A benchmark is a collection of assets used by the platform to test the performance of ML models for a specific clinical problem. The primary components of a benchmark are:
 
 1. **Specifications**: precise definition of the clinical setting (e.g., problem or task and specific patient population) on which trained ML models are to be evaluated. It also includes the labeling (annotation) methodology as well as the choice of evaluation metrics. 
-2. **Dataset Preparation**: a process that prepares datasets for use in evaluation, and can also test the prepared datasets for quality and compatibility. This is implemented as an MLCube (see [Data Preparator MLCube](#data-preparator-mlcube)).  
+2. **Dataset Preparation**: a process that prepares datasets for use in evaluation, and can also test the prepared datasets for quality and compatibility. This is implemented as an MLCube (see [Data Preparator MLCube](mlcubes.md#data-preparator-mlcube)).  
 3. **Registered Datasets**: a list of registered datasets prepared according to the benchmark criteria and approved for evaluation use by their owners (e.g. patient data from multiple facilities representing (as a whole) a diverse patient population). 
 4. **Evaluation**: a consistent implementation of the testing pipelines and evaluation metrics. 
 5. **Reference Implementation**: a detailed example of a benchmark submission consisting of example model code, the evaluation component, and de-identified or synthetic publicly available sample data. 

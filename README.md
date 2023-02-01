@@ -13,7 +13,10 @@ Inside this repo you can find all important pieces for running MedPerf. In its c
 - ### Results from our Pilots:
   In the `examples` folder we have the results from the following Pilots
   
-## Pilots
+## Experiments
+
+**NEWS 12/12/22**: MedPerf also powered the 2022 FeTS Challenge - the largest medical federated learning study - More details at [https://www.businesswire.com/news/home/20221205005170/en/](https://www.businesswire.com/news/home/20221205005170/en/). This page will be updated accordingly once all material will be finalized.
+
 In order to validate MedPerf we performed a series of pilot experiments with academic groups that are involved in multi-institutional collaborations for the purposes of research and development of medical AI models. The experiments were intentionally designed to include a diversity of domains and modalities in order to test MedPerf’s infrastructure adaptance. The experiments included public and private data highlighting the technical capabilities of MedPerf to operate on private data. We also asked participating teams to provide feedback on their experience with MedPerf (e.g., limitations, issues). 
 
 **Data sources**
@@ -22,7 +25,7 @@ The figure below displays the data provider locations used in all pilot experime
 
 ![image](https://user-images.githubusercontent.com/25375373/163238058-6cf16f00-5238-4c80-8b58-d86f291a5bcf.png)
 
-### Pilot 1 - Brain Tumor Segmentation
+### POC 1 - Brain Tumor Segmentation
 
 **Participating institutions**
 
@@ -43,7 +46,7 @@ The BraTS 2020 challenge dataset is a retrospective collection of 2,640 brain gl
 
 [github.com/mlcommons/medperf/tree/main/examples/BraTS](https://github.com/mlcommons/medperf/tree/main/examples/BraTS)
 
-### Pilot 2 - Pancreas Segmentation
+### POC 2 - Pancreas Segmentation
 
 **Participating institutions**
 
@@ -62,7 +65,7 @@ We utilized two separate datasets for the pilot experiment. The first of which i
 
 [github.com/mlcommons/medperf/tree/main/examples/DFCI](https://github.com/mlcommons/medperf/tree/main/examples/DFCI)
 
-### Pilot 3 - Surgical Workflow Phase Recognition
+### POC 3 - Surgical Workflow Phase Recognition
 
 **Participating institutions**
 
@@ -84,7 +87,7 @@ The data we used corresponds to [Multichole2022](https://arxiv.org/abs/2203.0734
 
 [github.com/mlcommons/medperf/tree/main/examples/SurgMLCube](https://github.com/mlcommons/medperf/tree/main/examples/SurgMLCube)
 
-### Pilot 4 - Cloud Experiments
+### POC 4 - Cloud Experiments
 
 **Task**
 
@@ -97,7 +100,7 @@ Here we used data and processes from Pilot #1 and #2.
 
 **Code**
 
-[github.com/mlcommons/medperf/tree/main/examples/Chest XRay](https://github.com/mlcommons/medperf/tree/main/examples/Chest%20XRay)
+[github.com/mlcommons/medperf/tree/main/examples/ChestXRay](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay)
 
 **Architecture**
 
@@ -196,3 +199,16 @@ Once all the requirements are met, running `sh test.sh` will:
 - Retrieve the demo dataset
 - Run the CLI demo using `cli/cli.sh`
 - cleanup temporary files
+
+## Documentation Contribution
+If you wish to contribute to our documentation, here are the steps for successfully building and serving documentation locally:
+
+- **Install dependencies:** We are currently using mkdocs for serving documentation. You can install all the requirements by running the following command:
+  ```
+  pip install -r docs/requirements.txt
+  ``` 
+- **Serve local documentation:** To run your own local server for visualizing documentation, run:
+  ```
+  mkdocs serve
+  ```
+- **Access local documentation:** Once mkdocs is done setting up the server, you should be able to access your local documentation website by heading to `http:/localhost:8000` on your browser.

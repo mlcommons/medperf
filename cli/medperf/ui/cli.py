@@ -100,3 +100,12 @@ class CLI(UI):
             str: user input
         """
         return getpass(msg)
+
+    def print_highlight(self, msg: str = ""):
+        """Display a highlighted message
+
+        Args:
+            msg (str): message to print
+        """
+        msg = typer.style(msg, fg=typer.colors.GREEN)
+        self.__print(msg)

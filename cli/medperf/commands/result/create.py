@@ -9,19 +9,23 @@ from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
     init_storage,
-    pretty_error,
-    results_path,
     storage_path,
     cleanup,
 )
 import medperf.config as config
+from medperf.exceptions import InvalidArgumentError, ExecutionError
 import yaml
 
 
 class BenchmarkExecution:
     @classmethod
     def run(
-        cls, benchmark_uid: int, data_uid: str, model_uid: int, run_test=False,
+        cls,
+        benchmark_uid: int,
+        data_uid: str,
+        model_uid: int,
+        run_test=False,
+        ignore_errors=False,
     ):
         """Benchmark execution flow.
 
@@ -30,17 +34,23 @@ class BenchmarkExecution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, run_test)
+        execution = cls(benchmark_uid, data_uid, model_uid, run_test, ignore_errors)
         execution.prepare()
         execution.validate()
         with execution.ui.interactive():
             execution.get_cubes()
             execution.run_cubes()
-        execution.write()
+        result_uid = execution.write()
         execution.remove_temp_results()
+        return result_uid
 
     def __init__(
-        self, benchmark_uid: int, data_uid: int, model_uid: int, run_test=False,
+        self,
+        benchmark_uid: int,
+        data_uid: int,
+        model_uid: int,
+        run_test=False,
+        ignore_errors=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -50,22 +60,18 @@ class BenchmarkExecution:
         self.evaluator = None
         self.model_cube = None
         self.run_test = run_test
+        self.ignore_errors = ignore_errors
+        self.metadata = {"partial": False}
 
     def prepare(self):
         init_storage()
         # If not running the test, redownload the benchmark
-        update_bmk = not self.run_test
-        self.benchmark = Benchmark.get(self.benchmark_uid, force_update=update_bmk)
+        self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
-        self.dataset = Dataset.from_generated_uid(self.data_uid)
-        if not self.run_test:
-            self.out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.uid
-            )
-        else:
-            self.out_path = results_path(
-                self.benchmark_uid, self.model_uid, self.dataset.generated_uid
-            )
+        self.dataset = Dataset.get(self.data_uid)
+        dset_uid = self.dataset.generated_uid
+        result_uid = f"b{self.benchmark_uid}m{self.model_uid}d{dset_uid}"
+        self.out_path = os.path.join(storage_path(config.results_storage), result_uid)
 
     def validate(self):
         dset_prep_cube = str(self.dataset.preparation_cube_uid)
@@ -73,15 +79,16 @@ class BenchmarkExecution:
 
         if self.dataset.uid is None and not self.run_test:
             msg = "The provided dataset is not registered."
-            pretty_error(msg)
+            raise InvalidArgumentError(msg)
 
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
-            pretty_error(msg)
+            raise InvalidArgumentError(msg)
 
         in_assoc_cubes = self.model_uid in self.benchmark.models
         if not self.run_test and not in_assoc_cubes:
-            pretty_error("The provided model is not part of the specified benchmark.")
+            msg = "The provided model is not part of the specified benchmark."
+            raise InvalidArgumentError(msg)
 
     def get_cubes(self):
         evaluator_uid = self.benchmark.evaluator
@@ -100,7 +107,7 @@ class BenchmarkExecution:
         evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
         model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.generated_uid)
+        data_uid = str(self.dataset.uid)
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
@@ -112,12 +119,19 @@ class BenchmarkExecution:
                 timeout=infer_timeout,
                 data_path=data_path,
                 output_path=preds_path,
-                string_params={
-                    "Ptasks.infer.parameters.input.data_path.opts": "ro"
-                },
+                string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
             )
             self.ui.print("> Model execution complete")
 
+        except ExecutionError as e:
+            if not self.ignore_errors:
+                logging.error(f"Model MLCube Execution failed: {e}")
+                cleanup([preds_path])
+                raise ExecutionError("Model MLCube failed")
+            else:
+                self.metadata["partial"] = True
+                logging.warning(f"Model MLCube Execution failed: {e}")
+        try:
             self.ui.text = "Evaluating results"
             self.evaluator.run(
                 task="evaluate",
@@ -127,26 +141,28 @@ class BenchmarkExecution:
                 output_path=out_path,
                 string_params={
                     "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-                    "Ptasks.evaluate.parameters.input.labels.opts": "ro"
-                }
+                    "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+                },
             )
-        except RuntimeError as e:
-            logging.error(f"MLCube Execution failed: {e}")
-            cleanup([preds_path, out_path])
-            pretty_error("Benchmark execution failed")
+        except ExecutionError as e:
+            if not self.ignore_errors:
+                logging.error(f"Metrics MLCube Execution failed: {e}")
+                cleanup([preds_path, out_path])
+                raise ExecutionError("Metrics MLCube failed")
+            else:
+                self.metadata["partial"] = True
+                logging.warning(f"Metrics MLCube Execution failed: {e}")
 
     def todict(self):
-        data_uid = self.dataset.generated_uid if self.run_test else self.dataset.uid
-
         return {
             "id": None,
-            "name": f"{self.benchmark_uid}_{self.model_uid}_{data_uid}",
+            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
             "owner": None,
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
-            "dataset": data_uid,
+            "dataset": self.data_uid,
             "results": self.get_temp_results(),
-            "metadata": {},
+            "metadata": self.metadata,
             "approval_status": Status.PENDING.value,
             "approved_at": None,
             "created_at": None,
@@ -167,3 +183,4 @@ class BenchmarkExecution:
         results_info = self.todict()
         result = Result(results_info)
         result.write()
+        return result.generated_uid
