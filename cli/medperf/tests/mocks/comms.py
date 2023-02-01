@@ -28,7 +28,7 @@ def mock_comms_entity_gets(
             - get_user
             - get_instance
             - upload_instance
-        all_ids (List[Union[str, Dict]]): List of ids or configurations that should be returned by the all endpoint
+        all_ids (List[Union[str, Dict]]): List of ids or curations that should be returned by the all endpoint
         user_ids (List[Union[str, Dict]]): List of ids or configurations that should be returned by the user endpoint
         uploaded (List): List that will be updated with uploaded instances
     """

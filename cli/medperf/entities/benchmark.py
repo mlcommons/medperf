@@ -51,6 +51,7 @@ class Benchmark(Entity):
         self.metadata = bmk_dict["metadata"]
         self.user_metadata = bmk_dict["user_metadata"]
 
+        # WARNING: multiple benchmarks can have the same generated uid
         self.generated_uid = (
             f"p{self.data_preparation}m{self.reference_model}e{self.evaluator}"
         )
