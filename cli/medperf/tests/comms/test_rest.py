@@ -458,7 +458,7 @@ def test_get_cube_image_uses_cache_if_available(mocker, server, url):
     mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
 
     # Act
-    server.get_cube_image(url, "hash", "cube/1")
+    server.get_cube_image(url, "cube/1", "hash")
 
     # Assert
     spy.assert_not_called()
@@ -481,7 +481,7 @@ def test_get_cube_image_retrieves_image_if_not_local(mocker, server, url):
     mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
 
     # Act
-    server.get_cube_image(url, "hash", cube_path)
+    server.get_cube_image(url, cube_path, "hash")
 
     # Assert
     spy.assert_called_once_with(url, cube_path, config.image_path, exp_filename)

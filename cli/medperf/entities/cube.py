@@ -220,7 +220,7 @@ class Cube(Entity):
         hash = self.image_tarball_hash
 
         if url:
-            path, local_hash = config.comms.get_cube_image(url, hash, self.path)
+            path, local_hash = config.comms.get_cube_image(url, self.path, hash)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
             untar(path)

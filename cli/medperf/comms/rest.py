@@ -348,15 +348,15 @@ class REST(Comms):
         tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_path, add_path, tball_file)
 
-    def get_cube_image(self, url: str, hash: str, cube_path: str) -> str:
+    def get_cube_image(self, url: str, cube_path: str, hash: str = None) -> str:
         """Retrieves and stores the image file from the server. Stores images
         on a shared location, and retrieves a cached image by hash if found locally.
         Creates a symbolic link to the cube storage.
 
         Args:
             url (str): URL where the image file can be downloaded.
-            hash (str): File hash to store under shared storage.
-            cube_path (path): Cube UID.
+            cube_path (str): Path to cube.
+            hash (str, Optional): File hash to store under shared storage. Defaults to None.
 
         Returns:
             str: Location where the image file is stored locally.
