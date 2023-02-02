@@ -496,7 +496,7 @@ def test_get_cube_metadata_returns_retrieved_body(mocker, server, exp_body):
 
 
 @pytest.mark.parametrize(
-    "method", ["get_cube", "get_cube_params", "get_cube_additional", "get_cube_image"]
+    "method", ["get_cube", "get_cube_params", "get_cube_additional"]
 )
 def test_get_cube_methods_run_get_cube_file(mocker, server, method):
     # Arrange
@@ -515,18 +515,46 @@ def test_get_cube_methods_run_get_cube_file(mocker, server, method):
 @pytest.mark.parametrize(
     "url", ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"]
 )
-def test_get_cube_image_uses_correct_name(mocker, server, url):
+def test_get_cube_image_uses_cache_if_available(mocker, server, url):
     # Arrange
     spy = mocker.patch(
-        patch_server.format("REST._REST__get_cube_file"), return_value=""
+        patch_server.format("REST._REST__get_cube_file"), return_value=("", "")
     )
     exp_filename = url.split("/")[-1]
+    mocker.patch("os.makedirs")
+    mocker.patch("os.path.exists", return_value=True)
+    mocker.patch("os.symlink")
+    mocker.patch("os.unlink")
+    mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
 
     # Act
-    server.get_cube_image(url, 1)
+    server.get_cube_image(url, "hash", "cube/1")
 
     # Assert
-    spy.assert_called_once_with(url, 1, config.image_path, exp_filename)
+    spy.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "url", ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"]
+)
+def test_get_cube_image_retrieves_image_if_not_local(mocker, server, url):
+    # Arrange
+    spy = mocker.patch(
+        patch_server.format("REST._REST__get_cube_file"), return_value=("", "")
+    )
+    cube_path = "cube/1"
+    exp_filename = url.split("/")[-1]
+    mocker.patch("os.makedirs")
+    mocker.patch("os.path.exists", return_value=False)
+    mocker.patch("os.symlink")
+    mocker.patch("shutil.move")
+    mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
+
+    # Act
+    server.get_cube_image(url, "hash", cube_path)
+
+    # Assert
+    spy.assert_called_once_with(url, cube_path, config.image_path, exp_filename)
 
 
 def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
@@ -546,18 +574,18 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
 
 def test_get_cube_file_writes_to_file(mocker, server):
     # Arrange
-    cube_uid = 1
+    cube_path = "cubes/1"
     path = "path"
     filename = "filename"
     res = MockResponse({}, 200)
     mocker.patch("requests.get", return_value=res)
-    mocker.patch(patch_server.format("cube_path"), return_value="")
     mocker.patch("os.path.isdir", return_value=True)
-    filepath = os.path.join(path, filename)
+    mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
+    filepath = os.path.join(cube_path, path, filename)
     spy = mocker.patch("builtins.open", mock_open())
 
     # Act
-    server._REST__get_cube_file(url, cube_uid, path, filename)
+    server._REST__get_cube_file(url, cube_path, path, filename)
 
     # Assert
     spy.assert_called_once_with(filepath, "wb+")
