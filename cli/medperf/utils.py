@@ -8,7 +8,7 @@ import random
 import hashlib
 import logging
 import tarfile
-import configparser
+from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
@@ -23,17 +23,40 @@ import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
 
 
+def delete_credentials():
+    config_p = read_config()
+    del config_p.active_profile[config.credentials_keyword]
+    write_config(config_p)
+
+
+def set_credentials(token):
+    config_p = read_config()
+    config_p.active_profile[config.credentials_keyword] = token
+    write_config(config_p)
+
+
+def read_credentials():
+    config_p = read_config()
+    token = config_p.active_profile.get(config.credentials_keyword, None)
+    return token
+
+
+def default_profile():
+    # NOTE: this function is only usable before config is actually initialized.
+    # using this function when another profile is activated will not load the defaults
+    return {param: getattr(config, param) for param in config.configurable_parameters}
+
+
 def read_config():
-    config_p = configparser.ConfigParser()
+    config_p = ConfigManager()
     config_path = base_storage_path(config.config_path)
     config_p.read(config_path)
     return config_p
 
 
-def write_config(config_p: configparser.ConfigParser):
+def write_config(config_p: ConfigManager):
     config_path = base_storage_path(config.config_path)
-    with open(config_path, "w") as f:
-        config_p.write(f)
+    config_p.write(config_path)
 
 
 def set_custom_config(args: dict):
@@ -45,24 +68,6 @@ def set_custom_config(args: dict):
     for param in args:
         val = args[param]
         setattr(config, param, val)
-
-
-def load_config(profile: str) -> dict:
-    """Loads the configuration parameters associated to a profile
-
-    Args:
-        profile (str): profile name
-
-    Returns:
-        dict: configuration parameters
-    """
-    config_p = read_config()
-    # Set current profile
-    if profile == "active":
-        # Special case. Get the profile that has been assigned as active
-        profile = config_p[profile]["profile"]
-    config.profile = profile
-    return config_p[profile]
 
 
 def storage_path(subpath: str):
@@ -127,18 +132,19 @@ def init_storage():
 def init_config():
     """builds the initial configuration file
     """
+    os.makedirs(config.storage, exist_ok=True)
     config_file = base_storage_path(config.config_path)
     if os.path.exists(config_file):
         return
-    config_p = configparser.ConfigParser()
-    config_p["default"] = {}
-    config_p["active"] = {"profile": "default"}
-    config_p["test"] = {}
-    config_p["test"]["server"] = config.local_server
-    config_p["test"]["certificate"] = config.local_certificate
 
-    with open(config_file, "w") as f:
-        config_p.write(f)
+    config_p = ConfigManager()
+    config_p[config.default_profile_name] = default_profile()
+    config_p[config.test_profile_name] = default_profile()
+    config_p[config.test_profile_name]["server"] = config.local_server
+    config_p[config.test_profile_name]["certificate"] = config.local_certificate
+
+    config_p.activate(config.default_profile_name)
+    config_p.write(config_file)
 
 
 def set_unique_tmp_config():
@@ -150,7 +156,6 @@ def set_unique_tmp_config():
     config.tmp_prefix += pid
     config.test_dset_prefix += pid
     config.test_cube_prefix += pid
-    config.cube_submission_id += pid
 
 
 def cleanup(extra_paths: List[str] = []):
@@ -205,10 +210,7 @@ def cleanup_cubes():
     cubes_path = storage_path(config.cubes_storage)
     cubes = get_uids(cubes_path)
     test_prefix = config.test_cube_prefix
-    submission = config.cube_submission_id
-    clutter_cubes = [
-        cube for cube in cubes if cube.startswith(test_prefix) or cube == submission
-    ]
+    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
 
     for cube in clutter_cubes:
         logging.info(f"Removing clutter cube: {cube}")
@@ -273,18 +275,6 @@ def pretty_error(msg: str, clean: bool = True):
     if clean:
         cleanup()
     sys.exit(1)
-
-
-def cube_path(uid: int) -> str:
-    """Gets the path for a given cube.
-
-    Args:
-        uid (int): Cube UID.
-
-    Returns:
-        str: Location of the cube folder structure.
-    """
-    return os.path.join(storage_path(config.cubes_storage), str(uid))
 
 
 def generate_tmp_datapath() -> Tuple[str, str]:
@@ -376,7 +366,7 @@ def approval_prompt(msg: str) -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(in_dict: dict):
+def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -386,7 +376,8 @@ def dict_pretty_print(in_dict: dict):
     ui = config.ui
     ui.print()
     ui.print("=" * 20)
-    in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+    if skip_none_values:
+        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
     ui.print(yaml.dump(in_dict))
     logging.debug(f"Dictionary printed to the user: {in_dict}")
     ui.print("=" * 20)

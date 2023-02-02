@@ -42,6 +42,7 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
             "benchmark": 1,
             "initiated_by": 1,
             "approval_status": Status.REJECTED.value,
+            "priority": 2,
         }
     ]
     mocker.patch.object(comms, "get_datasets_associations", return_value=dset_assocs)
@@ -54,6 +55,6 @@ def test_run_filters_associations_by_filter(mocker, comms, ui, filter):
     # Assert
     tab_call = tab_spy.call_args_list[0]
     assocs_data = tab_call[0][0]
-    status_set = set([assoc[-1] for assoc in assocs_data])
+    status_set = set([assoc[-2] for assoc in assocs_data])
     assert len(status_set) == 1
     assert filter.upper() in status_set

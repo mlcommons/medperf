@@ -70,25 +70,6 @@ def test_set_custom_config_modifies_config_params(param):
     assert recovered_args == backup_args
 
 
-def test_load_config_reads_profile_from_config_file(mocker):
-    # Arrange
-    profile = "profile"
-    exp_config = {"test": "test"}
-    config_path = utils.base_storage_path(config.config_path)
-    spy_read = mocker.patch("configparser.ConfigParser.read")
-    spy_get = mocker.patch(
-        "configparser.ConfigParser.__getitem__", return_value=exp_config
-    )
-
-    # Act
-    config_params = utils.load_config(profile)
-
-    # Assert
-    spy_read.assert_called_once_with(config_path)
-    spy_get.assert_called_once_with(profile)
-    assert config_params == exp_config
-
-
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
 def test_get_file_sha1_opens_specified_file(mocker, file):
     # Arrange
@@ -147,7 +128,6 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     tmp_prefix = utils.config.tmp_prefix
     test_dset_prefix = utils.config.test_dset_prefix
     test_cube_prefix = utils.config.test_cube_prefix
-    cube_submission_id = utils.config.cube_submission_id
     pid = str(pid)
 
     # Act
@@ -158,14 +138,12 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     assert utils.config.tmp_prefix.endswith(pid)
     assert utils.config.test_dset_prefix.endswith(pid)
     assert utils.config.test_cube_prefix.endswith(pid)
-    assert utils.config.cube_submission_id.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
     utils.config.tmp_prefix = tmp_prefix
     utils.config.test_dset_prefix = test_dset_prefix
     utils.config.test_cube_prefix = test_cube_prefix
-    utils.config.cube_submission_id = cube_submission_id
 
 
 def test_cleanup_removes_temporary_storage(mocker):

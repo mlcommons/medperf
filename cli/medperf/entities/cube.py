@@ -73,24 +73,19 @@ class Cube(Entity):
         self.created_at = cube_dict["created_at"]
         self.modified_at = cube_dict["modified_at"]
 
-        cubes_storage = storage_path(config.cubes_storage)
-        self.cube_path = os.path.join(
-            cubes_storage, str(self.uid), config.cube_filename
-        )
-        self.params_path = None
-        if self.git_parameters_url:
-            self.params_path = os.path.join(
-                cubes_storage, str(self.uid), config.params_filename
-            )
-
         self.generated_uid = self.name
         path = storage_path(config.cubes_storage)
         if self.uid:
             path = os.path.join(path, str(self.uid))
         else:
             path = os.path.join(path, str(self.generated_uid))
-
+        # NOTE: maybe have these as @property, to have the same entity reusable
+        #       before and after submission
         self.path = path
+        self.cube_path = os.path.join(path, config.cube_filename)
+        self.params_path = None
+        if self.git_parameters_url:
+            self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
     def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Cube"]:
@@ -232,7 +227,7 @@ class Cube(Entity):
             return local_hash
         else:
             # Retrieve image from image registry
-            logging.debug(f"Retrieving {self.uid} image")
+            logging.debug(f"Retrieving {self.path} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
             proc = pexpect.spawn(cmd)
             proc_out = combine_proc_sp_text(proc)
@@ -271,7 +266,7 @@ class Cube(Entity):
                 if local_hashes[key] != server_hashes[key]:
                     valid_hashes = False
                     msg = f"{key.replace('_', ' ')} doesn't match"
-                    config.ui.print_error(msg)
+                    logging.warning(msg)
 
         return valid_cube and valid_hashes
 
@@ -376,19 +371,13 @@ class Cube(Entity):
         return updated_cube_dict
 
     def get_local_hashes(self):
-        cubes_storage = storage_path(config.cubes_storage)
-        local_hashes_file = os.path.join(
-            cubes_storage, str(self.uid), config.cube_hashes_filename
-        )
+        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
         with open(local_hashes_file, "r") as f:
             local_hashes = yaml.safe_load(f)
         return local_hashes
 
     def store_local_hashes(self, local_hashes):
-        cubes_storage = storage_path(config.cubes_storage)
-        local_hashes_file = os.path.join(
-            cubes_storage, str(self.uid), config.cube_hashes_filename
-        )
+        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
         with open(local_hashes_file, "w") as f:
             yaml.dump(local_hashes, f)
 
