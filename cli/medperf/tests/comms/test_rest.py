@@ -2,7 +2,7 @@ import os
 from medperf.exceptions import CommunicationRequestError, CommunicationRetrievalError
 import pytest
 import requests
-from unittest.mock import mock_open, ANY, call
+from unittest.mock import ANY, call
 
 from medperf import config
 from medperf.enums import Status
@@ -122,7 +122,6 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     [
         ("get_benchmark", [1], {}, CommunicationRetrievalError),
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
-        ("_REST__get_cube_file", ["", 1, "", ""], {}, CommunicationRetrievalError),
         ("upload_dataset", [{}], {"id": 1}, CommunicationRequestError),
         ("upload_result", [{}], {"id": 1}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
@@ -474,22 +473,19 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     spy.assert_called_once_with(f"{url}/me/mlcubes/")
 
 
-def test_get_cube_file_writes_to_file(mocker, server):
+def test_get_cube_file_calls_download_direct_link_method(mocker, server):
     # Arrange
     cube_path = "path/to/cube"
     path = "path"
     filename = "filename"
-    res = MockResponse({}, 200)
-    mocker.patch("requests.get", return_value=res)
-    mocker.patch("os.path.isdir", return_value=True)
+    spy = mocker.patch(patch_server.format("REST._REST__download_direct_link"))
     filepath = os.path.join(cube_path, path, filename)
-    spy = mocker.patch("builtins.open", mock_open())
 
     # Act
     server._REST__get_cube_file(url, cube_path, path, filename)
 
     # Assert
-    spy.assert_called_once_with(filepath, "wb+")
+    spy.assert_called_once_with(url, filepath)
 
 
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
@@ -703,3 +699,30 @@ def test_set_mlcube_association_priority_sets_priority(
 
     # Assert
     spy.assert_called_once_with(exp_url, json={"priority": priority})
+
+
+def test_download_direct_link_works_as_expected(mocker, server, fs):
+    # Arrange
+    filename = "filename"
+    res = MockResponse({}, 200)
+    iter_spy = mocker.patch.object(res, "iter_content", return_value=[b"some", b"text"])
+    get_spy = mocker.patch(patch_server.format("requests.get"), return_value=res)
+
+    # Act
+    server._REST__download_direct_link(url, filename)
+
+    # Assert
+    assert open(filename).read() == "sometext"
+    get_spy.assert_called_once_with(url, stream=True)
+    iter_spy.assert_called_once_with(chunk_size=config.ddl_stream_chunk_size)
+
+
+def test_download_direct_link_raises_for_failed_request(mocker, server):
+    # Arrange
+    filename = "filename"
+    res = MockResponse({}, 404)
+    mocker.patch(patch_server.format("requests.get"), return_value=res)
+
+    # Act & Assert
+    with pytest.raises(CommunicationRetrievalError):
+        server._REST__download_direct_link(url, filename)
