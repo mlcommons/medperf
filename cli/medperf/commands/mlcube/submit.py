@@ -134,7 +134,6 @@ class SubmitCube:
         cubes_storage = storage_path(config.cubes_storage)
         old_cube_loc = os.path.join(cubes_storage, cube.generated_uid)
         new_cube_loc = cube.path
-        # TODO: Things are getting stored in cube id None
         if os.path.exists(new_cube_loc):
             shutil.rmtree(new_cube_loc)
         os.rename(old_cube_loc, new_cube_loc)
