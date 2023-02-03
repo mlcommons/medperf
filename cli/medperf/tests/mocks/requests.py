@@ -15,6 +15,15 @@ class MockResponse:
         text = "\n".join(strings)
         return text.encode()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+    def iter_content(self, *args, **kwargs):
+        pass
+
 
 def benchmark_body(benchmark_uid):
     return benchmark_dict(
