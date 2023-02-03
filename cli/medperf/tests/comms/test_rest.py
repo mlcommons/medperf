@@ -450,7 +450,6 @@ def test_get_cube_image_uses_cache_if_available(mocker, server, url):
     spy = mocker.patch(
         patch_server.format("REST._REST__get_cube_file"), return_value=("", "")
     )
-    exp_filename = url.split("/")[-1]
     mocker.patch("os.makedirs")
     mocker.patch("os.path.exists", return_value=True)
     mocker.patch("os.symlink")

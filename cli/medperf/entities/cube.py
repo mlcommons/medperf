@@ -6,7 +6,6 @@ from typing import List, Dict
 from pathlib import Path
 
 from medperf.utils import (
-    get_file_sha1,
     untar,
     combine_proc_sp_text,
     list_files,

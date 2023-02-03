@@ -3,7 +3,6 @@ import requests
 import logging
 import os
 import shutil
-import configparser
 
 from medperf.enums import Status
 import medperf.config as config
