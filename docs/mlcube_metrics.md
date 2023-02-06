@@ -4,27 +4,27 @@ Specifically, a metrics MLCube receives two inputs: the `predictions` made by th
 ## How to run:
 This template was built so it could work out of the box. Follow the next steps:
 
-1. Clone the repository
-2. Navigate to the repository:
+1. Clone the repository.
+2. Navigate to the repository with
 
    ```bash
    cd mlcube_examples
    ```
-3. Install mlcube and mlcube-docker:
+3. Install mlcube and mlcube-docker using
 
    ```bash
    pip install mlcube mlcube-docker
    ```
-4. Navigate to the current example's `mlcube` folder:
+4. Navigate to the current example's `mlcube` folder using the following command:
 
    ```bash
    cd medperf/metrics/mlcube
    ```
-5. Run the `evaluate` task with mlcube
+5. Run the `evaluate` task with mlcube:
    ```bash
    mlcube run --task=infer -Pdocker.build_strategy=auto
    ```
-6. View the results in the `results.yaml` file:
+6. View the results in the `results.yaml` file using
    ```bash
    cat workspace/results.yaml
    ```
@@ -104,13 +104,12 @@ MLCubes usually share a similar folder and file structure. Here's a brief descri
    Due to size or usability constraints, you may require additional files that should not be packaged inside the mlcube, like weights. For these cases, we provide an additional folder called `additional_files`. 
 Here, you can provide any other files that should be present during inference. At the time of mlcube registration, this folder must be compressed into a tarball `.tar.gz` and hosted somewhere on the web. 
 
-MedPerf will then be able to download, verify and reposition those files in the expected location for mlcube execution. 
-
+   MedPerf will then be able to download, verify and reposition those files in the expected location for mlcube execution. 
 
 
 4. __`project`__: 
-   
-       Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
+
+   Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and requirements for running the code.
 
 5. __`project/mlcube.py`__:
    
