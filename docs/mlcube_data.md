@@ -7,8 +7,8 @@ At the time of writing, Data Preparators are in charge of standardizing the inpu
 ## How to run:
 This template was built in a way it works out of the box. You can follow the next steps to get started:
 
-1. Clone the repository
-2. Navigate to the `mlcube_examples` directory within the repository
+1. Clone the repository.
+2. Navigate to the `mlcube_examples` directory within the repository with
    ```bash
    cd mlcube_examples
    ```
@@ -17,7 +17,7 @@ This template was built in a way it works out of the box. You can follow the nex
    ```bash
    pip install mlcube mlcube-docker
    ```
-4. Change to the current example's `mlcube` folder
+4. Change to the current example's `mlcube` folder with
 
    ```bash
    cd medperf/data_preparator/mlcube
@@ -26,19 +26,19 @@ This template was built in a way it works out of the box. You can follow the nex
    ```bash
    mlcube run --task=prepare
    ```
-6. Check the resulting data
+6. Check the resulting data using
    ```bash
    ls workspace/data
    ```
-7. Run the `sanity_check` task
+7. Run the `sanity_check` task with
     ```bash
     mlcube run --task=sanity_check
     ```
-8. Run the `statistics` task
+8. Run the `statistics` task using
     ```bash
     mlcube run --task=statistics
     ``` 
-9. Check the resulting statistics
+9. Check the resulting statistics using the following command:
     ```bash
     cat workspace/statistics.yaml
     ```
@@ -46,7 +46,7 @@ That's it! You just built and ran a hello-world data preparator mlcube!
 
 ## Contents
 
-MLCubes usually share similar folder and file structures. Here's a brief description of the role for the relevant files
+MLCubes usually share similar folder and file structures. In this section we provide a brief description of the role for the relevant files.
 
 1. __`mlcube/mlcube.yaml`__: 
 
@@ -123,11 +123,11 @@ MLCubes usually share similar folder and file structures. Here's a brief descrip
 
 2. __`mlcube/workspace/parameters.yaml`__:
 
-   This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, as in this example.
+   This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, like in this example.
 
 3. __`project`__: 
-   
-       Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
+
+   Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and requirements for running the code.
     
 5. __`project/mlcube.py`__: 
    
