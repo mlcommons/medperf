@@ -111,7 +111,7 @@ class Result(Entity, ApprovableSchema):
         the local instance
 
         Args:
-            result_uid (str): UID /f the Result instance
+            result_uid (str): UID of the Result instance
 
         Returns:
             Result: Specified Result instance
