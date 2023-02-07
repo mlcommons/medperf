@@ -279,6 +279,16 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Changing priority of model2"
+echo "====================================="
+medperf association set_priority -b $BMK_UID -m $MODEL2_UID -p 77
+checkFailed "Priority set failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Login with dataowner"
 echo "====================================="
 medperf login --username=$DATAOWNER --password=test
