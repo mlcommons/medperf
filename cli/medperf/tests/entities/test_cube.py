@@ -50,7 +50,7 @@ def comms(mocker):
 @pytest.fixture
 def no_local(mocker):
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
     mocker.patch(PATCH_CUBE.format("Cube.all"), return_value=[])
 
@@ -60,7 +60,7 @@ def basic_body(mocker, comms):
     body_gen = cube_metadata_generator()
     mocker.patch.object(comms, "get_cube_metadata", side_effect=body_gen)
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
     mocker.patch(PATCH_CUBE.format("Cube.store_local_hashes"))
     mocker.patch(PATCH_CUBE.format("Cube.write"))
@@ -75,7 +75,7 @@ def params_body(mocker, comms):
     body_gen = cube_metadata_generator(with_params=True)
     mocker.patch.object(comms, "get_cube_metadata", side_effect=body_gen)
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
     mocker.patch(PATCH_CUBE.format("Cube.store_local_hashes"))
     mocker.patch(PATCH_CUBE.format("Cube.write"))
@@ -90,7 +90,7 @@ def tar_body(mocker, comms):
     body_gen = cube_metadata_generator(with_tarball=True)
     mocker.patch.object(comms, "get_cube_metadata", side_effect=body_gen)
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
     mocker.patch(PATCH_CUBE.format("Cube.store_local_hashes"))
     mocker.patch(PATCH_CUBE.format("Cube.write"))
@@ -432,7 +432,7 @@ def test_get_cube_deletes_cube_if_failed(mocker, comms, basic_body, no_local, ui
 
 def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_local):
     # Arrange
-    spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+    spy = mocker.spy(medperf.entities.cube, "spawn")
     expected_cmd = f"mlcube configure --mlcube={CUBE_PATH}"
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
 
@@ -446,7 +446,7 @@ def test_get_cube_without_image_configures_mlcube(mocker, comms, basic_body, no_
 
 def test_get_cube_with_image_isnt_configured(mocker, comms, img_body, no_local):
     # Arrange
-    spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+    spy = mocker.spy(medperf.entities.cube, "spawn")
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=True)
 
     # Act
@@ -553,10 +553,10 @@ def test_cube_runs_command_with_pexpect(
 ):
     # Arrange
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
-    spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+    spy = mocker.spy(medperf.entities.cube, "spawn")
     task = "task"
     platform = config.platform
     expected_cmd = (
@@ -575,7 +575,7 @@ def test_cube_runs_command_with_pexpect(
 def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_local):
     # Arrange
     mpexpect = MockPexpect(0)
-    spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+    spy = mocker.patch("spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), side_effect=[False, True])
     mocker.patch(PATCH_CUBE.format("list_files"), return_value="")
     task = "task"
@@ -594,7 +594,7 @@ def test_cube_runs_command_with_extra_args(mocker, ui, comms, basic_body, no_loc
 def test_run_stops_execution_if_child_fails(mocker, ui, comms, basic_body, no_local):
     # Arrange
     mpexpect = MockPexpect(1)
-    mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+    mocker.patch("spawn", side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("Cube.is_valid"), return_value=True)
     task = "task"
 

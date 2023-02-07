@@ -13,11 +13,15 @@ from glob import glob
 import json
 from pathlib import Path
 from shutil import rmtree
-from pexpect import spawn
 from datetime import datetime
 from typing import List, Tuple
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
+
+if sys.platform == "win32":
+    from wexpect import spawn
+else:
+    from pexpect import spawn
 
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
