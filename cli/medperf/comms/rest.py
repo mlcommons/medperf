@@ -361,7 +361,8 @@ class REST(Comms):
             str: Location where the image file is stored locally.
         """
         image_path = config.image_path
-        image_name = url.split("/")[-1]
+        image_name = url.split("/")[-1]  # Get the last part of the URL path
+        image_name = image_name.split("?")[0]  # Remove query parameters
         image_cube_path = os.path.join(cube_path, image_path)
         os.makedirs(image_cube_path, exist_ok=True)
         image_cube_file = os.path.join(image_cube_path, image_name)
