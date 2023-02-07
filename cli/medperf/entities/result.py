@@ -29,11 +29,7 @@ class Result(Entity, ApprovableSchema):
     metadata: dict = {}
 
     def __init__(self, *args, **kwargs):
-        """Creates a new result instance
-
-        Args:
-            result_desc (Union[dict, ResultModel]): Result instance description
-        """
+        """Creates a new result instance"""
         super().__init__(*args, **kwargs)
 
         dset = Dataset.get(self.dataset)
