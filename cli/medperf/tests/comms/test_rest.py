@@ -2,10 +2,10 @@ import os
 from medperf.exceptions import CommunicationRequestError, CommunicationRetrievalError
 import pytest
 import requests
-from unittest.mock import mock_open, ANY, call
+from unittest.mock import ANY, call
 
 from medperf import config
-from medperf.enums import Role, Status
+from medperf.enums import Status
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
 
@@ -22,15 +22,6 @@ def server(mocker, ui):
 @pytest.mark.parametrize(
     "method_params",
     [
-        (
-            "benchmark_association",
-            "get_list",
-            200,
-            [1],
-            [],
-            (f"{url}/me/benchmarks",),
-            {},
-        ),
         ("get_benchmark", "get", 200, [1], {}, (f"{url}/benchmarks/1",), {}),
         (
             "get_benchmark_models",
@@ -131,7 +122,6 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     [
         ("get_benchmark", [1], {}, CommunicationRetrievalError),
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
-        ("_REST__get_cube_file", ["", 1, "", ""], {}, CommunicationRetrievalError),
         ("upload_dataset", [{}], {"id": 1}, CommunicationRequestError),
         ("upload_result", [{}], {"id": 1}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
@@ -337,67 +327,6 @@ def test__get_list_fails_if_failing_element_encountered(mocker, server):
         server._REST__get_list(url, page_size=1)
 
 
-@pytest.mark.parametrize("exp_role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
-def test_benchmark_association_returns_expected_role(mocker, server, exp_role):
-    # Arrange
-    benchmarks = [
-        {"benchmark": 1, "role": exp_role},
-        {"benchmark": 2, "role": "DataOwner"},
-    ]
-    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
-
-    # Act
-    role = server.benchmark_association(1)
-
-    # Assert
-    assert role == Role(exp_role)
-
-
-def test_benchmark_association_returns_none_if_not_found(mocker, server):
-    # Arrange
-    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
-
-    # Act
-    role = server.benchmark_association(1)
-
-    # Assert
-    assert role is Role(None)
-
-
-@pytest.mark.parametrize("benchmark_uid", [333, 37])
-def test_authorized_by_role_calls_benchmark_association(mocker, server, benchmark_uid):
-    # Arrange
-    spy = mocker.patch(
-        patch_server.format("REST.benchmark_association"), return_value=Role(None)
-    )
-
-    # Act
-    server.authorized_by_role(benchmark_uid, "ModelOwner")
-
-    # Assert
-    spy.assert_called_once_with(benchmark_uid)
-
-
-@pytest.mark.parametrize("exp_role", ["BENCHMARK_OWNER", "DATA_OWNER", "MODEL_OWNER"])
-@pytest.mark.parametrize("role", ["BenchmarkOwner", "DataOwner", "ModelOwner"])
-def test_authorized_by_role_returns_true_when_authorized(
-    mocker, server, role, exp_role
-):
-    # Arrange
-    benchmark_uid = "2"
-    benchmarks = [
-        {"benchmark": benchmark_uid, "role": role},
-        {"benchmark": 501, "role": "DataOwner"},
-    ]
-    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=benchmarks)
-
-    # Act
-    authorized = server.authorized_by_role(benchmark_uid, exp_role)
-
-    # Assert
-    assert authorized == (Role(role).name == exp_role)
-
-
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
 def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     # Arrange
@@ -544,22 +473,19 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     spy.assert_called_once_with(f"{url}/me/mlcubes/")
 
 
-def test_get_cube_file_writes_to_file(mocker, server):
+def test_get_cube_file_calls_download_direct_link_method(mocker, server):
     # Arrange
     cube_path = "path/to/cube"
     path = "path"
     filename = "filename"
-    res = MockResponse({}, 200)
-    mocker.patch("requests.get", return_value=res)
-    mocker.patch("os.path.isdir", return_value=True)
+    spy = mocker.patch(patch_server.format("REST._REST__download_direct_link"))
     filepath = os.path.join(cube_path, path, filename)
-    spy = mocker.patch("builtins.open", mock_open())
 
     # Act
     server._REST__get_cube_file(url, cube_path, path, filename)
 
     # Assert
-    spy.assert_called_once_with(filepath, "wb+")
+    spy.assert_called_once_with(url, filepath)
 
 
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
@@ -755,3 +681,48 @@ def test_upload_benchmark_returns_benchmark_body(mocker, server, body):
 
     # Assert
     assert body == exp_body
+
+
+@pytest.mark.parametrize("mlcube_uid", [4596, 3530])
+@pytest.mark.parametrize("benchmark_uid", [3966, 4188])
+@pytest.mark.parametrize("priority", [2, -10])
+def test_set_mlcube_association_priority_sets_priority(
+    mocker, server, mlcube_uid, benchmark_uid, priority
+):
+    # Arrange
+    res = MockResponse({}, 200)
+    spy = mocker.patch(patch_server.format("REST._REST__auth_put"), return_value=res)
+    exp_url = f"{url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+
+    # Act
+    server.set_mlcube_association_priority(benchmark_uid, mlcube_uid, priority)
+
+    # Assert
+    spy.assert_called_once_with(exp_url, json={"priority": priority})
+
+
+def test_download_direct_link_works_as_expected(mocker, server, fs):
+    # Arrange
+    filename = "filename"
+    res = MockResponse({}, 200)
+    iter_spy = mocker.patch.object(res, "iter_content", return_value=[b"some", b"text"])
+    get_spy = mocker.patch(patch_server.format("requests.get"), return_value=res)
+
+    # Act
+    server._REST__download_direct_link(url, filename)
+
+    # Assert
+    assert open(filename).read() == "sometext"
+    get_spy.assert_called_once_with(url, stream=True)
+    iter_spy.assert_called_once_with(chunk_size=config.ddl_stream_chunk_size)
+
+
+def test_download_direct_link_raises_for_failed_request(mocker, server):
+    # Arrange
+    filename = "filename"
+    res = MockResponse({}, 404)
+    mocker.patch(patch_server.format("requests.get"), return_value=res)
+
+    # Act & Assert
+    with pytest.raises(CommunicationRetrievalError):
+        server._REST__download_direct_link(url, filename)

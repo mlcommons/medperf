@@ -2,7 +2,6 @@ from typing import List
 from abc import ABC, abstractmethod
 
 from medperf.ui.interface import UI
-from medperf.enums import Role
 
 
 class Comms(ABC):
@@ -38,30 +37,6 @@ class Comms(ABC):
     @abstractmethod
     def authenticate(self):
         """Retrieve a token stored locally for authentication
-        """
-
-    @abstractmethod
-    def benchmark_association(self, benchmark_uid: int) -> Role:
-        """Retrieves the benchmark association
-
-        Args:
-            benchmark_uid (int): UID of the benchmark
-
-        Returns:
-            Role: the association type between current user and benchmark
-        """
-
-    @abstractmethod
-    def authorized_by_role(self, benchmark_uid: int, role: str) -> bool:
-        """Indicates wether the current user is authorized to access
-        a benchmark based on desired role
-
-        Args:
-            benchmark_uid (int): UID of the benchmark
-            role (str): Desired role to check for authorization
-
-        Returns:
-            bool: Wether the user has the specified role for that benchmark
         """
 
     @abstractmethod
@@ -344,4 +319,16 @@ class Comms(ABC):
 
         Returns:
             List[dict]: List containing all associations information
+        """
+
+    @abstractmethod
+    def set_mlcube_association_priority(
+        self, benchmark_uid: str, mlcube_uid: str, priority: int
+    ):
+        """Sets the priority of an mlcube-benchmark association
+
+        Args:
+            mlcube_uid (str): MLCube UID
+            benchmark_uid (str): Benchmark UID
+            priority (int): priority value to set for the association
         """
