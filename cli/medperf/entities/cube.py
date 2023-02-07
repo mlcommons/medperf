@@ -15,7 +15,7 @@ from medperf.utils import (
     cleanup,
 )
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema
+from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
@@ -26,7 +26,7 @@ from medperf.exceptions import (
 import medperf.config as config
 
 
-class Cube(Entity, MedperfSchema):
+class Cube(Entity, MedperfSchema, DeployableSchema):
     """
     Class representing an MLCube Container
 

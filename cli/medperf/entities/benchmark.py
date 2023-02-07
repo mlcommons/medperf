@@ -9,10 +9,10 @@ import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
-from medperf.entities.schemas import ApprovableSchema
+from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 
 
-class Benchmark(Entity, ApprovableSchema):
+class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 

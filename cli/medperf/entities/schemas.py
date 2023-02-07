@@ -11,9 +11,6 @@ class MedperfSchema(BaseModel):
     owner: Optional[int]
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
-    # TODO: This must change after allowing edits
-    state: str = "OPERATION"
-    is_valid: bool = True
 
     def dict(self, *args, **kwargs) -> dict:
         """Overrides dictionary implementation so it filters out
@@ -62,7 +59,13 @@ class MedperfSchema(BaseModel):
         use_enum_values = True
 
 
-class ApprovableSchema(MedperfSchema):
+class DeployableSchema(BaseModel):
+    # TODO: This must change after allowing edits
+    state: str = "OPERATION"
+    is_valid: bool = True
+
+
+class ApprovableSchema(BaseModel):
     approved_at: Optional[datetime]
     approval_status: Status = None
 
