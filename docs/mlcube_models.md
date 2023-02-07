@@ -138,7 +138,7 @@ If you want to adjust this template for your own use case, then the following li
    1. Assign the correct values to the metadata fields (`name`, `description`, `authors`, `image_name`).
    2. Set `data_path `to the location of the data inside the workspace directory.
    3. Please DO NOT modify `parameters_file`.
-   4. Remove the demo `greetings `parameter.
+   4. Remove the demo `greetings` parameter.
    5. Add any other required parameters that point to additional_files. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
    6. Please DO NOT modify `output_path`.
 
