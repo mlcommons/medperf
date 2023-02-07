@@ -121,10 +121,19 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(False, "--local", help="Display local datasets"),
-    mine: bool = typer.Option(False, "--mine", help="Display current-user datasets"),
+    local: bool = typer.Option(
+        False, "--local", help="Display local datasets if dataset ID is not provided"
+    ),
+    mine: bool = typer.Option(
+        False,
+        "--mine",
+        help="Display current-user datasets if dataset ID is not provided",
+    ),
     output: str = typer.Option(
-        None, "--output", "-o", help="Output file to store contents"
+        None,
+        "--output",
+        "-o",
+        help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
     """Displays the information of one or more datasets
