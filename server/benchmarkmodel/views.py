@@ -50,9 +50,14 @@ class BenchmarkModelApproval(GenericAPIView):
 
 
 class ModelApproval(GenericAPIView):
-    permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
     serializer_class = ModelApprovalSerializer
     queryset = ""
+
+    def get_permissions(self):
+        self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
+        if self.request.method == "PUT" and "priority" in self.request.data:
+            self.permission_classes = [IsAdmin | IsBenchmarkOwner]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, model_id, benchmark_id):
         try:
