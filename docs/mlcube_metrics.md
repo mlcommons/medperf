@@ -32,7 +32,7 @@ That's it! You just built and ran a hello-world metrics mlcube!
 
 ## Contents
 
-MLCubes usually share a similar folder and file structure. Here's a brief description of the role for the relevant files:
+MLCubes usually share a similar folder and file structure. In this section we provide a brief description of the role for the relevant files.
 
 1. __`mlcube/mlcube.yaml`__: 
    
