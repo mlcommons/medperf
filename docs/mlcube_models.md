@@ -8,12 +8,12 @@ At the time of writing, model MLCubes only obtain predictions on data, meaning t
 This template was built thought to work out of the box. Follow the next steps:
 
 1. Clone the repository.
-2. Change the current directory to the repository:
+2. Change the current directory to the repository with
 
    ```bash
    cd mlcube_examples
    ```
-3. Create and activate a virtual environment:
+3. Create and activate a virtual environment using
    ```bash
    conda create -n venv_mlcub python=3.7 -y # change to your prefered python version
    conda activate venv_mlcub
@@ -22,7 +22,7 @@ This template was built thought to work out of the box. Follow the next steps:
    ```bash
    pip install mlcube mlcube-docker
    ```
-5. Change the current directory to the `mlcube` folder within the `medperf/model` folder of the repository:
+5. Change the current directory to the `mlcube` folder within the `medperf/model` folder of the repository with
    ```bash
    cd medperf/model/mlcube
    ```
@@ -30,7 +30,7 @@ This template was built thought to work out of the box. Follow the next steps:
    ```bash
    mlcube run --task=infer
    ```
-7. View the resulting predictions by reading the `predictions.csv` file in the `workspace/predictions` folder:
+7. View the resulting predictions by reading the `predictions.csv` file in the `workspace/predictions` folder using the following command:
    ```bash
    cat workspace/predictions/predictions.csv
    ```
@@ -38,7 +38,7 @@ That's it! You just built and ran a hello-world model mlcube!
 
 ## Contents
 
-MLCubes usually share a similar folder structure and files. Here's a brief description of the role for the relevant files:
+MLCubes usually share a similar folder structure and files. In this section we provide a brief description of the role for the relevant files.
 
 1. __`mlcube/mlcube.yaml`__: 
    
@@ -97,8 +97,8 @@ MLCubes usually share a similar folder structure and files. Here's a brief descr
 
 
 4. __`project`__: 
-   
-       Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
+
+   Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
 
 5. __`project/mlcube.py`__:
    
@@ -135,12 +135,12 @@ If you want to adjust this template for your own use case, then the following li
 6. Inside `/mlcube/workspace`, add the data you want your model to use for inference.
 7. Inside `/mlcube/workspace/additional_files`, add any files required for model execution (e.g., `model weights`).
 8. In `/mlcube/mlcube.yaml`, make the following changes:
-1. Assign the correct values to the metadata fields (`name`, `description`, `authors`, `image_name`).
-2. Set `data_path `to the location of the data inside the workspace directory.
-3. Do NOT modify `parameters_file`.
-4. Remove the demo `greetings `parameter.
-5. Add any other required parameters that point to additional_files. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
-6. Do NOT modify `output_path`.
+   1. Assign the correct values to the metadata fields (`name`, `description`, `authors`, `image_name`).
+   2. Set `data_path `to the location of the data inside the workspace directory.
+   3. Please DO NOT modify `parameters_file`.
+   4. Remove the demo `greetings `parameter.
+   5. Add any other required parameters that point to additional_files. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
+   6. Please DO NOT modify `output_path`.
 
 
 ## Requirements are negotiable
