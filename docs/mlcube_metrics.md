@@ -150,9 +150,9 @@ If you want to adjust this template for your own use case, then the following li
    2. Set `labels` to the location of the labels inside the workspace directory.
 
    3. Set `predictions` to where you expect predictions to be inside the `workspace` directory.
-   4. Do NOT modify `parameters_file`.
+   4. Please, DO NOT modify `parameters_file`.
    5. Add any other required parameters that point to `additional_files`. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
-   6. Do NOT modify `output_path`.
+   6. Please, DO NOT modify `output_path`.
 
 ## Requirements are negotiable
 The fields required in the mlcube task interface are currently defined by the Medperf platform. We encourage users to raise any concerns or requests regarding these requirements while the platform is in alpha, as this is an ideal time to make changes. Please feel free to contact us with your feedback.
