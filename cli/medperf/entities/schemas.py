@@ -72,11 +72,3 @@ class ApprovableSchema(MedperfSchema):
         if v is not None:
             status = Status(v)
         return status
-
-
-class ResultModel(ApprovableSchema):
-    benchmark: int
-    model: int
-    dataset: int
-    results: dict
-    metadata: dict = {}
