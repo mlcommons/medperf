@@ -8,7 +8,11 @@ from medperf.entities.interface import Entity
 def generate_display_dicts():
     """Mocks a list of dicts to be returned by Entity.display_dict
     """
-    return [{f"k{j}": f"v{i}{j}" for j in range(4)} for i in range(3)]
+    return [
+        {"UID": "1", "Registered": True, "Is Valid": False, "Benchmark": 4},
+        {"UID": "2", "Registered": True, "Is Valid": False, "Benchmark": 1},
+        {"UID": "3", "Registered": False, "Is Valid": True, "Benchmark": 7},
+    ]
 
 
 @pytest.fixture()
@@ -54,13 +58,13 @@ class TestEntityList:
             local_only=local_only, mine_only=mine_only
         )
 
-    @pytest.mark.parametrize("fields", [["k1", "k5"]])
+    @pytest.mark.parametrize("fields", [["UID", "MLCube"]])
     def test_exception_raised_for_invalid_input(self, fields):
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
             EntityList.run(Entity, fields)
 
-    @pytest.mark.parametrize("fields", [["k1", "k2"], ["k0"]])
+    @pytest.mark.parametrize("fields", [["UID", "Is Valid"], ["Registered"]])
     def test_display_calls_tabulate_and_ui_as_expected(self, fields):
         # Arrange
         expected_list = [
