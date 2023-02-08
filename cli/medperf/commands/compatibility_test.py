@@ -102,11 +102,11 @@ class CompatibilityTestExecution:
         """
         if self.benchmark_uid:
             self.benchmark = Benchmark.get(self.benchmark_uid)
-            self.set_cube_uid("data_prep", self.benchmark.data_preparation)
-            self.set_cube_uid("model", self.benchmark.reference_model)
-            self.set_cube_uid("evaluator", self.benchmark.evaluator)
-            self.demo_dataset_url = self.benchmark.demo_dataset_url
-            self.demo_dataset_hash = self.benchmark.demo_dataset_hash
+            self.set_cube_uid("data_prep", self.benchmark.data_preparation_mlcube)
+            self.set_cube_uid("model", self.benchmark.reference_model_mlcube)
+            self.set_cube_uid("evaluator", self.benchmark.data_evaluator_mlcube)
+            self.demo_dataset_url = self.benchmark.demo_dataset_tarball_url
+            self.demo_dataset_hash = self.benchmark.demo_dataset_tarball_hash
         else:
             self.set_cube_uid("data_prep")
             self.set_cube_uid("model")
@@ -195,12 +195,18 @@ class CompatibilityTestExecution:
         if self.data_uid is not None:
             self.dataset = Dataset.get(self.data_uid)
             # to avoid 'None' as a uid
-            self.data_prep = self.dataset.preparation_cube_uid
+            self.data_prep = self.dataset.data_preparation_mlcube
         else:
             logging.info("Using benchmark demo dataset")
             data_path, labels_path = self.download_demo_data()
             self.data_uid = DataPreparation.run(
-                None, self.data_prep, data_path, labels_path, run_test=True,
+                None,
+                self.data_prep,
+                data_path,
+                labels_path,
+                run_test=True,
+                name="demo_data",
+                location="local",
             )
             self.dataset = Dataset.get(self.data_uid)
 

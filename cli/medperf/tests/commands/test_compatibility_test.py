@@ -5,43 +5,17 @@ import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 PATCH_TEST = "medperf.commands.compatibility_test.{}"
 
 
 @pytest.fixture
-def benchmark(mocker):
-    def benchmark_gen(uid, data_prep, reference_model, evaluator):
-        bmk = mocker.create_autospec(spec=Benchmark)
-        bmk.uid = uid
-        bmk.data_preparation = data_prep
-        bmk.reference_model = reference_model
-        bmk.evaluator = evaluator
-        bmk.demo_dataset_url = None
-        bmk.demo_dataset_hash = None
-        bmk.generated_uid = (
-            f"p{bmk.data_preparation}m{bmk.reference_model}e{bmk.evaluator}"
-        )
-        return bmk
-
-    return benchmark_gen
-
-
-@pytest.fixture
-def dataset(mocker):
-    dataset = mocker.create_autospec(spec=Dataset)
-    dataset.uid = "uid"
-    dataset.generated_uid = "gen_uid"
-    dataset.preparation_cube_uid = "cube_uid"
-    return dataset
-
-
-@pytest.fixture
-def default_setup(mocker, benchmark, dataset, fs):
-    bmk = benchmark(1, 1, 2, 3)
+def default_setup(mocker, fs):
+    bmk = TestBenchmark()
+    dataset = TestDataset()
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch(

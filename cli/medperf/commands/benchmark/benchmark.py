@@ -54,11 +54,11 @@ def submit(
         "name": name,
         "description": description,
         "docs_url": docs_url,
-        "demo_url": demo_url,
-        "demo_hash": demo_hash,
+        "demo_dataset_tarball_url": demo_url,
+        "demo_dataset_tarball_hash": demo_hash,
         "data_preparation_mlcube": str(data_preparation_mlcube),
         "reference_model_mlcube": str(reference_model_mlcube),
-        "evaluator_mlcube": str(evaluator_mlcube),
+        "data_evaluator_mlcube": str(evaluator_mlcube),
     }
     SubmitBenchmark.run(benchmark_info)
     cleanup()

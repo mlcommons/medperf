@@ -99,7 +99,7 @@ class DataPreparation:
         cube_uid = self.prep_cube_uid
         if cube_uid is None:
             benchmark = Benchmark.get(self.benchmark_uid)
-            cube_uid = benchmark.data_preparation
+            cube_uid = benchmark.data_preparation_mlcube
             self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
         self.cube = Cube.get(cube_uid)
@@ -215,7 +215,7 @@ class DataPreparation:
             "name": self.name,
             "description": self.description,
             "location": self.location,
-            "data_preparation_mlcube": self.cube.uid,
+            "data_preparation_mlcube": self.cube.id,
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
@@ -223,11 +223,6 @@ class DataPreparation:
             "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
             "separate_labels": self.labels_specified,  # not in the server
-            "is_valid": True,
-            "user_metadata": {},
-            "created_at": None,
-            "modified_at": None,
-            "owner": None,
         }
 
     def get_temp_stats(self):
@@ -246,5 +241,5 @@ class DataPreparation:
             filename (str, optional): name of the file. Defaults to config.reg_file.
         """
         dataset_dict = self.todict()
-        dataset = Dataset(dataset_dict)
+        dataset = Dataset(**dataset_dict)
         dataset.write()

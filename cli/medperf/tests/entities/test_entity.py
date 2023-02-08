@@ -48,8 +48,8 @@ def setup(request, mocker, comms, Implementation, fs):
         setup_fs = setup_result_fs
         setup_comms = setup_result_comms
 
-    setup_fs(local_ids, fs)
     setup_comms(mocker, comms, remote_ids, user_ids, uploaded)
+    setup_fs(local_ids, fs)
     request.param["uploaded"] = uploaded
 
     return request.param
@@ -156,7 +156,7 @@ class TestToDict:
 
         # Act
         ent_dict = ent.todict()
-        ent_copy = Implementation(ent_dict)
+        ent_copy = Implementation(**ent_dict)
         ent_copy_dict = ent_copy.todict()
 
         # Assert

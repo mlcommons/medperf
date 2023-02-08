@@ -2,7 +2,6 @@ import os
 from typing import List, Optional
 from medperf.commands.execution import Execution
 from medperf.entities.result import Result
-from medperf.enums import Status
 from tabulate import tabulate
 
 from medperf.entities.cube import Cube
@@ -85,14 +84,14 @@ class BenchmarkExecution:
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.get(self.data_uid)
-        evaluator_uid = self.benchmark.evaluator
+        evaluator_uid = self.benchmark.data_evaluator_mlcube
         self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
 
     def validate(self):
-        dset_prep_cube = str(self.dataset.preparation_cube_uid)
-        bmark_prep_cube = str(self.benchmark.data_preparation)
+        dset_prep_cube = str(self.dataset.data_preparation_mlcube)
+        bmark_prep_cube = str(self.benchmark.data_preparation_mlcube)
 
-        if self.dataset.uid is None:
+        if self.dataset.id is None:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
 
@@ -214,23 +213,17 @@ class BenchmarkExecution:
 
     def __result_dict(self, model_uid, results, partial):
         return {
-            "id": None,
-            "name": f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}",
-            "owner": None,
+            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
             "benchmark": self.benchmark_uid,
             "model": model_uid,
             "dataset": self.data_uid,
             "results": results,
             "metadata": {"partial": partial},
-            "approval_status": Status.PENDING.value,
-            "approved_at": None,
-            "created_at": None,
-            "modified_at": None,
         }
 
     def __write_result(self, model_uid, results, partial):
         results_info = self.__result_dict(model_uid, results, partial)
-        result = Result(results_info)
+        result = Result(**results_info)
         result.write()
         return result
 

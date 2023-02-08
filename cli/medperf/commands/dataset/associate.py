@@ -18,13 +18,13 @@ class AssociateDataset:
         comms = config.comms
         ui = config.ui
         dset = Dataset.get(data_uid)
-        if dset.uid is None:
+        if dset.id is None:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
 
         benchmark = Benchmark.get(benchmark_uid)
 
-        if str(dset.preparation_cube_uid) != str(benchmark.data_preparation):
+        if str(dset.data_preparation_mlcube) != str(benchmark.data_preparation_mlcube):
             raise InvalidArgumentError(
                 "The specified dataset wasn't prepared for this benchmark"
             )
@@ -44,6 +44,6 @@ class AssociateDataset:
         if approved:
             ui.print("Generating dataset benchmark association")
             metadata = {"test_result": result.results}
-            comms.associate_dset(dset.uid, benchmark_uid, metadata)
+            comms.associate_dset(dset.id, benchmark_uid, metadata)
         else:
             raise CleanExit("Dataset association operation cancelled.")

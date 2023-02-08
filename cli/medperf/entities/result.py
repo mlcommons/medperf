@@ -1,16 +1,16 @@
 import os
-from medperf.enums import Status
 import yaml
 import logging
-from typing import List
+from typing import List, Union
 
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import MedperfSchema, ApprovableSchema
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-class Result(Entity):
+class Result(Entity, MedperfSchema, ApprovableSchema):
     """
     Class representing a Result entry
 
@@ -21,34 +21,22 @@ class Result(Entity):
     benchmark results and how to upload them to the backend.
     """
 
-    def __init__(self, results_info: dict):
-        """Creates a new result instance
+    benchmark: Union[int, str]  # This is required for compatibility tests
+    model: int
+    dataset: Union[int, str]  # This is required for compatibility tests
+    results: dict
+    metadata: dict = {}
 
-        Args:
-            benchmark_uid (str): UID of the executed benchmark.
-            dataset_uid (str): UID of the dataset used.
-            model_uid (str): UID of the model used.
-            results()
-        """
-        self.uid = results_info["id"]
-        self.name = results_info["name"]
-        self.owner = results_info["owner"]
-        self.benchmark_uid = results_info["benchmark"]
-        self.model_uid = results_info["model"]
-        self.dataset_uid = results_info["dataset"]
-        self.results = results_info["results"]
-        self.status = Status(results_info["approval_status"])
-        self.metadata = results_info["metadata"]
-        self.approved_at = results_info["approved_at"]
-        self.created_at = results_info["created_at"]
-        self.modified_at = results_info["modified_at"]
+    def __init__(self, *args, **kwargs):
+        """Creates a new result instance"""
+        super().__init__(*args, **kwargs)
 
         self.generated_uid = (
             f"b{self.benchmark_uid}m{self.model_uid}d{self.dataset_uid}"
         )
         path = storage_path(config.results_storage)
-        if self.uid:
-            path = os.path.join(path, str(self.uid))
+        if self.id:
+            path = os.path.join(path, str(self.id))
         else:
             path = os.path.join(path, self.generated_uid)
 
@@ -70,11 +58,11 @@ class Result(Entity):
         if not local_only:
             results = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([result.uid for result in results])
+        remote_uids = set([result.id for result in results])
 
         local_results = cls.__local_all()
 
-        results += [res for res in local_results if res.uid not in remote_uids]
+        results += [res for res in local_results if res.id not in remote_uids]
 
         return results
 
@@ -87,7 +75,7 @@ class Result(Entity):
 
         try:
             results_meta = remote_func()
-            results = [cls(meta) for meta in results_meta]
+            results = [cls(**meta) for meta in results_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all results from the server"
             logging.warning(msg)
@@ -107,7 +95,7 @@ class Result(Entity):
 
         for uid in uids:
             local_meta = cls.__get_local_dict(uid)
-            result = cls(local_meta)
+            result = cls(**local_meta)
             results.append(result)
 
         return results
@@ -134,25 +122,12 @@ class Result(Entity):
             logging.warning(f"Getting result {result_uid} from comms failed")
             logging.info(f"Looking for result {result_uid} locally")
             result_dict = cls.__get_local_dict(result_uid)
-        result = cls(result_dict)
+        result = cls(**result_dict)
         result.write()
         return result
 
     def todict(self):
-        return {
-            "id": self.uid,
-            "name": self.name,
-            "owner": self.owner,
-            "benchmark": self.benchmark_uid,
-            "model": self.model_uid,
-            "dataset": self.dataset_uid,
-            "results": self.results,
-            "metadata": self.metadata,
-            "approval_status": self.status.value,
-            "approved_at": self.approved_at,
-            "created_at": self.created_at,
-            "modified_at": self.modified_at,
-        }
+        return self.extended_dict()
 
     def upload(self):
         """Uploads the results to the comms

@@ -18,7 +18,7 @@ class CubesList:
         headers = ["MLCube UID", "Name", "State"]
         cubes_data = [
             [
-                cube.uid if cube.uid is not None else cube.generated_uid,
+                cube.id if cube.id is not None else cube.generated_uid,
                 cube.name,
                 cube.state,
             ]
