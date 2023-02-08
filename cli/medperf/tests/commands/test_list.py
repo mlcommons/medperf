@@ -32,9 +32,9 @@ def setup(request, mocker, ui):
     ui_spy = mocker.patch.object(ui, "print")
     tabulate_spy = mocker.spy(list_module, "tabulate")
 
-    system_inputs = {"display_dicts": display_dicts}
+    state_variables = {"display_dicts": display_dicts}
     spies = {"ui": ui_spy, "all": all_spy, "tabulate": tabulate_spy}
-    return system_inputs, spies
+    return state_variables, spies
 
 
 @pytest.mark.parametrize(
@@ -43,8 +43,8 @@ def setup(request, mocker, ui):
 class TestEntityList:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
-        system_inputs, spies = setup
-        self.system_inputs = system_inputs
+        state_variables, spies = setup
+        self.state_variables = state_variables
         self.spies = spies
 
     @pytest.mark.parametrize("local_only", [False, True])
@@ -69,7 +69,7 @@ class TestEntityList:
         # Arrange
         expected_list = [
             [dict_[field] for field in fields]
-            for dict_ in self.system_inputs["display_dicts"]
+            for dict_ in self.state_variables["display_dicts"]
         ]
 
         # Act
