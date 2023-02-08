@@ -21,10 +21,10 @@ import yaml
 PATCH_EXECUTION = "medperf.commands.result.create.{}"
 
 
-def mock_benchmark(mocker, system_inputs):
-    benchmark_prep_cube = system_inputs["benchmark_prep_cube"]
-    benchmark_models = system_inputs["benchmark_models"]
-    evaluator = system_inputs["evaluator"]
+def mock_benchmark(mocker, state_variables):
+    benchmark_prep_cube = state_variables["benchmark_prep_cube"]
+    benchmark_models = state_variables["benchmark_models"]
+    evaluator = state_variables["evaluator"]
 
     def __get_side_effect(id):
         return Benchmark(
@@ -41,8 +41,8 @@ def mock_benchmark(mocker, system_inputs):
     mocker.patch(PATCH_EXECUTION.format("Benchmark.get"), side_effect=__get_side_effect)
 
 
-def mock_dataset(mocker, system_inputs):
-    dataset_prep_cube = system_inputs["dataset_prep_cube"]
+def mock_dataset(mocker, state_variables):
+    dataset_prep_cube = state_variables["dataset_prep_cube"]
 
     def __get_side_effect(id):
         return Dataset(generate_dset(id=id, data_preparation_mlcube=dataset_prep_cube,))
@@ -50,8 +50,8 @@ def mock_dataset(mocker, system_inputs):
     mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
 
 
-def mock_result_all(mocker, system_inputs):
-    cached_results_triplets = system_inputs["cached_results_triplets"]
+def mock_result_all(mocker, state_variables):
+    cached_results_triplets = state_variables["cached_results_triplets"]
     results = [
         Result(
             generate_result(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
@@ -61,9 +61,9 @@ def mock_result_all(mocker, system_inputs):
     mocker.patch(PATCH_EXECUTION.format("Result.all"), return_value=results)
 
 
-def mock_cube(mocker, system_inputs):
-    models_props = system_inputs["models_props"]
-    evaluator = system_inputs["evaluator"]
+def mock_cube(mocker, state_variables):
+    models_props = state_variables["models_props"]
+    evaluator = state_variables["evaluator"]
 
     def __get_side_effect(id):
         return Cube(generate_cube(id=id))
@@ -84,8 +84,8 @@ def mock_cube(mocker, system_inputs):
     )
 
 
-def mock_execution(mocker, system_inputs):
-    models_props = system_inputs["models_props"]
+def mock_execution(mocker, state_variables):
+    models_props = state_variables["models_props"]
 
     def __exec_side_effect(dataset, model, evaluator, ignore_model_errors):
         if models_props[model.uid] == "exec_error":
@@ -100,7 +100,7 @@ def mock_execution(mocker, system_inputs):
 @pytest.fixture()
 def setup(request, mocker, ui, fs):
     # system inputs
-    system_inputs = {
+    state_variables = {
         "benchmark_prep_cube": "1",
         "benchmark_models": [2, 4, 5, 6, 7],
         "dataset_prep_cube": "1",
@@ -114,14 +114,14 @@ def setup(request, mocker, ui, fs):
         },
         "evaluator": {"uid": "3", "invalid": False},
     }
-    system_inputs.update(request.param)
+    state_variables.update(request.param)
 
     # mocks
-    mock_benchmark(mocker, system_inputs)
-    mock_dataset(mocker, system_inputs)
-    mock_result_all(mocker, system_inputs)
-    mock_cube(mocker, system_inputs)
-    exec_spy = mock_execution(mocker, system_inputs)
+    mock_benchmark(mocker, state_variables)
+    mock_dataset(mocker, state_variables)
+    mock_result_all(mocker, state_variables)
+    mock_cube(mocker, state_variables)
+    exec_spy = mock_execution(mocker, state_variables)
 
     # spies
     ui_error_spy = mocker.patch.object(ui, "print_error")
@@ -134,7 +134,7 @@ def setup(request, mocker, ui, fs):
         "tabulate": tabulate_spy,
         "exec": exec_spy,
     }
-    return system_inputs, spies
+    return state_variables, spies
 
 
 @pytest.mark.parametrize("setup", [{}], indirect=True)
@@ -194,8 +194,8 @@ class TestInputFile:
 class TestDefaultSetup:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
-        system_inputs, spies = setup
-        self.system_inputs = system_inputs
+        state_variables, spies = setup
+        self.state_variables = state_variables
         self.spies = spies
 
     def test_failure_with_unassociated_model(mocker, setup):
@@ -285,7 +285,7 @@ class TestDefaultSetup:
     @pytest.mark.parametrize("model_uid", ["4", "5"])
     def test_execution_of_multiple_models_with_summary(self, mocker, setup, model_uid):
         # Arrange
-        exec_res = self.system_inputs["models_props"][model_uid]
+        exec_res = self.state_variables["models_props"][model_uid]
         headers = ["model", "local result UID", "partial result", "from cache", "error"]
         dset_uid = "2"
         bmk_uid = "1"
@@ -322,5 +322,5 @@ class TestDefaultSetup:
         # Assert
         assert (
             yaml.load(open(expected_file))["results"]
-            == self.system_inputs["models_props"][model_uid]["results"]
+            == self.state_variables["models_props"][model_uid]["results"]
         )

@@ -20,8 +20,8 @@ INPUT_MODEL = Cube(generate_cube(id=2))
 INPUT_EVALUATOR = Cube(generate_cube(id=3))
 
 
-def mock_model(mocker, system_inputs):
-    failing_model = system_inputs["failing_model"]
+def mock_model(mocker, state_variables):
+    failing_model = state_variables["failing_model"]
 
     def _side_effect(*args, **kwargs):
         if failing_model:
@@ -31,9 +31,9 @@ def mock_model(mocker, system_inputs):
     return spy
 
 
-def mock_eval(mocker, fs, system_inputs):
-    failing_eval = system_inputs["failing_eval"]
-    execution_results = system_inputs["execution_results"]
+def mock_eval(mocker, fs, state_variables):
+    failing_eval = state_variables["failing_eval"]
+    execution_results = state_variables["execution_results"]
 
     def _side_effect(*args, **kwargs):
         if failing_eval:
@@ -48,16 +48,16 @@ def mock_eval(mocker, fs, system_inputs):
 @pytest.fixture()
 def setup(request, mocker, ui, fs):
     # system inputs
-    system_inputs = {
+    state_variables = {
         "failing_model": False,
         "failing_eval": False,
         "execution_results": {"res": 1, "metric": 55},
     }
-    system_inputs.update(request.param)
+    state_variables.update(request.param)
 
     # mocks/spies
-    model_run_spy = mock_model(mocker, system_inputs)
-    eval_run_spy = mock_eval(mocker, fs, system_inputs)
+    model_run_spy = mock_model(mocker, state_variables)
+    eval_run_spy = mock_eval(mocker, fs, state_variables)
     cleanup_spy = mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
 
     spies = {
@@ -65,7 +65,7 @@ def setup(request, mocker, ui, fs):
         "eval_run": eval_run_spy,
         "cleanup": cleanup_spy,
     }
-    return system_inputs, spies
+    return state_variables, spies
 
 
 class TestFailures:
@@ -126,8 +126,8 @@ def test_results_are_returned(mocker, setup):
     # Act
     execution_summary = Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
     # Assert
-    system_inputs = setup[0]
-    assert execution_summary["results"] == system_inputs["execution_results"]
+    state_variables = setup[0]
+    assert execution_summary["results"] == state_variables["execution_results"]
 
 
 @pytest.mark.parametrize("setup", [{}], indirect=True)
