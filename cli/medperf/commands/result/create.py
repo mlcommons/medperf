@@ -1,6 +1,5 @@
 import os
 from medperf.entities.result import Result
-from medperf.enums import Status
 import logging
 
 from medperf.entities.cube import Cube
@@ -74,10 +73,10 @@ class BenchmarkExecution:
         self.out_path = os.path.join(storage_path(config.results_storage), result_uid)
 
     def validate(self):
-        dset_prep_cube = str(self.dataset.preparation_cube_uid)
-        bmark_prep_cube = str(self.benchmark.data_preparation)
+        dset_prep_cube = str(self.dataset.data_preparation_mlcube)
+        bmark_prep_cube = str(self.benchmark.data_preparation_mlcube)
 
-        if self.dataset.uid is None and not self.run_test:
+        if self.dataset.id is None and not self.run_test:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
 
@@ -91,7 +90,7 @@ class BenchmarkExecution:
             raise InvalidArgumentError(msg)
 
     def get_cubes(self):
-        evaluator_uid = self.benchmark.evaluator
+        evaluator_uid = self.benchmark.data_evaluator_mlcube
         self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
         self.model_cube = self.__get_cube(self.model_uid, "Model")
 
@@ -106,8 +105,8 @@ class BenchmarkExecution:
         infer_timeout = config.infer_timeout
         evaluate_timeout = config.evaluate_timeout
         self.ui.text = "Running model inference on dataset"
-        model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.uid)
+        model_uid = str(self.model_cube.id)
+        data_uid = str(self.dataset.id)
         preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
         preds_path = storage_path(preds_path)
         data_path = self.dataset.data_path
@@ -155,18 +154,13 @@ class BenchmarkExecution:
 
     def todict(self):
         return {
-            "id": None,
-            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
-            "owner": None,
+            # TODO: names will eventually surpass current length limits. How to deal with that?
+            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}"[:20],
             "benchmark": self.benchmark_uid,
             "model": self.model_uid,
             "dataset": self.data_uid,
             "results": self.get_temp_results(),
             "metadata": self.metadata,
-            "approval_status": Status.PENDING.value,
-            "approved_at": None,
-            "created_at": None,
-            "modified_at": None,
         }
 
     def get_temp_results(self):
@@ -181,6 +175,6 @@ class BenchmarkExecution:
 
     def write(self):
         results_info = self.todict()
-        result = Result(results_info)
+        result = Result(**results_info)
         result.write()
         return result.generated_uid

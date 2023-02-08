@@ -1,34 +1,23 @@
 import os
 from medperf import config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
-from medperf.tests.mocks.requests import result_dict
+from medperf.tests.mocks.result import TestResult
 import pytest
 from unittest.mock import MagicMock, call
 
 from medperf.utils import storage_path
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
+from medperf.tests.mocks.cube import TestCube
+from medperf.tests.mocks.dataset import TestDataset
+from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.commands.result.create import BenchmarkExecution
 
 PATCH_EXECUTION = "medperf.commands.result.create.{}"
 
 
 @pytest.fixture
-def cube(mocker):
-    def cube_gen():
-        cube = mocker.create_autospec(spec=Cube)
-        cube.uid = 1
-        return cube
-
-    return cube_gen
-
-
-@pytest.fixture
-def execution(mocker, comms, ui, cube):
-    mock_dset = mocker.create_autospec(spec=Dataset)
-    mock_dset.generated_uid = "gen_uid"
-    mock_bmark = mocker.create_autospec(spec=Benchmark)
+def execution(mocker, comms, ui):
+    mock_dset = TestDataset(id=1, generated_uid="gen_uid")
+    mock_bmark = TestBenchmark(id=1)
     mocker.patch(PATCH_EXECUTION.format("init_storage"))
     mocker.patch(PATCH_EXECUTION.format("Dataset"), side_effect=mock_dset)
     mocker.patch("medperf.entities.result.Dataset.get", return_value=mock_dset)
@@ -36,21 +25,22 @@ def execution(mocker, comms, ui, cube):
     exec = BenchmarkExecution(0, 0, 0)
     exec.prepare()
     exec.out_path = "out_path"
-    exec.dataset.uid = 1
+    exec.dataset.id = 1
     exec.dataset.generated_uid = "data_uid"
-    exec.dataset.preparation_cube_uid = "prep_cube"
+    exec.dataset.data_preparation_mlcube = "prep_cube"
     exec.dataset.labels_path = "labels_path"
-    exec.benchmark.data_preparation = "prep_cube"
+    exec.benchmark.data_preparation_mlcube = "prep_cube"
     exec.benchmark.models = [0]
-    exec.evaluator = cube()
-    exec.model_cube = cube()
+    exec.evaluator = TestCube(id=3)
+    exec.model_cube = TestCube(id=2)
+    mocker.patch.object(TestCube, "run")
     return exec
 
 
 def test_validate_fails_if_preparation_cube_mismatch(mocker, execution):
     # Arrange
-    execution.dataset.preparation_cube_uid = "dset_prep_cube"
-    execution.benchmark.data_preparation = "bmark_prep_cube"
+    execution.dataset.data_preparation_mlcube = "dset_prep_cube"
+    execution.benchmark.data_preparation_mlcube = "bmark_prep_cube"
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -69,7 +59,7 @@ def test_validate_fails_if_model_not_in_benchmark(mocker, execution, model_uid):
 
 def test_validate_fails_if_dataset_is_not_registered(mocker, execution):
     # Arrange
-    execution.dataset.uid = None
+    execution.dataset.id = None
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -90,7 +80,7 @@ def test_get_cubes_retrieves_expected_cubes(
     spy = mocker.patch(
         PATCH_EXECUTION.format("BenchmarkExecution._BenchmarkExecution__get_cube")
     )
-    execution.benchmark.evaluator = evaluator_uid
+    execution.benchmark.data_evaluator_mlcube = evaluator_uid
     execution.model_uid = model_uid
     evaluator_call = call(evaluator_uid, "Evaluator")
     model_call = call(model_uid, "Model")
@@ -117,8 +107,9 @@ def test__get_cube_retrieves_cube(mocker, execution, cube_uid):
     spy.assert_called_once_with(cube_uid)
 
 
-def test__get_cube_checks_cube_validity(mocker, execution, cube):
+def test__get_cube_checks_cube_validity(mocker, execution):
     # Arrange
+    cube = TestCube()
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), return_value=cube)
     spy = mocker.patch(PATCH_EXECUTION.format("check_cube_validity"))
 
@@ -134,8 +125,8 @@ def test_run_cubes_executes_expected_cube_tasks(mocker, execution):
     data_path = "data_path"
     labels_path = "labels_path"
     cube_path = "cube_path"
-    model_uid = str(execution.model_cube.uid)
-    data_uid = str(execution.dataset.uid)
+    model_uid = str(execution.model_cube.id)
+    data_uid = str(execution.dataset.id)
     preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
     preds_path = storage_path(preds_path)
     result_path = os.path.join(execution.out_path, config.results_filename)
@@ -234,20 +225,9 @@ def test_todict_calls_get_temp_results(mocker, execution):
     spy.assert_called_once()
 
 
-def test_todict_returns_expected_keys(mocker, execution):
-    # Arrange
-    mocker.patch(PATCH_EXECUTION.format("BenchmarkExecution.get_temp_results"))
-
-    # Act
-    keys = execution.todict().keys()
-
-    # Assert
-    assert set(keys) == set(result_dict().keys())
-
-
 def test_write_calls_result_write(mocker, execution):
     # Arrange
-    result_info = result_dict()
+    result_info = TestResult().todict()
     mocker.patch(
         PATCH_EXECUTION.format("BenchmarkExecution.todict"), return_value=result_info
     )

@@ -340,19 +340,6 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     assert bmarks == [body]
 
 
-@pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
-def test_get_benchmark_returns_benchmark_body(mocker, server, body):
-    # Arrange
-    res = MockResponse(body, 200)
-    mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
-
-    # Act
-    benchmark_body = server.get_benchmark(1)
-
-    # Assert
-    assert benchmark_body == body
-
-
 @pytest.mark.parametrize("exp_uids", [[142, 437, 196], [303, 27, 24], [40, 19, 399]])
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
