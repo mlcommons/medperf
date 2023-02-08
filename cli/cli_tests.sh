@@ -283,7 +283,7 @@ echo "====================================="
 echo "Changing priority of model2"
 echo "====================================="
 medperf association set_priority -b $BMK_UID -m $MODEL2_UID -p 77
-checkFailed "Priority set failed"
+checkFailed "Priority set of model2 failed"
 ##########################################################
 
 echo "\n"
@@ -337,7 +337,7 @@ echo "====================================="
 echo "Running outstanding models"
 echo "====================================="
 medperf benchmark run -b $BMK_UID -d $DSET_A_UID
-checkFailed "Model2 run failed"
+checkFailed "run all outstanding models failed"
 ##########################################################
 
 echo "\n"
@@ -347,7 +347,7 @@ echo "====================================="
 echo "Run failing cube with ignore errors"
 echo "====================================="
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
-checkFailed "Failing mlcube run failed"
+checkFailed "Failing mlcube run with ignore errors failed"
 ##########################################################
 
 echo "\n"
