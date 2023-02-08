@@ -23,7 +23,7 @@ def result(mocker):
 def dataset(mocker):
     dset = mocker.create_autospec(spec=Dataset)
     dset.generated_uid = 1
-    dset.uid = 1
+    dset.id = 1
     return dset
 
 

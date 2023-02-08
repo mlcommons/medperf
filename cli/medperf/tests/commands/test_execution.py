@@ -2,22 +2,20 @@ import os
 from unittest.mock import ANY, call
 from medperf.commands.execution import Execution
 from medperf.exceptions import ExecutionError
-from medperf.tests.mocks.cube import generate_cube
-from medperf.tests.mocks.dataset import generate_dset
+from medperf.tests.mocks.cube import TestCube
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.utils import storage_path
 import pytest
 from medperf import config
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
 import yaml
 
 
 PATCH_EXECUTION = "medperf.commands.execution.{}"
 
 
-INPUT_DATASET = Dataset(generate_dset())
-INPUT_MODEL = Cube(generate_cube(id=2))
-INPUT_EVALUATOR = Cube(generate_cube(id=3))
+INPUT_DATASET = TestDataset()
+INPUT_MODEL = TestCube(id=2)
+INPUT_EVALUATOR = TestCube(id=3)
 
 
 def mock_model(mocker, state_variables):
@@ -135,8 +133,8 @@ def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
     preds_path = os.path.join(
         storage_path(config.predictions_storage),
-        str(INPUT_MODEL.uid),
-        str(INPUT_DATASET.uid),
+        str(INPUT_MODEL.id),
+        str(INPUT_DATASET.id),
     )
     exp_model_call = call(
         task="infer",

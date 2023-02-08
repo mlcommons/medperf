@@ -98,7 +98,7 @@ def execute(
         ignore_model_errors=ignore_model_errors,
         no_cache=no_cache,
     )[0]
-    if result.uid:  # TODO: use result.is_registered once PR #338 is merged
+    if result.id:  # TODO: use result.is_registered once PR #338 is merged
         config.ui.print(  # TODO: msg should be colored yellow
             """An existing registered result for the requested execution has been\n
             found. If you wish to submit a new result for the same execution,\n

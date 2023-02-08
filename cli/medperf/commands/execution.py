@@ -44,8 +44,8 @@ class Execution:
         self.ignore_model_errors = ignore_model_errors
 
     def prepare(self):
-        model_uid = self.model.uid
-        data_uid = self.dataset.uid
+        model_uid = self.model.id
+        data_uid = self.dataset.id
         preds_path = os.path.join(
             config.predictions_storage, str(model_uid), str(data_uid)
         )

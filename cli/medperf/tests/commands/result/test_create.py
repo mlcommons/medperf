@@ -1,18 +1,14 @@
 import os
 from unittest.mock import ANY, call
 from medperf import config
-from medperf.entities.result import Result
 from medperf.exceptions import ExecutionError, InvalidArgumentError, InvalidEntityError
-from medperf.tests.mocks.benchmark import generate_benchmark
-from medperf.tests.mocks.cube import generate_cube
-from medperf.tests.mocks.dataset import generate_dset
-from medperf.tests.mocks.result import generate_result
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.cube import TestCube
+from medperf.tests.mocks.dataset import TestDataset
+from medperf.tests.mocks.result import TestResult
 from medperf.utils import storage_path
 import pytest
 
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
 from medperf.commands.result.create import BenchmarkExecution
 import medperf.commands.result.create as create_module
 import yaml
@@ -27,15 +23,13 @@ def mock_benchmark(mocker, state_variables):
     evaluator = state_variables["evaluator"]
 
     def __get_side_effect(id):
-        return Benchmark(
-            generate_benchmark(
-                id=id,
-                name="bmk name",
-                data_evaluator_mlcube=evaluator["uid"],
-                data_preparation_mlcube=benchmark_prep_cube,
-                reference_model_mlcube=benchmark_models[0],
-                models=benchmark_models,
-            )
+        return TestBenchmark(
+            id=id,
+            name="bmk name",
+            data_evaluator_mlcube=evaluator["uid"],
+            data_preparation_mlcube=benchmark_prep_cube,
+            reference_model_mlcube=benchmark_models[0],
+            models=benchmark_models,
         )
 
     mocker.patch(PATCH_EXECUTION.format("Benchmark.get"), side_effect=__get_side_effect)
@@ -45,7 +39,7 @@ def mock_dataset(mocker, state_variables):
     dataset_prep_cube = state_variables["dataset_prep_cube"]
 
     def __get_side_effect(id):
-        return Dataset(generate_dset(id=id, data_preparation_mlcube=dataset_prep_cube,))
+        return TestDataset(id=id, data_preparation_mlcube=dataset_prep_cube,)
 
     mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
 
@@ -53,9 +47,7 @@ def mock_dataset(mocker, state_variables):
 def mock_result_all(mocker, state_variables):
     cached_results_triplets = state_variables["cached_results_triplets"]
     results = [
-        Result(
-            generate_result(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
-        )
+        TestResult(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
         for triplet in cached_results_triplets
     ]
     mocker.patch(PATCH_EXECUTION.format("Result.all"), return_value=results)
@@ -66,17 +58,17 @@ def mock_cube(mocker, state_variables):
     evaluator = state_variables["evaluator"]
 
     def __get_side_effect(id):
-        return Cube(generate_cube(id=id))
+        return TestCube(id=id)
 
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), side_effect=__get_side_effect)
 
     def __valid_side_effect(cube):
-        if cube.uid == evaluator["uid"]:
+        if cube.id == evaluator["uid"]:
             if evaluator["invalid"]:
                 raise InvalidEntityError
             else:
                 return
-        if models_props[cube.uid] == "invalid":
+        if models_props[cube.id] == "invalid":
             raise InvalidEntityError
 
     mocker.patch(
@@ -88,9 +80,9 @@ def mock_execution(mocker, state_variables):
     models_props = state_variables["models_props"]
 
     def __exec_side_effect(dataset, model, evaluator, ignore_model_errors):
-        if models_props[model.uid] == "exec_error":
+        if models_props[model.id] == "exec_error":
             raise ExecutionError
-        return models_props[model.uid]
+        return models_props[model.id]
 
     return mocker.patch(
         PATCH_EXECUTION.format("Execution.run"), side_effect=__exec_side_effect
