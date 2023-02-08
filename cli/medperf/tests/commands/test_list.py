@@ -54,15 +54,10 @@ class TestEntityList:
             local_only=local_only, mine_only=mine_only
         )
 
-    @pytest.mark.parametrize(
-        "fields,raises", [([], False), (["k1", "k2"], False), (["k1", "k5"], True)]
-    )
-    def test_exception_raised_for_invalid_input(self, fields, raises):
+    @pytest.mark.parametrize("fields", [["k1", "k5"]])
+    def test_exception_raised_for_invalid_input(self, fields):
         # Act & Assert
-        if raises:
-            with pytest.raises(InvalidArgumentError):
-                EntityList.run(Entity, fields)
-        else:
+        with pytest.raises(InvalidArgumentError):
             EntityList.run(Entity, fields)
 
     @pytest.mark.parametrize("fields", [["k1", "k2"], ["k0"]])
