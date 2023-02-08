@@ -8,6 +8,7 @@ import random
 import hashlib
 import logging
 import tarfile
+import requests
 from medperf.config_managment import ConfigManager
 from glob import glob
 import json
@@ -476,3 +477,18 @@ def sanitize_json(data: dict) -> dict:
     json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
+
+
+def log_response_error(res, warn=False):
+    # NOTE: status 403 might be also returned if a requested resource doesn't exist
+    if warn:
+        logging_method = logging.warning
+    else:
+        logging_method = logging.error
+
+    logging_method(f"Obtained response with status code: {res.status_code}")
+    try:
+        logging_method(res.json())
+    except requests.exceptions.JSONDecodeError:
+        logging_method("JSON Response could not be parsed. Showing response content:")
+        logging_method(res.content)

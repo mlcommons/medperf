@@ -11,6 +11,7 @@ from medperf.utils import (
     storage_path,
     generate_tmp_uid,
     sanitize_json,
+    log_response_error,
 )
 from medperf.exceptions import (
     CommunicationError,
@@ -18,21 +19,7 @@ from medperf.exceptions import (
     CommunicationAuthenticationError,
     CommunicationRequestError,
 )
-
-
-def log_response_error(res, warn=False):
-    # NOTE: status 403 might be also returned if a requested resource doesn't exist
-    if warn:
-        logging_method = logging.warning
-    else:
-        logging_method = logging.error
-
-    logging_method(f"Obtained response with status code: {res.status_code}")
-    try:
-        logging_method(res.json())
-    except requests.exceptions.JSONDecodeError:
-        logging_method("JSON Response could not be parsed. Showing response content:")
-        logging_method(res.content)
+from medperf.comms.cube_assets import download_resource
 
 
 class REST(Comms):
@@ -253,7 +240,7 @@ class REST(Comms):
 
         os.makedirs(demo_data_path, exist_ok=True)
 
-        self.__download_direct_link(demo_data_url, filepath)
+        download_resource(demo_data_url, filepath)
         return filepath
 
     def get_user_benchmarks(self) -> List[dict]:
@@ -358,24 +345,8 @@ class REST(Comms):
         if not os.path.isdir(path):
             os.makedirs(path, exist_ok=True)
         filepath = os.path.join(path, filename)
-        self.__download_direct_link(url, filepath)
+        download_resource(url, filepath)
         return filepath
-
-    def __download_direct_link(self, url: str, output_path: str):
-        """Downloads a direct-download-link file by streaming its contents. source:
-        https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
-        """
-        with requests.get(url, stream=True) as res:
-            if res.status_code != 200:
-                log_response_error(res)
-                msg = "There was a problem retrieving the specified file at " + url
-                raise CommunicationRetrievalError(msg)
-
-            with open(output_path, "wb") as f:
-                for chunk in res.iter_content(chunk_size=config.ddl_stream_chunk_size):
-                    # NOTE: if the response is chunk-encoded, this may not work
-                    # check whether this is common.
-                    f.write(chunk)
 
     def upload_benchmark(self, benchmark_dict: dict) -> int:
         """Uploads a new benchmark to the server.
