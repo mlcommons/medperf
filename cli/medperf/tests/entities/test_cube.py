@@ -176,7 +176,7 @@ class TestValidity:
         cube = Cube.get(uid)
 
         # Assert
-        assert cube.is_valid()
+        assert cube.valid()
 
     @pytest.mark.parametrize("setup", INVALID_CUBES, indirect=True)
     def test_invalid_cube_is_detected(self, mocker, setup):
@@ -241,7 +241,7 @@ class TestRun:
             cube.run(task)
 
 
-@pytest.mark.parametrize("setup", [{"local": [BASIC_CUBE]}], indirect=True)
+@pytest.mark.parametrize("setup", [{"local": [DEFAULT_CUBE]}], indirect=True)
 @pytest.mark.parametrize("task", ["task"])
 @pytest.mark.parametrize(
     "out_key,out_value",

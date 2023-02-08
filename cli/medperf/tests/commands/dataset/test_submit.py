@@ -1,8 +1,7 @@
 from medperf.exceptions import CleanExit, InvalidArgumentError
-from medperf.tests.mocks.requests import dataset_dict
 import pytest
 
-from medperf.entities.dataset import Dataset
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.dataset.submit import DatasetRegistration
 
 PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
@@ -10,11 +9,9 @@ PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 
 @pytest.fixture
 def dataset(mocker):
-    dset = mocker.create_autospec(spec=Dataset)
-    dset.generated_uid = "generated_uid"
-    dset.path = "path"
-    dset.uid = None
+    dset = TestDataset(id=None, generated_uid="generated_uid")
     mocker.patch(PATCH_REGISTER.format("Dataset.get"), return_value=dset)
+    mocker.patch(PATCH_REGISTER.format("Dataset.upload"), return_value=dset.todict())
     return dset
 
 
@@ -47,7 +44,7 @@ def test_run_fails_if_dataset_already_registered(
     mocker, comms, ui, dataset, uid, no_remote
 ):
     # Arrange
-    dataset.uid = uid
+    dataset.id = uid
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -101,31 +98,16 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
 @pytest.mark.parametrize("data_hash", ["data_hash", "data_hash_2"])
 def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_hash):
     # Arrange
-    dataset.uid = None
     dataset.generated_uid = data_hash
+    remote_dsets_dicts = [{"id": 1, "generated_uid": data_hash}]
     remote_dsets = [
-        dataset_dict(
-            {
-                "id": 1,
-                "generated_uid": data_hash,
-                "name": "name",
-                "location": "location",
-                "description": "description",
-            }
-        ),
-        dataset_dict(
-            {
-                "id": 2,
-                "generated_uid": "abc123",
-                "name": "name",
-                "location": "location",
-                "description": "description",
-            }
-        ),
+        TestDataset(**dset_dict).todict() for dset_dict in remote_dsets_dicts
     ]
     mocker.patch.object(comms, "get_user_datasets", return_value=remote_dsets)
     write_spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
-    upload_spy = mocker.patch(PATCH_REGISTER.format("Dataset.upload"))
+    upload_spy = mocker.patch(
+        PATCH_REGISTER.format("Dataset.upload"), return_value=dataset.todict()
+    )
 
     # Act
     DatasetRegistration.run(data_hash)
@@ -144,7 +126,7 @@ class TestWithApproval:
         mocker.patch(
             PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
-        spy = mocker.patch.object(dataset, "upload")
+        spy = mocker.patch.object(dataset, "upload", return_value=dataset.todict())
         mocker.patch(PATCH_REGISTER.format("Dataset.write"))
         mocker.patch("os.rename")
 
@@ -185,7 +167,7 @@ class TestWithApproval:
         mocker.patch(
             PATCH_REGISTER.format("approval_prompt"), return_value=approved,
         )
-        mocker.patch.object(dataset, "upload")
+        mocker.patch.object(dataset, "upload", return_value=dataset.todict())
         spy = mocker.patch(PATCH_REGISTER.format("Dataset.write"))
         mocker.patch("os.rename")
 

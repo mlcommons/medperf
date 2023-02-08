@@ -20,7 +20,7 @@ class DatasetRegistration:
         ui = config.ui
         dset = Dataset.get(data_uid)
 
-        if dset.uid is not None:
+        if dset.id is not None:
             # TODO: should get_dataset and update locally. solves existing issue?
             raise InvalidArgumentError("This dataset has already been registered")
         remote_dsets = comms.get_user_datasets()
@@ -30,7 +30,7 @@ class DatasetRegistration:
             if remote_dset["generated_uid"] == dset.generated_uid
         ]
         if len(remote_dset) == 1:
-            dset = Dataset(remote_dset[0])
+            dset = Dataset(**remote_dset[0])
             dset.write()
             ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
             return
@@ -42,7 +42,7 @@ class DatasetRegistration:
         if approved:
             ui.print("Uploading...")
             updated_dset_dict = dset.upload()
-            updated_dset = Dataset(updated_dset_dict)
+            updated_dset = Dataset(**updated_dset_dict)
 
             old_dset_loc = dset.path
             new_dset_loc = updated_dset.path
