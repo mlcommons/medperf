@@ -124,9 +124,12 @@ class BenchmarkExecution:
     def validate_models(self):
         models_set = set(self.models_uids)
         benchmark_models_set = set(map(str, self.benchmark.models))
-        in_assoc_cubes = models_set.issubset(benchmark_models_set)
-        if not in_assoc_cubes:
-            msg = "Some of the provided models is not part of the specified benchmark."
+        non_assoc_cubes = models_set.difference(benchmark_models_set)
+        if non_assoc_cubes:
+            if len(non_assoc_cubes) > 1:
+                msg = f"Model of UID {non_assoc_cubes} is not associated with the specified benchmark."
+            else:
+                msg = f"Models of UIDs {non_assoc_cubes} are not associated with the specified benchmark."
             raise InvalidArgumentError(msg)
 
     def load_cached_results(self):
