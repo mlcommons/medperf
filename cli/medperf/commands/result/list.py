@@ -27,9 +27,9 @@ class ResultsList:
         results_data = [
             [
                 result.id if result.id is not None else result.generated_uid,
-                result.benchmark_uid,
-                result.model_uid,
-                result.dataset_uid,
+                result.benchmark,
+                result.model,
+                result.dataset,
                 result.id is not None,
                 True,
             ]

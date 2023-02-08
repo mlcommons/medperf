@@ -31,9 +31,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = (
-            f"b{self.benchmark_uid}m{self.model_uid}d{self.dataset_uid}"
-        )
+        self.generated_uid = f"b{self.benchmark}m{self.model}d{self.dataset}"
         path = storage_path(config.results_storage)
         if self.id:
             path = os.path.join(path, str(self.id))

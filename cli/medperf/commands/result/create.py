@@ -136,11 +136,11 @@ class BenchmarkExecution:
         benchmark_dset_results = [
             result
             for result in results
-            if str(result.benchmark_uid) == str(self.benchmark_uid)
-            and str(result.dataset_uid) == str(self.data_uid)
+            if str(result.benchmark) == str(self.benchmark_uid)
+            and str(result.dataset) == str(self.data_uid)
         ]
         self.cached_results = {
-            str(result.model_uid): result for result in benchmark_dset_results
+            str(result.model): result for result in benchmark_dset_results
         }
 
     def __get_cube(self, uid: int, name: str) -> Cube:
@@ -213,7 +213,7 @@ class BenchmarkExecution:
 
     def __result_dict(self, model_uid, results, partial):
         return {
-            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
+            "name": f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}",
             "benchmark": self.benchmark_uid,
             "model": model_uid,
             "dataset": self.data_uid,
