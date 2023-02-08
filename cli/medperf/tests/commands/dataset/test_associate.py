@@ -126,5 +126,5 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
 
     # Assert
     spy.assert_called_once_with(
-        benchmark_uid, data_uid, [benchmark.reference_model], no_cache=False,
+        benchmark_uid, data_uid, [benchmark.reference_model_mlcube], no_cache=False,
     )
