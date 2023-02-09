@@ -166,11 +166,11 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Benchmark": self.benchmark_uid,
-            "Model": self.model_uid,
-            "Dataset": self.dataset_uid,
+            "Benchmark": self.benchmark,
+            "Model": self.model,
+            "Dataset": self.dataset,
             "Partial": self.metadata["partial"],
-            "Approval Status": self.status.value,
+            "Approval Status": self.approval_status.value,
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }

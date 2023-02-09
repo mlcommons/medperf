@@ -9,9 +9,9 @@ def generate_display_dicts():
     """Mocks a list of dicts to be returned by Entity.display_dict
     """
     return [
-        {"UID": "1", "Registered": True, "Is Valid": False, "Benchmark": 4},
-        {"UID": "2", "Registered": True, "Is Valid": False, "Benchmark": 1},
-        {"UID": "3", "Registered": False, "Is Valid": True, "Benchmark": 7},
+        {"UID": 1, "Registered": True, "Is Valid": False, "Benchmark": 4},
+        {"UID": 2, "Registered": True, "Is Valid": False, "Benchmark": 1},
+        {"UID": 3, "Registered": False, "Is Valid": True, "Benchmark": 7},
     ]
 
 
