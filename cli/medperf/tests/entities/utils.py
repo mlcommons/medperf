@@ -3,6 +3,7 @@ from medperf.utils import storage_path
 from medperf import config
 import yaml
 
+from medperf.utils import get_file_sha1
 from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
@@ -95,7 +96,7 @@ def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
 def generate_cubefile_fn(fs, path, filename):
     # all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
 
-    def cubefile_fn(url, cube_path):
+    def cubefile_fn(url, cube_path, *args):
         if url == "broken_url":
             raise CommunicationRetrievalError
         filepath = os.path.join(cube_path, path, filename)
@@ -103,7 +104,8 @@ def generate_cubefile_fn(fs, path, filename):
             fs.create_file(filepath)
         except FileExistsError:
             pass
-        return filepath
+        hash = get_file_sha1(filepath)
+        return filepath, hash
 
     return cubefile_fn
 
