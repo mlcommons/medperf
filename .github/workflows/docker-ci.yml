@@ -6,6 +6,7 @@ jobs:
   setup:
     name: local-docker-deploy
     runs-on: ubuntu-latest
+    container: mlcommons/medperf-tests-container:latest
     env:
       IMAGE_NAME: medperf-api:test
     steps:
@@ -19,20 +20,6 @@ jobs:
     - name: Generate SSL certificate
       working-directory: ./server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
-
-    - name: Install Docker
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release -y
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        sudo apt-get install moby-engine moby-cli containerd.io
 
     - name: Build container image
       working-directory: ./server

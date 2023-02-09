@@ -1,0 +1,29 @@
+FROM python:3.9
+
+# Install Docker
+RUN apt-get update -y
+RUN apt-get install \
+	ca-certificates \
+	curl \
+	gnupg \
+	lsb-release \
+	docker.io -y
+
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8
+
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install build-essential libssl-dev uuid-dev libgpgme11-dev \
+	squashfs-tools libseccomp-dev wget pkg-config git cryptsetup debootstrap libglib2.0-dev
+
+RUN export VERSION=1.17.2 OS=linux ARCH=amd64 && \
+	wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
+	tar -C /usr/local -xzvf go$VERSION.$OS-$ARCH.tar.gz && \
+	rm go$VERSION.$OS-$ARCH.tar.gz
+
+RUN wget https://github.com/sylabs/singularity/releases/download/v3.10.0/singularity-ce-3.10.0.tar.gz
+RUN tar -xzvf singularity-ce-3.10.0.tar.gz
+WORKDIR /singularity-ce-3.10.0
+RUN export PATH=/usr/local/go/bin:$PATH && ./mconfig
+WORKDIR /singularity-ce-3.10.0/builddir
+RUN make && make install
