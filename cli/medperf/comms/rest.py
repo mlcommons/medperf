@@ -449,11 +449,11 @@ class REST(Comms):
         dsets = self.__get_list(f"{self.server_url}/datasets/")
         return dsets
 
-    def get_dataset(self, dset_uid: str) -> dict:
+    def get_dataset(self, dset_uid: int) -> dict:
         """Retrieves a specific dataset
 
         Args:
-            dset_uid (str): Dataset UID
+            dset_uid (int): Dataset UID
 
         Returns:
             dict: Dataset metadata
@@ -502,11 +502,11 @@ class REST(Comms):
             raise CommunicationRetrievalError("Could not retrieve results")
         return res.json()
 
-    def get_result(self, result_uid: str) -> dict:
+    def get_result(self, result_uid: int) -> dict:
         """Retrieves a specific result data
 
         Args:
-            result_uid (str): Result UID
+            result_uid (int): Result UID
 
         Returns:
             dict: Result metadata
@@ -560,11 +560,11 @@ class REST(Comms):
             log_response_error(res)
             raise CommunicationRequestError("Could not associate dataset to benchmark")
 
-    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
+    def associate_cube(self, cube_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
-            cube_uid (str): MLCube UID
+            cube_uid (int): MLCube UID
             benchmark_uid (int): Benchmark UID
             metadata (dict, optional): Additional metadata. Defaults to {}.
         """
@@ -580,13 +580,13 @@ class REST(Comms):
             raise CommunicationRequestError("Could not associate mlcube to benchmark")
 
     def set_dataset_association_approval(
-        self, benchmark_uid: str, dataset_uid: str, status: str
+        self, benchmark_uid: int, dataset_uid: int, status: str
     ):
         """Approves a dataset association
 
         Args:
-            dataset_uid (str): Dataset UID
-            benchmark_uid (str): Benchmark UID
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
             status (str): Approval status to set for the association
         """
         url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
@@ -598,13 +598,13 @@ class REST(Comms):
             )
 
     def set_mlcube_association_approval(
-        self, benchmark_uid: str, mlcube_uid: str, status: str
+        self, benchmark_uid: int, mlcube_uid: int, status: str
     ):
         """Approves an mlcube association
 
         Args:
-            mlcube_uid (str): Dataset UID
-            benchmark_uid (str): Benchmark UID
+            mlcube_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
             status (str): Approval status to set for the association
         """
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
@@ -634,13 +634,13 @@ class REST(Comms):
         return assocs
 
     def set_mlcube_association_priority(
-        self, benchmark_uid: str, mlcube_uid: str, priority: int
+        self, benchmark_uid: int, mlcube_uid: int, priority: int
     ):
         """Sets the priority of an mlcube-benchmark association
 
         Args:
-            mlcube_uid (str): MLCube UID
-            benchmark_uid (str): Benchmark UID
+            mlcube_uid (int): MLCube UID
+            benchmark_uid (int): Benchmark UID
             priority (int): priority value to set for the association
         """
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"

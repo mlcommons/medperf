@@ -66,9 +66,11 @@ PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
 PREP_SING_IMAGE="$ASSETS_URL/prep/mlcube/workspace/.image/image.tar.gz"
 
 # model cubes
+FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
 MODEL_SING_IMAGE="$ASSETS_URL/model-cpu/mlcube/workspace/.image/image.tar.gz"
+FAILING_MODEL_SING_IMAGE="$ASSETS_URL/model-bug/mlcube/workspace/.image/image.tar.gz"
 
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
 MODEL2_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters2.yaml"
@@ -153,9 +155,9 @@ medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model4 -m $MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
-checkFailed "Model4 submission failed"
-MODEL4_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD -i $FAILING_MODEL_SING_IMAGE
+checkFailed "failing model submission failed"
+FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS -i $METRICS_SING_IMAGE
 checkFailed "Metrics submission failed"
@@ -273,10 +275,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model4 association"
+echo "Running failing model association"
 echo "====================================="
-medperf mlcube associate -m $MODEL4_UID -b $BMK_UID -y
-checkFailed "Model4 association failed"
+medperf mlcube associate -m $FAILING_MODEL_UID -b $BMK_UID -y
+checkFailed "Failing model association failed"
 ##########################################################
 
 echo "\n"
@@ -286,7 +288,31 @@ echo "====================================="
 echo "Changing priority of model2"
 echo "====================================="
 medperf association set_priority -b $BMK_UID -m $MODEL2_UID -p 77
-checkFailed "Priority set failed"
+checkFailed "Priority set of model2 failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Login with modelowner"
+echo "====================================="
+medperf login --username=$MODELOWNER --password=test
+checkFailed "modelowner login failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Approve model2,3,F, associations"
+echo "====================================="
+medperf association approve -b $BMK_UID -m $MODEL2_UID
+checkFailed "Model2 association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL3_UID
+checkFailed "Model3 association approval failed"
+medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
+checkFailed "failing model association approval failed"
 ##########################################################
 
 echo "\n"
@@ -303,11 +329,33 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model1"
+echo "Running model2"
 echo "====================================="
-medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL1_UID -y
-checkFailed "Model1 run failed"
+medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID -y
+checkFailed "Model2 run failed"
 ##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running outstanding models"
+echo "====================================="
+medperf benchmark run -b $BMK_UID -d $DSET_A_UID
+checkFailed "run all outstanding models failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Run failing cube with ignore errors"
+echo "====================================="
+medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
+checkFailed "Failing mlcube run with ignore errors failed"
+##########################################################
+
+echo "\n"
 
 ##########################################################
 echo "====================================="

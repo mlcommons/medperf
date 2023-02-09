@@ -15,7 +15,7 @@ from pathlib import Path
 from shutil import rmtree
 from pexpect import spawn
 from datetime import datetime
-from typing import List, Tuple
+from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
@@ -119,8 +119,9 @@ def init_storage():
     demo = storage_path(config.demo_data_storage)
     log = storage_path(config.logs_storage)
     imgs = base_storage_path(config.images_storage)
+    tests = storage_path(config.test_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests]
     for dir in dirs:
         logging.info(f"Creating {dir} directory")
         try:
@@ -158,6 +159,19 @@ def set_unique_tmp_config():
     config.test_cube_prefix += pid
 
 
+def cleanup_path(path):
+    if os.path.exists(path):
+        logging.info(f"Removing clutter path: {path}")
+        try:
+            if os.path.islink(path):
+                os.unlink(path)
+            else:
+                rmtree(path)
+        except OSError as e:
+            logging.error(f"Cleanup failed: Could not remove {path}")
+            raise MedperfException(str(e))
+
+
 def cleanup(extra_paths: List[str] = []):
     """Removes clutter and unused files from the medperf folder structure.
     """
@@ -167,13 +181,7 @@ def cleanup(extra_paths: List[str] = []):
     tmp_path = storage_path(config.tmp_storage)
     extra_paths.append(tmp_path)
     for path in extra_paths:
-        if os.path.exists(path):
-            logging.info(f"Removing clutter path: {path}")
-            try:
-                rmtree(path)
-            except OSError as e:
-                logging.error("Could not remove clutter path")
-                raise MedperfException(str(e))
+        cleanup_path(path)
 
     cleanup_dsets()
     cleanup_cubes()
@@ -194,14 +202,8 @@ def cleanup_dsets():
     ]
 
     for dset in clutter_dsets:
-        logging.info(f"Removing clutter dataset: {dset}")
         dset_path = os.path.join(dsets_path, dset)
-        if os.path.exists(dset_path):
-            try:
-                rmtree(dset_path)
-            except OSError as e:
-                logging.error(f"Could not remove dataset {dset}")
-                raise MedperfException(str(e))
+        cleanup_path(dset_path)
 
 
 def cleanup_cubes():
@@ -213,17 +215,8 @@ def cleanup_cubes():
     clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
 
     for cube in clutter_cubes:
-        logging.info(f"Removing clutter cube: {cube}")
         cube_path = os.path.join(cubes_path, cube)
-        if os.path.exists(cube_path):
-            try:
-                if os.path.islink(cube_path):
-                    os.unlink(cube_path)
-                else:
-                    rmtree(cube_path)
-            except OSError as e:
-                logging.error(f"Could not remove cube {cube}")
-                raise MedperfException(str(e))
+        cleanup_path(cube_path)
 
 
 def cleanup_benchmarks():
@@ -234,14 +227,8 @@ def cleanup_benchmarks():
     clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
 
     for bmk in clutter_bmks:
-        logging.info(f"Removing clutter benchmark: {bmk}")
         bmk_path = os.path.join(bmks_path, bmk)
-        if os.path.exists(bmk_path):
-            try:
-                rmtree(bmk_path)
-            except OSError as e:
-                logging.error(f"Could not remove benchmark {bmk}")
-                raise MedperfException(str(e))
+        cleanup_path(bmk_path)
 
 
 def get_uids(path: str) -> List[str]:
@@ -277,7 +264,7 @@ def pretty_error(msg: str, clean: bool = True):
     sys.exit(1)
 
 
-def generate_tmp_datapath() -> Tuple[str, str]:
+def generate_tmp_datapath() -> str:
     """Builds a temporary folder for prepared but yet-to-register datasets.
 
     Returns:
@@ -305,17 +292,28 @@ def generate_tmp_uid() -> str:
     return ts
 
 
+def generate_tmp_path() -> str:
+    """Generates a temporary path by means of getting the current timestamp
+    with a random salt
+
+    Returns:
+        str: generated temporary path
+    """
+    tmp_path = os.path.join(config.tmp_storage, generate_tmp_uid())
+    tmp_path = storage_path(tmp_path)
+    return os.path.abspath(tmp_path)
+
+
 def check_cube_validity(cube: "Cube"):
     """Helper function for pretty printing the cube validity process.
 
     Args:
         cube (Cube): Cube to check for validity
-        ui (UI): Instance of an UI implementation
     """
     logging.info(f"Checking cube {cube.name} validity")
     ui = config.ui
     ui.text = "Checking cube MD5 hash..."
-    if not cube.is_valid():
+    if not cube.valid():
         raise InvalidEntityError("MD5 hash doesn't match")
     logging.info(f"Cube {cube.name} is valid")
     ui.print(f"> {cube.name} MD5 hash check complete")
