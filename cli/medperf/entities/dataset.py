@@ -2,7 +2,7 @@ import os
 import yaml
 import logging
 from pydantic import Field, validator
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from medperf.utils import storage_path
 from medperf.enums import Status
@@ -53,7 +53,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
-            path = os.path.join(path, str(self.generated_uid))
+            path = os.path.join(path, self.generated_uid)
 
         self.path = path
         self.data_path = os.path.join(self.path, "data")
@@ -123,7 +123,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return dsets
 
     @classmethod
-    def get(cls, dset_uid: str) -> "Dataset":
+    def get(cls, dset_uid: Union[str, int]) -> "Dataset":
         """Retrieves and creates a Dataset instance from the comms instance.
         If the dataset is present in the user's machine then it retrieves it from there.
 
@@ -172,9 +172,9 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return updated_dataset_dict
 
     @classmethod
-    def __get_local_dict(cls, generated_uid):
+    def __get_local_dict(cls, data_uid):
         dataset_path = os.path.join(
-            storage_path(config.data_storage), str(generated_uid)
+            storage_path(config.data_storage), str(data_uid)
         )
         regfile = os.path.join(dataset_path, config.reg_file)
         if not os.path.exists(regfile):

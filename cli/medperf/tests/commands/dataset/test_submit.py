@@ -20,7 +20,7 @@ def no_remote(mocker, comms):
     mocker.patch.object(comms, "get_user_datasets", return_value=[])
 
 
-@pytest.mark.parametrize("data_uid", ["2214", "3540", "362"])
+@pytest.mark.parametrize("data_uid", ["hash2214", "hash3540", "hash362"])
 def test_run_retrieves_specified_dataset(
     mocker, comms, ui, dataset, data_uid, no_remote
 ):
@@ -48,7 +48,7 @@ def test_run_fails_if_dataset_already_registered(
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
-        DatasetRegistration.run("1")
+        DatasetRegistration.run("hash1")
 
 
 def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote):
@@ -60,7 +60,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
     mocker.patch("os.rename")
 
     # Act & Assert
-    DatasetRegistration.run("1")
+    DatasetRegistration.run("hash1")
 
 
 @pytest.mark.parametrize("dset_dict", [{"test": "test"}, {}])
@@ -75,7 +75,7 @@ def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
     mocker.patch("os.rename")
 
     # Act
-    DatasetRegistration.run("1")
+    DatasetRegistration.run("hash1")
 
     # Assert
     spy_dict.assert_called_once()
@@ -89,7 +89,7 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     mocker.patch("os.rename")
 
     # Act
-    DatasetRegistration.run("1")
+    DatasetRegistration.run("hash1")
 
     # Assert
     spy.assert_called_once()
@@ -132,10 +132,10 @@ class TestWithApproval:
 
         # Act
         if approved:
-            DatasetRegistration.run("1")
+            DatasetRegistration.run("hash1")
         else:
             with pytest.raises(CleanExit):
-                DatasetRegistration.run("1")
+                DatasetRegistration.run("hash1")
 
         # Assert
         if approved:
@@ -152,7 +152,7 @@ class TestWithApproval:
         mocker.patch("os.rename")
 
         # Act
-        DatasetRegistration.run("1", approved=approved)
+        DatasetRegistration.run("hash1", approved=approved)
 
         # Assert
         if approved:
@@ -173,10 +173,10 @@ class TestWithApproval:
 
         # Act
         if approved:
-            DatasetRegistration.run("1")
+            DatasetRegistration.run("hash1")
         else:
             with pytest.raises(CleanExit):
-                DatasetRegistration.run("1")
+                DatasetRegistration.run("hash1")
 
         # Assert
         if approved:

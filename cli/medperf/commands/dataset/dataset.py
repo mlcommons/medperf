@@ -74,34 +74,32 @@ def register(
     """Submits an unregistered Dataset instance to the backend
     """
     ui = config.ui
-    DatasetRegistration.run(data_uid, approved=approval)
+    uid = DatasetRegistration.run(data_uid, approved=approval)
     ui.print("✅ Done!")
     ui.print(
-        f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {data_uid}'"
+        f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {uid}'"
     )
 
 
 @app.command("associate")
 @clean_except
 def associate(
-    data_uid: str = typer.Option(
+    data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
         ..., "-benchmark_uid", "-b", help="Benchmark UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute the test even if results already exist",
     ),
 ):
     """Associate a registered dataset with a specific benchmark.
     The dataset and benchmark must share the same data preparation cube.
     """
     ui = config.ui
-    AssociateDataset.run(
-        data_uid, benchmark_uid, approved=approval, force_test=force_test
-    )
+    AssociateDataset.run(data_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     ui.print("✅ Done!")
     ui.print(
         f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"

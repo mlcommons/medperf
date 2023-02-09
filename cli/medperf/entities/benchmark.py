@@ -2,7 +2,7 @@ import os
 from medperf.exceptions import MedperfException
 import yaml
 import logging
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
@@ -126,7 +126,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmarks
 
     @classmethod
-    def get(cls, benchmark_uid: str) -> "Benchmark":
+    def get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -155,7 +155,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmark
 
     @classmethod
-    def __get_local_dict(cls, benchmark_uid: str) -> dict:
+    def __get_local_dict(cls, benchmark_uid) -> dict:
         """Retrieves a local benchmark information
 
         Args:
@@ -178,18 +178,18 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     @classmethod
     def tmp(
         cls,
-        data_preparator: str,
-        model: str,
-        evaluator: str,
+        data_preparator: int,
+        model: int,
+        evaluator: int,
         demo_url: str = None,
         demo_hash: str = None,
     ) -> "Benchmark":
         """Creates a temporary instance of the benchmark
 
         Args:
-            data_preparator (str): UID of the data preparator cube to use.
-            model (str): UID of the model cube to use.
-            evaluator (str): UID of the evaluator cube to use.
+            data_preparator (int): UID of the data preparator cube to use.
+            model (int): UID of the model cube to use.
+            evaluator (int): UID of the evaluator cube to use.
             demo_url (str, optional): URL to obtain the demo dataset. Defaults to None.
             demo_hash (str, optional): Hash of the demo dataset tarball file. Defaults to None.
 
@@ -212,15 +212,15 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmark
 
     @classmethod
-    def get_models_uids(cls, benchmark_uid: str) -> List[str]:
+    def get_models_uids(cls, benchmark_uid: int) -> List[int]:
         """Retrieves the list of models associated to the benchmark
 
         Args:
-            benchmark_uid (str): UID of the benchmark.
+            benchmark_uid (int): UID of the benchmark.
             comms (Comms): Instance of the communications interface.
 
         Returns:
-            List[str]: List of mlcube uids
+            List[int]: List of mlcube uids
         """
         return config.comms.get_benchmark_models(benchmark_uid)
 

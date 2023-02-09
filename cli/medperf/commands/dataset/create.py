@@ -22,8 +22,8 @@ class DataPreparation:
     @classmethod
     def run(
         cls,
-        benchmark_uid: str,
-        prep_cube_uid: str,
+        benchmark_uid: int,
+        prep_cube_uid: int,
         data_path: str,
         labels_path: str,
         run_test=False,
@@ -54,8 +54,8 @@ class DataPreparation:
 
     def __init__(
         self,
-        benchmark_uid: str,
-        prep_cube_uid: str,
+        benchmark_uid: int,
+        prep_cube_uid: int,
         data_path: str,
         labels_path: str,
         name: str,

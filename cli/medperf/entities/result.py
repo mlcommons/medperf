@@ -6,7 +6,6 @@ from typing import List, Union
 from medperf.utils import storage_path
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema
-from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
@@ -22,9 +21,9 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
     benchmark results and how to upload them to the backend.
     """
 
-    benchmark: Union[int, str]  # This is required for compatibility tests
+    benchmark: int
     model: int
-    dataset: Union[int, str]  # This is required for compatibility tests
+    dataset: int
     results: dict
     metadata: dict = {}
 
@@ -32,8 +31,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
 
-        dset = Dataset.get(self.dataset)
-        self.generated_uid = f"b{self.benchmark}m{self.model}d{dset.generated_uid}"
+        self.generated_uid = f"b{self.benchmark}m{self.model}d{self.dataset}"
         path = storage_path(config.results_storage)
         if self.id:
             path = os.path.join(path, str(self.id))
@@ -101,7 +99,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def get(cls, result_uid: str) -> "Result":
+    def get(cls, result_uid: Union[str, int]) -> "Result":
         """Retrieves and creates a Result instance obtained from the platform.
         If the result instance already exists in the user's machine, it loads
         the local instance
