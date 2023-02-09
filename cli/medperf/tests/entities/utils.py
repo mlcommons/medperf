@@ -4,10 +4,10 @@ from medperf import config
 import yaml
 
 from medperf.exceptions import CommunicationRetrievalError
-from medperf.tests.mocks.benchmark import generate_benchmark
-from medperf.tests.mocks.dataset import generate_dset
-from medperf.tests.mocks.result import generate_result
-from medperf.tests.mocks.cube import generate_cube
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.dataset import TestDataset
+from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
 
@@ -19,22 +19,22 @@ def setup_benchmark_fs(ents, fs):
             # Assume we're passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        bmk_filepath = os.path.join(bmks_path, id, config.benchmarks_filename)
-        bmk_contents = generate_benchmark(**ent)
-        cubes_ids = bmk_contents["models"]
-        cubes_ids.append(bmk_contents["data_preparation_mlcube"])
-        cubes_ids.append(bmk_contents["reference_model_mlcube"])
-        cubes_ids.append(bmk_contents["data_evaluator_mlcube"])
+        bmk_filepath = os.path.join(bmks_path, str(id), config.benchmarks_filename)
+        bmk_contents = TestBenchmark(**ent)
+        cubes_ids = bmk_contents.models
+        cubes_ids.append(bmk_contents.data_preparation_mlcube)
+        cubes_ids.append(bmk_contents.reference_model_mlcube)
+        cubes_ids.append(bmk_contents.data_evaluator_mlcube)
         cubes_ids = list(set(cubes_ids))
         setup_cube_fs(cubes_ids, fs)
         try:
-            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents))
+            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents.dict()))
         except FileExistsError:
             pass
 
 
 def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_benchmark
+    generate_fn = TestBenchmark
     comms_calls = {
         "get_all": "get_benchmarks",
         "get_user": "get_user_benchmarks",
@@ -64,10 +64,14 @@ def setup_cube_fs(ents, fs):
             # Assume we're passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        meta_cube_file = os.path.join(cubes_path, id, config.cube_metadata_filename)
-        hash_cube_file = os.path.join(cubes_path, id, config.cube_hashes_filename)
-        meta = generate_cube(id=id)
-        hashes = generate_cube_hashes(**ent)
+        meta_cube_file = os.path.join(
+            cubes_path, str(id), config.cube_metadata_filename
+        )
+        hash_cube_file = os.path.join(cubes_path, str(id), config.cube_hashes_filename)
+        cube = TestCube(**ent)
+        meta = cube.dict()
+        hash_keys = ("additional_files_tarball_hash", "image_tarball_hash")
+        hashes = {k: v for k, v in meta.items() if k in hash_keys}
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
             fs.create_file(hash_cube_file, contents=yaml.dump(hashes))
@@ -76,7 +80,7 @@ def setup_cube_fs(ents, fs):
 
 
 def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_cube
+    generate_fn = TestCube
     comms_calls = {
         "get_all": "get_cubes",
         "get_user": "get_user_cubes",
@@ -133,18 +137,18 @@ def setup_dset_fs(ents, fs):
             # Assume passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        reg_dset_file = os.path.join(dsets_path, id, config.reg_file)
-        dset_contents = generate_dset(**ent)
-        cube_id = dset_contents["data_preparation_mlcube"]
+        reg_dset_file = os.path.join(dsets_path, str(id), config.reg_file)
+        dset_contents = TestDataset(**ent)
+        cube_id = dset_contents.data_preparation_mlcube
         setup_cube_fs([cube_id], fs)
         try:
-            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents))
+            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents.dict()))
         except FileExistsError:
             pass
 
 
 def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_dset
+    generate_fn = TestDataset
     comms_calls = {
         "get_all": "get_datasets",
         "get_user": "get_user_datasets",
@@ -164,23 +168,22 @@ def setup_result_fs(ents, fs):
             # Assume passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        result_file = os.path.join(results_path, id, config.results_info_file)
-        result_contents = generate_result(**ent)
-        bmk_id = result_contents["benchmark"]
-        cube_id = result_contents["model"]
-        dataset_id = result_contents["dataset"]
+        result_file = os.path.join(results_path, str(id), config.results_info_file)
+        bmk_id = ent.get("benchmark", 1)
+        cube_id = ent.get("model", 1)
+        dataset_id = ent.get("dataset", 1)
         setup_benchmark_fs([bmk_id], fs)
         setup_cube_fs([cube_id], fs)
         setup_dset_fs([dataset_id], fs)
+        result_contents = TestResult(**ent)
         try:
-            fs.create_file(result_file, contents=yaml.dump(result_contents))
+            fs.create_file(result_file, contents=yaml.dump(result_contents.dict()))
         except FileExistsError:
             pass
 
 
 def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = generate_result
-    def_result = generate_result()
+    generate_fn = TestResult
     comms_calls = {
         "get_all": "get_results",
         "get_user": "get_user_results",
@@ -189,9 +192,7 @@ def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
     }
 
     # Enable dset retrieval since its required for result creation
-    setup_dset_comms(
-        mocker, comms, [def_result["dataset"]], [def_result["dataset"]], uploaded
-    )
+    setup_dset_comms(mocker, comms, [1], [1], uploaded)
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )

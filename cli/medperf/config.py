@@ -17,12 +17,12 @@ cubes_storage = "cubes"
 predictions_storage = "predictions"
 results_storage = "results"
 statistics_filename = "tmp_statistics.yaml"
-results_filename = "result.yaml"
 results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 config_path = "config.yaml"
 workspace_path = "workspace"
+test_storage = "tests"
 cleanup = True
 
 cube_filename = "mlcube.yaml"

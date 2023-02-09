@@ -34,7 +34,7 @@ def submit(
         ..., "--mlcube-file", "-m", help="URL to mlcube file"
     ),
     mlcube_hash: str = typer.Option("", "--mlcube-hash", help="SHA1 of mlcube file"),
-    params_file: str = typer.Option(
+    parameters_file: str = typer.Option(
         "", "--parameters-file", "-p", help="URL to parameters file"
     ),
     parameters_hash: str = typer.Option(
@@ -57,9 +57,9 @@ def submit(
     """Submits a new cube to the platform"""
     mlcube_info = {
         "name": name,
-        "mlcube_file": mlcube_file,
-        "mlcube_hash": mlcube_hash,
-        "params_file": params_file,
+        "git_mlcube_url": mlcube_file,
+        "git_mlcube_hash": mlcube_hash,
+        "git_parameters_url": parameters_file,
         "parameters_hash": parameters_hash,
         "image_tarball_url": image_file,
         "image_tarball_hash": image_hash,
@@ -77,12 +77,10 @@ def associate(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute the test even if results already exist",
     ),
 ):
     """Associates an MLCube to a benchmark"""
-    AssociateCube.run(
-        model_uid, benchmark_uid, approved=approval, force_test=force_test
-    )
+    AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     config.ui.print("✅ Done!")

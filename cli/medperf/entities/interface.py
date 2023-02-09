@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 from abc import ABC, abstractmethod
 
 
@@ -17,7 +17,7 @@ class Entity(ABC):
         """
 
     @abstractmethod
-    def get(cls, uid: str) -> "Entity":
+    def get(cls, uid: Union[str, int]) -> "Entity":
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends
         on the implementation.
