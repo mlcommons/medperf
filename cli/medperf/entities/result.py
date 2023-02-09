@@ -170,7 +170,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
             "Model": self.model,
             "Dataset": self.dataset,
             "Partial": self.metadata["partial"],
-            "Approval Status": self.approval_status.value,
+            "Approval Status": self.approval_status,
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }

@@ -191,7 +191,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
             "Location": self.location,
             "Data Preparation Cube UID": self.data_preparation_mlcube,
             "Generated Hash": self.generated_uid,
-            "Status": self.status.value,
+            "Status": self.status,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,

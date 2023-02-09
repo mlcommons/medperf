@@ -272,6 +272,6 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
             "Associated Models": ",".join(map(str, self.models)),
             "Data Evaluator MLCube": int(self.data_evaluator_mlcube),
             "State": self.state,
-            "Approval Status": self.approval_status.value,
+            "Approval Status": self.approval_status,
             "Registered": self.is_registered,
         }
