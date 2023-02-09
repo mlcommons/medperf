@@ -75,7 +75,7 @@ class TestGetFiles:
         self.id = setup["remote"][0]["id"]
 
         # Specify expected path for all downloaded files
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.id)
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
         self.params_path = os.path.join(
             self.cube_path, config.workspace_path, config.params_filename
@@ -198,7 +198,7 @@ class TestRun:
         self.platform = config.platform
 
         # Specify expected path for the manifest files
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.id)
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
 
     @pytest.mark.parametrize("timeout", [847, None])
@@ -256,7 +256,7 @@ class TestDefaultOutput:
         self.cube_contents = {
             "tasks": {task: {"parameters": {"outputs": {out_key: out_value}}}}
         }
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.id)
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
         fs.create_file(self.manifest_path, contents=yaml.dump(self.cube_contents))
 

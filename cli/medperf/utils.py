@@ -15,7 +15,7 @@ from pathlib import Path
 from shutil import rmtree
 from pexpect import spawn
 from datetime import datetime
-from typing import List, Tuple
+from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
@@ -258,7 +258,7 @@ def pretty_error(msg: str, clean: bool = True):
     sys.exit(1)
 
 
-def generate_tmp_datapath() -> Tuple[str, str]:
+def generate_tmp_datapath() -> str:
     """Builds a temporary folder for prepared but yet-to-register datasets.
 
     Returns:
@@ -303,7 +303,6 @@ def check_cube_validity(cube: "Cube"):
 
     Args:
         cube (Cube): Cube to check for validity
-        ui (UI): Instance of an UI implementation
     """
     logging.info(f"Checking cube {cube.name} validity")
     ui = config.ui

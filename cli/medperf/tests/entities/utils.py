@@ -19,7 +19,7 @@ def setup_benchmark_fs(ents, fs):
             # Assume we're passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        bmk_filepath = os.path.join(bmks_path, id, config.benchmarks_filename)
+        bmk_filepath = os.path.join(bmks_path, str(id), config.benchmarks_filename)
         bmk_contents = TestBenchmark(**ent)
         cubes_ids = bmk_contents.models
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
@@ -64,8 +64,10 @@ def setup_cube_fs(ents, fs):
             # Assume we're passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        meta_cube_file = os.path.join(cubes_path, id, config.cube_metadata_filename)
-        hash_cube_file = os.path.join(cubes_path, id, config.cube_hashes_filename)
+        meta_cube_file = os.path.join(
+            cubes_path, str(id), config.cube_metadata_filename
+        )
+        hash_cube_file = os.path.join(cubes_path, str(id), config.cube_hashes_filename)
         cube = TestCube(**ent)
         meta = cube.dict()
         hash_keys = ("additional_files_tarball_hash", "image_tarball_hash")
@@ -135,7 +137,7 @@ def setup_dset_fs(ents, fs):
             # Assume passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        reg_dset_file = os.path.join(dsets_path, id, config.reg_file)
+        reg_dset_file = os.path.join(dsets_path, str(id), config.reg_file)
         dset_contents = TestDataset(**ent)
         cube_id = dset_contents.data_preparation_mlcube
         setup_cube_fs([cube_id], fs)
@@ -166,7 +168,7 @@ def setup_result_fs(ents, fs):
             # Assume passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
-        result_file = os.path.join(results_path, id, config.results_info_file)
+        result_file = os.path.join(results_path, str(id), config.results_info_file)
         bmk_id = ent.get("benchmark", 1)
         cube_id = ent.get("model", 1)
         dataset_id = ent.get("dataset", 1)

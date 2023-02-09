@@ -21,9 +21,9 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
     benchmark results and how to upload them to the backend.
     """
 
-    benchmark: Union[int, str]  # This is required for compatibility tests
+    benchmark: int
     model: int
-    dataset: Union[int, str]  # This is required for compatibility tests
+    dataset: int
     results: dict
     metadata: dict = {}
 
@@ -99,7 +99,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def get(cls, result_uid: str) -> "Result":
+    def get(cls, result_uid: Union[str, int]) -> "Result":
         """Retrieves and creates a Result instance obtained from the platform.
         If the result instance already exists in the user's machine, it loads
         the local instance

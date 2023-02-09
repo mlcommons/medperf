@@ -9,12 +9,12 @@ from medperf.commands.compatibility_test import CompatibilityTestExecution
 class AssociateCube:
     @classmethod
     def run(
-        cls, cube_uid: str, benchmark_uid: int, approved=False, no_cache=False,
+        cls, cube_uid: int, benchmark_uid: int, approved=False, no_cache=False,
     ):
         """Associates a cube with a given benchmark
 
         Args:
-            cube_uid (str): UID of model MLCube
+            cube_uid (int): UID of model MLCube
             benchmark_uid (int): UID of benchmark
             approved (bool): Skip validation step. Defualts to False
         """

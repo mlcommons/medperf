@@ -56,9 +56,9 @@ def submit(
         "docs_url": docs_url,
         "demo_dataset_tarball_url": demo_url,
         "demo_dataset_tarball_hash": demo_hash,
-        "data_preparation_mlcube": str(data_preparation_mlcube),
-        "reference_model_mlcube": str(reference_model_mlcube),
-        "data_evaluator_mlcube": str(evaluator_mlcube),
+        "data_preparation_mlcube": data_preparation_mlcube,
+        "reference_model_mlcube": reference_model_mlcube,
+        "data_evaluator_mlcube": evaluator_mlcube,
     }
     SubmitBenchmark.run(benchmark_info)
     cleanup()
@@ -96,7 +96,7 @@ def run(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: str = typer.Option(
+    data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     file: str = typer.Option(

@@ -88,8 +88,8 @@ class BenchmarkExecution:
         self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
 
     def validate(self):
-        dset_prep_cube = str(self.dataset.data_preparation_mlcube)
-        bmark_prep_cube = str(self.benchmark.data_preparation_mlcube)
+        dset_prep_cube = self.dataset.data_preparation_mlcube
+        bmark_prep_cube = self.benchmark.data_preparation_mlcube
 
         if self.dataset.id is None:
             msg = "The provided dataset is not registered."
@@ -104,8 +104,6 @@ class BenchmarkExecution:
             self.models_uids = self.__get_models_from_file()
         elif self.models_uids is None:
             self.models_uids = self.benchmark.models
-
-        self.models_uids = list(map(str, self.models_uids))
 
     def __get_models_from_file(self):
         if not os.path.exists(self.models_input_file):
@@ -122,7 +120,7 @@ class BenchmarkExecution:
 
     def validate_models(self):
         models_set = set(self.models_uids)
-        benchmark_models_set = set(map(str, self.benchmark.models))
+        benchmark_models_set = set(self.benchmark.models)
         non_assoc_cubes = models_set.difference(benchmark_models_set)
         if non_assoc_cubes:
             if len(non_assoc_cubes) > 1:
@@ -136,11 +134,11 @@ class BenchmarkExecution:
         benchmark_dset_results = [
             result
             for result in results
-            if str(result.benchmark) == str(self.benchmark_uid)
-            and str(result.dataset) == str(self.data_uid)
+            if result.benchmark == self.benchmark_uid
+            and result.dataset == self.data_uid
         ]
         self.cached_results = {
-            str(result.model): result for result in benchmark_dset_results
+            result.model: result for result in benchmark_dset_results
         }
 
     def __get_cube(self, uid: int, name: str) -> Cube:

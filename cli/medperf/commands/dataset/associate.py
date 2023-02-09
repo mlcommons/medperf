@@ -8,7 +8,7 @@ from medperf.exceptions import CleanExit, InvalidArgumentError
 
 class AssociateDataset:
     @staticmethod
-    def run(data_uid: str, benchmark_uid: int, approved=False, no_cache=False):
+    def run(data_uid: int, benchmark_uid: int, approved=False, no_cache=False):
         """Associates a registered dataset with a benchmark
 
         Args:
@@ -24,7 +24,7 @@ class AssociateDataset:
 
         benchmark = Benchmark.get(benchmark_uid)
 
-        if str(dset.data_preparation_mlcube) != str(benchmark.data_preparation_mlcube):
+        if dset.data_preparation_mlcube != benchmark.data_preparation_mlcube:
             raise InvalidArgumentError(
                 "The specified dataset wasn't prepared for this benchmark"
             )

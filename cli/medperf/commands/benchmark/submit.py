@@ -21,9 +21,9 @@ class SubmitBenchmark:
                     docs_url (str): benchmark documentation url
                     demo_url (str): benchmark demo dataset url
                     demo_hash (str): benchmark demo dataset hash
-                    data_preparation_mlcube (str): benchmark data preparation mlcube uid
-                    reference_model_mlcube (str): benchmark reference model mlcube uid
-                    evaluator_mlcube (str): benchmark data evaluator mlcube uid
+                    data_preparation_mlcube (int): benchmark data preparation mlcube uid
+                    reference_model_mlcube (int): benchmark reference model mlcube uid
+                    evaluator_mlcube (int): benchmark data evaluator mlcube uid
         """
         ui = config.ui
         submission = cls(benchmark_info, no_cache)

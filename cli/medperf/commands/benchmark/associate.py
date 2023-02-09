@@ -7,18 +7,18 @@ class AssociateBenchmark:
     @classmethod
     def run(
         cls,
-        benchmark_uid: str,
-        model_uid: str,
-        data_uid: str,
+        benchmark_uid: int,
+        model_uid: int,
+        data_uid: int,
         approved=False,
         no_cache=False,
     ):
         """Associates a dataset or model to the given benchmark
 
         Args:
-            benchmark_uid (str): UID of benchmark to associate entities with
-            model_uid (str): UID of model to associate with benchmark
-            data_uid (str): UID of dataset to associate with benchmark
+            benchmark_uid (int): UID of benchmark to associate entities with
+            model_uid (int): UID of model to associate with benchmark
+            data_uid (int): UID of dataset to associate with benchmark
             comms (Comms): Instance of Communications interface
             ui (UI): Instance of UI interface
             approved (bool): Skip approval step. Defaults to False
