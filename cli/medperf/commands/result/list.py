@@ -26,11 +26,11 @@ class ResultsList:
         # Get local results data
         results_data = [
             [
-                result.uid if result.uid is not None else result.generated_uid,
-                result.benchmark_uid,
-                result.model_uid,
-                result.dataset_uid,
-                result.uid is not None,
+                result.id if result.id is not None else result.generated_uid,
+                result.benchmark,
+                result.model,
+                result.dataset,
+                result.id is not None,
                 True,
             ]
             for result in results

@@ -45,7 +45,7 @@ def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
 
 
 @pytest.mark.parametrize("demo_hash", ["demo_hash", "437289fa3d"])
-@pytest.mark.parametrize("demo_uid", ["demo_uid", "1"])
+@pytest.mark.parametrize("demo_uid", ["demo_uid", "hash1"])
 @pytest.mark.parametrize("results", [{}, {"result": "result_val"}])
 def test_get_extra_information_retrieves_expected_info(
     mocker, demo_hash, demo_uid, results, comms, ui
@@ -85,7 +85,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once_with(bmk.generated_uid, force_test=True)
+    comp_spy.assert_called_once_with(bmk.generated_uid, no_cache=True)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):

@@ -5,13 +5,13 @@ from medperf.exceptions import InvalidArgumentError
 class AssociationPriority:
     @staticmethod
     def run(
-        benchmark_uid: str, mlcube_uid: str, priority: int,
+        benchmark_uid: int, mlcube_uid: int, priority: int,
     ):
         """Sets priority for an association between a benchmark and an mlcube
 
         Args:
-            benchmark_uid (str): Benchmark UID.
-            mlcube_uid (str): MLCube UID.
+            benchmark_uid (int): Benchmark UID.
+            mlcube_uid (int): MLCube UID.
             priority (int): priority value
 
         """

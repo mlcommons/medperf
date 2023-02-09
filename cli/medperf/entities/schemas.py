@@ -1,12 +1,12 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, validator, HttpUrl
-from typing import Optional, Union
+from typing import Optional
 
 from medperf.enums import Status
 
 
 class MedperfSchema(BaseModel):
-    id: Optional[Union[str, int]]
+    id: Optional[int]
     name: str = Field(..., max_length=20)
     owner: Optional[int]
     created_at: Optional[datetime]

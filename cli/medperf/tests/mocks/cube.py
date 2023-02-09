@@ -10,7 +10,7 @@ class MockCube:
     def __init__(self, is_valid):
         self.name = "Test"
         self.is_valid = is_valid
-        self.id = "1"
+        self.id = 1
 
     def valid(self):
         return self.is_valid

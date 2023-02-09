@@ -67,7 +67,7 @@ def get_comms_instance_behavior(
     """
     ids = [ent["id"] if type(ent) == dict else ent for ent in ents]
 
-    def get_behavior(id: str):
+    def get_behavior(id: int):
         if id in ids:
             idx = ids.index(id)
             return generate_fn(**ents[idx]).dict()

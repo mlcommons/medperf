@@ -2,7 +2,7 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from pydantic import HttpUrl, Field
 from pathlib import Path
 
@@ -60,7 +60,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
-            path = os.path.join(path, str(self.generated_uid))
+            path = os.path.join(path, self.generated_uid)
         # NOTE: maybe have these as @property, to have the same entity reusable
         #       before and after submission
         self.path = path
@@ -128,7 +128,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: str) -> "Cube":
+    def get(cls, cube_uid: Union[str, int]) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
@@ -350,7 +350,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     @classmethod
     def __get_local_dict(cls, uid):
         cubes_storage = storage_path(config.cubes_storage)
-        meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+        meta_file = os.path.join(cubes_storage, str(uid), config.cube_metadata_filename)
         if not os.path.exists(meta_file):
             raise InvalidArgumentError(
                 "The requested mlcube information could not be found locally"
