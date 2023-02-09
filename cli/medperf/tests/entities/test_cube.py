@@ -19,11 +19,11 @@ from medperf.exceptions import (
 )
 
 PATCH_CUBE = "medperf.entities.cube.{}"
-DEFAULT_CUBE = {"id": "37"}
-FAILING_CUBE = {"id": "46", "parameters_hash": "error"}
-NO_IMG_CUBE = {"id": "345", "image_tarball_url": None, "image_tarball_hash": None}
+DEFAULT_CUBE = {"id": 37}
+FAILING_CUBE = {"id": 46, "parameters_hash": "error"}
+NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
 BASIC_CUBE = {
-    "id": "598",
+    "id": 598,
     "git_parameters_url": None,
     "git_parameters_hash": None,
     "image_tarball_url": None,
@@ -33,11 +33,11 @@ BASIC_CUBE = {
 }
 VALID_CUBES = [{"remote": [DEFAULT_CUBE]}, {"remote": [BASIC_CUBE]}]
 INVALID_CUBES = [
-    {"remote": [{"id": "190", "is_valid": False}]},
-    {"remote": [{"id": "53", "mlcube_hash": "incorrect"}]},
-    {"remote": [{"id": "7", "parameters_hash": "incorrect"}]},
-    {"remote": [{"id": "874", "image_tarball_hash": "incorrect"}]},
-    {"remote": [{"id": "286", "additional_files_tarball_hash": "incorrect"}]},
+    {"remote": [{"id": 190, "is_valid": False}]},
+    {"remote": [{"id": 53, "mlcube_hash": "incorrect"}]},
+    {"remote": [{"id": 7, "parameters_hash": "incorrect"}]},
+    {"remote": [{"id": 874, "image_tarball_hash": "incorrect"}]},
+    {"remote": [{"id": 286, "additional_files_tarball_hash": "incorrect"}]},
 ]
 
 CUBE_CONTENTS = {
@@ -46,7 +46,7 @@ CUBE_CONTENTS = {
 
 
 @pytest.fixture(
-    params={"local": ["1", "2", "3"], "remote": ["4", "5", "6"], "user": ["4"]}
+    params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]}
 )
 def setup(request, mocker, comms, fs):
     local_ents = request.param.get("local", [])

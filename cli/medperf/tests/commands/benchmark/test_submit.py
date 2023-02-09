@@ -45,7 +45,7 @@ def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
 
 
 @pytest.mark.parametrize("demo_hash", ["demo_hash", "437289fa3d"])
-@pytest.mark.parametrize("demo_uid", ["demo_uid", "1"])
+@pytest.mark.parametrize("demo_uid", ["demo_uid", "hash1"])
 @pytest.mark.parametrize("results", [{}, {"result": "result_val"}])
 def test_get_extra_information_retrieves_expected_info(
     mocker, demo_hash, demo_uid, results, comms, ui

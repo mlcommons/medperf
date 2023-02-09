@@ -93,18 +93,18 @@ def mock_execution(mocker, state_variables):
 def setup(request, mocker, ui, fs):
     # system inputs
     state_variables = {
-        "benchmark_prep_cube": "1",
+        "benchmark_prep_cube": 1,
         "benchmark_models": [2, 4, 5, 6, 7],
-        "dataset_prep_cube": "1",
-        "cached_results_triplets": [["1", "2", "1"], ["2", "4", "1"]],
+        "dataset_prep_cube": 1,
+        "cached_results_triplets": [[1, 2, 1], [2, 4, 1]],
         "models_props": {
-            "2": {"results": {"res": 41}, "partial": False,},
-            "4": {"results": {"res": 1}, "partial": False,},
-            "5": {"results": {"res": 66}, "partial": True,},
-            "6": "exec_error",
-            "7": "invalid",
+            2: {"results": {"res": 41}, "partial": False,},
+            4: {"results": {"res": 1}, "partial": False,},
+            5: {"results": {"res": 66}, "partial": True,},
+            6: "exec_error",
+            7: "invalid",
         },
-        "evaluator": {"uid": "3", "invalid": False},
+        "evaluator": {"uid": 3, "invalid": False},
     }
     state_variables.update(request.param)
 
@@ -133,25 +133,25 @@ def setup(request, mocker, ui, fs):
 def test_failure_with_unregistered_dset(mocker, setup):
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
-        BenchmarkExecution.run("1", data_uid=None)
+        BenchmarkExecution.run(1, data_uid=None)
 
 
 @pytest.mark.parametrize(
-    "setup", [{"benchmark_prep_cube": "11", "dataset_prep_cube": "7"}], indirect=True
+    "setup", [{"benchmark_prep_cube": 11, "dataset_prep_cube": 7}], indirect=True
 )
 def test_failure_with_unmatching_prep(mocker, setup):
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
-        BenchmarkExecution.run("1", "2")
+        BenchmarkExecution.run(1, 2)
 
 
 @pytest.mark.parametrize(
-    "setup", [{"evaluator": {"uid": "3", "invalid": True}}], indirect=True
+    "setup", [{"evaluator": {"uid": 3, "invalid": True}}], indirect=True
 )
 def test_failure_with_invalid_eval(mocker, setup):
     # Act & Assert
     with pytest.raises(InvalidEntityError):
-        BenchmarkExecution.run("1", "2")
+        BenchmarkExecution.run(1, 2)
 
 
 @pytest.mark.parametrize("setup", [{}], indirect=True)
@@ -162,7 +162,7 @@ class TestInputFile:
 
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
-            BenchmarkExecution.run("1", "2", models_input_file=models_input_file)
+            BenchmarkExecution.run(1, 2, models_input_file=models_input_file)
 
     def test_failure_with_invalid_content(mocker, setup, fs):
         # Arrange
@@ -171,7 +171,7 @@ class TestInputFile:
 
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
-            BenchmarkExecution.run("1", "2", models_input_file=models_input_file)
+            BenchmarkExecution.run(1, 2, models_input_file=models_input_file)
 
     def test_no_failure(mocker, setup, fs):
         # Arrange
@@ -179,7 +179,7 @@ class TestInputFile:
         fs.create_file(models_input_file, contents="2,4")
 
         # Act & Assert
-        BenchmarkExecution.run("1", "2", models_input_file=models_input_file)
+        BenchmarkExecution.run(1, 2, models_input_file=models_input_file)
 
 
 @pytest.mark.parametrize("setup", [{}], indirect=True)
@@ -193,26 +193,23 @@ class TestDefaultSetup:
     def test_failure_with_unassociated_model(mocker, setup):
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
-            BenchmarkExecution.run("1", "2", models_uids=[3, 10])
+            BenchmarkExecution.run(1, 2, models_uids=[3, 10])
 
     @pytest.mark.parametrize("ignore_failed_experiments", [False, True])
     def test_failure_if_failed_exec_and_errors_not_ignored(
         self, mocker, setup, ignore_failed_experiments
     ):
         # Arrange
-        fail_model_uid = "6"
+        fail_model_uid = 6
         # Act & Assert
         if not ignore_failed_experiments:
             with pytest.raises(ExecutionError):
                 BenchmarkExecution.run(
-                    "1",
-                    "2",
-                    models_uids=[fail_model_uid],
-                    ignore_failed_experiments=False,
+                    1, 2, models_uids=[fail_model_uid], ignore_failed_experiments=False,
                 )
         else:
             BenchmarkExecution.run(
-                "1", "2", models_uids=[fail_model_uid], ignore_failed_experiments=True,
+                1, 2, models_uids=[fail_model_uid], ignore_failed_experiments=True,
             )
             self.spies["ui_error"].assert_called_once()
 
@@ -220,22 +217,19 @@ class TestDefaultSetup:
     def test_failure_if_invalid_model_and_errors_not_ignored(
         self, mocker, setup, ignore_failed_experiments
     ):
-        invalid_model_uid = "7"
+        invalid_model_uid = 7
         # Act & Assert
         if not ignore_failed_experiments:
             with pytest.raises(InvalidEntityError):
                 BenchmarkExecution.run(
-                    "1",
-                    "2",
+                    1,
+                    2,
                     models_uids=[invalid_model_uid],
                     ignore_failed_experiments=False,
                 )
         else:
             BenchmarkExecution.run(
-                "1",
-                "2",
-                models_uids=[invalid_model_uid],
-                ignore_failed_experiments=True,
+                1, 2, models_uids=[invalid_model_uid], ignore_failed_experiments=True,
             )
             self.spies["ui_error"].assert_called_once()
 
@@ -245,7 +239,7 @@ class TestDefaultSetup:
     ):
         # Act
         BenchmarkExecution.run(
-            "1", "2", models_uids=["5"], ignore_model_errors=ignore_model_errors
+            1, 2, models_uids=[5], ignore_model_errors=ignore_model_errors
         )
 
         # Assert
@@ -263,10 +257,10 @@ class TestDefaultSetup:
     @pytest.mark.parametrize("no_cache", [False, True])
     def test_execution_not_called_with_cached_result(self, mocker, setup, no_cache):
         # Arrange
-        cached_model = "2"  # system inputs contains the triplet b1m2d1 as cached
+        cached_model = 2  # system inputs contains the triplet b1m2d1 as cached
 
         # Act
-        BenchmarkExecution.run("1", "1", models_uids=[cached_model], no_cache=no_cache)
+        BenchmarkExecution.run(1, 1, models_uids=[cached_model], no_cache=no_cache)
 
         # Assert
         if no_cache:
@@ -274,13 +268,13 @@ class TestDefaultSetup:
         else:
             self.spies["exec"].assert_not_called()
 
-    @pytest.mark.parametrize("model_uid", ["4", "5"])
+    @pytest.mark.parametrize("model_uid", [4, 5])
     def test_execution_of_multiple_models_with_summary(self, mocker, setup, model_uid):
         # Arrange
         exec_res = self.state_variables["models_props"][model_uid]
         headers = ["model", "local result UID", "partial result", "from cache", "error"]
-        dset_uid = "2"
-        bmk_uid = "1"
+        dset_uid = 2
+        bmk_uid = 1
         expected_datalist = [
             [
                 model_uid,
@@ -291,7 +285,7 @@ class TestDefaultSetup:
             ]
         ]
         # Act
-        BenchmarkExecution.run("1", "2", models_uids=[model_uid], show_summary=True)
+        BenchmarkExecution.run(1, 2, models_uids=[model_uid], show_summary=True)
 
         # Assert
         self.spies["tabulate"].assert_called_once_with(
@@ -300,9 +294,9 @@ class TestDefaultSetup:
 
     def test_execution_of_one_model_writes_result(self, mocker, setup):
         # Arrange
-        model_uid = "4"
-        dset_uid = "2"
-        bmk_uid = "1"
+        model_uid = 4
+        dset_uid = 2
+        bmk_uid = 1
         expected_file = os.path.join(
             storage_path(config.results_storage),
             f"b{bmk_uid}m{model_uid}d{dset_uid}",

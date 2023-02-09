@@ -226,7 +226,7 @@ def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_e
     open_spy = mocker.patch("builtins.open", mock_open())
     yml_spy = mocker.patch(PATCH_TEST.format("yaml.dump"))
     # Act
-    cls = CompatibilityTestExecution("1", None, None, model_path, None)
+    cls = CompatibilityTestExecution(1, None, None, model_path, None)
     cls.set_cube_uid("model")
 
     # Assert

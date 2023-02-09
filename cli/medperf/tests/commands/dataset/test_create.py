@@ -221,8 +221,8 @@ class TestWithDefaultUID:
         write_spy.assert_called_once()
         remove_spy.assert_called_once()
 
-    @pytest.mark.parametrize("benchmark_uid", [None, "1"])
-    @pytest.mark.parametrize("cube_uid", [None, "1"])
+    @pytest.mark.parametrize("benchmark_uid", [None, 1])
+    @pytest.mark.parametrize("cube_uid", [None, 1])
     def test_fails_if_invalid_params(
         self, mocker, preparation, benchmark_uid, cube_uid, comms, ui
     ):
@@ -324,7 +324,7 @@ class TestWithDefaultUID:
         rmtree_spy = mocker.patch("shutil.rmtree")
         mocker.patch("os.path.exists", return_value=exists)
         mocker.patch("os.path.join", return_value=new_path)
-        preparation.generated_uid = "0"
+        preparation.generated_uid = "hash0"
         preparation.out_path = out_path
 
         # Act
@@ -351,7 +351,7 @@ class TestWithDefaultUID:
         spy.assert_called_once()
 
 
-@pytest.mark.parametrize("uid", ["574", "1059", "1901"])
+@pytest.mark.parametrize("uid", ["hash574", "hash1059", "hash1901"])
 def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     # Arrange
     def generate_uids(cls):
