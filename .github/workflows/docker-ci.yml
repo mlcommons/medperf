@@ -6,7 +6,7 @@ jobs:
   setup:
     name: local-docker-deploy
     runs-on: ubuntu-latest
-    container: quay.io/singularity/singularity
+    container: singularityware/singularity
     env:
       IMAGE_NAME: medperf-api:test
     steps:
