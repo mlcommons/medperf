@@ -23,6 +23,7 @@ from medperf.exceptions import (
     CommunicationRetrievalError,
 )
 import medperf.config as config
+from medperf.comms.entity_resources import resources
 
 
 class Cube(Entity, MedperfSchema, DeployableSchema):
@@ -171,7 +172,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path, local_hash = config.comms.get_cube(url, self.path)
+        path, local_hash = resources.get_cube(url, self.path)
         if not self.mlcube_hash:
             self.mlcube_hash = local_hash
         self.cube_path = path
@@ -180,7 +181,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path, local_hash = config.comms.get_cube_params(url, self.path)
+            path, local_hash = resources.get_cube_params(url, self.path)
             if not self.parameters_hash:
                 self.parameters_hash = local_hash
             self.params_path = path
@@ -190,7 +191,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path, local_hash = config.comms.get_cube_additional(url, self.path)
+            path, local_hash = resources.get_cube_additional(url, self.path)
             if not self.additional_files_tarball_hash:
                 self.additional_files_tarball_hash = local_hash
             untar(path)
@@ -202,7 +203,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         hash = self.image_tarball_hash
 
         if url:
-            path, local_hash = config.comms.get_cube_image(url, self.path, hash)
+            path, local_hash = resources.get_cube_image(url, self.path, hash)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
             untar(path)
