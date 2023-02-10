@@ -3,7 +3,7 @@ import yaml
 import pexpect
 import logging
 from typing import List, Dict, Optional, Union
-from pydantic import HttpUrl, Field
+from pydantic import Field
 from pathlib import Path
 
 from medperf.utils import (
@@ -46,6 +46,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     metadata: dict = {}
     user_metadata: dict = {}
     # TODO: validators for assets
+
     def __init__(self, *args, **kwargs):
         """Creates a Cube instance
 
