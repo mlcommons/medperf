@@ -52,7 +52,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/451e95e3bd62a7112ffd3336302d4cddd895d0cb"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/dfc05d3060dbd6c6f20abf4fb3dc5044e2bba211"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -63,11 +63,15 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 # prep cubes
 PREP_MLCUBE="$ASSETS_URL/prep/mlcube/mlcube.yaml"
 PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
+PREP_SING_IMAGE="$ASSETS_URL/prep/mlcube/workspace/.image/image.tar.gz"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
+MODEL_SING_IMAGE="$ASSETS_URL/model-cpu/mlcube/workspace/.image/image.tar.gz"
+FAILING_MODEL_SING_IMAGE="$ASSETS_URL/model-bug/mlcube/workspace/.image/image.tar.gz"
+
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
 MODEL2_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters2.yaml"
 MODEL3_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters3.yaml"
@@ -76,6 +80,7 @@ MODEL4_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters4.yaml"
 # metrics cubes
 METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
+METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/image.tar.gz"
 
 # admin token
 ADMIN_TOKEN=$(curl -sk -X POST https://127.0.0.1:8000/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
@@ -134,27 +139,27 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
+medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS -i $PREP_SING_IMAGE
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
 checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD -i $FAILING_MODEL_SING_IMAGE
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
+medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS -i $METRICS_SING_IMAGE
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
@@ -260,9 +265,9 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model3 association"
+echo "Running model3 association (with singularity)"
 echo "====================================="
-medperf mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
