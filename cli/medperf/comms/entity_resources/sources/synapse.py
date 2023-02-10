@@ -3,6 +3,7 @@ from medperf.exceptions import (
     CommunicationRetrievalError,
     CommunicationAuthenticationError,
 )
+import os
 
 
 class SynapseSource:
@@ -21,8 +22,10 @@ class SynapseSource:
 
     def download(self, resource_identifier: str, output_path: str):
         # TODO: downloadLocation expects a folder
+        download_location = os.path.dirname(output_path)
+        os.makedirs(download_location, exist_ok=True)
         try:
-            self.client.get(resource_identifier, downloadLocation=output_path)
+            self.client.get(resource_identifier, downloadLocation=download_location)
         except Exception as e:
             raise e
             msg = "?" + str(e)
