@@ -203,10 +203,9 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         hash = self.image_tarball_hash
 
         if url:
-            path, local_hash = resources.get_cube_image(url, self.path, hash)
+            _, local_hash = resources.get_cube_image(url, self.path, hash)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
-            untar(path)
             return local_hash
         else:
             # Retrieve image from image registry

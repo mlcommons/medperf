@@ -52,7 +52,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/dfc05d3060dbd6c6f20abf4fb3dc5044e2bba211"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/b9e862ea68a5f07a5ab5b0d45a68c7bc47d921fa"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -63,14 +63,14 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 # prep cubes
 PREP_MLCUBE="$ASSETS_URL/prep/mlcube/mlcube.yaml"
 PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
-PREP_SING_IMAGE="$ASSETS_URL/prep/mlcube/workspace/.image/image.tar.gz"
+PREP_SING_IMAGE="$ASSETS_URL/prep/mlcube/workspace/.image/mock-prep.simg"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
-MODEL_SING_IMAGE="$ASSETS_URL/model-cpu/mlcube/workspace/.image/image.tar.gz"
-FAILING_MODEL_SING_IMAGE="$ASSETS_URL/model-bug/mlcube/workspace/.image/image.tar.gz"
+MODEL_SING_IMAGE="$ASSETS_URL/model-cpu/mlcube/workspace/.image/mock-model-cpu.simg"
+FAILING_MODEL_SING_IMAGE="$ASSETS_URL/model-bug/mlcube/workspace/.image/mock-model-bug.simg"
 
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
 MODEL2_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters2.yaml"
@@ -80,7 +80,7 @@ MODEL4_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters4.yaml"
 # metrics cubes
 METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
-METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/image.tar.gz"
+METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/mock-metrics.simg"
 
 # admin token
 ADMIN_TOKEN=$(curl -sk -X POST https://127.0.0.1:8000/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
