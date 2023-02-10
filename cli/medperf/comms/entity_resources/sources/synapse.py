@@ -4,6 +4,7 @@ from medperf.exceptions import (
     CommunicationAuthenticationError,
 )
 import os
+import shutil
 
 
 class SynapseSource:
@@ -21,12 +22,18 @@ class SynapseSource:
             raise CommunicationAuthenticationError(msg)
 
     def download(self, resource_identifier: str, output_path: str):
-        # TODO: downloadLocation expects a folder
         download_location = os.path.dirname(output_path)
         os.makedirs(download_location, exist_ok=True)
         try:
-            self.client.get(resource_identifier, downloadLocation=download_location)
+            # we can specify target folder only. File name depends on
+            # how it was stored
+            resource_file = self.client.get(
+                resource_identifier, downloadLocation=download_location
+            )
         except Exception as e:
             raise e
             msg = "?" + str(e)
             raise CommunicationRetrievalError(msg)
+
+        resource_path = os.path.join(download_location, resource_file.name)
+        shutil.move(resource_path, output_path)
