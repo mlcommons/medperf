@@ -2,9 +2,10 @@ import requests
 from medperf.exceptions import CommunicationRetrievalError
 from medperf import config
 from medperf.utils import log_response_error
+from .source import BaseSource
 
 
-class PublicSource:
+class PublicSource(BaseSource):
     prefix = "public"
 
     def __init__(self):

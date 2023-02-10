@@ -5,9 +5,10 @@ from medperf.exceptions import (
 )
 import os
 import shutil
+from .source import BaseSource
 
 
-class SynapseSource:
+class SynapseSource(BaseSource):
     prefix = "synapse"
 
     def __init__(self):
