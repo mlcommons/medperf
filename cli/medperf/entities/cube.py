@@ -35,17 +35,17 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     with standard metadata and a consistent file-system level interface.
     """
 
-    git_mlcube_url: HttpUrl
+    git_mlcube_url: str
     mlcube_hash: Optional[str]
-    git_parameters_url: Optional[HttpUrl]
+    git_parameters_url: Optional[str]
     parameters_hash: Optional[str]
-    image_tarball_url: Optional[HttpUrl]
+    image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
-    additional_files_tarball_url: Optional[HttpUrl] = Field(None, alias="tarball_url")
+    additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
-
+    # TODO: validators for assets
     def __init__(self, *args, **kwargs):
         """Creates a Cube instance
 
