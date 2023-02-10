@@ -6,7 +6,9 @@ jobs:
   setup:
     name: local-docker-deploy
     runs-on: ubuntu-latest
-    container: mlcommons/medperf-tests-container:latest
+    container: 
+      image: mlcommons/medperf-tests-container:latest
+      options: --privileged
     env:
       IMAGE_NAME: medperf-api:test
     steps:
@@ -20,6 +22,10 @@ jobs:
     - name: Generate SSL certificate
       working-directory: ./server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
+
+    - name: Start Docker daemon
+      working-directory: .
+      run: dockerd &> dockerd-logfile &
 
     - name: Build container image
       working-directory: ./server
