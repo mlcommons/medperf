@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:20.04
 
 # Install python
 RUN apt update -y
@@ -15,12 +15,17 @@ RUN apt-get install \
 	ca-certificates \
 	curl \
 	gnupg \
-	lsb-release \
-	docker.io -y
+	wget \
+	lsb-release -y
 
 ENV LANG en_US.UTF-8  
 ENV LANGUAGE en_US:en  
 ENV LC_ALL en_US.UTF-8
+
+RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb  && \
+	dpkg -i packages-microsoft-prod.deb && \
+	rm packages-microsoft-prod.deb
+RUN apt-get update -y && apt-get install moby-engine moby-cli containerd.io -y
 
 # Install singularity
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install build-essential libssl-dev uuid-dev libgpgme11-dev \
