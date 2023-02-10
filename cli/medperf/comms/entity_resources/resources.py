@@ -3,6 +3,7 @@ import os
 import medperf.config as config
 from medperf.utils import (
     base_storage_path,
+    get_cube_image_name,
     get_file_sha1,
     storage_path,
     generate_tmp_uid,
@@ -63,8 +64,7 @@ def get_cube_image(url: str, cube_path: str, hash: str = None) -> str:
         str: Location where the image file is stored locally.
     """
     image_path = config.image_path
-    image_name = url.split("/")[-1]  # Get the last part of the URL path
-    image_name = image_name.split("?")[0]  # Remove query parameters
+    image_name = get_cube_image_name(cube_path)
     image_cube_path = os.path.join(cube_path, image_path)
     os.makedirs(image_cube_path, exist_ok=True)
     image_cube_file = os.path.join(image_cube_path, image_name)

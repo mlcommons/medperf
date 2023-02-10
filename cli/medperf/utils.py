@@ -496,3 +496,16 @@ def log_response_error(res, warn=False):
     except requests.exceptions.JSONDecodeError:
         logging_method("JSON Response could not be parsed. Showing response content:")
         logging_method(res.content)
+
+
+def get_cube_image_name(cube_path: str) -> str:
+    """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
+    cube_config_path = os.path.join(cube_path, config.cube_filename)
+    with open(cube_config_path, "r") as f:
+        cube_config = yaml.safe_load(f)
+
+    try:
+        return cube_config["singularity"]["image"]
+    except KeyError:
+        msg = "The provided mlcube doesn't seem to be configured for singlarity"
+        raise MedperfException(msg)
