@@ -7,10 +7,21 @@ from medperf.exceptions import (
 import os
 import shutil
 from .source import BaseSource
+import re
 
 
 class SynapseSource(BaseSource):
-    prefix = "synapse"
+    @classmethod
+    def validate_resource(cls, value):
+        prefix = "synapse:"
+        if not value.startswith(prefix):
+            return
+
+        prefix_len = len(prefix)
+        value = value[prefix_len:]
+
+        if re.match(r"syn\d+$", value):
+            return value
 
     def __init__(self):
         self.client = synapseclient.Synapse()

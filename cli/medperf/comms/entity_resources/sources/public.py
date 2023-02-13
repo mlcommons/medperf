@@ -3,10 +3,21 @@ from medperf.exceptions import CommunicationRetrievalError
 from medperf import config
 from medperf.utils import log_response_error
 from .source import BaseSource
+import validators
 
 
 class PublicSource(BaseSource):
-    prefix = "public"
+    @classmethod
+    def validate_resource(cls, value):
+        # This source may accept a string as 'public:<url>'
+        # or simply a url (for backward compatibility)
+        prefix = "public:"
+        if value.startswith(prefix):
+            prefix_len = len(prefix)
+            value = value[prefix_len:]
+
+        if validators.url(value):
+            return value
 
     def __init__(self):
         pass

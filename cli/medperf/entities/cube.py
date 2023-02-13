@@ -46,7 +46,6 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
-    # TODO: validators for assets
 
     def __init__(self, *args, **kwargs):
         """Creates a Cube instance
