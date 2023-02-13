@@ -49,7 +49,7 @@ class SynapseSource(BaseSource):
         resource_path = os.path.join(download_location, resource_file.name)
         # synapseclient may only throw a warning in some cases
         # (e.g. read permissions but no download permissions)
-        if not os.path.exists(resource_file):
+        if not os.path.exists(resource_path):
             raise CommunicationRetrievalError(
                 "There was a problem retrieving a file from Synapse"
             )
