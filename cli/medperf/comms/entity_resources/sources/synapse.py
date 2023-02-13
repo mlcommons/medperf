@@ -28,7 +28,7 @@ class SynapseSource(BaseSource):
 
     def authenticate(self):
         try:
-            self.client.login()
+            self.client.login(silent=True)
         except SynapseError as e:
             msg = "There was an attempt to download resources from the Synapse "
             msg += "platform, but couldn't find Synapse credentials: " + str(e)
