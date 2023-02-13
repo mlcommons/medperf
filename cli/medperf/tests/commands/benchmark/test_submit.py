@@ -5,6 +5,7 @@ from medperf.entities.result import Result
 from medperf.commands.benchmark.submit import SubmitBenchmark
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
+PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
 NAME_MAX_LEN = 20
 DESC_MAX_LEN = 100
 
@@ -52,7 +53,9 @@ def test_get_extra_information_retrieves_expected_info(
 ):
     # Arrange
     submission = SubmitBenchmark(BENCHMARK_INFO)
-    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value="demo_path")
+    mocker.patch(
+        PATCH_RESOURCES.format("get_benchmark_demo_dataset"), return_value="demo_path",
+    )
     mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
     mocker.patch(
         PATCH_BENCHMARK.format("SubmitBenchmark.run_compatibility_test"),

@@ -1,4 +1,3 @@
-import os
 from medperf.exceptions import CommunicationRequestError, CommunicationRetrievalError
 import pytest
 import requests
@@ -411,67 +410,6 @@ def test_get_cube_metadata_returns_retrieved_body(mocker, server, exp_body):
     assert body == exp_body
 
 
-@pytest.mark.parametrize(
-    "method", ["get_cube", "get_cube_params", "get_cube_additional"]
-)
-def test_get_cube_methods_run_get_cube_file(mocker, server, method):
-    # Arrange
-    spy = mocker.patch(
-        patch_server.format("REST._REST__get_cube_file"), return_value=""
-    )
-    method = getattr(server, method)
-
-    # Act
-    method(url, 1)
-
-    # Assert
-    spy.assert_called_once()
-
-
-@pytest.mark.parametrize(
-    "url", ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"]
-)
-def test_get_cube_image_uses_cache_if_available(mocker, server, url):
-    # Arrange
-    spy = mocker.patch(
-        patch_server.format("REST._REST__get_cube_file"), return_value=("", "")
-    )
-    mocker.patch("os.makedirs")
-    mocker.patch("os.path.exists", return_value=True)
-    mocker.patch("os.symlink")
-    mocker.patch("os.unlink")
-    mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
-
-    # Act
-    server.get_cube_image(url, "cube/1", "hash")
-
-    # Assert
-    spy.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    "url", ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"]
-)
-def test_get_cube_image_retrieves_image_if_not_local(mocker, server, url):
-    # Arrange
-    spy = mocker.patch(
-        patch_server.format("REST._REST__get_cube_file"), return_value=("", "")
-    )
-    cube_path = "cube/1"
-    exp_filename = url.split("/")[-1]
-    mocker.patch("os.makedirs")
-    mocker.patch("os.path.exists", return_value=False)
-    mocker.patch("os.symlink")
-    mocker.patch("shutil.move")
-    mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
-
-    # Act
-    server.get_cube_image(url, cube_path, "hash")
-
-    # Assert
-    spy.assert_called_once_with(url, cube_path, config.image_path, exp_filename)
-
-
 def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     # Arrange
     cubes = [
@@ -485,22 +423,6 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
 
     # Assert
     spy.assert_called_once_with(f"{url}/me/mlcubes/")
-
-
-def test_get_cube_file_calls_download_direct_link_method(mocker, server):
-    # Arrange
-    cube_path = "path/to/cube"
-    path = "path"
-    filename = "filename"
-    mocker.patch(patch_server.format("get_file_sha1"), return_value="hash")
-    spy = mocker.patch(patch_server.format("REST._REST__download_direct_link"))
-    filepath = os.path.join(cube_path, path, filename)
-
-    # Act
-    server._REST__get_cube_file(url, cube_path, path, filename)
-
-    # Assert
-    spy.assert_called_once_with(url, filepath)
 
 
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
@@ -714,30 +636,3 @@ def test_set_mlcube_association_priority_sets_priority(
 
     # Assert
     spy.assert_called_once_with(exp_url, json={"priority": priority})
-
-
-def test_download_direct_link_works_as_expected(mocker, server, fs):
-    # Arrange
-    filename = "filename"
-    res = MockResponse({}, 200)
-    iter_spy = mocker.patch.object(res, "iter_content", return_value=[b"some", b"text"])
-    get_spy = mocker.patch(patch_server.format("requests.get"), return_value=res)
-
-    # Act
-    server._REST__download_direct_link(url, filename)
-
-    # Assert
-    assert open(filename).read() == "sometext"
-    get_spy.assert_called_once_with(url, stream=True)
-    iter_spy.assert_called_once_with(chunk_size=config.ddl_stream_chunk_size)
-
-
-def test_download_direct_link_raises_for_failed_request(mocker, server):
-    # Arrange
-    filename = "filename"
-    res = MockResponse({}, 404)
-    mocker.patch(patch_server.format("requests.get"), return_value=res)
-
-    # Act & Assert
-    with pytest.raises(CommunicationRetrievalError):
-        server._REST__download_direct_link(url, filename)
