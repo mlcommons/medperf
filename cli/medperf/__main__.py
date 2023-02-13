@@ -36,7 +36,7 @@ app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(association.app, name="association", help="Manage associations")
 app.add_typer(profile.app, name="profile", help="Manage profiles")
 
-# TODO: where to put this
+
 @app.command("synapse_login")
 @clean_except
 def synapse_login(
