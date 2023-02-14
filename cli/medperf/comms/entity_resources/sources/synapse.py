@@ -11,9 +11,11 @@ import re
 
 
 class SynapseSource(BaseSource):
+    prefix = "synapse:"
+
     @classmethod
     def validate_resource(cls, value):
-        prefix = "synapse:"
+        prefix = SynapseSource.prefix
         if not value.startswith(prefix):
             return
 

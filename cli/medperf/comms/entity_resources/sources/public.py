@@ -7,11 +7,13 @@ import validators
 
 
 class PublicSource(BaseSource):
+    prefix = "public:"
+
     @classmethod
     def validate_resource(cls, value):
         # This source may accept a string as 'public:<url>'
         # or simply a url (for backward compatibility)
-        prefix = "public:"
+        prefix = PublicSource.prefix
         if value.startswith(prefix):
             prefix_len = len(prefix)
             value = value[prefix_len:]
