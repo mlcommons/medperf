@@ -1,10 +1,12 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.utils import cleanup
 from medperf.decorators import clean_except
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.list import EntityList
+from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
 from medperf.commands.result.create import BenchmarkExecution
@@ -131,3 +133,35 @@ def run(
         ignore_failed_experiments=True,
     )
     config.ui.print("✅ Done!")
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Benchmark ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(
+        False,
+        "--local",
+        help="Display local benchmarks if benchmark ID is not provided",
+    ),
+    mine: bool = typer.Option(
+        False,
+        "--mine",
+        help="Display current-user benchmarks if benchmark ID is not provided",
+    ),
+    output: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file to store contents. If not provided, the output will be displayed",
+    ),
+):
+    """Displays the information of one or more benchmarks
+    """
+    EntityView.run(entity_id, Benchmark, format, local, mine, output)

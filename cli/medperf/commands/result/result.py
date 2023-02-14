@@ -1,7 +1,9 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
+from medperf.commands.view import EntityView
 from medperf.entities.result import Result
 from medperf.commands.list import EntityList
 from medperf.commands.result.create import BenchmarkExecution
@@ -69,3 +71,33 @@ def list(
         local_only=local,
         mine_only=mine,
     )
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(
+        False, "--local", help="Display local results if result ID is not provided"
+    ),
+    mine: bool = typer.Option(
+        False,
+        "--mine",
+        help="Display current-user results if result ID is not provided",
+    ),
+    output: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file to store contents. If not provided, the output will be displayed",
+    ),
+):
+    """Displays the information of one or more results
+    """
+    EntityView.run(entity_id, Result, format, local, mine, output)

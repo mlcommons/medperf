@@ -7,7 +7,6 @@ from pydantic import HttpUrl, Field
 from pathlib import Path
 
 from medperf.utils import (
-    get_file_sha1,
     untar,
     combine_proc_sp_text,
     list_files,
@@ -171,8 +170,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path = config.comms.get_cube(url, self.path)
-        local_hash = get_file_sha1(path)
+        path, local_hash = config.comms.get_cube(url, self.path)
         if not self.mlcube_hash:
             self.mlcube_hash = local_hash
         self.cube_path = path
@@ -181,8 +179,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path = config.comms.get_cube_params(url, self.path)
-            local_hash = get_file_sha1(path)
+            path, local_hash = config.comms.get_cube_params(url, self.path)
             if not self.parameters_hash:
                 self.parameters_hash = local_hash
             self.params_path = path
@@ -192,8 +189,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path = config.comms.get_cube_additional(url, self.path)
-            local_hash = get_file_sha1(path)
+            path, local_hash = config.comms.get_cube_additional(url, self.path)
             if not self.additional_files_tarball_hash:
                 self.additional_files_tarball_hash = local_hash
             untar(path)
@@ -202,9 +198,10 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
     def download_image(self):
         url = self.image_tarball_url
+        hash = self.image_tarball_hash
+
         if url:
-            path = config.comms.get_cube_image(url, self.path)
-            local_hash = get_file_sha1(path)
+            path, local_hash = config.comms.get_cube_image(url, self.path, hash)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
             untar(path)

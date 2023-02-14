@@ -49,13 +49,13 @@ def default_profile():
 
 def read_config():
     config_p = ConfigManager()
-    config_path = os.path.join(config.storage, config.config_path)
+    config_path = base_storage_path(config.config_path)
     config_p.read(config_path)
     return config_p
 
 
 def write_config(config_p: ConfigManager):
-    config_path = os.path.join(config.storage, config.config_path)
+    config_path = base_storage_path(config.config_path)
     config_p.write(config_path)
 
 
@@ -71,10 +71,15 @@ def set_custom_config(args: dict):
 
 
 def storage_path(subpath: str):
-    """Helper function that converts a path to storage-related path"""
+    """Helper function that converts a path to deployment storage-related path"""
     server_path = config.server.split("//")[1]
     server_path = re.sub(r"[.:]", "_", server_path)
     return os.path.join(config.storage, server_path, subpath)
+
+
+def base_storage_path(subpath: str):
+    """Helper function that converts a path to base storage-related path"""
+    return os.path.join(config.storage, subpath)
 
 
 def get_file_sha1(path: str) -> str:
@@ -113,9 +118,10 @@ def init_storage():
     bmks = storage_path(config.benchmarks_storage)
     demo = storage_path(config.demo_data_storage)
     log = storage_path(config.logs_storage)
+    imgs = base_storage_path(config.images_storage)
     tests = storage_path(config.test_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, tests]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests]
     for dir in dirs:
         logging.info(f"Creating {dir} directory")
         try:
@@ -128,7 +134,7 @@ def init_config():
     """builds the initial configuration file
     """
     os.makedirs(config.storage, exist_ok=True)
-    config_file = os.path.join(config.storage, config.config_path)
+    config_file = base_storage_path(config.config_path)
     if os.path.exists(config_file):
         return
 
