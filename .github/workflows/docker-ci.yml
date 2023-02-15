@@ -34,6 +34,9 @@ jobs:
     - name: Run server in background
       run: PORT=8080 && docker run -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
+    - name: Check running containers
+      run: docker ps
+
     - name: Run integration tests
       working-directory: ./server
       run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
