@@ -36,7 +36,7 @@ jobs:
       run: PORT=8080 && docker run -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Check running containers
-      run: docker ps && docker logs ${{ env.IMAGE_NAME }}
+      run: docker ps
 
     - name: Run integration tests
       working-directory: ./server
