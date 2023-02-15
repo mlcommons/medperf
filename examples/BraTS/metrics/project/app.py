@@ -9,6 +9,8 @@ import sys
 
 import pandas as pd
 
+from .normalized_surface_dice import compute_surface_dice_from_images
+
 
 def run_captk(pred, gold, tmp):
     """
@@ -78,6 +80,8 @@ def score(parent, preds_dir, tmp_output="tmp.csv") -> pd.DataFrame:
             run_captk(pred, gold, tmp_output)
             scan_scores = extract_metrics(tmp_output, subject_id)
             os.remove(tmp_output)  # Remove file, as it's no longer needed
+            normalized_surface_dice = compute_surface_dice_from_images(pred, gold, tolerance=1.0)
+            scan_scores.update(normalized_surface_dice)
         except subprocess.CalledProcessError:
             # If no output found, give penalized scores.
             scan_scores = pd.DataFrame(
@@ -86,9 +90,9 @@ def score(parent, preds_dir, tmp_output="tmp.csv") -> pd.DataFrame:
                     "Dice_ET": [0],
                     "Dice_TC": [0],
                     "Dice_WT": [0],
-                    "Hausdorff95_ET": [374],
-                    "Hausdorff95_TC": [374],
-                    "Hausdorff95_WT": [374],
+                    "Hausdorff95_ET": [374], # maximum diagonal for image of [240,240,155]
+                    "Hausdorff95_TC": [374], # maximum diagonal for image of [240,240,155]
+                    "Hausdorff95_WT": [374], # maximum diagonal for image of [240,240,155]
                     "Sensitivity_ET": [0],
                     "Sensitivity_TC": [0],
                     "Sensitivity_WT": [0],
@@ -98,6 +102,9 @@ def score(parent, preds_dir, tmp_output="tmp.csv") -> pd.DataFrame:
                     "Precision_ET": [0],
                     "Precision_TC": [0],
                     "Precision_WT": [0],
+                    "NormalizedSurfaceDice_ET": [0],
+                    "NormalizedSurfaceDice_TC": [0],
+                    "NormalizedSurfaceDice_WT": [0],
                 }
             ).set_index("subject_id")
         scores.append(scan_scores)
