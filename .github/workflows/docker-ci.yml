@@ -33,7 +33,7 @@ jobs:
 
     - name: Run server in background
       working-directory: ./server
-      run: PORT=8080 && ADDRESS=0.0.0.0 && docker run -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }} --bind ${ADDRESS}:${PORT}
+      run: PORT=8080 && ADDRESS=0.0.0.0 && docker run -d -p 8000:${PORT} -e PORT=${PORT} --bind ${ADDRESS}:${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Check running containers
       run: docker ps
