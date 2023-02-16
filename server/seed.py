@@ -103,7 +103,8 @@ def seed(args):
         "id",
     )
     print("Data Owner User Created(by Admin User). Id:", data_owner)
-
+    if args.demo == "benchmark":
+        return
     print("##########################BENCHMARK OWNER##########################")
     # Get Benchmark Owner API token(token of testbenchmarkowner user)
     benchmark_owner_token = api_server.request(
@@ -286,6 +287,8 @@ def seed(args):
     )
     print("Benchmark Id:", benchmark, "is marked", benchmark_status, "(by Admin)")
 
+    if args.demo == "model":
+        return
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
     # Get Model Owner API token(token of testmodelowner user)
@@ -394,5 +397,11 @@ if __name__ == "__main__":
     parser.add_argument("--username", type=str, help="Admin username", default="admin")
     parser.add_argument("--password", type=str, help="Admin password", default="admin")
     parser.add_argument("--cert", type=str, help="Server certificate")
+    parser.add_argument(
+        "--demo",
+        type=str,
+        help="Seed for a specific demo: 'benchmark', 'model', or 'data'",
+        default="data",
+    )
     args = parser.parse_args()
     seed(args)

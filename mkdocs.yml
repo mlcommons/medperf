@@ -8,10 +8,13 @@ nav:
 - MedPerf Components: medperf_components.md
 - MLCubes: mlcubes.md
 - Workflow: workflow.md
-- General Instructions: general_instructions.md
-- Instructions for Data Owners: instructions_data_owners.md
-- Instructions for Model Owners: instructions_model_owners.md
-- Instructions for Bechmark Committee: instructions_benchmark_committee.md
+- Install: installation.md
+- Getting Started:
+  - Overview: getting_started/overview.md
+  - Setup: getting_started/setup.md
+  - Hands-on Tutorial for Bechmark Committee: getting_started/benchmark_owner_demo.md
+  - Hands-on Tutorial for Model Owners: getting_started/model_owner_demo.md
+  - Hands-on Tutorial for Data Owners: getting_started/data_owner_demo.md
 - Code Reference: reference/
 theme: 
   features:
