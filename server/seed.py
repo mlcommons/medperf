@@ -6,7 +6,7 @@ import curlify
 
 ASSETS_URL = (
     "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-    "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/"
+    "9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/"
 )
 
 
@@ -132,7 +132,7 @@ def seed(args):
             "git_parameters_url": (
                 ASSETS_URL + "chexpert_prep/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "3666df285bad3c1f73edaa47dedecf165e9ff4e6",
+            "parameters_hash": "72b3a7570b9e56e31511f2a75041ecc820dd5cc3",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "additional_files_tarball_url": "",
