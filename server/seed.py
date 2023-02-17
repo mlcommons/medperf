@@ -4,6 +4,11 @@ import requests
 import json
 import curlify
 
+ASSETS_URL = (
+    "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+    "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/"
+)
+
 
 class Server:
     def __init__(self, host, cert):
@@ -122,14 +127,10 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_prep",
-            "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/chexpert_prep/mlcube/mlcube.yaml"
-            ),
+            "git_mlcube_url": (ASSETS_URL + "chexpert_prep/mlcube/mlcube.yaml"),
             "mlcube_hash": "074d0593ed5a0a168bf99e077cd09538fb65e001",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/chexpert_prep/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "chexpert_prep/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "3666df285bad3c1f73edaa47dedecf165e9ff4e6",
             "image_tarball_url": "",
@@ -166,14 +167,10 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_chex_densenet",
-            "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_chex_densenet/mlcube/mlcube.yaml"
-            ),
+            "git_mlcube_url": (ASSETS_URL + "xrv_chex_densenet/mlcube/mlcube.yaml"),
             "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_chex_densenet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "xrv_chex_densenet/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "4271dbfa5e22a85b2a62ae3cefb340defc2fe74e",
             "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
@@ -210,14 +207,10 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_metrics",
-            "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/metrics/mlcube/mlcube.yaml"
-            ),
+            "git_mlcube_url": (ASSETS_URL + "metrics/mlcube/mlcube.yaml"),
             "mlcube_hash": "5adafd609bb5100ff34f8dd563bd98f67de7d01f",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/metrics/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "metrics/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "302f2f565c630c18b96c89a7584987b95f43be80",
             "image_tarball_url": "",
@@ -305,14 +298,10 @@ def seed(args):
         model_owner_token,
         {
             "name": "xrv_resnet",
-            "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_resnet/mlcube/mlcube.yaml"
-            ),
+            "git_mlcube_url": (ASSETS_URL + "xrv_resnet/mlcube/mlcube.yaml"),
             "mlcube_hash": "b2f17ed06c7b1225810588630abdc4d6ee8b3137",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_resnet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "xrv_resnet/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "cd747953cf4b95e104d2c2b03385c656e44ffaec",
             "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",
