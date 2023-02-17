@@ -1,12 +1,11 @@
 from os.path import expanduser, abspath
-from pathlib import Path
 
 version = "0.0.0"
 server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = str(Path(__file__).parent.parent.parent / "server/cert.crt")
+local_certificate = "server/cert.crt"
 
 storage = abspath(expanduser("~/.medperf"))
 tmp_prefix = "tmp_"
