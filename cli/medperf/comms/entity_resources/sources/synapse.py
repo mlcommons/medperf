@@ -14,7 +14,15 @@ class SynapseSource(BaseSource):
     prefix = "synapse:"
 
     @classmethod
-    def validate_resource(cls, value):
+    def validate_resource(cls, value: str):
+        """This class expects a resource string of the form
+        `synapse:<synapse_id>`, where <synapse_id> is in the form `syn<Integer>`.
+        Args:
+            resource (str): the resource string
+
+        Returns:
+            (str|None): The synapse ID if the pattern matches, else None
+        """
         prefix = SynapseSource.prefix
         if not value.startswith(prefix):
             return

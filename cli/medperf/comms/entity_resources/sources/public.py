@@ -10,9 +10,15 @@ class PublicSource(BaseSource):
     prefix = "public:"
 
     @classmethod
-    def validate_resource(cls, value):
-        # This source may accept a string as 'public:<url>'
-        # or simply a url (for backward compatibility)
+    def validate_resource(cls, value: str):
+        """This class expects a resource string of the form
+        `public:<URL>` or only a URL.
+        Args:
+            resource (str): the resource string
+
+        Returns:
+            (str|None): The URL if the pattern matches, else None
+        """
         prefix = PublicSource.prefix
         if value.startswith(prefix):
             prefix_len = len(prefix)
