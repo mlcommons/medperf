@@ -259,3 +259,19 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         updated_body = config.comms.upload_benchmark(body)
         updated_body["models"] = body["models"]
         return updated_body
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Description": self.description,
+            "Documentation": self.docs_url,
+            "Created At": self.created_at,
+            "Data Preparation MLCube": int(self.data_preparation_mlcube),
+            "Reference Model MLCube": int(self.reference_model_mlcube),
+            "Associated Models": ",".join(map(str, self.models)),
+            "Data Evaluator MLCube": int(self.data_evaluator_mlcube),
+            "State": self.state,
+            "Approval Status": self.approval_status,
+            "Registered": self.is_registered,
+        }
