@@ -14,10 +14,12 @@ We assume that you had [set up the general testing environment](setup.md).
 
 #### Seed the server
 
-For the purpose of the tutorial, you have to seed the local server to create benchmarks and MLCubes that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
+For the purpose of the tutorial, you have to start with a fresh server database and seed it to create benchmarks and MLCubes that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
 
 ```
-python server/seed.py --cert server/cert.crt --demo data
+cd server
+sh reset_db.sh
+python seed.py --cert cert.crt --demo data
 ```
 
 #### Download the Dataset
@@ -188,7 +190,8 @@ rm -fr /tmp/medperf_test_files
 - To cleanup the server database: (make sure you are in the MedPerf's root directory)
 
 ```
-rm server/db.sqlite3
+cd server
+sh reset_db.sh
 ```
 
 - To cleanup the test storage:

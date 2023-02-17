@@ -6,6 +6,7 @@ For the purpose of the tutorials, you should spawn a local MedPerf server for th
 
 ```
 pip install -r server/requirements.txt
+pip install -r server/test-requirements.txt
 ```
 
 2. Switch to the server directory and run the server:
@@ -14,8 +15,6 @@ pip install -r server/requirements.txt
 cd server
 sh setup_dev_server.sh
 ```
-
-**Note**: If this is not the first time you run the local server, the server may still have data from previous client runs. If you want to spawn the server with a fresh database, you should run this instead of the above command: `sh setup_dev_server.sh -r 1`.
 
 The local server now is ready to recieve requests. You can always stop the server by pressing `CTRL`+`C` in the terminal where you ran the server.
 
