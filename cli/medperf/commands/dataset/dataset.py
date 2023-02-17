@@ -91,7 +91,7 @@ def associate(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
-        ..., "-benchmark_uid", "-b", help="Benchmark UID"
+        ..., "--benchmark_uid", "-b", help="Benchmark UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
