@@ -8,11 +8,11 @@ For the purpose of the tutorials, you should spawn a local MedPerf server for th
 pip install -r server/requirements.txt
 ```
 
-2. Switch to the server directory and Run the server:
+2. Switch to the server directory and run the server:
 
 ```
 cd server
-sh setup_dev_server.sh (TODO: include `cp .env.example .env` in this script)
+sh setup_dev_server.sh
 ```
 
 **Note**: If this is not the first time you run the local server, the server may still have data from previous client runs. If you want to spawn the server with a fresh database, you should run this instead of the above command: `sh setup_dev_server.sh -r 1`.
@@ -31,7 +31,7 @@ To activate the `test` profile, run:
 medperf profile activate test
 ```
 
-You can always check which profiel is active by running:
+You can always check which profile is active by running:
 
 ```
 medperf profile ls
@@ -42,6 +42,16 @@ To view the current active profile's configured parameters, you can run the foll
 ```
 medperf profile view
 ```
+
+#### Choose the Container Runner
+
+You can configure the client to use either Docker or Singularity. The `test` profile is configured to use Docker. If you want to run the tutorials with Singularity, run the following:
+
+```
+medperf profile set --platform singularity
+```
+
+This will modify the `platform` parameter of the currently activated profile.
 
 ## What's Next?
 

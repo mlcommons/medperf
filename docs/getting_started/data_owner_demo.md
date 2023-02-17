@@ -15,19 +15,21 @@ We assume that you had [set up the general testing environment](setup.md).
 #### Seed the server
 
 For the purpose of the tutorial, you have to seed the local server to create benchmarks and MLCubes that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
+
 ```
-python server/seed.py --cert server/cert.crt --demo data (TODO: fresh database)
+python server/seed.py --cert server/cert.crt --demo data
 ```
 
-#### Download the XRV Dataset
+#### Download the Dataset
 
-You need data to test this tutorial. We will be working with the XRV dataset. You can download it by running:
+You need data to test this tutorial. We provide a mock dataset comprising of images and labels, which will serve as replacement of real X-ray images. You can download it by running:
+
 ```
-wget -P /tmp/medperf_test https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
-tar -xzvf /tmp/medperf_test/mock_chexpert_dset.tar.gz -C /tmp/medperf_test
+wget -P /tmp/medperf_test_files https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
+tar -xzvf /tmp/medperf_test_files/mock_chexpert_dset.tar.gz -C /tmp/medperf_test_files
 ```
 
-This will download and extract the XRV data under the folder `/tmp/medperf_test`.
+This will download and extract the data under the folder `/tmp/medperf_test_files`.
 
 #### Login to the Local Server
 
@@ -36,8 +38,8 @@ You credentials in this tutorial will be a username: `testdataowner` and a passw
 ```
 medperf login
 ```
-You will be prompted to enter your credentials.
 
+You will be prompted to enter your credentials.
 
 You are now ready to start!
 
@@ -48,8 +50,8 @@ To prepare your data, you need to collect these information:
 - A name you wish to have for your dataset
 - A small description of the dataset
 - The source location of your data (e.g. hospital name)
-- The path to the data: in our case it is `/tmp/medperf_test/mock_chexpert`
-- The path to the labels of the data: in our case it is the same as above `/tmp/medperf_test/mock_chexpert`
+- The path to the data: in our case it is `/tmp/medperf_test_files/mock_chexpert`
+- The path to the labels of the data: in our case it is the same as above `/tmp/medperf_test_files/mock_chexpert`
 - The benchmark ID that you wish to participate in. This is to ensure that your data is prepared using the benchmark's data preparation MLCube.
 
 For the last piece of information, you can run the following command to see what benchmarks are available:
@@ -65,10 +67,10 @@ Run the following command to prepare your data:
 ```
 medperf dataset create \
   --name "mytestdata" \
-  --description "XRV dataset to run MedPerf demo"
+  --description "A mock dataset to run MedPerf demo"
   --location "here"
-  --data_path "/tmp/medperf_test/mock_chexpert" \
-  --labels_path "/tmp/medperf_test/mock_chexpert" \
+  --data_path "/tmp/medperf_test_files/mock_chexpert" \
+  --labels_path "/tmp/medperf_test_files/mock_chexpert" \
   --benchmark 1
 ```
 
@@ -93,7 +95,6 @@ medperf dataset submit --data_uid hashashash
 ```
 
 The information that is going to be submitted will be printed to the screen and you will be prompted to confirm that you want to submit.
-
 
 Your dataset is successfully submitted! Next, request participation in the benchmark by initiating an association request.
 
@@ -130,10 +131,10 @@ medperf association approve -b 1 -d 1
 medperf login --username=testdataowner --password=test
 ```
 
-
 ## 4. Execute the Benchmark
 
 It is time to run the benchmark! We provide a command that runs all models associated with a benchmark. To do that all you need is:
+
 - The target benchmark ID, which is `1`
 - The server UID of your data, which is `1`
 
@@ -145,17 +146,20 @@ medperf benchmark run --benchmark 1 --data_uid 1
 
 You will see at the end a summary of the executions. In our case, you will see something similar to the following:
 
-This means that the benchmark had two models:
+TODO output
+
+This means that the benchmark has two models:
 
 - A model that you already have run when you requested the association. This explains why it was skipped.
 - Another model which ran successfully. Its result generated UID is `b1m2d1`.
-
 
 You can view the results by their UID. For example:
 
 ```
 medperf result view b1m2d1
 ```
+
+For now, your results are only local. Next, you will learn how to submit the results.
 
 ## 5. Submit a Result
 
@@ -169,17 +173,16 @@ medperf result submit --result b1m2d1
 
 The information that is going to be submitted will be printed to the screen and you will be prompted to confirm that you want to submit.
 
-
 ## Cleanup (Optional)
 
 You have reached the end of the tutorial! If you are planning to rerun any of our tutorials, don't forget to cleanup:
 
 - To shut down the server: press `CTRL`+`C` in the terminal where the server is running.
 
-- To cleanup the downloaded XRV dataset:
+- To cleanup the downloaded mock dataset:
 
 ```
-rm -fr /tmp/medperf_test
+rm -fr /tmp/medperf_test_files
 ```
 
 - To cleanup the server database: (make sure you are in the MedPerf's root directory)
@@ -189,6 +192,7 @@ rm server/db.sqlite3
 ```
 
 - To cleanup the test storage:
+
 ```
 rm -fr ~/.medperf/localhost_8000
 ```
