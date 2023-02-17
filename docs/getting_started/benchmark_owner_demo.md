@@ -1,28 +1,41 @@
-(WIP)
+## Overview
 
-To define and submit a benchmark, the benchmark owner has to follow these steps:
+This guide will walk you through the essentials of how a benchmark owner can use MedPerf. The main tasks can be summarized as follows:
 
 1. Define and implement a valid workflow
-
 2. Submit the workflow components to the MedPerf server
-
 3. Develop a demo dataset
+4. Test your workflow
+5. Submit the benchmark to the MedPerf server
+6. Accept an association request
 
-4. Submit the benchmark to the MedPerf server
+We assume that you had [set up the general testing environment](setup.md).
+
+## Before We Start
+
+#### Seed the server
+
+For the purpose of the tutorial, you have to start with a fresh server database and seed it to create necessary entities that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
+
+```
+cd server
+sh reset_db.sh
+python seed.py --cert cert.crt --demo benchmark
+```
 
 ## Providing a Valid Workflow
 
 This is accomplished by submitting three [MLCubes](../mlcubes.md):
 
-1. **The Data Preparator MLCube:** This MLCube will be used to transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark should have their data prepared using this MLCube. Details on how to implement data preparation MLCubes and hosting their files can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/data_preparator).
+1. **The Data Preparator MLCube:** This MLCube will be used to transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark will have their data prepared using this MLCube. Details on how to implement data preparation MLCubes and hosting their files can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/data_preparator). (TODO: update once we have guides on creating mlcubes)
 
-2. **The Reference Model MLCube:** This MLCube will contain an example model implementation for the desired AI task. It should be compatible with the data preparation MLCube (i.e. the outputs of the data preparation MLCube can be directly fed as inputs to this MLCube). Details on how to implement model MLCubes and hosting their files can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/model).
+2. **The Reference Model MLCube:** This MLCube will contain an example model implementation for the desired AI task. It should be compatible with the data preparation MLCube (i.e. the outputs of the data preparation MLCube can be directly fed as inputs to this MLCube). Details on how to implement model MLCubes and hosting their files can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/model). (TODO: update once we have guides on creating mlcubes)
 
-3. **The Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e. the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). Details on how to implement metrics MLCubes and hosting their files can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/metrics).
+3. **The Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e. the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). Details on how to implement metrics MLCubes and hosting their files can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/metrics). (TODO: update once we have guides on creating mlcubes)
 
 For this tutorial, these MLCubes are already implemented and hosted, and can be found here: [Data Preparator](https://github.com/aristizabal95/medical/tree/65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_prep), [Reference Model](https://github.com/aristizabal95/medical/tree/65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_chex_densenet), [Metrics](https://github.com/aristizabal95/medical/tree/65a7d3f9d40a03c665616c96819d655e619421c1/cubes/metrics).
 
-Next, we are going to submit these MLCubes to the MedPerf server using MedPerf CLI.
+Next, we are going to submit these MLCubes to the MedPerf server.
 
 ## Submit the Workflow Components
 
