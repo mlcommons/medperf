@@ -123,15 +123,15 @@ def seed(args):
         {
             "name": "xrv_prep",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_prep/mlcube/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/chexpert_prep/mlcube/mlcube.yaml"
             ),
-            "mlcube_hash": "2f4002a4d17fe600dc54c83c29dd7652b45ecf29",
+            "mlcube_hash": "074d0593ed5a0a168bf99e077cd09538fb65e001",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "65a7d3f9d40a03c665616c96819d655e619421c1/cubes/xrv_prep/mlcube/workspace/parameters.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/chexpert_prep/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "9707d6de7b54912afe9ccfeb8b524092434d20d8",
+            "parameters_hash": "3666df285bad3c1f73edaa47dedecf165e9ff4e6",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "additional_files_tarball_url": "",
@@ -167,13 +167,13 @@ def seed(args):
         {
             "name": "xrv_chex_densenet",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "02e142f9a83250a0108e73f955bf4cb6c72f5a0f/cubes/xrv_chex_densenet/mlcube/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_chex_densenet/mlcube/mlcube.yaml"
             ),
-            "mlcube_hash": "c2a7ac7d4498946dc0c29c9281c82f1473380a87",
+            "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_chex_densenet/parameters.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_chex_densenet/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "4271dbfa5e22a85b2a62ae3cefb340defc2fe74e",
             "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
@@ -211,15 +211,15 @@ def seed(args):
         {
             "name": "xrv_metrics",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "e33a7329d188048eaa279481f67cc478abe72779/cubes/metrics/mlcube/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/metrics/mlcube/mlcube.yaml"
             ),
-            "mlcube_hash": "dd312071e4e83dc281d97f055bc275ef747244ad",
+            "mlcube_hash": "5adafd609bb5100ff34f8dd563bd98f67de7d01f",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medperf-server/"
-                "1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_metrics/parameters.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/metrics/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "344d95ecebd210a75791c218eb84807e13b912d1",
+            "parameters_hash": "302f2f565c630c18b96c89a7584987b95f43be80",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "additional_files_tarball_url": "",
@@ -306,13 +306,13 @@ def seed(args):
         {
             "name": "xrv_resnet",
             "git_mlcube_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/mlcube.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_resnet/mlcube/mlcube.yaml"
             ),
-            "mlcube_hash": "58e0398e2f3de11ef0f88c5df286b18f0155902d",
+            "mlcube_hash": "b2f17ed06c7b1225810588630abdc4d6ee8b3137",
             "git_parameters_url": (
-                "https://raw.githubusercontent.com/aristizabal95/medical/"
-                "1474432849e071c6f42e968b6461da7129ff0282/cubes/xrv_resnet/mlcube/workspace/parameters.yaml"
+                "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+                "6f4b902020be3702ce302973ed605b2f94b228bc/examples/ChestXRay/xrv_resnet/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "cd747953cf4b95e104d2c2b03385c656e44ffaec",
             "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",
