@@ -19,11 +19,26 @@ class SynapseLogin:
         except SynapseError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
 
+    @staticmethod
+    def run_access_token(access_token=None):
+        """Login to the Synapse server. Must be done only once.
+        """
+        # TODO: if we go with this option, add unit tests, change CLI args
+        access_token = (
+            access_token if access_token else config.ui.hidden_prompt("access token: ")
+        )
+
+        syn = synapseclient.Synapse()
+        try:
+            syn.login(authToken=access_token, rememberMe=True)
+        except SynapseError:
+            raise CommunicationAuthenticationError("Invalid Synapse credentials")
+
     def run_disabled_for_now(username: str = None, password: str = None):
         """Login to the Synapse server with access token. Must be done only once.
         """
         # TODO: if we go with this option, handle errors
-        # move function out and move imports out
+        # move function out and move imports out, add unit tests
 
         def get_access_token(username, password):
             # https://rest-docs.synapse.org/rest/POST/login2.html
