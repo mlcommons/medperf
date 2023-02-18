@@ -1,5 +1,5 @@
-name: MLCommons TorchXRayVision CheXpert DenseNet model
-description: Interface cube for doing inference with densenet chexpert model available from the torchxvision library
+name: MLCommons TorchXRayVision ResNet model
+description: Interface cube for doing inference with the ResNet model available from the torchxvision library
 authors:
  - {name: "MLCommons Best Practices Working Group"}
 
@@ -8,7 +8,7 @@ platform:
 
 docker:
   # Image name.
-  image: mlcommons/xrv-chexpert-densenet:0.1.0
+  image: mlcommons/xrv-resnet:0.1.0
   # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
   build_context: "../project"
   # Docker file name within docker build context, default is `Dockerfile`.
@@ -18,5 +18,5 @@ tasks:
   infer:
   # predict on data
     parameters:
-      inputs: {data_path: data/, parameters_file: parameters.yaml, weights: additional_files/weights.pt}
+      inputs: {data_path: data/, weights: additional_files/weights.pt}
       outputs: {output_path: {type: directory, default: predictions}}
