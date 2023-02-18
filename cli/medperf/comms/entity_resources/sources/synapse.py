@@ -23,7 +23,7 @@ class SynapseSource(BaseSource):
         Returns:
             (str|None): The synapse ID if the pattern matches, else None
         """
-        prefix = SynapseSource.prefix
+        prefix = cls.prefix
         if not value.startswith(prefix):
             return
 

@@ -14,7 +14,7 @@ def __parse_resource(resource: str):
 
     Args:
         resource (str): The resource string. Must be in the form <source_prefix>:<resource_identifier>
-        or a url. The later case will be interpreted as a public-access resource.
+        or a url. The later case will be interpreted as a direct download link.
     """
 
     for source_class in supported_sources:
@@ -24,7 +24,8 @@ def __parse_resource(resource: str):
 
     # In this case the input format is not compatible with any source
     msg = f"""Invalid resource input: {resource}. A Resource must be a url or
-    in the following format: '<source_prefix>:<resource_identifier>'. See <link> for details."""
+    in the following format: '<source_prefix>:<resource_identifier>'. Run
+    `medperf mlcube submit --help` for more details."""
     raise InvalidArgumentError(msg)
 
 

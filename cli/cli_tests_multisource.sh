@@ -71,7 +71,7 @@ PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
 MODEL_ADD="synapse:syn51089171"
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
-PREP_SING_IMAGE="public:$ASSETS_URL/prep/mlcube/workspace/.image/mock-prep.simg"
+PREP_SING_IMAGE="direct:$ASSETS_URL/prep/mlcube/workspace/.image/mock-prep.simg"
 MODEL_SING_IMAGE="synapse:syn51080138"
 
 METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/mock-metrics.simg"

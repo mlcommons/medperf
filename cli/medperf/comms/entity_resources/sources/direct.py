@@ -6,20 +6,20 @@ from .source import BaseSource
 import validators
 
 
-class PublicSource(BaseSource):
-    prefix = "public:"
+class DirectLinkSource(BaseSource):
+    prefix = "direct:"
 
     @classmethod
     def validate_resource(cls, value: str):
         """This class expects a resource string of the form
-        `public:<URL>` or only a URL.
+        `direct:<URL>` or only a URL.
         Args:
             resource (str): the resource string
 
         Returns:
             (str|None): The URL if the pattern matches, else None
         """
-        prefix = PublicSource.prefix
+        prefix = cls.prefix
         if value.startswith(prefix):
             prefix_len = len(prefix)
             value = value[prefix_len:]

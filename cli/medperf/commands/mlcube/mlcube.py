@@ -74,7 +74,7 @@ def submit(
     are expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
-    1. A direct link: "public:<URL>"\n
+    1. A direct link: "direct:<URL>"\n
     2. An asset hosted on the Synapse platform: "synapse:<synapse ID>"\n\n
 
     If a URL is given without a source prefix, it will be treated as a direct download link.
