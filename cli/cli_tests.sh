@@ -10,7 +10,7 @@ do
     esac
 done
 
-SERVER_URL="${SERVER_URL:-https://127.0.0.1:8000}"
+SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
