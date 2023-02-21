@@ -3,8 +3,8 @@
 This guide will walk you through the essentials of how a benchmark owner can use MedPerf. The main tasks can be summarized as follows:
 
 1. Define and implement a valid workflow
-2. Submit the workflow components to the MedPerf server
-3. Develop a demo dataset
+2. Develop a demo dataset
+3. Submit the workflow components to the MedPerf server
 4. Test your workflow
 5. Submit the benchmark to the MedPerf server
 6. Accept an association request
@@ -23,7 +23,7 @@ sh reset_db.sh
 python seed.py --cert cert.crt --demo benchmark
 ```
 
-## Providing a Valid Workflow
+## 1. Providing a Valid Workflow
 
 This is accomplished by submitting three [MLCubes](../mlcubes.md):
 
@@ -37,259 +37,114 @@ For this tutorial, these MLCubes are already implemented and hosted, and can be 
 
 Next, we are going to submit these MLCubes to the MedPerf server.
 
-## Submit the Workflow Components
+## 2. Develop a Demo Dataset
 
-An MLCube in MedPerf is recognized by a set of files. For our example:
+A demo dataset is a reference dataset. It is needed to test the benchmark's workflow, and that happens in two scenarios:
 
-1. The Data Preparator MLCube is identified by:
+1. It is used for testing the benchmark's default workflow. The MedPerf client runs a compatibility test of the benchmark's three mlcubes prior to its submission. The test is run using the demo dataset as input.
 
-   1. The MLCube configuration file:
+2. When a model owner wants to participate in the benchmark, the MedPerf client tests the compatibility of their model with the benchmark's data preparation cube and metrics cube. The test is run using the demo dataset as input.
 
-   2. The parameters file
+The demo dataset should be provided following a specific format. See [this page](../concepts/demo_dataset.md) for detailed information.
 
-2. The Reference Model MLCube is identified by:
+The demo dataset should be hosted somewhere. See [this page](../concepts/hosting_files.md) for more information.
 
-   1. The MLCube configuration file:
+For this tutorial, we will be using a ready demo dataset. Feel free to [download](https://storage.googleapis.com/medperf-storage/xrv_demo_data.tar.gz) it and inspect its structure.
 
-   2. The parameters file:
+## 3. Test your Workflow
 
-   3. A tarball containing the model weights:
+WIP
 
-3. The Metrics MLCube is identified by:
+## 4. Submit the Workflow Components
 
-   1. The MLCube configuration file:
-
-   2. The parameters file
+The above components should be registered in the MedPerf server before using them as components of a benchmark. For detailed information about how mlcubes are submitted, refer to [this page](../concepts/mlcube_submit.md).
 
 To submit these MLCubes:
 
-```
-medperf mlcube submit -n my-prep-cube -m <link> -p <link>
-```
+1. The Data Preparator MLCube: the submission should include:
 
-# TODO: Continue rephrasing from here
+   a. The URL to the mlcube manifest: `<link>`
 
-## Develop a Demo Dataset
+   b. The URL to the mlcube parameters file: `<link>`
 
-In order to test the implementation of your MLCubes, as well as potentially allow other users to test their implementations for your benchmark, a public demonstration dataset should be hosted on the web. This demo dataset can be either a subset of a publicly accessible dataset, which you have clearance to provide or a synthetic dataset. It’s up to you what the contents of this dataset are.
-
-**Note:** The demo dataset will be used as input to the data preparation cube as part of the compatibility testing.
-
-Demo datasets must be compressed as a `.tar.gz` file, and at the root there should be a <strong><code>paths.yaml</code></strong> file with the following structure:
+   c. The URL to the Singularity image of the MLCube. This is needed if the MLCube is going to be run with Singularity.
 
 ```
-data_path: <DATA_PATH>
-labels_path: <LABELS_PATH>
+medperf mlcube submit \
+   --name my-prep-cube \
+   --mlcube-file <link> \
+   --parameters-file <link> \
+   --image-file <link>
 ```
 
-where:
+2. The Reference Model MLCube: the submission should include:
 
-- `data_path:` path relative to the location of the <strong><code>paths.yaml</code></strong> file that should be used as <code>data_path</code> input for the Data Preparator MLCube
-- <code>labels_path:</code> path relative to the location of the <strong><code>paths.yaml</code></strong> file that should be used as <code>labels_path</code> input for the Data Preparator MLCube
+   a. The URL to the mlcube manifest: `<link>`
 
-<strong>If your some reason you can’t host your demo dataset</strong>, you can bypass the demo dataset retrieval by following the next steps:
+   b. The URL to the mlcube parameters file: `<link>`
 
-1. Get the hash of your demo dataset tarball file with the following command
+   c. The URL to the Singularity image of the MLCube. This is needed if the MLCube is going to be run with Singularity.
 
-```
-shasum demo_dataset.tar.gz
-```
-
-2. Create a folder with that hash under Medperf’s demo dataset filesystem
-3. Move the tarball inside that folder and name it `tmp.tar.gz`
+   d. The URL to the additional files of the MLCube. These will include the weights of the model.
 
 ```
-mv demo_dataset.tar.gz ~/.medperf/demo/<hash>/tmp.tar.gz
+medperf mlcube submit \
+   --name my-modelref-cube \
+   --mlcube-file <link> \
+   --parameters-file <link> \
+   --image-file <link> \
+   --additional-file <link>
 ```
 
-Keep in mind that your benchmark will only work for those that have done the same thing on their machines.
+3. The Metrics MLCube: the submission should include:
 
-**Note:** These steps should be followed if you wish to test your implementation before submitting anything to the platform.
+   a. The URL to the mlcube manifest: `<link>`
 
-## Test Your Implementation
+   b. The URL to the mlcube parameters file: `<link>`
 
-You can test your benchmark workflow before submitting anything to the platform. To do this, run the following command:
-
-```
-medperf test -p path/to/data_preparator/mlcube -m path/to/model/mlcube -e path/to/evaluator/mlcube -d <demo_dataset hash> <demo_datashet hash>
-```
-
-Once your tests are complete, you can continue with submitting your MLCubes and your benchmark.
-
-## Submitting Your MLCubes
-
-To submit your MLCube, you should have the following information at hand:
-
-- <strong><code>mlcube.yaml</code></strong> raw github url with commit hash
-- <strong><code>parameters.yaml</code></strong> raw github url with commit hash
-- URL for the additional files tarball (optional)
-
-You can submit your MLCube using the following command:
+   c. The URL to the Singularity image of the MLCube. This is needed if the MLCube is going to be run with Singularity.
 
 ```
-medperf mlcube submit --name <mlcube_name> --mlcube-file
-```
-
-Then CLI will return a response as follows:
-
-```
-https://raw.githubusercontent.com/aristizabal95/medical/02e142f9a83250a0108e73f955bf4cb6c72f5a0f/cubes/xrv_chex_densenet/mlcube/mlcube.yaml --parameters-file https://raw.githubusercontent.com/aristizabal95/medperf-server/1a0a8c21f92c3d9a162ce5e61732eed2d0eb95cc/app/database/cubes/xrv_chex_densenet/parameters.yaml --additional-file https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz --additional-hash c5c408b5f9ef8b1da748e3b1f2d58b8b3eebf96e
-MedPerf 0.0.0
-Additional file hash generated
-✅ Done!
-```
-
-## Submitting Your Benchmark
-
-Once all your cubes are submitted to the platform, you can create your benchmark. For this, you need to keep at hand the following information:
-
-- Data preparator UID (obtained through <strong><code>medperf mlcube ls</code></strong>)
-- Reference model UID (obtained through <strong><code>medperf mlcube ls</code></strong>)
-- Evaluator UID (obtained through <strong><code>medperf mlcube ls</code></strong>)
-- Demo Dataset URL (if not hosted publicly, can be blank)
-- Demo Dataset Hash (Only required if not hosted publicly)
-
-You can create your benchmark using the following command:
+medperf mlcube submit \
+   --name my-metrics-cube \
+   --mlcube-file <link> \
+   --parameters-file <link> \
+   --image-file <link>
 
 ```
-medperf benchmark submit --name <benchmark_name> --description <benchmark_description> --demo-url <demo_url> --data-preparation-mlcube <data_preparator_MLCube_uid> --reference-model-mlcube <model_MLCube_uid> --evaluator-mlcube <evaluator_MLCube_uid>
-```
 
-If all the compatibility tests run successfully, the CLI will provide a response as follows:
+Each of the three MLCubes will be assigned by a server UID that be checked by running:
 
 ```
-MedPerf 0.0.0
-Running compatibility test
-Benchmark Data Preparation: tmp_1_2_3
-> Preparation cube download complete
-> MLCommons TorchXRayVision Preprocessor MD5 hash check complete
-> Cube execution complete
-> Sanity checks complete
-> Statistics complete
-Benchmark Execution: tmp_1_2_3
-> Evaluator cube download complete
-> MLCommons Metrics MD5 hash check complete
-> Model cube download complete
-> MLCommons TorchXRayVision CheXpert DenseNet model MD5 hash check complete
-> Model execution complete
-> Completed benchmark registration information
-Submitting Benchmark to MedPerf
-Uploaded
-✅ Done!
+medperf mlcube ls
 ```
 
-In order to check the full list of arguments that you can provide, use the help command:
+## 5. Submitting Your Benchmark
+
+Once all your cubes are submitted to the platform, you can create and submit your benchmark. For this, you need to keep at hand the following information:
+
+- Demo Dataset URL. In our case: [https://storage.googleapis.com/medperf-storage/xrv_demo_data.tar.gz](https://storage.googleapis.com/medperf-storage/xrv_demo_data.tar.gz)
+- The server UIDs of the three MLCubes submitted in the previous section:
+  - Data preparator UID: 1
+  - Reference model UID: 2
+  - Evaluator UID: 3
+
+You can create and submit your benchmark using the following command:
 
 ```
-medperf benchmark submit --help
+medperf benchmark submit \
+   --name <benchmark_name> \
+   --description <benchmark_description> \
+   --demo-url <demo_url> \
+   --data-preparation-mlcube <data_preparator_MLCube_uid> \
+   --reference-model-mlcube <model_MLCube_uid> \
+   --evaluator-mlcube <evaluator_MLCube_uid>
 ```
 
-The CLI will return you the following response:
+The MedPerf client will first run a compatibility test between the MLCubes using the demo dataset. If the test is successful, the benchmark will be submitted along with the test results.
 
-```
-MedPerf 0.0.0
-Usage: medperf [OPTIONS] COMMAND [ARGS]...
+The benchmark will stay inactive until the MedPerf admin approves your submission.
 
-Options:
-  --log TEXT                      [default: INFO]
-  --log-file TEXT
-  --comms TEXT                    [default: REST]
-  --ui TEXT                       [default: CLI]
-  --host TEXT                     [default: https://medperf.org]
-  --storage TEXT                  [default: /Users/aristizabal-
-                                  factored/.medperf]
+## 6. Approving Associations
 
-  --certificate TEXT
-  --local / --no-local            Run the CLI with local server configuration
-                                  [default: False]
-
-  --install-completion [bash|zsh|fish|powershell|pwsh]
-                                  Install completion for the specified shell.
-  --show-completion [bash|zsh|fish|powershell|pwsh]
-                                  Show completion for the specified shell, to
-                                  copy it or customize the installation.
-
-  --help                          Show this message and exit.
-
-Commands:
-  dataset  Manage datasets
-  login    Login to the medperf server.
-  mlcube   Manage mlcubes
-  passwd   Set a new password.
-  result   Manage results
-  run      Runs the benchmark execution step for a given benchmark,
-           prepared...
-```
-
-In addition, you can also see information about your benchmarks with:
-
-```
-medperf benchmark ls
-```
-
-The CLI will provide a list of your benchmarks and
-
-```
-MedPerf 0.0.0
-  UID  Name    Description    State      Approval Status
------  ------  -------------  ---------  -----------------
-    7  dfci    submit         OPERATION  APPROVED
-```
-
-## Approving Additional Associations
-
-You can retrieve all existing associations with:
-
-```
-medperf association ls
-```
-
-The CLI will return the existing associations:
-
-```
-MedPerf 0.0.0
-Dataset UID      MLCube UID    Benchmark UID    Initiated by  Status
--------------  ------------  ---------------  --------------  --------
-                         32                7              13  APPROVED
-                         33                7              13  APPROVED
-                         35                7              13  APPROVED
-                         38                7              13  APPROVED
-                         37                7              13  PENDING
-```
-
-In addition, you can filter associations to your benchmark by their approval status:
-
-```
-medperf association ls [pending | approved | rejected]
-```
-
-You can approve additional model associations with the following command:
-
-```
-medperf association approve -b <benchmark_uid> [-m <mlcube_uid>]
-```
-
-A similar approach is used for approving dataset associations:
-
-```
-medperf association approve -b <benchmark_uid> [-d <dataset_uid>]
-```
-
-If you can to reject an association, use the following command for rejecting a model
-
-```
-medperf association reject -b <benchmark_uid> [-m <model_uid>]
-```
-
-and the following one to reject a dataset association:
-
-```
-medperf association reject -b <benchmark_uid> [-m <dataset_uid>]
-```
-
-Then, the CLI will provide a response for approving or rejecting a benchmark as follows:
-
-```
-MedPerf 0.0.0
-✅ Done!
-```
+WIP
