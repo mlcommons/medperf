@@ -1,47 +1,67 @@
-# MedPerf's Data Preparator MLCube Template
-This Hello World implementation follows the structure and conventions MedPerf uses to process and transform raw datasets.
-
+# Data Preparator MLCube
 ## Purpose:
-At the time of writing, Data Preparators are in charge of standardizing the input data format models expect to receive. Additionally, they provide tools for testing the integrity of the data and extracting valuable insights from it.
+Data Preparators are in charge of standardizing the input data format models expect to receive. Additionally, they provide tools for testing the integrity of the data and extracting valuable insights from it.
+
+## MedPerf's Data Preparator MLCube Template
+For reference, we provide a fully functional Hellow World example, which implements a simple pipeline for preprocessing names.
 
 ## How to run:
 This template was built in a way it works out of the box. You can follow the next steps to get started:
 
 1. Clone the repository.
-2. Navigate to the `mlcube_examples` directory within the repository with
+   
    ```bash
-   cd mlcube_examples
+   git clone https://github.com/mlcommons/medperf
    ```
-3. Install mlcube and mlcube-docker using pip
 
+2. Navigate to the `mlcube_examples` directory within the repository with
+   
+   ```bash
+   cd examples
+   ```
+
+3. Install mlcube and mlcube-docker using pip
+   
    ```bash
    pip install mlcube mlcube-docker
    ```
-4. Change to the current example's `mlcube` folder with
 
+4. Change to the current example's `mlcube` folder with
+   
    ```bash
-   cd medperf/data_preparator/mlcube
+   cd HelloWorld/data_preparator/mlcube
    ```
+
 5. Run the `prepare` task with the mlcube
+   
    ```bash
    mlcube run --task=prepare
    ```
+
 6. Check the resulting data using
+   
    ```bash
    ls workspace/data
    ```
+
 7. Run the `sanity_check` task with
+   
     ```bash
     mlcube run --task=sanity_check
     ```
+
 8. Run the `statistics` task using
+   
     ```bash
     mlcube run --task=statistics
     ``` 
-9. Check the resulting statistics using the following command:
+
+9.  Check the resulting statistics using the following command:
+    
     ```bash
     cat workspace/statistics.yaml
     ```
+
 That's it! You just built and ran a hello-world data preparator mlcube!
 
 ## Contents
