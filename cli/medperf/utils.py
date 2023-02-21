@@ -13,11 +13,15 @@ from glob import glob
 import json
 from pathlib import Path
 from shutil import rmtree
-from pexpect import spawn
 from datetime import datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
+
+if sys.platform == "win32":
+    from wexpect import spawn
+else:
+    from pexpect import spawn
 
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
@@ -404,12 +408,18 @@ def combine_proc_sp_text(proc: spawn) -> str:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
 
-        while byte and not re.match(b"[\r\n]", byte):
+        if type(byte) == str:
+            pattern = "[\r\n]"
+        else:
+            pattern = b"[\r\n]"
+
+        while byte and not re.match(pattern, byte):
             byte = proc.read(1)
             line += byte
         if not byte:
             break
-        line = line.decode("utf-8", "ignore")
+        if type(line) != str:
+            line = line.decode("utf-8", "ignore")
         if line:
             # add to proc_out list for logging
             proc_out += line

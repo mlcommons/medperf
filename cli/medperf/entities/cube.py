@@ -1,10 +1,15 @@
 import os
+import sys
 import yaml
-import pexpect
 import logging
 from typing import List, Dict, Optional, Union
 from pydantic import HttpUrl, Field
 from pathlib import Path
+
+if sys.platform == "win32":
+    from wexpect import spawn
+else:
+    from pexpect import spawn
 
 from medperf.utils import (
     untar,
@@ -210,7 +215,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            proc = pexpect.spawn(cmd)
+            proc = spawn(cmd)
             proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
@@ -273,7 +278,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
-        proc = pexpect.spawn(cmd, timeout=timeout)
+        proc = spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
