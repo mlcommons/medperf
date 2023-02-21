@@ -1,18 +1,17 @@
 typer~=0.6.0; sys_platform != "win32"
 typer<0.5.0; sys_platform == "win32"
-click>=8.0.0,<9.0.0
 rich~=12.5.0
 PyYAML>=5.4,<6
 requests>=2.26.0
 yaspin==2.1.0
 tabulate==0.8.9
 pexpect==4.8.0
-wexpect==2.3.2; sys_platform == "win32"
+wexpect==4.0.0; sys_platform == "win32"
 colorama==0.4.4
 time-machine==2.4.0
 pytest-mock==1.13.0
 mlcube==0.0.8
 mlcube-docker==0.0.8
-mlcube-singularity==0.0.8
+mlcube-singularity==0.0.8; sys_platform != "win32"
 validators==0.18.2
 merge-args==0.1.4
