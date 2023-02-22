@@ -5,7 +5,7 @@
 # commands, and input/output parameters and command-line arguments.
 # You can provide that interface to MLCube in any way you prefer.
 # Here, we show a way that requires minimal intrusion to the original code,
-# By running the application through subprocesses.
+# By running the application through subprocesses. 
 import os
 import typer
 import subprocess
@@ -21,7 +21,8 @@ def exec_python(cmd: str) -> None:
         cmd (str): command to run as would be written inside the terminal
     """
     splitted_cmd = cmd.split()
-    subprocess.run(splitted_cmd, cwd=".", check=True)
+    process = subprocess.Popen(splitted_cmd, cwd=".")
+    process.wait()
 
 
 @app.command("evaluate")

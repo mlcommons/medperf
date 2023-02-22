@@ -5,7 +5,7 @@
 # commands, and input/output parameters and command-line arguments.
 # You can provide that interface to MLCube in any way you prefer.
 # Here, we show a way that requires minimal intrusion to the original code,
-# By running the application through subprocesses.
+# By running the application through subprocesses. 
 
 import os
 import yaml
@@ -14,7 +14,6 @@ import subprocess
 
 app = typer.Typer()
 
-
 def exec_python(cmd: str) -> None:
     """Execute a python script as a subprocess
 
@@ -22,15 +21,15 @@ def exec_python(cmd: str) -> None:
         cmd (str): command to run as would be written inside the terminal
     """
     splitted_cmd = cmd.split()
-    subprocess.run(splitted_cmd, cwd=".", check=True)
-
+    process = subprocess.Popen(splitted_cmd, cwd=".")
+    process.wait()
 
 @app.command("infer")
 def infer(
     data_path: str = typer.Option(..., "--data_path"),
     params_file: str = typer.Option(..., "--parameters_file"),
     greetings: str = typer.Option(..., "--greetings"),
-    out_path: str = typer.Option(..., "--output_path"),
+    out_path: str = typer.Option(..., "--output_path")
 ):
     """infer task command. This is what gets executed when we run:
     `mlcube run infer`
@@ -46,18 +45,14 @@ def infer(
 
     names_file = os.path.join(data_path, "names.csv")
     uppercase = params["uppercase"]
-    cmd = (
-        f"python3 app.py --names={names_file} --greetings={greetings} --out={out_path}"
-    )
+    cmd = f"python3 app.py --names={names_file} --greetings={greetings} --out={out_path}"
     if uppercase:
         cmd += f" --uppercase={uppercase}"
     exec_python(cmd)
 
-
 @app.command("hotfix")
 def hotfix():
     pass
-
 
 if __name__ == "__main__":
     app()
