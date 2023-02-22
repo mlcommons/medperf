@@ -16,7 +16,7 @@ SYNAPSE = sources.SynapseSource.prefix
         (f"{SYNAPSE}syn532035", sources.SynapseSource),
     ],
 )
-def test_download_resource_works_for_direct_link(mocker, resource, source_class):
+def test_download_resource_runs_for_valid_input(mocker, resource, source_class):
     # Arrange
     output_path = "out"
     resource_identifier = resource.replace(source_class.prefix, "")
