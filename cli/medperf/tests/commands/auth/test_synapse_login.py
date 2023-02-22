@@ -50,9 +50,11 @@ def test_run_calls_the_correct_method(mocker, synapse_client, ui, user_input):
 
     # Assert
     if user_input == "1":
+        # i.e. the user chose token login
         token_spy.assert_called_once()
         pwd_spy.assert_not_called()
     else:
+        # i.e. the user chose password login
         token_spy.assert_not_called()
         pwd_spy.assert_called_once()
 
