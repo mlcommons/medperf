@@ -48,7 +48,6 @@ class SynapseLogin:
     def login_with_token(cls, access_token=None):
         """Login to the Synapse server. Must be done only once.
         """
-        # TODO: if we go with this option, add unit tests, change CLI args
         access_token = (
             access_token if access_token else config.ui.hidden_prompt("access token: ")
         )
