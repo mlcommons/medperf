@@ -1,132 +1,157 @@
-# MedPerf's Model MLCube Template
-This document consists of a Hello World implementation, following the structure and conventions MedPerf uses to run Models on the platform successfully.
+# Model MLCube
 
-## Purpose:
-At the time of writing, model MLCubes only obtain predictions on data, meaning that we expect all models inside MedPerf to be already trained. 
+## Purpose
+Model MLCubes are in charge of running inference on the prepared data. They receive as input the output of the Data Preparator MLCube, and output the predictions on the data into a separate folder. Currently, Medperf only supports federated evaluation, and therefore it is expected for models to be pre-trained before being used on a Medperf pipeline.
 
-## How to run:
+## Hello World task
+To provide a basic example of how Medperf MLCubes work under the hood, we provide a toy Hello World benchmark. This benchmark implements a pipeline for ingesting people's names, and generating greetings for those names given some criteria. Although this is not the most scientific example, it provides a clear idea of all the pieces that are required to implement your own MLCubes for Medperf.
+
+You can find the Model MLCube code [here](https://github.com/mlcommons/medperf/examples/HelloWorld/model)
+
+## How to run
 This template was built thought to work out of the box. Follow the next steps:
 
 1. Clone the repository.
-2. Change the current directory to the repository with
+    ```bash
+    git clone https://github.com/mlcommons/medperf
+    ```
 
-   ```bash
-   cd mlcube_examples
-   ```
-3. Create and activate a virtual environment using
-   ```bash
-   conda create -n venv_mlcub python=3.7 -y # change to your prefered python version
-   conda activate venv_mlcub
-   ```
-4. Install mlcube and mlcube-docker using pip:
-   ```bash
-   pip install mlcube mlcube-docker
-   ```
-5. Change the current directory to the `mlcube` folder within the `medperf/model` folder of the repository with
-   ```bash
-   cd medperf/model/mlcube
-   ```
-6. Run the `infer` task using mlcube:
-   ```bash
-   mlcube run --task=infer
-   ```
-7. View the resulting predictions by reading the `predictions.csv` file in the `workspace/predictions` folder using the following command:
-   ```bash
-   cat workspace/predictions/predictions.csv
-   ```
+2. Install mlcube and mlcube-docker using pip
+    ```bash
+    pip install mlcube mlcube-docker
+    ```
+
+3. Navigate to the HelloWorld directory within the examples folder with
+    ```bash
+    cd examples/HelloWorld
+    ```
+
+4. Change to the current example's `mlcube` folder with
+    ```bash
+    cd model/mlcube
+    ```
+
+5. Run the `infer` task using mlcube:
+    ```bash
+    mlcube run --task=infer
+    ```
+
+6. View the resulting predictions by reading the `predictions.csv` file in the `workspace/predictions` folder using the following command:
+    ```bash
+    cat workspace/predictions/predictions.csv
+    ```
+
 That's it! You just built and ran a hello-world model mlcube!
 
 ## Contents
 
 MLCubes usually share a similar folder structure and files. In this section we provide a brief description of the role for the relevant files.
 
-1. __`mlcube/mlcube.yaml`__: 
-   
-   The `mlcube.yaml` file in your project contains metadata about your model, including its interface. To use your model with MedPerf, the `mlcube.yaml` file must define an infer function that takes in at least two arguments: `data_path` and `parameters_file`, and produces prediction artifacts in the `output_path`. This definition can be found in the `mlcube.yaml` file as:
+---
 
-    ```yml
+### `mlcube/mlcube.yaml` 
+   
+    The `mlcube.yaml` file in your project contains metadata about your model, including its interface. To use your model with MedPerf, the `mlcube.yaml` file **must define an infer function that takes in at least two arguments: `data_path` and `parameters_file`, and produces prediction artifacts in the `output_path`.** This definition can be found in the `mlcube.yaml` file as:
+
+    ``` yaml title="mlcube.yaml"
     tasks:
-      # Model MLCubes require only a single task: `infer`.
-      # This task takes input data, as well as configuration parameters
-      # and/or extra artifacts, and generates predictions on the data
-      infer:
+      infer: # (1)!
          parameters:
             inputs: {
-               data_path: data,                                    # Required. Where to find the data to run predictions on. MUST be a folder
-               parameters_file: parameters.yaml,                   # Required. Helper file to provide additional arguments. Value MUST be parameters.yaml
-               # If you need any additional files that should 
-               # not be included inside the mlcube image, 
-               # add them inside `additional_files` folder
-               # E.g. model weights
+               data_path: data, # (2)! 
+               parameters_file: parameters.yaml, # (3)! 
 
-               # Toy Hello World example
-               greetings: additional_files/greetings.csv
+               # Additional parameter
+               greetings: additional_files/greetings.csv # (4)!
             }
             outputs: {
-               output_path: {type: directory, default: predictions} # Required. Where to store prediction artifacts. MUST be a folder
+               output_path: {type: directory, default: predictions} #  (5)!
             }
 
     ```
-    In this case, we’ve added an extra “greetings” argument to our infer function. Note that the default value will always be used.
 
-2. __`mlcube/workspace/parameters.yaml`__:
+    1. Model MLCubes require only a single task: `infer`. This task takes input data, as well as configuration parameters and/or extra artifacts, and generates predictions on the data
+    2. **Required.** Where to find the data to run predictions on. **MUST** be a folder
+    3. **Required.** Helper file to provide additional arguments. Value **MUST** be parameters.yaml
+    4. If you need any additional files that should not be included inside the mlcube image, add them inside `additional_files` folder
+       E.g. model weights
+    5. **Required.** Where to store prediction artifacts. **MUST** be a folder
 
-   This file provides ways to parameterize your model. You can set any key-value pairs that should be easily modifiable to adjust your model's behavior. Current example shows a primary usage case for changing generated Hello world examples to uppercase:
+!!! note
 
-   ```yml
+    In this case, we’ve added an extra `greetings` argument to our infer function. For extra arguments, the default value will always be used.
+
+---
+
+### `mlcube/workspace/parameters.yaml`
+
+    This file provides ways to parameterize your model. You can set any key-value pairs that should be easily modifiable to adjust your model's behavior. Current example shows a primary usage case for changing generated Hello world examples to uppercase:
+
+    ``` yaml title="parameters.yaml"
     # Here you can store any key-value arguments that should be easily modifiable
     # by external users. E.g. batch_size
 
-    # example argument for Hello World
-    uppercase: false
-   ```
-   To perform inference on large volumes while conserving memory, you can enable patching by including the "patching" setting in your `parameters.yaml` file. You can register multiple "mlcubes" with different parameters to apply different parameter settings.yaml files. This allows you to customize the behavior of your model for different scenarios.
+    uppercase: false # (1)!
+    ```
 
-   Though we use the term “registering in mlcube”, really you register a mlcube and `parameters.yaml` file, such that you have separate registrations for different configurations of your cube. In this way, one registered “mlcube” might be your model with “patching: true”, and another might be “patching: false”. These two registered cubes share the same image file, and medperf/mlcube will re-use the downloaded image while downloading each parameter.yaml files. 
+    1. Example argument for Hello World
 
-   In our example, we have implemented one cube and registered it twice, each with different `parameters.yaml ` files and our benchmark will now compare our model with patching against our model without patching.
+    Parametrization can bring flexibility to your model pipeline, by providing a simple interface for enabling/disabling processing steps or changing your model architecture. This can be specially interesting with Medperf, since you could register multiple version of the same model, but modifying the parameters file so you can easily compare performance across your defined parameters.
 
-3. __`mlcube/workspace/additional_files/*`__:
+    In our example, we have parametrized our model with the `uppercase` key.
+
+---
+
+### `mlcube/workspace/additional_files/*`
    
-   Due to size or usability constraints, you may require additional files that should not be packaged inside the mlcube, like weights. For these cases, we provide an additional folder called `additional_files`. 
+    Due to size or usability constraints, you may require additional files that should not be packaged inside the mlcube. The best example of this is model weights, which usually take a lot of space, and would not be ideal to have inside the mlcube image. For these cases, we provide an additional folder called `additional_files`. 
 
-   Here, you can provide any other files that should be present during inference. At the time of mlcube registration, this folder must be compressed into a tarball `.tar.gz` and hosted somewhere on the web. 
+    Here, you can provide any other files that should be present during inference. At the time of mlcube registration, this folder must be compressed into a tarball `.tar.gz` and hosted somewhere on the web. 
 
-   MedPerf will then be able to download, verify and reposition those files in the expected location for model execution. To reference such files, you can provide additional parameters to the `mlcube.yaml` task definition, as we demonstrate with the `greetings` parameter.
+    MedPerf will then be able to download, verify and reposition those files in the expected location for model execution. To reference such files, you must provide additional parameters to the `mlcube.yaml` task definition, as we demonstrate with the `greetings` parameter.
 
+---
 
+### `project` 
 
-4. __`project`__: 
+    Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and requirements for running the code.
 
-   Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and equirements for running the code.
+---
 
-5. __`project/mlcube.py`__:
+### `project/mlcube.py`
    
-   MLCube expects an entry point to the project to run the code and the specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `infer`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
+MLCube expects an entry point to the project to run the code and the specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `infer`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
 
-   An example of the expected interface is:
+An example of the expected interface is:
 
-   ```bash
-    python3 project/mlcube.py infer --data_path=<DATA_PATH> --parameters_file=<PARAMETERS_FILE> --greetings=<GREETINGS_FILE> --output_path=<OUTPUT_PATH>
-   ```
+``` bash
+python3 project/mlcube.py infer --data_path=<DATA_PATH> --parameters_file=<PARAMETERS_FILE> --greetings=<GREETINGS_FILE> --output_path=<OUTPUT_PATH>
+```
 
-   `mlcube.py` provides an interface for this toy example. You can implement such a CLI interface as long as you follow it. We provide an example that requires minimal modifications to the original project code by running any project task through subprocesses.
+!!! note
 
-   #### __What is that “hotfix” function I see in mlcube.py?__
+    `--greetings` is a parameter specific to this example, and is not expected for all Model MLCubes. Any additional file that is specified in our MLcube must have their own CLI parameter.
 
-   To summarize, this issue is benign and can be safely ignored. It prevents a potential issue with the CLI and does not require further action.
+`mlcube.py` provides an interface for this toy example. You can implement such a CLI interface with any language or tool as long as you follow the command structure demonstrated above. We provide an example that requires minimal modifications to the original project code by running any project task through subprocesses.
 
-   If you use the typer/click library for your command-line interface (CLI) and have only one @app.command, the command line may not be parsed as expected by mlcube. This is due to a known issue that can be resolved by adding more than one task to the mlcube interface.
+!!! info "What is the `hotfix` function inside `mlcube.py`?"
+
+    To summarize, this issue is benign and can be safely ignored. It prevents a potential issue with the CLI and does not require further action.
+
+    If you use the `typer`/`click` library for your command-line interface (CLI) and have only one `@app.command`, the command line may not be parsed as expected by mlcube. This is due to a known issue that can be resolved by adding more than one task to the mlcube interface.
    
-   To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using typer/click, you don't need this dummy command.
+    To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using `typer`/`click`, you don't need this dummy command.
+
+--- 
 
 ## How to modify
 
 If you want to adjust this template for your own use case, then the following list serves as a step-by-step guide:
+
 1. Remove the demo artifacts from the `/mlcube/workspace` folder:
-`/mlcube/workspace/data/*`
-`/mlcube/workspace/predictions/*`
-`/mlcube/workspace/additional_files/greetings.csv`
+    - `/mlcube/workspace/data/*`
+    - `/mlcube/workspace/predictions/*`
+    - `/mlcube/workspace/additional_files/greetings.csv`
 
 2. Place your original code in the `/project folder`, removing `app.py`.
 3. Adjust your code and the `/project/mlcube.py` file, so the commands point to the correct code and receive the expected arguments.
@@ -135,16 +160,16 @@ If you want to adjust this template for your own use case, then the following li
 6. Inside `/mlcube/workspace`, add the data you want your model to use for inference.
 7. Inside `/mlcube/workspace/additional_files`, add any files required for model execution (e.g., `model weights`).
 8. In `/mlcube/mlcube.yaml`, make the following changes:
-   1. Assign the correct values to the metadata fields (`name`, `description`, `authors`, `image_name`).
-   2. Set `data_path `to the location of the data inside the workspace directory.
-   3. Please DO NOT modify `parameters_file`.
-   4. Remove the demo `greetings` parameter.
-   5. Add any other required parameters that point to additional_files. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
-   6. Please DO NOT modify `output_path`.
+    1. Assign the correct values to the metadata fields (`name`, `description`, `authors`, `image_name`).
+    2. Set `data_path `to the location of the data inside the workspace directory.
+    3. Please **DO NOT** modify `parameters_file`.
+    4. Remove the demo `greetings` parameter.
+    5. Add any other required parameters that point to additional_files. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
+    6. Please **DO NOT** modify `output_path`.
 
 
-## Requirements are negotiable
+!!! note "Requirements are negotiable"
 
-The fields required in the mlcube task interface are currently defined by the Medperf platform. We encourage users to raise any concerns or requests regarding these requirements while the platform is in alpha, as this is an ideal time to make changes. Please feel free to contact us with your feedback.
+    The fields required in the mlcube task interface are currently defined by the Medperf platform. We encourage users to raise any concerns or requests regarding these requirements while the platform is in alpha, as this is an ideal time to make changes. Please feel free to contact us with your feedback.
 
 
