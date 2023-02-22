@@ -3,4 +3,4 @@ from .synapse import SynapseSource
 
 supported_sources = [DirectLinkSource, SynapseSource]
 
-__all__ = [supported_sources]
+__all__ = ["supported_sources"]
