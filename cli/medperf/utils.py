@@ -507,5 +507,5 @@ def get_cube_image_name(cube_path: str) -> str:
     try:
         return cube_config["singularity"]["image"]
     except KeyError:
-        msg = "The provided mlcube doesn't seem to be configured for singlarity"
+        msg = "The provided mlcube doesn't seem to be configured for singularity"
         raise MedperfException(msg)
