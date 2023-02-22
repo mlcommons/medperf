@@ -17,7 +17,7 @@ def test_get_cube_file_calls_download_resource(mocker):
     filepath = os.path.join(cube_path, path, filename)
 
     # Act
-    resources.__get_cube_file(url, cube_path, path, filename)
+    resources.get_cube_file(url, cube_path, path, filename)
 
     # Assert
     spy.assert_called_once_with(url, filepath)
@@ -28,7 +28,7 @@ def test_get_cube_file_calls_download_resource(mocker):
 )
 def test_get_cube_image_retrieves_image_if_not_local(mocker, url):
     # Arrange
-    spy = mocker.patch.object(resources, "__get_cube_file", return_value=("", ""))
+    spy = mocker.patch.object(resources, "get_cube_file", return_value=("", ""))
     cube_path = "cube/1"
     exp_filename = "some name"
     mocker.patch("os.makedirs")
@@ -50,7 +50,7 @@ def test_get_cube_image_retrieves_image_if_not_local(mocker, url):
 )
 def test_get_cube_methods_run_get_cube_file(mocker, method):
     # Arrange
-    spy = mocker.patch.object(resources, "__get_cube_file", return_value="")
+    spy = mocker.patch.object(resources, "get_cube_file", return_value="")
     method = getattr(resources, method)
 
     # Act
@@ -65,7 +65,7 @@ def test_get_cube_methods_run_get_cube_file(mocker, method):
 )
 def test_get_cube_image_uses_cache_if_available(mocker, url):
     # Arrange
-    spy = mocker.patch.object(resources, "__get_cube_file", return_value=("", ""))
+    spy = mocker.patch.object(resources, "get_cube_file", return_value=("", ""))
     mocker.patch("os.makedirs")
     mocker.patch("os.path.exists", return_value=True)
     mocker.patch("os.symlink")

@@ -11,7 +11,7 @@ from medperf.utils import (
 from .utils import download_resource
 
 
-def __get_cube_file(url: str, cube_path: str, path: str, filename: str):
+def get_cube_file(url: str, cube_path: str, path: str, filename: str):
     path = os.path.join(cube_path, path)
     if not os.path.isdir(path):
         os.makedirs(path, exist_ok=True)
@@ -32,7 +32,7 @@ def get_cube(url: str, cube_path: str) -> str:
         str: location where the mlcube.yaml file is stored locally.
     """
     cube_file = config.cube_filename
-    return __get_cube_file(url, cube_path, "", cube_file)
+    return get_cube_file(url, cube_path, "", cube_file)
 
 
 def get_cube_params(url: str, cube_path: str) -> str:
@@ -47,7 +47,7 @@ def get_cube_params(url: str, cube_path: str) -> str:
     """
     ws = config.workspace_path
     params_file = config.params_filename
-    return __get_cube_file(url, cube_path, ws, params_file)
+    return get_cube_file(url, cube_path, ws, params_file)
 
 
 def get_cube_image(url: str, cube_path: str, hash: str = None) -> str:
@@ -72,7 +72,7 @@ def get_cube_image(url: str, cube_path: str, hash: str = None) -> str:
 
     if not hash:
         # No hash provided, we need to download the file first
-        _, local_hash = __get_cube_file(url, cube_path, image_path, image_name)
+        _, local_hash = get_cube_file(url, cube_path, image_path, image_name)
         img_storage = os.path.join(imgs_storage, local_hash)
         shutil.move(image_cube_file, img_storage)
     else:
@@ -81,7 +81,7 @@ def get_cube_image(url: str, cube_path: str, hash: str = None) -> str:
     if not os.path.exists(img_storage):
         # If image doesn't exist locally, download it normally
         # And move it to shared storage
-        _, local_hash = __get_cube_file(url, cube_path, image_path, image_name)
+        _, local_hash = get_cube_file(url, cube_path, image_path, image_name)
         shutil.move(image_cube_file, img_storage)
 
     # Create a symbolic link to individual cube storage
@@ -105,7 +105,7 @@ def get_cube_additional(url: str, cube_path: str) -> str:
     """
     add_path = config.additional_path
     tball_file = config.tarball_filename
-    return __get_cube_file(url, cube_path, add_path, tball_file)
+    return get_cube_file(url, cube_path, add_path, tball_file)
 
 
 def get_benchmark_demo_dataset(
