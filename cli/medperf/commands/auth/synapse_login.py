@@ -1,13 +1,38 @@
 from medperf import config
 import synapseclient
 from synapseclient.core.exceptions import SynapseError
-from medperf.exceptions import CommunicationAuthenticationError
+from medperf.exceptions import CommunicationAuthenticationError, InvalidArgumentError
 
 
 class SynapseLogin:
-    # TODO: decide
-    @staticmethod
-    def run(username: str = None, password: str = None):
+    @classmethod
+    def run(cls, username: str = None, password: str = None, token: str = None):
+        """Login to the Synapse server. Must be done only once.
+        """
+        if not any([username, password, token]):
+            msg = "How do you want to login?\n"
+            msg += "[1] Personal Access Token\n"
+            msg += "[2] Username and Password\n"
+            msg += "Select an option (1 or 2): "
+            method = config.ui.prompt(msg)
+            if method == "1":
+                cls.login_with_token()
+            elif method == "2":
+                cls.login_with_password()
+            else:
+                raise InvalidArgumentError("Invalid input. Select either number 1 or 2")
+        else:
+            if token:
+                if any([username, password]):
+                    raise InvalidArgumentError(
+                        "Invalid input. Either an access token, or a username and password, should be given"
+                    )
+                cls.login_with_token(token)
+            else:
+                cls.login_with_password(username, password)
+
+    @classmethod
+    def login_with_password(cls, username: str = None, password: str = None):
         """Login to the Synapse server. Must be done only once.
         """
         username = username if username else config.ui.prompt("username: ")
@@ -19,8 +44,8 @@ class SynapseLogin:
         except SynapseError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
 
-    @staticmethod
-    def run_access_token(access_token=None):
+    @classmethod
+    def login_with_token(cls, access_token=None):
         """Login to the Synapse server. Must be done only once.
         """
         # TODO: if we go with this option, add unit tests, change CLI args
@@ -33,25 +58,3 @@ class SynapseLogin:
             syn.login(authToken=access_token, rememberMe=True)
         except SynapseError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
-
-    def run_disabled_for_now(username: str = None, password: str = None):
-        """Login to the Synapse server with access token. Must be done only once.
-        """
-        # TODO: if we go with this option, handle errors
-        # move function out and move imports out, add unit tests
-
-        def get_access_token(username, password):
-            # https://rest-docs.synapse.org/rest/POST/login2.html
-            import requests
-
-            url = "https://repo-prod.prod.sagebase.org/auth/v1/login2"
-            body = {"username": username, "password": password}
-            res = requests.post(url, json=body)
-            return res.json()["accessToken"]
-
-        username = username if username else config.ui.prompt("username: ")
-        password = password if password else config.ui.hidden_prompt("password: ")
-        access_token = get_access_token(username, password)
-
-        syn = synapseclient.Synapse()
-        syn.login(authToken=access_token, rememberMe=True)

@@ -46,10 +46,14 @@ def synapse_login(
     password: str = typer.Option(
         None, "--password", "-p", help="Password to login with"
     ),
+    token: str = typer.Option(
+        None, "--token", "-t", help="Personal Access Token to login with"
+    ),
 ):
     """Login to the synapse server. Must be done only once.
+    Provide either a username and a password, or a token
     """
-    SynapseLogin.run(username=username, password=password)
+    SynapseLogin.run(username=username, password=password, token=token)
     config.ui.print("✅ Done!")
 
 
