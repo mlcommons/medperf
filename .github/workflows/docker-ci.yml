@@ -15,22 +15,23 @@ jobs:
       IMAGE_NAME: medperf-api:test
     steps:
     - name: Checkout repository
+      working-directory: /tmp
       uses: actions/checkout@v2
 
     - name: Set server environment vars
-      working-directory: ./server
+      working-directory: /tmp/server
       run: cp .env.example .env
 
     - name: Generate SSL certificate
-      working-directory: ./server
+      working-directory: /tmp/server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
 
     - name: Build container image
-      working-directory: ./server
+      working-directory: /tmp/server
       run: docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
-      working-directory: ./server
+      working-directory: /tmp/server
       run: PORT=8000 && docker run --name medperf-api -d --network container:medperf-tests -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Check running containers
@@ -41,20 +42,20 @@ jobs:
       run: docker network ls
 
     - name: Run integration tests
-      working-directory: ./server
+      working-directory: /tmp/server
       run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
 
     - name: Install dependencies
-      working-directory: .
+      working-directory: /tmp
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f cli/requirements.txt ]; then pip install -e cli; fi
 
     - name: Run xrv demo
-      working-directory: .
+      working-directory: /tmp
       run: sh cli/cli_xrv_demo.sh -f
 
     - name: Run client integration tests
-      working-directory: .
+      working-directory: /tmp
       run: sh cli/cli_tests.sh
