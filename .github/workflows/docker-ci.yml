@@ -8,8 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: mlcommons/medperf-tests-container:latest
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
+      options: --privileged
     env:
       IMAGE_NAME: medperf-api:test
     steps:
@@ -38,6 +37,10 @@ jobs:
 
     - name: Check running containers
       run: docker ps && docker logs medperf-api
+
+    - name: check networks
+      working-directory: ./server
+      run: docker network ls
 
     - name: Run integration tests
       working-directory: ./server
