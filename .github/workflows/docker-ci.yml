@@ -40,10 +40,6 @@ jobs:
     - name: Check running containers
       run: docker ps && docker logs medperf-api
 
-    - name: check networks
-      working-directory: ./server
-      run: docker network ls
-
     - name: Run integration tests
       working-directory: /tmp/server
       run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
