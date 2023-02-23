@@ -16,8 +16,10 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        path: /tmp
+    
+    - name: Move to /tmp
+      working-directory: .
+      run: mv * /tmp
 
     - name: Set server environment vars
       working-directory: /tmp/server
