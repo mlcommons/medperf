@@ -11,7 +11,7 @@ jobs:
       options: --privileged --name medperf-tests
       volumes:
         - /tmp:/tmp
-        - /github/home:/github/home
+        - /github/home/.medperf:/github/home/.medperf
     env:
       IMAGE_NAME: medperf-api:test
     steps:
