@@ -10,7 +10,7 @@ jobs:
       image: mlcommons/medperf-tests-container:latest
       options: --privileged --name medperf-tests
       volumes:
-        - /:/
+        - /tmp:/tmp
     env:
       IMAGE_NAME: medperf-api:test
     steps:
