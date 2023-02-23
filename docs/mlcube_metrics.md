@@ -1,5 +1,12 @@
+# Metrics MLCube
+
 ## Purpose
 Specifically, a metrics MLCube receives two inputs: the `predictions` made by the model and the `output` of a `data preparation cube` containing the proper labels for the data. When this text was written, metrics MLCubes were designed to have this single purpose.
+
+## Hello World task
+To provide a basic example of how Medperf MLCubes work under the hood, we provide a toy Hello World benchmark. This benchmark implements a pipeline for ingesting people's names, and generating greetings for those names given some criteria. Although this is not the most scientific example, it provides a clear idea of all the pieces that are required to implement your own MLCubes for Medperf.
+
+You can find the Metrics MLCube code [here](https://github.com/mlcommons/medperf/examples/HelloWorld/metrics)
 
 ## How to run
 This template was built so it could work out of the box. Follow the next steps:
