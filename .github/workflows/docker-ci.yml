@@ -9,8 +9,8 @@ jobs:
     container: 
       image: mlcommons/medperf-tests-container:latest
       options: --privileged
-      env:
-        IMAGE_NAME: medperf-api:test
+    env:
+      IMAGE_NAME: medperf-api:test
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
