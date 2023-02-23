@@ -14,7 +14,6 @@ def exec_python(cmd: str) -> None:
     splitted_cmd = cmd.split()
 
     subprocess.run(splitted_cmd, cwd=".", check=True)
-    
 
 
 class PreprocessTask(object):
@@ -29,7 +28,11 @@ class PreprocessTask(object):
     def run(
         data_path: str, labels_path: str, params_file: str, output_path: str
     ) -> None:
-        cmd = f"python3 preprocess.py --data_path={data_path} --labels_path={labels_path} --params_file={params_file} --output_path={output_path}"
+        files = next(os.walk(labels_path))[2]
+        csvs = [file for file in files if file.endswith(".csv")]
+        assert len(csvs) == 1, "Data path must contain only one csv file"
+        labels_file = os.path.join(labels_path, csvs[0])
+        cmd = f"python3 preprocess.py --img_path='{data_path}' --csv_path='{labels_file}' --params_file='{params_file}' --output_path='{output_path}'"
         exec_python(cmd)
 
 

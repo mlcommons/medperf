@@ -1,8 +1,11 @@
 import typer
+from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
-from medperf.commands.dataset.list import DatasetsList
+from medperf.entities.dataset import Dataset
+from medperf.commands.list import EntityList
+from medperf.commands.view import EntityView
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.dataset.submit import DatasetRegistration
 from medperf.commands.dataset.associate import AssociateDataset
@@ -12,14 +15,17 @@ app = typer.Typer()
 
 @app.command("ls")
 @clean_except
-def datasets(
+def list(
     local: bool = typer.Option(False, "--local", help="Get local datasets"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
 ):
-    """Lists all datasets from the user by default.
-    Use all to get all datasets in the platform
-    """
-    DatasetsList.run(local, mine)
+    """List datasets stored locally and remotely from the user"""
+    EntityList.run(
+        Dataset,
+        fields=["UID", "Name", "Data Preparation Cube UID", "Registered"],
+        local_only=local,
+        mine_only=mine,
+    )
 
 
 @app.command("create")
@@ -104,3 +110,33 @@ def associate(
     ui.print(
         f"Next step: Once approved, run the benchmark with 'medperf run -b {benchmark_uid} -d {data_uid}'"
     )
+
+
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[int] = typer.Argument(None, help="Dataset ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    local: bool = typer.Option(
+        False, "--local", help="Display local datasets if dataset ID is not provided"
+    ),
+    mine: bool = typer.Option(
+        False,
+        "--mine",
+        help="Display current-user datasets if dataset ID is not provided",
+    ),
+    output: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file to store contents. If not provided, the output will be displayed",
+    ),
+):
+    """Displays the information of one or more datasets
+    """
+    EntityView.run(entity_id, Dataset, format, local, mine, output)
