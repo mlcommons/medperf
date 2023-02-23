@@ -56,6 +56,10 @@ jobs:
       working-directory: /tmp
       run: sh cli/cli_xrv_demo.sh -f
 
+    - name: install jq
+      working-directory: /tmp
+      run: apt install jq
+
     - name: Run client integration tests
       working-directory: /tmp
       run: sh cli/cli_tests.sh
