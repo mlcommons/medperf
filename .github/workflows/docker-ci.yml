@@ -15,8 +15,9 @@ jobs:
       IMAGE_NAME: medperf-api:test
     steps:
     - name: Checkout repository
-      working-directory: /tmp
       uses: actions/checkout@v2
+      with:
+        path: /tmp
 
     - name: Set server environment vars
       working-directory: /tmp/server
