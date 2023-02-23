@@ -58,7 +58,7 @@ jobs:
 
     - name: install jq
       working-directory: /tmp
-      run: apt install jq
+      run: apt install jq -y
 
     - name: Run client integration tests
       working-directory: /tmp
