@@ -10,56 +10,45 @@ jobs:
       image: mlcommons/medperf-tests-container:latest
       options: --privileged --name medperf-tests
       volumes:
-        - /tmp:/tmp
-        - /github/home/.medperf:/github/home/.medperf
+        - /tmp:/tmp # To share the directory where the test dataset is downloaded
+        - /github/home/.medperf:/github/home/.medperf # To share medperf storage
     env:
       IMAGE_NAME: medperf-api:test
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-    
-    - name: Move to /tmp
-      working-directory: .
-      run: mv * /tmp
 
     - name: Set server environment vars
-      working-directory: /tmp/server
+      working-directory: ./server
       run: cp .env.example .env
 
     - name: Generate SSL certificate
-      working-directory: /tmp/server
+      working-directory: ./server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
 
     - name: Build container image
-      working-directory: /tmp/server
+      working-directory: ./server
       run: docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
-      working-directory: /tmp/server
+      working-directory: ./server
       run: PORT=8000 && docker run --name medperf-api -d --network container:medperf-tests -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
-    - name: Check running containers
-      run: docker ps && docker logs medperf-api
-
     - name: Run integration tests
-      working-directory: /tmp/server
+      working-directory: ./server
       run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
 
     - name: Install dependencies
-      working-directory: /tmp
+      working-directory: .
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f cli/requirements.txt ]; then pip install -e cli; fi
 
     - name: Run xrv demo
-      working-directory: /tmp
+      working-directory: .
       run: sh cli/cli_xrv_demo.sh -f
 
-    - name: install jq
-      working-directory: /tmp
-      run: apt install jq -y
-
     - name: Run client integration tests
-      working-directory: /tmp
+      working-directory: .
       run: sh cli/cli_tests.sh

@@ -43,4 +43,7 @@ RUN export PATH=/usr/local/go/bin:$PATH && ./mconfig
 WORKDIR /singularity-ce-3.10.0/builddir
 RUN make && make install
 
+# Install jq for client integration tests
+RUN apt install jq -y
+
 WORKDIR /
