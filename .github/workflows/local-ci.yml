@@ -29,7 +29,7 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh &
+      run: docker exec medperf-tests sh -c "sh setup-dev-server.sh" &
 
     - name: Run integration tests
       working-directory: ./server
