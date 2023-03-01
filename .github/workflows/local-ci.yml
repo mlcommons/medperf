@@ -7,7 +7,7 @@ jobs:
     name: local-deploy
     runs-on: ubuntu-latest
     container: 
-      image: mlcommons/medperf-tests-container:temp
+      image: mlcommons/medperf-tests-container:latest
       options: --privileged --name medperf-tests
       volumes:
         - /tmp:/tmp # To share the directory where the test dataset is downloaded
