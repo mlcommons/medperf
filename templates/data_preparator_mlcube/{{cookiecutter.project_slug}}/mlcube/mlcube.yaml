@@ -1,4 +1,4 @@
-name: {{ cookiecutter.mlcube_name }}
+name: {{ cookiecutter.project_name }}
 description: {{ cookiecutter.description }}
 authors:
  - {name: {{ cookiecutter.author_name }}}
