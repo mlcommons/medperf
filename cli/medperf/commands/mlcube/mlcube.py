@@ -35,10 +35,19 @@ def create(
     template: str = typer.Argument(
         None,
         help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
-    )
+    ),
+    output_path: str = typer.Option(
+        ".", "--output", "-o", help="Save the generated MLCube to the specified path"
+    ),
+    config_file: str = typer.Option(
+        None,
+        "--config-file",
+        "-c",
+        help="JSON Configuration file. If not present then user is prompted for configuration",
+    ),
 ):
     """Creates an MLCube based on one of the specified templates"""
-    CreateCube.run(template)
+    CreateCube.run(template, output_path, config_file)
 
 
 @app.command("submit")
