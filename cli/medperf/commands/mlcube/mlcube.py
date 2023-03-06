@@ -7,6 +7,7 @@ from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 
@@ -26,6 +27,18 @@ def list(
         local_only=local,
         mine_only=mine,
     )
+
+
+@app.command("create")
+@clean_except
+def create(
+    template: str = typer.Argument(
+        None,
+        help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
+    )
+):
+    """Creates an MLCube based on one of the specified templates"""
+    CreateCube.run(template)
 
 
 @app.command("submit")
