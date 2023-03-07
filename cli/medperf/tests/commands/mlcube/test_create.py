@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import ANY
 
 from medperf import config
 from medperf.commands.mlcube.create import CreateCube
