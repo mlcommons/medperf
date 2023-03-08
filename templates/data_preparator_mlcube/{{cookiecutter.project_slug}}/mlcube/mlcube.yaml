@@ -25,10 +25,10 @@ tasks:
       outputs: {
         output_path: data/,
         {% if cookiecutter.use_separate_output_labels == 'y' -%} # noqa: E999
-        output_labels_path: labels/ # noqa: E999
-        {% else %} # noqa: E999
+        output_labels_path: labels/ {# noqa: E999}
+        {% else %} {# noqa: E999}
         # output_labels_path: labels/
-        {% endif %} # noqa: E999
+        {% endif %} {# noqa: E999}
       }
   sanity_check:
     parameters:
