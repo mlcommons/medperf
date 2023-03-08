@@ -23,6 +23,27 @@ import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
 
 
+def setup_logging(log_lvl):
+    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    log_file = storage_path(config.log_file)
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=10000000, backupCount=5
+    )
+    handler.setFormatter(logging.Formatter(log_fmt))
+    logging.basicConfig(
+        level=log_lvl,
+        handlers=[handler],
+        format=log_fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
+    )
+
+    requests_logger = logging.getLogger("requests")
+    requests_logger.addHandler(handler)
+    requests_logger.setLevel(log_lvl)
+    logging.info(f"Running MedPerf v{config.version} on {log_lvl} logging level")
+
+
 def delete_credentials():
     config_p = read_config()
     del config_p.active_profile[config.credentials_keyword]
@@ -444,12 +465,6 @@ def get_folder_sha1(path: str) -> str:
     hash_val = sha1.hexdigest()
     logging.debug(f"Folder hash: {hash_val}")
     return hash_val
-
-
-def setup_logger(logger, log_lvl):
-    fh = logging.FileHandler(config.log_file)
-    fh.setLevel(log_lvl)
-    logger.addHandler(fh)
 
 
 def list_files(startpath):
