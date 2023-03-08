@@ -184,7 +184,7 @@ After running the previous command, you should be able to see a folder created, 
         │   └── workspace # (2)!
         │       ├── data # (3)!
         │       ├── input_data # (4)!
-        │       ├── labels # (5)!
+        │       ├── input_labels # (5)!
         │       └── parameters.yaml # (6)!
         └── project # (7)!
             ├── Dockerfile # (8)!
@@ -196,7 +196,7 @@ After running the previous command, you should be able to see a folder created, 
     2. The `workspace` contains all the files and paths that can be used by the MLCube, as long as those paths are specified inside the `mlcube.yaml`.
     3. The `data` folder is where the prepared data will be contained after running the `prepare` task.
     4. The `input_data` is where the MLCube will look for raw data by default.
-    5. The `labels` is where the MLCube will look for labels by default.
+    5. The `input_labels` is where the MLCube will look for labels by default.
     6. This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, like in this example.
     7. Contains the actual implementation code of the mlcube.
     8. A default `Dockerfile` which by default installs `python3.6` and any requirements for this MLCube to work.
@@ -229,8 +229,8 @@ tasks:
     parameters:
       inputs: {data_path: input_data, labels_path: input_labels, parameters_file: parameters.yaml}
       outputs: {
-        output_path: data/, #(6)!
-        
+        output_path: data/,
+        # output_labels_path: labels/ #(6)!
       }
   sanity_check:
     parameters:
