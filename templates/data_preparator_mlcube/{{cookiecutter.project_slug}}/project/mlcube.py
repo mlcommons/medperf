@@ -11,9 +11,9 @@ def prepare(
     labels_path: str = typer.Option(..., "--labels_path"),
     parameters_file: str = typer.Option(..., "--parameters_file"),
     output_path: str = typer.Option(..., "--output_path"),
-    {% if cookiecutter.use_separate_output_labels == 'y' -%}  # noqa: E999 E225
+    {% if cookiecutter.use_separate_output_labels == 'y' -%}
     output_labels_path: str = typer.Option(..., "--output_labels_path"),
-    {% endif %}  # noqa: E999 E225
+    {% endif %}
 ):
     # Modify the prepare command as needed
     raise NotImplementedError("The prepare method is not yet implemented")
