@@ -19,7 +19,7 @@ from medperf.utils import (
     set_custom_config,
     set_unique_tmp_config,
     init_storage,
-    storage_path,
+    setup_logging,
     cleanup,
 )
 import medperf.commands.association.association as association
@@ -192,20 +192,7 @@ def main(ctx: typer.Context):
     init_storage()
     log = config.loglevel.upper()
     log_lvl = getattr(logging, log)
-    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    log_file = storage_path(config.log_file)
-    handler = logging.handlers.RotatingFileHandler(
-        log_file, maxBytes=10000000, backupCount=5
-    )
-    handler.setFormatter(logging.Formatter(log_fmt))
-    logging.basicConfig(
-        level=log_lvl,
-        handlers=[handler],
-        format=log_fmt,
-        datefmt="%Y-%m-%d %H:%M:%S",
-        force=True,
-    )
-    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
+    setup_logging(log_lvl)
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
