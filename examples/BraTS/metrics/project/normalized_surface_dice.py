@@ -11,7 +11,6 @@ from scipy.ndimage.morphology import (
     binary_erosion,
     generate_binary_structure,
 )
-from .normalized_surface_dice import compute_surface_dice_from_images
 
 
 def one_hot(segmask_tensor, class_list):
@@ -174,8 +173,12 @@ def compute_surface_dice_from_images(
     assert (
         prediction_img.GetSpacing() == target_img.GetSpacing()
     ), "The prediction and target images must have the same spacing."
-    prediction = torch.from_numpy(sitk.GetArrayFromImage(prediction_img)).long()
-    target = torch.from_numpy(sitk.GetArrayFromImage(target_img)).long()
+    prediction = torch.from_numpy(
+        sitk.GetArrayFromImage(prediction_img).astype(np.int16)
+    ).long()
+    target = torch.from_numpy(
+        sitk.GetArrayFromImage(target_img).astype(np.int16)
+    ).long()
 
     class_list = [0, 1, 2, 4]
     predictions_hot = one_hot(prediction, class_list)
@@ -187,7 +190,11 @@ def compute_surface_dice_from_images(
 
     predictions_tc = predictions_hot[:, 1, ...] + predictions_hot[:, 3, ...]
     predictions_et = predictions_hot[:, 3, ...]
-    predictions_wt = predictions_hot[:, 1, ...] + predictions_hot[:, 2, ...] + predictions_hot[:, 3, ...]
+    predictions_wt = (
+        predictions_hot[:, 1, ...]
+        + predictions_hot[:, 2, ...]
+        + predictions_hot[:, 3, ...]
+    )
 
     target_tc = target_hot[:, 1, ...] + target_hot[:, 3, ...]
     target_et = target_hot[:, 3, ...]
@@ -204,7 +211,7 @@ def compute_surface_dice_from_images(
         connectivity=1,
     )
 
-    sd[base_key_to_use + "ET"]  = normalized_surface_dice(
+    sd[base_key_to_use + "ET"] = normalized_surface_dice(
         predictions_et[0, ...].numpy(),
         target_et[0, ...].numpy(),
         tolerance,
@@ -212,7 +219,7 @@ def compute_surface_dice_from_images(
         connectivity=1,
     )
 
-    sd[base_key_to_use + "WT"]  = normalized_surface_dice(
+    sd[base_key_to_use + "WT"] = normalized_surface_dice(
         predictions_wt[0, ...].numpy(),
         target_wt[0, ...].numpy(),
         tolerance,
@@ -220,5 +227,5 @@ def compute_surface_dice_from_images(
         connectivity=1,
     )
 
-    print(f"Normalized Surface Dice: {sd}")
+    # print(f"Normalized Surface Dice: {sd}")
     return sd
