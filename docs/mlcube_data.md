@@ -207,7 +207,7 @@ Let's go through each of the created files and modify them as needed to create a
 #### `mlcube/mlcube.yaml`
 The `mlcube.yaml` file contains metadata about the data preparation procedure. 
 
-```yaml title="mlcube.yaml'
+```yaml title="mlcube.yaml"
 name: Hello World Data Preparator MLCube # (1)!
 description: Hello World Data Preparator implementation from scratch # (2)!
 authors:
@@ -225,92 +225,166 @@ docker:
   build_file: "Dockerfile"
 
 tasks:
-  prepare:
+  prepare: # (6)!
     parameters:
-      inputs: {data_path: input_data, labels_path: input_labels, parameters_file: parameters.yaml}
-      outputs: {
-        output_path: data/,
-        # output_labels_path: labels/ #(6)!
+      inputs: {
+        data_path: input_data, # (7)!
+        labels_path: input_labels, # (8)!
+        parameters_file: parameters.yaml # (9)!
       }
-  sanity_check:
+      outputs: {
+        output_path: data/, # (10)!
+        # output_labels_path: labels/ # (11)!
+      }
+  sanity_check: # (12)!
     parameters:
-      inputs: {data_path: data/, parameters_file: parameters.yaml}
-  statistics:
+      inputs: {
+        data_path: data/,
+        parameters_file: parameters.yaml
+      }
+  statistics: # (13)!
     parameters:
-      inputs: {data_path: data/, parameters_file: parameters.yaml}
-      outputs: {output_path: {type: file, default: statistics.yaml}}
+      inputs: {
+        data_path: data/,
+        parameters_file: parameters.yaml
+      }
+      outputs: {
+        output_path: {type: file, default: statistics.yaml} # (14)!
+      }
 ```
 
-``` yaml title="mlcube.yaml"
-tasks:
-    prepare: # (1)!
-        parameters:
-            inputs: {
-                data_path: names, # (2)!
-                labels_path: labels, # (3)!
-                parameters_file: parameters.yaml, # (4)!
-            }
-            outputs:
-                output_path: {type: directory, default: data} # (5)!
-                # output_labels_path: {type: directory, default: output_labels} (6)
-
-    sanity_check: # (7)!
-        parameters:
-            inputs: {
-                data_path: data, # (8)!
-                parameters_file: parameters.yaml # (9)!
-            }
-
-    statistics: # (10)!
-        parameters:
-            inputs: {
-                data_path: data, # (11)!
-                parameters_file: parameters.yaml # (12)!
-            }
-            outputs: {
-                output_path: statistics.yaml # (13)!
-            }
-```
-
-1. **Required**. The prepare task transforms the input data and labels into the format expected by model cubes
-2. **Required**. Where to find the input raw data. **MUST** be a folder.
-3. **Required**. Where to find the input labels. **MUST** be a folder.
-4. **Required**. Helper file to provide additional arguments. Value **MUST** be `parameters.yaml`
-5. **Required**. Where to store prepared data and labels. **MUST** be a folder
-6. **Optional**. Where to store prepared labels. If not provided, labels should be stored with the prepared data.
-7. **Required**. The sanity_check task verifies the quality of the transformed data. If the data does not pass quality check, the `sanity_check` task **MUST** throw an error.
-8. **Required**. Where to find the prepared data. This is usually the output of the prepare task. **MUST** be a folder.
+1. This is the name we gave during the configuration procedure.
+2. This is the description we provided before.
+3. Here you can see a list of authors. It is populated with the given author during setup.
+4. The accelerator count defines the number of GPUS that should be visible by the MLCube. This was filled during setup.
+5. This is the docker image name we provided before.
+6. The prepare task transforms the input data and labels into the format expected by model cubes
+7. **Required**. Where to find the input raw data. **MUST** be a folder.
+8. **Required**. Where to find the input labels. **MUST** be a folder.
 9. **Required**. Helper file to provide additional arguments. Value **MUST** be `parameters.yaml`
-10. **Required**. The statistics task computes general statistics over the prepared data. This serves as a brief description of the data being prepared.
-11. **Required**. Where to find the prepared data. This is usually the output of the `prepare` task. **MUST** be a folder.
-12. **Required**. Helper file to provide additional arguments. Value **MUST** be `parameters.yaml`
-13. **Required**. Where to store the statistics value. **MUST** be `statistics.yaml`
+10. **Required**. Where to store prepared data and labels. **MUST** be a folder
+11. If we had answered yes when asked for separated output labels, this would not be commented.
+12. **Required**. The sanity_check task verifies the quality of the transformed data. If the data does not pass quality check, the `sanity_check` task **MUST** throw an error.
+13. **Required**. The statistics task computes general statistics over the prepared data. This serves as a brief description of the data being prepared.
+14. **Required**. Where to store the statistics value. **MUST** be `statistics.yaml`
 
-!!! note Separate labels output
-    We provide an option to physically separate data and labels by defining the `output_labels_path` inside the `prepare` task. This is useful for challenges or benchmarks where model authors are not necessarily trusted. By doing this, the models won't be able to access any of the labels during the `infer` task.
+In most cases, the `mlcube.yaml` file provided by our template will suffice. For now, let's leave it as is and continue with the other files.
+
 ---
 
 ### `mlcube/workspace/parameters.yaml`
 
-   This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, like in this example.
+This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, like in this example. We will see how to work with this file in the Model MLCube.
 
 ---
 
-### `project`
-
-   Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and requirements for running the code.
-
----
-    
 ### `project/mlcube.py`
    
-MLCube expects an entry point to the project to run the code and the specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `prepare`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
+MLCube expects an entry point to the project to run each specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `prepare`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
 
 ``` bash
 python3 project/mlcube.py prepare --data_path=<DATA_PATH>  --labels_path=<LABELS_PATH> --parameters_file=<PARAMETERS_FILE> --output_path=<OUTPUT_PATH>
 ```
 
-`mlcube.py` provides an interface for this toy example. You can implement such a CLI interface with any language or tool as long as you follow the command structure demonstrated above. We provide an example that requires minimal modifications to the original project code by running any project task through subprocesses.
+```python title="mlcube.py"
+"""MLCube handler file"""
+import typer
+
+
+app = typer.Typer()
+
+
+@app.command("prepare")
+def prepare(
+    data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
+    parameters_file: str = typer.Option(..., "--parameters_file"),
+    output_path: str = typer.Option(..., "--output_path"),
+    
+):
+    # Modify the prepare command as needed
+    raise NotImplementedError("The prepare method is not yet implemented")
+
+
+@app.command("sanity_check")
+def sanity_check(
+    data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
+    parameters_file: str = typer.Option(..., "--parameters_file"),
+):
+    # Modify the sanity_check command as needed
+    raise NotImplementedError("The sanity check method is not yet implemented")
+
+
+@app.command("statistics")
+def sanity_check(
+    data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
+    parameters_file: str = typer.Option(..., "--parameters_file"),
+    out_path: str = typer.Option(..., "--output_path"),
+):
+    # Modify the statistics command as needed
+    raise NotImplementedError("The statistics method is not yet implemented")
+
+
+if __name__ == "__main__":
+    app()
+```
+
+The `mlcube.py` generated by the template will already define the CLI interface, but no implementation of each task is provided. This must be filled by us. Let's do a quick implementation for each of the tasks. If you want to see a more detailed implementation, check the [Hello World Data Preparator MLCube](https://github.com/mlcommons/medperf/examples/HelloWorld/data_preparator) we executed previously.
+
+#### Implement the `prepare` task
+The Prepare task should take paths for data and labels, and output a transformed and standardized version of the raw data. The MLCube task defines how it expects to consume the raw data. For real medical tasks, it should ideally provide methods for handling different data formats and standards for the same task.
+
+For this example, we want to consume `.txt` names and `.csv` labels. The output data should be a `.csv` file that contains only the `First Name` and `Last Name` of the subject. To make it simple, we will assume the raw data contains the name in the following format `{first_name} {last_name}`. As for the labels, we assume they are already well formatted, so we only need to place it in the output path. Here's a short implementation of the `prepare` task given the previous assumptions.
+
+```python
+import os # (1)!
+import shutil
+
+@app.command("prepare") 
+def prepare(
+    data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
+    parameters_file: str = typer.Option(..., "--parameters_file"),
+    output_path: str = typer.Option(..., "--output_path"),
+):
+    input_data_file = os.path.join(data_path, "names.txt") # (2)!
+    input_labels_file = os.path.join(labels_path, "labels.csv") # (3)!
+    output_data_file = os.path.join(output_path, "data.csv") # (4)!
+    output_labels_file = os.path.join(output_path, "labels.csv") # (5)!
+
+    # Create the data.csv file
+    with open(output_data_file, "w") as output_data:
+        output_data.write("First Name,Last Name")
+        with open(input_data_file, "r") as input_data:
+            for line in input_data:
+                first_name, last_name = line.split() # (6)!
+                output_data.write(f"{first_name},{last_name}")
+    
+    # Copy the labels to its corresponding output file
+    shutil.copyfile(input_labels_file, output_labels_file) # (7)!
+```
+
+1. The necessary imports for this function are provided here, but please place them at the top of your file
+2. Here we're specifying how the input data is expected to look like. For this example we expect all data to contain a `names.txt` file, but for real-world tasks, this should be more robust, and support many different ways of handling data 
+3. Here we're specifying how the labels are expected to look like. In some cases, labels are obtained automatically from the data. In such cases, the labels path can be left unused on the implementation. A labels path will still need to be passed by Data Owners, so they must be informed of these decisions.
+4. Here we're specifying how the output data will look like. This is left to the MLCube author to decide what's the best way to store the data for Model MLCubes to ingest. 
+5. Here we're specifying how the labels will look like. The labels are to be handled later on by the Evaluator MLCube.
+6. We assume the input data only contains names in the format of `{first_name} {last_name}`.
+7. We assume the labels are already well formatted.
+
+#### Implement the `sanity_check` task
+The `sanity_check` task ensures the prepared data looks as expected. It should check for anomalies, like values outside the expected range, `nan`s, and other undesired outcomes that could occur during the preparation step. **Running this command should raise an error and exit if any of the tests fail.**
+
+For this example we can check for the integrity of the csv file (Only 2 columns in every row) and that the columns are named appropiately.
+```python
+
+```
+#### Implement the `statistics` task
+
+!!! note 
+    You can implement such a CLI interface with any language or tool as long as you follow the command structure demonstrated above. We provide an example that requires minimal modifications to the original project code by running any project task through subprocesses.
 
 ---
 
