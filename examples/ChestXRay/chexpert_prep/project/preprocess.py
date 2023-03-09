@@ -1,64 +1,111 @@
+from PIL import Image
+import numpy as np
 import pandas as pd
-from shutil import copyfile
+from tqdm import tqdm
 import os
 import yaml
 import argparse
+import inspect
+import importlib
+from shutil import copytree
+import torchxrayvision as xrv
+import torchvision
 
 
 class Preprocessor:
-    def __init__(self, data_path, labels_path, params_file, output_path):
+    def __init__(self, img_path, csv_path, params_file, output_path):
         with open(params_file, "r") as f:
             self.params = yaml.full_load(f)
-        self.data_path = data_path
+        self.img_path = img_path
+        self.csv_path = csv_path
         self.output_path = output_path
-        self.data_csv_path = os.path.join(data_path, self.params["input_datafile"])
         self.output_csv_path = os.path.join(output_path, self.params["output_datafile"])
 
     def run(self):
-        df = pd.read_csv(self.data_csv_path)
-        img_path_lists = df["Path"].str.split("/")
-        df["Path"] = self.data_path + os.sep + img_path_lists.str[1:].str.join("/")
+        # Before any wrangling of the data, let's make sure the library identifies
+        # the format
+        transform = torchvision.transforms.Compose(
+            [xrv.datasets.XRayCenterCrop(), xrv.datasets.XRayResizer(224)]
+        )
+        data = None
+        print(self.csv_path)
+        for name, dset in inspect.getmembers(
+            importlib.import_module("torchxrayvision.datasets"), inspect.isclass
+        ):
+            if "_Dataset" in name:
+                try:
+                    data = dset(
+                        self.img_path,
+                        self.csv_path,
+                        views=["PA", "AP"],
+                        transform=transform,
+                    )
+                    print(f"{name} format recognized")
+                    break
+                except:
+                    continue
+
+        if data is None:
+            print("A dataset format could not be identified for the provided paths")
+            exit()
 
         # create imgs directory
         imgs_path = os.path.join(self.output_path, self.params["output_imagepath"])
         if not os.path.exists(imgs_path):
             os.mkdir(imgs_path)
 
-        # Relate current path to destination path
-        imgs_df = df["Path"].copy()
-        dest = self.params["output_imagepath"] + os.sep + img_path_lists.str[2] + ".jpg"
-        dest = dest.rename("Destination")
-        imgs_df = pd.concat([imgs_df, dest], axis=1)
-        imgs_df["Destination"] = self.output_path + os.sep + imgs_df["Destination"]
+        # iterate over the Dataset and write images using the idx for name and
+        # the csv with the path of the image and the labels
+        datarows = []
 
-        # Copy images to destination path
-        imgs_df.apply(lambda x: copyfile(x["Path"], x["Destination"]), axis=1)
+        # In some cases, images are missing which will throw an error
+        # For this, we need to iterate manually and escape those cases
+        n_rows = len(data)
 
-        # Point dataframe to destination paths
-        df["Path"] = dest
+        with tqdm(total=n_rows) as pbar:
+            for i in range(n_rows):
+                try:
+                    row = data[i]
+                except FileNotFoundError as e:
+                    pbar.update(1)
+                    continue
 
-        # Impute NA's
-        df["AP/PA"].fillna(df["AP/PA"].mode()[0], inplace=True)
+                idx = row["idx"]
+                labels = row["lab"].tolist()
+                img = row["img"].squeeze()
+                img_filename = f"{idx}.jpg"
+                img_path = os.path.join(imgs_path, img_filename)
+                csv_img_path = os.path.join(
+                    self.params["output_imagepath"], img_filename
+                )
+                datarow = [csv_img_path] + labels
+                datarows.append(datarow)
 
-        # Store preprocessed data
-        df.to_csv(self.output_csv_path, index=False)
+                # torchxrayvision does some weird normalization that can't be stored
+                # in normal image formats. Let's undo that process
+                img = ((((img / 1024) + 1) / 2) * 255).round().astype(np.uint8)
+                img = Image.fromarray(img.squeeze())
+                img.save(img_path)
+                pbar.update(1)
+
+        columns = ["Path"] + data.pathologies
+        prepared_df = pd.DataFrame(data=datarows, columns=columns)
+        print(self.output_csv_path)
+        prepared_df.to_csv(self.output_csv_path, index=False)
+        print(os.path.exists(self.output_csv_path))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_path",
-        "--data-path",
-        type=str,
-        required=True,
-        help="Location of chexpert dataset",
+        "--img_path", "--img-path", type=str, required=True, help="Location of images",
     )
     parser.add_argument(
-        "--labels_path",
-        "--labels-path",
+        "--csv_path",
+        "--csv-path",
         type=str,
         required=True,
-        help="chexpert labels file. csv expected",
+        help="Location of dataset csv",
     )
     parser.add_argument(
         "--params_file",
@@ -75,7 +122,9 @@ if __name__ == "__main__":
         help="Location to store the prepared data",
     )
     args = parser.parse_args()
+    for arg in vars(args):
+        setattr(args, arg, getattr(args, arg).replace("'", ""))
     preprocessor = Preprocessor(
-        args.data_path, args.labels_path, args.params_file, args.output_path
+        args.img_path, args.csv_path, args.params_file, args.output_path,
     )
     preprocessor.run()

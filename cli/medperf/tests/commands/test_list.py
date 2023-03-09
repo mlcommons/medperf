@@ -1,0 +1,81 @@
+from medperf.commands.list import EntityList
+import medperf.commands.list as list_module
+from medperf.exceptions import InvalidArgumentError
+import pytest
+from medperf.entities.interface import Entity
+
+
+def generate_display_dicts():
+    """Mocks a list of dicts to be returned by Entity.display_dict
+    """
+    return [
+        {"UID": 1, "Registered": True, "Is Valid": False, "Benchmark": 4},
+        {"UID": 2, "Registered": True, "Is Valid": False, "Benchmark": 1},
+        {"UID": 3, "Registered": False, "Is Valid": True, "Benchmark": 7},
+    ]
+
+
+@pytest.fixture()
+def setup(request, mocker, ui):
+    # system inputs
+    display_dicts = request.param["display_dicts"]
+
+    # mocks
+    entity_object = mocker.create_autospec(spec=Entity)
+    mocker.patch.object(entity_object, "display_dict", side_effect=display_dicts)
+
+    # spies
+    generated_entities = [entity_object for _ in display_dicts]
+    all_spy = mocker.patch(
+        "medperf.entities.interface.Entity.all", return_value=generated_entities
+    )
+    ui_spy = mocker.patch.object(ui, "print")
+    tabulate_spy = mocker.spy(list_module, "tabulate")
+
+    state_variables = {"display_dicts": display_dicts}
+    spies = {"ui": ui_spy, "all": all_spy, "tabulate": tabulate_spy}
+    return state_variables, spies
+
+
+@pytest.mark.parametrize(
+    "setup", [{"display_dicts": generate_display_dicts()}], indirect=True
+)
+class TestEntityList:
+    @pytest.fixture(autouse=True)
+    def set_common_attributes(self, setup):
+        state_variables, spies = setup
+        self.state_variables = state_variables
+        self.spies = spies
+
+    @pytest.mark.parametrize("local_only", [False, True])
+    @pytest.mark.parametrize("mine_only", [False, True])
+    def test_entity_all_is_called_properly(self, local_only, mine_only):
+        # Act
+        EntityList.run(Entity, [], local_only, mine_only)
+
+        # Assert
+        self.spies["all"].assert_called_once_with(
+            local_only=local_only, mine_only=mine_only
+        )
+
+    @pytest.mark.parametrize("fields", [["UID", "MLCube"]])
+    def test_exception_raised_for_invalid_input(self, fields):
+        # Act & Assert
+        with pytest.raises(InvalidArgumentError):
+            EntityList.run(Entity, fields)
+
+    @pytest.mark.parametrize("fields", [["UID", "Is Valid"], ["Registered"]])
+    def test_display_calls_tabulate_and_ui_as_expected(self, fields):
+        # Arrange
+        expected_list = [
+            [dict_[field] for field in fields]
+            for dict_ in self.state_variables["display_dicts"]
+        ]
+
+        # Act
+        EntityList.run(Entity, fields)
+
+        # Assert
+        self.spies["tabulate"].assert_called_once_with(expected_list, headers=fields)
+        tabulate_return = self.spies["tabulate"].return_value
+        self.spies["ui"].assert_called_once_with(tabulate_return)

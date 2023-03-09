@@ -173,9 +173,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
 
     @classmethod
     def __get_local_dict(cls, data_uid):
-        dataset_path = os.path.join(
-            storage_path(config.data_storage), str(data_uid)
-        )
+        dataset_path = os.path.join(storage_path(config.data_storage), str(data_uid))
         regfile = os.path.join(dataset_path, config.reg_file)
         if not os.path.exists(regfile):
             raise InvalidArgumentError(
@@ -184,3 +182,17 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         with open(regfile, "r") as f:
             reg = yaml.safe_load(f)
         return reg
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Description": self.description,
+            "Location": self.location,
+            "Data Preparation Cube UID": self.data_preparation_mlcube,
+            "Generated Hash": self.generated_uid,
+            "Status": self.status,
+            "State": self.state,
+            "Created At": self.created_at,
+            "Registered": self.is_registered,
+        }

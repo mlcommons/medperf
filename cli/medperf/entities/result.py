@@ -161,3 +161,16 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         with open(result_file, "r") as f:
             results_info = yaml.safe_load(f)
         return results_info
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Benchmark": self.benchmark,
+            "Model": self.model,
+            "Dataset": self.dataset,
+            "Partial": self.metadata["partial"],
+            "Approval Status": self.approval_status,
+            "Created At": self.created_at,
+            "Registered": self.is_registered,
+        }

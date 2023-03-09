@@ -23,12 +23,9 @@ class Checker:
 
     def __check_images_data(self):
         img_data = get_image_data_df(self.df, self.data_path)
-        assert img_data["width"].min() >= 320, "Image width is less than 320"
-        assert img_data["height"].min() >= 320, "Image width is less than 320"
+        assert img_data["width"].min() >= 160, "Image width is less than 160"
+        assert img_data["height"].min() >= 160, "Image width is less than 160"
         assert img_data["min"].min() >= 0, "Image pixel range goes below 0"
-        assert (
-            img_data["max"].max() > 1
-        ), "Image pixel is in float format. 8 byte format expected"
         assert img_data["max"].max() <= 255, "Image pixel range goes beyond 255"
 
 
