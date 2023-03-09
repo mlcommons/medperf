@@ -84,7 +84,12 @@ def score(parent, preds_dir, tmp_output="tmp.csv") -> pd.DataFrame:
                 normalized_surface_dice = compute_surface_dice_from_images(
                     pred, gold, tolerance=1.0
                 )
-                scan_scores.update(normalized_surface_dice)
+                normalized_df = (pd.DataFrame
+                                 .from_dict(normalized_surface_dice, orient='index')
+                                 .transpose()
+                                 .rename(index={0: subject_id})
+                                 )
+                scan_scores = scan_scores.join(normalized_df)
             except subprocess.CalledProcessError:
                 # If no output found, give penalized scores.
                 scan_scores = pd.DataFrame(
