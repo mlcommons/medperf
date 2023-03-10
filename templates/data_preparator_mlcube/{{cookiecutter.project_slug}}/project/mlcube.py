@@ -22,7 +22,9 @@ def prepare(
 @app.command("sanity_check")
 def sanity_check(
     data_path: str = typer.Option(..., "--data_path"),
+    {% if cookiecutter.use_separate_output_labels == 'y' -%}
     labels_path: str = typer.Option(..., "--labels_path"),
+    {% endif %}
     parameters_file: str = typer.Option(..., "--parameters_file"),
 ):
     # Modify the sanity_check command as needed
@@ -32,7 +34,9 @@ def sanity_check(
 @app.command("statistics")
 def sanity_check(
     data_path: str = typer.Option(..., "--data_path"),
+    {% if cookiecutter.use_separate_output_labels == 'y' -%}
     labels_path: str = typer.Option(..., "--labels_path"),
+    {% endif %}
     parameters_file: str = typer.Option(..., "--parameters_file"),
     out_path: str = typer.Option(..., "--output_path"),
 ):
