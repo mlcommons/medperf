@@ -1,37 +1,15 @@
+---
+name: Data Preparator MLCube
+url: https://github.com/mlcommons/medperf/examples/HelloWorld/data_preparator
+slug: data_preparator
+---
 # Data Preparator MLCube
 ## Purpose
 Data Preparators are in charge of standardizing the input data format models expect to receive. Additionally, they provide tools for testing the integrity of the data and extracting valuable insights from it.
 
-## Hello World task
-To showcase a basic example of how Medperf MLCubes work under the hood, we provide a toy Hello World benchmark. This benchmark implements a pipeline for ingesting people's names, and generates greetings for those names given some criteria. Although this is not the most scientific example, it provides a clear idea of all the pieces that are required to implement your own MLCubes for Medperf.
+{% include "mlcubes/shared/hello_world.md" %}
 
-You can find the Data Preparator MLCube code [here](https://github.com/mlcommons/medperf/examples/HelloWorld/data_preparator)
-
-## How to run
-Before we dig into the code, let's first try to manually run the Data Preparator MLCube. During this process, it should be possible to see how MLCube interacts with the folders in the workspace, and what is expected to happen during each step:
-
-### Setup
-
-1. Clone the repository.
-    ```bash
-    git clone https://github.com/mlcommons/medperf
-    cd medperf
-    ```
-
-2. Install mlcube and mlcube-docker using pip
-    ```bash
-    pip install mlcube mlcube-docker
-    ```
-
-3. Navigate to the HelloWorld directory within the examples folder with
-    ```bash
-    cd examples/HelloWorld
-    ```
-
-4. Change to the current example's `mlcube` folder with
-    ```bash
-    cd data_preparator/mlcube
-    ```
+{% include "mlcubes/shared/setup.md" %}
 
 ### Running the Prepare Task
 The first step that should be executed with a Data Preparator MLCube is the `prepare` task. This task ingests raw data, and makes preliminary transformations to ensure it is ready to be ingested by the Model MLCube later on.
@@ -118,34 +96,8 @@ By running the `statistics` task, a new file is created (`workspace/statistics.y
 
 That's it! You just built and ran a hello-world data preparator mlcube! Now it's time to build one from scratch!
 
-## Building a Data Preparator MLCube
-The following section will describe how you can create a Data Preparator Cube from scratch. We will go through the set of commands provided to help during this process, as well as the contents of a Data Preparator MLCube.
+{% include "mlcubes/shared/build.md" %}
 
-### Setup
-MedPerf provides some cookiecutter templates for all the related MLCubes. Additionally, it provides commands to easily retreive and use these templates. For that, we need to make sure MedPerf is installed
-
-1. If you haven't done so, clone the repository.
-    ```bash
-    git clone https://github.com/mlcommons/medperf
-    cd medperf
-    ```
-
-2. Install the MedPerf CLI
-    ```bash
-    pip install -e cli
-    ```
-
-3. If you haven't done so, create a folder for keeping all MLCubes created in this tutorial
-    ```bash
-    mkdir tutorial
-    cd tutorial
-    ```
-
-4. Create a Data Preparator MLCube through MedPerf
-    ```bash
-    medperf mlcube create data_preparator
-    ```
-    You should be prompted to fill in some configuration options through the CLI, below is an example of some good options to provide for this specific task
     ```bash
     $ medperf mlcube create data_preparator                      
     MedPerf 0.0.0

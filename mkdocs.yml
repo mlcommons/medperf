@@ -7,10 +7,10 @@ nav:
 - Benchmark Roles: roles.md
 - MedPerf Components: medperf_components.md
 - MLCubes: 
-  - Introduction: mlcubes.md
-  - Data Preparator MLCube Template: mlcube_data.md
-  - Model MLCube Template: mlcube_models.md
-  - Metrics MLCube Template: mlcube_metrics.md
+  - Introduction: mlcubes/mlcubes.md
+  - Data Preparator MLCube Template: mlcubes/mlcube_data.md
+  - Model MLCube Template: mlcubes/mlcube_models.md
+  - Metrics MLCube Template: mlcubes/mlcube_metrics.md
 - Workflow: workflow.md
 - General Instructions: general_instructions.md
 - Instructions for Data Owners: instructions_data_owners.md
@@ -56,6 +56,7 @@ theme:
 
 plugins:
   - search
+  - macros
   - mkdocstrings:
       watch:
         - cli/medperf
