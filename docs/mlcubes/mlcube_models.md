@@ -38,66 +38,157 @@ For the Hello World task, we require the model to generate greetings for the nam
     --8<-- "examples/HelloWorld/model/mlcube/workspace/predictions/predictions.csv"
     ```
 
-That's it! You just built and ran a hello-world model mlcube! Now it's time to build one from scracth!
+That's it! You just built and ran a hello-world model mlcube! Now it's time to build one from scracth.
 
 {% include "mlcubes/shared/build.md" %}
 
-    ```bash
-    
-    ```
+```bash
+$ medperf mlcube create model
+MedPerf 0.0.0
+project_name [Model MLCube]: Hello World Model MLCube # (1)!
+project_slug [hello_world_model_mlcube]: model_mlcube # (2)!
+description [Model MLCube Template. Provided by MLCommons]: Hello World Model implementation from scratch # (3)!
+author_name [John Smith]: John Smith # (4)!
+accelerator_count [0]: 0 # (5)!
+docker_image_name [docker/image:latest]: johnsmith/hello_world_model:0.0.1 # (6)!
+```
 
-## Contents
+1. Gives a Human-readable name to the MLCube Project.
+2. Determines how the Data Preparator root folder will be named.
+3. Gives a Human-readable description to the MLCube Project.
+4. Documents the MLCube implementation by specifying the author. Please use your own name here.
+5. Indicates how many GPUs should be visible by the MLCube. Useful for Model MLCubes.
+6. MLCubes use containers under the hood. Medperf supports both Docker and Singularity. Here, you can provide an image tag to the image that will be created by this MLCube. **It's recommended to use a naming convention that allows you to upload it to Docker Hub.**
 
-MLCubes usually share a similar folder structure and files. In this section we provide a brief description of the role for the relevant files.
+{% include "mlcubes/shared/cookiecutter.md" %}
 
----
+### Contents
+Let's have a look at what the previous command generated. First, lets look at the whole folder structure:
+```bash
+tree 
+```
+```bash
+.
+└── model_mlcube
+    ├── mlcube
+    │   ├── mlcube.yaml # (1)!
+    │   └── workspace # (2)!
+    │       ├── data # (3)!
+    │       ├── parameters.yaml # (4)!
+    │       └── predictions # (5)!
+    └── project # (6)!
+        ├── Dockerfile # (7)!
+        └── mlcube.py # (8)!
 
-### `mlcube/mlcube.yaml` 
-   
-The `mlcube.yaml` file in your project contains metadata about your model, including its interface. To use your model with MedPerf, the `mlcube.yaml` file **must define an infer function that takes in at least two arguments: `data_path` and `parameters_file`, and produces prediction artifacts in the `output_path`.** This definition can be found in the `mlcube.yaml` file as:
+7 directories, 4 files
+```
+
+1. The `mlcube.yaml` file contains metadata about your model mlcube, including its interface. For MedPerf, we require a single tasks: `infer`.
+2. The `workspace` contains all the files and paths that can be used by the MLCube, as long as those paths are specified inside the `mlcube.yaml`.
+3. The `data` folder is where the prepared data should be contained. This is the path the `infer` task looks at to generate predictions.
+4. This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary.
+5. The `predictions` folder is where predictions will be stored after running the `infer` task. The contents of this folder will then be consumed by the Metrics MLCube to compute performance metrics.
+6. Contains the actual implementation code of the mlcube.
+7. A default `Dockerfile` which by default installs `python3.6` and any requirements for this MLCube to work.
+8. `mlcube.py` provides a bare-bones command-line interface for a Data Preparator MLcube to run. The logic inside each command is intentionally left blank.
+
+Let's go through each of the created files and modify them as needed to create a Hello World {{ page.meta.name }}.
+
+#### `mlcube/mlcube.yaml` 
+   The `mlcube.yaml` file contains metadata about the data preparation procedure.
 
 ``` yaml title="mlcube.yaml"
+name: Hello World Model MLCube # (1)!
+description: Hello World Model implementation from scratch # (2)!
+authors:
+ - {name: John Smith} # (3)!
+
+platform:
+  accelerator_count: 0 # (4)!
+
+docker:
+  # Image name
+  image: johnsmith/hello_world_model:0.0.1 # (5)!
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
 tasks:
-    infer: # (1)!
-        parameters:
-        inputs: {
-            data_path: data, # (2)! 
-            parameters_file: parameters.yaml, # (3)! 
-
-            # Additional parameter
-            greetings: additional_files/greetings.csv # (4)!
-        }
-        outputs: {
-            output_path: {type: directory, default: predictions} #  (5)!
-        }
-
+  infer: # (6)!
+  # Computes predictions on input data
+    parameters: 
+      inputs: {
+        data_path: data/, # (7)!
+        parameters_file: parameters.yaml, # (8)!
+        # Feel free to include other files required for inference.
+        # These files MUST go inside the additional_files path.
+        # e.g. model weights
+        # weights: additional_files/weights.pt, # (9)!
+      }
+      outputs: {
+        output_path: {type: directory, default: predictions} # (10)!
+      }
 ```
 
-1. Model MLCubes require only a single task: `infer`. This task takes input data, as well as configuration parameters and/or extra artifacts, and generates predictions on the data
-2. **Required.** Where to find the data to run predictions on. **MUST** be a folder
-3. **Required.** Helper file to provide additional arguments. Value **MUST** be parameters.yaml
-4. If you need any additional files that should not be included inside the mlcube image, add them inside `additional_files` folder
-    E.g. model weights
-5. **Required.** Where to store prediction artifacts. **MUST** be a folder
+1. This is the name we gave during the configuration procedure.
+2. This is the description we provided before.
+3. Here you can see a list of authors. It is populated with the given author during setup.
+4. The accelerator count defines the number of GPUS that should be visible by the MLCube. This was filled during setup.
+5. This is the docker image name we provided before.
+6. The infer task takes in prepared data, obtained from the Data Preparator MLCube, and creates predictions on that data.
+7. **Required**. Where to find the prepared data. **MUST** be a folder.
+8. **Required**. Helper file to provide additional arguments. Value **MUST** be `parameters.yaml`
+9. Models usually require large files that we may not want to add to the image itself. This is because we may want the image to be slim, or because we want to easily interchange those files. A common case are model weights. Users are allowed to create additional inputs for such scenarios. These inputs **MUST** point to somewhere inside the `additional_files` folder.
+10. **Required**. Where to store the predictions. **MUST** be a folder.
 
-!!! note
+This file already looks good on its own. But, we want to provide some additional files to this model, to demonstrate how we would do so for model weights in a real scenario. For that, let's add a `greetings` input, which will point to a file called `additional_files/greetings.csv`, that will include the different ways we can greet someone.
 
-    In this case, we’ve added an extra `greetings` argument to our infer function. For extra arguments, the default value will always be used.
+This is how the file looks now:
+``` yaml title="mlcube.yaml" hl_lines="28"
+name: Hello World Model MLCube 
+description: Hello World Model implementation from scratch
+authors:
+ - {name: John Smith}
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name
+  image: johnsmith/hello_world_model:0.0.1
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  infer:
+  # Computes predictions on input data
+    parameters: 
+      inputs: {
+        data_path: data/,
+        parameters_file: parameters.yaml,
+        # Feel free to include other files required for inference.
+        # These files MUST go inside the additional_files path.
+        # e.g. model weights
+        # weights: additional_files/weights.pt,
+        greetings: additional_files/greetings.csv
+      }
+      outputs: {
+        output_path: {type: directory, default: predictions}
+      }
+```
 
 ---
 
-### `mlcube/workspace/parameters.yaml`
+#### `mlcube/workspace/parameters.yaml`
 
-This file provides ways to parameterize your model. You can set any key-value pairs that should be easily modifiable to adjust your model's behavior. Current example shows a primary usage case for changing generated Hello world examples to uppercase:
+This file provides ways to parameterize your model. You can set any key-value pairs that should be easily modifiable to adjust your model's behavior. Just for demonstration's sake, let's parametrize this model so it can generate uppercase greetings.
 
 ``` yaml title="parameters.yaml"
-# Here you can store any key-value arguments that should be easily modifiable
-# by external users. E.g. batch_size
-
-uppercase: false # (1)!
+uppercase: false
 ```
-
-1. Example argument for Hello World
 
 Parametrization can bring flexibility to your model pipeline, by providing a simple interface for enabling/disabling processing steps or changing your model architecture. This can be specially interesting with Medperf, since you could register multiple version of the same model, but modifying the parameters file so you can easily compare performance across your defined parameters.
 
@@ -105,23 +196,31 @@ In our example, we have parametrized our model with the `uppercase` key.
 
 ---
 
-### `mlcube/workspace/additional_files/*`
+#### `mlcube/workspace/additional_files/*`
    
 Due to size or usability constraints, you may require additional files that should not be packaged inside the mlcube. The best example of this is model weights, which usually take a lot of space, and would not be ideal to have inside the mlcube image. For these cases, we provide an additional folder called `additional_files`. 
 
 Here, you can provide any other files that should be present during inference. At the time of mlcube registration, this folder must be compressed into a tarball `.tar.gz` and hosted somewhere on the web. 
 
-MedPerf will then be able to download, verify and reposition those files in the expected location for model execution. To reference such files, you must provide additional parameters to the `mlcube.yaml` task definition, as we demonstrate with the `greetings` parameter.
+MedPerf will then be able to download, verify and reposition those files in the expected location for model execution.
+
+We already specified an additional input in our `mlcube.yaml` file, but we must also create the specified file. Here's how you could do it:
+
+```bash
+mkdir model_mlcube/mlcube/workspace/additional_files
+echo "Hello\nHowdy\nGreetings\nBonjour" >> model_mlcube/mlcube/workspace/additional_files/greetings.csv
+cat model_mlcube/mlcube/workspace/additional_files/greetings.csv
+```
+```csv title="additional_files/greetings.csv"
+Hello
+Howdy
+Greetings
+Bonjour
+```
 
 ---
 
-### `project` 
-
-Contains the actual implementation of the mlcube, including all project-specific code, `Dockerfile` for building docker containers of the project, and requirements for running the code.
-
----
-
-### `project/mlcube.py`
+#### `project/mlcube.py`
    
 MLCube expects an entry point to the project to run the code and the specified tasks. It expects this entry point to behave like a CLI, in which each MLCube task (e.g., `infer`) is executed as a subcommand – and each input/output parameter is passed as a CLI argument. 
 
@@ -134,8 +233,39 @@ python3 project/mlcube.py infer --data_path=<DATA_PATH> --parameters_file=<PARAM
 !!! note
 
     `--greetings` is a parameter specific to this example, and is not expected for all Model MLCubes. Any additional file that is specified in our MLcube must have their own CLI parameter.
+!!! note 
+    You can implement such a CLI interface with any language or tool as long as you follow the command structure demonstrated above.
 
-`mlcube.py` provides an interface for this toy example. You can implement such a CLI interface with any language or tool as long as you follow the command structure demonstrated above. We provide an example that requires minimal modifications to the original project code by running any project task through subprocesses.
+```python title="mlcube.py"
+"""MLCube handler file"""
+import typer
+
+
+app = typer.Typer()
+
+
+@app.command("infer")
+def prepare(
+    data_path: str = typer.Option(..., "--data_path"),
+    parameters_file: str = typer.Option(..., "--parameters_file"),
+    output_path: str = typer.Option(..., "--output_path"),
+    # Provide additional parameters as described in the mlcube.yaml file
+    # e.g. model weights:
+    # weights: str = typer.Option(..., "--weights"),
+):
+    # Modify the prepare command as needed
+    raise NotImplementedError("The evaluate method is not yet implemented")
+
+
+@app.command("hotfix")
+def hotfix():
+    # NOOP command for typer to behave correctly. DO NOT REMOVE OR MODIFY
+    pass
+
+
+if __name__ == "__main__":
+    app()
+```
 
 !!! info "What is the `hotfix` function inside `mlcube.py`?"
 
@@ -146,32 +276,180 @@ python3 project/mlcube.py infer --data_path=<DATA_PATH> --parameters_file=<PARAM
     To avoid a potential issue with the CLI, we add a dummy typer command to our model cubes that only have one task. If you're not using `typer`/`click`, you don't need this dummy command.
 
 --- 
+##### Implement the Infer task
+The Infer task should take in a path for prepared data, and output predictions over that data. The Infer task contains all the logic for doing so. For real tasks,  this will most commonly contain some machine learning pipeline for consuming input data, loading model weights, computing and storing results. 
 
-## How to modify
+For this example, we will consume the `names.csv`, as well as the additional `greetings.csv` file we recently created, and generate greetings for all the names and ways of greeting. These greetings will then be stored in a `predictions.csv` file.
 
-If you want to adjust this template for your own use case, then the following list serves as a step-by-step guide:
+```python title="project/mlcube.py"
+import os # (1)!
+import csv
+import yaml
 
-1. Remove the demo artifacts from the `/mlcube/workspace` folder:
-    - `/mlcube/workspace/data/*`
-    - `/mlcube/workspace/predictions/*`
-    - `/mlcube/workspace/additional_files/greetings.csv`
+@app.command("infer")
+def prepare(
+    data_path: str = typer.option(..., "--data_path"),
+    parameters_file: str = typer.option(..., "--parameters_file"),
+    output_path: str = typer.option(..., "--output_path"),
+    # provide additional parameters as described in the mlcube.yaml file
+    # e.g. model weights:
+    # weights: str = typer.option(..., "--weights"),
+    greetings: str = typer.option(..., "--greetings") # (2)!
+):
+    # modify the prepare command as needed
+    # read the input files
+    names_file = os.path.join(data_path, "names.csv")
+    names = []
+    greetings = []
 
-2. Place your original code in the `/project folder`, removing `app.py`.
-3. Adjust your code and the `/project/mlcube.py` file, so the commands point to the correct code and receive the expected arguments.
-4. Modify /project/requirements.txt to include all code dependencies for your project.
-5. The default `/project/Dockerfile ` should be sufficient, but you can modify it to meet your needs as long as it has an entry point pointing to `mlcube.py`.
-6. Inside `/mlcube/workspace`, add the data you want your model to use for inference.
-7. Inside `/mlcube/workspace/additional_files`, add any files required for model execution (e.g., `model weights`).
-8. In `/mlcube/mlcube.yaml`, make the following changes:
-    1. Assign the correct values to the metadata fields (`name`, `description`, `authors`, `image_name`).
-    2. Set `data_path `to the location of the data inside the workspace directory.
-    3. Please **DO NOT** modify `parameters_file`.
-    4. Remove the demo `greetings` parameter.
-    5. Add any other required parameters that point to additional_files. The naming can be arbitrary, but all referenced files should be contained inside `additional_files`.
-    6. Please **DO NOT** modify `output_path`.
+    with open(names_file, "r") as f:
+        reader = csv.reader(f)
+        next(reader) # skip header
+        for row in reader:
+            names.append(row)
 
-!!! note "requirements are negotiable"
+    with open(greetings, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            greetings.append(row[0])
 
-    the fields required in the mlcube task interface are currently defined by the medperf platform. we encourage users to raise any concerns or requests regarding these requirements while the platform is in alpha, as this is an ideal time to make changes. please feel free to contact us with your feedback.
+    # read parameters file
+    with open(parameters_file, "r") as f:
+        params = yaml.load(f)
+    uppercase = params["uppercase"]
+
+    # generate greetings
+    full_greetings = []
+    
+    for greeting in greetings:
+        for name, last_name in names:
+            full_greeting = f"{greeting}, {name} {last_name}"
+            if uppercase:
+                full_greeting = full_greeting.upper()
+            full_greetings.append(full_greeting)
+
+    # write to predictions.csv
+    out_file = os.path.join(output_path, "predictions.csv")
+    with open(out_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "greeting"])
+        for idx, full_greeting in enumerate(full_greetings):
+            writer.writerow([idx, full_greeting])
+```
+1. The necessary imports for this function are provided here, but please place them at the top of your file.
+2. We need to provide any additional input defined in the `mlcube.yaml` file here. In this case, we're adding the `greetings` parameter.
+
+---
+##### The complete implementation
+Here you can find the whole `mlcube.py` file after all the implementation changes we made
+```python title="project/mlcube.py"
+"""MLCube handler file"""
+import typer
+import os
+import csv
+import yaml
 
 
+app = typer.Typer()
+
+
+@app.command("infer")
+def prepare(
+    data_path: str = typer.option(..., "--data_path"),
+    parameters_file: str = typer.option(..., "--parameters_file"),
+    output_path: str = typer.option(..., "--output_path"),
+    # provide additional parameters as described in the mlcube.yaml file
+    # e.g. model weights:
+    # weights: str = typer.option(..., "--weights"),
+    greetings: str = typer.option(..., "--greetings")
+):
+    # modify the prepare command as needed
+    # read the input files
+    names_file = os.path.join(data_path, "names.csv")
+    names = []
+    greetings = []
+
+    with open(names_file, "r") as f:
+        reader = csv.reader(f)
+        next(reader) # skip header
+        for row in reader:
+            names.append(row)
+
+    with open(greetings, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            greetings.append(row[0])
+
+    # read parameters file
+    with open(parameters_file, "r") as f:
+        params = yaml.load(f)
+    uppercase = params["uppercase"]
+
+    # generate greetings
+    full_greetings = []
+    
+    for greeting in greetings:
+        for name, last_name in names:
+            full_greeting = f"{greeting}, {name} {last_name}"
+            if uppercase:
+                full_greeting = full_greeting.upper()
+            full_greetings.append(full_greeting)
+
+    # write to predictions.csv
+    out_file = os.path.join(output_path, "predictions.csv")
+    with open(out_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "greeting"])
+        for idx, full_greeting in enumerate(full_greetings):
+            writer.writerow([idx, full_greeting])
+
+
+@app.command("hotfix")
+def hotfix():
+    # NOOP command for typer to behave correctly. DO NOT REMOVE OR MODIFY
+    pass
+
+
+if __name__ == "__main__":
+    app()
+```
+
+---
+
+{% include "mlcubes/shared/docker_file.md" %}
+
+---
+
+{% include "mlcubes/shared/requirements.md" %}
+
+
+```python title="project/requirements.txt"
+# Add your dependencies here
+typer
+PyYAML
+```
+
+---
+That's it! With that we should have a funcional {{ page.meta.name }}, that has been implemented for our Hello World Task. Congratulations!
+
+{% include "mlcubes/shared/execute.md" %}
+
+3. Create input data
+    We need to provide some input data to our dataset. In this case, we can easily create sample data for our task. Assuming you're in the `tutorial/model_mlcube/mlcube` path, you can run:
+    ```bash
+    echo "First Name,Last Name\nJohn,Smith" >> workspace/data/names.csv
+    ```
+    This will create the prepared data, as seen from the [Data Preparator Template](mlcubes/mlcube_data.md) tutorial. You can inspect it with
+    ```bash
+    cat workspace/data/names.csv
+    ```
+    ```bash title="workspace/data/names.csv"
+    First Name,Last Name
+    John,Smith
+    ```
+4. Run the pipeline
+    You should now be able to run the whole pipeline as we did before for our example! If you want details of what is going on at each step, look for the [How to run](#how-to-run) section.
+    ```bash
+    mlcube run --task=infer
+    ```
+That's it! You should now be able to write your own {{ page.meta.name }}s from scratch!

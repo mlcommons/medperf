@@ -113,48 +113,47 @@ That's it! You just built and ran a hello-world data preparator mlcube! Now it's
     2. Determines how the Data Preparator root folder will be named.
     3. Gives a Human-readable description to the MLCube Project.
     4. Documents the MLCube implementation by specifying the author. Please use your own name here.
-    5. Indicates how many GPUS should be visible by the MLCube. Useful for Model MLCubes.
+    5. Indicates how many GPUs should be visible by the MLCube. Useful for Model MLCubes.
     6. MLCubes use containers under the hood. Medperf supports both Docker and Singularity. Here, you can provide an image tag to the image that will be created by this MLCube. **It's recommended to use a naming convention that allows you to upload it to Docker Hub.**
     7. Data Preparators can output the labels in a separate location to the data. This is useful in situations where you can't trust Model Owners to access the labels during inference (For example during challenges). For this example, we will output data and labels on the same folder
 
-!!! note
-    MedPerf is running CookieCutter under the hood. This medperf command provides additional arguments for handling different scenarios. You can see more information on this by running `medperf mlcube create --help`
+{% include "mlcubes/shared/cookiecutter.md" %}
 
 After running the previous command, you should be able to see a folder created, named after the `project_slug` provided during configuration.
 
 ### Contents
+Let's have a look at what the previous command generated. First, lets look at the whole folder structure:
+```bash
+tree 
+```
+```bash
+.
+└── data_preparator_mlcube
+    ├── mlcube
+    │   ├── mlcube.yaml # (1)!
+    │   └── workspace # (2)!
+    │       ├── data # (3)!
+    │       ├── input_data # (4)!
+    │       ├── input_labels # (5)!
+    │       └── parameters.yaml # (6)!
+    └── project # (7)!
+        ├── Dockerfile # (8)!
+        └── mlcube.py # (9)!
 
-5. Inspect the generated folder structure
-    ```bash
-    tree 
-    ```
-    ```bash
-    .
-    └── data_preparator_mlcube
-        ├── mlcube
-        │   ├── mlcube.yaml # (1)!
-        │   └── workspace # (2)!
-        │       ├── data # (3)!
-        │       ├── input_data # (4)!
-        │       ├── input_labels # (5)!
-        │       └── parameters.yaml # (6)!
-        └── project # (7)!
-            ├── Dockerfile # (8)!
-            └── mlcube.py # (9)!
+7 directories, 4 files
+```
 
-    7 directories, 4 files
-    ```
-    1. The `mlcube.yaml` file contains metadata about your data preparation procedure, including its interface. For MedPerf, we require three tasks: `prepare`, `sanity_check`, and `statistics`.
-    2. The `workspace` contains all the files and paths that can be used by the MLCube, as long as those paths are specified inside the `mlcube.yaml`.
-    3. The `data` folder is where the prepared data will be contained after running the `prepare` task.
-    4. The `input_data` is where the MLCube will look for raw data by default.
-    5. The `input_labels` is where the MLCube will look for labels by default.
-    6. This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, like in this example.
-    7. Contains the actual implementation code of the mlcube.
-    8. A default `Dockerfile` which by default installs `python3.6` and any requirements for this MLCube to work.
-    9. `mlcube.py` provides a bare-bones command-line interface for a Data Preparator MLcube to run. The logic inside each command is intentionally left blank.
+1. The `mlcube.yaml` file contains metadata about your data preparation procedure, including its interface. For MedPerf, we require three tasks: `prepare`, `sanity_check`, and `statistics`.
+2. The `workspace` contains all the files and paths that can be used by the MLCube, as long as those paths are specified inside the `mlcube.yaml`.
+3. The `data` folder is where the prepared data will be contained after running the `prepare` task.
+4. The `input_data` is where the MLCube will look for raw data by default.
+5. The `input_labels` is where the MLCube will look for labels by default.
+6. This file provides ways to parameterize the data preparation process. You can set any key-value pairs that should be easily modifiable to adjust your mlcube's behavior. This file is mandatory but can be left blank if parametrization is unnecessary, like in this example.
+7. Contains the actual implementation code of the mlcube.
+8. A default `Dockerfile` which by default installs `python3.6` and any requirements for this MLCube to work.
+9. `mlcube.py` provides a bare-bones command-line interface for a Data Preparator MLcube to run. The logic inside each command is intentionally left blank.
 
-Let's go through each of the created files and modify them as needed to create a Hello World Data Preparator MLCube.
+Let's go through each of the created files and modify them as needed to create a Hello World {{ page.meta.name }}.
 
 #### `mlcube/mlcube.yaml`
 The `mlcube.yaml` file contains metadata about the data preparation procedure. 
@@ -289,7 +288,7 @@ The `mlcube.py` generated by the template will already define the CLI interface,
 ---
 
 ##### Implement the Prepare task
-The Prepare task should take paths for data and labels, and output a transformed and standardized version of the raw data. The MLCube task defines how it expects to consume the raw data. For real medical tasks, it should ideally provide methods for handling different data formats and standards for the same task.
+The Prepare task should take paths for data and labels, and output a transformed and standardized version of the raw data. The Prepare task defines how it expects to consume the raw data. For real medical tasks, it should ideally provide methods for handling different data formats and standards for the same task.
 
 For this example, we want to consume `.txt` names and `.csv` labels. The output data should be a `.csv` file that contains only the `First Name` and `Last Name` of the subject. To make it simple, we will assume the raw data contains the name in the following format `{first_name} {last_name}`. As for the labels, we assume they are already well formatted, so we only need to place it in the output path. Here's a short implementation of the `prepare` task given the previous assumptions.
 
@@ -489,13 +488,11 @@ if __name__ == "__main__":
 
 ---
 
-#### project/Dockerfile
-MLCubes rely on containers to work. By default, Medperf provides a functional Dockerfile, which uses `ubuntu:18.0.4` and `python3.6`. This Dockerfile handles all the required procedures to install your project and redirect commands to the `project/mlcube.py` file. You can modify as you see fit, as long as the entrypoint behaves as a CLI as described before.
+{% include "mlcubes/shared/docker_file.md" %}
 
 ---
 
-#### project/requirements.txt
-The provided MLCube template assumes your project is python based. Because of this, it provides a `requirements.txt` file to specify the dependencies to run your project. This file is automatically used by the `Dockerfile` to install and setup your project. We have a few dependencies, so let's add them to the file
+{% include "mlcubes/shared/requirements.md" %}
 
 ```python title="project/requirements.txt"
 # Add your dependencies here
@@ -507,20 +504,8 @@ pandas
 ---
 That's it! With that we should have a functional Data Preparator MLCube, that has been implemented for our Hello World Task. Congratulations!
 
-### Execute
-Now its time to run our own implementation. We won't go into much detail, since we covered the basics before. But, here are the commands you can run to build and run your MLCube.
+{% include "mlcubes/shared/execute.md" %}
 
-1. Go to the MLCube folder
-    Assuming you're in the root of the `data_preparator_mlcube` run
-    ```
-    cd mlcube
-    ```
-2. Build the Docker image
-    MLCube provides shortcuts to build your image. Here is how you can do it
-    ```bash
-    mlcube configure -Pdocker.build_strategy=always # (1)!
-    ```
-    1. MLCube by default will look for the image on Docker hub or locally instead of building it. Providing `Pdocker.build_strategy=always` enforces MLCube to build the image from source.
 3. Create input data
     We need to provide input data to our dataset. In this case, we can easily create sample data for our task. Assuming you're in the `tutorial/data_preparator_mlcube/mlcube` path, you can run:
     ```bash
@@ -543,7 +528,7 @@ Now its time to run our own implementation. We won't go into much detail, since 
     3,"Bonjour, John Smith"
     ```
 4. Run the pipeline
-    You should now be able to run the whole pipeline as we did before for our example! If you want details of what is going at each step, look for the [How to run](#how-to-run) section.
+    You should now be able to run the whole pipeline as we did before for our example! If you want details of what is going on at each step, look for the [How to run](#how-to-run) section.
     ```bash
     mlcube run --task=prepare
     mlcube run --task=sanity_check
