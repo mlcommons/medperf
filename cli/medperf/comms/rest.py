@@ -2,15 +2,18 @@ from typing import List
 import requests
 import logging
 import os
+import shutil
 
 from medperf.enums import Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
+    base_storage_path,
     read_credentials,
     storage_path,
     generate_tmp_uid,
     sanitize_json,
+    get_file_sha1,
 )
 from medperf.exceptions import (
     CommunicationError,
@@ -21,7 +24,7 @@ from medperf.exceptions import (
 
 
 def log_response_error(res, warn=False):
-    # note: status 403 might be also returned if a requested resource doesn't exist
+    # NOTE: status 403 might be also returned if a requested resource doesn't exist
     if warn:
         logging_method = logging.warning
     else:
@@ -251,14 +254,9 @@ class REST(Comms):
         if os.path.exists(filepath):
             return filepath
 
-        res = requests.get(demo_data_url)
-        if res.status_code != 200:
-            log_response_error(res)
-            raise CommunicationRetrievalError("couldn't download the demo dataset")
-
         os.makedirs(demo_data_path, exist_ok=True)
 
-        open(filepath, "wb+").write(res.content)
+        self.__download_direct_link(demo_data_url, filepath)
         return filepath
 
     def get_user_benchmarks(self) -> List[dict]:
@@ -344,33 +342,73 @@ class REST(Comms):
         tball_file = config.tarball_filename
         return self.__get_cube_file(url, cube_path, add_path, tball_file)
 
-    def get_cube_image(self, url: str, cube_path: str) -> str:
-        """Retrieves and stores the image file from the server
+    def get_cube_image(self, url: str, cube_path: str, hash: str = None) -> str:
+        """Retrieves and stores the image file from the server. Stores images
+        on a shared location, and retrieves a cached image by hash if found locally.
+        Creates a symbolic link to the cube storage.
 
         Args:
             url (str): URL where the image file can be downloaded.
-            cube_path (str): Cube location.
+            cube_path (str): Path to cube.
+            hash (str, Optional): File hash to store under shared storage. Defaults to None.
 
         Returns:
             str: Location where the image file is stored locally.
         """
         image_path = config.image_path
-        image_name = url.split("/")[-1]
-        return self.__get_cube_file(url, cube_path, image_path, image_name)
+        image_name = url.split("/")[-1]  # Get the last part of the URL path
+        image_name = image_name.split("?")[0]  # Remove query parameters
+        image_cube_path = os.path.join(cube_path, image_path)
+        os.makedirs(image_cube_path, exist_ok=True)
+        image_cube_file = os.path.join(image_cube_path, image_name)
+        imgs_storage = base_storage_path(config.images_storage)
+
+        if not hash:
+            # No hash provided, we need to download the file first
+            _, local_hash = self.__get_cube_file(url, cube_path, image_path, image_name)
+            img_storage = os.path.join(imgs_storage, local_hash)
+            shutil.move(image_cube_file, img_storage)
+        else:
+            img_storage = os.path.join(imgs_storage, hash)
+
+        if not os.path.exists(img_storage):
+            # If image doesn't exist locally, download it normally
+            # And move it to shared storage
+            _, local_hash = self.__get_cube_file(url, cube_path, image_path, image_name)
+            shutil.move(image_cube_file, img_storage)
+
+        # Create a symbolic link to individual cube storage
+        if os.path.exists(image_cube_file):
+            # Remove existing links
+            os.unlink(image_cube_file)
+        os.symlink(img_storage, image_cube_file)
+        local_hash = get_file_sha1(img_storage)
+        return image_cube_file, local_hash
 
     def __get_cube_file(self, url: str, cube_path: str, path: str, filename: str):
-        res = requests.get(url)
-        if res.status_code != 200:
-            log_response_error(res)
-            msg = "There was a problem retrieving the specified file at " + url
-            raise CommunicationRetrievalError(msg)
-        else:
-            path = os.path.join(cube_path, path)
-            if not os.path.isdir(path):
-                os.makedirs(path, exist_ok=True)
-            filepath = os.path.join(path, filename)
-            open(filepath, "wb+").write(res.content)
-            return filepath
+        path = os.path.join(cube_path, path)
+        if not os.path.isdir(path):
+            os.makedirs(path, exist_ok=True)
+        filepath = os.path.join(path, filename)
+        self.__download_direct_link(url, filepath)
+        hash = get_file_sha1(filepath)
+        return filepath, hash
+
+    def __download_direct_link(self, url: str, output_path: str):
+        """Downloads a direct-download-link file by streaming its contents. source:
+        https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
+        """
+        with requests.get(url, stream=True) as res:
+            if res.status_code != 200:
+                log_response_error(res)
+                msg = "There was a problem retrieving the specified file at " + url
+                raise CommunicationRetrievalError(msg)
+
+            with open(output_path, "wb") as f:
+                for chunk in res.iter_content(chunk_size=config.ddl_stream_chunk_size):
+                    # NOTE: if the response is chunk-encoded, this may not work
+                    # check whether this is common.
+                    f.write(chunk)
 
     def upload_benchmark(self, benchmark_dict: dict) -> int:
         """Uploads a new benchmark to the server.
@@ -411,11 +449,11 @@ class REST(Comms):
         dsets = self.__get_list(f"{self.server_url}/datasets/")
         return dsets
 
-    def get_dataset(self, dset_uid: str) -> dict:
+    def get_dataset(self, dset_uid: int) -> dict:
         """Retrieves a specific dataset
 
         Args:
-            dset_uid (str): Dataset UID
+            dset_uid (int): Dataset UID
 
         Returns:
             dict: Dataset metadata
@@ -464,11 +502,11 @@ class REST(Comms):
             raise CommunicationRetrievalError("Could not retrieve results")
         return res.json()
 
-    def get_result(self, result_uid: str) -> dict:
+    def get_result(self, result_uid: int) -> dict:
         """Retrieves a specific result data
 
         Args:
-            result_uid (str): Result UID
+            result_uid (int): Result UID
 
         Returns:
             dict: Result metadata
@@ -522,11 +560,11 @@ class REST(Comms):
             log_response_error(res)
             raise CommunicationRequestError("Could not associate dataset to benchmark")
 
-    def associate_cube(self, cube_uid: str, benchmark_uid: int, metadata: dict = {}):
+    def associate_cube(self, cube_uid: int, benchmark_uid: int, metadata: dict = {}):
         """Create an MLCube-Benchmark association
 
         Args:
-            cube_uid (str): MLCube UID
+            cube_uid (int): MLCube UID
             benchmark_uid (int): Benchmark UID
             metadata (dict, optional): Additional metadata. Defaults to {}.
         """
@@ -542,13 +580,13 @@ class REST(Comms):
             raise CommunicationRequestError("Could not associate mlcube to benchmark")
 
     def set_dataset_association_approval(
-        self, benchmark_uid: str, dataset_uid: str, status: str
+        self, benchmark_uid: int, dataset_uid: int, status: str
     ):
         """Approves a dataset association
 
         Args:
-            dataset_uid (str): Dataset UID
-            benchmark_uid (str): Benchmark UID
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
             status (str): Approval status to set for the association
         """
         url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
@@ -560,13 +598,13 @@ class REST(Comms):
             )
 
     def set_mlcube_association_approval(
-        self, benchmark_uid: str, mlcube_uid: str, status: str
+        self, benchmark_uid: int, mlcube_uid: int, status: str
     ):
         """Approves an mlcube association
 
         Args:
-            mlcube_uid (str): Dataset UID
-            benchmark_uid (str): Benchmark UID
+            mlcube_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
             status (str): Approval status to set for the association
         """
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
@@ -596,13 +634,13 @@ class REST(Comms):
         return assocs
 
     def set_mlcube_association_priority(
-        self, benchmark_uid: str, mlcube_uid: str, priority: int
+        self, benchmark_uid: int, mlcube_uid: int, priority: int
     ):
         """Sets the priority of an mlcube-benchmark association
 
         Args:
-            mlcube_uid (str): MLCube UID
-            benchmark_uid (str): Benchmark UID
+            mlcube_uid (int): MLCube UID
+            benchmark_uid (int): Benchmark UID
             priority (int): priority value to set for the association
         """
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"

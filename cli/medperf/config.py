@@ -14,15 +14,16 @@ tmp_storage = "tmp"
 data_storage = "data"
 demo_data_storage = "demo"
 cubes_storage = "cubes"
+images_storage = ".images"
 predictions_storage = "predictions"
 results_storage = "results"
 statistics_filename = "tmp_statistics.yaml"
-results_filename = "result.yaml"
 results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 config_path = "config.yaml"
 workspace_path = "workspace"
+test_storage = "tests"
 cleanup = True
 
 cube_filename = "mlcube.yaml"
@@ -45,6 +46,7 @@ default_profile_name = "default"
 test_profile_name = "test"
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
+ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
 comms = "REST"
 ui = "CLI"
 

@@ -2,11 +2,11 @@ import os
 import yaml
 import pexpect
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional, Union
+from pydantic import HttpUrl, Field
 from pathlib import Path
 
 from medperf.utils import (
-    get_file_sha1,
     untar,
     combine_proc_sp_text,
     list_files,
@@ -14,6 +14,7 @@ from medperf.utils import (
     cleanup,
 )
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
@@ -24,7 +25,7 @@ from medperf.exceptions import (
 import medperf.config as config
 
 
-class Cube(Entity):
+class Cube(Entity, MedperfSchema, DeployableSchema):
     """
     Class representing an MLCube Container
 
@@ -34,51 +35,31 @@ class Cube(Entity):
     with standard metadata and a consistent file-system level interface.
     """
 
-    def __init__(self, cube_dict):
+    git_mlcube_url: HttpUrl
+    mlcube_hash: Optional[str]
+    git_parameters_url: Optional[HttpUrl]
+    parameters_hash: Optional[str]
+    image_tarball_url: Optional[HttpUrl]
+    image_tarball_hash: Optional[str]
+    additional_files_tarball_url: Optional[HttpUrl] = Field(None, alias="tarball_url")
+    additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
+    metadata: dict = {}
+    user_metadata: dict = {}
+
+    def __init__(self, *args, **kwargs):
         """Creates a Cube instance
 
         Args:
-            cube_dict (dict): Dict for information regarding the cube.
-
+            cube_desc (Union[dict, CubeModel]): MLCube Instance description
         """
-        self.uid = cube_dict["id"]
-        self.name = cube_dict["name"]
-        self.git_mlcube_url = cube_dict["git_mlcube_url"]
-        self.git_parameters_url = cube_dict["git_parameters_url"]
-        self.mlcube_hash = cube_dict["mlcube_hash"]
-        self.parameters_hash = cube_dict["parameters_hash"]
-        self.image_tarball_url = cube_dict["image_tarball_url"]
-        self.image_tarball_hash = cube_dict["image_tarball_hash"]
-        if "tarball_url" in cube_dict:
-            # Backwards compatibility for cubes with
-            # tarball_url instead of additional_files_tarball_url
-            self.additional_files_tarball_url = cube_dict["tarball_url"]
-        else:
-            self.additional_files_tarball_url = cube_dict[
-                "additional_files_tarball_url"
-            ]
-
-        if "tarball_hash" in cube_dict:
-            # Backwards compatibility for cubes with
-            # tarball_hash instead of additional_files_tarball_hash
-            self.additional_hash = cube_dict["tarball_hash"]
-        else:
-            self.additional_hash = cube_dict["additional_files_tarball_hash"]
-
-        self.state = cube_dict["state"]
-        self.is_cube_valid = cube_dict["is_valid"]
-        self.owner = cube_dict["owner"]
-        self.metadata = cube_dict["metadata"]
-        self.user_metadata = cube_dict["user_metadata"]
-        self.created_at = cube_dict["created_at"]
-        self.modified_at = cube_dict["modified_at"]
+        super().__init__(*args, **kwargs)
 
         self.generated_uid = self.name
         path = storage_path(config.cubes_storage)
-        if self.uid:
-            path = os.path.join(path, str(self.uid))
+        if self.id:
+            path = os.path.join(path, str(self.id))
         else:
-            path = os.path.join(path, str(self.generated_uid))
+            path = os.path.join(path, self.generated_uid)
         # NOTE: maybe have these as @property, to have the same entity reusable
         #       before and after submission
         self.path = path
@@ -103,11 +84,11 @@ class Cube(Entity):
         if not local_only:
             cubes = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([cube.uid for cube in cubes])
+        remote_uids = set([cube.id for cube in cubes])
 
         local_cubes = cls.__local_all()
 
-        cubes += [cube for cube in local_cubes if cube.uid not in remote_uids]
+        cubes += [cube for cube in local_cubes if cube.id not in remote_uids]
 
         return cubes
 
@@ -120,7 +101,7 @@ class Cube(Entity):
 
         try:
             cubes_meta = remote_func()
-            cubes = [cls(meta) for meta in cubes_meta]
+            cubes = [cls(**meta) for meta in cubes_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all cubes from the server"
             logging.warning(msg)
@@ -140,13 +121,13 @@ class Cube(Entity):
 
         for uid in uids:
             meta = cls.__get_local_dict(uid)
-            cube = cls(meta)
+            cube = cls(**meta)
             cubes.append(cube)
 
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: str) -> "Cube":
+    def get(cls, cube_uid: Union[str, int]) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
@@ -162,12 +143,12 @@ class Cube(Entity):
         # Try to download the cube first
         try:
             meta = comms.get_cube_metadata(cube_uid)
-            cube = cls(meta)
+            cube = cls(**meta)
             attempt = 0
             while attempt < config.cube_get_max_attempts:
                 logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
                 # Check first if we already have the required files
-                if cube.is_valid():
+                if cube.valid():
                     cube.write()
                     return cube
                 # Try to redownload elements if invalid
@@ -179,7 +160,7 @@ class Cube(Entity):
             logging.warning(f"Getting MLCube {cube_uid} from comms failed")
             logging.info(f"Retrieving MLCube {cube_uid} from local storage")
             local_meta = cls.__get_local_dict(cube_uid)
-            cube = cls(local_meta)
+            cube = cls(**local_meta)
             return cube
 
         logging.error("Could not find the requested MLCube")
@@ -189,8 +170,7 @@ class Cube(Entity):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path = config.comms.get_cube(url, self.path)
-        local_hash = get_file_sha1(path)
+        path, local_hash = config.comms.get_cube(url, self.path)
         if not self.mlcube_hash:
             self.mlcube_hash = local_hash
         self.cube_path = path
@@ -199,8 +179,7 @@ class Cube(Entity):
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path = config.comms.get_cube_params(url, self.path)
-            local_hash = get_file_sha1(path)
+            path, local_hash = config.comms.get_cube_params(url, self.path)
             if not self.parameters_hash:
                 self.parameters_hash = local_hash
             self.params_path = path
@@ -210,26 +189,26 @@ class Cube(Entity):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path = config.comms.get_cube_additional(url, self.path)
-            local_hash = get_file_sha1(path)
-            if not self.additional_hash:
-                self.additional_hash = local_hash
+            path, local_hash = config.comms.get_cube_additional(url, self.path)
+            if not self.additional_files_tarball_hash:
+                self.additional_files_tarball_hash = local_hash
             untar(path)
             return local_hash
         return ""
 
     def download_image(self):
         url = self.image_tarball_url
+        hash = self.image_tarball_hash
+
         if url:
-            path = config.comms.get_cube_image(url, self.path)
-            local_hash = get_file_sha1(path)
+            path, local_hash = config.comms.get_cube_image(url, self.path, hash)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
             untar(path)
             return local_hash
         else:
             # Retrieve image from image registry
-            logging.debug(f"Retrieving {self.path} image")
+            logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
             proc = pexpect.spawn(cmd)
             proc_out = combine_proc_sp_text(proc)
@@ -248,7 +227,7 @@ class Cube(Entity):
         }
         self.store_local_hashes(local_hashes)
 
-    def is_valid(self) -> bool:
+    def valid(self) -> bool:
         """Checks the validity of the cube and related files through hash checking.
 
         Returns:
@@ -260,7 +239,7 @@ class Cube(Entity):
             logging.warning("Local MLCube files not found. Defaulting to invalid")
             return False
 
-        valid_cube = self.is_cube_valid
+        valid_cube = self.is_valid
         valid_hashes = True
         server_hashes = self.todict()
         for key in local_hashes:
@@ -339,25 +318,7 @@ class Cube(Entity):
         return out_path
 
     def todict(self) -> Dict:
-        return {
-            "name": self.name,
-            "git_mlcube_url": self.git_mlcube_url,
-            "mlcube_hash": self.mlcube_hash,
-            "git_parameters_url": self.git_parameters_url,
-            "parameters_hash": self.parameters_hash,
-            "image_tarball_url": self.image_tarball_url,
-            "image_tarball_hash": self.image_tarball_hash,
-            "additional_files_tarball_url": self.additional_files_tarball_url,
-            "additional_files_tarball_hash": self.additional_hash,
-            "state": self.state,
-            "is_valid": self.is_cube_valid,
-            "id": self.uid,
-            "owner": self.owner,
-            "metadata": self.metadata,
-            "user_metadata": self.user_metadata,
-            "created_at": self.created_at,
-            "modified_at": self.modified_at,
-        }
+        return self.extended_dict()
 
     def write(self):
         cube_loc = str(Path(self.cube_path).parent)
@@ -386,7 +347,7 @@ class Cube(Entity):
     @classmethod
     def __get_local_dict(cls, uid):
         cubes_storage = storage_path(config.cubes_storage)
-        meta_file = os.path.join(cubes_storage, uid, config.cube_metadata_filename)
+        meta_file = os.path.join(cubes_storage, str(uid), config.cube_metadata_filename)
         if not os.path.exists(meta_file):
             raise InvalidArgumentError(
                 "The requested mlcube information could not be found locally"
@@ -394,3 +355,13 @@ class Cube(Entity):
         with open(meta_file, "r") as f:
             meta = yaml.safe_load(f)
         return meta
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Config File": self.git_mlcube_url,
+            "State": self.state,
+            "Created At": self.created_at,
+            "Registered": self.is_registered,
+        }

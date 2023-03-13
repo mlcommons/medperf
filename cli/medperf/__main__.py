@@ -19,7 +19,7 @@ from medperf.utils import (
     set_custom_config,
     set_unique_tmp_config,
     init_storage,
-    storage_path,
+    setup_logging,
     cleanup,
 )
 import medperf.commands.association.association as association
@@ -71,25 +71,41 @@ def execute(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    data_uid: str = typer.Option(
+    data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    ignore_errors: bool = typer.Option(
+    ignore_model_errors: bool = typer.Option(
         False,
-        "--ignore-errors",
-        help="Ignore failing cubes, allowing for submitting partial results",
+        "--ignore-model-errors",
+        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+    ),
+    no_cache: bool = typer.Option(
+        False,
+        "--no-cache",
+        help="Ignore existing results. The experiment then will be rerun",
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model
     """
-    result_uid = BenchmarkExecution.run(
-        benchmark_uid, data_uid, model_uid, ignore_errors=ignore_errors
-    )
-    ResultSubmission.run(result_uid, approved=approval)
+    result = BenchmarkExecution.run(
+        benchmark_uid,
+        data_uid,
+        [model_uid],
+        ignore_model_errors=ignore_model_errors,
+        no_cache=no_cache,
+    )[0]
+    if result.id:  # TODO: use result.is_registered once PR #338 is merged
+        config.ui.print(  # TODO: msg should be colored yellow
+            """An existing registered result for the requested execution has been\n
+            found. If you wish to submit a new result for the same execution,\n
+            please run the command again with the --no-cache option.\n"""
+        )
+    else:
+        ResultSubmission.run(result.generated_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 
@@ -106,7 +122,7 @@ def test(
         None,
         "--data_uid",
         "-d",
-        help="Registered Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
+        help="Prepared Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
     ),
     data_prep: str = typer.Option(
         None,
@@ -126,8 +142,8 @@ def test(
         "-e",
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
-    force_test: bool = typer.Option(
-        False, "--force-test", help="Execute the test even if results already exist",
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Execute the test even if results already exist",
     ),
 ):
     """
@@ -135,7 +151,7 @@ def test(
     Can test prepared datasets, remote and local models independently.
     """
     CompatibilityTestExecution.run(
-        benchmark_uid, data_uid, data_prep, model, evaluator, force_test=force_test,
+        benchmark_uid, data_uid, data_prep, model, evaluator, no_cache=no_cache,
     )
     config.ui.print("✅ Done!")
     cleanup()
@@ -156,20 +172,7 @@ def main(ctx: typer.Context):
     init_storage()
     log = config.loglevel.upper()
     log_lvl = getattr(logging, log)
-    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    log_file = storage_path(config.log_file)
-    handler = logging.handlers.RotatingFileHandler(
-        log_file, maxBytes=10000000, backupCount=5
-    )
-    handler.setFormatter(logging.Formatter(log_fmt))
-    logging.basicConfig(
-        level=log_lvl,
-        handlers=[handler],
-        format=log_fmt,
-        datefmt="%Y-%m-%d %H:%M:%S",
-        force=True,
-    )
-    logging.info(f"Running MedPerf v{config.version} on {log} logging level")
+    setup_logging(log_lvl)
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)

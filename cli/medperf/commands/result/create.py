@@ -1,20 +1,20 @@
 import os
+from typing import List, Optional
+from medperf.commands.execution import Execution
 from medperf.entities.result import Result
-from medperf.enums import Status
-import logging
+from tabulate import tabulate
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import (
-    check_cube_validity,
-    init_storage,
-    storage_path,
-    cleanup,
-)
+from medperf.utils import check_cube_validity
 import medperf.config as config
-from medperf.exceptions import InvalidArgumentError, ExecutionError
-import yaml
+from medperf.exceptions import (
+    InvalidArgumentError,
+    ExecutionError,
+    InvalidEntityError,
+    MedperfException,
+)
 
 
 class BenchmarkExecution:
@@ -22,62 +22,76 @@ class BenchmarkExecution:
     def run(
         cls,
         benchmark_uid: int,
-        data_uid: str,
-        model_uid: int,
-        run_test=False,
-        ignore_errors=False,
+        data_uid: int,
+        models_uids: Optional[List[int]] = None,
+        models_input_file: Optional[str] = None,
+        ignore_model_errors=False,
+        ignore_failed_experiments=False,
+        no_cache=False,
+        show_summary=False,
     ):
         """Benchmark execution flow.
 
         Args:
             benchmark_uid (int): UID of the desired benchmark
             data_uid (str): Registered Dataset UID
-            model_uid (int): UID of model to execute
+            models_uids (List|None): list of model UIDs to execute.
+                                    if None, models_input_file will be used
+            models_input_file: filename to read from
+            if models_uids and models_input_file are None, use all benchmark models
         """
-        execution = cls(benchmark_uid, data_uid, model_uid, run_test, ignore_errors)
+        execution = cls(
+            benchmark_uid,
+            data_uid,
+            models_uids,
+            models_input_file,
+            ignore_model_errors,
+            ignore_failed_experiments,
+        )
         execution.prepare()
         execution.validate()
+        execution.prepare_models()
+        execution.validate_models()
+        if not no_cache:
+            execution.load_cached_results()
         with execution.ui.interactive():
-            execution.get_cubes()
-            execution.run_cubes()
-        result_uid = execution.write()
-        execution.remove_temp_results()
-        return result_uid
+            results = execution.run_experiments()
+        if show_summary:
+            execution.print_summary()
+        return results
 
     def __init__(
         self,
         benchmark_uid: int,
         data_uid: int,
-        model_uid: int,
-        run_test=False,
-        ignore_errors=False,
+        models_uids,
+        models_input_file: str = None,
+        ignore_model_errors=False,
+        ignore_failed_experiments=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
-        self.model_uid = model_uid
-        self.comms = config.comms
+        self.models_uids = models_uids
+        self.models_input_file = models_input_file
         self.ui = config.ui
         self.evaluator = None
-        self.model_cube = None
-        self.run_test = run_test
-        self.ignore_errors = ignore_errors
-        self.metadata = {"partial": False}
+        self.ignore_model_errors = ignore_model_errors
+        self.ignore_failed_experiments = ignore_failed_experiments
+        self.cached_results = {}
+        self.experiments = []
 
     def prepare(self):
-        init_storage()
-        # If not running the test, redownload the benchmark
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.get(self.data_uid)
-        dset_uid = self.dataset.generated_uid
-        result_uid = f"b{self.benchmark_uid}m{self.model_uid}d{dset_uid}"
-        self.out_path = os.path.join(storage_path(config.results_storage), result_uid)
+        evaluator_uid = self.benchmark.data_evaluator_mlcube
+        self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
 
     def validate(self):
-        dset_prep_cube = str(self.dataset.preparation_cube_uid)
-        bmark_prep_cube = str(self.benchmark.data_preparation)
+        dset_prep_cube = self.dataset.data_preparation_mlcube
+        bmark_prep_cube = self.benchmark.data_preparation_mlcube
 
-        if self.dataset.uid is None and not self.run_test:
+        if self.dataset.id is None:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
 
@@ -85,15 +99,47 @@ class BenchmarkExecution:
             msg = "The provided dataset is not compatible with the specified benchmark."
             raise InvalidArgumentError(msg)
 
-        in_assoc_cubes = self.model_uid in self.benchmark.models
-        if not self.run_test and not in_assoc_cubes:
-            msg = "The provided model is not part of the specified benchmark."
+    def prepare_models(self):
+        if self.models_input_file:
+            self.models_uids = self.__get_models_from_file()
+        elif self.models_uids is None:
+            self.models_uids = self.benchmark.models
+
+    def __get_models_from_file(self):
+        if not os.path.exists(self.models_input_file):
+            raise InvalidArgumentError("The given file does not exist")
+        with open(self.models_input_file) as f:
+            text = f.read()
+        models = text.strip().split(",")
+        try:
+            return list(map(int, models))
+        except ValueError as e:
+            msg = f"Could not parse the given file: {e}. "
+            msg += "The file should contain a list of comma-separated integers"
             raise InvalidArgumentError(msg)
 
-    def get_cubes(self):
-        evaluator_uid = self.benchmark.evaluator
-        self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
-        self.model_cube = self.__get_cube(self.model_uid, "Model")
+    def validate_models(self):
+        models_set = set(self.models_uids)
+        benchmark_models_set = set(self.benchmark.models)
+        non_assoc_cubes = models_set.difference(benchmark_models_set)
+        if non_assoc_cubes:
+            if len(non_assoc_cubes) > 1:
+                msg = f"Model of UID {non_assoc_cubes} is not associated with the specified benchmark."
+            else:
+                msg = f"Models of UIDs {non_assoc_cubes} are not associated with the specified benchmark."
+            raise InvalidArgumentError(msg)
+
+    def load_cached_results(self):
+        results = Result.all()
+        benchmark_dset_results = [
+            result
+            for result in results
+            if result.benchmark == self.benchmark_uid
+            and result.dataset == self.data_uid
+        ]
+        self.cached_results = {
+            result.model: result for result in benchmark_dset_results
+        }
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
@@ -102,85 +148,130 @@ class BenchmarkExecution:
         check_cube_validity(cube)
         return cube
 
-    def run_cubes(self):
-        infer_timeout = config.infer_timeout
-        evaluate_timeout = config.evaluate_timeout
-        self.ui.text = "Running model inference on dataset"
-        model_uid = str(self.model_cube.uid)
-        data_uid = str(self.dataset.uid)
-        preds_path = os.path.join(config.predictions_storage, model_uid, data_uid)
-        preds_path = storage_path(preds_path)
-        data_path = self.dataset.data_path
-        out_path = os.path.join(self.out_path, config.results_filename)
-        labels_path = self.dataset.labels_path
-        try:
-            self.model_cube.run(
-                task="infer",
-                timeout=infer_timeout,
-                data_path=data_path,
-                output_path=preds_path,
-                string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
-            )
-            self.ui.print("> Model execution complete")
+    def run_experiments(self):
+        for model_uid in self.models_uids:
+            if model_uid in self.cached_results:
+                self.experiments.append(
+                    {
+                        "model_uid": model_uid,
+                        "result": self.cached_results[model_uid],
+                        "cached": True,
+                        "error": "",
+                    }
+                )
+                continue
 
-        except ExecutionError as e:
-            if not self.ignore_errors:
-                logging.error(f"Model MLCube Execution failed: {e}")
-                cleanup([preds_path])
-                raise ExecutionError("Model MLCube failed")
-            else:
-                self.metadata["partial"] = True
-                logging.warning(f"Model MLCube Execution failed: {e}")
-        try:
-            self.ui.text = "Evaluating results"
-            self.evaluator.run(
-                task="evaluate",
-                timeout=evaluate_timeout,
-                predictions=preds_path,
-                labels=labels_path,
-                output_path=out_path,
-                string_params={
-                    "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-                    "Ptasks.evaluate.parameters.input.labels.opts": "ro",
-                },
-            )
-        except ExecutionError as e:
-            if not self.ignore_errors:
-                logging.error(f"Metrics MLCube Execution failed: {e}")
-                cleanup([preds_path, out_path])
-                raise ExecutionError("Metrics MLCube failed")
-            else:
-                self.metadata["partial"] = True
-                logging.warning(f"Metrics MLCube Execution failed: {e}")
+            try:
+                model_cube = self.__get_cube(model_uid, "Model")
+                execution_summary = Execution.run(
+                    dataset=self.dataset,
+                    model=model_cube,
+                    evaluator=self.evaluator,
+                    ignore_model_errors=self.ignore_model_errors,
+                )
+            except MedperfException as e:
+                self.__handle_experiment_error(model_uid, e)
+                self.experiments.append(
+                    {
+                        "model_uid": model_uid,
+                        "result": None,
+                        "cached": False,
+                        "error": str(e),
+                    }
+                )
+                continue
 
-    def todict(self):
+            partial = execution_summary["partial"]
+            results = execution_summary["results"]
+            result = self.__write_result(model_uid, results, partial)
+
+            self.experiments.append(
+                {
+                    "model_uid": model_uid,
+                    "result": result,
+                    "cached": False,
+                    "error": "",
+                }
+            )
+        return [experiment["result"] for experiment in self.experiments]
+
+    def __handle_experiment_error(self, model_uid, exception):
+        if isinstance(exception, InvalidEntityError):
+            config.ui.print_error(
+                f"There was an error when retrieving the model mlcube {model_uid}: {exception}"
+            )
+        elif isinstance(exception, ExecutionError):
+            config.ui.print_error(
+                f"There was an error when executing the benchmark with the model {model_uid}: {exception}"
+            )
+        else:
+            raise exception
+        if not self.ignore_failed_experiments:
+            raise exception
+
+    def __result_dict(self, model_uid, results, partial):
         return {
-            "id": None,
-            "name": f"b{self.benchmark_uid}m{self.model_uid}d{self.data_uid}",
-            "owner": None,
+            "name": f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}",
             "benchmark": self.benchmark_uid,
-            "model": self.model_uid,
+            "model": model_uid,
             "dataset": self.data_uid,
-            "results": self.get_temp_results(),
-            "metadata": self.metadata,
-            "approval_status": Status.PENDING.value,
-            "approved_at": None,
-            "created_at": None,
-            "modified_at": None,
+            "results": results,
+            "metadata": {"partial": partial},
         }
 
-    def get_temp_results(self):
-        path = os.path.join(self.out_path, config.results_filename)
-        with open(path, "r") as f:
-            results = yaml.safe_load(f)
-        return results
-
-    def remove_temp_results(self):
-        path = os.path.join(self.out_path, config.results_filename)
-        os.remove(path)
-
-    def write(self):
-        results_info = self.todict()
-        result = Result(results_info)
+    def __write_result(self, model_uid, results, partial):
+        results_info = self.__result_dict(model_uid, results, partial)
+        result = Result(**results_info)
         result.write()
-        return result.generated_uid
+        return result
+
+    def print_summary(self):
+        headers = ["model", "local result UID", "partial result", "from cache", "error"]
+        data_lists_for_display = []
+
+        num_total = len(self.experiments)
+        num_success_run = 0
+        num_failed = 0
+        num_skipped = 0
+        num_partial_skipped = 0
+        num_partial_run = 0
+        for experiment in self.experiments:
+            # populate display data
+            if experiment["result"]:
+                data_lists_for_display.append(
+                    [
+                        experiment["model_uid"],
+                        experiment["result"].generated_uid,
+                        experiment["result"].metadata["partial"],
+                        experiment["cached"],
+                        experiment["error"],
+                    ]
+                )
+            else:
+                data_lists_for_display.append(
+                    [experiment["model_uid"], "", "", "", experiment["error"]]
+                )
+
+            # statistics
+            if experiment["error"]:
+                num_failed += 1
+            elif experiment["cached"]:
+                num_skipped += 1
+                if experiment["result"].metadata["partial"]:
+                    num_partial_skipped += 1
+            elif experiment["result"]:
+                num_success_run += 1
+                if experiment["result"].metadata["partial"]:
+                    num_partial_run += 1
+
+        tab = tabulate(data_lists_for_display, headers=headers)
+
+        msg = f"Total number of models: {num_total}\n"
+        msg += f"\t{num_skipped} were skipped (already executed), "
+        msg += f"of which {num_partial_run} have partial results\n"
+        msg += f"\t{num_failed} failed\n"
+        msg += f"\t{num_success_run} ran successfully, "
+        msg += f"of which {num_partial_run} have partial results\n"
+
+        config.ui.print(tab)
+        config.ui.print(msg)
