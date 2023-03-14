@@ -9,4 +9,5 @@ Now its time to run our own implementation. We won't go into much detail, since 
     ```bash
     mlcube configure -Pdocker.build_strategy=always # (1)!
     ```
-    MLCube by default will look for the image on Docker hub or locally instead of building it. Providing `Pdocker.build_strategy=always` enforces MLCube to build the image from source.
+
+    1. MLCube by default will look for the image on Docker hub or locally instead of building it. Providing `Pdocker.build_strategy=always` enforces MLCube to build the image from source.

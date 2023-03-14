@@ -98,25 +98,25 @@ That's it! You just built and ran a hello-world data preparator MLCube! Now it's
 
 {% include "mlcubes/shared/build.md" %}
 
-    ```bash
-    $ medperf mlcube create data_preparator                      
-    MedPerf 0.0.0
-    project_name [Data Preparator MLCube]: Hello World Data Preparator MLCube # (1)!
-    project_slug [hello_world_data_preparator_mlcube]: data_preparator_mlcube # (2)!
-    description [Data Preparator MLCube Template. Provided by MLCommons]: Hello World Data Preparator implementation from scratch # (3)!
-    author_name [John Smith]: John Smith # (4)!
-    accelerator_count [0]: 0 # (5)!
-    docker_image_name [docker/image:latest]: johnsmith/hello_world_dataprep:0.0.1 # (6)!
-    use_separate_output_labels [n]: n # (7)!
-    ```
-The following numbering corresponds to what is presented in the code snippet above:
-    1. Gives a human-readable name to the MLCube Project.
-    2. Determines how the Data Preparator root folder will be named.
-    3. Gives a human-readable description to the MLCube Project.
-    4. Documents the MLCube implementation by specifying the author. Please use your own name here.
-    5. Indicates how many GPUs should be visible by the MLCube, which is useful for Model MLCubes.
-    6. MLCubes use containers under the hood (Medperf supports both Docker and Singularity). Here you can provide an image tag to the image that will be created by this MLCube. **It is recommended to use a naming convention that allows you to upload it to Docker Hub.**
-    7. Data Preparators can output the labels in a separate location to the data. This is useful in situations where you cannot trust Model Owners to access the labels during inference (during challenges, for example). For this example, we will output data and labels on the same folder.
+```bash
+$ medperf mlcube create data_preparator                      
+MedPerf 0.0.0
+project_name [Data Preparator MLCube]: Hello World Data Preparator MLCube # (1)!
+project_slug [hello_world_data_preparator_mlcube]: data_preparator_mlcube # (2)!
+description [Data Preparator MLCube Template. Provided by MLCommons]: Hello World Data Preparator implementation from scratch # (3)!
+author_name [John Smith]: John Smith # (4)!
+accelerator_count [0]: 0 # (5)!
+docker_image_name [docker/image:latest]: johnsmith/hello_world_dataprep:0.0.1 # (6)!
+use_separate_output_labels [n]: n # (7)!
+```
+
+1. Gives a human-readable name to the MLCube Project.
+2. Determines how the Data Preparator root folder will be named.
+3. Gives a human-readable description to the MLCube Project.
+4. Documents the MLCube implementation by specifying the author. Please use your own name here.
+5. Indicates how many GPUs should be visible by the MLCube, which is useful for Model MLCubes.
+6. MLCubes use containers under the hood (Medperf supports both Docker and Singularity). Here you can provide an image tag to the image that will be created by this MLCube. **It is recommended to use a naming convention that allows you to upload it to Docker Hub.**
+7. Data Preparators can output the labels in a separate location to the data. This is useful in situations where you cannot trust Model Owners to access the labels during inference (during challenges, for example). For this example, we will output data and labels on the same folder.
 
 {% include "mlcubes/shared/cookiecutter.md" %}
 
