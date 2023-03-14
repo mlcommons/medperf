@@ -157,7 +157,7 @@ tree
 You can go through each of the created files and modify them as needed to create a Hello World {{ page.meta.name }}.
 
 #### `mlcube/mlcube.yaml`
-The `mlcube.yaml` file contains metadata about the data preparation procedure. 
+The `mlcube.yaml` file contains metadata about the mlcube tasks. 
 
 ```yaml title="mlcube.yaml"
 name: Hello World Data Preparator MLCube # (1)!
@@ -510,7 +510,7 @@ That's it! With that, we should have a functional Data Preparator MLCube, that h
 
 {% include "mlcubes/shared/execute.md" %}
 
-3. Create input data by providing input data to your dataset. In this case, you can easily create sample data for our task. Assuming you are in the `tutorial/data_preparator_mlcube/mlcube` path, you can run
+3. Provide input data to your mlcube. In this case, you can easily create sample data for our task. Assuming you are in the `tutorial/data_preparator_mlcube/mlcube` path, you can run
     ```bash
     echo "John Smith" >> workspace/input_data/names.txt
     echo "id,greeting\n0,\"Hello, John smith\"\n1,\"Howdy, John Smith\"\n2,\"Greetings, John Smith\"\n3,\"Bonjour, John Smith\"" >> workspace/input_labels/labels.csv
