@@ -79,6 +79,7 @@ tree
     └── project # (6)!
         ├── Dockerfile # (7)!
         └── mlcube.py # (8)!
+        └── requirements.txt # (9)!
 
 7 directories, 4 files
 ```
@@ -91,11 +92,12 @@ tree
 6. Contains the actual implementation code of the mlcube.
 7. A default `Dockerfile` which by default installs `python3.6` and any requirements for this MLCube to work.
 8. `mlcube.py` provides a bare-bones command-line interface for a Data Preparator MLcube to run. The logic inside each command is intentionally left blank.
+9. `requirements.txt` is a common file for python projects, which specifies the dependencies that must be installed to run the project.
 
 Let's go through each of the created files and modify them as needed to create a Hello World {{ page.meta.name }}.
 
 #### `mlcube/mlcube.yaml` 
-   The `mlcube.yaml` file contains metadata about the data preparation procedure.
+   The `mlcube.yaml` file contains metadata about the mlcube tasks.
 
 ``` yaml title="mlcube.yaml"
 name: Hello World Model MLCube # (1)!

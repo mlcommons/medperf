@@ -143,7 +143,6 @@ tree
 
 7 directories, 4 files
 ```
-The following numbering corresponds to what is presented in the code snippet above:
 
 1. The `mlcube.yaml` file contains metadata about your data preparation procedure, including its interface. For MedPerf, three tasks are required: `prepare`, `sanity_check`, and `statistics`.
 2. The `workspace` contains all the files and paths that can be used by the MLCube, as long as those paths are specified inside the `mlcube.yaml`.
@@ -205,7 +204,6 @@ tasks:
         output_path: {type: file, default: statistics.yaml} # (14)!
       }
 ```
-The following numbering corresponds to what is presented in the code snippet above:
 
 1. This is the name it was given during the configuration procedure.
 2. This is the description we provided before.
