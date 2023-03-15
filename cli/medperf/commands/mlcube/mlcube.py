@@ -33,7 +33,7 @@ def list(
 @clean_except
 def create(
     template: str = typer.Argument(
-        None,
+        ...,
         help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
     ),
     output_path: str = typer.Option(
