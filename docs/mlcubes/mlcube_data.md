@@ -65,14 +65,11 @@ Now that you have executed the logic to ingest and transform the raw data into u
    ```title="invalid_data/names.csv"
    --8<-- "examples/HelloWorld/data_preparator/mlcube/workspace/invalid_data/names.csv"
    ```
-
    You may notice that this version now contains an unexpected column. This is something that the `sanity_check` task does not expect, and it should react accordingly.
-
 3. Run the `sanity_check` task with the invalid data:
    ```bash
    mlcube run --task=sanity_check data_path=invalid_data
    ```
-
    You should see the command failing. This is exactly what it is expect from the Sanity Check Task.
 
 ### Running the Statistics Task
