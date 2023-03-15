@@ -71,7 +71,6 @@ configurable_parameters = [
     "cleanup",
 ]
 
-github_repository = "https://github.com/aristizabal95/medperf-2"
 templates = {
     "data_preparator": "templates/data_preparator_mlcube",
     "model": "templates/model_mlcube",

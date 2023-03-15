@@ -1,3 +1,5 @@
+from os.path import abspath
+from pathlib import Path
 from cookiecutter.main import cookiecutter
 
 from medperf import config
@@ -14,7 +16,6 @@ class CreateCube:
             output_path (str, Optional): The desired path for the MLCube. Defaults to current path.
             config_file (str, Optional): Path to a JSON configuration file. If not passed, user is prompted.
         """
-        repo = config.github_repository
         template_dirs = config.templates
         if template_name not in template_dirs:
             templates = list(template_dirs.keys())
@@ -26,9 +27,12 @@ class CreateCube:
         if config_file is not None:
             no_input = True
 
+        # Get package parent path
+        path = abspath(Path(__file__).parent.parent.parent)
+
         template_dir = template_dirs[template_name]
         cookiecutter(
-            repo,
+            path,
             directory=template_dir,
             output_dir=output_path,
             config_file=config_file,
