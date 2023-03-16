@@ -1,17 +1,18 @@
 import os
-from medperf.enums import Status
 from medperf.exceptions import MedperfException
 import yaml
 import logging
-from typing import List
+from typing import List, Optional, Union
+from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
+from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 
 
-class Benchmark(Entity):
+class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 
@@ -22,41 +23,38 @@ class Benchmark(Entity):
     what models to run and how to evaluate them.
     """
 
-    def __init__(self, bmk_dict: dict):
+    description: Optional[str] = Field(None, max_length=20)
+    docs_url: Optional[HttpUrl]
+    demo_dataset_tarball_url: Optional[HttpUrl]
+    demo_dataset_tarball_hash: Optional[str]
+    demo_dataset_generated_uid: Optional[str]
+    data_preparation_mlcube: int
+    reference_model_mlcube: int
+    data_evaluator_mlcube: int
+    models: List[int] = None
+    metadata: dict = {}
+    user_metadata: dict = {}
+    is_active: bool = True
+
+    @validator("models", pre=True, always=True)
+    def set_default_models_value(cls, value, values, **kwargs):
+        if not value:
+            # Empty or None value assigned
+            return [values["reference_model_mlcube"]]
+        return value
+
+    def __init__(self, *args, **kwargs):
         """Creates a new benchmark instance
 
         Args:
-            uid (str): The benchmark UID
-            benchmark_dict (dict): key-value representation of the benchmark.
+            bmk_desc (Union[dict, BenchmarkModel]): Benchmark instance description
         """
-        self.uid = bmk_dict["id"]
-        self.name = bmk_dict["name"]
-        self.description = bmk_dict["description"]
-        self.docs_url = bmk_dict["docs_url"]
-        self.created_at = bmk_dict["created_at"]
-        self.modified_at = bmk_dict["modified_at"]
-        self.approved_at = bmk_dict["approved_at"]
-        self.owner = bmk_dict["owner"]
-        self.demo_dataset_url = bmk_dict["demo_dataset_tarball_url"]
-        self.demo_dataset_hash = bmk_dict["demo_dataset_tarball_hash"]
-        self.demo_dataset_generated_uid = bmk_dict["demo_dataset_generated_uid"]
-        self.data_preparation = bmk_dict["data_preparation_mlcube"]
-        self.reference_model = bmk_dict["reference_model_mlcube"]
-        self.evaluator = bmk_dict["data_evaluator_mlcube"]
-        self.models = bmk_dict["models"]
-        self.state = bmk_dict["state"]
-        self.is_valid = bmk_dict["is_valid"]
-        self.is_active = bmk_dict["is_active"]
-        self.approval_status = Status(bmk_dict["approval_status"])
-        self.metadata = bmk_dict["metadata"]
-        self.user_metadata = bmk_dict["user_metadata"]
+        super().__init__(*args, **kwargs)
 
-        self.generated_uid = (
-            f"p{self.data_preparation}m{self.reference_model}e{self.evaluator}"
-        )
+        self.generated_uid = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
         path = storage_path(config.benchmarks_storage)
-        if self.uid:
-            path = os.path.join(path, str(self.uid))
+        if self.id:
+            path = os.path.join(path, str(self.id))
         else:
             path = os.path.join(path, self.generated_uid)
         self.path = path
@@ -80,11 +78,11 @@ class Benchmark(Entity):
         if not local_only:
             benchmarks = cls.__remote_all(mine_only=mine_only)
 
-        remote_uids = set([bmk.uid for bmk in benchmarks])
+        remote_uids = set([bmk.id for bmk in benchmarks])
 
         local_benchmarks = cls.__local_all()
 
-        benchmarks += [bmk for bmk in local_benchmarks if bmk.uid not in remote_uids]
+        benchmarks += [bmk for bmk in local_benchmarks if bmk.id not in remote_uids]
 
         return benchmarks
 
@@ -102,7 +100,7 @@ class Benchmark(Entity):
                 # Most probably not necessary when getting all benchmarks.
                 # If associated models for a benchmark are needed then use Benchmark.get()
                 bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
-            benchmarks = [cls(meta) for meta in bmks_meta]
+            benchmarks = [cls(**meta) for meta in bmks_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all benchmarks from the server"
             logging.warning(msg)
@@ -122,13 +120,13 @@ class Benchmark(Entity):
 
         for uid in uids:
             meta = cls.__get_local_dict(uid)
-            benchmark = cls(meta)
+            benchmark = cls(**meta)
             benchmarks.append(benchmark)
 
         return benchmarks
 
     @classmethod
-    def get(cls, benchmark_uid: str) -> "Benchmark":
+    def get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -152,12 +150,12 @@ class Benchmark(Entity):
             logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
             logging.info(f"Looking for benchmark {benchmark_uid} locally")
             benchmark_dict = cls.__get_local_dict(benchmark_uid)
-        benchmark = cls(benchmark_dict)
+        benchmark = cls(**benchmark_dict)
         benchmark.write()
         return benchmark
 
     @classmethod
-    def __get_local_dict(cls, benchmark_uid: str) -> dict:
+    def __get_local_dict(cls, benchmark_uid) -> dict:
         """Retrieves a local benchmark information
 
         Args:
@@ -180,18 +178,18 @@ class Benchmark(Entity):
     @classmethod
     def tmp(
         cls,
-        data_preparator: str,
-        model: str,
-        evaluator: str,
+        data_preparator: int,
+        model: int,
+        evaluator: int,
         demo_url: str = None,
         demo_hash: str = None,
     ) -> "Benchmark":
         """Creates a temporary instance of the benchmark
 
         Args:
-            data_preparator (str): UID of the data preparator cube to use.
-            model (str): UID of the model cube to use.
-            evaluator (str): UID of the evaluator cube to use.
+            data_preparator (int): UID of the data preparator cube to use.
+            model (int): UID of the model cube to use.
+            evaluator (int): UID of the evaluator cube to use.
             demo_url (str, optional): URL to obtain the demo dataset. Defaults to None.
             demo_hash (str, optional): Hash of the demo dataset tarball file. Defaults to None.
 
@@ -208,34 +206,21 @@ class Benchmark(Entity):
             "demo_dataset_tarball_url": demo_url,
             "demo_dataset_tarball_hash": demo_hash,
             "models": [model],  # not in the server (OK)
-            "description": None,
-            "docs_url": None,
-            "created_at": None,
-            "modified_at": None,
-            "approved_at": None,
-            "owner": None,
-            "demo_dataset_generated_uid": None,
-            "state": "DEVELOPMENT",
-            "is_valid": True,
-            "is_active": True,
-            "approval_status": Status.PENDING.value,
-            "metadata": {},
-            "user_metadata": {},
         }
-        benchmark = cls(benchmark_dict)
+        benchmark = cls(**benchmark_dict)
         benchmark.write()
         return benchmark
 
     @classmethod
-    def get_models_uids(cls, benchmark_uid: str) -> List[str]:
+    def get_models_uids(cls, benchmark_uid: int) -> List[int]:
         """Retrieves the list of models associated to the benchmark
 
         Args:
-            benchmark_uid (str): UID of the benchmark.
+            benchmark_uid (int): UID of the benchmark.
             comms (Comms): Instance of the communications interface.
 
         Returns:
-            List[str]: List of mlcube uids
+            List[int]: List of mlcube uids
         """
         return config.comms.get_benchmark_models(benchmark_uid)
 
@@ -245,29 +230,7 @@ class Benchmark(Entity):
         Returns:
         dict: Dictionary containing benchmark information
         """
-        return {
-            "id": self.uid,
-            "name": self.name,
-            "description": self.description,
-            "docs_url": self.docs_url,
-            "created_at": self.created_at,
-            "modified_at": self.modified_at,
-            "approved_at": self.approved_at,
-            "owner": self.owner,
-            "demo_dataset_tarball_url": self.demo_dataset_url,
-            "demo_dataset_tarball_hash": self.demo_dataset_hash,
-            "demo_dataset_generated_uid": self.demo_dataset_generated_uid,
-            "data_preparation_mlcube": int(self.data_preparation),
-            "reference_model_mlcube": int(self.reference_model),
-            "models": self.models,  # not in the server (OK)
-            "data_evaluator_mlcube": int(self.evaluator),
-            "state": self.state,
-            "is_valid": self.is_valid,
-            "is_active": self.is_active,
-            "approval_status": self.approval_status.value,
-            "metadata": self.metadata,
-            "user_metadata": self.user_metadata,
-        }
+        return self.extended_dict()
 
     def write(self) -> str:
         """Writes the benchmark into disk
@@ -296,3 +259,19 @@ class Benchmark(Entity):
         updated_body = config.comms.upload_benchmark(body)
         updated_body["models"] = body["models"]
         return updated_body
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Description": self.description,
+            "Documentation": self.docs_url,
+            "Created At": self.created_at,
+            "Data Preparation MLCube": int(self.data_preparation_mlcube),
+            "Reference Model MLCube": int(self.reference_model_mlcube),
+            "Associated Models": ",".join(map(str, self.models)),
+            "Data Evaluator MLCube": int(self.data_evaluator_mlcube),
+            "State": self.state,
+            "Approval Status": self.approval_status,
+            "Registered": self.is_registered,
+        }

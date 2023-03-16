@@ -28,7 +28,7 @@ def mock_comms_entity_gets(
             - get_user
             - get_instance
             - upload_instance
-        all_ids (List[Union[str, Dict]]): List of ids or configurations that should be returned by the all endpoint
+        all_ids (List[Union[str, Dict]]): List of ids or curations that should be returned by the all endpoint
         user_ids (List[Union[str, Dict]]): List of ids or configurations that should be returned by the user endpoint
         uploaded (List): List that will be updated with uploaded instances
     """
@@ -40,8 +40,8 @@ def mock_comms_entity_gets(
     all_ents = [ent if type(ent) == dict else {"id": ent} for ent in all_ents]
     user_ents = [ent if type(ent) == dict else {"id": ent} for ent in user_ents]
 
-    instances = [generate_fn(**ent) for ent in all_ents]
-    user_instances = [generate_fn(**ent) for ent in user_ents]
+    instances = [generate_fn(**ent).dict() for ent in all_ents]
+    user_instances = [generate_fn(**ent).dict() for ent in user_ents]
     mocker.patch.object(comms, get_all, return_value=instances)
     mocker.patch.object(comms, get_user, return_value=user_instances)
     get_behavior = get_comms_instance_behavior(generate_fn, all_ents)
@@ -67,10 +67,10 @@ def get_comms_instance_behavior(
     """
     ids = [ent["id"] if type(ent) == dict else ent for ent in ents]
 
-    def get_behavior(id: str):
+    def get_behavior(id: int):
         if id in ids:
             idx = ids.index(id)
-            return generate_fn(**ents[idx])
+            return generate_fn(**ents[idx]).dict()
         else:
             raise CommunicationRetrievalError
 

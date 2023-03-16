@@ -2,11 +2,12 @@ import os
 from pathlib import Path
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
-from medperf.tests.mocks.requests import dataset_dict
 import pytest
 from unittest.mock import MagicMock, call
 
-from medperf.tests.mocks import Benchmark, MockCube
+from medperf.tests.mocks import MockCube
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.dataset.create import DataPreparation
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
@@ -20,8 +21,6 @@ NAME = "name"
 DESCRIPTION = "description"
 LOCATION = "location"
 
-REG_DICT_KEYS = list(dataset_dict().keys())
-
 
 @pytest.fixture
 def preparation(mocker, comms, ui):
@@ -30,7 +29,7 @@ def preparation(mocker, comms, ui):
     mocker.patch(
         PATCH_DATAPREP.format("generate_tmp_datapath"), return_value=OUT_PATH,
     )
-    mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=Benchmark())
+    mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=TestBenchmark())
     preparation = DataPreparation(
         BENCHMARK_UID, None, DATA_PATH, LABELS_PATH, NAME, DESCRIPTION, LOCATION,
     )
@@ -86,8 +85,7 @@ class TestWithDefaultUID:
         self, mocker, preparation, cube_uid, comms, ui
     ):
         # Arrange
-        benchmark = Benchmark()
-        benchmark.data_preparation = cube_uid
+        benchmark = TestBenchmark(data_preparation_mlcube=cube_uid)
         mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=benchmark)
         spy = mocker.patch(
             PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
@@ -223,8 +221,8 @@ class TestWithDefaultUID:
         write_spy.assert_called_once()
         remove_spy.assert_called_once()
 
-    @pytest.mark.parametrize("benchmark_uid", [None, "1"])
-    @pytest.mark.parametrize("cube_uid", [None, "1"])
+    @pytest.mark.parametrize("benchmark_uid", [None, 1])
+    @pytest.mark.parametrize("cube_uid", [None, 1])
     def test_fails_if_invalid_params(
         self, mocker, preparation, benchmark_uid, cube_uid, comms, ui
     ):
@@ -267,16 +265,6 @@ class TestWithDefaultUID:
 
         # Assert
         spy.assert_called_once()
-
-    def test_todict_returns_expected_keys(self, mocker, preparation):
-        # Arrange
-        mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_temp_stats"))
-
-        # Act
-        keys = preparation.todict().keys()
-
-        # Assert
-        assert set(keys) == set(REG_DICT_KEYS)
 
     @pytest.mark.parametrize("path", ["stats_path", "path/to/folder"])
     def test_get_temp_stats_opens_stats_path(self, mocker, path, preparation):
@@ -336,7 +324,7 @@ class TestWithDefaultUID:
         rmtree_spy = mocker.patch("shutil.rmtree")
         mocker.patch("os.path.exists", return_value=exists)
         mocker.patch("os.path.join", return_value=new_path)
-        preparation.generated_uid = "0"
+        preparation.generated_uid = "hash0"
         preparation.out_path = out_path
 
         # Act
@@ -351,7 +339,7 @@ class TestWithDefaultUID:
 
     def test_write_calls_dataset_write(self, mocker, preparation):
         # Arrange
-        data_dict = dataset_dict()
+        data_dict = TestDataset().todict()
         mocker.patch(
             PATCH_DATAPREP.format("DataPreparation.todict"), return_value=data_dict
         )
@@ -363,7 +351,7 @@ class TestWithDefaultUID:
         spy.assert_called_once()
 
 
-@pytest.mark.parametrize("uid", ["574", "1059", "1901"])
+@pytest.mark.parametrize("uid", ["hash574", "hash1059", "hash1901"])
 def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
     # Arrange
     def generate_uids(cls):

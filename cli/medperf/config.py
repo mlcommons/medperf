@@ -7,7 +7,7 @@ server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = "~/.medperf_test.crt"
+local_certificate = "server/cert.crt"
 
 storage = abspath(expanduser("~/.medperf"))
 tmp_prefix = "tmp_"
@@ -16,15 +16,16 @@ tmp_storage = "tmp"
 data_storage = "data"
 demo_data_storage = "demo"
 cubes_storage = "cubes"
+images_storage = ".images"
 predictions_storage = "predictions"
 results_storage = "results"
 statistics_filename = "tmp_statistics.yaml"
-results_filename = "result.yaml"
 results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 config_path = "config.yaml"
 workspace_path = "workspace"
+test_storage = "tests"
 cleanup = True
 
 cube_filename = "mlcube.yaml"
@@ -36,7 +37,6 @@ reg_file = "registration-info.yaml"
 log_file = "logs/medperf.log"
 loglevel = "info"
 test_cube_prefix = "test_"
-cube_submission_id = "tmp_submission"
 test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
@@ -48,6 +48,7 @@ default_profile_name = "default"
 test_profile_name = "test"
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
+ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
 comms = "REST"
 ui = "CLI"
 
@@ -71,3 +72,9 @@ configurable_parameters = [
     "platform",
     "cleanup",
 ]
+
+templates = {
+    "data_preparator": "templates/data_preparator_mlcube",
+    "model": "templates/model_mlcube",
+    "evaluator": "templates/evaluator_mlcube",
+}

@@ -2,9 +2,9 @@ from medperf.exceptions import CleanExit, InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
-from medperf.entities.result import Result
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
+from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.dataset import TestDataset
+from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.commands.dataset.associate import AssociateDataset
 
 PATCH_ASSOC = "medperf.commands.dataset.associate.{}"
@@ -12,34 +12,22 @@ PATCH_ASSOC = "medperf.commands.dataset.associate.{}"
 
 @pytest.fixture
 def dataset(mocker, request):
-    dset = mocker.create_autospec(spec=Dataset)
+    dset = TestDataset(id=1, data_preparation_mlcube=request.param, name="test")
     mocker.patch(PATCH_ASSOC.format("Dataset.get"), return_value=dset)
-    dset.name = "test"
-    dset.preparation_cube_uid = request.param
-    dset.uid = 1
     return dset
 
 
 @pytest.fixture
 def benchmark(mocker, request):
-    bm = mocker.create_autospec(spec=Benchmark)
+    bm = TestBenchmark(data_preparation_mlcube=request.param, name="name")
     mocker.patch(PATCH_ASSOC.format("Benchmark"), return_value=bm)
     mocker.patch(PATCH_ASSOC.format("Benchmark.get"), return_value=bm)
-    bm.data_preparation = request.param
-    bm.name = "name"
     return bm
-
-
-@pytest.fixture
-def result(mocker):
-    result = mocker.create_autospec(spec=Result)
-    result.results = {}
-    return result
 
 
 @pytest.mark.parametrize("dataset", [1, 4, 381], indirect=True)
 @pytest.mark.parametrize("benchmark", [2, 12, 32], indirect=True)
-def test_fails_if_dataset_incompatible_with_benchmark(
+def test_fails_if_dataset_inexecatible_with_benchmark(
     mocker, comms, ui, dataset, benchmark
 ):
 
@@ -52,7 +40,7 @@ def test_fails_if_dataset_incompatible_with_benchmark(
 @pytest.mark.parametrize("benchmark", [2], indirect=True)
 def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    dataset.uid = None
+    dataset.id = None
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -61,15 +49,12 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-def test_requests_approval_from_user(mocker, comms, ui, dataset, result, benchmark):
+def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
     # Arrange
+    result = TestResult()
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
-    comp_ret = ("", "", "", result)
-    mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
-    )
-    dataset.uid = 1
-    dataset.name = "test"
+    exec_ret = [result]
+    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
 
     # Act
     AssociateDataset.run(1, 1)
@@ -80,20 +65,19 @@ def test_requests_approval_from_user(mocker, comms, ui, dataset, result, benchma
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-@pytest.mark.parametrize("data_uid", ["1562", "951"])
+@pytest.mark.parametrize("data_uid", [1562, 951])
 @pytest.mark.parametrize("benchmark_uid", [3557, 423, 1528])
 def test_associates_if_approved(
-    mocker, comms, ui, dataset, result, data_uid, benchmark_uid, benchmark
+    mocker, comms, ui, dataset, data_uid, benchmark_uid, benchmark
 ):
     # Arrange
+    result = TestResult()
     assoc_func = "associate_dset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
-    comp_ret = ("", "", "", result)
-    mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
-    )
+    exec_ret = [result]
+    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch.object(comms, assoc_func)
-    dataset.uid = data_uid
+    dataset.id = data_uid
 
     # Act
     AssociateDataset.run(data_uid, benchmark_uid)
@@ -104,12 +88,11 @@ def test_associates_if_approved(
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
+def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    comp_ret = ("", "", "", result)
-    mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
-    )
+    result = TestResult()
+    exec_ret = [result]
+    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
     assoc_spy = mocker.patch.object(comms, "associate_dset")
 
@@ -124,23 +107,24 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, result, benchmark):
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
-def test_associate_calls_comp_test_without_force_by_default(
-    mocker, comms, ui, dataset, result, benchmark
-):
+def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    data_uid = "1562"
+    result = TestResult()
+    data_uid = 1562
     benchmark_uid = 3557
     assoc_func = "associate_dset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
-    comp_ret = ("", "", "", result)
+    exec_ret = [result]
     spy = mocker.patch(
-        PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
+        PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret
     )
     mocker.patch.object(comms, assoc_func)
-    dataset.uid = data_uid
+    dataset.id = data_uid
 
     # Act
     AssociateDataset.run(data_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(benchmark_uid, data_uid=data_uid, force_test=False)
+    spy.assert_called_once_with(
+        benchmark_uid, data_uid, [benchmark.reference_model_mlcube], no_cache=False,
+    )

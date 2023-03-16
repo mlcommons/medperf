@@ -19,11 +19,11 @@ from medperf.exceptions import (
 )
 
 PATCH_CUBE = "medperf.entities.cube.{}"
-DEFAULT_CUBE = {"id": "37"}
-FAILING_CUBE = {"id": "46", "parameters_hash": "error"}
-NO_IMG_CUBE = {"id": "345", "image_tarball_url": None, "image_tarball_hash": None}
+DEFAULT_CUBE = {"id": 37}
+FAILING_CUBE = {"id": 46, "parameters_hash": "error"}
+NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
 BASIC_CUBE = {
-    "id": "598",
+    "id": 598,
     "git_parameters_url": None,
     "git_parameters_hash": None,
     "image_tarball_url": None,
@@ -33,11 +33,11 @@ BASIC_CUBE = {
 }
 VALID_CUBES = [{"remote": [DEFAULT_CUBE]}, {"remote": [BASIC_CUBE]}]
 INVALID_CUBES = [
-    {"remote": [{"id": "190", "is_valid": False}]},
-    {"remote": [{"id": "53", "mlcube_hash": "incorrect"}]},
-    {"remote": [{"id": "7", "parameters_hash": "incorrect"}]},
-    {"remote": [{"id": "874", "image_tarball_hash": "incorrect"}]},
-    {"remote": [{"id": "286", "additional_files_tarball_hash": "incorrect"}]},
+    {"remote": [{"id": 190, "is_valid": False}]},
+    {"remote": [{"id": 53, "mlcube_hash": "incorrect"}]},
+    {"remote": [{"id": 7, "parameters_hash": "incorrect"}]},
+    {"remote": [{"id": 874, "image_tarball_hash": "incorrect"}]},
+    {"remote": [{"id": 286, "additional_files_tarball_hash": "incorrect"}]},
 ]
 
 CUBE_CONTENTS = {
@@ -46,7 +46,7 @@ CUBE_CONTENTS = {
 
 
 @pytest.fixture(
-    params={"local": ["1", "2", "3"], "remote": ["4", "5", "6"], "user": ["4"]}
+    params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]}
 )
 def setup(request, mocker, comms, fs):
     local_ents = request.param.get("local", [])
@@ -57,7 +57,7 @@ def setup(request, mocker, comms, fs):
 
     setup_cube_fs(local_ents, fs)
     setup_cube_comms(mocker, comms, remote_ents, user_ents, uploaded)
-    setup_cube_comms_downloads(mocker, comms, fs, remote_ents)
+    setup_cube_comms_downloads(mocker, comms, fs)
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
@@ -72,10 +72,10 @@ def setup(request, mocker, comms, fs):
 class TestGetFiles:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
-        self.uid = setup["remote"][0]["id"]
+        self.id = setup["remote"][0]["id"]
 
         # Specify expected path for all downloaded files
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.uid)
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
         self.params_path = os.path.join(
             self.cube_path, config.workspace_path, config.params_filename
@@ -94,7 +94,7 @@ class TestGetFiles:
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_retrieves_files(self, setup):
         # Act
-        Cube.get(self.uid)
+        Cube.get(self.id)
 
         # Assert
         for file in self.file_paths:
@@ -107,7 +107,7 @@ class TestGetFiles:
         calls = [call(self.add_path), call(self.img_path)]
 
         # Act
-        Cube.get(self.uid)
+        Cube.get(self.id)
 
         # Assert
         spy.assert_has_calls(calls)
@@ -125,7 +125,7 @@ class TestGetFiles:
 
         # Act
         with pytest.raises(InvalidEntityError):
-            Cube.get(self.uid)
+            Cube.get(self.id)
 
         # Assert
         spy.assert_has_calls(calls)
@@ -137,7 +137,7 @@ class TestGetFiles:
 
         # Act
         with pytest.raises(InvalidEntityError):
-            Cube.get(self.uid)
+            Cube.get(self.id)
 
         # Assert
         spy.assert_called_once_with([self.cube_path])
@@ -149,7 +149,7 @@ class TestGetFiles:
         expected_cmd = f"mlcube configure --mlcube={self.manifest_path}"
 
         # Act
-        Cube.get(self.uid)
+        Cube.get(self.id)
 
         # Assert
         spy.assert_called_once_with(expected_cmd)
@@ -160,7 +160,7 @@ class TestGetFiles:
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
 
         # Act
-        Cube.get(self.uid)
+        Cube.get(self.id)
 
         # Assert
         spy.assert_not_called()
@@ -176,7 +176,7 @@ class TestValidity:
         cube = Cube.get(uid)
 
         # Assert
-        assert cube.is_valid()
+        assert cube.valid()
 
     @pytest.mark.parametrize("setup", INVALID_CUBES, indirect=True)
     def test_invalid_cube_is_detected(self, mocker, setup):
@@ -194,11 +194,11 @@ class TestValidity:
 class TestRun:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
-        self.uid = setup["remote"][0]["id"]
+        self.id = setup["remote"][0]["id"]
         self.platform = config.platform
 
         # Specify expected path for the manifest files
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.uid)
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
 
     @pytest.mark.parametrize("timeout", [847, None])
@@ -211,7 +211,7 @@ class TestRun:
         expected_cmd = f"mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform}"
 
         # Act
-        cube = Cube.get(self.uid)
+        cube = Cube.get(self.id)
         cube.run(task, timeout=timeout)
 
         # Assert
@@ -224,7 +224,7 @@ class TestRun:
         expected_cmd = f'mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform} test="test"'
 
         # Act
-        cube = Cube.get(self.uid)
+        cube = Cube.get(self.id)
         cube.run(task, test="test")
 
         # Assert
@@ -236,12 +236,12 @@ class TestRun:
         mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
-        cube = Cube.get(self.uid)
+        cube = Cube.get(self.id)
         with pytest.raises(ExecutionError):
             cube.run(task)
 
 
-@pytest.mark.parametrize("setup", [{"local": [BASIC_CUBE]}], indirect=True)
+@pytest.mark.parametrize("setup", [{"local": [DEFAULT_CUBE]}], indirect=True)
 @pytest.mark.parametrize("task", ["task"])
 @pytest.mark.parametrize(
     "out_key,out_value",
@@ -250,13 +250,13 @@ class TestRun:
 class TestDefaultOutput:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, fs, setup, task, out_key, out_value):
-        self.uid = setup["local"][0]["id"]
+        self.id = setup["local"][0]["id"]
 
         # Create a manifest file with minimum required contents
         self.cube_contents = {
             "tasks": {task: {"parameters": {"outputs": {out_key: out_value}}}}
         }
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), self.uid)
+        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
         fs.create_file(self.manifest_path, contents=yaml.dump(self.cube_contents))
 
@@ -268,7 +268,7 @@ class TestDefaultOutput:
 
     def test_default_output_returns_expected_path(self, task, out_key):
         # Arrange
-        cube = Cube.get(self.uid)
+        cube = Cube.get(self.id)
 
         # Act
         default_output = cube.get_default_output(task, out_key)
@@ -290,7 +290,7 @@ class TestDefaultOutput:
         exp_path = os.path.join(self.output, param_val)
 
         # Act
-        cube = Cube.get(self.uid)
+        cube = Cube.get(self.id)
         out_path = cube.get_default_output(task, out_key, param_key)
 
         # Assert

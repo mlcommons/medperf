@@ -51,7 +51,7 @@ class ResultSubmission:
         Args:
             result_dict (dict): updated results dictionary
         """
-        result = Result(result_dict)
+        result = Result(**result_dict)
         result_storage = storage_path(config.results_storage)
         old_res_loc = os.path.join(result_storage, result.generated_uid)
         new_res_loc = result.path
@@ -60,5 +60,5 @@ class ResultSubmission:
         os.rename(old_res_loc, new_res_loc)
 
     def write(self, updated_result_dict):
-        result = Result(updated_result_dict)
+        result = Result(**updated_result_dict)
         result.write()

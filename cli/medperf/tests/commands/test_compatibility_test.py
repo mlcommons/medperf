@@ -1,55 +1,32 @@
 import os
 from medperf import config
-from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+from medperf.exceptions import InvalidArgumentError
 import pytest
 from pathlib import Path
 from unittest.mock import call, ANY, mock_open
 
-from medperf.entities.dataset import Dataset
-from medperf.entities.benchmark import Benchmark
+from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.compatibility_test import CompatibilityTestExecution
 
 PATCH_TEST = "medperf.commands.compatibility_test.{}"
 
 
 @pytest.fixture
-def benchmark(mocker):
-    def benchmark_gen(uid, data_prep, reference_model, evaluator):
-        bmk = mocker.create_autospec(spec=Benchmark)
-        bmk.uid = uid
-        bmk.data_preparation = data_prep
-        bmk.reference_model = reference_model
-        bmk.evaluator = evaluator
-        bmk.demo_dataset_url = None
-        bmk.demo_dataset_hash = None
-        return bmk
-
-    return benchmark_gen
-
-
-@pytest.fixture
-def dataset(mocker):
-    dataset = mocker.create_autospec(spec=Dataset)
-    dataset.uid = "uid"
-    dataset.generated_uid = "gen_uid"
-    dataset.preparation_cube_uid = "cube_uid"
-    return dataset
-
-
-@pytest.fixture
-def default_setup(mocker, benchmark, dataset):
-    bmk = benchmark(1, 1, 2, 3)
+def default_setup(mocker, fs):
+    bmk = TestBenchmark()
+    dataset = TestDataset()
     mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
     mocker.patch(PATCH_TEST.format("Benchmark.tmp"), return_value=bmk)
     mocker.patch(
         PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
         return_value=("", ""),
     )
+    mocker.patch(
+        PATCH_TEST.format("CompatibilityTestExecution.validate"), return_value=("", ""),
+    )
     mocker.patch(PATCH_TEST.format("DataPreparation.run"), return_value="")
     mocker.patch(PATCH_TEST.format("Dataset.get"), return_value=dataset)
-    mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.cached_result"), return_value=None
-    )
     bmk.generated_uid = "generated_uid"
     return bmk
 
@@ -79,48 +56,6 @@ def test_validate_fails_if_incomplete_tmp_benchmark_passed(
     else:
         with pytest.raises(InvalidArgumentError):
             exec.validate()
-
-
-@pytest.mark.parametrize("uid", [None, "1"])
-def test_prepare_test_gets_benchmark_or_tmp(mocker, uid, benchmark, comms, ui):
-    # Arrange
-    bmk = benchmark(uid, 1, 2, 3)
-    data = "1"
-    prep = "2"
-    model = "3"
-    eval = "4"
-    get_spy = mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    exec = CompatibilityTestExecution(uid, data, prep, model, eval)
-
-    # Act
-    exec.prepare_test()
-
-    # Assert
-    if uid:
-        get_spy.assert_called_once_with(uid)
-    else:
-        get_spy.assert_not_called()
-
-
-@pytest.mark.parametrize("uid", [None, "1"])
-def test_prepare_test_sets_uids(mocker, uid, benchmark, comms, ui):
-    # Arrange
-    bmk = benchmark(uid, 1, 2, 3)
-    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    exec = CompatibilityTestExecution(uid, None, None, None, None)
-    spy = mocker.spy(exec, "set_cube_uid")
-    attrs = ["data_prep", "model", "evaluator"]
-    calls = [call(attr, ANY) for attr in attrs]
-    no_bmk_calls = [call(attr) for attr in attrs]
-
-    # Act
-    exec.prepare_test()
-
-    # Assert
-    if uid:
-        spy.assert_has_calls(calls)
-    else:
-        spy.assert_has_calls(no_bmk_calls)
 
 
 @pytest.mark.parametrize("attr", ["data_prep", "model", "evaluator"])
@@ -264,234 +199,6 @@ def test_set_data_uid_keeps_passed_data_uid(mocker, default_setup, data_uid, com
     assert exec.data_uid == data_uid
 
 
-def test_execute_benchmark_runs_benchmark_workflow(
-    mocker, dataset, default_setup, comms, ui
-):
-    # Arrange
-    spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
-    mocker.patch(PATCH_TEST.format("Result.get"))
-    exec = CompatibilityTestExecution(1, None, None, None, None)
-    exec.dataset = dataset
-
-    # Act
-    exec.execute_benchmark()
-
-    # Assert
-    spy.assert_called_once()
-
-
-@pytest.mark.parametrize("cache_exists", [False, True])
-def test_run_executes_all_the_expected_steps(
-    mocker, default_setup, comms, ui, cache_exists
-):
-    # Arrange
-    validate_spy = mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.validate")
-    )
-    set_cube_uid_spy = mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.set_cube_uid")
-    )
-    set_data_uid_spy = mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.set_data_uid")
-    )
-    execute_benchmark_spy = mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.execute_benchmark")
-    )
-    cached_result_spy = mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.cached_result"),
-        return_value=cache_exists,
-    )
-    bmk = default_setup
-    cube_uid_calls = [
-        call("data_prep", bmk.data_preparation),
-        call("model", bmk.reference_model),
-        call("evaluator", bmk.evaluator),
-    ]
-
-    # Act
-    CompatibilityTestExecution.run(1)
-
-    # Assert
-    validate_spy.assert_called_once()
-    set_cube_uid_spy.assert_has_calls(cube_uid_calls)
-    set_data_uid_spy.assert_called_once()
-    cached_result_spy.assert_called_once()
-    if not cache_exists:
-        execute_benchmark_spy.assert_called_once()
-    else:
-        execute_benchmark_spy.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    "bmk_uid,data_uid,model_uid,results",
-    [(255, 312, 241, {}), (238, 498, 411, {"AUC": 0.6})],
-)
-def test_run_returns_uids(
-    mocker, benchmark, bmk_uid, data_uid, model_uid, results, comms, ui
-):
-    # Arrange
-    bmk = benchmark(bmk_uid, data_uid, model_uid, "3")
-    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.validate"))
-    mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_cube_uid"))
-    mocker.patch(PATCH_TEST.format("CompatibilityTestExecution.set_data_uid"))
-    mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.cached_result"), return_value=None
-    )
-    mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.execute_benchmark"),
-        return_value=results,
-    )
-
-    # Act
-    ret_uids = CompatibilityTestExecution.run(
-        bmk_uid, data_uid=data_uid, model=model_uid, force_test=True
-    )
-
-    # Assert
-    assert ret_uids == (bmk_uid, data_uid, model_uid, results)
-
-
-@pytest.mark.parametrize("hash", ["test", "invalid"])
-def test_download_demo_data_fails_if_incorrect_hash(mocker, benchmark, comms, hash, ui):
-    # Arrange
-    uid = "1"
-    data = "1"
-    prep = "2"
-    model = "3"
-    eval = "4"
-    bmk = benchmark(uid, prep, model, eval)
-    bmk.demo_dataset_url = "url"
-    bmk.demo_dataset_hash = hash
-    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
-    mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
-    exec = CompatibilityTestExecution(uid, data, prep, model, eval)
-    exec.prepare_test()
-
-    # Act & Assert
-    with pytest.raises(InvalidEntityError):
-        exec.download_demo_data()
-
-
-@pytest.mark.parametrize(
-    "paths", [("data", "labels"), ("path/to/data", "path/to/labels")]
-)
-def test_download_demo_data_extracts_expected_paths(
-    mocker, benchmark, paths, comms, ui
-):
-    # Arrange
-    uid = "1"
-    data = "1"
-    prep = "2"
-    model = "3"
-    eval = "4"
-    bmk = benchmark("1", "2", "3", "4")
-    bmk.demo_dataset_url = "url"
-    bmk.demo_dataset_hash = "hash"
-    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value=("", ""))
-    mocker.patch(PATCH_TEST.format("get_file_sha1"), return_value="hash")
-
-    untar_path = "untar/path"
-    paths_dict = {"data_path": paths[0], "labels_path": paths[1]}
-    mocker.patch("yaml.safe_load", return_value=paths_dict)
-    mocker.patch(PATCH_TEST.format("untar"), return_value=untar_path)
-    mocker.patch("builtins.open", mock_open())
-    exp_data_path = os.path.join(untar_path, paths[0])
-    exp_labels_path = os.path.join(untar_path, paths[1])
-
-    exec = CompatibilityTestExecution(uid, data, prep, model, eval)
-    exec.prepare_test()
-
-    # Act
-    data_path, labels_path = exec.download_demo_data()
-
-    # Assert
-    assert data_path == exp_data_path
-    assert labels_path == exp_labels_path
-
-
-@pytest.mark.parametrize(
-    "bmk_uid,data_uid,prep_uid,model_uid,eval_uid",
-    [(83, 254, None, 145, None), (None, None, 466, None, 97), (47, None, 12, 39, None)],
-)
-def test_run_uses_correct_uids(
-    mocker,
-    benchmark,
-    dataset,
-    bmk_uid,
-    data_uid,
-    prep_uid,
-    model_uid,
-    eval_uid,
-    comms,
-    ui,
-):
-    # Arrange
-    bmk_prep_uid = "b1"
-    bmk_model_uid = "b2"
-    bmk_eval_uid = "b3"
-    demo_dataset_uid = "d1"
-    generated_uid = "t1"
-
-    bmk = benchmark(bmk_uid, bmk_prep_uid, bmk_model_uid, bmk_eval_uid)
-    bmk.demo_dataset_url = "url"
-    bmk.demo_dataset_hash = "hash"
-
-    mocker.patch(PATCH_TEST.format("Benchmark.get"), return_value=bmk)
-    mocker.patch("os.path.exists", return_value=False)
-    mocker.patch(
-        PATCH_TEST.format("CompatibilityTestExecution.download_demo_data"),
-        return_value=("", ""),
-    )
-    mocker.patch(
-        PATCH_TEST.format("DataPreparation.run"), return_value=demo_dataset_uid
-    )
-    mocker.patch(PATCH_TEST.format("Dataset.get"), return_value=dataset)
-    mocker.patch(PATCH_TEST.format("Result.get"))
-
-    def tmp_side_effect(prep, model, eval):
-        bmk = benchmark(generated_uid, prep, model, eval)
-        bmk.generated_uid = generated_uid
-        return bmk
-
-    tmp_spy = mocker.patch(
-        PATCH_TEST.format("Benchmark.tmp"), side_effect=tmp_side_effect
-    )
-    exec_spy = mocker.patch(PATCH_TEST.format("BenchmarkExecution.run"))
-
-    exp_data_uid = demo_dataset_uid if data_uid is None else data_uid
-    exp_model_uid = bmk_model_uid if model_uid is None else model_uid
-    exp_eval_uid = bmk_eval_uid if eval_uid is None else eval_uid
-    if prep_uid is not None:
-        exp_prep_uid = prep_uid
-    elif data_uid is not None:
-        exp_prep_uid = dataset.preparation_cube_uid
-    else:
-        exp_prep_uid = bmk_prep_uid
-
-    # Act
-    try:
-        CompatibilityTestExecution.run(
-            bmk_uid, data_uid, prep_uid, model_uid, eval_uid, force_test=True
-        )
-    except InvalidArgumentError:
-        return
-
-    # Assert
-    if bmk_uid is None:
-        tmp_spy.assert_called_once_with(exp_prep_uid, exp_model_uid, exp_eval_uid)
-        exec_spy.assert_called_once_with(
-            generated_uid, exp_data_uid, exp_model_uid, run_test=True
-        )
-    else:
-        tmp_spy.assert_not_called()
-        exec_spy.assert_called_once_with(
-            bmk_uid, exp_data_uid, exp_model_uid, run_test=True
-        )
-
-
 @pytest.mark.parametrize("files_already_exist", [True, False])
 def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_exist):
     # Arrange
@@ -519,28 +226,9 @@ def test_custom_cubes_metadata_files_creation(mocker, comms, ui, files_already_e
     open_spy = mocker.patch("builtins.open", mock_open())
     yml_spy = mocker.patch(PATCH_TEST.format("yaml.dump"))
     # Act
-    cls = CompatibilityTestExecution("1", None, None, model_path, None)
+    cls = CompatibilityTestExecution(1, None, None, model_path, None)
     cls.set_cube_uid("model")
 
     # Assert
     assert open_spy.call_count == num_calls_expected
     assert yml_spy.call_count == num_calls_expected
-
-
-@pytest.mark.parametrize("force_test", [True, False])
-def test_cached_result_looks_for_result_if_not_force(
-    mocker, comms, ui, dataset, force_test
-):
-    # Arrange
-    cls = CompatibilityTestExecution("1", "1", "1", "1", None, force_test=force_test)
-    cls.dataset = dataset
-    spy = mocker.patch(PATCH_TEST.format("Result.get"))
-
-    # Act
-    cls.cached_result()
-
-    # Assert
-    if force_test:
-        spy.assert_not_called()
-    else:
-        spy.assert_called_once()

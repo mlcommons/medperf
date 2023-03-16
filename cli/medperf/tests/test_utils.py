@@ -128,7 +128,6 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     tmp_prefix = utils.config.tmp_prefix
     test_dset_prefix = utils.config.test_dset_prefix
     test_cube_prefix = utils.config.test_cube_prefix
-    cube_submission_id = utils.config.cube_submission_id
     pid = str(pid)
 
     # Act
@@ -139,20 +138,18 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     assert utils.config.tmp_prefix.endswith(pid)
     assert utils.config.test_dset_prefix.endswith(pid)
     assert utils.config.test_cube_prefix.endswith(pid)
-    assert utils.config.cube_submission_id.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
     utils.config.tmp_prefix = tmp_prefix
     utils.config.test_dset_prefix = test_dset_prefix
     utils.config.test_cube_prefix = test_cube_prefix
-    utils.config.cube_submission_id = cube_submission_id
 
 
 def test_cleanup_removes_temporary_storage(mocker):
     # Arrange
     mocker.patch("os.path.exists", return_value=True)
-    spy = mocker.patch(patch_utils.format("rmtree"))
+    spy = mocker.patch(patch_utils.format("cleanup_path"))
     mocker.patch(patch_utils.format("get_uids"), return_value=[])
     mocker.patch(patch_utils.format("cleanup_benchmarks"))
 
@@ -161,29 +158,6 @@ def test_cleanup_removes_temporary_storage(mocker):
 
     # Assert
     spy.assert_called_once_with(tmp)
-
-
-@pytest.mark.parametrize("datasets", [4, 297, 500, 898], indirect=True)
-def test_cleanup_removes_only_invalid_datasets(mocker, datasets):
-    # Arrange
-    prefix = config.tmp_prefix
-    # Mock that the temporary storage path doesn't exist
-    mocker.patch("os.path.exists", side_effect=lambda x: x != tmp)
-    mocker.patch(patch_utils.format("cleanup_benchmarks"))
-    mocker.patch(patch_utils.format("get_uids"), return_value=datasets)
-    spy = mocker.patch(patch_utils.format("rmtree"))
-
-    invalid_dsets = [dset for dset in datasets if dset.startswith(prefix)]
-    invalid_dsets = [os.path.join(data, dset) for dset in invalid_dsets]
-    exp_calls = [call(inv_dset) for inv_dset in invalid_dsets]
-
-    # Act
-    utils.cleanup()
-
-    # Assert
-    spy.assert_has_calls(exp_calls, any_order=True)
-    # Account for the tmp_storage call
-    assert spy.call_count == len(exp_calls)
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])

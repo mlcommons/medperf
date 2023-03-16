@@ -2,3 +2,5 @@ typer
 pandas
 PyYAML
 pillow
+tqdm
+torchxrayvision

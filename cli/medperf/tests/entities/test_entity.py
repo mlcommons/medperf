@@ -23,9 +23,7 @@ def Implementation(request):
     return request.param
 
 
-@pytest.fixture(
-    params={"local": ["1", "2", "3"], "remote": ["4", "5", "6"], "user": ["4"]}
-)
+@pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
 def setup(request, mocker, comms, Implementation, fs):
     local_ids = request.param.get("local", [])
     remote_ids = request.param.get("remote", [])
@@ -39,7 +37,7 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Cube:
         setup_fs = setup_cube_fs
         setup_comms = setup_cube_comms
-        setup_cube_comms_downloads(mocker, comms, fs, remote_ids)
+        setup_cube_comms_downloads(mocker, comms, fs)
         mocker.patch("medperf.entities.cube.untar")
     elif Implementation == Dataset:
         setup_fs = setup_dset_fs
@@ -48,8 +46,8 @@ def setup(request, mocker, comms, Implementation, fs):
         setup_fs = setup_result_fs
         setup_comms = setup_result_comms
 
-    setup_fs(local_ids, fs)
     setup_comms(mocker, comms, remote_ids, user_ids, uploaded)
+    setup_fs(local_ids, fs)
     request.param["uploaded"] = uploaded
 
     return request.param
@@ -57,7 +55,7 @@ def setup(request, mocker, comms, Implementation, fs):
 
 @pytest.mark.parametrize(
     "setup",
-    [{"local": ["283", "17", "493"], "remote": ["283", "1", "2"], "user": ["2"]}],
+    [{"local": [283, 17, 493], "remote": [283, 1, 2], "user": [2]}],
     indirect=True,
 )
 class TestAll:
@@ -100,7 +98,7 @@ class TestAll:
 
 
 @pytest.mark.parametrize(
-    "setup", [{"local": ["78"], "remote": ["479", "42", "7", "1"]}], indirect=True,
+    "setup", [{"local": [78], "remote": [479, 42, 7, 1]}], indirect=True,
 )
 class TestGet:
     def test_get_retrieves_entity_from_server(self, Implementation, setup):
@@ -133,7 +131,7 @@ class TestGet:
 
 
 @pytest.mark.parametrize(
-    "setup", [{"local": ["742"]}], indirect=True,
+    "setup", [{"local": [742]}], indirect=True,
 )
 class TestToDict:
     @pytest.fixture(autouse=True)
@@ -156,7 +154,7 @@ class TestToDict:
 
         # Act
         ent_dict = ent.todict()
-        ent_copy = Implementation(ent_dict)
+        ent_copy = Implementation(**ent_dict)
         ent_copy_dict = ent_copy.todict()
 
         # Assert
@@ -164,7 +162,7 @@ class TestToDict:
 
 
 @pytest.mark.parametrize(
-    "setup", [{"local": ["36"]}], indirect=True,
+    "setup", [{"local": [36]}], indirect=True,
 )
 class TestUpload:
     @pytest.fixture(autouse=True)
@@ -194,9 +192,7 @@ class TestUpload:
 
 
 @pytest.mark.parametrize(
-    "setup",
-    [{"remote": ["284"]}, {"remote": ["753"], "local": ["753"]}],
-    indirect=True,
+    "setup", [{"remote": [284]}, {"remote": [753], "local": [753]}], indirect=True,
 )
 class TestWrite:
     def test_write_stores_entity_locally(self, Implementation, setup):
