@@ -1,0 +1,51 @@
+name: Hello World Medperf Data Preparator Cube
+description: MLCommons demonstration MLCube for building data preparators for MedPerf
+authors:
+ - {name: "MLCommons Medical Working Group"}
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name.
+  image: mlcommons/medical-data-prep-hello-world
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  prepare:
+  # This task is in charge of transforming the input data into the format
+  # expected by the model cubes. 
+    parameters:
+      inputs: {
+        data_path: names/,            # Required. Value must point to a directory containing the raw data inside workspace
+        labels_path: labels/,         # Required. Value must point to a directory containing labels for the data
+        parameters_file: parameters.yaml # Required. Value must be `parameters.yaml`
+      }
+      outputs: {
+        output_path: data/               # Required. Indicates where to store the transformed data. Must contain transformed data and labels
+      }
+  sanity_check:
+  # This task ensures that the previously transformed data was transformed correctly.
+  # It runs a set of tests that check que quality of the data. The rigurosity of those
+  # tests is determined by the cube author.
+    parameters:
+      inputs: {
+        data_path: data/,                # Required. Value should be the output of the prepare task
+        parameters_file: parameters.yaml # Required. Value must be `parameters.yaml`
+      }
+  statistics:
+  # This task computes statistics on the prepared dataset. Its purpose is to get a high-level
+  # idea of what is contained inside the data, without providing any specifics of any single entry
+    parameters:
+      inputs: {
+        data_path: data/,                # Required. Value should be the output of the prepare task
+        parameters_file: parameters.yaml # Required. Value must be `parameters.yaml`
+      }
+      outputs: {
+        output_path: {
+          type: file, default: statistics.yaml # Required. Value must be `statistics.yaml`
+        }
+      }

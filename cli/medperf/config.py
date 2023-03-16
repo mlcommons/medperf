@@ -70,3 +70,9 @@ configurable_parameters = [
     "platform",
     "cleanup",
 ]
+
+templates = {
+    "data_preparator": "templates/data_preparator_mlcube",
+    "model": "templates/model_mlcube",
+    "evaluator": "templates/evaluator_mlcube",
+}
