@@ -18,6 +18,7 @@ CERT_FILE="${AUTH_CERT:-$(realpath server/cert.crt)}"
 MEDPERF_STORAGE=~/.medperf
 MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
+VERSION_PREFIX="/api/v0"
 
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
@@ -83,15 +84,15 @@ METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/image.tar.gz"
 
 # admin token
-ADMIN_TOKEN=$(curl -sk -X POST https://127.0.0.1:8000/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
+ADMIN_TOKEN=$(curl -sk -X POST $SERVER_URL$VERSION_PREFIX/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
 
 # create users
 MODELOWNER="mockmodelowner"
 DATAOWNER="mockdataowner"
 BENCHMARKOWNER="mockbenchmarkowner"
-curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "model", "last_name": "owner", "username": "'"$MODELOWNER"'", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "'"$BENCHMARKOWNER"'", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST https://127.0.0.1:8000/users/ -d '{"first_name": "data", "last_name": "owner", "username": "'"$DATAOWNER"'", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "model", "last_name": "owner", "username": "'"$MODELOWNER"'", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "'"$BENCHMARKOWNER"'", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "data", "last_name": "owner", "username": "'"$DATAOWNER"'", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 
 ##########################################################
 ################### Start Testing ########################
@@ -184,7 +185,7 @@ medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --dat
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-curl -sk -X PUT https://127.0.0.1:8000/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
 ##########################################################
 
