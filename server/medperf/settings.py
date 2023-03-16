@@ -210,7 +210,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Set this to supported api version.
 # This will be the default version for unversioned apis picked by the swagger schema.
-SERVER_API_VERSION = "v1"
+SERVER_API_VERSION = "v0"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
