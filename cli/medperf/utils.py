@@ -41,7 +41,6 @@ def setup_logging(log_lvl):
     requests_logger = logging.getLogger("requests")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(log_lvl)
-    logging.info(f"Running MedPerf v{config.version} on {log_lvl} logging level")
 
 
 def delete_credentials():
