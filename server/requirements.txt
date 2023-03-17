@@ -1,6 +1,7 @@
 Django==3.2.16
-djangorestframework==3.13.1
-drf-yasg==1.20.0
+djangorestframework==3.14.0
+drf-spectacular==0.25.1
+drf-spectacular-sidecar==2022.12.1
 django-storages[google]==1.12.3
 django-environ==0.8.1
 django-cors-headers==3.10.1

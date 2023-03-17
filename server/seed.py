@@ -15,6 +15,29 @@ class Server:
         self.host = host
         self.cert = cert
 
+    def validate(self, verify=False, version=None):
+        try:
+            resp = requests.request(
+                method="GET",
+                url=self.host + "/version",
+                verify=self.cert,
+            )
+        except requests.exceptions.RequestException as e:
+            raise SystemExit(e)
+        if resp.status_code != 200:
+            sys.exit("Response code is " + str(resp.status_code))
+
+        res = json.loads(resp.text)
+        if "version" not in res:
+            sys.exit("Version response is empty")
+        print("Server running at version " + res["version"])
+        if verify:
+            if res["version"] != version:
+                sys.exit("Server version do not match with the client argument")
+            print("Server version match with client version")
+        self.version = res["version"]
+        return res["version"]
+
     def request(self, endpoint, method, token, data, out_field=None):
         headers = {}
         if token:
@@ -26,7 +49,7 @@ class Server:
             resp = requests.request(
                 method=method,
                 headers=headers,
-                url=self.host + endpoint,
+                url=self.host + "/api/" + self.version + endpoint,
                 data=json.dumps(data),
                 verify=self.cert,
             )
@@ -52,6 +75,10 @@ class Server:
 def seed(args):
     # Get Admin API token using admin credentials
     api_server = Server(host=args.server, cert=args.cert)
+    if args.version:
+        api_server.validate(True, args.version)
+    else:
+        api_server.validate(False)
     admin_token = api_server.request(
         "/auth-token/",
         "POST",
@@ -383,5 +410,6 @@ if __name__ == "__main__":
     parser.add_argument("--username", type=str, help="Admin username", default="admin")
     parser.add_argument("--password", type=str, help="Admin password", default="admin")
     parser.add_argument("--cert", type=str, help="Server certificate")
+    parser.add_argument("--version", type=str, help="Server version")
     args = parser.parse_args()
     seed(args)
