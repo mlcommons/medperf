@@ -13,7 +13,7 @@ from medperf.commands.result.create import BenchmarkExecution
 from medperf.commands.result.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
-from medperf.commands.auth import Login, PasswordChange
+from medperf.commands.auth import Login, PasswordChange, SynapseLogin
 import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
 from medperf.utils import (
@@ -36,6 +36,26 @@ app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(association.app, name="association", help="Manage associations")
 app.add_typer(profile.app, name="profile", help="Manage profiles")
+
+
+@app.command("synapse_login")
+@clean_except
+def synapse_login(
+    username: str = typer.Option(
+        None, "--username", "-u", help="Username to login with"
+    ),
+    password: str = typer.Option(
+        None, "--password", "-p", help="Password to login with"
+    ),
+    token: str = typer.Option(
+        None, "--token", "-t", help="Personal Access Token to login with"
+    ),
+):
+    """Login to the synapse server. Must be done only once.
+    Provide either a username and a password, or a token
+    """
+    SynapseLogin.run(username=username, password=password, token=token)
+    config.ui.print("✅ Done!")
 
 
 @app.command("login")
