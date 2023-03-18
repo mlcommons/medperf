@@ -54,6 +54,6 @@ class SynapseLogin:
 
         syn = synapseclient.Synapse()
         try:
-            syn.login()
+            syn.login(authToken=access_token, rememberMe=True)
         except SynapseAuthenticationError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
