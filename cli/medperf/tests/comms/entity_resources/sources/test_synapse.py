@@ -5,7 +5,11 @@ from medperf.exceptions import (
     CommunicationAuthenticationError,
     CommunicationRetrievalError,
 )
-from synapseclient.core.exceptions import SynapseError
+from synapseclient.core.exceptions import (
+    SynapseNoCredentialsError,
+    SynapseHTTPError,
+    SynapseUnmetAccessRestrictions,
+)
 import synapseclient
 
 
@@ -44,14 +48,17 @@ def test_download_works_as_expected(mocker, fs, synapse_client):
     assert open(outpath).read() == contents
 
 
-def test_download_raises_for_failed_request(mocker, fs, synapse_client):
+@pytest.mark.parametrize(
+    "exception", [SynapseHTTPError, SynapseUnmetAccessRestrictions]
+)
+def test_download_raises_for_failed_request(mocker, fs, synapse_client, exception):
     # Arrange
     outpath = "path/to/out.tar.gz"
     syn_id = "syn535353"
     synapse_source = SynapseSource()
 
     def __side_effect(resource_identifier, downloadLocation):
-        raise SynapseError
+        raise exception
 
     mocker.patch.object(synapse_source.client, "get", side_effect=__side_effect)
 
@@ -94,7 +101,7 @@ def test_authenticate_fails_for_failing_login(mocker, synapse_client):
     synapse_source = SynapseSource()
 
     def __side_effect(**kwargs):
-        raise SynapseError
+        raise SynapseNoCredentialsError
 
     mocker.patch.object(synapse_source.client, "login", side_effect=__side_effect)
 

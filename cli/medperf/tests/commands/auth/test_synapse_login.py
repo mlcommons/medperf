@@ -1,7 +1,7 @@
 import pytest
 from medperf.commands.auth import SynapseLogin
 import synapseclient
-from synapseclient.core.exceptions import SynapseError
+from synapseclient.core.exceptions import SynapseAuthenticationError
 from medperf.exceptions import CommunicationAuthenticationError, InvalidArgumentError
 
 PATCH_LOGIN = "medperf.commands.auth.synapse_login.{}"
@@ -17,7 +17,7 @@ def synapse_client(mocker):
 def test_run_fails_if_error(mocker, synapse_client, ui):
     # Arrange
     def __side_effect(*args, **kwargs):
-        raise SynapseError
+        raise SynapseAuthenticationError
 
     mocker.patch.object(synapse_client, "login", side_effect=__side_effect)
 

@@ -1,5 +1,9 @@
 import synapseclient
-from synapseclient.core.exceptions import SynapseError
+from synapseclient.core.exceptions import (
+    SynapseNoCredentialsError,
+    SynapseHTTPError,
+    SynapseUnmetAccessRestrictions,
+)
 from medperf.exceptions import (
     CommunicationRetrievalError,
     CommunicationAuthenticationError,
@@ -39,9 +43,9 @@ class SynapseSource(BaseSource):
     def authenticate(self):
         try:
             self.client.login(silent=True)
-        except SynapseError as e:
+        except SynapseNoCredentialsError:
             msg = "There was an attempt to download resources from the Synapse "
-            msg += "platform, but couldn't find Synapse credentials: " + str(e)
+            msg += "platform, but couldn't find Synapse credentials."
             msg += "\nDid you run 'medperf synapse_login' before?"
             raise CommunicationAuthenticationError(msg)
 
@@ -53,7 +57,7 @@ class SynapseSource(BaseSource):
             resource_file = self.client.get(
                 resource_identifier, downloadLocation=download_location
             )
-        except SynapseError as e:
+        except (SynapseHTTPError, SynapseUnmetAccessRestrictions) as e:
             raise CommunicationRetrievalError(str(e))
 
         resource_path = os.path.join(download_location, resource_file.name)

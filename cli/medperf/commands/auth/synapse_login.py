@@ -1,6 +1,6 @@
 from medperf import config
 import synapseclient
-from synapseclient.core.exceptions import SynapseError
+from synapseclient.core.exceptions import SynapseAuthenticationError
 from medperf.exceptions import CommunicationAuthenticationError, InvalidArgumentError
 
 
@@ -41,7 +41,7 @@ class SynapseLogin:
         syn = synapseclient.Synapse()
         try:
             syn.login(username, password, rememberMe=True)
-        except SynapseError:
+        except SynapseAuthenticationError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
 
     @classmethod
@@ -54,6 +54,6 @@ class SynapseLogin:
 
         syn = synapseclient.Synapse()
         try:
-            syn.login(authToken=access_token, rememberMe=True)
-        except SynapseError:
+            syn.login()
+        except SynapseAuthenticationError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
