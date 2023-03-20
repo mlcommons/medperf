@@ -24,7 +24,9 @@ from medperf.utils import (
     cleanup,
 )
 import medperf.commands.association.association as association
-from medperf.commands.compatibility_test import CompatibilityTestExecution
+from medperf.commands.compatibility_test.compatibility_test import (
+    CompatibilityTestExecution,
+)
 
 
 app = typer.Typer()

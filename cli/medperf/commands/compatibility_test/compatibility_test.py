@@ -11,13 +11,15 @@ from medperf.commands.execution import Execution
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
+from medperf.entities.report import TestReport
 from medperf.commands.dataset.create import DataPreparation
 from medperf.utils import check_cube_validity, untar, get_file_sha1, storage_path
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 from medperf.comms.entity_resources import resources
+from .validate_params import CompatibilityTestParamsValidator
 
 
-class CompatibilityTestExecution:
+class CompatibilityTestExecution(CompatibilityTestParamsValidator):
     @classmethod
     def run(
         cls,
@@ -84,7 +86,7 @@ class CompatibilityTestExecution:
         test_exec.validate()
         test_exec.prepare_test()
         test_exec.set_data_uid()
-        test_exec.set_path()
+        test_exec.initialize_report()
         results = test_exec.cached_results()
         if results is None:
             results = test_exec.execute_benchmark()
@@ -117,101 +119,10 @@ class CompatibilityTestExecution:
         self.ui = config.ui
         self.dataset = None
         self.no_cache = no_cache
-
-    def __validate_cubes(self):
-        if not self.model and not self.benchmark_uid:
-            raise InvalidArgumentError(
-                "A model mlcube or a benchmark should at least be specified"
-            )
-
-        if not self.evaluator and not self.benchmark_uid:
-            raise InvalidArgumentError(
-                "A metrics mlcube or a benchmark should at least be specified"
-            )
-
-    def __raise_redundant_data_source(self):
-        msg = "Make sure you pass only one data source: "
-        msg += "either a prepared dataset, a data path and labels path, or a demo dataset url"
-        raise InvalidArgumentError(msg)
-
-    def __validate_prepared_data_source(self):
-        if any(
-            [
-                self.data_path,
-                self.labels_path,
-                self.demo_dataset_url,
-                self.demo_dataset_hash,
-            ]
-        ):
-            self.__raise_redundant_data_source()
-        if self.data_prep:
-            raise InvalidArgumentError(
-                "A data preparation cube is not needed when specifying a prepared dataset"
-            )
-
-    def __validate_data_path_source(self):
-        if not self.labels_path:
-            raise InvalidArgumentError(
-                "Labels path should be specified when providing data path"
-            )
-        if any([self.demo_dataset_url, self.demo_dataset_hash, self.data_uid]):
-            self.__raise_redundant_data_source()
-
-        if not self.data_prep or not self.benchmark_uid:
-            raise InvalidArgumentError(
-                "A data preparation cube should be passed when specifying raw data input"
-            )
-
-    def __validate_demo_data_source(self):
-        if any([self.data_path, self.labels_path, self.data_uid]):
-            self.__raise_redundant_data_source()
-
-        if not self.data_prep or not self.benchmark_uid:
-            raise InvalidArgumentError(
-                "A data preparation cube should be passed when specifying raw data input"
-            )
-
-    def __validate_data_source(self):
-        if not any([self.data_path, self.demo_dataset_url, self.data_uid]):
-            if not self.benchmark_uid:
-                msg = "A data source should at least be specified, either by providing"
-                msg += " a prepared data uid, a demo dataset url, data path, or a benchmark"
-                raise InvalidArgumentError(msg)
-            self.from_benchmark = True
-            return
-
-        if self.data_uid:
-            self.__validate_prepared_data_source()
-            self.from_prepared = True
-            return
-
-        if self.data_path:
-            self.__validate_data_path_source()
-            self.from_path = True
-            return
-
-        if self.demo_dataset_url:
-            self.__validate_demo_data_source()
-            self.from_demo = True
-            return
-
-    def __validate_redundant_benchmark(self):
-        if self.benchmark_uid:
-            if (
-                not self.from_benchmark
-                and self.model
-                and self.evaluator
-                and (self.from_prepared or self.data_prep)
-            ):
-                raise InvalidArgumentError("The provided benchmark will not be used")
-
-    def validate(self):
-        """Ensures test has been passed a valid combination of parameters.
-        """
-
-        self.__validate_cubes()
-        self.__validate_data_source()
-        self.__validate_redundant_benchmark()
+        self.from_benchmark = False
+        self.from_prepared = False
+        self.from_path = False
+        self.from_demo = False
 
     def prepare_test(self):
         """Prepares all parameters so a test can be executed. Paths to cubes are
@@ -377,10 +288,18 @@ class CompatibilityTestExecution:
         labels_path = os.path.join(untar_path, paths["labels_path"])
         return data_path, labels_path
 
-    def set_path(self):
-        uid = f"{self.benchmark_uid}_{self.data_uid}_{self.data_prep}_{self.model}_{self.evaluator}"
-        path = os.path.join(config.test_storage, uid)
-        self.path = storage_path(path)
+    def initialize_report(self):
+        report_data = {
+            "demo_dataset_url": self.demo_dataset_url,
+            "demo_dataset_hash": self.demo_dataset_hash,
+            "data_path": self.data_path,
+            "labels_path": self.labels_path,
+            "prepared_data_hash": self.dataset.generated_uid,
+            "data_preparation_mlcube": self.data_prep,
+            "model": self.model,
+            "data_evaluator_mlcube": self.evaluator,
+        }
+        self.report = TestReport(**report_data)
 
     def cached_results(self):
         """checks the existance of, and retrieves if possible, the compatibility test
@@ -390,12 +309,9 @@ class CompatibilityTestExecution:
             (dict|None): None if the result does not exist or if self.no_cache is True,
             otherwise it returns the found result.
         """
-        if os.path.exists(self.path) and not self.no_cache:
-            logging.info(f"Existing results at {self.path} were detected.")
-            logging.info("The compatibilty test will not be re-executed.")
-            with open(self.path, "r") as f:
-                return yaml.safe_load(f)
+        if not self.no_cache:
+            return self.report.cached_results()
 
     def write(self, results):
-        with open(self.path, "w") as f:
-            yaml.dump(results, f)
+        self.report.set_results(results)
+        self.report.write()

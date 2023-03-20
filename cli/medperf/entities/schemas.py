@@ -5,13 +5,7 @@ from typing import Optional
 from medperf.enums import Status
 
 
-class MedperfSchema(BaseModel):
-    id: Optional[int]
-    name: str = Field(..., max_length=20)
-    owner: Optional[int]
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
-
+class MedperfBaseSchema(BaseModel):
     def dict(self, *args, **kwargs) -> dict:
         """Overrides dictionary implementation so it filters out
         fields not defined in the pydantic model
@@ -57,6 +51,14 @@ class MedperfSchema(BaseModel):
         allow_population_by_field_name = True
         extra = "allow"
         use_enum_values = True
+
+
+class MedperfSchema(MedperfBaseSchema):
+    id: Optional[int]
+    name: str = Field(..., max_length=20)
+    owner: Optional[int]
+    created_at: Optional[datetime]
+    modified_at: Optional[datetime]
 
 
 class DeployableSchema(BaseModel):

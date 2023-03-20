@@ -7,7 +7,9 @@ from unittest.mock import call, ANY, mock_open
 
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.commands.compatibility_test import CompatibilityTestExecution
+from medperf.commands.compatibility_test.compatibility_test import (
+    CompatibilityTestExecution,
+)
 
 PATCH_TEST = "medperf.commands.compatibility_test.{}"
 
