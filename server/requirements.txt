@@ -14,5 +14,3 @@ Werkzeug==2.2.3
 django-extensions==3.2.1
 #Temporary fix for pyOpenSSL. https://github.com/aws/aws-sam-cli/issues/4527#issuecomment-1369776818
 cryptography==38.0.4
-#Temporary fix for Werkzeug and mlcube dependency conflict. Details at https://github.com/mlcommons/medperf/pull/386#issuecomment-1476121222
-MarkupSafe==1.1.1
