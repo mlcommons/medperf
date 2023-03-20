@@ -2,6 +2,8 @@ from django.urls import path
 from benchmarkmodel import views as bviews
 from . import views
 
+app_name = "MLCube"
+
 urlpatterns = [
     path("", views.MlCubeList.as_view()),
     path("<int:pk>/", views.MlCubeDetail.as_view()),

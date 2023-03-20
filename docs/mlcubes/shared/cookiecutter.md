@@ -1,0 +1,2 @@
+!!! note
+    MedPerf is running CookieCutter under the hood. This medperf command provides additional arguments for handling different scenarios. You can see more information on this by running `medperf mlcube create --help`

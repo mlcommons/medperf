@@ -3,6 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
+from drf_spectacular.utils import extend_schema
 
 from .serializers import UserSerializer
 from .permissions import IsAdmin, IsOwnUser
@@ -13,6 +14,7 @@ class UserList(GenericAPIView):
     serializer_class = UserSerializer
     queryset = ""
 
+    @extend_schema(operation_id="users_retrieve_all")
     def get(self, request, format=None):
         """
         List all users
