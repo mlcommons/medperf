@@ -279,39 +279,42 @@ class CompatibilityTestExecution:
             logging.info("local path provided. Creating symbolic link")
             temp_uid = config.test_cube_prefix + str(int(time()))
             setattr(self, attr, temp_uid)
-            cubes_storage = storage_path(config.cubes_storage)
-            dst = os.path.join(cubes_storage, temp_uid)
-            os.symlink(path, dst)
-            logging.info(f"local cube will be linked to path: {dst}")
-            cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
-            cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
-            if not os.path.exists(cube_metadata_file):
-                temp_metadata = {
-                    "id": temp_uid,
-                    "name": temp_uid,
-                    "mlcube_hash": "",
-                    "parameters_hash": "",
-                    "image_tarball_hash": "",
-                    "additional_files_tarball_hash": "",
-                }
-                metadata = TestCube(**temp_metadata).todict()
-                with open(cube_metadata_file, "w") as f:
-                    yaml.dump(metadata, f)
-            if not os.path.exists(cube_hashes_filename):
-                hashes = {
-                    "mlcube_hash": "",
-                    "parameters_hash": "",
-                    "additional_files_tarball_hash": "",
-                    "image_tarball_hash": "",
-                }
-                with open(cube_hashes_filename, "w") as f:
-                    yaml.dump(hashes, f)
+            self.prepare_local_cube(path, temp_uid)
             return
 
         logging.error(f"mlcube {val} was not found as an existing mlcube")
         raise InvalidArgumentError(
             f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube"
         )
+
+    def prepare_local_cube(self, path, temp_uid):
+        cubes_storage = storage_path(config.cubes_storage)
+        dst = os.path.join(cubes_storage, temp_uid)
+        os.symlink(path, dst)
+        logging.info(f"local cube will be linked to path: {dst}")
+        cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
+        cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
+        if not os.path.exists(cube_metadata_file):
+            temp_metadata = {
+                "id": temp_uid,
+                "name": temp_uid,
+                "mlcube_hash": "",
+                "parameters_hash": "",
+                "image_tarball_hash": "",
+                "additional_files_tarball_hash": "",
+            }
+            metadata = TestCube(**temp_metadata).todict()
+            with open(cube_metadata_file, "w") as f:
+                yaml.dump(metadata, f)
+        if not os.path.exists(cube_hashes_filename):
+            hashes = {
+                "mlcube_hash": "",
+                "parameters_hash": "",
+                "additional_files_tarball_hash": "",
+                "image_tarball_hash": "",
+            }
+            with open(cube_hashes_filename, "w") as f:
+                yaml.dump(hashes, f)
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
