@@ -171,11 +171,24 @@ class CompatibilityTestExecution:
             cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
             cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
             if not os.path.exists(cube_metadata_file):
-                metadata = {"name": temp_uid, "is_valid": True}
+                temp_metadata = {
+                    "id": temp_uid,
+                    "name": temp_uid,
+                    "mlcube_hash": "",
+                    "parameters_hash": "",
+                    "image_tarball_hash": "",
+                    "additional_files_tarball_hash": "",
+                }
+                metadata = TestCube(**temp_metadata).todict()
                 with open(cube_metadata_file, "w") as f:
                     yaml.dump(metadata, f)
             if not os.path.exists(cube_hashes_filename):
-                hashes = {"additional_files_tarball_hash": "", "image_tarball_hash": ""}
+                hashes = {
+                    "mlcube_hash": "",
+                    "parameters_hash": "",
+                    "additional_files_tarball_hash": "",
+                    "image_tarball_hash": "",
+                }
                 with open(cube_hashes_filename, "w") as f:
                     yaml.dump(hashes, f)
             return
