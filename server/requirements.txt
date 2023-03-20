@@ -11,6 +11,6 @@ google-cloud-secret-manager==2.8.0
 whitenoise==6.2.0
 pyOpenSSL==22.0.0
 Werkzeug==2.2.3
-django-extensions==3.1.5
+django-extensions==3.2.1
 #Temporary fix for pyOpenSSL. https://github.com/aws/aws-sam-cli/issues/4527#issuecomment-1369776818
 cryptography==38.0.4
