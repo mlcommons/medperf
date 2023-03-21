@@ -1,4 +1,10 @@
-from medperf.utils import untar, get_file_sha1, storage_path, check_cube_validity
+from medperf.utils import (
+    untar,
+    get_file_sha1,
+    storage_path,
+    check_cube_validity,
+    generate_tmp_uid,
+)
 from medperf.exceptions import InvalidEntityError, InvalidArgumentError
 
 from medperf.comms.entity_resources import resources
@@ -7,7 +13,6 @@ from medperf.entities.cube import Cube
 import medperf.config as config
 import os
 import yaml
-from time import time
 from pathlib import Path
 import logging
 
@@ -41,7 +46,7 @@ def download_demo_data(dset_url, dset_hash):
 
 
 def prepare_local_cube(path):
-    temp_uid = config.test_cube_prefix + str(int(time()))
+    temp_uid = config.test_cube_prefix + generate_tmp_uid()
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
     os.symlink(path, dst)
