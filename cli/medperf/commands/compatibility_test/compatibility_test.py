@@ -27,6 +27,26 @@ def run(
         "-d",
         help="Prepared Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
     ),
+    demo_dataset_url: str = typer.Option(
+        None,
+        "--demo_dataset_url",
+        help="UID of the benchmark to test. If not passed, a temporary benchmark is created.",
+    ),
+    demo_dataset_hash: str = typer.Option(
+        None,
+        "--demo_dataset_hash",
+        help="UID of the benchmark to test. If not passed, a temporary benchmark is created.",
+    ),
+    data_path: str = typer.Option(
+        None,
+        "--data_path",
+        help="UID of the benchmark to test. If not passed, a temporary benchmark is created.",
+    ),
+    labels_path: str = typer.Option(
+        None,
+        "--labels_path",
+        help="UID of the benchmark to test. If not passed, a temporary benchmark is created.",
+    ),
     data_prep: str = typer.Option(
         None,
         "--data_preparation",
@@ -54,7 +74,16 @@ def run(
     Can test prepared datasets, remote and local models independently.
     """
     CompatibilityTestExecution.run(
-        benchmark_uid, data_uid, data_prep, model, evaluator, no_cache=no_cache,
+        model,
+        evaluator,
+        benchmark_uid,
+        data_prep,
+        data_path,
+        labels_path,
+        demo_dataset_url,
+        demo_dataset_hash,
+        data_uid,
+        no_cache=no_cache,
     )
     config.ui.print("✅ Done!")
     cleanup()
