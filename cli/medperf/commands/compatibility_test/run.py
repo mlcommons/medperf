@@ -7,7 +7,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
 from medperf.commands.dataset.create import DataPreparation
 from .validate_params import CompatibilityTestParamsValidator
-from .utils import download_demo_data, check_cube
+from .utils import download_demo_data, check_cube, get_cube
 
 
 class CompatibilityTestExecution(CompatibilityTestParamsValidator):
@@ -150,8 +150,8 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.model = check_cube("Model", self.model)
         self.evaluator = check_cube("Evaluator", self.evaluator)
 
-        self.model_cube = self.get_cube(self.model, "Model")
-        self.evaluator_cube = self.get_cube(self.evaluator, "Evaluator")
+        self.model_cube = get_cube(self.model, "Model")
+        self.evaluator_cube = get_cube(self.evaluator, "Evaluator")
 
     def execute(self):
         """Runs the benchmark execution flow given the specified testing parameters
