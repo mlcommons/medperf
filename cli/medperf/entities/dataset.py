@@ -65,7 +65,9 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return self.extended_dict()
 
     @classmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Dataset"]:
+    def all(
+        cls, local_only: bool = False, comms_func: callable = None
+    ) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Args:
@@ -78,7 +80,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         logging.info("Retrieving all datasets")
         dsets = []
         if not local_only:
-            dsets = cls.__remote_all(mine_only=mine_only)
+            dsets = cls.__remote_all(comms_func=comms_func)
 
         remote_uids = set([dset.id for dset in dsets])
 
@@ -89,14 +91,13 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return dsets
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Dataset"]:
+    def __remote_all(cls, comms_func) -> List["Dataset"]:
         dsets = []
-        remote_func = config.comms.get_datasets
-        if mine_only:
-            remote_func = config.comms.get_user_datasets
+        if comms_func is None:
+            comms_func = config.comms.get_datasets
 
         try:
-            dsets_meta = remote_func()
+            dsets_meta = comms_func()
             dsets = [cls(**meta) for meta in dsets_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all datasets from the server"

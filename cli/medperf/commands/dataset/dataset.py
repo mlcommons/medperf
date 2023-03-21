@@ -20,11 +20,14 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
 ):
     """List datasets stored locally and remotely from the user"""
+    comms_func = config.comms.get_datasets
+    if mine:
+        comms_func = config.comms.get_user_datasets
     EntityList.run(
         Dataset,
         fields=["UID", "Name", "Data Preparation Cube UID", "Registered"],
         local_only=local,
-        mine_only=mine,
+        comms_func=comms_func,
     )
 
 
