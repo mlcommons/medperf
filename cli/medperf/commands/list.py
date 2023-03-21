@@ -6,29 +6,29 @@ from medperf import config
 
 class EntityList:
     @staticmethod
-    def run(entity_class, fields, local_only: bool = False, mine_only: bool = False):
+    def run(entity_class, fields, comms_func, local_only: bool = False):
         """Lists all local datasets
 
         Args:
             local_only (bool, optional): Display all local results. Defaults to False.
             mine_only (bool, optional): Display all current-user results. Defaults to False.
         """
-        entity_list = EntityList(entity_class, fields, local_only, mine_only)
+        entity_list = EntityList(entity_class, fields, comms_func, local_only)
         entity_list.prepare()
         entity_list.validate()
         entity_list.filter()
         entity_list.display()
 
-    def __init__(self, entity_class, fields, local_only, mine_only):
+    def __init__(self, entity_class, fields, comms_func, local_only):
         self.entity_class = entity_class
         self.fields = fields
+        self.comms_func = comms_func
         self.local_only = local_only
-        self.mine_only = mine_only
         self.data = []
 
     def prepare(self):
         entities = self.entity_class.all(
-            local_only=self.local_only, mine_only=self.mine_only
+            local_only=self.local_only, comms_func=self.comms_func
         )
         self.data = [entity.display_dict() for entity in entities]
 

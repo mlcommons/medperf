@@ -63,13 +63,24 @@ def submit(
 def list(
     local: bool = typer.Option(False, "--local", help="Get local results"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    benchmark: int = typer.Option(
+        None, "--benchmark", "-b", help="Get results for a given benchmark"
+    ),
 ):
     """List results stored locally and remotely from the user"""
+    comms_func = config.comms.get_results
+    if mine:
+        comms_func = config.comms.get_user_results
+    if benchmark is not None:
+        # Use lambda to create a version of the function without parameters
+        # That way the entity can call the function correctly
+        comms_func = lambda: config.comms.get_benchmark_results(benchmark)
+
     EntityList.run(
         Result,
         fields=["UID", "Benchmark", "Model", "Data", "Registered"],
         local_only=local,
-        mine_only=mine,
+        comms_func=comms_func,
     )
 
 

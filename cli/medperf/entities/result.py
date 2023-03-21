@@ -41,7 +41,9 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         self.path = path
 
     @classmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Result"]:
+    def all(
+        cls, local_only: bool = False, comms_func: callable = None
+    ) -> List["Result"]:
         """Gets and creates instances of all the user's results
 
         Args:
@@ -54,7 +56,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         logging.info("Retrieving all results")
         results = []
         if not local_only:
-            results = cls.__remote_all(mine_only=mine_only)
+            results = cls.__remote_all(comms_func=comms_func)
 
         remote_uids = set([result.id for result in results])
 
@@ -65,14 +67,15 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Result"]:
+    def __remote_all(cls, comms_func: callable) -> List["Result"]:
         results = []
-        remote_func = config.comms.get_results
-        if mine_only:
-            remote_func = config.comms.get_user_results
+
+        # Passing the default value inside the function so it gets evaluated at runtime
+        if comms_func is None:
+            comms_func = config.comms.get_results
 
         try:
-            results_meta = remote_func()
+            results_meta = comms_func()
             results = [cls(**meta) for meta in results_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all results from the server"
