@@ -119,10 +119,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.ui = config.ui
         self.dataset = None
         self.no_cache = no_cache
-        self.from_benchmark = False
-        self.from_prepared = False
-        self.from_path = False
-        self.from_demo = False
+        self.data_source = None
 
     def prepare_test(self):
         """Prepares all parameters so a test can be executed. Paths to cubes are
@@ -234,15 +231,15 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         """
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
-        if self.from_prepared:
+        if self.data_source == "prepared":
             self.dataset = Dataset.get(self.data_uid)
             # to avoid 'None' as a uid
             self.data_prep = self.dataset.data_preparation_mlcube
         else:
-            if self.from_path:
+            if self.data_source == "path":
                 data_path, labels_path = self.data_path, self.labels_path
             else:
-                if self.from_benchmark:
+                if self.data_source == "benchmark":
                     logging.info("Using benchmark demo dataset")
                     self.demo_dataset_url = self.benchmark.demo_dataset_tarball_url
                     self.demo_dataset_hash = self.benchmark.demo_dataset_tarball_hash

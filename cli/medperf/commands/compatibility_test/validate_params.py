@@ -61,31 +61,31 @@ class CompatibilityTestParamsValidator:
                 msg = "A data source should at least be specified, either by providing"
                 msg += " a prepared data uid, a demo dataset url, data path, or a benchmark"
                 raise InvalidArgumentError(msg)
-            self.from_benchmark = True
+            self.data_source = "benchmark"
             return
 
         if self.data_uid:
             self.__validate_prepared_data_source()
-            self.from_prepared = True
+            self.data_source = "prepared"
             return
 
         if self.data_path:
             self.__validate_data_path_source()
-            self.from_path = True
+            self.data_source = "path"
             return
 
         if self.demo_dataset_url:
             self.__validate_demo_data_source()
-            self.from_demo = True
+            self.data_source = "demo"
             return
 
     def __validate_redundant_benchmark(self):
         if self.benchmark_uid:
             if (
-                not self.from_benchmark
+                not self.data_source != "benchmark"
                 and self.model
                 and self.evaluator
-                and (self.from_prepared or self.data_prep)
+                and (self.data_source == "prepared" or self.data_prep)
             ):
                 raise InvalidArgumentError("The provided benchmark will not be used")
 
