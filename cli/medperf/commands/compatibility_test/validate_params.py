@@ -63,7 +63,7 @@ class CompatibilityTestParamsValidator:
         if any([self.demo_dataset_url, self.demo_dataset_hash, self.data_uid]):
             self.__raise_redundant_data_source()
 
-        if not self.data_prep or not self.benchmark_uid:
+        if not self.data_prep and not self.benchmark_uid:
             raise InvalidArgumentError(
                 "A data preparation cube should be passed when specifying raw data input"
             )
@@ -72,7 +72,7 @@ class CompatibilityTestParamsValidator:
         if any([self.data_path, self.labels_path, self.data_uid]):
             self.__raise_redundant_data_source()
 
-        if not self.data_prep or not self.benchmark_uid:
+        if not self.data_prep and not self.benchmark_uid:
             raise InvalidArgumentError(
                 "A data preparation cube should be passed when specifying raw data input"
             )

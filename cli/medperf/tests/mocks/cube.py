@@ -23,7 +23,7 @@ class MockCube:
 
 
 class TestCube(Cube):
-    id: int = 1
+    id: Optional[int] = 1
     name: str = "name"
     git_mlcube_url: HttpUrl = "https://test.com/mlcube.yaml"
     mlcube_hash: Optional[str] = EMPTY_FILE_HASH

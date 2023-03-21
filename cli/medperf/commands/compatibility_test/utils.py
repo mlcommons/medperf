@@ -50,7 +50,7 @@ def prepare_local_cube(path):
     cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
     if not os.path.exists(cube_metadata_file):
         temp_metadata = {
-            "id": temp_uid,
+            "id": None,
             "name": temp_uid,
             "mlcube_hash": "",
             "parameters_hash": "",
