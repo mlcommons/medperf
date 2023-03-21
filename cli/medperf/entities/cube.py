@@ -69,7 +69,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Cube"]:
+    def all(cls, local_only: bool = False, comms_func: callable = None) -> List["Cube"]:
         """Class method for retrieving all retrievable MLCubes
 
         Args:
@@ -82,7 +82,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         logging.info("Retrieving all cubes")
         cubes = []
         if not local_only:
-            cubes = cls.__remote_all(mine_only=mine_only)
+            cubes = cls.__remote_all(comms_func=comms_func)
 
         remote_uids = set([cube.id for cube in cubes])
 
@@ -93,14 +93,13 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         return cubes
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Cube"]:
+    def __remote_all(cls, comms_func) -> List["Cube"]:
         cubes = []
-        remote_func = config.comms.get_cubes
-        if mine_only:
-            remote_func = config.comms.get_user_cubes
+        if comms_func is None:
+            comms_func = config.comms.get_cubes
 
         try:
-            cubes_meta = remote_func()
+            cubes_meta = comms_func()
             cubes = [cls(**meta) for meta in cubes_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all cubes from the server"
