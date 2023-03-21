@@ -81,7 +81,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         test_exec.set_data_uid()
         results = test_exec.cached_results()
         if results is None:
-            results = test_exec.execute_benchmark()
+            results = test_exec.execute()
             test_exec.write(results)
         return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model, results
 
@@ -153,7 +153,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.model_cube = self.get_cube(self.model, "Model")
         self.evaluator_cube = self.get_cube(self.evaluator, "Evaluator")
 
-    def execute_benchmark(self):
+    def execute(self):
         """Runs the benchmark execution flow given the specified testing parameters
         """
         execution_summary = Execution.run(

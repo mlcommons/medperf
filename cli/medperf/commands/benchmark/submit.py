@@ -5,9 +5,7 @@ import logging
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import get_file_sha1, generate_tmp_uid, storage_path
-from medperf.commands.compatibility_test.compatibility_test import (
-    CompatibilityTestExecution,
-)
+from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 from medperf.exceptions import InvalidEntityError
 from medperf.comms.entity_resources import resources
 

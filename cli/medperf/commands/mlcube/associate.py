@@ -3,9 +3,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.exceptions import CleanExit
 from medperf.utils import dict_pretty_print, approval_prompt
-from medperf.commands.compatibility_test.compatibility_test import (
-    CompatibilityTestExecution,
-)
+from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 
 
 class AssociateCube:
