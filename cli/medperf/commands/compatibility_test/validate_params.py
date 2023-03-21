@@ -69,6 +69,10 @@ class CompatibilityTestParamsValidator:
             )
 
     def __validate_demo_data_source(self):
+        if not self.demo_dataset_hash:
+            raise InvalidArgumentError(
+                "The hash of the provided demo dataset should be specified"
+            )
         if any([self.data_path, self.labels_path, self.data_uid]):
             self.__raise_redundant_data_source()
 
