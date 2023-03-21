@@ -47,6 +47,8 @@ def download_demo_data(dset_url, dset_hash):
 
 def prepare_local_cube(path):
     temp_uid = config.test_cube_prefix + generate_tmp_uid()
+    # TODO: a better way for limiting the temp_uid length?
+    temp_uid = temp_uid[:20]
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
     os.symlink(path, dst)
@@ -77,6 +79,8 @@ def prepare_local_cube(path):
             yaml.dump(hashes, f)
         config.extra_cleanup_paths.append(cube_hashes_filename)
 
+    return temp_uid
+
 
 def check_cube(cube_name: str, cube_uid: str):
     """Assigns the attr used for testing according to the initialization parameters.
@@ -91,7 +95,7 @@ def check_cube(cube_name: str, cube_uid: str):
     # Test if value looks like an mlcube_uid, if so skip path validation
     if str(cube_uid).isdigit():
         logging.info(f"MLCube value {cube_uid} for {cube_name} resembles an mlcube_uid")
-        return
+        return cube_uid
 
     # Check if value is a local mlcube
     path = Path(cube_uid)
