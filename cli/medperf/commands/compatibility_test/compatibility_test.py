@@ -1,22 +1,13 @@
-import os
-from medperf.tests.mocks.cube import TestCube
-import yaml
 import logging
-from time import time
-from pathlib import Path
 from typing import List
 
-import medperf.config as config
 from medperf.commands.execution import Execution
-from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
 from medperf.commands.dataset.create import DataPreparation
-from medperf.utils import check_cube_validity, untar, get_file_sha1, storage_path
-from medperf.exceptions import InvalidArgumentError, InvalidEntityError
-from medperf.comms.entity_resources import resources
 from .validate_params import CompatibilityTestParamsValidator
+from .utils import download_demo_data, check_cube
 
 
 class CompatibilityTestExecution(CompatibilityTestParamsValidator):
@@ -84,9 +75,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             no_cache,
         )
         test_exec.validate()
-        test_exec.prepare_test()
-        test_exec.set_data_uid()
+        test_exec.get_benchmark()
         test_exec.initialize_report()
+        test_exec.prepare_cubes()
+        test_exec.set_data_uid()
         results = test_exec.cached_results()
         if results is None:
             results = test_exec.execute_benchmark()
@@ -115,35 +107,51 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.demo_dataset_url = demo_dataset_url
         self.demo_dataset_hash = demo_dataset_hash
         self.data_uid = data_uid
-        self.comms = config.comms
-        self.ui = config.ui
-        self.dataset = None
         self.no_cache = no_cache
+        self.dataset = None
         self.data_source = None
 
-    def prepare_test(self):
+    def get_benchmark(self):
         """Prepares all parameters so a test can be executed. Paths to cubes are
         transformed to cube uids and benchmark is mocked/obtained.
         """
-        if self.benchmark_uid:
-            self.benchmark = Benchmark.get(self.benchmark_uid)
-            self.set_cube_uid("data_prep", self.benchmark.data_preparation_mlcube)
-            self.set_cube_uid("model", self.benchmark.reference_model_mlcube)
-            self.set_cube_uid("evaluator", self.benchmark.data_evaluator_mlcube)
-        else:
-            self.set_cube_uid("data_prep")
-            self.set_cube_uid("model")
-            self.set_cube_uid("evaluator")
+        if not self.benchmark_uid:
+            return
 
-        self.model_cube = self.__get_cube(self.model, "Model")
-        self.evaluator_cube = self.__get_cube(self.evaluator, "Evaluator")
+        benchmark = Benchmark.get(self.benchmark_uid)
+        if self.data_source != "prepared":
+            self.data_prep = self.data_prep or benchmark.data_preparation_mlcube
+        self.model = self.model or benchmark.reference_model_mlcube
+        self.evaluator = self.evaluator or benchmark.data_evaluator_mlcube
+        if self.data_source == "benchmark":
+            self.demo_dataset_url = benchmark.demo_dataset_tarball_url
+            self.demo_dataset_hash = benchmark.demo_dataset_tarball_hash
 
-    def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
-        cube = Cube.get(uid)
-        self.ui.print(f"> {name} cube download complete")
-        check_cube_validity(cube)
-        return cube
+    def initialize_report(self):
+        report_data = {
+            "demo_dataset_url": self.demo_dataset_url,
+            "demo_dataset_hash": self.demo_dataset_hash,
+            "data_path": self.data_path,
+            "labels_path": self.labels_path,
+            "prepared_data_hash": self.data_uid,
+            "data_preparation_mlcube": self.data_prep,
+            "model": self.model,
+            "data_evaluator_mlcube": self.evaluator,
+        }
+        self.report = TestReport(**report_data)
+
+    def prepare_cubes(self):
+        """Prepares all parameters so a test can be executed. Paths to cubes are
+        transformed to cube uids and benchmark is mocked/obtained.
+        """
+
+        if self.data_source != "prepared":
+            self.data_prep = check_cube("Data Preparation", self.data_prep)
+        self.model = check_cube("Model", self.model)
+        self.evaluator = check_cube("Evaluator", self.evaluator)
+
+        self.model_cube = self.get_cube(self.model, "Model")
+        self.evaluator_cube = self.get_cube(self.evaluator, "Evaluator")
 
     def execute_benchmark(self):
         """Runs the benchmark execution flow given the specified testing parameters
@@ -155,74 +163,6 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             ignore_model_errors=False,
         )
         return execution_summary["results"]
-
-    def set_cube_uid(self, attr: str, fallback: any = None):
-        """Assigns the attr used for testing according to the initialization parameters.
-        If the value is a path, it will create a temporary uid and link the cube path to
-        the medperf storage path.
-
-        Arguments:
-            attr (str): Attribute to check and/or reassign.
-            fallback (any): Value to assign if attribute is empty. Defaults to None.
-        """
-        logging.info(f"Establishing {attr}_uid for test execution")
-        val = getattr(self, attr)
-        if val is None:
-            logging.info(f"Empty attribute: {attr}. Assigning fallback: {fallback}")
-            setattr(self, attr, fallback)
-            return
-
-        # Test if value looks like an mlcube_uid, if so skip path validation
-        if str(val).isdigit():
-            logging.info(f"MLCube value {val} for {attr} resembles an mlcube_uid")
-            return
-
-        # Check if value is a local mlcube
-        path = Path(val)
-        if path.is_file():
-            path = path.parent
-        path = path.resolve()
-
-        if os.path.exists(path):
-            logging.info("local path provided. Creating symbolic link")
-            temp_uid = config.test_cube_prefix + str(int(time()))
-            setattr(self, attr, temp_uid)
-            self.prepare_local_cube(path, temp_uid)
-            return
-
-        logging.error(f"mlcube {val} was not found as an existing mlcube")
-        raise InvalidArgumentError(
-            f"The provided mlcube ({val}) for {attr} could not be found as a local or remote mlcube"
-        )
-
-    def prepare_local_cube(self, path, temp_uid):
-        cubes_storage = storage_path(config.cubes_storage)
-        dst = os.path.join(cubes_storage, temp_uid)
-        os.symlink(path, dst)
-        logging.info(f"local cube will be linked to path: {dst}")
-        cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
-        cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
-        if not os.path.exists(cube_metadata_file):
-            temp_metadata = {
-                "id": temp_uid,
-                "name": temp_uid,
-                "mlcube_hash": "",
-                "parameters_hash": "",
-                "image_tarball_hash": "",
-                "additional_files_tarball_hash": "",
-            }
-            metadata = TestCube(**temp_metadata).todict()
-            with open(cube_metadata_file, "w") as f:
-                yaml.dump(metadata, f)
-        if not os.path.exists(cube_hashes_filename):
-            hashes = {
-                "mlcube_hash": "",
-                "parameters_hash": "",
-                "additional_files_tarball_hash": "",
-                "image_tarball_hash": "",
-            }
-            with open(cube_hashes_filename, "w") as f:
-                yaml.dump(hashes, f)
 
     def set_data_uid(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
@@ -239,11 +179,9 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             if self.data_source == "path":
                 data_path, labels_path = self.data_path, self.labels_path
             else:
-                if self.data_source == "benchmark":
-                    logging.info("Using benchmark demo dataset")
-                    self.demo_dataset_url = self.benchmark.demo_dataset_tarball_url
-                    self.demo_dataset_hash = self.benchmark.demo_dataset_tarball_hash
-                data_path, labels_path = self.download_demo_data()
+                data_path, labels_path = download_demo_data(
+                    self.demo_dataset_url, self.demo_dataset_hash
+                )
 
             self.data_uid = DataPreparation.run(
                 None,
@@ -255,48 +193,6 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
                 location="local",
             )
             self.dataset = Dataset.get(self.data_uid)
-
-    def download_demo_data(self):
-        """Retrieves the demo dataset associated to the specified benchmark
-
-        Returns:
-            data_path (str): Location of the downloaded data
-            labels_path (str): Location of the downloaded labels
-        """
-        dset_hash = self.demo_dataset_hash
-        dset_url = self.demo_dataset_url
-        file_path = resources.get_benchmark_demo_dataset(dset_url, dset_hash)
-
-        # Check demo dataset integrity
-        file_hash = get_file_sha1(file_path)
-        # Alllow for empty datset hashes for benchmark registration purposes
-        if dset_hash and file_hash != dset_hash:
-            raise InvalidEntityError("Demo dataset hash doesn't match expected hash")
-
-        untar_path = untar(file_path, remove=False)
-
-        # It is assumed that all demo datasets contain a file
-        # which specifies the input of the data preparation step
-        paths_file = os.path.join(untar_path, config.demo_dset_paths_file)
-        with open(paths_file, "r") as f:
-            paths = yaml.safe_load(f)
-
-        data_path = os.path.join(untar_path, paths["data_path"])
-        labels_path = os.path.join(untar_path, paths["labels_path"])
-        return data_path, labels_path
-
-    def initialize_report(self):
-        report_data = {
-            "demo_dataset_url": self.demo_dataset_url,
-            "demo_dataset_hash": self.demo_dataset_hash,
-            "data_path": self.data_path,
-            "labels_path": self.labels_path,
-            "prepared_data_hash": self.dataset.generated_uid,
-            "data_preparation_mlcube": self.data_prep,
-            "model": self.model,
-            "data_evaluator_mlcube": self.evaluator,
-        }
-        self.report = TestReport(**report_data)
 
     def cached_results(self):
         """checks the existance of, and retrieves if possible, the compatibility test

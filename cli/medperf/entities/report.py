@@ -20,7 +20,6 @@ class TestReport(MedperfBaseSchema):
     benchmark results and how to upload them to the backend.
     """
 
-    # TODO:
     demo_dataset_url: Optional[str]
     demo_dataset_hash: Optional[str]
     data_path: Optional[str]
