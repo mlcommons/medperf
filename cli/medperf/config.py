@@ -78,3 +78,5 @@ templates = {
     "model": "templates/model_mlcube",
     "evaluator": "templates/evaluator_mlcube",
 }
+
+extra_cleanup_paths = []

@@ -65,6 +65,7 @@ def prepare_local_cube(path):
         metadata = TestCube(**temp_metadata).todict()
         with open(cube_metadata_file, "w") as f:
             yaml.dump(metadata, f)
+        config.extra_cleanup_paths.append(cube_metadata_file)
     if not os.path.exists(cube_hashes_filename):
         hashes = {
             "mlcube_hash": "",
@@ -74,6 +75,7 @@ def prepare_local_cube(path):
         }
         with open(cube_hashes_filename, "w") as f:
             yaml.dump(hashes, f)
+        config.extra_cleanup_paths.append(cube_hashes_filename)
 
 
 def check_cube(cube_name: str, cube_uid: str):
