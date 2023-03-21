@@ -21,11 +21,14 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
 ):
     """List benchmarks stored locally and remotely from the user"""
+    comms_func = config.comms.get_benchmarks
+    if mine:
+        comms_func = config.comms.get_user_benchmarks
     EntityList.run(
         Benchmark,
         fields=["UID", "Name", "Description", "State", "Approval Status", "Registered"],
         local_only=local,
-        mine_only=mine,
+        comms_func=comms_func,
     )
 
 

@@ -61,7 +61,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
 
     @classmethod
     def all(
-        cls, local_only: bool = False, mine_only: bool = False
+        cls, local_only: bool = False, comms_func: callable = None
     ) -> List["Benchmark"]:
         """Gets and creates instances of all retrievable benchmarks
 
@@ -76,7 +76,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         benchmarks = []
 
         if not local_only:
-            benchmarks = cls.__remote_all(mine_only=mine_only)
+            benchmarks = cls.__remote_all(comms_func=comms_func)
 
         remote_uids = set([bmk.id for bmk in benchmarks])
 
@@ -87,14 +87,13 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmarks
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Benchmark"]:
+    def __remote_all(cls, comms_func) -> List["Benchmark"]:
         benchmarks = []
-        remote_func = config.comms.get_benchmarks
-        if mine_only:
-            remote_func = config.comms.get_user_benchmarks
+        if comms_func is None:
+            comms_func = config.comms.get_benchmarks
 
         try:
-            bmks_meta = remote_func()
+            bmks_meta = comms_func()
             for bmk_meta in bmks_meta:
                 # Loading all related models for all benchmarks could be expensive.
                 # Most probably not necessary when getting all benchmarks.
