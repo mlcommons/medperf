@@ -170,4 +170,7 @@ def view(
 ):
     """Displays the information of one or more benchmarks
     """
-    EntityView.run(entity_id, Benchmark, format, local, mine, output)
+    comms_func = config.comms.get_benchmarks
+    if mine:
+        comms_func = config.comms.get_user_benchmarks
+    EntityView.run(entity_id, Benchmark, format, local, comms_func, output)

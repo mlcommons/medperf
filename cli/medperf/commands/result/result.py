@@ -102,6 +102,9 @@ def view(
         "--mine",
         help="Display current-user results if result ID is not provided",
     ),
+    benchmark: int = typer.Option(
+        None, "--benchmark", "-b", help="Get results for a given benchmark"
+    ),
     output: str = typer.Option(
         None,
         "--output",
@@ -111,4 +114,11 @@ def view(
 ):
     """Displays the information of one or more results
     """
-    EntityView.run(entity_id, Result, format, local, mine, output)
+    comms_func = config.comms.get_results
+    if mine:
+        comms_func = config.comms.get_user_results
+    if benchmark is not None:
+        # Use lambda to create a version of the function without parameters
+        # That way the entity can call the function correctly
+        comms_func = lambda: config.comms.get_benchmark_results(benchmark)
+    EntityView.run(entity_id, Result, format, local, comms_func, output)

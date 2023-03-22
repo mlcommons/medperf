@@ -142,4 +142,7 @@ def view(
 ):
     """Displays the information of one or more datasets
     """
-    EntityView.run(entity_id, Dataset, format, local, mine, output)
+    comms_func = config.comms.get_datasets
+    if mine:
+        comms_func = config.comms.get_user_datasets
+    EntityView.run(entity_id, Dataset, format, local, comms_func, output)

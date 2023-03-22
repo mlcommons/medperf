@@ -162,4 +162,7 @@ def view(
 ):
     """Displays the information of one or more mlcubes
     """
-    EntityView.run(entity_id, Cube, format, local, mine, output)
+    comms_func = config.comms.get_cubes
+    if mine:
+        comms_func = config.comms.get_user_cubes
+    EntityView.run(entity_id, Cube, format, local, comms_func, output)
