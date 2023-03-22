@@ -45,9 +45,9 @@ class Execution:
 
     def prepare(self):
         model_uid = self.model.id
-        data_uid = self.dataset.id
+        data_hash = self.dataset.generated_uid
         preds_path = os.path.join(
-            config.predictions_storage, str(model_uid), str(data_uid)
+            config.predictions_storage, str(model_uid), str(data_hash)
         )
 
         self.partial = False
