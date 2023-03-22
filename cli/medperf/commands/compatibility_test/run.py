@@ -24,6 +24,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         demo_dataset_hash: str = None,
         data_uid: str = None,
         no_cache: bool = False,
+        offline: bool = False,
     ) -> List:
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
@@ -73,6 +74,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             demo_dataset_hash,
             data_uid,
             no_cache,
+            offline,
         )
         test_exec.validate()
         test_exec.get_benchmark()
@@ -97,6 +99,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         demo_dataset_hash: str = None,
         data_uid: str = None,
         no_cache: bool = False,
+        offline: bool = False,
     ):
         self.model = model
         self.evaluator = evaluator
@@ -108,6 +111,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.demo_dataset_hash = demo_dataset_hash
         self.data_uid = data_uid
         self.no_cache = no_cache
+        self.offline = offline
         self.dataset = None
         self.data_source = None
 
@@ -118,7 +122,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         if not self.benchmark_uid:
             return
 
-        benchmark = Benchmark.get(self.benchmark_uid)
+        benchmark = Benchmark.get(self.benchmark_uid, local_only=self.offline)
         if self.data_source != "prepared":
             self.data_prep = self.data_prep or benchmark.data_preparation_mlcube
         self.model = self.model or benchmark.reference_model_mlcube
@@ -150,8 +154,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.model = check_cube("Model", self.model)
         self.evaluator = check_cube("Evaluator", self.evaluator)
 
-        self.model_cube = get_cube(self.model, "Model")
-        self.evaluator_cube = get_cube(self.evaluator, "Evaluator")
+        self.model_cube = get_cube(self.model, "Model", local_only=self.offline)
+        self.evaluator_cube = get_cube(
+            self.evaluator, "Evaluator", local_only=self.offline
+        )
 
     def execute(self):
         """Runs the benchmark execution flow given the specified testing parameters
@@ -172,7 +178,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
         if self.data_source == "prepared":
-            self.dataset = Dataset.get(self.data_uid)
+            self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
             # to avoid 'None' as a uid
             self.data_prep = self.dataset.data_preparation_mlcube
         else:
@@ -192,7 +198,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
                 name="demo_data",
                 location="local",
             )
-            self.dataset = Dataset.get(self.data_uid)
+            self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
 
     def cached_results(self):
         """checks the existance of, and retrieves if possible, the compatibility test

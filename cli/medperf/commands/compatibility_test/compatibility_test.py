@@ -68,6 +68,9 @@ def run(
     no_cache: bool = typer.Option(
         False, "--no-cache", help="Execute the test even if results already exist",
     ),
+    offline: bool = typer.Option(
+        False, "--offline", help="Execute the test without connecting to the internet",
+    ),
 ):
     """
     Executes a compatibility test for a determined benchmark.
@@ -84,6 +87,7 @@ def run(
         demo_dataset_hash,
         data_uid,
         no_cache=no_cache,
+        offline=offline,
     )
     config.ui.print("✅ Done!")
     cleanup()

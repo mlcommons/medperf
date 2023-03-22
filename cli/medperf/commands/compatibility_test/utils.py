@@ -114,9 +114,9 @@ def check_cube(cube_name: str, cube_uid: str):
     )
 
 
-def get_cube(uid: int, name: str) -> Cube:
+def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
     config.ui.text = f"Retrieving {name} cube"
-    cube = Cube.get(uid)
+    cube = Cube.get(uid, local_only=local_only)
     config.ui.print(f"> {name} cube download complete")
     check_cube_validity(cube)
     return cube
