@@ -148,6 +148,9 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
 
         # Try first downloading the data
         try:
+            # TODO (in all entities)
+            if not str(dset_uid).isdigit():
+                raise CommunicationRetrievalError
             meta = comms.get_dataset(dset_uid)
             dataset = cls(**meta)
         except CommunicationRetrievalError:

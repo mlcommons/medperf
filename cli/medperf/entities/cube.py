@@ -143,6 +143,9 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
         # Try to download the cube first
         try:
+            # TODO (in all entities)
+            if not str(cube_uid).isdigit():
+                raise CommunicationRetrievalError
             meta = comms.get_cube_metadata(cube_uid)
             cube = cls(**meta)
             attempt = 0
