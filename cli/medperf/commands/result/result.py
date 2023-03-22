@@ -72,9 +72,12 @@ def list(
     if mine:
         comms_func = config.comms.get_user_results
     if benchmark is not None:
-        # Use lambda to create a version of the function without parameters
-        # That way the entity can call the function correctly
-        comms_func = lambda: config.comms.get_benchmark_results(benchmark)
+        # Decorate the get_benchmark_results function so it doesn't need to be called with
+        # any arguments.
+        def benchmark_results():
+            return config.comms.get_benchmark_results(benchmark)
+
+        comms_func = benchmark_results
 
     EntityList.run(
         Result,
@@ -118,7 +121,10 @@ def view(
     if mine:
         comms_func = config.comms.get_user_results
     if benchmark is not None:
-        # Use lambda to create a version of the function without parameters
-        # That way the entity can call the function correctly
-        comms_func = lambda: config.comms.get_benchmark_results(benchmark)
+        # Decorate the get_benchmark_results function so it doesn't need to be called with
+        # any arguments.
+        def benchmark_results():
+            return config.comms.get_benchmark_results(benchmark)
+
+        comms_func = benchmark_results
     EntityView.run(entity_id, Result, format, local, comms_func, output)
