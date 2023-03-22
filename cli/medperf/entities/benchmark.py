@@ -126,7 +126,9 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmarks
 
     @classmethod
-    def get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
+    def get(
+        cls, benchmark_uid: Union[str, int], local_only: bool = False
+    ) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -138,20 +140,51 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
         """
-        comms = config.comms
-        # Try to download first
+
+        if not str(benchmark_uid).isdigit() or local_only:
+            return cls.__local_get(benchmark_uid)
+
         try:
-            benchmark_dict = comms.get_benchmark(benchmark_uid)
-            ref_model = benchmark_dict["reference_model_mlcube"]
-            add_models = cls.get_models_uids(benchmark_uid)
-            benchmark_dict["models"] = [ref_model] + add_models
+            return cls.__remote_get(benchmark_uid)
         except CommunicationRetrievalError:
-            # Get local benchmarks
-            logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
+            logging.warning(f"Getting Benchmark {benchmark_uid} from comms failed")
             logging.info(f"Looking for benchmark {benchmark_uid} locally")
-            benchmark_dict = cls.__get_local_dict(benchmark_uid)
+            return cls.__local_get(benchmark_uid)
+
+    @classmethod
+    def __remote_get(cls, benchmark_uid: int) -> "Benchmark":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving benchmark {benchmark_uid} remotely")
+        benchmark_dict = config.comms.get_benchmark(benchmark_uid)
+        ref_model = benchmark_dict["reference_model_mlcube"]
+        add_models = cls.get_models_uids(benchmark_uid)
+        benchmark_dict["models"] = [ref_model] + add_models
         benchmark = cls(**benchmark_dict)
         benchmark.write()
+        return benchmark
+
+    @classmethod
+    def __local_get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving benchmark {benchmark_uid} locally")
+        benchmark_dict = cls.__get_local_dict(benchmark_uid)
+        benchmark = cls(**benchmark_dict)
         return benchmark
 
     @classmethod

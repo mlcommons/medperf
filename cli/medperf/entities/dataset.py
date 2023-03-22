@@ -133,7 +133,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return dsets
 
     @classmethod
-    def get(cls, dset_uid: Union[str, int]) -> "Dataset":
+    def get(cls, dset_uid: Union[str, int], local_only: bool = False) -> "Dataset":
         """Retrieves and creates a Dataset instance from the comms instance.
         If the dataset is present in the user's machine then it retrieves it from there.
 
@@ -143,24 +143,47 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         Returns:
             Dataset: Specified Dataset Instance
         """
-        logging.debug(f"Retrieving dataset {dset_uid}")
-        comms = config.comms
+        if not str(dset_uid).isdigit() or local_only:
+            return cls.__local_get(dset_uid)
 
-        # Try first downloading the data
         try:
-            # TODO (in all entities)
-            if not str(dset_uid).isdigit():
-                raise CommunicationRetrievalError
-            meta = comms.get_dataset(dset_uid)
-            dataset = cls(**meta)
+            return cls.__remote_get(dset_uid)
         except CommunicationRetrievalError:
-            # Get from local cache
             logging.warning(f"Getting Dataset {dset_uid} from comms failed")
             logging.info(f"Looking for dataset {dset_uid} locally")
-            local_meta = cls.__get_local_dict(dset_uid)
-            dataset = cls(**local_meta)
+            return cls.__local_get(dset_uid)
 
+    @classmethod
+    def __remote_get(cls, dset_uid: int) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving dataset {dset_uid} remotely")
+        meta = config.comms.get_dataset(dset_uid)
+        dataset = cls(**meta)
         dataset.write()
+        return dataset
+
+    @classmethod
+    def __local_get(cls, dset_uid: Union[str, int]) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving dataset {dset_uid} locally")
+        local_meta = cls.__get_local_dict(dset_uid)
+        dataset = cls(**local_meta)
         return dataset
 
     def write(self):
