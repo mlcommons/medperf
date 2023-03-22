@@ -28,9 +28,9 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
 
     description: Optional[str] = Field(None, max_length=20)
     location: str = Field(..., max_length=20)
-    data_preparation_mlcube: int
     input_data_hash: str
     generated_uid: str
+    data_preparation_mlcube: Union[int, str]
     split_seed: Optional[int]
     generated_metadata: dict = Field(..., alias="metadata")
     status: Status = None
@@ -45,6 +45,16 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         if v is None:
             return default
         return Status(v)
+
+    @validator("data_preparation_mlcube", pre=True, always=True)
+    def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
+        if isinstance(v, str) and not values["generated_uid"].startswith(
+            config.test_dset_prefix
+        ):
+            raise ValueError(
+                "data_preparation_mlcube must be an integer if not running a compatibility test"
+            )
+        return v
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

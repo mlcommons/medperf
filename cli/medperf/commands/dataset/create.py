@@ -210,12 +210,13 @@ class DataPreparation:
         Returns:
             dict: dictionary containing information pertaining the dataset.
         """
+        data_preparation_mlcube = self.cube.name if self.run_test else self.cube.id
         return {
             "id": None,
             "name": self.name,
             "description": self.description,
             "location": self.location,
-            "data_preparation_mlcube": self.cube.id,
+            "data_preparation_mlcube": data_preparation_mlcube,
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
