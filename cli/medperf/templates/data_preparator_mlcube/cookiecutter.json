@@ -1,0 +1,9 @@
+{
+    "project_name": "Data Preparator MLCube",
+    "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
+    "description": "Data Preparator MLCube Template. Provided by MLCommons",
+    "author_name": "John Smith",
+    "accelerator_count": "0",
+    "docker_image_name": "docker/image:latest",
+    "use_separate_output_labels": "y"
+}

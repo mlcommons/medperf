@@ -1,6 +1,8 @@
+from ._version import __version__
 from os.path import expanduser, abspath
 
-version = "0.0.0"
+major_version, minor_version, patch_version = __version__.split(".")
+
 server = "https://api.medperf.org"
 certificate = None
 
@@ -71,7 +73,6 @@ configurable_parameters = [
     "cleanup",
 ]
 
-github_repository = "https://github.com/aristizabal95/medperf-2"
 templates = {
     "data_preparator": "templates/data_preparator_mlcube",
     "model": "templates/model_mlcube",

@@ -12,10 +12,14 @@ from result.models import ModelResult
 from benchmarkmodel.models import BenchmarkModel
 from benchmarkdataset.models import BenchmarkDataset
 from django.http import Http404
+from django.conf import settings
 from django.db.models import Q
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
 
 
 class User(GenericAPIView):
@@ -172,3 +176,25 @@ class MlCubeAssociationList(GenericAPIView):
         benchmarkmodels = self.paginate_queryset(benchmarkmodels)
         serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class ServerAPIVersion(GenericAPIView):
+    permission_classes = (AllowAny,)
+    queryset = ""
+
+    @extend_schema(
+        responses={
+            200: inline_serializer(
+                name='VersionResponse',
+                fields={
+                    'version': serializers.CharField(),
+                }
+            )
+        }
+    )
+    def get(self, request=None, format=None):
+        """
+        Retrieve version of Server API
+        """
+        result = {"version": settings.SERVER_API_VERSION}
+        return Response(result)

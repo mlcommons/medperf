@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 from os.path import expanduser, abspath
 
+from medperf import __version__
 import medperf.config as config
 from medperf.ui.factory import UIFactory
 from medperf.decorators import clean_except, configurable
@@ -12,7 +13,7 @@ from medperf.commands.result.create import BenchmarkExecution
 from medperf.commands.result.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
-from medperf.commands.auth import Login, PasswordChange
+from medperf.commands.auth import Login, PasswordChange, SynapseLogin
 import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
 from medperf.utils import (
@@ -35,6 +36,26 @@ app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(association.app, name="association", help="Manage associations")
 app.add_typer(profile.app, name="profile", help="Manage profiles")
+
+
+@app.command("synapse_login")
+@clean_except
+def synapse_login(
+    username: str = typer.Option(
+        None, "--username", "-u", help="Username to login with"
+    ),
+    password: str = typer.Option(
+        None, "--password", "-p", help="Password to login with"
+    ),
+    token: str = typer.Option(
+        None, "--token", "-t", help="Personal Access Token to login with"
+    ),
+):
+    """Login to the synapse server. Must be done only once.
+    Provide either a username and a password, or a token
+    """
+    SynapseLogin.run(username=username, password=password, token=token)
+    config.ui.print("✅ Done!")
 
 
 @app.command("login")
@@ -173,11 +194,12 @@ def main(ctx: typer.Context):
     log = config.loglevel.upper()
     log_lvl = getattr(logging, log)
     setup_logging(log_lvl)
+    logging.info(f"Running MedPerf v{__version__} on {log_lvl} logging level")
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
 
-    config.ui.print(f"MedPerf {config.version}")
+    config.ui.print(f"MedPerf {__version__}")
 
 
 if __name__ == "__main__":
