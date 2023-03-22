@@ -8,6 +8,7 @@ import random
 import hashlib
 import logging
 import tarfile
+import requests
 from medperf.config_managment import ConfigManager
 from glob import glob
 import json
@@ -41,7 +42,6 @@ def setup_logging(log_lvl):
     requests_logger = logging.getLogger("requests")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(log_lvl)
-    logging.info(f"Running MedPerf v{config.version} on {log_lvl} logging level")
 
 
 def delete_credentials():
@@ -495,3 +495,31 @@ def sanitize_json(data: dict) -> dict:
     json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
+
+
+def log_response_error(res, warn=False):
+    # NOTE: status 403 might be also returned if a requested resource doesn't exist
+    if warn:
+        logging_method = logging.warning
+    else:
+        logging_method = logging.error
+
+    logging_method(f"Obtained response with status code: {res.status_code}")
+    try:
+        logging_method(res.json())
+    except requests.exceptions.JSONDecodeError:
+        logging_method("JSON Response could not be parsed. Showing response content:")
+        logging_method(res.content)
+
+
+def get_cube_image_name(cube_path: str) -> str:
+    """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
+    cube_config_path = os.path.join(cube_path, config.cube_filename)
+    with open(cube_config_path, "r") as f:
+        cube_config = yaml.safe_load(f)
+
+    try:
+        return cube_config["singularity"]["image"]
+    except KeyError:
+        msg = "The provided mlcube doesn't seem to be configured for singularity"
+        raise MedperfException(msg)

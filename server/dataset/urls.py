@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from benchmarkdataset import views as bviews
 
+app_name = "Dataset"
+
 urlpatterns = [
     path("", views.DatasetList.as_view()),
     path("<int:pk>/", views.DatasetDetail.as_view()),

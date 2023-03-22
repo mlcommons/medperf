@@ -16,38 +16,27 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, re_path, path
 from rest_framework.authtoken.views import obtain_auth_token
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from django.conf import settings
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="MedPerf API",
-        default_version="v1",
-        description="MedPerf API description",
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+from utils.views import ServerAPIVersion
+
+API_VERSION = settings.SERVER_API_VERSION
+API_PREFIX = 'api/' + API_VERSION + '/'
 
 urlpatterns = [
-    re_path(
-        r"^swagger(?P<format>\.json|\.yaml)$",
-        schema_view.without_ui(cache_timeout=0),
-        name="schema-json",
-    ),
-    re_path(
-        r"^swagger/$",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
-    ),
-    re_path(r"^$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc",),
-    path("admin/", admin.site.urls),
-    path("benchmarks/", include("benchmark.urls")),
-    path("mlcubes/", include("mlcube.urls")),
-    path("datasets/", include("dataset.urls")),
-    path("results/", include("result.urls")),
-    path("users/", include("user.urls")),
-    path("me/", include("utils.urls")),
-    path("auth-token/", obtain_auth_token, name="auth-token"),
+    path("schema/", SpectacularAPIView.as_view(api_version=API_VERSION), name="schema"),
+    path("swagger/", SpectacularSwaggerView.as_view(), name="swagger-ui"),
+    re_path(r"^$", SpectacularRedocView.as_view(), name="redoc"),
+    path("admin/", admin.site.urls, name="admin"),
+    path("version", ServerAPIVersion.as_view(), name="get-version"),
+    path(API_PREFIX, include([
+        path("benchmarks/", include("benchmark.urls", namespace=API_VERSION), name="benchmark"),
+        path("mlcubes/", include("mlcube.urls", namespace=API_VERSION), name="mlcube"),
+        path("datasets/", include("dataset.urls", namespace=API_VERSION), name="dataset"),
+        path("results/", include("result.urls", namespace=API_VERSION), name="result"),
+        path("users/", include("user.urls", namespace=API_VERSION), name="users"),
+        path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
+        path("auth-token/", obtain_auth_token, name="auth-token"),
+    ])),
 ]

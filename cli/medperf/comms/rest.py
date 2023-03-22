@@ -1,19 +1,14 @@
 from typing import List
 import requests
 import logging
-import os
-import shutil
 
 from medperf.enums import Status
 import medperf.config as config
 from medperf.comms.interface import Comms
 from medperf.utils import (
-    base_storage_path,
     read_credentials,
-    storage_path,
-    generate_tmp_uid,
     sanitize_json,
-    get_file_sha1,
+    log_response_error,
 )
 from medperf.exceptions import (
     CommunicationError,
@@ -23,37 +18,33 @@ from medperf.exceptions import (
 )
 
 
-def log_response_error(res, warn=False):
-    # NOTE: status 403 might be also returned if a requested resource doesn't exist
-    if warn:
-        logging_method = logging.warning
-    else:
-        logging_method = logging.error
-
-    logging_method(f"Obtained response with status code: {res.status_code}")
-    try:
-        logging_method(res.json())
-    except requests.exceptions.JSONDecodeError:
-        logging_method("JSON Response could not be parsed. Showing response content:")
-        logging_method(res.content)
-
-
 class REST(Comms):
     def __init__(self, source: str, token=None):
-        self.server_url = self.__parse_url(source)
+        self.server_url = self.parse_url(source)
         self.token = token
         self.cert = config.certificate
         if self.cert is None:
             # No certificate provided, default to normal verification
             self.cert = True
 
-    def __parse_url(self, url):
+    @classmethod
+    def parse_url(cls, url: str) -> str:
+        """Parse the source URL so that it can be used by the comms implementation.
+        It should handle protocols and versioning to be able to communicate with the API.
+
+        Args:
+            url (str): base URL
+
+        Returns:
+            str: parsed URL with protocol and version
+        """
         url_sections = url.split("://")
+        api_path = f"/api/v{config.major_version}"
         # Remove protocol if passed
         if len(url_sections) > 1:
             url = "".join(url_sections[1:])
 
-        return f"https://{url}"
+        return f"https://{url}{api_path}"
 
     def login(self, user: str, pwd: str):
         """Authenticates the user with the server. Required for most endpoints
@@ -233,32 +224,6 @@ class REST(Comms):
         model_uids = [model["id"] for model in models]
         return model_uids
 
-    def get_benchmark_demo_dataset(
-        self, demo_data_url: str, uid: str = generate_tmp_uid()
-    ) -> str:
-        """Downloads the benchmark demo dataset and stores it in the user's machine
-
-        Args:
-            demo_data_url (str): location of demo data for download
-            uid (str): UID to use for storing the demo dataset. Defaults to generate_tmp_uid().
-
-        Returns:
-            str: path where the downloaded demo dataset can be found
-        """
-        tmp_dir = storage_path(config.demo_data_storage)
-        demo_data_path = os.path.join(tmp_dir, uid)
-        tball_file = config.tarball_filename
-        filepath = os.path.join(demo_data_path, tball_file)
-
-        # Don't re-download if something already exists with same uid
-        if os.path.exists(filepath):
-            return filepath
-
-        os.makedirs(demo_data_path, exist_ok=True)
-
-        self.__download_direct_link(demo_data_url, filepath)
-        return filepath
-
     def get_user_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks created by the user
 
@@ -292,19 +257,6 @@ class REST(Comms):
             raise CommunicationRetrievalError("the specified cube doesn't exist")
         return res.json()
 
-    def get_cube(self, url: str, cube_path: str) -> str:
-        """Downloads and writes an mlcube.yaml file from the server
-
-        Args:
-            url (str): URL where the mlcube.yaml file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: location where the mlcube.yaml file is stored locally.
-        """
-        cube_file = config.cube_filename
-        return self.__get_cube_file(url, cube_path, "", cube_file)
-
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
@@ -313,102 +265,6 @@ class REST(Comms):
         """
         cubes = self.__get_list(f"{self.server_url}/me/mlcubes/")
         return cubes
-
-    def get_cube_params(self, url: str, cube_path: str) -> str:
-        """Retrieves the cube parameters.yaml file from the server
-
-        Args:
-            url (str): URL where the parameters.yaml file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: Location where the parameters.yaml file is stored locally.
-        """
-        ws = config.workspace_path
-        params_file = config.params_filename
-        return self.__get_cube_file(url, cube_path, ws, params_file)
-
-    def get_cube_additional(self, url: str, cube_path: str) -> str:
-        """Retrieves and stores the additional_files.tar.gz file from the server
-
-        Args:
-            url (str): URL where the additional_files.tar.gz file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: Location where the additional_files.tar.gz file is stored locally.
-        """
-        add_path = config.additional_path
-        tball_file = config.tarball_filename
-        return self.__get_cube_file(url, cube_path, add_path, tball_file)
-
-    def get_cube_image(self, url: str, cube_path: str, hash: str = None) -> str:
-        """Retrieves and stores the image file from the server. Stores images
-        on a shared location, and retrieves a cached image by hash if found locally.
-        Creates a symbolic link to the cube storage.
-
-        Args:
-            url (str): URL where the image file can be downloaded.
-            cube_path (str): Path to cube.
-            hash (str, Optional): File hash to store under shared storage. Defaults to None.
-
-        Returns:
-            str: Location where the image file is stored locally.
-        """
-        image_path = config.image_path
-        image_name = url.split("/")[-1]  # Get the last part of the URL path
-        image_name = image_name.split("?")[0]  # Remove query parameters
-        image_cube_path = os.path.join(cube_path, image_path)
-        os.makedirs(image_cube_path, exist_ok=True)
-        image_cube_file = os.path.join(image_cube_path, image_name)
-        imgs_storage = base_storage_path(config.images_storage)
-
-        if not hash:
-            # No hash provided, we need to download the file first
-            _, local_hash = self.__get_cube_file(url, cube_path, image_path, image_name)
-            img_storage = os.path.join(imgs_storage, local_hash)
-            shutil.move(image_cube_file, img_storage)
-        else:
-            img_storage = os.path.join(imgs_storage, hash)
-
-        if not os.path.exists(img_storage):
-            # If image doesn't exist locally, download it normally
-            # And move it to shared storage
-            _, local_hash = self.__get_cube_file(url, cube_path, image_path, image_name)
-            shutil.move(image_cube_file, img_storage)
-
-        # Create a symbolic link to individual cube storage
-        if os.path.exists(image_cube_file):
-            # Remove existing links
-            os.unlink(image_cube_file)
-        os.symlink(img_storage, image_cube_file)
-        local_hash = get_file_sha1(img_storage)
-        return image_cube_file, local_hash
-
-    def __get_cube_file(self, url: str, cube_path: str, path: str, filename: str):
-        path = os.path.join(cube_path, path)
-        if not os.path.isdir(path):
-            os.makedirs(path, exist_ok=True)
-        filepath = os.path.join(path, filename)
-        self.__download_direct_link(url, filepath)
-        hash = get_file_sha1(filepath)
-        return filepath, hash
-
-    def __download_direct_link(self, url: str, output_path: str):
-        """Downloads a direct-download-link file by streaming its contents. source:
-        https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
-        """
-        with requests.get(url, stream=True) as res:
-            if res.status_code != 200:
-                log_response_error(res)
-                msg = "There was a problem retrieving the specified file at " + url
-                raise CommunicationRetrievalError(msg)
-
-            with open(output_path, "wb") as f:
-                for chunk in res.iter_content(chunk_size=config.ddl_stream_chunk_size):
-                    # NOTE: if the response is chunk-encoded, this may not work
-                    # check whether this is common.
-                    f.write(chunk)
 
     def upload_benchmark(self, benchmark_dict: dict) -> int:
         """Uploads a new benchmark to the server.

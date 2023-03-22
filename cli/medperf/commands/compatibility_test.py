@@ -13,6 +13,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.commands.dataset.create import DataPreparation
 from medperf.utils import check_cube_validity, untar, get_file_sha1, storage_path
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+from medperf.comms.entity_resources import resources
 
 
 class CompatibilityTestExecution:
@@ -74,7 +75,6 @@ class CompatibilityTestExecution:
         self.data_prep = data_prep
         self.model = model
         self.evaluator = evaluator
-        self.comms = config.comms
         self.ui = config.ui
         self.no_cache = no_cache
 
@@ -219,7 +219,7 @@ class CompatibilityTestExecution:
         """
         dset_hash = self.demo_dataset_hash
         dset_url = self.demo_dataset_url
-        file_path = self.comms.get_benchmark_demo_dataset(dset_url, dset_hash)
+        file_path = resources.get_benchmark_demo_dataset(dset_url, dset_hash)
 
         # Check demo dataset integrity
         file_hash = get_file_sha1(file_path)

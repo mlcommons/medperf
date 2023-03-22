@@ -92,7 +92,8 @@ INSTALLED_APPS = [
     "result",
     "rest_framework",
     "rest_framework.authtoken",
-    "drf_yasg",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
     "corsheaders",
 ]
 
@@ -207,23 +208,47 @@ else:
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Set this to supported api version.
+# This will be the default version for unversioned apis picked by the swagger schema.
+SERVER_API_VERSION = "v0"
 
 REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    "DEFAULT_VERSION": SERVER_API_VERSION,
     "PAGE_SIZE": 32,
 }
 
-SWAGGER_SETTINGS = {
-    "USE_SESSION_AUTH": False,
-    "SECURITY_DEFINITIONS": {
-        "api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}
+SPECTACULAR_SETTINGS = {
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "displayRequestDuration": True,
+        "tryItOutEnabled": True,
+        "filter": True,
+        "syntaxHighlight.activate": True,
+        "syntaxHighlight.theme": "monokai",
+        # other swagger settings
     },
-    "JSON_EDITOR": True,
+    "TITLE": "MedPerf API",
+    "DESCRIPTION": "MedPerf API description",
+    "VERSION": None,
+    "SERVE_INCLUDE_SCHEMA": True,
+    "PARSER_WHITELIST": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
+    "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
+    "REDOC_DIST": "SIDECAR",
+    # other spectacular settings
 }
 
 # Setup support for proxy headers

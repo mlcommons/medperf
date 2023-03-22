@@ -15,6 +15,19 @@ class Comms(ABC):
             token (str, Optional): authentication token to be used throughout communication. Defaults to None.
         """
 
+    @classmethod
+    @abstractmethod
+    def parse_url(self, url: str) -> str:
+        """Parse the source URL so that it can be used by the comms implementation.
+        It should handle protocols and versioning to be able to communicate with the API.
+
+        Args:
+            url (str): base URL
+
+        Returns:
+            str: parsed URL with protocol and version
+        """
+
     @abstractmethod
     def login(self, ui: UI):
         """Authenticate the comms instance for further interactions
@@ -70,17 +83,6 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_benchmark_demo_dataset(self, demo_data_url: str) -> str:
-        """Downloads the benchmark demo dataset and stores it in the user's machine
-
-        Args:
-            demo_data_url (str): location of demo data for download
-
-        Returns:
-            str: path where the downloaded demo dataset can be found
-        """
-
-    @abstractmethod
     def get_user_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks created by the user
 
@@ -108,47 +110,11 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_cube(self, url: str, cube_path: str) -> str:
-        """Downloads and writes an mlcube.yaml file from the server
-
-        Args:
-            url (str): URL where the mlcube.yaml file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: location where the mlcube.yaml file is stored locally.
-        """
-
-    @abstractmethod
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
         Returns:
             List[dict]: List of dictionaries containing the mlcubes registration information
-        """
-
-    @abstractmethod
-    def get_cube_params(self, url: str, cube_path: str) -> str:
-        """Retrieves the cube parameters.yaml file from the server
-
-        Args:
-            url (str): URL where the parameters.yaml file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: Location where the parameters.yaml file is stored locally.
-        """
-
-    @abstractmethod
-    def get_cube_additional(self, url: str, cube_path: str) -> str:
-        """Retrieves and stores the additional_files.tar.gz file from the server
-
-        Args:
-            url (str): URL where the additional_files.tar.gz file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: Location where the additional_files.tar.gz file is stored locally.
         """
 
     @abstractmethod
@@ -160,18 +126,6 @@ class Comms(ABC):
 
         Returns:
             int: UID of newly created benchmark
-        """
-
-    @abstractmethod
-    def get_cube_image(self, url: str, cube_path: str) -> str:
-        """Retrieves and stores the image file from the server
-
-        Args:
-            url (str): URL where the image file can be downloaded.
-            cube_path (str): Cube location.
-
-        Returns:
-            str: Location where the image file is stored locally.
         """
 
     @abstractmethod

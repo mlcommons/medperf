@@ -1,0 +1,8 @@
+{
+    "project_name": "Model MLCube",
+    "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
+    "description": "Model MLCube Template. Provided by MLCommons",
+    "author_name": "John Smith",
+    "accelerator_count": "0",
+    "docker_image_name": "docker/image:latest"
+}

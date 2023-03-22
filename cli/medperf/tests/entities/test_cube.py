@@ -45,9 +45,7 @@ CUBE_CONTENTS = {
 }
 
 
-@pytest.fixture(
-    params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]}
-)
+@pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
 def setup(request, mocker, comms, fs):
     local_ents = request.param.get("local", [])
     remote_ents = request.param.get("remote", [])
@@ -57,7 +55,7 @@ def setup(request, mocker, comms, fs):
 
     setup_cube_fs(local_ents, fs)
     setup_cube_comms(mocker, comms, remote_ents, user_ents, uploaded)
-    setup_cube_comms_downloads(mocker, comms, fs)
+    setup_cube_comms_downloads(mocker, fs)
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
@@ -104,7 +102,7 @@ class TestGetFiles:
     def test_get_cube_untars_files(self, mocker, setup):
         # Arrange
         spy = mocker.spy(medperf.entities.cube, "untar")
-        calls = [call(self.add_path), call(self.img_path)]
+        calls = [call(self.add_path)]
 
         # Act
         Cube.get(self.id)
