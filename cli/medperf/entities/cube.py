@@ -75,7 +75,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            comms_func (callable, optional): Function to use to retrieve remote entities. 
+            comms_func (callable, optional): Function to use to retrieve remote entities.
                 If not provided, will use the default entrypoint.
 
         Returns:
