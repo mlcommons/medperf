@@ -4,7 +4,9 @@ from abc import ABC, abstractmethod
 
 class Entity(ABC):
     @abstractmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Entity"]:
+    def all(
+        cls, local_only: bool = False, comms_func: callable = None
+    ) -> List["Entity"]:
         """Gets a list of all instances of the respective entity.
         Wether the list is local or remote depends on the implementation.
 
