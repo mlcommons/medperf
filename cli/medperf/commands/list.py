@@ -6,7 +6,9 @@ from medperf import config
 
 class EntityList:
     @staticmethod
-    def run(entity_class, fields, comms_func, local_only: bool = False):
+    def run(
+        entity_class, fields, comms_func: callable = None, local_only: bool = False
+    ):
         """Lists all local datasets
 
         Args:

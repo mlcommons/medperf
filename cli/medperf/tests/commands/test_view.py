@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import MagicMock
 import yaml
 import json
 from medperf.entities.interface import Entity
@@ -43,9 +44,9 @@ def setup(request, mocker):
     user_entities = [generate_entity(id, mocker) for id in user_ids]
     all_entities = list(set(local_entities + remote_entities + user_entities))
 
-    def mock_all(mine_only=False, local_only=False):
-        if mine_only:
-            return user_entities
+    def mock_all(comms_func=None, local_only=False):
+        if comms_func is not None:
+            return comms_func()
         if local_only:
             return local_entities
         return all_entities
@@ -99,16 +100,15 @@ class TestViewFilteredEntities:
         # Assert
         ui_spy.assert_called_once_with(output)
 
-    def test_view_displays_user_entities(self, setup, ui_spy):
+    def test_view_displays_entities_from_comms_func(self):
         # Arrange
-        *_, entities, _ = setup
-        output = expected_output(entities, "yaml")
+        mock_func = MagicMock(return_value=[])
 
         # Act
-        EntityView.run(None, Entity, mine_only=True)
+        EntityView.run(None, Entity, comms_func=mock_func)
 
         # Assert
-        ui_spy.assert_called_once_with(output)
+        mock_func.assert_called_once()
 
 
 @pytest.mark.parametrize("entity_id", ["4", None])

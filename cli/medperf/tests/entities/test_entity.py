@@ -1,5 +1,6 @@
 import os
 import pytest
+from unittest.mock import MagicMock
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
@@ -85,16 +86,15 @@ class TestAll:
         retrieved_ids = set([e.todict()["id"] for e in entities])
         assert self.local_ids == retrieved_ids
 
-    def test_all_mine_only_returns_user_and_local_entities(self, Implementation):
+    def test_all_comms_func_gets_called(self, Implementation):
         # Arrange
-        user_ids = self.user_ids.union(self.local_ids)
+        mock_func = MagicMock(return_value=[])
 
         # Act
-        entities = Implementation.all(mine_only=True)
+        Implementation.all(comms_func=mock_func)
 
         # Assert
-        retrieved_ids = set([e.todict()["id"] for e in entities])
-        assert user_ids == retrieved_ids
+        mock_func.assert_called_once()
 
 
 @pytest.mark.parametrize(

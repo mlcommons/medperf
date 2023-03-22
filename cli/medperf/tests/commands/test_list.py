@@ -48,14 +48,14 @@ class TestEntityList:
         self.spies = spies
 
     @pytest.mark.parametrize("local_only", [False, True])
-    @pytest.mark.parametrize("mine_only", [False, True])
-    def test_entity_all_is_called_properly(self, local_only, mine_only):
+    @pytest.mark.parametrize("comms_func", [None, generate_display_dicts])
+    def test_entity_all_is_called_properly(self, local_only, comms_func):
         # Act
-        EntityList.run(Entity, [], local_only, mine_only)
+        EntityList.run(Entity, [], local_only=local_only, comms_func=comms_func)
 
         # Assert
         self.spies["all"].assert_called_once_with(
-            local_only=local_only, mine_only=mine_only
+            local_only=local_only, comms_func=comms_func
         )
 
     @pytest.mark.parametrize("fields", [["UID", "MLCube"]])
