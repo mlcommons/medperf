@@ -1,3 +1,4 @@
+import hashlib
 import os
 import yaml
 import logging
@@ -33,12 +34,13 @@ class TestReport(MedperfBaseSchema):
     def __init__(self, *args, **kwargs):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
-
-        self.generated_uid = (
-            f"d{self.prepared_data_hash}m{self.model}e{self.data_evaluator_mlcube}"
-        )
+        self.generate_uid()
         path = storage_path(config.test_storage)
         self.path = os.path.join(path, self.generated_uid)
+
+    def generate_uid(self):
+        params = str(self.todict())
+        self.generated_uid = hashlib.sha1(params.encode()).hexdigest()
 
     def set_results(self, results):
         self.results = results
