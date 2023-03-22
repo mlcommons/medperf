@@ -100,7 +100,7 @@ class TestViewFilteredEntities:
         # Assert
         ui_spy.assert_called_once_with(output)
 
-    def test_view_displays_entities_from_comms_func(self):
+    def test_view_displays_entities_from_comms_func(self, setup):
         # Arrange
         mock_func = MagicMock(return_value=[])
 
