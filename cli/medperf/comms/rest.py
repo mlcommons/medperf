@@ -535,7 +535,9 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each result in the specified benchmark
         """
-        results = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_id}/results")
+        results = self.__get_list(
+            f"{self.server_url}/benchmarks/{benchmark_id}/results"
+        )
         return results
 
     def upload_result(self, results_dict: dict) -> int:
