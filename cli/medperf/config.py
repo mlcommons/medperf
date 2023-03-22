@@ -28,6 +28,7 @@ workspace_path = "workspace"
 test_storage = "tests"
 cleanup = True
 
+test_report_file = "test_report.yaml"
 cube_filename = "mlcube.yaml"
 params_filename = "parameters.yaml"
 additional_path = "workspace/additional_files"
