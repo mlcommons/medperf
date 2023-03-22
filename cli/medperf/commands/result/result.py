@@ -78,7 +78,7 @@ def list(
 
     EntityList.run(
         Result,
-        fields=["UID", "Benchmark", "Model", "Data", "Registered"],
+        fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
         local_only=local,
         comms_func=comms_func,
     )
