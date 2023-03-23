@@ -39,7 +39,9 @@ class TestReport(MedperfBaseSchema):
         self.path = os.path.join(path, self.generated_uid)
 
     def generate_uid(self):
-        params = str(self.todict())
+        params = self.todict()
+        del params["results"]
+        params = str(params)
         self.generated_uid = hashlib.sha1(params.encode()).hexdigest()
 
     def set_results(self, results):
