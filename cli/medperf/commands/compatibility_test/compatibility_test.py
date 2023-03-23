@@ -4,7 +4,7 @@ from typing import Optional
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
-from medperf.entities.result import Result
+from medperf.entities.report import TestReport
 from medperf.commands.list import EntityList
 from medperf.utils import cleanup
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
@@ -95,36 +95,20 @@ def run(
 
 @app.command("ls")
 @clean_except
-def list(
-    local: bool = typer.Option(False, "--local", help="Get local results"),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
-):
+def list():
     """List results stored locally and remotely from the user"""
-    EntityList.run(
-        Result,
-        fields=["UID", "Benchmark", "Model", "Data", "Registered"],
-        local_only=local,
-        mine_only=mine,
-    )
+    EntityList.run(TestReport, fields=["UID", "Data Source", "Model", "Evaluator"])
 
 
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    entity_id: Optional[str] = typer.Argument(None, help="Result ID"),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
-    ),
-    local: bool = typer.Option(
-        False, "--local", help="Display local results if result ID is not provided"
-    ),
-    mine: bool = typer.Option(
-        False,
-        "--mine",
-        help="Display current-user results if result ID is not provided",
     ),
     output: str = typer.Option(
         None,
@@ -135,4 +119,4 @@ def view(
 ):
     """Displays the information of one or more results
     """
-    EntityView.run(entity_id, Result, format, local, mine, output)
+    EntityView.run(entity_id, TestReport, format, output=output)
