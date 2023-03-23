@@ -140,17 +140,20 @@ class TestReport(MedperfBaseSchema):
         return report_info
 
     def display_dict(self):
-        data_source = None
         if self.data_path:
-            data_source = f"path:{self.data_path}"
+            data_source = f"{self.data_path}"[:27] + "..."
         elif self.demo_dataset_url:
-            data_source = f"demo:{self.demo_dataset_url}"
+            data_source = f"{self.demo_dataset_url}"[:27] + "..."
         else:
-            data_source = f"prepared:{self.prepared_data_hash}"
+            data_source = f"{self.prepared_data_hash}"
 
         return {
             "UID": self.generated_uid,
             "Data Source": data_source,
-            "Model": self.model,
-            "Evaluator": self.data_evaluator_mlcube,
+            "Model": self.model
+            if isinstance(self.model, int)
+            else self.model[:27] + "...",
+            "Evaluator": self.data_evaluator_mlcube
+            if isinstance(self.data_evaluator_mlcube, int)
+            else self.data_evaluator_mlcube[:27] + "...",
         }
