@@ -54,11 +54,18 @@ class MedperfBaseSchema(BaseModel):
 
 
 class MedperfSchema(MedperfBaseSchema):
+    for_test: bool = False
     id: Optional[int]
     name: str = Field(..., max_length=60)
     owner: Optional[int]
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
+
+    @validator("name", pre=True, always=True)
+    def name_max_length(cls, v, *, values, **kwargs):
+        if not values["for_test"] and len(v) > 20:
+            raise ValueError("The name must have no more than 20 characters")
+        return v
 
 
 class DeployableSchema(BaseModel):

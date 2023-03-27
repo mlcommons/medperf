@@ -48,9 +48,8 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
 
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
-        if isinstance(v, str) and not values["generated_uid"].startswith(
-            config.test_dset_prefix
-        ):
+        """This validator is only for internal logic sanity check"""
+        if not isinstance(v, int) and not values["for_test"]:
             raise ValueError(
                 "data_preparation_mlcube must be an integer if not running a compatibility test"
             )
