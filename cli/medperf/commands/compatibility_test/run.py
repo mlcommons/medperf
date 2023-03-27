@@ -78,8 +78,8 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         )
         test_exec.validate()
         test_exec.get_benchmark()
-        test_exec.initialize_report()
         test_exec.prepare_cubes()
+        test_exec.initialize_report()
         test_exec.set_data_uid()
         results = test_exec.cached_results()
         if results is None:

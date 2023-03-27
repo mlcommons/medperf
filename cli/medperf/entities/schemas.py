@@ -55,7 +55,7 @@ class MedperfBaseSchema(BaseModel):
 
 class MedperfSchema(MedperfBaseSchema):
     id: Optional[int]
-    name: str = Field(..., max_length=20)
+    name: str = Field(..., max_length=60)
     owner: Optional[int]
     created_at: Optional[datetime]
     modified_at: Optional[datetime]

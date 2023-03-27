@@ -3,12 +3,11 @@ from medperf.utils import (
     get_file_sha1,
     storage_path,
     check_cube_validity,
-    generate_tmp_uid,
+    get_folder_sha1,
 )
 from medperf.exceptions import InvalidEntityError, InvalidArgumentError
 
 from medperf.comms.entity_resources import resources
-from medperf.tests.mocks.cube import TestCube
 from medperf.entities.cube import Cube
 import medperf.config as config
 import os
@@ -46,9 +45,7 @@ def download_demo_data(dset_url, dset_hash):
 
 
 def prepare_local_cube(path):
-    temp_uid = config.test_cube_prefix + generate_tmp_uid()
-    # TODO: a better way for limiting the temp_uid length?
-    temp_uid = temp_uid[:20]
+    temp_uid = config.test_cube_prefix + get_folder_sha1(path)
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
     os.symlink(path, dst)
@@ -59,12 +56,13 @@ def prepare_local_cube(path):
         temp_metadata = {
             "id": None,
             "name": temp_uid,
+            "git_mlcube_url": "mock_url",
             "mlcube_hash": "",
             "parameters_hash": "",
             "image_tarball_hash": "",
             "additional_files_tarball_hash": "",
         }
-        metadata = TestCube(**temp_metadata).todict()
+        metadata = Cube(**temp_metadata).todict()
         with open(cube_metadata_file, "w") as f:
             yaml.dump(metadata, f)
         config.extra_cleanup_paths.append(cube_metadata_file)
