@@ -11,6 +11,8 @@ from medperf.tests.mocks.result import TestResult
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
+PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
+
 
 # Setup Benchmark
 def setup_benchmark_fs(ents, fs):
@@ -110,7 +112,7 @@ def generate_cubefile_fn(fs, path, filename):
     return cubefile_fn
 
 
-def setup_cube_comms_downloads(mocker, comms, fs):
+def setup_cube_comms_downloads(mocker, fs):
     cube_path = ""
     cube_file = config.cube_filename
     params_path = config.workspace_path
@@ -125,10 +127,10 @@ def setup_cube_comms_downloads(mocker, comms, fs):
     get_add_fn = generate_cubefile_fn(fs, add_path, add_file)
     get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
 
-    mocker.patch.object(comms, "get_cube", side_effect=get_cube_fn)
-    mocker.patch.object(comms, "get_cube_params", side_effect=get_params_fn)
-    mocker.patch.object(comms, "get_cube_additional", side_effect=get_add_fn)
-    mocker.patch.object(comms, "get_cube_image", side_effect=get_img_fn)
+    mocker.patch(PATCH_RESOURCES.format("get_cube"), side_effect=get_cube_fn)
+    mocker.patch(PATCH_RESOURCES.format("get_cube_params"), side_effect=get_params_fn)
+    mocker.patch(PATCH_RESOURCES.format("get_cube_additional"), side_effect=get_add_fn)
+    mocker.patch(PATCH_RESOURCES.format("get_cube_image"), side_effect=get_img_fn)
 
 
 # Setup Dataset

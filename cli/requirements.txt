@@ -15,3 +15,4 @@ mlcube-docker==0.0.8
 mlcube-singularity==0.0.8
 validators==0.18.2
 merge-args==0.1.4
+synapseclient==2.7.0

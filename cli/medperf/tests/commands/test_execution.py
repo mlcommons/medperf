@@ -134,7 +134,7 @@ def test_cube_run_are_called_properly(mocker, setup):
     preds_path = os.path.join(
         storage_path(config.predictions_storage),
         str(INPUT_MODEL.id),
-        str(INPUT_DATASET.id),
+        str(INPUT_DATASET.generated_uid),
     )
     exp_model_call = call(
         task="infer",

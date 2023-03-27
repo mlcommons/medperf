@@ -37,7 +37,7 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Cube:
         setup_fs = setup_cube_fs
         setup_comms = setup_cube_comms
-        setup_cube_comms_downloads(mocker, comms, fs)
+        setup_cube_comms_downloads(mocker, fs)
         mocker.patch("medperf.entities.cube.untar")
     elif Implementation == Dataset:
         setup_fs = setup_dset_fs

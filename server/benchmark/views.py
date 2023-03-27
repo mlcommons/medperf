@@ -5,6 +5,7 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 from .models import Benchmark
 from .serializers import BenchmarkSerializer, BenchmarkApprovalSerializer
@@ -15,6 +16,7 @@ class BenchmarkList(GenericAPIView):
     serializer_class = BenchmarkSerializer
     queryset = ""
 
+    @extend_schema(operation_id="benchmarks_retrieve_all")
     def get(self, request, format=None):
         """
         List all benchmarks
