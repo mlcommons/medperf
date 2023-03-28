@@ -14,7 +14,7 @@ class EntityView:
         entity_class: Entity,
         format: str = "yaml",
         local_only: bool = False,
-        comms_func: callable = None,
+        filters: dict = {},
         output: str = None,
     ):
         """Displays the contents of a single or multiple entities of a given type
@@ -23,13 +23,13 @@ class EntityView:
             entity_id (Union[int, str]): Entity identifies
             entity_class (Entity): Entity type
             local_only (bool, optional): Display all local entities. Defaults to False.
-            mine_only (bool, optional): Display all current-user entities. Defaults to False.
+            filters (bool, optional): Display all current-user entities. Defaults to False.
             format (str, optional): What format to use to display the contents. Valid formats: [yaml, json]. Defaults to yaml.
             output (str, optional): Path to a file for storing the entity contents. If not provided, the contents are printed.
         """
 
         entity_view = EntityView(
-            entity_id, entity_class, format, local_only, comms_func, output
+            entity_id, entity_class, format, local_only, filters, output
         )
         entity_view.validate()
         entity_view.prepare()
@@ -38,12 +38,12 @@ class EntityView:
         else:
             entity_view.store()
 
-    def __init__(self, entity_id, entity_class, format, local_only, comms_func, output):
+    def __init__(self, entity_id, entity_class, format, local_only, filters, output):
         self.entity_id = entity_id
         self.entity_class = entity_class
         self.format = format
         self.local_only = local_only
-        self.comms_func = comms_func
+        self.filters = filters
         self.output = output
         self.data = []
 
@@ -57,7 +57,7 @@ class EntityView:
             entities = [self.entity_class.get(self.entity_id)]
         else:
             entities = self.entity_class.all(
-                local_only=self.local_only, comms_func=self.comms_func
+                local_only=self.local_only, filters=self.filters
             )
         self.data = [entity.todict() for entity in entities]
 
