@@ -68,22 +68,17 @@ def list(
     ),
 ):
     """List results stored locally and remotely from the user"""
-    comms_func = config.comms.get_results
-    if mine:
-        comms_func = config.comms.get_user_results
+    filters = {}
     if benchmark is not None:
-        # Decorate the get_benchmark_results function so it doesn't need to be called with
-        # any arguments.
-        def benchmark_results():
-            return config.comms.get_benchmark_results(benchmark)
-
-        comms_func = benchmark_results
+        filters["benchmark"] = benchmark
+    if mine:
+        filters["owner"] = config.current_user
 
     EntityList.run(
         Result,
         fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
         local_only=local,
-        comms_func=comms_func,
+        filters=filters,
     )
 
 
