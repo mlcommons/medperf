@@ -46,8 +46,6 @@ cube_get_max_attempts = 3
 credentials_keyword = "credentials"
 default_profile_name = "default"
 test_profile_name = "test"
-current_user = None
-
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily

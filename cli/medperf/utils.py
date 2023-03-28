@@ -62,6 +62,18 @@ def read_credentials():
     return token
 
 
+def set_current_user(current_user: dict):
+    config_p = read_config()
+    config_p.active_profile["current_user"] = current_user
+    write_config(config_p)
+
+
+def get_current_user():
+    config_p = read_config()
+    current_user = config_p.active_profile.get(config.current_user, None)
+    return current_user
+
+
 def default_profile():
     # NOTE: this function is only usable before config is actually initialized.
     # using this function when another profile is activated will not load the defaults

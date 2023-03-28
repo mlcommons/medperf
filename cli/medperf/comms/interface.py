@@ -53,6 +53,11 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_current_user(self):
+        """Retrieve the currently-authenticated user information
+        """
+
+    @abstractmethod
     def get_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks in the platform.
 

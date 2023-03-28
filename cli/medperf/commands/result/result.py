@@ -2,6 +2,7 @@ import typer
 from typing import Optional
 
 import medperf.config as config
+from medperf.utils import get_current_user
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
 from medperf.entities.result import Result
@@ -72,7 +73,7 @@ def list(
     if benchmark is not None:
         filters["benchmark"] = benchmark
     if mine:
-        filters["owner"] = config.current_user
+        filters["owner"] = get_current_user()["id"]
 
     EntityList.run(
         Result,
@@ -112,14 +113,9 @@ def view(
 ):
     """Displays the information of one or more results
     """
-    comms_func = config.comms.get_results
-    if mine:
-        comms_func = config.comms.get_user_results
+    filters = {}
     if benchmark is not None:
-        # Decorate the get_benchmark_results function so it doesn't need to be called with
-        # any arguments.
-        def benchmark_results():
-            return config.comms.get_benchmark_results(benchmark)
-
-        comms_func = benchmark_results
-    EntityView.run(entity_id, Result, format, local, comms_func, output)
+        filters["benchmark"] = benchmark
+    if mine:
+        filters["owner"] = get_current_user()["id"]
+    EntityView.run(entity_id, Result, format, local, filters, output)

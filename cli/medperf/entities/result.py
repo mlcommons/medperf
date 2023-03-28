@@ -89,7 +89,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_results
-        if "owner" in filters and filters["owner"] == config.current_user:
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
             comms_fn = config.comms.get_user_results
         if "benchmark" in filters:
             bmk = filters["benchmark"]
