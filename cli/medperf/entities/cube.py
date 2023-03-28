@@ -18,6 +18,7 @@ from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
+    InvalidEntityError,
     MedperfException,
     CommunicationRetrievalError,
 )
@@ -152,24 +153,32 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def __remote_get(cls, cube_uid: int) -> "Cube":
         meta = config.comms.get_cube_metadata(cube_uid)
         cube = cls(**meta)
+
+        # Check first if we already have the required files
+        if cube.valid():
+            cube.write()
+            return cube
+
+        # Download cube files
+        # TODO: move download attempts logic to the comms layer
         attempt = 0
         while attempt < config.cube_get_max_attempts:
             logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
-            # Check first if we already have the required files
-            if cube.valid():
-                cube.write()
-                return cube
-            # Try to redownload elements if invalid
             try:
                 cube.download()
+                break
             except CommunicationRetrievalError:
-                pass
-            attempt += 1
+                attempt += 1
+        else:
+            logging.warning("Max download attempts reached")
+            cleanup([cube.path])
+            raise CommunicationRetrievalError("Could not download cube files")
 
-        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
-        cleanup([cube_path])
-        logging.warning("Max download attempts reached")
-        raise CommunicationRetrievalError("Could not download cube files")
+        if cube.valid():
+            cube.write()
+            return cube
+
+        raise InvalidEntityError("Could not successfully get the requested MLCube")
 
     @classmethod
     def __local_get(cls, cube_uid: Union[str, int]) -> "Cube":
