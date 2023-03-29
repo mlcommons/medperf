@@ -99,7 +99,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
         try:
             comms_fn = cls.__remote_prefilter(filters)
-            cubes_meta = comms_func()
+            cubes_meta = comms_fn()
             cubes = [cls(**meta) for meta in cubes_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all cubes from the server"

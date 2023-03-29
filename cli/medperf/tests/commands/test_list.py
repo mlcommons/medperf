@@ -23,6 +23,7 @@ def setup(request, mocker, ui):
     # mocks
     entity_object = mocker.create_autospec(spec=Entity)
     mocker.patch.object(entity_object, "display_dict", side_effect=display_dicts)
+    mocker.patch("medperf.commands.list.get_current_user", return_value={"id": 1})
 
     # spies
     generated_entities = [entity_object for _ in display_dicts]
@@ -48,14 +49,17 @@ class TestEntityList:
         self.spies = spies
 
     @pytest.mark.parametrize("local_only", [False, True])
-    @pytest.mark.parametrize("comms_func", [None, generate_display_dicts])
-    def test_entity_all_is_called_properly(self, local_only, comms_func):
+    @pytest.mark.parametrize("mine_only", [False, True])
+    def test_entity_all_is_called_properly(self, mocker, local_only, mine_only):
+        # Arrange
+        filters = {"owner": 1} if mine_only else {}
+
         # Act
-        EntityList.run(Entity, [], local_only=local_only, comms_func=comms_func)
+        EntityList.run(Entity, [], local_only, mine_only)
 
         # Assert
         self.spies["all"].assert_called_once_with(
-            local_only=local_only, comms_func=comms_func
+            local_only=local_only, filters=filters
         )
 
     @pytest.mark.parametrize("fields", [["UID", "MLCube"]])

@@ -86,16 +86,6 @@ class TestAll:
         retrieved_ids = set([e.todict()["id"] for e in entities])
         assert self.local_ids == retrieved_ids
 
-    def test_all_comms_func_gets_called(self, Implementation):
-        # Arrange
-        mock_func = MagicMock(return_value=[])
-
-        # Act
-        Implementation.all(comms_func=mock_func)
-
-        # Assert
-        mock_func.assert_called_once()
-
 
 @pytest.mark.parametrize(
     "setup", [{"local": [78], "remote": [479, 42, 7, 1]}], indirect=True,
