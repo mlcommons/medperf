@@ -2,5 +2,7 @@ PyYAML~=5.3
 pandas~=1.1
 typer
 MedPy
-SimpleITK
-numpy
+SimpleITK!=2.0.*
+SimpleITK!=2.2.1
+numpy~=1.24.2
+torch
