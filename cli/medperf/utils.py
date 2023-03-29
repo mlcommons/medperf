@@ -70,7 +70,12 @@ def set_current_user(current_user: dict):
 
 def get_current_user():
     config_p = read_config()
-    current_user = config_p.active_profile.get(config.current_user, None)
+    try:
+        current_user = config_p.active_profile["current_user"]
+    except KeyError:
+        raise ExecutionError(
+            "Couldn't retrieve current user information. Please login again"
+        )
     return current_user
 
 
