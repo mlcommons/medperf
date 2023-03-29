@@ -108,4 +108,4 @@ def view(
 ):
     """Displays the information of one or more results
     """
-    EntityView.run(entity_id, Result, format, local, mine, output)
+    EntityView.run(entity_id, Result, format, local, mine, output, benchmark=benchmark)
