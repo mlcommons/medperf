@@ -70,13 +70,12 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
-    def all(cls, local_only: bool = False, comms_func: callable = None) -> List["Cube"]:
+    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Cube"]:
         """Class method for retrieving all retrievable MLCubes
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            comms_func (callable, optional): Function to use to retrieve remote entities.
-                If not provided, will use the default entrypoint.
+            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
             List[Cube]: List containing all cubes
@@ -84,7 +83,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         logging.info("Retrieving all cubes")
         cubes = []
         if not local_only:
-            cubes = cls.__remote_all(comms_func=comms_func)
+            cubes = cls.__remote_all(filters=filters)
 
         remote_uids = set([cube.id for cube in cubes])
 
@@ -95,12 +94,11 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         return cubes
 
     @classmethod
-    def __remote_all(cls, comms_func) -> List["Cube"]:
+    def __remote_all(cls, filters: dict) -> List["Cube"]:
         cubes = []
-        if comms_func is None:
-            comms_func = config.comms.get_cubes
 
         try:
+            comms_fn = cls.__remote_prefilter(filters)
             cubes_meta = comms_func()
             cubes = [cls(**meta) for meta in cubes_meta]
         except CommunicationRetrievalError:
@@ -108,6 +106,22 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             logging.warning(msg)
 
         return cubes
+
+    @classmethod
+    def __remote_prefilter(cls, filters: dict):
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_cubes
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+            comms_fn = config.comms.get_user_results
+
+        return comms_fn
 
     @classmethod
     def __local_all(cls) -> List["Cube"]:
