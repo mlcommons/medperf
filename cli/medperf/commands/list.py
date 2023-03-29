@@ -19,7 +19,7 @@ class EntityList:
         Args:
             local_only (bool, optional): Display all local results. Defaults to False.
             mine_only (bool, optional): Display all current-user results. Defaults to False.
-            kwargs(dict): Additional parameters for filtering entity lists.
+            kwargs (dict): Additional parameters for filtering entity lists.
         """
         entity_list = EntityList(entity_class, fields, local_only, mine_only, **kwargs)
         entity_list.prepare()
