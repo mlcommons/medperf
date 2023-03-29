@@ -190,7 +190,8 @@ class REST(Comms):
     def get_current_user(self):
         """Retrieve the currently-authenticated user information
         """
-        return self.__auth_get(f"{self.server_url}/me/")
+        res = self.__auth_get(f"{self.server_url}/me/")
+        return res.json()
 
     def get_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks in the platform.
