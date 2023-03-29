@@ -21,14 +21,11 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
 ):
     """List mlcubes stored locally and remotely from the user"""
-    comms_func = config.comms.get_cubes
-    if mine:
-        comms_func = config.comms.get_user_cubes
     EntityList.run(
         Cube,
         fields=["UID", "Name", "State", "Registered"],
         local_only=local,
-        comms_func=comms_func,
+        mine_only=mine,
     )
 
 
@@ -162,7 +159,4 @@ def view(
 ):
     """Displays the information of one or more mlcubes
     """
-    comms_func = config.comms.get_cubes
-    if mine:
-        comms_func = config.comms.get_user_cubes
-    EntityView.run(entity_id, Cube, format, local, comms_func, output)
+    EntityView.run(entity_id, Cube, format, local, mine, output)

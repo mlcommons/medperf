@@ -21,14 +21,11 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
 ):
     """List benchmarks stored locally and remotely from the user"""
-    comms_func = config.comms.get_benchmarks
-    if mine:
-        comms_func = config.comms.get_user_benchmarks
     EntityList.run(
         Benchmark,
         fields=["UID", "Name", "Description", "State", "Approval Status", "Registered"],
         local_only=local,
-        comms_func=comms_func,
+        mine_only=mine,
     )
 
 
@@ -170,7 +167,4 @@ def view(
 ):
     """Displays the information of one or more benchmarks
     """
-    comms_func = config.comms.get_benchmarks
-    if mine:
-        comms_func = config.comms.get_user_benchmarks
-    EntityView.run(entity_id, Benchmark, format, local, comms_func, output)
+    EntityView.run(entity_id, Benchmark, format, local, mine, output)

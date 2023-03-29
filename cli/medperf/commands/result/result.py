@@ -69,17 +69,12 @@ def list(
     ),
 ):
     """List results stored locally and remotely from the user"""
-    filters = {}
-    if benchmark is not None:
-        filters["benchmark"] = benchmark
-    if mine:
-        filters["owner"] = get_current_user()["id"]
-
     EntityList.run(
         Result,
         fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
         local_only=local,
-        filters=filters,
+        mine_only=mine,
+        benchmark=benchmark,
     )
 
 
@@ -113,9 +108,4 @@ def view(
 ):
     """Displays the information of one or more results
     """
-    filters = {}
-    if benchmark is not None:
-        filters["benchmark"] = benchmark
-    if mine:
-        filters["owner"] = get_current_user()["id"]
-    EntityView.run(entity_id, Result, format, local, filters, output)
+    EntityView.run(entity_id, Result, format, local, mine, output)
