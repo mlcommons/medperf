@@ -93,9 +93,10 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
             comms_fn = config.comms.get_user_results
         if "benchmark" in filters:
             bmk = filters["benchmark"]
-            # Decorate the benchmark results remote function so it has the same signature
-            # as all the comms_fns
+
             def get_benchmark_results():
+                # Decorate the benchmark results remote function so it has the same signature
+                # as all the comms_fns
                 return config.comms.get_benchmark_results(bmk)
 
             comms_fn = get_benchmark_results

@@ -2,7 +2,6 @@ import typer
 from typing import Optional
 
 import medperf.config as config
-from medperf.utils import get_current_user
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
 from medperf.entities.result import Result
