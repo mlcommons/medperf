@@ -19,7 +19,6 @@ def comms(mocker, request, comms):
 def setup(mocker, fs):
     mocker.patch(PATCH_LOGIN.format("set_credentials"))
     mocker.patch(PATCH_LOGIN.format("set_current_user"))
-    init_config()
 
 
 def test_runs_comms_login(mocker, comms, ui, fs):
