@@ -21,6 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
+from medperf.logging.filters.redacting_filter import RedactingFilter
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
 
 
@@ -39,9 +40,16 @@ def setup_logging(log_lvl):
         force=True,
     )
 
+    sensitive_pattern = re.compile(
+        r"""(["']?(password|pwd|token)["']?[:=] ?)["']?[^\n\[\]\{\}"']*["']?"""
+    )
+
+    redacting_filter = RedactingFilter(patterns=[sensitive_pattern,])
     requests_logger = logging.getLogger("requests")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(log_lvl)
+    logger = logging.getLogger()
+    logger.addFilter(redacting_filter)
 
 
 def delete_credentials():
