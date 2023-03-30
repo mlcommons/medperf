@@ -1,6 +1,5 @@
 import pytest
 
-from medperf.utils import init_config
 from medperf.commands.auth import Login
 
 PATCH_LOGIN = "medperf.commands.auth.login.{}"
