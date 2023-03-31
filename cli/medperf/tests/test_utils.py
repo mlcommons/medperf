@@ -1,5 +1,6 @@
 import os
 import pytest
+import logging
 import time_machine
 import datetime as dt
 from pathlib import Path
@@ -71,6 +72,31 @@ def test_set_custom_config_modifies_config_params(param):
     assert recovered_args == backup_args
 
 
+@pytest.mark.parametrize(
+    "text,exp_output",
+    [
+        ("password: 123", "password: [redacted]"),
+        ("password='test", "password=[redacted]"),
+        ('token="2872547"', "token=[redacted]"),
+        ("\{'token': '279438'\}", "\{'token': [redacted]\}"),
+    ],
+)
+def test_setup_logging_filters_sensitive_data(text, exp_output, fs):
+    # Arrange
+    log_file = utils.storage_path(config.log_file)
+    fs.create_file(log_file)
+    utils.setup_logging("DEBUG")
+
+    # Act
+    logging.debug(text)
+
+    # Assert
+    with open(log_file) as f:
+        data = f.read()
+
+    assert exp_output in data
+
+
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
 def test_get_file_sha1_opens_specified_file(mocker, file):
     # Arrange
@@ -104,7 +130,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
