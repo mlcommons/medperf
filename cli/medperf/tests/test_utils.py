@@ -55,6 +55,13 @@ def filesystem():
     return [fs, files]
 
 
+@pytest.fixture
+def prepare_logs(fs):
+    log_file = utils.storage_path(config.log_file)
+    fs.create_file(log_file)
+    utils.setup_logging("DEBUG")
+
+
 @pytest.mark.parametrize("param", ["server", "platform", "prepare_timeout"])
 def test_set_custom_config_modifies_config_params(param):
     # Arrange
@@ -75,17 +82,15 @@ def test_set_custom_config_modifies_config_params(param):
 @pytest.mark.parametrize(
     "text,exp_output",
     [
-        ("password: 123", "password: [redacted]"),
-        ("password='test", "password=[redacted]"),
+        ("password: '123'", "password: [redacted]"),
+        ("password='test'", "password=[redacted]"),
         ('token="2872547"', "token=[redacted]"),
         ("{'token': '279438'}", "{'token': [redacted]}"),
     ],
 )
-def test_setup_logging_filters_sensitive_data(text, exp_output, fs):
+def test_setup_logging_filters_sensitive_data(text, exp_output, prepare_logs):
     # Arrange
     log_file = utils.storage_path(config.log_file)
-    fs.create_file(log_file)
-    utils.setup_logging("DEBUG")
 
     # Act
     logging.debug(text)
@@ -130,7 +135,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
