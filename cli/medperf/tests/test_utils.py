@@ -78,7 +78,7 @@ def test_set_custom_config_modifies_config_params(param):
         ("password: 123", "password: [redacted]"),
         ("password='test", "password=[redacted]"),
         ('token="2872547"', "token=[redacted]"),
-        ("\{'token': '279438'\}", "\{'token': [redacted]\}"),
+        ("{'token': '279438'}", "{'token': [redacted]}"),
     ],
 )
 def test_setup_logging_filters_sensitive_data(text, exp_output, fs):
