@@ -77,10 +77,10 @@ def run(
     Can test prepared datasets, remote and local models independently.
     """
     CompatibilityTestExecution.run(
-        model,
-        evaluator,
         benchmark_uid,
         data_prep,
+        model,
+        evaluator,
         data_path,
         labels_path,
         demo_dataset_url,

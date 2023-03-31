@@ -14,10 +14,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
     @classmethod
     def run(
         cls,
-        model: str = None,
-        evaluator: str = None,
         benchmark: int = None,
         data_prep: str = None,
+        model: str = None,
+        evaluator: str = None,
         data_path: str = None,
         labels_path: str = None,
         demo_dataset_url: str = None,
@@ -64,10 +64,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         """
         logging.info("Starting test execution")
         test_exec = cls(
-            model,
-            evaluator,
             benchmark,
             data_prep,
+            model,
+            evaluator,
             data_path,
             labels_path,
             demo_dataset_url,
@@ -77,10 +77,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             offline,
         )
         test_exec.validate()
-        test_exec.get_benchmark()
+        test_exec.process_benchmark()
         test_exec.prepare_cubes()
+        test_exec.prepare_dataset()
         test_exec.initialize_report()
-        test_exec.set_data_uid()
         results = test_exec.cached_results()
         if results is None:
             results = test_exec.execute()
@@ -89,10 +89,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
 
     def __init__(
         self,
-        model: str = None,
-        evaluator: str = None,
         benchmark: int = None,
         data_prep: str = None,
+        model: str = None,
+        evaluator: str = None,
         data_path: str = None,
         labels_path: str = None,
         demo_dataset_url: str = None,
@@ -101,10 +101,10 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         no_cache: bool = False,
         offline: bool = False,
     ):
-        self.model = model
-        self.evaluator = evaluator
         self.benchmark_uid = benchmark
         self.data_prep = data_prep
+        self.model = model
+        self.evaluator = evaluator
         self.data_path = data_path
         self.labels_path = labels_path
         self.demo_dataset_url = demo_dataset_url
@@ -115,7 +115,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.dataset = None
         self.data_source = None
 
-    def get_benchmark(self):
+    def process_benchmark(self):
         """Prepares all parameters so a test can be executed. Paths to cubes are
         transformed to cube uids and benchmark is mocked/obtained.
         """
@@ -130,19 +130,6 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         if self.data_source == "benchmark":
             self.demo_dataset_url = benchmark.demo_dataset_tarball_url
             self.demo_dataset_hash = benchmark.demo_dataset_tarball_hash
-
-    def initialize_report(self):
-        report_data = {
-            "demo_dataset_url": self.demo_dataset_url,
-            "demo_dataset_hash": self.demo_dataset_hash,
-            "data_path": self.data_path,
-            "labels_path": self.labels_path,
-            "prepared_data_hash": self.data_uid,
-            "data_preparation_mlcube": self.data_prep,
-            "model": self.model,
-            "data_evaluator_mlcube": self.evaluator,
-        }
-        self.report = TestReport(**report_data)
 
     def prepare_cubes(self):
         """Prepares all parameters so a test can be executed. Paths to cubes are
@@ -159,29 +146,14 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             self.evaluator, "Evaluator", local_only=self.offline
         )
 
-    def execute(self):
-        """Runs the benchmark execution flow given the specified testing parameters
-        """
-        execution_summary = Execution.run(
-            dataset=self.dataset,
-            model=self.model_cube,
-            evaluator=self.evaluator_cube,
-            ignore_model_errors=False,
-        )
-        return execution_summary["results"]
-
-    def set_data_uid(self):
+    def prepare_dataset(self):
         """Assigns the data_uid used for testing according to the initialization parameters.
         If no data_uid is provided, it will retrieve the demo data and execute the data
         preparation flow.
         """
         logging.info("Establishing data_uid for test execution")
         logging.info("Looking if dataset exists as a prepared dataset")
-        if self.data_source == "prepared":
-            self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
-            # to avoid 'None' as a uid
-            self.data_prep = self.dataset.data_preparation_mlcube
-        else:
+        if self.data_source != "prepared":
             if self.data_source == "path":
                 data_path, labels_path = self.data_path, self.labels_path
             else:
@@ -198,7 +170,21 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
                 name="demo_data",
                 location="local",
             )
-            self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
+
+        self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
+
+    def initialize_report(self):
+        report_data = {
+            "demo_dataset_url": self.demo_dataset_url,
+            "demo_dataset_hash": self.demo_dataset_hash,
+            "data_path": self.data_path,
+            "labels_path": self.labels_path,
+            "prepared_data_hash": self.data_uid,
+            "data_preparation_mlcube": self.data_prep,
+            "model": self.model,
+            "data_evaluator_mlcube": self.evaluator,
+        }
+        self.report = TestReport(**report_data)
 
     def cached_results(self):
         """checks the existance of, and retrieves if possible, the compatibility test
@@ -210,6 +196,17 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         """
         if not self.no_cache:
             return self.report.cached_results()
+
+    def execute(self):
+        """Runs the benchmark execution flow given the specified testing parameters
+        """
+        execution_summary = Execution.run(
+            dataset=self.dataset,
+            model=self.model_cube,
+            evaluator=self.evaluator_cube,
+            ignore_model_errors=False,
+        )
+        return execution_summary["results"]
 
     def write(self, results):
         self.report.set_results(results)
