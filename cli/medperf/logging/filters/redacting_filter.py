@@ -19,5 +19,5 @@ class RedactingFilter(logging.Filter):
 
     def redact(self, msg):
         for pattern in self._patterns:
-            msg = re.sub(pattern, "\g<1>[redacted]", str(msg))
+            msg = re.sub(pattern, rf"\g<1>[redacted]", str(msg))
         return msg

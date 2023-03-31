@@ -40,7 +40,7 @@ def setup_logging(log_lvl):
     )
 
     sensitive_pattern = re.compile(
-        r"""(["']?(password|pwd|token)["']?[:=] ?)["']?[^\n\[\]\{\}"']*["']?"""
+        r"""(["']?(password|pwd|token)["']?[:=] ?)["']?[^\n\[\]{}"']*["']?"""
     )
 
     redacting_filter = RedactingFilter(patterns=[sensitive_pattern,])
