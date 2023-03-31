@@ -2,27 +2,7 @@ from medperf.exceptions import InvalidArgumentError
 
 
 class CompatibilityTestParamsValidator:
-    def __init__(
-        self,
-        model: str = None,
-        evaluator: str = None,
-        benchmark: int = None,
-        data_prep: str = None,
-        data_path: str = None,
-        labels_path: str = None,
-        demo_dataset_url: str = None,
-        demo_dataset_hash: str = None,
-        data_uid: str = None,
-    ):
-        self.model = model
-        self.evaluator = evaluator
-        self.benchmark_uid = benchmark
-        self.data_prep = data_prep
-        self.data_path = data_path
-        self.labels_path = labels_path
-        self.demo_dataset_url = demo_dataset_url
-        self.demo_dataset_hash = demo_dataset_hash
-        self.data_uid = data_uid
+    """Validates the input parameters to the CompatibilityTestExecution class"""
 
     def __validate_cubes(self):
         if not self.model and not self.benchmark_uid:
@@ -108,7 +88,7 @@ class CompatibilityTestParamsValidator:
     def __validate_redundant_benchmark(self):
         if self.benchmark_uid:
             if (
-                not self.data_source != "benchmark"
+                self.data_source != "benchmark"
                 and self.model
                 and self.evaluator
                 and (self.data_source == "prepared" or self.data_prep)
@@ -117,6 +97,8 @@ class CompatibilityTestParamsValidator:
 
     def validate(self):
         """Ensures test has been passed a valid combination of parameters.
+        Raises `medperf.exceptions.InvalidArgumentError` when the parameters are
+        invalid.
         """
 
         self.__validate_cubes()
