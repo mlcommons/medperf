@@ -178,6 +178,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             cube.write()
             return cube
 
+        cleanup([cube.path])
         raise InvalidEntityError("Could not successfully get the requested MLCube")
 
     @classmethod
