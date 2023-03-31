@@ -7,6 +7,7 @@ import yaml
 import random
 import hashlib
 import logging
+from logging import handlers
 import tarfile
 import requests
 from medperf.config_managment import ConfigManager
@@ -28,9 +29,7 @@ from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfExcept
 def setup_logging(log_lvl):
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     log_file = storage_path(config.log_file)
-    handler = logging.handlers.RotatingFileHandler(
-        log_file, maxBytes=10000000, backupCount=5
-    )
+    handler = handlers.RotatingFileHandler(log_file, maxBytes=10000000, backupCount=5)
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
         level=log_lvl,
