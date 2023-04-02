@@ -81,7 +81,7 @@ def prepare_local_cube(path):
     return temp_uid
 
 
-def check_cube(cube_name: str, cube_uid: str):
+def check_cube(cube_uid: str):
     """Assigns the attr used for testing according to the initialization parameters.
     If the value is a path, it will create a temporary uid and link the cube path to
     the medperf storage path.
@@ -93,7 +93,7 @@ def check_cube(cube_name: str, cube_uid: str):
 
     # Test if value looks like an mlcube_uid, if so skip path validation
     if str(cube_uid).isdigit():
-        logging.info(f"MLCube value {cube_uid} for {cube_name} resembles an mlcube_uid")
+        logging.info(f"MLCube value {cube_uid} resembles an mlcube_uid")
         return cube_uid
 
     # Check if value is a local mlcube
@@ -109,7 +109,7 @@ def check_cube(cube_name: str, cube_uid: str):
 
     logging.error(f"mlcube {cube_uid} was not found as an existing mlcube")
     raise InvalidArgumentError(
-        f"The provided mlcube ({cube_uid}) for {cube_name} could not be found as a local or remote mlcube"
+        f"The provided mlcube ({cube_uid}) could not be found as a local or remote mlcube"
     )
 
 
