@@ -81,7 +81,7 @@ def prepare_local_cube(path):
     return temp_uid
 
 
-def check_cube(cube_uid: str):
+def prepare_cube(cube_uid: str):
     """Assigns the attr used for testing according to the initialization parameters.
     If the value is a path, it will create a temporary uid and link the cube path to
     the medperf storage path.

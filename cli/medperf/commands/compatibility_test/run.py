@@ -7,7 +7,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
 from medperf.commands.dataset.create import DataPreparation
 from .validate_params import CompatibilityTestParamsValidator
-from .utils import download_demo_data, check_cube, get_cube
+from .utils import download_demo_data, prepare_cube, get_cube
 
 
 class CompatibilityTestExecution(CompatibilityTestParamsValidator):
@@ -137,9 +137,13 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         """
 
         if self.data_source != "prepared":
-            self.data_prep = check_cube("Data Preparation", self.data_prep)
-        self.model = check_cube("Model", self.model)
-        self.evaluator = check_cube("Evaluator", self.evaluator)
+            logging.info(f"Establishing the data preparation cube: {self.data_prep}")
+            self.data_prep = prepare_cube(self.data_prep)
+
+        logging.info(f"Establishing the model cube: {self.model}")
+        self.model = prepare_cube(self.model)
+        logging.info(f"Establishing the evaluator cube: {self.evaluator}")
+        self.evaluator = prepare_cube(self.evaluator)
 
         self.model_cube = get_cube(self.model, "Model", local_only=self.offline)
         self.evaluator_cube = get_cube(
