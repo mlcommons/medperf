@@ -42,7 +42,6 @@ test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
-cube_get_max_attempts = 3
 
 credentials_keyword = "credentials"
 default_profile_name = "default"
@@ -50,6 +49,7 @@ test_profile_name = "test"
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
+ddl_max_redownload_attempts = 3
 comms = "REST"
 ui = "CLI"
 
