@@ -85,7 +85,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         if results is None:
             results = test_exec.execute()
             test_exec.write(results)
-        return test_exec.benchmark_uid, test_exec.data_uid, test_exec.model, results
+        return test_exec.data_uid, results
 
     def __init__(
         self,
