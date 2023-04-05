@@ -16,11 +16,12 @@ from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.exceptions import (
     ExecutionError,
     InvalidEntityError,
+    CommunicationRetrievalError,
 )
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
-FAILING_CUBE = {"id": 46, "parameters_hash": "error"}
+FAILING_CUBE = {"id": 46, "git_parameters_url": "broken_url"}
 NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
 BASIC_CUBE = {
     "id": 598,
@@ -122,8 +123,8 @@ class TestGetFiles:
         calls = [call(ANY)] * max_attempts
 
         # Act
-        with pytest.raises(InvalidEntityError):
-            Cube.get(self.id)
+        with pytest.raises(CommunicationRetrievalError):
+            Cube._Cube__remote_get(self.id)
 
         # Assert
         spy.assert_has_calls(calls)

@@ -1,3 +1,4 @@
+from unittest.mock import ANY, call
 from medperf.exceptions import InvalidArgumentError
 import pytest
 
@@ -10,7 +11,8 @@ from .params_cases import (
     DATA_FROM_BENCHMARK_EXAMPLES,
 )
 from medperf.tests.mocks.benchmark import TestBenchmark
-from medperf.tests.entities.utils import setup_benchmark_comms, setup_benchmark_fs
+
+PATCH_RUN = "medperf.commands.compatibility_test.run.{}"
 
 
 class TestValidate:
@@ -59,8 +61,8 @@ class TestValidate:
 
 class TestProcessBenchmark:
     @pytest.fixture(autouse=True)
-    def setup(self, mocker, comms, fs):
-        benchmark_args = {
+    def setup(self, mocker):
+        benchmark_data = {
             "id": 1,
             "data_preparation_mlcube": 1,
             "reference_model_mlcube": 2,
@@ -68,21 +70,25 @@ class TestProcessBenchmark:
             "demo_dataset_tarball_url": "demo_url",
             "demo_dataset_tarball_hash": "demo_hash",
         }
-        benchmark = TestBenchmark(**benchmark_args)
+        benchmark = TestBenchmark(**benchmark_data)
+        spy = mocker.patch(PATCH_RUN.format("Benchmark.get"), return_value=benchmark)
 
-        setup_benchmark_comms(mocker, comms, [benchmark.todict()], [], [])
-        setup_benchmark_fs([benchmark.todict()], fs)
-
-        self.comms = comms
+        self.benchmark_get_spy = spy
+        self.exec_instance = CompatibilityTestExecution(benchmark=benchmark.id)
         self.benchmark = benchmark
-        self.exec_instance = CompatibilityTestExecution(benchmark=1)
 
-    def test_benchmark_is_retrieved_from_comms_by_default(self):
+    @pytest.mark.parametrize("offline", [True, False])
+    def test_benchmark_is_retrieved_according_to_offline_param(self, offline):
+        # Arrange
+        self.exec_instance.offline = offline
+
         # Act
         self.exec_instance.process_benchmark()
 
         # Assert
-        self.comms.get_benchmark.assert_called_once()
+        self.benchmark_get_spy.assert_called_once_with(
+            self.benchmark.id, local_only=offline
+        )
 
     def test_benchmark_is_not_retrieved_if_not_provided(self):
         # Arrange
@@ -92,19 +98,9 @@ class TestProcessBenchmark:
         self.exec_instance.process_benchmark()
 
         # Assert
-        self.comms.get_benchmark.assert_not_called()
+        self.benchmark_get_spy.assert_not_called()
 
-    def test_benchmark_is_not_retrieved_from_comms_in_offline_mode(self):
-        # Arrange
-        self.exec_instance.offline = True
-
-        # Act
-        self.exec_instance.process_benchmark()
-
-        # Assert
-        self.comms.get_benchmark.assert_not_called()
-
-    def test_cubes_are_set_from_benchmark_when_missing(self):
+    def test_model_and_eval_cubes_are_set_from_benchmark_when_missing(self):
         # Act
         self.exec_instance.process_benchmark()
 
@@ -165,3 +161,173 @@ class TestProcessBenchmark:
             self.exec_instance.demo_dataset_hash
             is self.benchmark.demo_dataset_tarball_hash
         )
+
+
+class TestPrepareCubes:
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker):
+        self.prep_uid = 1
+        self.model_uid = 2
+        self.eval_uid = 3
+
+        self.new_prep_uid = "new_prep"
+        self.new_model_uid = "new_model"
+        self.new_eval_uid = "new_eval"
+
+        overriding_uids = [self.new_prep_uid, self.new_model_uid, self.new_eval_uid]
+        self.prepare_spy = mocker.patch(
+            PATCH_RUN.format("prepare_cube"), side_effect=overriding_uids,
+        )
+
+        self.exec_instance = CompatibilityTestExecution(
+            data_prep=self.prep_uid, model=self.model_uid, evaluator=self.eval_uid
+        )
+
+    @pytest.mark.parametrize("data_source", ["path", "demo", "benchmark"])
+    def test_cube_uids_are_prepared(self, mocker, data_source):
+        # Arrange
+        self.exec_instance.data_source = data_source
+        mocker.patch(PATCH_RUN.format("get_cube"))
+
+        # Act
+        self.exec_instance.prepare_cubes()
+
+        # Assert
+        self.prepare_spy.assert_has_calls(
+            [call(self.prep_uid), call(self.model_uid), call(self.eval_uid)]
+        )
+        assert self.exec_instance.data_prep == self.new_prep_uid
+        assert self.exec_instance.model == self.new_model_uid
+        assert self.exec_instance.evaluator == self.new_eval_uid
+
+    @pytest.mark.parametrize("data_source", ["path"])
+    @pytest.mark.parametrize("offline", [True, False])
+    def test_model_and_eval_cubes_are_retrieved(self, mocker, data_source, offline):
+        # Arrange
+        self.exec_instance.data_source = data_source
+        self.exec_instance.offline = offline
+        model_cube = "model_cube"
+        eval_cube = "eval_cube"
+        get_spy = mocker.patch(
+            PATCH_RUN.format("get_cube"), side_effect=[model_cube, eval_cube]
+        )
+
+        # Act
+        self.exec_instance.prepare_cubes()
+
+        # Assert
+        get_spy.assert_has_calls(
+            [
+                call(self.new_model_uid, "Model", local_only=offline),
+                call(self.new_eval_uid, "Evaluator", local_only=offline),
+            ]
+        )
+        assert self.exec_instance.model_cube == "model_cube"
+        assert self.exec_instance.evaluator_cube == "eval_cube"
+
+    def test_prep_cube_is_not_prepared_if_data_is_prepared(self, mocker):
+        # Arrange
+        exec_instance = CompatibilityTestExecution(data_prep=1)
+        exec_instance.data_source = "prepared"
+
+        spy = mocker.patch(PATCH_RUN.format("prepare_cube"))
+        mocker.patch(PATCH_RUN.format("get_cube"))
+
+        # Act
+        exec_instance.prepare_cubes()
+
+        # Assert
+        assert spy.call_count == 2
+
+
+class TestPrepareDataset:
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker):
+        self.exec_instance = CompatibilityTestExecution()
+        mocker.patch(PATCH_RUN.format("Dataset.get"))
+        self.new_data_uid = "new prepared data uid"
+        self.prepare_spy = mocker.patch(
+            PATCH_RUN.format("DataPreparation.run"), return_value=self.new_data_uid
+        )
+
+    def test_data_preparation_is_not_run_when_prepared_data_is_provided(self):
+        # Arrange
+        data_uid = "provided_data_uid"
+        self.exec_instance.data_uid = data_uid
+        self.exec_instance.data_source = "prepared"
+
+        # Act
+        self.exec_instance.prepare_dataset()
+
+        # Assert
+        self.prepare_spy.assert_not_called()
+
+    @pytest.mark.parametrize("offline", [True, False])
+    def test_dataset_is_retrieved_correctly(self, mocker, offline):
+        # Arrange
+        data_uid = "provided_data_uid"
+        self.exec_instance.data_uid = data_uid
+        self.exec_instance.data_source = "prepared"
+        self.exec_instance.offline = offline
+
+        get_spy = mocker.patch(PATCH_RUN.format("Dataset.get"))
+
+        # Act
+        self.exec_instance.prepare_dataset()
+
+        # Assert
+        get_spy.assert_called_once_with(data_uid, local_only=offline)
+
+    def test_data_is_prepared_using_provided_datapath_and_labels(self):
+        # Arrange
+        data_path = "path/to/data"
+        labels_path = "path/to/labels"
+        self.exec_instance.data_path = data_path
+        self.exec_instance.labels_path = labels_path
+        self.exec_instance.data_source = "path"
+
+        # Act
+        self.exec_instance.prepare_dataset()
+
+        # Assert
+        self.prepare_spy.assert_called_once_with(
+            None,
+            ANY,
+            data_path,
+            labels_path,
+            run_test=True,
+            name="demo_data",
+            location="local",
+        )
+        assert self.exec_instance.data_uid == self.new_data_uid
+
+    @pytest.mark.parametrize("data_source", ["demo", "benchmark"])
+    def test_data_is_prepared_using_provided_demo_dset(self, mocker, data_source):
+        # Arrange
+        demo_url = "demo_url"
+        demo_hash = "demo_hash"
+        data_path = "path/to/prepared demo data"
+        labels_path = "path/to/prepared demo labels"
+        self.exec_instance.demo_dataset_url = demo_url
+        self.exec_instance.demo_dataset_hash = demo_hash
+        self.exec_instance.data_source = data_source
+        download_demo_spy = mocker.patch(
+            PATCH_RUN.format("download_demo_data"),
+            return_value=[data_path, labels_path],
+        )
+
+        # Act
+        self.exec_instance.prepare_dataset()
+
+        # Assert
+        self.prepare_spy.assert_called_once_with(
+            None,
+            ANY,
+            data_path,
+            labels_path,
+            run_test=True,
+            name="demo_data",
+            location="local",
+        )
+        download_demo_spy.assert_called_once_with(demo_url, demo_hash)
+        assert self.exec_instance.data_uid == self.new_data_uid
