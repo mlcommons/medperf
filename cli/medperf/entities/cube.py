@@ -6,12 +6,7 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import (
-    untar,
-    combine_proc_sp_text,
-    list_files,
-    storage_path,
-)
+from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -138,21 +133,27 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         """
 
         if not str(cube_uid).isdigit() or local_only:
-            return cls.__local_get(cube_uid)
+            cube = cls.__local_get(cube_uid)
+        else:
+            try:
+                cube = cls.__remote_get(cube_uid)
+            except CommunicationRetrievalError:
+                logging.warning(f"Getting MLCube {cube_uid} from comms failed")
+                logging.info(f"Retrieving MLCube {cube_uid} from local storage")
+                cube = cls.__local_get(cube_uid)
 
         try:
-            return cls.__remote_get(cube_uid)
-        except CommunicationRetrievalError:
-            logging.warning(f"Getting MLCube {cube_uid} from comms failed")
-            logging.info(f"Retrieving MLCube {cube_uid} from local storage")
-            return cls.__local_get(cube_uid)
+            cube.download()
+        except CommunicationRetrievalError as e:
+            cleanup([cube.path])
+            logging.error(f"Could not download the mlcube files of {cube_uid}")
+            raise e
 
     @classmethod
     def __remote_get(cls, cube_uid: int) -> "Cube":
         logging.debug(f"Retrieving mlcube {cube_uid} remotely")
         meta = config.comms.get_cube_metadata(cube_uid)
         cube = cls(**meta)
-        cube.download()
         cube.write()
         return cube
 
