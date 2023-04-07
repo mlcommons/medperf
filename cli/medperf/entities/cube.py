@@ -14,6 +14,7 @@ from medperf.exceptions import (
     ExecutionError,
     MedperfException,
     CommunicationRetrievalError,
+    InvalidEntityError,
 )
 import medperf.config as config
 from medperf.comms.entity_resources import resources
@@ -142,12 +143,20 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
                 logging.info(f"Retrieving MLCube {cube_uid} from local storage")
                 cube = cls.__local_get(cube_uid)
 
+        if cube.valid():
+            return cube
+
         try:
             cube.download()
         except CommunicationRetrievalError as e:
             cleanup([cube.path])
             logging.error(f"Could not download the mlcube files of {cube_uid}")
             raise e
+
+        if cube.valid():
+            return cube
+        cleanup([cube.path])
+        raise InvalidEntityError(f"MLCube {cube_uid} files hash check failed")
 
     @classmethod
     def __remote_get(cls, cube_uid: int) -> "Cube":
