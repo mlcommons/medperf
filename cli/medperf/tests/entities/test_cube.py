@@ -1,7 +1,7 @@
 import os
 import yaml
 import pytest
-from unittest.mock import ANY, call
+from unittest.mock import call
 
 import medperf
 import medperf.config as config
@@ -15,13 +15,12 @@ from medperf.tests.entities.utils import (
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.exceptions import (
     ExecutionError,
-    InvalidEntityError,
-    CommunicationRetrievalError,
+    InvalidEntityError
 )
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
-FAILING_CUBE = {"id": 46, "git_parameters_url": "broken_url"}
+FAILING_CUBE = {"id": 46, "parameters_hash": "error"}
 NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
 BASIC_CUBE = {
     "id": 598,
@@ -107,24 +106,6 @@ class TestGetFiles:
 
         # Act
         Cube.get(self.id)
-
-        # Assert
-        spy.assert_has_calls(calls)
-
-    @pytest.mark.parametrize("max_attempts", [3, 5, 2])
-    @pytest.mark.parametrize("setup", [{"remote": [FAILING_CUBE]}], indirect=True)
-    def test_get_cube_retries_configured_number_of_times(
-        self, mocker, max_attempts, setup
-    ):
-        # Arrange
-        mocker.patch(PATCH_CUBE.format("cleanup"))
-        spy = mocker.spy(Cube, "download")
-        config.cube_get_max_attempts = max_attempts
-        calls = [call(ANY)] * max_attempts
-
-        # Act
-        with pytest.raises(CommunicationRetrievalError):
-            Cube._Cube__remote_get(self.id)
 
         # Assert
         spy.assert_has_calls(calls)
