@@ -1,4 +1,3 @@
-import os
 from unittest.mock import ANY, call
 from medperf.exceptions import InvalidArgumentError
 from medperf.tests.mocks.report import TestTestReport
@@ -13,7 +12,6 @@ from .params_cases import (
     DATA_FROM_BENCHMARK_EXAMPLES,
 )
 from medperf.tests.mocks.benchmark import TestBenchmark
-from medperf import config
 
 PATCH_RUN = "medperf.commands.compatibility_test.run.{}"
 
