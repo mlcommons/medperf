@@ -90,7 +90,7 @@ def run(
 @app.command("ls")
 @clean_except
 def list():
-    """List previously executed test reports."""
+    """List previously executed tests reports."""
     EntityList.run(TestReport, fields=["UID", "Data Source", "Model", "Evaluator"])
 
 
