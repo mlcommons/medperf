@@ -14,11 +14,15 @@ class TestReport(MedperfBaseSchema):
     """
     Class representing a compatibility test report entry
 
-    Results are obtained after successfully running a benchmark
-    execution flow. They contain information regarding the
-    components involved in obtaining metrics results, as well as the
-    results themselves. This class provides methods for working with
-    benchmark results and how to upload them to the backend.
+    A test report is comprised of the components of a test execution:
+    - data used, which can be:
+        - a demo dataset url and its hash, or
+        - a raw data path and its labels path, or
+        - a prepared dataset uid
+    - Data preparation cube if the data used was not already prepared
+    - model cube
+    - evaluator cube
+    - results
     """
 
     demo_dataset_url: Optional[str]
@@ -32,13 +36,13 @@ class TestReport(MedperfBaseSchema):
     results: Optional[dict]
 
     def __init__(self, *args, **kwargs):
-        """Creates a new result instance"""
         super().__init__(*args, **kwargs)
         self.generated_uid = self.__generate_uid()
         path = storage_path(config.test_storage)
         self.path = os.path.join(path, self.generated_uid)
 
     def __generate_uid(self):
+        """A helper that generates a unique hash for a test report."""
         params = self.todict()
         del params["results"]
         params = str(params)
@@ -51,14 +55,13 @@ class TestReport(MedperfBaseSchema):
     def all(
         cls, local_only: bool = False, mine_only: bool = False
     ) -> List["TestReport"]:
-        """Gets and creates instances of all the user's results
-
-        Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+        """Gets and creates instances of test reports.
+        Arguments are only specified for compatibility with
+        `Entity.List` and `Entity.View`, but they don't contribute to
+        the logic.
 
         Returns:
-            List[Result]: List containing all results
+            List[TestReport]: List containing all test reports
         """
         logging.info("Retrieving all reports")
         reports = []
@@ -78,16 +81,14 @@ class TestReport(MedperfBaseSchema):
         return reports
 
     @classmethod
-    def get(cls, report_uid: Union[str, int]) -> "TestReport":
-        """Retrieves and creates a Result instance obtained from the platform.
-        If the result instance already exists in the user's machine, it loads
-        the local instance
+    def get(cls, report_uid: str) -> "TestReport":
+        """Retrieves and creates a TestReport instance obtained the user's machine
 
         Args:
-            report_uid (str): UID of the Result instance
+            report_uid (str): UID of the TestReport instance
 
         Returns:
-            Result: Specified Result instance
+            TestReport: Specified TestReport instance
         """
         logging.debug(f"Retrieving report {report_uid}")
         report_dict = cls.__get_local_dict(report_uid)
@@ -100,12 +101,6 @@ class TestReport(MedperfBaseSchema):
 
     def write(self):
         report_file = os.path.join(self.path, config.test_report_file)
-        if os.path.exists(report_file):
-            write_access = os.access(report_file, os.W_OK)
-            logging.debug(f"file has write access? {write_access}")
-            if not write_access:
-                logging.debug("removing outdated and inaccessible results")
-                os.remove(report_file)
         os.makedirs(self.path, exist_ok=True)
         with open(report_file, "w") as f:
             yaml.dump(self.todict(), f)
