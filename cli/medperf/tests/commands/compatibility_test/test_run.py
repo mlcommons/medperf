@@ -1,5 +1,7 @@
+import os
 from unittest.mock import ANY, call
 from medperf.exceptions import InvalidArgumentError
+from medperf.tests.mocks.report import TestTestReport
 import pytest
 
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
@@ -11,6 +13,7 @@ from .params_cases import (
     DATA_FROM_BENCHMARK_EXAMPLES,
 )
 from medperf.tests.mocks.benchmark import TestBenchmark
+from medperf import config
 
 PATCH_RUN = "medperf.commands.compatibility_test.run.{}"
 
@@ -331,3 +334,34 @@ class TestPrepareDataset:
         )
         download_demo_spy.assert_called_once_with(demo_url, demo_hash)
         assert self.exec_instance.data_uid == self.new_data_uid
+
+
+class TestCachedResults:
+    @pytest.fixture(autouse=True)
+    def setup(self, fs):
+        report = TestTestReport()
+        report.write()
+
+        self.report = report
+        self.exec_instance = CompatibilityTestExecution()
+        self.exec_instance.report = report
+
+    def test_cached_results_are_returned_when_cache_is_enabled(self):
+        # Arrange
+        self.exec_instance.no_cache = False
+
+        # Act
+        cached_results = self.exec_instance.cached_results()
+
+        # Assert
+        assert cached_results == self.report.results
+
+    def test_cached_results_are_none_when_cache_is_disabled(self):
+        # Arrange
+        self.exec_instance.no_cache = True
+
+        # Act
+        cached_results = self.exec_instance.cached_results()
+
+        # Assert
+        assert cached_results is None
