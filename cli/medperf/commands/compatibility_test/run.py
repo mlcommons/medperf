@@ -6,6 +6,7 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
 from medperf.commands.dataset.create import DataPreparation
+from medperf.exceptions import InvalidArgumentError
 from .validate_params import CompatibilityTestParamsValidator
 from .utils import download_demo_data, prepare_cube, get_cube
 
@@ -208,8 +209,16 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             (dict|None): None if the results does not exist or if self.no_cache is True,
             otherwise it returns the found results.
         """
-        if not self.no_cache:
-            return self.report.cached_results()
+        if self.no_cache:
+            return
+        uid = self.report.generated_uid
+        try:
+            report = TestReport.get(uid)
+        except InvalidArgumentError:
+            return
+        logging.info(f"Existing report {uid} was detected.")
+        logging.info("The compatibilty test will not be re-executed.")
+        return report.results
 
     def execute(self):
         """Runs the test execution flow and returns the results

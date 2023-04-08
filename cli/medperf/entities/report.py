@@ -34,34 +34,18 @@ class TestReport(MedperfBaseSchema):
     def __init__(self, *args, **kwargs):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
-        self.generate_uid()
+        self.generated_uid = self.__generate_uid()
         path = storage_path(config.test_storage)
         self.path = os.path.join(path, self.generated_uid)
 
-    def generate_uid(self):
+    def __generate_uid(self):
         params = self.todict()
         del params["results"]
         params = str(params)
-        self.generated_uid = hashlib.sha1(params.encode()).hexdigest()
+        return hashlib.sha1(params.encode()).hexdigest()
 
     def set_results(self, results):
         self.results = results
-
-    def cached_results(self):
-        """checks the existance of, and retrieves if possible, the compatibility test
-        result. This method is called prior to the test execution.
-
-        Returns:
-            (dict|None): None if the result does not exist or if self.no_cache is True,
-            otherwise it returns the found result.
-        """
-        try:
-            report = self.__class__.__get_local_dict(self.generated_uid)
-            logging.info(f"Existing results at {self.path} were detected.")
-            logging.info("The compatibilty test will not be re-executed.")
-            return report
-        except InvalidArgumentError:
-            pass
 
     @classmethod
     def all(
