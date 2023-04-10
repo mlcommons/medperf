@@ -1,5 +1,3 @@
-Before proceeding, make sure you have the [MedPerf client installed.](../installation.md)
-
 This set of tutorials will cover the basic usage of MedPerf. We will present a guided walkthrough of a simple benchmarking scenario through an example.
 The example will simulate benchmarking the task of chest X-ray classification. It will involve the roles of the three entities of interest:
 
@@ -7,7 +5,7 @@ The example will simulate benchmarking the task of chest X-ray classification. I
 - **The model owner:** This will simulate a researcher that wants to test the performance of their deep learning model (a ResNet model) on chest-Xray classification. Their main actions involve submitting a model MLCube and requesting participation in the benchmark.
 - **The data owner:** This will simulate a hospital that has raw chest X-ray data and wants to allow testing deep learning models on their data while keeping it private. Their main actions involve preparing the data, submitting the metadata of the prepared dataset, requesting participation in the benchmark, execute the benchmark models on the prepared dataset, and submitting the results of the execution.
 
-First, you have to [set up](setup.md) the general testing environment. Then, depending on how you are going to use MedPerf, we provide the following hands-on tutorials:
+Before proceeding, make sure you have the [MedPerf client installed.](../installation.md), and you have [set up](setup.md) the general testing environment. Depending on how you are going to use MedPerf, we provide the following hands-on tutorials:
 
 - [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
 
@@ -15,4 +13,4 @@ First, you have to [set up](setup.md) the general testing environment. Then, dep
 
 - [How a data owner can prepare their data and execute a benchmark.](data_owner_demo.md)
 
-For a detailed reference on the commands used throughout the tutorials, you can always refer to the command line interface documentation (TODO: link).
+For a detailed reference on the commands used throughout the tutorials, you can always refer to the [command line interface documentation](../cli_reference.md).

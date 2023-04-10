@@ -24,6 +24,7 @@ nav:
   - MLCube Submission: concepts/mlcube_submit.md
   - Hosting Files: concepts/hosting_files.md
   - The Demo Dataset: concepts/demo_dataset.md
+- CLI Reference: cli_reference.md
 - Code Reference: reference/
 theme: 
   features:
