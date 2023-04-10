@@ -2,6 +2,7 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 from .models import Dataset
 from .permissions import IsAdmin, IsDatasetOwner
@@ -12,6 +13,7 @@ class DatasetList(GenericAPIView):
     serializer_class = DatasetSerializer
     queryset = ""
 
+    @extend_schema(operation_id="datasets_retrieve_all")
     def get(self, request, format=None):
         """
         List all datasets

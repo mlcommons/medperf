@@ -9,6 +9,8 @@ import sys
 
 import pandas as pd
 
+from normalized_surface_dice import compute_surface_dice_from_images
+
 
 def run_captk(pred, gold, tmp):
     """
@@ -68,39 +70,53 @@ def score(parent, preds_dir, tmp_output="tmp.csv") -> pd.DataFrame:
 
     scores = []
     for subject_id in os.listdir(preds_dir):
-        gold = os.path.join(parent, subject_id, subject_id + "_seg.nii.gz")
-        pred = os.path.join(
-            preds_dir,
-            subject_id,
-            subject_id + "_" + params["model_name"].lower() + "_seg.nii.gz",
-        )
-        try:
-            run_captk(pred, gold, tmp_output)
-            scan_scores = extract_metrics(tmp_output, subject_id)
-            os.remove(tmp_output)  # Remove file, as it's no longer needed
-        except subprocess.CalledProcessError:
-            # If no output found, give penalized scores.
-            scan_scores = pd.DataFrame(
-                {
-                    "subject_id": [subject_id],
-                    "Dice_ET": [0],
-                    "Dice_TC": [0],
-                    "Dice_WT": [0],
-                    "Hausdorff95_ET": [374],
-                    "Hausdorff95_TC": [374],
-                    "Hausdorff95_WT": [374],
-                    "Sensitivity_ET": [0],
-                    "Sensitivity_TC": [0],
-                    "Sensitivity_WT": [0],
-                    "Specificity_ET": [0],
-                    "Specificity_TC": [0],
-                    "Specificity_WT": [0],
-                    "Precision_ET": [0],
-                    "Precision_TC": [0],
-                    "Precision_WT": [0],
-                }
-            ).set_index("subject_id")
-        scores.append(scan_scores)
+        if subject_id != "config.yaml":
+            gold = os.path.join(parent, subject_id, subject_id + "_seg.nii.gz")
+            pred = os.path.join(
+                preds_dir,
+                subject_id,
+                subject_id + "_" + params["model_name"].lower() + "_seg.nii.gz",
+            )
+            try:
+                run_captk(pred, gold, tmp_output)
+                scan_scores = extract_metrics(tmp_output, subject_id)
+                os.remove(tmp_output)  # Remove file, as it's no longer needed
+                normalized_surface_dice = compute_surface_dice_from_images(
+                    pred, gold, tolerance=1.0
+                )
+                normalized_df = (pd.DataFrame
+                                 .from_dict(normalized_surface_dice, orient='index')
+                                 .transpose()
+                                 .rename(index={0: subject_id})
+                                 )
+                scan_scores = scan_scores.join(normalized_df)
+            except subprocess.CalledProcessError:
+                # If no output found, give penalized scores.
+                scan_scores = pd.DataFrame(
+                    {
+                        "subject_id": [subject_id],
+                        "Dice_ET": [0],
+                        "Dice_TC": [0],
+                        "Dice_WT": [0],
+                        # maximum diagonal for image of [240,240,155]
+                        "Hausdorff95_ET": [374],
+                        "Hausdorff95_TC": [374],
+                        "Hausdorff95_WT": [374],
+                        "Sensitivity_ET": [0],
+                        "Sensitivity_TC": [0],
+                        "Sensitivity_WT": [0],
+                        "Specificity_ET": [0],
+                        "Specificity_TC": [0],
+                        "Specificity_WT": [0],
+                        "Precision_ET": [0],
+                        "Precision_TC": [0],
+                        "Precision_WT": [0],
+                        "NormalizedSurfaceDice_ET": [0],
+                        "NormalizedSurfaceDice_TC": [0],
+                        "NormalizedSurfaceDice_WT": [0],
+                    }
+                ).set_index("subject_id")
+            scores.append(scan_scores)
     return pd.concat(scores).sort_values(by="subject_id")
 
 

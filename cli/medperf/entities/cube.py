@@ -3,7 +3,7 @@ import yaml
 import pexpect
 import logging
 from typing import List, Dict, Optional, Union
-from pydantic import HttpUrl, Field
+from pydantic import Field
 from pathlib import Path
 
 from medperf.utils import (
@@ -23,6 +23,7 @@ from medperf.exceptions import (
     CommunicationRetrievalError,
 )
 import medperf.config as config
+from medperf.comms.entity_resources import resources
 
 
 class Cube(Entity, MedperfSchema, DeployableSchema):
@@ -35,13 +36,13 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     with standard metadata and a consistent file-system level interface.
     """
 
-    git_mlcube_url: HttpUrl
+    git_mlcube_url: str
     mlcube_hash: Optional[str]
-    git_parameters_url: Optional[HttpUrl]
+    git_parameters_url: Optional[str]
     parameters_hash: Optional[str]
-    image_tarball_url: Optional[HttpUrl]
+    image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
-    additional_files_tarball_url: Optional[HttpUrl] = Field(None, alias="tarball_url")
+    additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
@@ -170,7 +171,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path, local_hash = config.comms.get_cube(url, self.path)
+        path, local_hash = resources.get_cube(url, self.path)
         if not self.mlcube_hash:
             self.mlcube_hash = local_hash
         self.cube_path = path
@@ -179,7 +180,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path, local_hash = config.comms.get_cube_params(url, self.path)
+            path, local_hash = resources.get_cube_params(url, self.path)
             if not self.parameters_hash:
                 self.parameters_hash = local_hash
             self.params_path = path
@@ -189,7 +190,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path, local_hash = config.comms.get_cube_additional(url, self.path)
+            path, local_hash = resources.get_cube_additional(url, self.path)
             if not self.additional_files_tarball_hash:
                 self.additional_files_tarball_hash = local_hash
             untar(path)
@@ -201,10 +202,9 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         hash = self.image_tarball_hash
 
         if url:
-            path, local_hash = config.comms.get_cube_image(url, self.path, hash)
+            _, local_hash = resources.get_cube_image(url, self.path, hash)
             if not self.image_tarball_hash:
                 self.image_tarball_hash = local_hash
-            untar(path)
             return local_hash
         else:
             # Retrieve image from image registry
