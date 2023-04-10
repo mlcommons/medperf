@@ -30,6 +30,8 @@ for path, mod, doc, full_doc in build_params:
             continue
         if parts[0] == "tests":
             continue
+        if parts[0] == "templates":
+            continue
 
         nav[parts] = str(doc_path)  #
 
