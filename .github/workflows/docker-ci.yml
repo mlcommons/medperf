@@ -1,3 +1,16 @@
+# This workflow runs inside a github actions docker container. The workflow
+# itself runs another docker container for hosting the dev server which is
+# configured with some specific configurations (container network, port...)
+# so that it works properly within the docker-in-docker setup. Keep in mind
+# that github actions mounts the docker daemon path when running the
+# workflow container.
+#
+# ******** NOTE ********
+# MLCubes use docker behind the scenes by default. We don't have direct
+# control over how docker commands are called by the MLCube, so care
+# should be taken when we start using new container configurations
+# inside the mlcube (e.g. networking)
+
 name: Integration local docker workflow
 
 on: pull_request
