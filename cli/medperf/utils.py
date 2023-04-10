@@ -80,7 +80,7 @@ def get_current_user():
     try:
         current_user = config_p.active_profile["current_user"]
     except KeyError:
-        raise ExecutionError(
+        raise MedperfException(
             "Couldn't retrieve current user information. Please login again"
         )
     return current_user
