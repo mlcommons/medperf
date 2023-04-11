@@ -65,12 +65,12 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return self.extended_dict()
 
     @classmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Dataset"]:
+    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
             List[Dataset]: a list of Dataset instances.
@@ -78,7 +78,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         logging.info("Retrieving all datasets")
         dsets = []
         if not local_only:
-            dsets = cls.__remote_all(mine_only=mine_only)
+            dsets = cls.__remote_all(filters=filters)
 
         remote_uids = set([dset.id for dset in dsets])
 
@@ -89,20 +89,32 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return dsets
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Dataset"]:
+    def __remote_all(cls, filters: dict) -> List["Dataset"]:
         dsets = []
-        remote_func = config.comms.get_datasets
-        if mine_only:
-            remote_func = config.comms.get_user_datasets
-
         try:
-            dsets_meta = remote_func()
+            comms_fn = cls.__remote_prefilter(filters)
+            dsets_meta = comms_fn()
             dsets = [cls(**meta) for meta in dsets_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all datasets from the server"
             logging.warning(msg)
 
         return dsets
+
+    @classmethod
+    def __remote_prefilter(cls, filters: dict) -> callable:
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_datasets
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+            comms_fn = config.comms.get_user_datasets
+        return comms_fn
 
     @classmethod
     def __local_all(cls) -> List["Dataset"]:

@@ -4,13 +4,16 @@ from abc import ABC, abstractmethod
 
 class Entity(ABC):
     @abstractmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Entity"]:
+    def all(
+        cls, local_only: bool = False, comms_func: callable = None
+    ) -> List["Entity"]:
         """Gets a list of all instances of the respective entity.
         Wether the list is local or remote depends on the implementation.
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+            comms_func (callable, optional): Function to use to retrieve remote entities.
+                If not provided, will use the default entrypoint.
 
         Returns:
             List[Entity]: a list of entities.

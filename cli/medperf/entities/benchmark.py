@@ -60,14 +60,12 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         self.path = path
 
     @classmethod
-    def all(
-        cls, local_only: bool = False, mine_only: bool = False
-    ) -> List["Benchmark"]:
+    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Benchmark"]:
         """Gets and creates instances of all retrievable benchmarks
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
             List[Benchmark]: a list of Benchmark instances.
@@ -76,7 +74,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         benchmarks = []
 
         if not local_only:
-            benchmarks = cls.__remote_all(mine_only=mine_only)
+            benchmarks = cls.__remote_all(filters=filters)
 
         remote_uids = set([bmk.id for bmk in benchmarks])
 
@@ -87,14 +85,11 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmarks
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Benchmark"]:
+    def __remote_all(cls, filters: dict) -> List["Benchmark"]:
         benchmarks = []
-        remote_func = config.comms.get_benchmarks
-        if mine_only:
-            remote_func = config.comms.get_user_benchmarks
-
         try:
-            bmks_meta = remote_func()
+            comms_fn = cls.__remote_prefilter(filters)
+            bmks_meta = comms_fn()
             for bmk_meta in bmks_meta:
                 # Loading all related models for all benchmarks could be expensive.
                 # Most probably not necessary when getting all benchmarks.
@@ -106,6 +101,21 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
             logging.warning(msg)
 
         return benchmarks
+
+    @classmethod
+    def __remote_prefilter(cls, filters: dict) -> callable:
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_benchmarks
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+            comms_fn = config.comms.get_user_benchmarks
+        return comms_fn
 
     @classmethod
     def __local_all(cls) -> List["Benchmark"]:
