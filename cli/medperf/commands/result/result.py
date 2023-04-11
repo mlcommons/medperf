@@ -63,6 +63,9 @@ def submit(
 def list(
     local: bool = typer.Option(False, "--local", help="Get local results"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    benchmark: int = typer.Option(
+        None, "--benchmark", "-b", help="Get results for a given benchmark"
+    ),
 ):
     """List results stored locally and remotely from the user"""
     EntityList.run(
@@ -70,6 +73,7 @@ def list(
         fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
         local_only=local,
         mine_only=mine,
+        benchmark=benchmark,
     )
 
 
@@ -91,6 +95,9 @@ def view(
         "--mine",
         help="Display current-user results if result ID is not provided",
     ),
+    benchmark: int = typer.Option(
+        None, "--benchmark", "-b", help="Get results for a given benchmark"
+    ),
     output: str = typer.Option(
         None,
         "--output",
@@ -100,4 +107,4 @@ def view(
 ):
     """Displays the information of one or more results
     """
-    EntityView.run(entity_id, Result, format, local, mine, output)
+    EntityView.run(entity_id, Result, format, local, mine, output, benchmark=benchmark)

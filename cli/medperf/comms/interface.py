@@ -53,6 +53,11 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def get_current_user(self):
+        """Retrieve the currently-authenticated user information
+        """
+
+    @abstractmethod
     def get_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks in the platform.
 
@@ -202,6 +207,17 @@ class Comms(ABC):
 
         Returns:
             dict: dictionary with the contents of each dataset registration query
+        """
+
+    @abstractmethod
+    def get_benchmark_results(self, benchmark_id: int) -> dict:
+        """Retrieves all results for a given benchmark
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve results from
+
+        Returns:
+            dict: dictionary with the contents of each result in the specified benchmark
         """
 
     @abstractmethod
