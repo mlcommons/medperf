@@ -4,10 +4,7 @@ import requests
 import json
 import curlify
 
-ASSETS_URL = (
-    "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-    "9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/"
-)
+ASSETS_URL = "https://raw.githubusercontent.com/mlcommons/medperf/examples/ChestXRay/"
 
 
 class Server:
