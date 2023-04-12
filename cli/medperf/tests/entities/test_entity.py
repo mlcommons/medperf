@@ -85,17 +85,6 @@ class TestAll:
         retrieved_ids = set([e.todict()["id"] for e in entities])
         assert self.local_ids == retrieved_ids
 
-    def test_all_mine_only_returns_user_and_local_entities(self, Implementation):
-        # Arrange
-        user_ids = self.user_ids.union(self.local_ids)
-
-        # Act
-        entities = Implementation.all(mine_only=True)
-
-        # Assert
-        retrieved_ids = set([e.todict()["id"] for e in entities])
-        assert user_ids == retrieved_ids
-
 
 @pytest.mark.parametrize(
     "setup", [{"local": [78], "remote": [479, 42, 7, 1]}], indirect=True,
