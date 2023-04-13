@@ -1,8 +1,30 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 
 
 class CompatibilityTestParamsValidator:
     """Validates the input parameters to the CompatibilityTestExecution class"""
+
+    def __init__(
+        self,
+        benchmark: int = None,
+        data_prep: str = None,
+        model: str = None,
+        evaluator: str = None,
+        data_path: str = None,
+        labels_path: str = None,
+        demo_dataset_url: str = None,
+        demo_dataset_hash: str = None,
+        data_uid: str = None,
+    ):
+        self.benchmark_uid = benchmark
+        self.data_prep = data_prep
+        self.model = model
+        self.evaluator = evaluator
+        self.data_path = data_path
+        self.labels_path = labels_path
+        self.demo_dataset_url = demo_dataset_url
+        self.demo_dataset_hash = demo_dataset_hash
+        self.data_uid = data_uid
 
     def __validate_cubes(self):
         if not self.model and not self.benchmark_uid:
@@ -62,38 +84,44 @@ class CompatibilityTestParamsValidator:
             )
 
     def __validate_data_source(self):
-        if not any([self.data_path, self.demo_dataset_url, self.data_uid]):
-            if not self.benchmark_uid:
-                msg = "A data source should at least be specified, either by providing"
-                msg += " a prepared data uid, a demo dataset url, data path, or a benchmark"
-                raise InvalidArgumentError(msg)
-            self.data_source = "benchmark"
-            return
-
         if self.data_uid:
             self.__validate_prepared_data_source()
-            self.data_source = "prepared"
             return
 
         if self.data_path:
             self.__validate_data_path_source()
-            self.data_source = "path"
             return
 
         if self.demo_dataset_url:
             self.__validate_demo_data_source()
-            self.data_source = "demo"
             return
 
-    def __validate_redundant_benchmark(self):
         if self.benchmark_uid:
-            if (
-                self.data_source != "benchmark"
-                and self.model
-                and self.evaluator
-                and (self.data_source == "prepared" or self.data_prep)
-            ):
-                raise InvalidArgumentError("The provided benchmark will not be used")
+            return
+
+        msg = "A data source should at least be specified, either by providing"
+        msg += " a prepared data uid, a demo dataset url, data path, or a benchmark"
+        raise InvalidArgumentError(msg)
+
+    def __validate_redundant_benchmark(self):
+        if not self.benchmark_uid:
+            return
+
+        redundant_bmk_demo = any([self.data_uid, self.data_path, self.demo_dataset_url])
+        redundant_bmk_model = self.model is not None
+        redundant_bmk_evaluator = self.evaluator is not None
+        redundant_bmk_preparator = (
+            self.data_prep is not None or self.data_uid is not None
+        )
+        if all(
+            [
+                redundant_bmk_demo,
+                redundant_bmk_model,
+                redundant_bmk_evaluator,
+                redundant_bmk_preparator,
+            ]
+        ):
+            raise InvalidArgumentError("The provided benchmark will not be used")
 
     def validate(self):
         """Ensures test has been passed a valid combination of parameters.
@@ -104,3 +132,29 @@ class CompatibilityTestParamsValidator:
         self.__validate_cubes()
         self.__validate_data_source()
         self.__validate_redundant_benchmark()
+
+    def get_data_source(self):
+        """Parses the input parameters and returns a string, one of:
+        "prepared", if the source of data is a prepared dataset uid,
+        "path", if the source of data is a local path to raw data,
+        "demo", if the source of data is a demo dataset url,
+        or "benchmark", if the source of data is the demo dataset of a benchmark.
+
+        This function assumes the passed parameters to the constructor have been already
+        validated.
+        """
+        if self.data_uid:
+            return "prepared"
+
+        if self.data_path:
+            return "path"
+
+        if self.demo_dataset_url:
+            return "demo"
+
+        if self.benchmark_uid:
+            return "benchmark"
+
+        raise MedperfException(
+            "Ensure calling the `validate` method before using this method"
+        )

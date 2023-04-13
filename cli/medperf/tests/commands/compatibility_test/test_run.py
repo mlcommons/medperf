@@ -31,6 +31,7 @@ class TestValidate:
     def test_valid_examples_with_data_from_paths(self):
         # Act
         self.exec_instance.validate()
+        self.exec_instance.set_data_source()
 
         # Assert
         assert self.exec_instance.data_source == "path"
@@ -39,6 +40,7 @@ class TestValidate:
     def test_valid_examples_with_demo_data_input(self):
         # Act
         self.exec_instance.validate()
+        self.exec_instance.set_data_source()
 
         # Assert
         assert self.exec_instance.data_source == "demo"
@@ -47,6 +49,7 @@ class TestValidate:
     def test_valid_examples_with_prepared_data_input(self):
         # Act
         self.exec_instance.validate()
+        self.exec_instance.set_data_source()
 
         # Assert
         assert self.exec_instance.data_source == "prepared"
@@ -55,6 +58,7 @@ class TestValidate:
     def test_valid_examples_with_data_from_benchmark(self):
         # Act
         self.exec_instance.validate()
+        self.exec_instance.set_data_source()
 
         # Assert
         assert self.exec_instance.data_source == "benchmark"

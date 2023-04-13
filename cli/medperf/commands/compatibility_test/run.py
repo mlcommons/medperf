@@ -11,7 +11,7 @@ from .validate_params import CompatibilityTestParamsValidator
 from .utils import download_demo_data, prepare_cube, get_cube
 
 
-class CompatibilityTestExecution(CompatibilityTestParamsValidator):
+class CompatibilityTestExecution:
     @classmethod
     def run(
         cls,
@@ -83,6 +83,7 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
             offline,
         )
         test_exec.validate()
+        test_exec.set_data_source()
         test_exec.process_benchmark()
         test_exec.prepare_cubes()
         test_exec.prepare_dataset()
@@ -119,13 +120,30 @@ class CompatibilityTestExecution(CompatibilityTestParamsValidator):
         self.no_cache = no_cache
         self.offline = offline
 
-        # This property will be set by the validator class
-        # to either "path", "demo", "prepared", or "benchmark"
+        # This property will be set to either "path", "demo", "prepared", or "benchmark"
         self.data_source = None
 
         self.dataset = None
         self.model_cube = None
         self.evaluator_cube = None
+
+        self.validator = CompatibilityTestParamsValidator(
+            self.benchmark_uid,
+            self.data_prep,
+            self.model,
+            self.evaluator,
+            self.data_path,
+            self.labels_path,
+            self.demo_dataset_url,
+            self.demo_dataset_hash,
+            self.data_uid,
+        )
+
+    def validate(self):
+        self.validator.validate()
+
+    def set_data_source(self):
+        self.data_source = self.validator.get_data_source()
 
     def process_benchmark(self):
         """Process the benchmark input if given. Sets the needed parameters from
