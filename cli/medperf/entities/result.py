@@ -41,12 +41,12 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         self.path = path
 
     @classmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Result"]:
+    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Result"]:
         """Gets and creates instances of all the user's results
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
             List[Result]: List containing all results
@@ -54,7 +54,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         logging.info("Retrieving all results")
         results = []
         if not local_only:
-            results = cls.__remote_all(mine_only=mine_only)
+            results = cls.__remote_all(filters=filters)
 
         remote_uids = set([result.id for result in results])
 
@@ -65,20 +65,43 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Result"]:
+    def __remote_all(cls, filters: dict) -> List["Result"]:
         results = []
-        remote_func = config.comms.get_results
-        if mine_only:
-            remote_func = config.comms.get_user_results
 
         try:
-            results_meta = remote_func()
+            comms_fn = cls.__remote_prefilter(filters)
+            results_meta = comms_fn()
             results = [cls(**meta) for meta in results_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all results from the server"
             logging.warning(msg)
 
         return results
+
+    @classmethod
+    def __remote_prefilter(cls, filters: dict) -> callable:
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_results
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+            comms_fn = config.comms.get_user_results
+        if "benchmark" in filters:
+            bmk = filters["benchmark"]
+
+            def get_benchmark_results():
+                # Decorate the benchmark results remote function so it has the same signature
+                # as all the comms_fns
+                return config.comms.get_benchmark_results(bmk)
+
+            comms_fn = get_benchmark_results
+
+        return comms_fn
 
     @classmethod
     def __local_all(cls) -> List["Result"]:
