@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 
 from medperf.utils import storage_path
 from medperf.enums import Status
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
@@ -16,7 +16,7 @@ from medperf.exceptions import (
 import medperf.config as config
 
 
-class Dataset(Entity, MedperfSchema, DeployableSchema):
+class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     """
     Class representing a Dataset
 
@@ -28,9 +28,9 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
 
     description: Optional[str] = Field(None, max_length=20)
     location: str = Field(..., max_length=20)
-    data_preparation_mlcube: int
     input_data_hash: str
     generated_uid: str
+    data_preparation_mlcube: Union[int, str]
     split_seed: Optional[int]
     generated_metadata: dict = Field(..., alias="metadata")
     status: Status = None
@@ -45,6 +45,14 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         if v is None:
             return default
         return Status(v)
+
+    @validator("data_preparation_mlcube", pre=True, always=True)
+    def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
+        if not isinstance(v, int) and not values["for_test"]:
+            raise ValueError(
+                "data_preparation_mlcube must be an integer if not running a compatibility test"
+            )
+        return v
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -135,7 +143,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         return dsets
 
     @classmethod
-    def get(cls, dset_uid: Union[str, int]) -> "Dataset":
+    def get(cls, dset_uid: Union[str, int], local_only: bool = False) -> "Dataset":
         """Retrieves and creates a Dataset instance from the comms instance.
         If the dataset is present in the user's machine then it retrieves it from there.
 
@@ -145,21 +153,47 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
         Returns:
             Dataset: Specified Dataset Instance
         """
-        logging.debug(f"Retrieving dataset {dset_uid}")
-        comms = config.comms
+        if not str(dset_uid).isdigit() or local_only:
+            return cls.__local_get(dset_uid)
 
-        # Try first downloading the data
         try:
-            meta = comms.get_dataset(dset_uid)
-            dataset = cls(**meta)
+            return cls.__remote_get(dset_uid)
         except CommunicationRetrievalError:
-            # Get from local cache
             logging.warning(f"Getting Dataset {dset_uid} from comms failed")
             logging.info(f"Looking for dataset {dset_uid} locally")
-            local_meta = cls.__get_local_dict(dset_uid)
-            dataset = cls(**local_meta)
+            return cls.__local_get(dset_uid)
 
+    @classmethod
+    def __remote_get(cls, dset_uid: int) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving dataset {dset_uid} remotely")
+        meta = config.comms.get_dataset(dset_uid)
+        dataset = cls(**meta)
         dataset.write()
+        return dataset
+
+    @classmethod
+    def __local_get(cls, dset_uid: Union[str, int]) -> "Dataset":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving dataset {dset_uid} locally")
+        local_meta = cls.__get_local_dict(dset_uid)
+        dataset = cls(**local_meta)
         return dataset
 
     def write(self):
