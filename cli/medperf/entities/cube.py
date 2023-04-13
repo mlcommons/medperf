@@ -7,7 +7,7 @@ from pydantic import Field
 from pathlib import Path
 
 from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
@@ -20,7 +20,7 @@ import medperf.config as config
 from medperf.comms.entity_resources import resources
 
 
-class Cube(Entity, MedperfSchema, DeployableSchema):
+class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     """
     Class representing an MLCube Container
 

@@ -6,13 +6,13 @@ from typing import List, Optional, Union
 from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 
 
-class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 

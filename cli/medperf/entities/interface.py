@@ -41,14 +41,6 @@ class Entity(ABC):
         """
 
     @abstractmethod
-    def upload(self) -> Dict:
-        """Upload the entity-related information to the communication's interface
-
-        Returns:
-            Dict: Dictionary with the updated entity information
-        """
-
-    @abstractmethod
     def write(self) -> str:
         """Writes the entity to the local storage
 
@@ -64,6 +56,16 @@ class Entity(ABC):
 
         Returns:
             dict: the display dictionary
+        """
+
+
+class Uploadable:
+    @abstractmethod
+    def upload(self) -> Dict:
+        """Upload the entity-related information to the communication's interface
+
+        Returns:
+            Dict: Dictionary with the updated entity information
         """
 
     @property

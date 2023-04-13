@@ -4,13 +4,13 @@ import logging
 from typing import List, Union
 
 from medperf.utils import storage_path
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-class Result(Entity, MedperfSchema, ApprovableSchema):
+class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
     """
     Class representing a Result entry
 

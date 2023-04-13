@@ -8,9 +8,10 @@ from medperf.utils import storage_path
 from medperf.entities.schemas import MedperfBaseSchema
 import medperf.config as config
 from medperf.exceptions import InvalidArgumentError
+from medperf.entities.interface import Entity
 
 
-class TestReport(MedperfBaseSchema):
+class TestReport(Entity, MedperfBaseSchema):
     """
     Class representing a compatibility test report entry
 
