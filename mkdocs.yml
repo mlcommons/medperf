@@ -11,6 +11,7 @@ nav:
   - Data Preparator MLCube Template: mlcubes/mlcube_data.md
   - Model MLCube Template: mlcubes/mlcube_models.md
   - Metrics MLCube Template: mlcubes/mlcube_metrics.md
+  - Deploying MLCubes: mlcubes/mlcube_deploy.md
 - Workflow: workflow.md
 - General Instructions: general_instructions.md
 - Instructions for Data Owners: instructions_data_owners.md
