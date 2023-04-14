@@ -14,6 +14,12 @@ docker:
   # Docker file name within docker build context, default is `Dockerfile`.
   build_file: "Dockerfile"
 
+singularity:
+  # Image name.
+  image: chexpert-prep.simg
+  build_file: docker://mlcommons/chexpert-prep:0.1.0
+  run_args: "-C --writable-tmpfs --net --network=none --nv"
+
 tasks:
   prepare:
     parameters:
