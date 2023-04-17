@@ -294,7 +294,32 @@ That's it! You check your benchmark's server UID by running:
 medperf benchmark ls --mine
 ```
 
-## 7. See Also
+## Cleanup (Optional)
+
+You have reached the end of the tutorial! If you are planning to rerun any of our tutorials, don't forget to cleanup:
+
+- To shut down the server: press `CTRL`+`C` in the terminal where the server is running.
+
+- To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
+
+```
+rm -fr medperf_tutorial
+```
+
+- To cleanup the server database: (make sure you are in the MedPerf's root directory)
+
+```
+cd server
+sh reset_db.sh
+```
+
+- To cleanup the test storage:
+
+```
+rm -fr ~/.medperf/localhost_8000
+```
+
+## See Also
 
 - [Benchmark Associations.](../concepts/associations.md)
 
