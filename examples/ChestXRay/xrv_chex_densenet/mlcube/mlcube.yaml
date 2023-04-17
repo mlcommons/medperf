@@ -14,12 +14,6 @@ docker:
   # Docker file name within docker build context, default is `Dockerfile`.
   build_file: "Dockerfile"
 
-singularity:
-  # Image name.
-  image: xrv-chexpert-densenet.simg
-  build_file: docker://mlcommons/xrv-chexpert-densenet:0.1.0
-  run_args: "-C --writable-tmpfs --net --network=none --nv"
-
 tasks:
   infer:
   # predict on data
