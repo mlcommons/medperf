@@ -325,15 +325,15 @@ def seed(args):
         "POST",
         model_owner_token,
         {
-            "name": "xrv_resnet",
-            "git_mlcube_url": (ASSETS_URL + "xrv_resnet/mlcube/mlcube.yaml"),
-            "mlcube_hash": "b2f17ed06c7b1225810588630abdc4d6ee8b3137",
+            "name": "xrv_pc_densenet",
+            "git_mlcube_url": (ASSETS_URL + "xrv_densenet/mlcube/mlcube.yaml"),
+            "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
             "git_parameters_url": (
-                ASSETS_URL + "xrv_resnet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "xrv_densenet/mlcube/workspace/parameters_pc.yaml"
             ),
-            "parameters_hash": "cd747953cf4b95e104d2c2b03385c656e44ffaec",
-            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",
-            "additional_files_tarball_hash": "e70a6c8e0931537b4b3dd8c06560f227605e9ed1",
+            "parameters_hash": "9ff226e8c0464b8e20742c2eca51704c9c850518",
+            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_pc_densenet.tar.gz",
+            "additional_files_tarball_hash": "6518e81b3b5a7200964cfe363499ec2ce8ecde14",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {},
