@@ -115,7 +115,7 @@ def associate(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Dataset ID"),
+    entity_id: Optional[str] = typer.Argument(None, help="Dataset ID"),
     format: str = typer.Option(
         "yaml",
         "-f",
