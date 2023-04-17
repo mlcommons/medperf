@@ -1,5 +1,3 @@
-# Tarfile creation taken from https://stackoverflow.com/questions/2032403/how-to-create-full-compressed-tar-file-using-python
-
 import os
 import argparse
 import tarfile
@@ -39,8 +37,11 @@ def validate_path(expected_paths):
 
 
 def make_tarfile(source_dir, output_filename):
+    contents = os.listdir(source_dir)
     with tarfile.open(output_filename, "w:gz") as tar:
-        tar.add(source_dir, arcname=os.path.basename(source_dir))
+        for rel_path in contents:
+            abs_path = os.path.join(source_dir, rel_path)
+            tar.add(abs_path, arcname=os.path.basename(abs_path))
 
 
 def create_empty_file(path):
