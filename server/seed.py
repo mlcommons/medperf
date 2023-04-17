@@ -4,7 +4,10 @@ import requests
 import json
 import curlify
 
-ASSETS_URL = "https://raw.githubusercontent.com/mlcommons/medperf/examples/ChestXRay/"
+ASSETS_URL = (
+    "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
+    "9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/"
+)
 
 
 class Server:
@@ -271,9 +274,9 @@ def seed(args):
             "name": "xrv",
             "description": "benchmark-sample",
             "docs_url": "",
-            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_demo_data.tar.gz",
-            "demo_dataset_tarball_hash": "137950e4e7b8de3baa4a9982c3ebea6a52bd33d3",
-            "demo_dataset_generated_uid": "f35c2d89caf140edb78e187a54d048c0590cb3ea",
+            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz",
+            "demo_dataset_tarball_hash": "242a67d65ae3c2c8ff55277399ee3cb49dec12fb",
+            "demo_dataset_generated_uid": "fe5f74f8e345662b81acb53d8558a39fbec75837",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,
             "data_evaluator_mlcube": data_evaluator_mlcube,

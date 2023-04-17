@@ -20,10 +20,10 @@ nav:
   - Hands-on Tutorial for Model Owners: getting_started/model_owner_demo.md
   - Hands-on Tutorial for Data Owners: getting_started/data_owner_demo.md
 - Concepts:
-  - Client Profiles: concepts/profiles.md
-  - MLCube Submission: concepts/mlcube_submit.md
+  - Client Configuration: concepts/profiles.md
+  - MLCube Files: concepts/mlcube_files.md
   - Hosting Files: concepts/hosting_files.md
-  - The Demo Dataset: concepts/demo_dataset.md
+  - Benchmark Associations: concepts/associations.md
 - CLI Reference: cli_reference.md
 - Code Reference: reference/
 theme: 
