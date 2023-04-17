@@ -53,11 +53,9 @@ echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
-tar -xzvf $DIRECTORY/mock_chexpert_dset.tar.gz -C $DIRECTORY
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert.tar.gz
+tar -xzvf $DIRECTORY/mock_chexpert.tar.gz -C $DIRECTORY
 chmod a+w $DIRECTORY/mock_chexpert
-ls $DIRECTORY/mock_chexpert
-ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
 echo "Setting testing profile"
 echo "====================================="
@@ -72,7 +70,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert --name="mock_chexpert" --description="mock dataset" --location="mock location"
+medperf dataset create -b 1 -d $DIRECTORY/mock_chexpert/images -l $DIRECTORY/mock_chexpert/labels --name="mock_chexpert" --description="mock dataset" --location="mock location"
 checkFailed "Data preparation step failed"
 
 echo "\n"
