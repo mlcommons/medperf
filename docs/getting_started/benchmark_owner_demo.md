@@ -44,6 +44,18 @@ sh tutorials_scripts/setup_benchmark_tutorial.sh
 
 This will create a workspace folder `medperf_tutorial` where all necessary files are downloaded.
 
+#### Login to the Local Server
+
+You credentials in this tutorial will be a username: `testbenchmarkowner` and a password: `test`. Run:
+
+```
+medperf login
+```
+
+You will be prompted to enter your credentials.
+
+You are now ready to start!
+
 ## 1. Implement a Valid Workflow
 
 This is accomplished by implementing three [MLCubes](../mlcubes/mlcubes.md):
@@ -64,7 +76,7 @@ A demo dataset is a small reference dataset. It contains a few data records and 
 
 2. When a model owner wants to participate in the benchmark, the MedPerf client tests the compatibility of their model with the benchmark's data preparation cube and metrics cube. The test is run using the benchmark's demo dataset as input.
 
-For this tutorial, we have already developed a demo dataset for the workflow provided in the previous section. The dataset can be found in your workspace folder under the name `mock_chexpert`.
+For this tutorial, we have already developed a demo dataset for the workflow provided in the previous section. The dataset can be found in your workspace folder under the name `mock_chexpert`. It is a mock dataset comprising of images and labels, which will serve as replacement of real X-ray images.
 
 Now that we have our 3 MLCubes and the demo data, we can test the workflow. It is usually recommended to test the workflow before submitting any asset to the MedPerf server.
 
