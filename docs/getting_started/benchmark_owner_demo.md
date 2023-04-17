@@ -1,13 +1,15 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz
-prep_mlcube: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/chexpert_prep/mlcube/mlcube.yaml
-prep_params: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/chexpert_prep/mlcube/workspace/parameters.yaml
-model_mlcube: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/xrv_chex_densenet/mlcube/mlcube.yaml
-model_params: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/xrv_chex_densenet/mlcube/workspace/parameters.yaml
 model_add: https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz
-metrics_mlcube: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/metrics/mlcube/mlcube.yaml
-metrics_params: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/metrics/mlcube/workspace/parameters.yaml
+assets_url: https://raw.githubusercontent.com/hasan7n/medperf/88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/
 ---
+
+{% set prep_mlcube = assets_url+"chexpert_prep/mlcube/mlcube.yaml" %}
+{% set prep_params = assets_url+"chexpert_prep/mlcube/workspace/parameters.yaml" %}
+{% set model_mlcube = assets_url+"xrv_densenet/mlcube/mlcube.yaml" %}
+{% set model_params = assets_url+"xrv_densenet/mlcube/workspace/parameters.yaml" %}
+{% set metrics_mlcube = assets_url+"metrics/mlcube/mlcube.yaml" %}
+{% set metrics_params = assets_url+"metrics/mlcube/workspace/parameters.yaml" %}
 
 ## Overview
 
@@ -66,7 +68,7 @@ This is accomplished by implementing three [MLCubes](../mlcubes/mlcubes.md):
 
 3. **The Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e. the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). A tutorial on how to implement metrics MLCubes can be found [here](../mlcubes/mlcube_metrics.md).
 
-For this tutorial, we have already implemented the three mlcubes for the task of chest X-ray classification. The implementations can be found here: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/chexpert_prep), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/xrv_chex_densenet), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/metrics). We have setup these mlcubes locally for you and can be found in your workspace folder under the names: `chexpert_prep`, `xrv_chex_densenet`, and `metrics`.
+For this tutorial, we have already implemented the three mlcubes for the task of chest X-ray classification. The implementations can be found here: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/chexpert_prep), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/xrv_densenet), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/metrics). We have setup these mlcubes locally for you and can be found in your workspace folder under the names: `chexpert_prep`, `xrv_densenet`, and `metrics`.
 
 ## 2. Develop a Demo Dataset
 
@@ -87,7 +89,7 @@ MedPerf provides a single command to test an inference workflow. To test your wo
 ```bash
 medperf test run \
    --data_preparation "medperf_tutorial/chexpert_prep/mlcube/mlcube.yaml" \ # (1)!
-   --model "medperf_tutorial/xrv_chex_densenet/mlcube/mlcube.yaml" \ # (2)!
+   --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml" \ # (2)!
    --evaluator "medperf_tutorial/metrics/mlcube/mlcube.yaml" \ # (3)!
    --data_path "medperf_tutorial/mock_chexpert/images" \ # (4)!
    --labels_path "medperf_tutorial/mock_chexpert/labels" \ # (5)!
@@ -111,7 +113,7 @@ To prepare the files of our three MLCubes, run (make sure you are in MedPerf's r
 
 ```
 python scripts/package-mlcube.py medperf_tutorial/chexpert_prep/mlcube
-python scripts/package-mlcube.py medperf_tutorial/xrv_chex_densenet/mlcube
+python scripts/package-mlcube.py medperf_tutorial/xrv_densenet/mlcube
 python scripts/package-mlcube.py medperf_tutorial/metrics/mlcube
 ```
 
@@ -127,14 +129,16 @@ To submit the MLCubes:
 
 1. The Data Preparator MLCube: the submission should include:
 
-     a. The URL to the hosted mlcube manifest file:
+   a. The URL to the hosted mlcube manifest file:
+
    ```
-   {{ page.meta.prep_mlcube }}
+   {{ prep_mlcube }}
    ```
 
-     b. The URL to the hosted mlcube parameters file:
+   b. The URL to the hosted mlcube parameters file:
+
    ```
-   {{ page.meta.prep_params }}
+   {{ prep_params }}
    ```
 
 Command to submit:
@@ -142,56 +146,61 @@ Command to submit:
 ```
 medperf mlcube submit \
    --name my-prep-cube \
-   --mlcube-file "{{ page.meta.prep_mlcube }}" \
-   --parameters-file "{{ page.meta.prep_params }}" \
+   --mlcube-file "{{ prep_mlcube }}" \
+   --parameters-file "{{ prep_params }}" \
 ```
 
 2. The Reference Model MLCube: the submission should include:
 
-     a. The URL to the hosted mlcube manifest file:
-     ```
-     {{ page.meta.model_mlcube }}
-     ```
+   a. The URL to the hosted mlcube manifest file:
 
-     b. The URL to the hosted mlcube parameters file:
-     ```
-     {{ page.meta.model_params }}
-     ```
+   ```
+   {{ model_mlcube }}
+   ```
 
-     c. The URL to the hosted additional files tarball file:
-     ```
-     {{ page.meta.model_add }}
-     ```
+   b. The URL to the hosted mlcube parameters file:
+
+   ```
+   {{ model_params }}
+   ```
+
+   c. The URL to the hosted additional files tarball file:
+
+   ```
+   {{ model_add }}
+   ```
 
 Command to submit:
 
 ```
 medperf mlcube submit \
    --name my-modelref-cube \
-   --mlcube-file "{{ page.meta.model_mlcube }}" \
-   --parameters-file "{{ page.meta.model_params }}" \
-   --additional-file "{{ page.meta.model_add }}"
+   --mlcube-file "{{ model_mlcube }}" \
+   --parameters-file "{{ model_params }}" \
+   --additional-file "{{ model_add }}"
 ```
 
 3. The Metrics MLCube: the submission should include:
 
-     a. The URL to the hosted mlcube manifest file:
-     ```
-     {{ page.meta.metrics_mlcube }}
-     ```
+   a. The URL to the hosted mlcube manifest file:
 
-     b. The URL to the hosted mlcube parameters file:
-     ```
-     {{ page.meta.metrics_params }}
-     ```
+   ```
+   {{ metrics_mlcube }}
+   ```
+
+   b. The URL to the hosted mlcube parameters file:
+
+   ```
+   {{ metrics_params }}
+   ```
 
 Command to submit:
 
 ```
 medperf mlcube submit \
    --name my-metrics-cube \
-   --mlcube-file "{{ page.meta.metrics_mlcube }}" \
-   --parameters-file "{{ page.meta.metrics_params }}" \
+   --mlcube-file "{{ metrics_mlcube }}" \
+   --parameters-file "{{ metrics_params }}" \
 
 ```
 
@@ -251,9 +260,11 @@ tar -czf mock_xrv_demo_data.tar.gz mock_chexpert paths.yaml
 And that's it! Now you have to host the tarball file (`mock_xrv_demo_data.tar.gz`) on the internet.
 
 For the tutorial to run smoothly, we already have the file hosted at this URL:
+
 ```
-{{ page.meta.demo_url }}
+{{ demo_url }}
 ```
+
 If you wish to host it by yourself, you can find the list of supported options and details about hosting files in [this page](../concepts/hosting_files.md).
 
 Finally, since we now have our MLCubes submitted and demo dataset hosted, we can submit the benchmark to the MedPerf server.
@@ -263,13 +274,15 @@ Finally, since we now have our MLCubes submitted and demo dataset hosted, we can
 You need to keep at hand the following information:
 
 - The Demo Dataset URL. In our case:
+
 ```
-{{ page.meta.demo_url }}
+{{ demo_url }}
 ```
-  - The server UIDs of the three MLCubes:
-    - Data preparator UID: `1`
-    - Reference model UID: `2`
-    - Evaluator UID: `3`
+
+- The server UIDs of the three MLCubes:
+  - Data preparator UID: `1`
+  - Reference model UID: `2`
+  - Evaluator UID: `3`
 
 You can create and submit your benchmark using the following command:
 
@@ -277,7 +290,7 @@ You can create and submit your benchmark using the following command:
 medperf benchmark submit \
    --name tutorial_bmk \
    --description "A benchmark created following MedPerf tutorial" \
-   --demo-url "{{ page.meta.demo_url }}" \
+   --demo-url "{{ demo_url }}" \
    --data-preparation-mlcube 1 \
    --reference-model-mlcube 2 \
    --evaluator-mlcube 3
@@ -322,4 +335,3 @@ rm -fr ~/.medperf/localhost_8000
 ## See Also
 
 - [Benchmark Associations.](../concepts/associations.md)
-

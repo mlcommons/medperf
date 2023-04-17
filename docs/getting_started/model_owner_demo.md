@@ -1,9 +1,11 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz
-model_mlcube: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/xrv_chex_densenet/mlcube/mlcube.yaml
-model_params: https://raw.githubusercontent.com/aristizabal95/medperf-2/9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/xrv_chex_densenet/mlcube/workspace/parameters.yaml
-model_add: https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz
+model_add: https://storage.googleapis.com/medperf-storage/xrv_pc_densenet.tar.gz
+assets_url: https://raw.githubusercontent.com/hasan7n/medperf/88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/
 ---
+
+{% set model_mlcube = assets_url+"xrv_densenet/mlcube/mlcube.yaml" %}
+{% set model_params = assets_url+"xrv_densenet/mlcube/workspace/parameters_pc.yaml" %}
 
 ## Overview
 
@@ -62,14 +64,14 @@ These details usually should be acquired by reaching out to the benchmark commit
 
 To test your MLCube validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In our case, it is going to be `1`.
 
-Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we will be using is `medperf_tutorial/xrv_chex_densenet/mlcube/mlcube.yaml`.
+Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we will be using is `medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml`.
 
 Now run the compatibility test:
 
 ```
 medperf test run \
    --benchmark 1 \
-   --model "medperf_tutorial/xrv_chex_densenet/mlcube/mlcube.yaml"
+   --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml"
 
 ```
 
@@ -84,7 +86,7 @@ The MedPerf server registers an MLCube as metadata of a set of files that can be
 To prepare the files of our three MLCubes, run (make sure you are in MedPerf's root folder):
 
 ```
-python scripts/package-mlcube.py medperf_tutorial/xrv_chex_densenet/mlcube
+python scripts/package-mlcube.py medperf_tutorial/xrv_densenet/mlcube
 ```
 
 This script will create a new folder in the MLCube directory, named `deploy`, containing all the files that should be hosted separately.

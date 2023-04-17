@@ -5,8 +5,8 @@ import json
 import curlify
 
 ASSETS_URL = (
-    "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-    "9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/"
+    "https://raw.githubusercontent.com/hasan7n/medperf/"
+    "88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/"
 )
 
 
@@ -193,10 +193,10 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_chex_densenet",
-            "git_mlcube_url": (ASSETS_URL + "xrv_chex_densenet/mlcube/mlcube.yaml"),
+            "git_mlcube_url": (ASSETS_URL + "xrv_densenet/mlcube/mlcube.yaml"),
             "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
             "git_parameters_url": (
-                ASSETS_URL + "xrv_chex_densenet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "xrv_densenet/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "4271dbfa5e22a85b2a62ae3cefb340defc2fe74e",
             "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
