@@ -4,13 +4,13 @@ import logging
 from typing import List, Union
 
 from medperf.utils import storage_path
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-class Result(Entity, MedperfSchema, ApprovableSchema):
+class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
     """
     Class representing a Result entry
 
@@ -41,12 +41,12 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         self.path = path
 
     @classmethod
-    def all(cls, local_only: bool = False, mine_only: bool = False) -> List["Result"]:
+    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Result"]:
         """Gets and creates instances of all the user's results
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
             List[Result]: List containing all results
@@ -54,7 +54,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         logging.info("Retrieving all results")
         results = []
         if not local_only:
-            results = cls.__remote_all(mine_only=mine_only)
+            results = cls.__remote_all(filters=filters)
 
         remote_uids = set([result.id for result in results])
 
@@ -65,20 +65,43 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Result"]:
+    def __remote_all(cls, filters: dict) -> List["Result"]:
         results = []
-        remote_func = config.comms.get_results
-        if mine_only:
-            remote_func = config.comms.get_user_results
 
         try:
-            results_meta = remote_func()
+            comms_fn = cls.__remote_prefilter(filters)
+            results_meta = comms_fn()
             results = [cls(**meta) for meta in results_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all results from the server"
             logging.warning(msg)
 
         return results
+
+    @classmethod
+    def __remote_prefilter(cls, filters: dict) -> callable:
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_results
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+            comms_fn = config.comms.get_user_results
+        if "benchmark" in filters:
+            bmk = filters["benchmark"]
+
+            def get_benchmark_results():
+                # Decorate the benchmark results remote function so it has the same signature
+                # as all the comms_fns
+                return config.comms.get_benchmark_results(bmk)
+
+            comms_fn = get_benchmark_results
+
+        return comms_fn
 
     @classmethod
     def __local_all(cls) -> List["Result"]:
@@ -99,7 +122,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def get(cls, result_uid: Union[str, int]) -> "Result":
+    def get(cls, result_uid: Union[str, int], local_only: bool = False) -> "Result":
         """Retrieves and creates a Result instance obtained from the platform.
         If the result instance already exists in the user's machine, it loads
         the local instance
@@ -110,18 +133,47 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         Returns:
             Result: Specified Result instance
         """
-        logging.debug(f"Retrieving result {result_uid}")
-        comms = config.comms
-        # Try to download first
+        if not str(result_uid).isdigit() or local_only:
+            return cls.__local_get(result_uid)
+
         try:
-            result_dict = comms.get_result(result_uid)
+            return cls.__remote_get(result_uid)
         except CommunicationRetrievalError:
-            # Get local results
-            logging.warning(f"Getting result {result_uid} from comms failed")
+            logging.warning(f"Getting Result {result_uid} from comms failed")
             logging.info(f"Looking for result {result_uid} locally")
-            result_dict = cls.__get_local_dict(result_uid)
-        result = cls(**result_dict)
+            return cls.__local_get(result_uid)
+
+    @classmethod
+    def __remote_get(cls, result_uid: int) -> "Result":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            result_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving result {result_uid} remotely")
+        meta = config.comms.get_result(result_uid)
+        result = cls(**meta)
         result.write()
+        return result
+
+    @classmethod
+    def __local_get(cls, result_uid: Union[str, int]) -> "Result":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            result_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving result {result_uid} locally")
+        local_meta = cls.__get_local_dict(result_uid)
+        result = cls(**local_meta)
         return result
 
     def todict(self):

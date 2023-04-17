@@ -1,5 +1,5 @@
 import medperf.config as config
-from medperf.utils import set_credentials
+from medperf.utils import set_credentials, set_current_user
 
 
 class Login:
@@ -13,5 +13,7 @@ class Login:
         pwd = password if password else ui.hidden_prompt("password: ")
         comms.login(user, pwd)
         token = comms.token
+        current_user = comms.get_current_user()
 
         set_credentials(token)
+        set_current_user(current_user)

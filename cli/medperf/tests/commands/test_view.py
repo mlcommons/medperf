@@ -43,8 +43,8 @@ def setup(request, mocker):
     user_entities = [generate_entity(id, mocker) for id in user_ids]
     all_entities = list(set(local_entities + remote_entities + user_entities))
 
-    def mock_all(mine_only=False, local_only=False):
-        if mine_only:
+    def mock_all(filters={}, local_only=False):
+        if "owner" in filters:
             return user_entities
         if local_only:
             return local_entities
@@ -56,6 +56,7 @@ def setup(request, mocker):
         else:
             raise InvalidArgumentError
 
+    mocker.patch("medperf.commands.view.get_current_user", return_value={"id": 1})
     mocker.patch.object(Entity, "all", side_effect=mock_all)
     mocker.patch.object(Entity, "get", side_effect=mock_get)
 

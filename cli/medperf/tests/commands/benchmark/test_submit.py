@@ -80,7 +80,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
     )
     comp_spy = mocker.patch(
         PATCH_BENCHMARK.format("CompatibilityTestExecution.run"),
-        return_value=("bmk_uid", "data_uid", "model_uid", {}),
+        return_value=("data_uid", {}),
     )
 
     # Act
@@ -88,7 +88,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once_with(bmk.generated_uid, no_cache=True)
+    comp_spy.assert_called_once_with(benchmark=bmk.generated_uid, no_cache=True)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):
