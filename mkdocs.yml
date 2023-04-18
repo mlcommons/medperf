@@ -20,6 +20,7 @@ nav:
   - Model MLCube Template: mlcubes/mlcube_models.md
   - Metrics MLCube Template: mlcubes/mlcube_metrics.md
 - Concepts:
+  - MedPerf Account: concepts/accounts.md
   - Client Configuration: concepts/profiles.md
   - MLCube Files: concepts/mlcube_files.md
   - Hosting Files: concepts/hosting_files.md
