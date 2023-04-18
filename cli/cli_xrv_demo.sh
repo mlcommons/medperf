@@ -109,7 +109,7 @@ echo "====================================="
 # log back as user
 medperf login --username=testdataowner --password=test
 # Create results
-medperf run -b 1 -d $DSET_UID -m 2 -y
+medperf run -b 1 -d $DSET_UID -m 4 -y
 checkFailed "Benchmark execution step failed"
 
 echo "====================================="
