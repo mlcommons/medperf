@@ -26,7 +26,7 @@ It's time now to configure the client to communicate with the local server. Make
 
 ## Configure the Client
 
-The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. MedPerf comes with two already created profiles: the `default` and `test` profiles. The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](api.medperf.org)). For the purposes of the tutorial, we will be using the `test` profile as it is preconfigured so that the client communicates with the local server.
+The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. MedPerf comes with two already created profiles: the `default` and `test` profiles. The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, we will be using the `test` profile as it is preconfigured so that the client communicates with the local server.
 
 To activate the `test` profile, run:
 
