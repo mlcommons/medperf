@@ -1,3 +1,5 @@
+# Setup
+
 Before proceeding, make sure you have the [MedPerf client installed.](../installation.md).
 
 ## Run a Local Server
@@ -6,17 +8,17 @@ For the purpose of the tutorials, you should spawn a local MedPerf server for th
 
 1. Install the server requirements if you didn't before: (make sure you are in MedPerf's root folder)
 
-```
-pip install -r server/requirements.txt
-pip install -r server/test-requirements.txt
-```
+    ```bash
+    pip install -r server/requirements.txt
+    pip install -r server/test-requirements.txt
+    ```
 
 2. Switch to the server directory and run the server:
 
-```
-cd server
-sh setup_dev_server.sh
-```
+    ```bash
+    cd server
+    sh setup_dev_server.sh
+    ```
 
 The local server now is ready to recieve requests. You can always stop the server by pressing `CTRL`+`C` in the terminal where you ran the server.
 
@@ -28,19 +30,19 @@ The MedPerf client can be configured by creating or modifying ["`profiles`"](../
 
 To activate the `test` profile, run:
 
-```
+```bash
 medperf profile activate test
 ```
 
 You can always check which profile is active by running:
 
-```
+```bash
 medperf profile ls
 ```
 
 To view the current active profile's configured parameters, you can run the following:
 
-```
+```bash
 medperf profile view
 ```
 
@@ -48,7 +50,7 @@ medperf profile view
 
 You can configure the client to use either Docker or Singularity. The `test` profile is configured to use Docker. If you want to run the tutorials with Singularity, modify the `test` profile configured parameters by running the following:
 
-```
+```bash
 medperf profile set --platform singularity
 ```
 

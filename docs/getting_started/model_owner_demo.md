@@ -4,6 +4,8 @@ model_add: https://storage.googleapis.com/medperf-storage/xrv_pc_densenet.tar.gz
 assets_url: https://raw.githubusercontent.com/hasan7n/medperf/88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/
 ---
 
+# Hands-on Tutorial for Model Owners
+
 {% set model_mlcube = assets_url+"xrv_densenet/mlcube/mlcube.yaml" %}
 {% set model_params = assets_url+"xrv_densenet/mlcube/workspace/parameters_pc.yaml" %}
 
@@ -25,7 +27,7 @@ We assume that you had [set up the general testing environment](setup.md).
 
 For the purpose of the tutorial, you have to start with a fresh server database and seed it to create necessary entities that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
 
-```
+```bash
 cd server
 sh reset_db.sh
 python seed.py --cert cert.crt --demo model
@@ -35,7 +37,7 @@ python seed.py --cert cert.crt --demo model
 
 We provide a script that downloads necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
 
-```
+```bash
 sh tutorials_scripts/setup_model_tutorial.sh
 ```
 
@@ -45,7 +47,7 @@ This will create a workspace folder `medperf_tutorial` where all necessary files
 
 You credentials in this tutorial will be a username: `testmodelowner` and a password: `test`. Run:
 
-```
+```bash
 medperf login
 ```
 
@@ -68,7 +70,7 @@ Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we w
 
 Now run the compatibility test:
 
-```
+```bash
 medperf test run \
    --benchmark 1 \
    --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml"
@@ -85,7 +87,7 @@ The MedPerf server registers an MLCube as metadata of a set of files that can be
 
 To prepare the files of our three MLCubes, run (make sure you are in MedPerf's root folder):
 
-```
+```bash
 python scripts/package-mlcube.py medperf_tutorial/xrv_densenet/mlcube
 ```
 
@@ -99,24 +101,27 @@ Unless your are using your own MLCube, we already have the files of the MLCube w
 
 The submission should include the URLs of all the hosted files. For our tutorial's MLCube:
 
-     a. The URL to the hosted mlcube manifest file:
-     ```
-     {{ page.meta.model_mlcube }}
-     ```
+a. The URL to the hosted mlcube manifest file:
 
-     b. The URL to the hosted mlcube parameters file:
-     ```
-     {{ page.meta.model_params }}
-     ```
+```text
+{{ page.meta.model_mlcube }}
+```
 
-     c. The URL to the hosted additional files tarball file:
-     ```
-     {{ page.meta.model_add }}
-     ```
+b. The URL to the hosted mlcube parameters file:
+
+```text
+{{ page.meta.model_params }}
+```
+
+c. The URL to the hosted additional files tarball file:
+
+```text
+{{ page.meta.model_add }}
+```
 
 Command to submit:
 
-```
+```bash
 medperf mlcube submit \
    --name my-modelref-cube \
    --mlcube-file "{{ page.meta.model_mlcube }}" \
@@ -126,7 +131,7 @@ medperf mlcube submit \
 
 The MLCube will be assigned by a server UID. You can check it by running:
 
-```
+```bash
 medperf mlcube ls --mine
 ```
 
@@ -141,7 +146,7 @@ To initiate an association request, you need to collect these information:
 
 Run the following command to request associating your MLCube with the benchmark:
 
-```
+```bash
 medperf mlcube associate --benchmark 1 --model_uid 4
 ```
 
@@ -159,19 +164,19 @@ You have reached the end of the tutorial! If you are planning to rerun any of ou
 
 - To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
 
-```
+```bash
 rm -fr medperf_tutorial
 ```
 
 - To cleanup the server database: (make sure you are in the MedPerf's root directory)
 
-```
+```bash
 cd server
 sh reset_db.sh
 ```
 
 - To cleanup the test storage:
 
-```
+```bash
 rm -fr ~/.medperf/localhost_8000
 ```

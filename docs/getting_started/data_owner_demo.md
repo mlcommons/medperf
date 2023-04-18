@@ -1,6 +1,7 @@
 ---
 prepared_hash: fe5f74f8e345662b81acb53d8558a39fbec75837
 ---
+# Hands-on Tutorial for Data Owners
 
 ## Overview
 
@@ -20,7 +21,7 @@ We assume that you had [set up the general testing environment](setup.md).
 
 For the purpose of the tutorial, you have to start with a fresh server database and seed it to create benchmarks and MLCubes that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
 
-```
+```bash
 cd server
 sh reset_db.sh
 python seed.py --cert cert.crt --demo data
@@ -30,7 +31,7 @@ python seed.py --cert cert.crt --demo data
 
 We provide a script that downloads necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
 
-```
+```bash
 sh tutorials_scripts/setup_data_tutorial.sh
 ```
 
@@ -40,7 +41,7 @@ This will create a workspace folder `medperf_tutorial` where all necessary files
 
 You credentials in this tutorial will be a username: `testdataowner` and a password: `test`. Run:
 
-```
+```bash
 medperf login
 ```
 
@@ -64,7 +65,7 @@ To prepare your data, you need to collect these information:
 
 To get the benchmark ID, you can run the following command to see what benchmarks are available:
 
-```
+```bash
 medperf benchmark ls
 ```
 
@@ -72,7 +73,7 @@ You will find that our target benchmark ID is `1`.
 
 Run the following command to prepare your data (make sure you are in MedPerf's root folder):
 
-```
+```bash
 medperf dataset create \
   --name "mytestdata" \
   --description "A tutorial dataset" \
@@ -90,7 +91,7 @@ Note that you will be submitting general information about the data, not the dat
 
 To submit your data information, you need to know the generated UID of your prepared dataset. Normally, you will see it in the output of the previous command. You can always check local datasets information by running:
 
-```
+```bash
 medperf dataset ls --local
 ```
 
@@ -98,7 +99,7 @@ You will find that the generated uid is `{{ page.meta.prepared_hash }}`.
 
 Run the following command to submit your dataset information to the MedPerf server:
 
-```
+```bash
 medperf dataset submit --data_uid {{ page.meta.prepared_hash }}
 ```
 
@@ -121,7 +122,7 @@ You will find that your dataset server UID is `1`.
 
 Run the following command to request associating your dataset with the benchmark:
 
-```
+```bash
 medperf dataset associate --benchmark_uid 1 --data_uid 1
 ```
 
@@ -133,7 +134,7 @@ When you are participating with a real benchmark, you have to wait for the bench
 
 _For the sake of continuing our tutorial only_, run the following to simulate the benchmark committee approving your association (make sure you are in the MedPerf's root directory):
 
-```
+```bash
 sh tutorials_scripts/simulate_data_association_approval.sh
 ```
 
@@ -148,13 +149,13 @@ It is time to run the benchmark! We provide a command that runs all models assoc
 
 Run the following command:
 
-```
+```bash
 medperf benchmark run --benchmark 1 --data_uid 1
 ```
 
 You will see at the end a summary of the executions. In our case, you will see something similar to the following:
 
-```
+```text
   model  local result UID    partial result    from cache    error
 -------  ------------------  ----------------  ------------  -------
       2  b1m2d1              False             True
@@ -174,7 +175,7 @@ This means that the benchmark has two models:
 
 You can view the results by their UID. For example:
 
-```
+```bash
 medperf result view b1m4d1
 ```
 
@@ -186,7 +187,7 @@ We are going now to submit a result to the MedPerf server. To do so, you have to
 
 We will be submitting the result of UID `b1m4d1`. Run the following command:
 
-```
+```bash
 medperf result submit --result b1m4d1
 ```
 
@@ -200,19 +201,23 @@ You have reached the end of the tutorial! If you are planning to rerun any of ou
 
 - To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
 
-```
+```bash
 rm -fr medperf_tutorial
 ```
 
 - To cleanup the server database: (make sure you are in the MedPerf's root directory)
 
-```
+```bash
 cd server
 sh reset_db.sh
 ```
 
 - To cleanup the test storage:
 
-```
+```bash
 rm -fr ~/.medperf/localhost_8000
 ```
+
+## See Also
+
+- [Running a Single Model.](../concepts/single_run.md)
