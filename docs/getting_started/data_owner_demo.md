@@ -1,5 +1,6 @@
 ---
 prepared_hash: fe5f74f8e345662b81acb53d8558a39fbec75837
+tutorial_id: data
 ---
 # Hands-on Tutorial for Data Owners
 
@@ -15,39 +16,7 @@ This guide will walk you through the essentials of how a data owner can use MedP
 
 We assume that you had [set up the general testing environment](setup.md).
 
-## Before We Start
-
-#### Seed the server
-
-For the purpose of the tutorial, you have to start with a fresh server database and seed it to create benchmarks and MLCubes that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
-
-```bash
-cd server
-sh reset_db.sh
-python seed.py --cert cert.crt --demo data
-```
-
-#### Download the Necessary files
-
-We provide a script that downloads necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
-
-```bash
-sh tutorials_scripts/setup_data_tutorial.sh
-```
-
-This will create a workspace folder `medperf_tutorial` where all necessary files are downloaded.
-
-#### Login to the Local Server
-
-You credentials in this tutorial will be a username: `testdataowner` and a password: `test`. Run:
-
-```bash
-medperf login
-```
-
-You will be prompted to enter your credentials.
-
-You are now ready to start!
+{% include "getting_started/shared/before_we_start.md" %}
 
 ## 1. Prepare Your Data
 
@@ -193,30 +162,7 @@ medperf result submit --result b1m4d1
 
 The information that is going to be submitted will be printed to the screen and you will be prompted to confirm that you want to submit.
 
-## Cleanup (Optional)
-
-You have reached the end of the tutorial! If you are planning to rerun any of our tutorials, don't forget to cleanup:
-
-- To shut down the server: press `CTRL`+`C` in the terminal where the server is running.
-
-- To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
-
-```bash
-rm -fr medperf_tutorial
-```
-
-- To cleanup the server database: (make sure you are in the MedPerf's root directory)
-
-```bash
-cd server
-sh reset_db.sh
-```
-
-- To cleanup the test storage:
-
-```bash
-rm -fr ~/.medperf/localhost_8000
-```
+{% include "getting_started/shared/cleanup.md" %}
 
 ## See Also
 
