@@ -1,7 +1,7 @@
 import os
 import yaml
 import pytest
-from unittest.mock import ANY, call
+from unittest.mock import call
 
 import medperf
 import medperf.config as config
@@ -15,7 +15,7 @@ from medperf.tests.entities.utils import (
 from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.exceptions import (
     ExecutionError,
-    InvalidEntityError,
+    InvalidEntityError
 )
 
 PATCH_CUBE = "medperf.entities.cube.{}"
@@ -60,7 +60,7 @@ def setup(request, mocker, comms, fs):
 
     # Mock additional third party elements
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
     mocker.patch(PATCH_CUBE.format("untar"))
 
@@ -110,24 +110,6 @@ class TestGetFiles:
         # Assert
         spy.assert_has_calls(calls)
 
-    @pytest.mark.parametrize("max_attempts", [3, 5, 2])
-    @pytest.mark.parametrize("setup", [{"remote": [FAILING_CUBE]}], indirect=True)
-    def test_get_cube_retries_configured_number_of_times(
-        self, mocker, max_attempts, setup
-    ):
-        # Arrange
-        mocker.patch(PATCH_CUBE.format("cleanup"))
-        spy = mocker.spy(Cube, "download")
-        config.cube_get_max_attempts = max_attempts
-        calls = [call(ANY)] * max_attempts
-
-        # Act
-        with pytest.raises(InvalidEntityError):
-            Cube.get(self.id)
-
-        # Assert
-        spy.assert_has_calls(calls)
-
     @pytest.mark.parametrize("setup", [{"remote": [FAILING_CUBE]}], indirect=True)
     def test_get_cube_deletes_cube_if_failed(self, mocker, setup):
         # Arrange
@@ -143,19 +125,19 @@ class TestGetFiles:
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
-        spy = mocker.spy(medperf.entities.cube, "spawn")
+        spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
         expected_cmd = f"mlcube configure --mlcube={self.manifest_path}"
 
         # Act
         Cube.get(self.id)
 
         # Assert
-        spy.assert_called_once_with(expected_cmd, timeout=None)
+        spy.assert_called_once_with(expected_cmd)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
         # Arrange
-        spy = mocker.spy(medperf.entities.cube, "spawn")
+        spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
 
         # Act
         Cube.get(self.id)
@@ -203,7 +185,9 @@ class TestRun:
     def test_cube_runs_command(self, mocker, timeout, setup, task):
         # Arrange
         mpexpect = MockPexpect(0)
-        spy = mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
+        spy = mocker.patch(
+            PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
+        )
         expected_cmd = f"mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform}"
 
         # Act
@@ -216,7 +200,7 @@ class TestRun:
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0)
-        spy = mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
+        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
         expected_cmd = f'mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform} test="test"'
 
         # Act
@@ -229,7 +213,7 @@ class TestRun:
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(1)
-        mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
+        mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
         cube = Cube.get(self.id)

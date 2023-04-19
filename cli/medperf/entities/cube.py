@@ -7,9 +7,9 @@ from pydantic import Field
 from pathlib import Path
 
 if sys.platform == "win32":
-    from wexpect import spawn
+    import wexpect as pexpect
 else:
-    from pexpect import spawn
+    import pexpect
 
 from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
 from medperf.entities.interface import Entity, Uploadable
@@ -233,7 +233,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            proc = spawn(cmd, timeout=None)
+            proc = pexpect.spawn(cmd, timeout=None)
             proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
@@ -296,7 +296,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
         logging.info(f"Running MLCube command: {cmd}")
-        proc = spawn(cmd, timeout=timeout)
+        proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
