@@ -55,22 +55,24 @@ Now that we have our 3 MLCubes and the demo data, we can test the workflow. It i
 
 ## 3. Test your Workflow
 
-MedPerf provides a single command to test an inference workflow. To test your workflow with local MLCubes and local data, run: (make sure you are in MedPerf's root folder)
+MedPerf provides a single command to test an inference workflow. To test your workflow with local MLCubes and local data, the following need to be passed to the command:
+
+1. Path to the data preparation MLCube manifest file: `medperf_tutorial/chexpert_prep/mlcube/mlcube.yaml`.
+2. Path to the model MLCube manifest file: `medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml`.
+3. Path to the metrics MLCube manifest file: `medperf_tutorial/metrics/mlcube/mlcube.yaml`.
+4. Path to the demo dataset data records: `medperf_tutorial/mock_chexpert/images`.
+5. Path to the demo dataset data labels. `medperf_tutorial/mock_chexpert/labels`.
+
+Run the following to execute the test: (make sure you are in MedPerf's root folder)
 
 ```bash
 medperf test run \
-   --data_preparation "medperf_tutorial/chexpert_prep/mlcube/mlcube.yaml" \ # (1)!
-   --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml" \ # (2)!
-   --evaluator "medperf_tutorial/metrics/mlcube/mlcube.yaml" \ # (3)!
-   --data_path "medperf_tutorial/mock_chexpert/images" \ # (4)!
-   --labels_path "medperf_tutorial/mock_chexpert/labels" \ # (5)!
+   --data_preparation "medperf_tutorial/chexpert_prep/mlcube/mlcube.yaml" \
+   --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml" \
+   --evaluator "medperf_tutorial/metrics/mlcube/mlcube.yaml" \
+   --data_path "medperf_tutorial/mock_chexpert/images" \
+   --labels_path "medperf_tutorial/mock_chexpert/labels"
 ```
-
-1. Path to the data preparation MLCube manifest file.
-2. Path to the model MLCube manifest file.
-3. Path to the metrics MLCube manifest file.
-4. Path to the demo dataset data records.
-5. Path to the demo dataset data labels.
 
 Assuming the test passes, we are ready to submit the MLCubes to the MedPerf server.
 
