@@ -13,10 +13,7 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
 )
 from medperf.tests.mocks.pexpect import MockPexpect
-from medperf.exceptions import (
-    ExecutionError,
-    InvalidEntityError
-)
+from medperf.exceptions import ExecutionError, InvalidEntityError
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
@@ -132,7 +129,7 @@ class TestGetFiles:
         Cube.get(self.id)
 
         # Assert
-        spy.assert_called_once_with(expected_cmd)
+        spy.assert_called_once_with(expected_cmd, timeout=None)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
