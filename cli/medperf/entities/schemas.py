@@ -7,12 +7,11 @@ from medperf.enums import Status
 from medperf.exceptions import MedperfException
 
 
-class FormattedBaseModel(BaseModel):
-    """Override the ValidationError procedure so we can
-    format the error message in our desired way
-    """
-
+class MedperfBaseSchema(BaseModel):
     def __init__(self, *args, **kwargs):
+        """Override the ValidationError procedure so we can
+        format the error message in our desired way
+        """
         try:
             super().__init__(*args, **kwargs)
         except ValidationError as e:
@@ -37,14 +36,6 @@ class FormattedBaseModel(BaseModel):
                         error_msg += f"\t- {e_msg}"
 
             raise MedperfException(error_msg)
-
-
-class MedperfSchema(FormattedBaseModel):
-    id: Optional[int]
-    name: str = Field(..., max_length=20)
-    owner: Optional[int]
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
 
     def dict(self, *args, **kwargs) -> dict:
         """Overrides dictionary implementation so it filters out
@@ -93,13 +84,28 @@ class MedperfSchema(FormattedBaseModel):
         use_enum_values = True
 
 
-class DeployableSchema(FormattedBaseModel):
+class MedperfSchema(MedperfBaseSchema):
+    for_test: bool = False
+    id: Optional[int]
+    name: str = Field(..., max_length=60)
+    owner: Optional[int]
+    created_at: Optional[datetime]
+    modified_at: Optional[datetime]
+
+    @validator("name", pre=True, always=True)
+    def name_max_length(cls, v, *, values, **kwargs):
+        if not values["for_test"] and len(v) > 20:
+            raise ValueError("The name must have no more than 20 characters")
+        return v
+
+
+class DeployableSchema(BaseModel):
     # TODO: This must change after allowing edits
     state: str = "OPERATION"
     is_valid: bool = True
 
 
-class ApprovableSchema(FormattedBaseModel):
+class ApprovableSchema(BaseModel):
     approved_at: Optional[datetime]
     approval_status: Status = None
 

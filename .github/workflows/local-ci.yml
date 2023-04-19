@@ -1,3 +1,13 @@
+# This workflow runs inside a github actions docker container. Keep in mind
+# that github actions mounts the docker daemon path when running the
+# workflow container.
+#
+# ******** NOTE ********
+# MLCubes use docker behind the scenes by default. We don't have direct
+# control over how docker commands are called by the MLCube, so care
+# should be taken when we start using new container configurations
+# inside the mlcube (e.g. networking)
+
 name: Integration local workflow
 
 on: pull_request
@@ -6,14 +16,15 @@ jobs:
   setup:
     name: local-deploy
     runs-on: ubuntu-latest
+    container: 
+      image: mlcommons/medperf-tests-container:latest
+      options: --privileged --name medperf-tests
+      volumes:
+        - /tmp:/tmp # To share the directory where the test dataset is downloaded
+        - /github/home/.medperf:/github/home/.medperf # To share medperf storage
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
-    - name: Set up Python 3.10 (as server Dockerfile)
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
 
     - name: Install dependencies
       run: |
@@ -28,41 +39,11 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh &
+      run: sh setup-dev-server.sh & sleep 6
 
     - name: Run integration tests
       working-directory: ./server
       run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
-
-    - name: Install Docker
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release -y
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        sudo apt-get install moby-engine moby-cli containerd.io
-
-    - name: Install Singularity
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev uuid-dev libgpgme11-dev \
-            squashfs-tools libseccomp-dev wget pkg-config git cryptsetup debootstrap libglib2.0-dev
-        wget https://go.dev/dl/go1.17.11.linux-amd64.tar.gz
-        sudo tar --directory=/usr/local -xzvf go1.17.11.linux-amd64.tar.gz
-        export PATH=/usr/local/go/bin:$PATH
-        wget https://github.com/sylabs/singularity/releases/download/v3.10.0/singularity-ce-3.10.0.tar.gz
-        tar -xzvf singularity-ce-3.10.0.tar.gz
-        cd singularity-ce-3.10.0
-        ./mconfig
-        cd builddir
-        make
-        sudo make install
 
     - name: Run xrv demo
       working-directory: .

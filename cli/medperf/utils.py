@@ -69,6 +69,23 @@ def read_credentials():
     return token
 
 
+def set_current_user(current_user: dict):
+    config_p = read_config()
+    config_p.active_profile["current_user"] = current_user
+    write_config(config_p)
+
+
+def get_current_user():
+    config_p = read_config()
+    try:
+        current_user = config_p.active_profile["current_user"]
+    except KeyError:
+        raise MedperfException(
+            "Couldn't retrieve current user information. Please login again"
+        )
+    return current_user
+
+
 def default_profile():
     # NOTE: this function is only usable before config is actually initialized.
     # using this function when another profile is activated will not load the defaults
@@ -193,6 +210,8 @@ def cleanup_path(path):
         try:
             if os.path.islink(path):
                 os.unlink(path)
+            elif os.path.isfile(path):
+                os.remove(path)
             else:
                 rmtree(path)
         except OSError as e:
@@ -208,6 +227,7 @@ def cleanup(extra_paths: List[str] = []):
         return
     tmp_path = storage_path(config.tmp_storage)
     extra_paths.append(tmp_path)
+    extra_paths += config.extra_cleanup_paths
     for path in extra_paths:
         cleanup_path(path)
 

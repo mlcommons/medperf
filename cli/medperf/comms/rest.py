@@ -187,6 +187,12 @@ class REST(Comms):
         res = self.__auth_put(url, json=data,)
         return res
 
+    def get_current_user(self):
+        """Retrieve the currently-authenticated user information
+        """
+        res = self.__auth_get(f"{self.server_url}/me/")
+        return res.json()
+
     def get_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks in the platform.
 
@@ -377,9 +383,23 @@ class REST(Comms):
         """Retrieves all results registered by the user
 
         Returns:
-            dict: dictionary with the contents of each dataset registration query
+            dict: dictionary with the contents of each result registration query
         """
         results = self.__get_list(f"{self.server_url}/me/results/")
+        return results
+
+    def get_benchmark_results(self, benchmark_id: int) -> dict:
+        """Retrieves all results for a given benchmark
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve results from
+
+        Returns:
+            dict: dictionary with the contents of each result in the specified benchmark
+        """
+        results = self.__get_list(
+            f"{self.server_url}/benchmarks/{benchmark_id}/results"
+        )
         return results
 
     def upload_result(self, results_dict: dict) -> int:
