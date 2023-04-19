@@ -60,7 +60,7 @@ def setup(request, mocker, comms, fs):
 
     # Mock additional third party elements
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
     mocker.patch(PATCH_CUBE.format("untar"))
 
