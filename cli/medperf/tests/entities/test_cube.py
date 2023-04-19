@@ -203,9 +203,7 @@ class TestRun:
     def test_cube_runs_command(self, mocker, timeout, setup, task):
         # Arrange
         mpexpect = MockPexpect(0)
-        spy = mocker.patch(
-            PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
-        )
+        spy = mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
         expected_cmd = f"mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform}"
 
         # Act
@@ -218,7 +216,7 @@ class TestRun:
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0)
-        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        spy = mocker.patch("spawn", side_effect=mpexpect.spawn)
         expected_cmd = f'mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform} test="test"'
 
         # Act
@@ -231,7 +229,7 @@ class TestRun:
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(1)
-        mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch("spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
         cube = Cube.get(self.id)
