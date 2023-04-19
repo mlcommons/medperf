@@ -143,7 +143,7 @@ class TestGetFiles:
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
-        spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+        spy = mocker.spy(medperf.entities.cube, "spawn")
         expected_cmd = f"mlcube configure --mlcube={self.manifest_path}"
 
         # Act
@@ -155,7 +155,7 @@ class TestGetFiles:
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
         # Arrange
-        spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+        spy = mocker.spy(medperf.entities.cube, "spawn")
 
         # Act
         Cube.get(self.id)
