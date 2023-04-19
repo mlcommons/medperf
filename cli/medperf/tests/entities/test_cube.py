@@ -150,7 +150,7 @@ class TestGetFiles:
         Cube.get(self.id)
 
         # Assert
-        spy.assert_called_once_with(expected_cmd)
+        spy.assert_called_once_with(expected_cmd, timeout=None)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
@@ -216,7 +216,7 @@ class TestRun:
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0)
-        spy = mocker.patch("spawn", side_effect=mpexpect.spawn)
+        spy = mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
         expected_cmd = f'mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform} test="test"'
 
         # Act
@@ -229,7 +229,7 @@ class TestRun:
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(1)
-        mocker.patch("spawn", side_effect=mpexpect.spawn)
+        mocker.patch(PATCH_CUBE.format("spawn"), side_effect=mpexpect.spawn)
 
         # Act & Assert
         cube = Cube.get(self.id)
