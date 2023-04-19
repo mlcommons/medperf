@@ -7,7 +7,9 @@ import yaml
 import random
 import hashlib
 import logging
+from logging import handlers
 import tarfile
+import requests
 from medperf.config_managment import ConfigManager
 from glob import glob
 import json
@@ -24,7 +26,33 @@ else:
     from pexpect import spawn
 
 import medperf.config as config
+from medperf.logging.filters.redacting_filter import RedactingFilter
 from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
+
+
+def setup_logging(log_lvl):
+    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    log_file = storage_path(config.log_file)
+    handler = handlers.RotatingFileHandler(log_file, maxBytes=10000000, backupCount=5)
+    handler.setFormatter(logging.Formatter(log_fmt))
+    logging.basicConfig(
+        level=log_lvl,
+        handlers=[handler],
+        format=log_fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
+    )
+
+    sensitive_pattern = re.compile(
+        r"""(["']?(password|pwd|token)["']?[:=] ?)["'][^\n\[\]{}"']*["']"""
+    )
+
+    redacting_filter = RedactingFilter(patterns=[sensitive_pattern,])
+    requests_logger = logging.getLogger("requests")
+    requests_logger.addHandler(handler)
+    requests_logger.setLevel(log_lvl)
+    logger = logging.getLogger()
+    logger.addFilter(redacting_filter)
 
 
 def delete_credentials():
@@ -43,6 +71,23 @@ def read_credentials():
     config_p = read_config()
     token = config_p.active_profile.get(config.credentials_keyword, None)
     return token
+
+
+def set_current_user(current_user: dict):
+    config_p = read_config()
+    config_p.active_profile["current_user"] = current_user
+    write_config(config_p)
+
+
+def get_current_user():
+    config_p = read_config()
+    try:
+        current_user = config_p.active_profile["current_user"]
+    except KeyError:
+        raise MedperfException(
+            "Couldn't retrieve current user information. Please login again"
+        )
+    return current_user
 
 
 def default_profile():
@@ -169,6 +214,8 @@ def cleanup_path(path):
         try:
             if os.path.islink(path):
                 os.unlink(path)
+            elif os.path.isfile(path):
+                os.remove(path)
             else:
                 rmtree(path)
         except OSError as e:
@@ -184,6 +231,7 @@ def cleanup(extra_paths: List[str] = []):
         return
     tmp_path = storage_path(config.tmp_storage)
     extra_paths.append(tmp_path)
+    extra_paths += config.extra_cleanup_paths
     for path in extra_paths:
         cleanup_path(path)
 
@@ -456,12 +504,6 @@ def get_folder_sha1(path: str) -> str:
     return hash_val
 
 
-def setup_logger(logger, log_lvl):
-    fh = logging.FileHandler(config.log_file)
-    fh.setLevel(log_lvl)
-    logger.addHandler(fh)
-
-
 def list_files(startpath):
     tree_str = ""
     for root, dirs, files in os.walk(startpath):
@@ -490,3 +532,31 @@ def sanitize_json(data: dict) -> dict:
     json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
     data = json.loads(json_string)
     return data
+
+
+def log_response_error(res, warn=False):
+    # NOTE: status 403 might be also returned if a requested resource doesn't exist
+    if warn:
+        logging_method = logging.warning
+    else:
+        logging_method = logging.error
+
+    logging_method(f"Obtained response with status code: {res.status_code}")
+    try:
+        logging_method(res.json())
+    except requests.exceptions.JSONDecodeError:
+        logging_method("JSON Response could not be parsed. Showing response content:")
+        logging_method(res.content)
+
+
+def get_cube_image_name(cube_path: str) -> str:
+    """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
+    cube_config_path = os.path.join(cube_path, config.cube_filename)
+    with open(cube_config_path, "r") as f:
+        cube_config = yaml.safe_load(f)
+
+    try:
+        return cube_config["singularity"]["image"]
+    except KeyError:
+        msg = "The provided mlcube doesn't seem to be configured for singularity"
+        raise MedperfException(msg)

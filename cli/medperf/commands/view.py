@@ -3,6 +3,7 @@ import json
 from typing import Union
 
 from medperf import config
+from medperf.utils import get_current_user
 from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError
 
@@ -16,6 +17,7 @@ class EntityView:
         local_only: bool = False,
         mine_only: bool = False,
         output: str = None,
+        **kwargs,
     ):
         """Displays the contents of a single or multiple entities of a given type
 
@@ -26,9 +28,10 @@ class EntityView:
             mine_only (bool, optional): Display all current-user entities. Defaults to False.
             format (str, optional): What format to use to display the contents. Valid formats: [yaml, json]. Defaults to yaml.
             output (str, optional): Path to a file for storing the entity contents. If not provided, the contents are printed.
+            kwargs (dict): Additional parameters for filtering entity lists.
         """
         entity_view = EntityView(
-            entity_id, entity_class, format, local_only, mine_only, output
+            entity_id, entity_class, format, local_only, mine_only, output, **kwargs
         )
         entity_view.validate()
         entity_view.prepare()
@@ -37,13 +40,16 @@ class EntityView:
         else:
             entity_view.store()
 
-    def __init__(self, entity_id, entity_class, format, local_only, mine_only, output):
+    def __init__(
+        self, entity_id, entity_class, format, local_only, mine_only, output, **kwargs
+    ):
         self.entity_id = entity_id
         self.entity_class = entity_class
         self.format = format
         self.local_only = local_only
         self.mine_only = mine_only
         self.output = output
+        self.filters = kwargs
         self.data = []
 
     def validate(self):
@@ -55,8 +61,11 @@ class EntityView:
         if self.entity_id is not None:
             entities = [self.entity_class.get(self.entity_id)]
         else:
+            if self.mine_only:
+                self.filters["owner"] = get_current_user()["id"]
+
             entities = self.entity_class.all(
-                local_only=self.local_only, mine_only=self.mine_only
+                local_only=self.local_only, filters=self.filters
             )
         self.data = [entity.todict() for entity in entities]
 

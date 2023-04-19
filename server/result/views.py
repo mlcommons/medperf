@@ -2,6 +2,8 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
+
 from .models import ModelResult
 from .serializers import ModelResultSerializer
 from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner, IsResultOwner
@@ -18,6 +20,7 @@ class ModelResultList(GenericAPIView):
             self.permission_classes = [IsAdmin | IsDatasetOwner]
         return super(self.__class__, self).get_permissions()
 
+    @extend_schema(operation_id="results_retrieve_all")
     def get(self, request, format=None):
         """
         List all results

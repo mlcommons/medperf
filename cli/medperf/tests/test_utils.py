@@ -1,5 +1,6 @@
 import os
 import pytest
+import logging
 import time_machine
 import datetime as dt
 from pathlib import Path
@@ -8,7 +9,8 @@ from unittest.mock import mock_open, call, ANY
 from medperf import utils
 import medperf.config as config
 from medperf.tests.mocks import MockCube, MockTar
-from medperf.exceptions import InvalidEntityError
+from medperf.exceptions import InvalidEntityError, MedperfException
+import yaml
 
 parent = config.storage
 data = utils.storage_path(config.data_storage)
@@ -53,6 +55,13 @@ def filesystem():
     return [fs, files]
 
 
+@pytest.fixture
+def prepare_logs(fs):
+    log_file = utils.storage_path(config.log_file)
+    fs.create_file(log_file)
+    utils.setup_logging("DEBUG")
+
+
 @pytest.mark.parametrize("param", ["server", "platform", "prepare_timeout"])
 def test_set_custom_config_modifies_config_params(param):
     # Arrange
@@ -68,6 +77,29 @@ def test_set_custom_config_modifies_config_params(param):
     # Assert
     assert mod_args == args
     assert recovered_args == backup_args
+
+
+@pytest.mark.parametrize(
+    "text,exp_output",
+    [
+        ("password: '123'", "password: [redacted]"),
+        ("password='test'", "password=[redacted]"),
+        ('token="2872547"', "token=[redacted]"),
+        ("{'token': '279438'}", "{'token': [redacted]}"),
+    ],
+)
+def test_setup_logging_filters_sensitive_data(text, exp_output, prepare_logs):
+    # Arrange
+    log_file = utils.storage_path(config.log_file)
+
+    # Act
+    logging.debug(text)
+
+    # Assert
+    with open(log_file) as f:
+        data = f.read()
+
+    assert exp_output in data
 
 
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
@@ -417,3 +449,33 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
+
+
+def test_get_cube_image_name_retrieves_name(mocker, fs):
+    # Arrange
+    exp_image_name = "some_image_name"
+    cube_path = "path"
+
+    mock_content = {"singularity": {"image": exp_image_name}}
+    target_file = os.path.join(cube_path, config.cube_filename)
+    fs.create_file(target_file, contents=yaml.dump(mock_content))
+
+    # Act
+    image_name = utils.get_cube_image_name(cube_path)
+
+    # Assert
+    assert exp_image_name == image_name
+
+
+def test_get_cube_image_name_fails_if_cube_not_configured(mocker, fs):
+    # Arrange
+    exp_image_name = "some_image_name"
+    cube_path = "path"
+
+    mock_content = {"not singularity": {"image": exp_image_name}}
+    target_file = os.path.join(cube_path, config.cube_filename)
+    fs.create_file(target_file, contents=yaml.dump(mock_content))
+
+    # Act & Assert
+    with pytest.raises(MedperfException):
+        utils.get_cube_image_name(cube_path)

@@ -37,7 +37,7 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Cube:
         setup_fs = setup_cube_fs
         setup_comms = setup_cube_comms
-        setup_cube_comms_downloads(mocker, comms, fs)
+        setup_cube_comms_downloads(mocker, fs)
         mocker.patch("medperf.entities.cube.untar")
     elif Implementation == Dataset:
         setup_fs = setup_dset_fs
@@ -84,17 +84,6 @@ class TestAll:
         # Assert
         retrieved_ids = set([e.todict()["id"] for e in entities])
         assert self.local_ids == retrieved_ids
-
-    def test_all_mine_only_returns_user_and_local_entities(self, Implementation):
-        # Arrange
-        user_ids = self.user_ids.union(self.local_ids)
-
-        # Act
-        entities = Implementation.all(mine_only=True)
-
-        # Assert
-        retrieved_ids = set([e.todict()["id"] for e in entities])
-        assert user_ids == retrieved_ids
 
 
 @pytest.mark.parametrize(

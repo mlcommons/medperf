@@ -1,4 +1,5 @@
 from setuptools import setup
+from medperf._version import __version__
 
 with open("requirements.txt", "r") as f:
     requires = []
@@ -9,7 +10,7 @@ with open("requirements.txt", "r") as f:
 
 setup(
     name="medperf",
-    version="0.0.0",
+    version=__version__,
     description="CLI Tool for federated benchmarking on medical private data",
     url="https://github.com/aristizabal95/medperf",
     author="MLCommons",

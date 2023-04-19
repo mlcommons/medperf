@@ -1,0 +1,12 @@
+# File for parametrizing your metrics calculations
+
+metrics:
+  # List of metrics to run
+  - ACC
+
+label columns:
+  # Label columns that are going to be evaluated
+ - greeting
+
+# Common identifier column for labels and predictions
+id column: id

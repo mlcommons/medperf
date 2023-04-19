@@ -1,0 +1,51 @@
+FROM ubuntu:20.04
+
+# Install python
+RUN apt update -y
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update -y
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC \
+	apt install python3.9 python3.9-venv python3.9-dev python3-pip -y
+
+## Use symlink instead of aliases so that we don't deal with .bashrc and its complications
+RUN PYTHONPATH=$(dirname $(which python3.9)) && ln -sf $PYTHONPATH/python3.9 $PYTHONPATH/python
+RUN PYTHONPATH=$(dirname $(which python3.9)) && ln -sf $PYTHONPATH/python3.9 $PYTHONPATH/python3
+
+# Install Docker
+RUN apt-get install \
+	ca-certificates \
+	curl \
+	gnupg \
+	wget \
+	lsb-release -y
+
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8
+
+RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb  && \
+	dpkg -i packages-microsoft-prod.deb && \
+	rm packages-microsoft-prod.deb
+RUN apt-get update -y && apt-get install moby-engine moby-cli containerd.io -y
+
+# Install singularity
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install build-essential libssl-dev uuid-dev libgpgme11-dev \
+	squashfs-tools libseccomp-dev wget pkg-config git cryptsetup debootstrap libglib2.0-dev
+
+RUN export VERSION=1.17.2 OS=linux ARCH=amd64 && \
+	wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
+	tar -C /usr/local -xzvf go$VERSION.$OS-$ARCH.tar.gz && \
+	rm go$VERSION.$OS-$ARCH.tar.gz
+
+RUN wget https://github.com/sylabs/singularity/releases/download/v3.10.0/singularity-ce-3.10.0.tar.gz
+RUN tar -xzvf singularity-ce-3.10.0.tar.gz
+WORKDIR /singularity-ce-3.10.0
+RUN export PATH=/usr/local/go/bin:$PATH && ./mconfig
+WORKDIR /singularity-ce-3.10.0/builddir
+RUN make && make install
+
+# Install jq for client integration tests
+RUN apt install jq -y
+
+WORKDIR /

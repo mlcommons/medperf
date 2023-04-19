@@ -52,7 +52,10 @@ def test_get_extra_information_retrieves_expected_info(
 ):
     # Arrange
     submission = SubmitBenchmark(BENCHMARK_INFO)
-    mocker.patch.object(comms, "get_benchmark_demo_dataset", return_value="demo_path")
+    mocker.patch(
+        PATCH_BENCHMARK.format("resources.get_benchmark_demo_dataset"),
+        return_value="demo_path",
+    )
     mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
     mocker.patch(
         PATCH_BENCHMARK.format("SubmitBenchmark.run_compatibility_test"),
@@ -77,7 +80,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
     )
     comp_spy = mocker.patch(
         PATCH_BENCHMARK.format("CompatibilityTestExecution.run"),
-        return_value=("bmk_uid", "data_uid", "model_uid", {}),
+        return_value=("data_uid", {}),
     )
 
     # Act
@@ -85,7 +88,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
 
     # Assert
     tmp_bmk_spy.assert_called_once()
-    comp_spy.assert_called_once_with(bmk.generated_uid, no_cache=True)
+    comp_spy.assert_called_once_with(benchmark=bmk.generated_uid, no_cache=True)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):

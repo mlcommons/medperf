@@ -1,6 +1,8 @@
+from ._version import __version__
 from os.path import expanduser, abspath
 
-version = "0.0.0"
+major_version, minor_version, patch_version = __version__.split(".")
+
 server = "https://api.medperf.org"
 certificate = None
 
@@ -26,6 +28,7 @@ workspace_path = "workspace"
 test_storage = "tests"
 cleanup = True
 
+test_report_file = "test_report.yaml"
 cube_filename = "mlcube.yaml"
 params_filename = "parameters.yaml"
 additional_path = "workspace/additional_files"
@@ -39,7 +42,6 @@ test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
-cube_get_max_attempts = 3
 
 credentials_keyword = "credentials"
 default_profile_name = "default"
@@ -47,6 +49,7 @@ test_profile_name = "test"
 platform = "docker"
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
+ddl_max_redownload_attempts = 3
 comms = "REST"
 ui = "CLI"
 
@@ -70,3 +73,11 @@ configurable_parameters = [
     "platform",
     "cleanup",
 ]
+
+templates = {
+    "data_preparator": "templates/data_preparator_mlcube",
+    "model": "templates/model_mlcube",
+    "evaluator": "templates/evaluator_mlcube",
+}
+
+extra_cleanup_paths = []

@@ -6,13 +6,13 @@ from typing import List, Optional, Union
 from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 
 
-class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 
@@ -25,7 +25,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
 
     description: Optional[str] = Field(None, max_length=20)
     docs_url: Optional[HttpUrl]
-    demo_dataset_tarball_url: Optional[HttpUrl]
+    demo_dataset_tarball_url: Optional[str]
     demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]
     data_preparation_mlcube: int
@@ -60,14 +60,12 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         self.path = path
 
     @classmethod
-    def all(
-        cls, local_only: bool = False, mine_only: bool = False
-    ) -> List["Benchmark"]:
+    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Benchmark"]:
         """Gets and creates instances of all retrievable benchmarks
 
         Args:
             local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            mine_only (bool, optional): Wether to retrieve only current-user entities. Defaults to False.
+            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
             List[Benchmark]: a list of Benchmark instances.
@@ -76,7 +74,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         benchmarks = []
 
         if not local_only:
-            benchmarks = cls.__remote_all(mine_only=mine_only)
+            benchmarks = cls.__remote_all(filters=filters)
 
         remote_uids = set([bmk.id for bmk in benchmarks])
 
@@ -87,14 +85,11 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmarks
 
     @classmethod
-    def __remote_all(cls, mine_only: bool = False) -> List["Benchmark"]:
+    def __remote_all(cls, filters: dict) -> List["Benchmark"]:
         benchmarks = []
-        remote_func = config.comms.get_benchmarks
-        if mine_only:
-            remote_func = config.comms.get_user_benchmarks
-
         try:
-            bmks_meta = remote_func()
+            comms_fn = cls.__remote_prefilter(filters)
+            bmks_meta = comms_fn()
             for bmk_meta in bmks_meta:
                 # Loading all related models for all benchmarks could be expensive.
                 # Most probably not necessary when getting all benchmarks.
@@ -106,6 +101,21 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
             logging.warning(msg)
 
         return benchmarks
+
+    @classmethod
+    def __remote_prefilter(cls, filters: dict) -> callable:
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_benchmarks
+        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+            comms_fn = config.comms.get_user_benchmarks
+        return comms_fn
 
     @classmethod
     def __local_all(cls) -> List["Benchmark"]:
@@ -126,7 +136,9 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return benchmarks
 
     @classmethod
-    def get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
+    def get(
+        cls, benchmark_uid: Union[str, int], local_only: bool = False
+    ) -> "Benchmark":
         """Retrieves and creates a Benchmark instance from the server.
         If benchmark already exists in the platform then retrieve that
         version.
@@ -138,20 +150,51 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         Returns:
             Benchmark: a Benchmark instance with the retrieved data.
         """
-        comms = config.comms
-        # Try to download first
+
+        if not str(benchmark_uid).isdigit() or local_only:
+            return cls.__local_get(benchmark_uid)
+
         try:
-            benchmark_dict = comms.get_benchmark(benchmark_uid)
-            ref_model = benchmark_dict["reference_model_mlcube"]
-            add_models = cls.get_models_uids(benchmark_uid)
-            benchmark_dict["models"] = [ref_model] + add_models
+            return cls.__remote_get(benchmark_uid)
         except CommunicationRetrievalError:
-            # Get local benchmarks
-            logging.warning(f"Getting benchmark {benchmark_uid} from comms failed")
+            logging.warning(f"Getting Benchmark {benchmark_uid} from comms failed")
             logging.info(f"Looking for benchmark {benchmark_uid} locally")
-            benchmark_dict = cls.__get_local_dict(benchmark_uid)
+            return cls.__local_get(benchmark_uid)
+
+    @classmethod
+    def __remote_get(cls, benchmark_uid: int) -> "Benchmark":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving benchmark {benchmark_uid} remotely")
+        benchmark_dict = config.comms.get_benchmark(benchmark_uid)
+        ref_model = benchmark_dict["reference_model_mlcube"]
+        add_models = cls.get_models_uids(benchmark_uid)
+        benchmark_dict["models"] = [ref_model] + add_models
         benchmark = cls(**benchmark_dict)
         benchmark.write()
+        return benchmark
+
+    @classmethod
+    def __local_get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            dset_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving benchmark {benchmark_uid} locally")
+        benchmark_dict = cls.__get_local_dict(benchmark_uid)
+        benchmark = cls(**benchmark_dict)
         return benchmark
 
     @classmethod
