@@ -175,7 +175,7 @@ def main(ctx: typer.Context):
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     log_file = storage_path(config.log_file)
     handler = logging.handlers.RotatingFileHandler(
-        log_file, maxBytes=10000000, backupCount=5
+        log_file, maxBytes=10000000, backupCount=5, encoding="utf-8"
     )
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
