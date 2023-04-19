@@ -215,7 +215,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            proc = spawn(cmd)
+            proc = spawn(cmd, timeout=None)
             proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
@@ -282,7 +282,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
-        if proc.exitstatus != 0:
+        if proc.exitstatus and proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
