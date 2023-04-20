@@ -332,6 +332,7 @@ def prepare(
         for idx, full_greeting in enumerate(full_greetings):
             writer.writerow([idx, full_greeting])
 ```
+
 1. The necessary imports for this function are provided here, but please place them at the top of your file.
 2. We need to provide any additional input defined in the `mlcube.yaml` file here. In this case, we're adding the `greetings` parameter.
 
