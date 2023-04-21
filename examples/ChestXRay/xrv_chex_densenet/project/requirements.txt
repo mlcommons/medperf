@@ -1,5 +1,0 @@
-torchxrayvision
-torch
-torchvision
-typer
-PyYAML

@@ -81,6 +81,8 @@ def view(profile: str = typer.Argument(None)):
         profile_config = config_p[profile]
 
     profile_config.pop(config.credentials_keyword, None)
+    profile_name = profile if profile else config_p.active_profile_name
+    config.ui.print(f"\nProfile '{profile_name}':")
     dict_pretty_print(profile_config, skip_none_values=False)
 
 

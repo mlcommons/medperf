@@ -80,7 +80,7 @@ def list(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Result ID"),
+    entity_id: Optional[str] = typer.Argument(None, help="Result ID"),
     format: str = typer.Option(
         "yaml",
         "-f",
