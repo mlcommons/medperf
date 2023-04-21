@@ -2,12 +2,12 @@ import os
 import yaml
 
 from .bcolors import bcolors
-from .constants import *
+from .constants import WSPACE_PATH, MLCUBE_FILE, VALID_COMBINATIONS, TASK_DEFINITIONS
 
 
 def is_valid(mlcube_path):
-    workspace_path = os.path.join(mlcube_path, "workspace")
-    mlcube_manifest_path = os.path.join(mlcube_path, "mlcube.yaml")
+    workspace_path = os.path.join(mlcube_path, WSPACE_PATH)
+    mlcube_manifest_path = os.path.join(mlcube_path, MLCUBE_FILE)
     expected_paths = [mlcube_manifest_path, workspace_path]
 
     try:

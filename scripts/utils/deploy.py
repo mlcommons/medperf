@@ -3,7 +3,7 @@ import yaml
 import shutil
 import tarfile
 
-from .constants import *
+from .constants import WSPACE_PATH, PARAMS_FILE, ADD_PATH, MLCUBE_FILE, ADD_FILE
 from .bcolors import bcolors
 
 
@@ -63,4 +63,3 @@ def deploy(mlcube_path, output_path):
     if output_path is not None:
         print(f"{bcolors.OKCYAN}Packaging all assets into {output_path}{bcolors.ENDC}")
         make_tarfile(deploy_path, output_path)
-
