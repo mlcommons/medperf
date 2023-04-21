@@ -1,8 +1,9 @@
 from medperf.exceptions import CleanExit
 import pytest
 
-from medperf.entities.result import Result
-from medperf.entities.dataset import Dataset
+from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.dataset import TestDataset
+
 from medperf.commands.result.submit import ResultSubmission
 from medperf.enums import Status
 
@@ -10,21 +11,13 @@ PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
 
 
 @pytest.fixture
-def result(mocker):
-    res = mocker.create_autospec(spec=Result)
-    res.status = Status.PENDING
-    res.generated_uid = "generated_uid"
-    res.path = "path"
-    res.results = {}
-    return res
+def result():
+    return TestResult(id=None, approval_status=Status.PENDING)
 
 
 @pytest.fixture
-def dataset(mocker):
-    dset = mocker.create_autospec(spec=Dataset)
-    dset.generated_uid = 1
-    dset.id = 1
-    return dset
+def dataset():
+    return TestDataset(id=1)
 
 
 @pytest.fixture

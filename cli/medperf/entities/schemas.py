@@ -1,16 +1,41 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator, HttpUrl
+from pydantic import BaseModel, Field, validator, HttpUrl, ValidationError
 from typing import Optional
+from collections import defaultdict
 
 from medperf.enums import Status
+from medperf.exceptions import MedperfException
 
 
-class MedperfSchema(BaseModel):
-    id: Optional[int]
-    name: str = Field(..., max_length=20)
-    owner: Optional[int]
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
+class MedperfBaseSchema(BaseModel):
+    def __init__(self, *args, **kwargs):
+        """Override the ValidationError procedure so we can
+        format the error message in our desired way
+        """
+        try:
+            super().__init__(*args, **kwargs)
+        except ValidationError as e:
+            errors_dict = defaultdict(list)
+            for error in e.errors():
+                field = error["loc"]
+                msg = error["msg"]
+                errors_dict[field].append(msg)
+
+            error_msg = "Field Validation Error:"
+            for field, errors in errors_dict.items():
+                error_msg += "\n"
+                field = field[0]
+                error_msg += f"- {field}: "
+                if len(errors) == 1:
+                    # If a single error for a field is given, don't create a sublist
+                    error_msg += errors[0]
+                else:
+                    # Create a sublist otherwise
+                    for e_msg in errors:
+                        error_msg += "\n"
+                        error_msg += f"\t- {e_msg}"
+
+            raise MedperfException(error_msg)
 
     def dict(self, *args, **kwargs) -> dict:
         """Overrides dictionary implementation so it filters out
@@ -57,6 +82,21 @@ class MedperfSchema(BaseModel):
         allow_population_by_field_name = True
         extra = "allow"
         use_enum_values = True
+
+
+class MedperfSchema(MedperfBaseSchema):
+    for_test: bool = False
+    id: Optional[int]
+    name: str = Field(..., max_length=60)
+    owner: Optional[int]
+    created_at: Optional[datetime]
+    modified_at: Optional[datetime]
+
+    @validator("name", pre=True, always=True)
+    def name_max_length(cls, v, *, values, **kwargs):
+        if not values["for_test"] and len(v) > 20:
+            raise ValueError("The name must have no more than 20 characters")
+        return v
 
 
 class DeployableSchema(BaseModel):

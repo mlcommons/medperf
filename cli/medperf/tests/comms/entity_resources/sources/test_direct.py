@@ -24,12 +24,14 @@ def test_download_works_as_expected(mocker, fs):
     iter_spy.assert_called_once_with(chunk_size=config.ddl_stream_chunk_size)
 
 
-def test_download_raises_for_failed_request(mocker):
+def test_download_raises_for_failed_request_after_multiple_attempts(mocker):
     # Arrange
     filename = "filename"
     res = MockResponse({}, 404)
-    mocker.patch(PATCH_DIRECT.format("requests.get"), return_value=res)
+    spy = mocker.patch(PATCH_DIRECT.format("requests.get"), return_value=res)
 
     # Act & Assert
     with pytest.raises(CommunicationRetrievalError):
         DirectLinkSource().download(url, filename)
+
+    assert spy.call_count == config.ddl_max_redownload_attempts

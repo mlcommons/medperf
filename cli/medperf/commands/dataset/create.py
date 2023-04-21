@@ -215,7 +215,7 @@ class DataPreparation:
             "name": self.name,
             "description": self.description,
             "location": self.location,
-            "data_preparation_mlcube": self.cube.id,
+            "data_preparation_mlcube": self.cube.identifier,
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
@@ -223,6 +223,7 @@ class DataPreparation:
             "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
             "separate_labels": self.labels_specified,  # not in the server
+            "for_test": self.run_test,  # not in the server (OK)
         }
 
     def get_temp_stats(self):

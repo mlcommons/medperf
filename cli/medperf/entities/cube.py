@@ -6,27 +6,21 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import (
-    untar,
-    combine_proc_sp_text,
-    list_files,
-    storage_path,
-    cleanup,
-)
-from medperf.entities.interface import Entity
+from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
+from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
-    InvalidEntityError,
     MedperfException,
     CommunicationRetrievalError,
+    InvalidEntityError,
 )
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 
 
-class Cube(Entity, MedperfSchema, DeployableSchema):
+class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     """
     Class representing an MLCube Container
 
@@ -142,7 +136,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: Union[str, int]) -> "Cube":
+    def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
@@ -152,36 +146,46 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         Returns:
             Cube : a Cube instance with the retrieved data.
         """
-        logging.debug(f"Retrieving the cube {cube_uid}")
-        comms = config.comms
 
-        # Try to download the cube first
-        try:
-            meta = comms.get_cube_metadata(cube_uid)
-            cube = cls(**meta)
-            attempt = 0
-            while attempt < config.cube_get_max_attempts:
-                logging.info(f"Downloading MLCube. Attempt {attempt + 1}")
-                # Check first if we already have the required files
-                if cube.valid():
-                    cube.write()
-                    return cube
-                # Try to redownload elements if invalid
-                cube.download()
-                attempt += 1
-            cube.write()
-        except CommunicationRetrievalError:
-            logging.warning("Max download attempts reached")
-            logging.warning(f"Getting MLCube {cube_uid} from comms failed")
-            logging.info(f"Retrieving MLCube {cube_uid} from local storage")
-            local_meta = cls.__get_local_dict(cube_uid)
-            cube = cls(**local_meta)
+        if not str(cube_uid).isdigit() or local_only:
+            cube = cls.__local_get(cube_uid)
+        else:
+            try:
+                cube = cls.__remote_get(cube_uid)
+            except CommunicationRetrievalError:
+                logging.warning(f"Getting MLCube {cube_uid} from comms failed")
+                logging.info(f"Retrieving MLCube {cube_uid} from local storage")
+                cube = cls.__local_get(cube_uid)
+
+        if cube.valid():
             return cube
 
-        logging.error("Could not find the requested MLCube")
-        cube_path = os.path.join(storage_path(config.cubes_storage), str(cube_uid))
-        cleanup([cube_path])
-        raise InvalidEntityError("Could not successfully get the requested MLCube")
+        try:
+            cube.download()
+        except CommunicationRetrievalError as e:
+            cleanup([cube.path])
+            logging.error(f"Could not download the mlcube files of {cube_uid}")
+            raise e
+
+        if cube.valid():
+            return cube
+        cleanup([cube.path])
+        raise InvalidEntityError(f"MLCube {cube_uid} files hash check failed")
+
+    @classmethod
+    def __remote_get(cls, cube_uid: int) -> "Cube":
+        logging.debug(f"Retrieving mlcube {cube_uid} remotely")
+        meta = config.comms.get_cube_metadata(cube_uid)
+        cube = cls(**meta)
+        cube.write()
+        return cube
+
+    @classmethod
+    def __local_get(cls, cube_uid: Union[str, int]) -> "Cube":
+        logging.debug(f"Retrieving cube {cube_uid} locally")
+        local_meta = cls.__get_local_dict(cube_uid)
+        cube = cls(**local_meta)
+        return cube
 
     def download_mlcube(self):
         url = self.git_mlcube_url

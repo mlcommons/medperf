@@ -210,6 +210,8 @@ def cleanup_path(path):
         try:
             if os.path.islink(path):
                 os.unlink(path)
+            elif os.path.isfile(path):
+                os.remove(path)
             else:
                 rmtree(path)
         except OSError as e:
@@ -225,6 +227,7 @@ def cleanup(extra_paths: List[str] = []):
         return
     tmp_path = storage_path(config.tmp_storage)
     extra_paths.append(tmp_path)
+    extra_paths += config.extra_cleanup_paths
     for path in extra_paths:
         cleanup_path(path)
 

@@ -4,13 +4,13 @@ import logging
 from typing import List, Union
 
 from medperf.utils import storage_path
-from medperf.entities.interface import Entity
+from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-class Result(Entity, MedperfSchema, ApprovableSchema):
+class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
     """
     Class representing a Result entry
 
@@ -122,7 +122,7 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         return results
 
     @classmethod
-    def get(cls, result_uid: Union[str, int]) -> "Result":
+    def get(cls, result_uid: Union[str, int], local_only: bool = False) -> "Result":
         """Retrieves and creates a Result instance obtained from the platform.
         If the result instance already exists in the user's machine, it loads
         the local instance
@@ -133,18 +133,47 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         Returns:
             Result: Specified Result instance
         """
-        logging.debug(f"Retrieving result {result_uid}")
-        comms = config.comms
-        # Try to download first
+        if not str(result_uid).isdigit() or local_only:
+            return cls.__local_get(result_uid)
+
         try:
-            result_dict = comms.get_result(result_uid)
+            return cls.__remote_get(result_uid)
         except CommunicationRetrievalError:
-            # Get local results
-            logging.warning(f"Getting result {result_uid} from comms failed")
+            logging.warning(f"Getting Result {result_uid} from comms failed")
             logging.info(f"Looking for result {result_uid} locally")
-            result_dict = cls.__get_local_dict(result_uid)
-        result = cls(**result_dict)
+            return cls.__local_get(result_uid)
+
+    @classmethod
+    def __remote_get(cls, result_uid: int) -> "Result":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            result_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving result {result_uid} remotely")
+        meta = config.comms.get_result(result_uid)
+        result = cls(**meta)
         result.write()
+        return result
+
+    @classmethod
+    def __local_get(cls, result_uid: Union[str, int]) -> "Result":
+        """Retrieves and creates a Dataset instance from the comms instance.
+        If the dataset is present in the user's machine then it retrieves it from there.
+
+        Args:
+            result_uid (str): server UID of the dataset
+
+        Returns:
+            Dataset: Specified Dataset Instance
+        """
+        logging.debug(f"Retrieving result {result_uid} locally")
+        local_meta = cls.__get_local_dict(result_uid)
+        result = cls(**local_meta)
         return result
 
     def todict(self):
