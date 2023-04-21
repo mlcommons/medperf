@@ -111,6 +111,11 @@ def configurable(func: Callable) -> Callable:
             "--platform",
             help="Platform to use for MLCube. [docker | singularity]",
         ),
+        gpus: str = typer.Option(
+            config.gpus,
+            "--gpus",
+            help="What GPUs to expose to MLCube. Defaults to all available GPUs",
+        ),
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
