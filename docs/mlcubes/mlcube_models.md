@@ -436,7 +436,7 @@ That's it! With that we should have a funcional {{ page.meta.name }}, that has b
     ```bash
     echo "First Name,Last Name\nJohn,Smith" >> workspace/data/names.csv
     ```
-    This will create the prepared data, as seen from the [Data Preparator Template](mlcubes/mlcube_data.md) tutorial. You can inspect it with
+    This will create the prepared data, as seen from the [Data Preparator Template](mlcube_data.md) tutorial. You can inspect it with
     ```bash
     cat workspace/data/names.csv
     ```
