@@ -94,7 +94,7 @@ def associate(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
-        ..., "-benchmark_uid", "-b", help="Benchmark UID"
+        ..., "--benchmark_uid", "-b", help="Benchmark UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
@@ -115,7 +115,7 @@ def associate(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Dataset ID"),
+    entity_id: Optional[str] = typer.Argument(None, help="Dataset ID"),
     format: str = typer.Option(
         "yaml",
         "-f",

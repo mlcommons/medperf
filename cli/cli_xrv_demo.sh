@@ -14,7 +14,7 @@ SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
-CERT_FILE="${AUTH_CERT:-$(realpath $(dirname $(dirname "$0")))/server/cert.crt}"
+CERT_FILE="${AUTH_CERT:-$(dirname $(dirname $(realpath "$0")))/server/cert.crt}"
 MEDPERF_STORAGE=~/.medperf
 MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
@@ -53,11 +53,9 @@ echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert_dset.tar.gz
-tar -xzvf $DIRECTORY/mock_chexpert_dset.tar.gz -C $DIRECTORY
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert.tar.gz
+tar -xzvf $DIRECTORY/mock_chexpert.tar.gz -C $DIRECTORY
 chmod a+w $DIRECTORY/mock_chexpert
-ls $DIRECTORY/mock_chexpert
-ls $DIRECTORY/mock_chexpert/valid
 echo "====================================="
 echo "Setting testing profile"
 echo "====================================="
@@ -72,7 +70,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset create -b 1 -d $DIRECTORY/mock_chexpert -l $DIRECTORY/mock_chexpert --name="mock_chexpert" --description="mock dataset" --location="mock location"
+medperf dataset create -b 1 -d $DIRECTORY/mock_chexpert/images -l $DIRECTORY/mock_chexpert/labels --name="mock_chexpert" --description="mock dataset" --location="mock location"
 checkFailed "Data preparation step failed"
 
 echo "\n"
@@ -111,7 +109,7 @@ echo "====================================="
 # log back as user
 medperf login --username=testdataowner --password=test
 # Create results
-medperf run -b 1 -d $DSET_UID -m 2 -y
+medperf run -b 1 -d $DSET_UID -m 4 -y
 checkFailed "Benchmark execution step failed"
 
 echo "====================================="

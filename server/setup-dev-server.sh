@@ -21,6 +21,10 @@ echo $CERT_GENERATE
 echo $CERT_PATH
 echo $RESET_DB
 
+if [ ! -f ".env" ]
+then
+  cp .env.example .env
+fi
 
 if [ -z "$CERT_FILE" ]
 then

@@ -23,7 +23,7 @@ class ResultSubmission:
         self.approved = approved
 
     def request_approval(self, result):
-        if result.status == Status.APPROVED:
+        if result.approval_status == Status.APPROVED:
             return True
 
         dict_pretty_print(result.results)

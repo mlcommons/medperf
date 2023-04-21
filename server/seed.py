@@ -5,8 +5,8 @@ import json
 import curlify
 
 ASSETS_URL = (
-    "https://raw.githubusercontent.com/aristizabal95/medperf-2/"
-    "9dc2b03757d1883ccb3d47b7286acca8ba025db4/examples/ChestXRay/"
+    "https://raw.githubusercontent.com/hasan7n/medperf/"
+    "88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/"
 )
 
 
@@ -18,9 +18,7 @@ class Server:
     def validate(self, verify=False, version=None):
         try:
             resp = requests.request(
-                method="GET",
-                url=self.host + "/version",
-                verify=self.cert,
+                method="GET", url=self.host + "/version", verify=self.cert,
             )
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
@@ -135,7 +133,8 @@ def seed(args):
         "id",
     )
     print("Data Owner User Created(by Admin User). Id:", data_owner)
-
+    if args.demo == "benchmark":
+        return
     print("##########################BENCHMARK OWNER##########################")
     # Get Benchmark Owner API token(token of testbenchmarkowner user)
     benchmark_owner_token = api_server.request(
@@ -194,10 +193,10 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_chex_densenet",
-            "git_mlcube_url": (ASSETS_URL + "xrv_chex_densenet/mlcube/mlcube.yaml"),
+            "git_mlcube_url": (ASSETS_URL + "xrv_densenet/mlcube/mlcube.yaml"),
             "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
             "git_parameters_url": (
-                ASSETS_URL + "xrv_chex_densenet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "xrv_densenet/mlcube/workspace/parameters.yaml"
             ),
             "parameters_hash": "4271dbfa5e22a85b2a62ae3cefb340defc2fe74e",
             "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
@@ -275,9 +274,9 @@ def seed(args):
             "name": "xrv",
             "description": "benchmark-sample",
             "docs_url": "",
-            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_demo_data.tar.gz",
-            "demo_dataset_tarball_hash": "137950e4e7b8de3baa4a9982c3ebea6a52bd33d3",
-            "demo_dataset_generated_uid": "f35c2d89caf140edb78e187a54d048c0590cb3ea",
+            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz",
+            "demo_dataset_tarball_hash": "242a67d65ae3c2c8ff55277399ee3cb49dec12fb",
+            "demo_dataset_generated_uid": "fe5f74f8e345662b81acb53d8558a39fbec75837",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,
             "data_evaluator_mlcube": data_evaluator_mlcube,
@@ -306,6 +305,8 @@ def seed(args):
     )
     print("Benchmark Id:", benchmark, "is marked", benchmark_status, "(by Admin)")
 
+    if args.demo == "model":
+        return
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
     # Get Model Owner API token(token of testmodelowner user)
@@ -324,15 +325,15 @@ def seed(args):
         "POST",
         model_owner_token,
         {
-            "name": "xrv_resnet",
-            "git_mlcube_url": (ASSETS_URL + "xrv_resnet/mlcube/mlcube.yaml"),
-            "mlcube_hash": "b2f17ed06c7b1225810588630abdc4d6ee8b3137",
+            "name": "xrv_pc_densenet",
+            "git_mlcube_url": (ASSETS_URL + "xrv_densenet/mlcube/mlcube.yaml"),
+            "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
             "git_parameters_url": (
-                ASSETS_URL + "xrv_resnet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "xrv_densenet/mlcube/workspace/parameters_pc.yaml"
             ),
-            "parameters_hash": "cd747953cf4b95e104d2c2b03385c656e44ffaec",
-            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_resnet.tar.gz",
-            "additional_files_tarball_hash": "e70a6c8e0931537b4b3dd8c06560f227605e9ed1",
+            "parameters_hash": "9ff226e8c0464b8e20742c2eca51704c9c850518",
+            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_pc_densenet.tar.gz",
+            "additional_files_tarball_hash": "6518e81b3b5a7200964cfe363499ec2ce8ecde14",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {},
@@ -410,6 +411,12 @@ if __name__ == "__main__":
     parser.add_argument("--username", type=str, help="Admin username", default="admin")
     parser.add_argument("--password", type=str, help="Admin password", default="admin")
     parser.add_argument("--cert", type=str, help="Server certificate")
+    parser.add_argument(
+        "--demo",
+        type=str,
+        help="Seed for a specific demo: 'benchmark', 'model', or 'data'",
+        default="data",
+    )
     parser.add_argument("--version", type=str, help="Server version")
     args = parser.parse_args()
     seed(args)
