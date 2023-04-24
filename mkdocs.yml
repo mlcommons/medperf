@@ -19,6 +19,7 @@ nav:
   - Data Preparator MLCube Template: mlcubes/mlcube_data.md
   - Model MLCube Template: mlcubes/mlcube_models.md
   - Metrics MLCube Template: mlcubes/mlcube_metrics.md
+  - GaNDLF MLCube: mlcubes/gandlf_mlcube.md
 - Concepts:
   - MedPerf Account: concepts/accounts.md
   - Client Configuration: concepts/profiles.md
