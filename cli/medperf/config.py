@@ -78,6 +78,7 @@ templates = {
     "data_preparator": "templates/data_preparator_mlcube",
     "model": "templates/model_mlcube",
     "evaluator": "templates/evaluator_mlcube",
+    "gandlf": "templates/gandlf_mlcube",
 }
 
 extra_cleanup_paths = []
