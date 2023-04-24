@@ -1,9 +1,9 @@
 {
-    "project_name": "Model MLCube",
+    "project_name": "GaNDLF MLCube",
     "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
-    "description": "Model MLCube Template. Provided by MLCommons",
+    "description": "GaNDLF MLCube Template. Provided by MLCommons",
     "author_name": "John Smith",
-    "accelerator_count": "0",
+    "accelerator_count": "1",
     "docker_build_file": "Dockerfile-CUDA11.6",
     "docker_image_name": "docker/image:latest"
 }
