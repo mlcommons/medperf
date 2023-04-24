@@ -201,7 +201,6 @@ def set_unique_tmp_config():
     config.tmp_storage += pid
     config.tmp_prefix += pid
     config.test_dset_prefix += pid
-    config.test_cube_prefix += pid
 
 
 def cleanup_path(path):
@@ -232,7 +231,6 @@ def cleanup(extra_paths: List[str] = []):
         cleanup_path(path)
 
     cleanup_dsets()
-    cleanup_cubes()
     cleanup_benchmarks()
 
 
@@ -252,19 +250,6 @@ def cleanup_dsets():
     for dset in clutter_dsets:
         dset_path = os.path.join(dsets_path, dset)
         cleanup_path(dset_path)
-
-
-def cleanup_cubes():
-    """Removes clutter related to cubes
-    """
-    cubes_path = storage_path(config.cubes_storage)
-    cubes = get_uids(cubes_path)
-    test_prefix = config.test_cube_prefix
-    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
-
-    for cube in clutter_cubes:
-        cube_path = os.path.join(cubes_path, cube)
-        cleanup_path(cube_path)
 
 
 def cleanup_benchmarks():

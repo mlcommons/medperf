@@ -135,7 +135,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -159,7 +159,6 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     tmp_storage = utils.config.tmp_storage
     tmp_prefix = utils.config.tmp_prefix
     test_dset_prefix = utils.config.test_dset_prefix
-    test_cube_prefix = utils.config.test_cube_prefix
     pid = str(pid)
 
     # Act
@@ -169,13 +168,11 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     assert utils.config.tmp_storage.endswith(pid)
     assert utils.config.tmp_prefix.endswith(pid)
     assert utils.config.test_dset_prefix.endswith(pid)
-    assert utils.config.test_cube_prefix.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
     utils.config.tmp_prefix = tmp_prefix
     utils.config.test_dset_prefix = test_dset_prefix
-    utils.config.test_cube_prefix = test_cube_prefix
 
 
 def test_cleanup_removes_temporary_storage(mocker):

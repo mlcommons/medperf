@@ -45,11 +45,17 @@ def download_demo_data(dset_url, dset_hash):
 
 
 def prepare_local_cube(path):
-    temp_uid = config.test_cube_prefix + get_folder_sha1(path)
+    temp_uid = get_folder_sha1(path)
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
-    os.symlink(path, dst)
-    logging.info(f"local cube will be linked to path: {dst}")
+    if os.path.exists(dst):
+        logging.warning(
+            f"The mlcube symlink already exists: {dst}. Skipping creation of a new symlink"
+        )
+    else:
+        os.symlink(path, dst)
+        config.extra_cleanup_paths.append(dst)
+        logging.info(f"local cube will be linked to path: {dst}")
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
     if not os.path.exists(cube_metadata_file):
