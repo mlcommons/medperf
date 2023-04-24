@@ -188,7 +188,7 @@ class TestRun:
         )
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + "--platform={self.platform} --gpus={self.gpus}"
+            + f"--platform={self.platform} --gpus={self.gpus}"
         )
 
         # Act
