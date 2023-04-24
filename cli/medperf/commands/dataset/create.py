@@ -190,9 +190,6 @@ class DataPreparation:
         """
         self.in_uid = get_folder_sha1(self.data_path)
         self.generated_uid = get_folder_sha1(self.out_datapath)
-        if self.run_test:
-            self.in_uid = config.test_dset_prefix + self.in_uid
-            self.generated_uid = config.test_dset_prefix + self.generated_uid
 
     def to_permanent_path(self) -> str:
         """Renames the temporary data folder to permanent one using the hash of

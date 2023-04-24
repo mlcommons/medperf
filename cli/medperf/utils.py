@@ -200,7 +200,6 @@ def set_unique_tmp_config():
     pid = str(os.getpid())
     config.tmp_storage += pid
     config.tmp_prefix += pid
-    config.test_dset_prefix += pid
 
 
 def cleanup_path(path):
@@ -230,26 +229,7 @@ def cleanup(extra_paths: List[str] = []):
     for path in extra_paths:
         cleanup_path(path)
 
-    cleanup_dsets()
     cleanup_benchmarks()
-
-
-def cleanup_dsets():
-    """Removes clutter related to datsets
-    """
-    dsets_path = storage_path(config.data_storage)
-    dsets = get_uids(dsets_path)
-    tmp_prefix = config.tmp_prefix
-    test_prefix = config.test_dset_prefix
-    clutter_dsets = [
-        dset
-        for dset in dsets
-        if dset.startswith(tmp_prefix) or dset.startswith(test_prefix)
-    ]
-
-    for dset in clutter_dsets:
-        dset_path = os.path.join(dsets_path, dset)
-        cleanup_path(dset_path)
 
 
 def cleanup_benchmarks():

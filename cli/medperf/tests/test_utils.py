@@ -158,7 +158,6 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     mocker.patch("os.getpid", return_value=pid)
     tmp_storage = utils.config.tmp_storage
     tmp_prefix = utils.config.tmp_prefix
-    test_dset_prefix = utils.config.test_dset_prefix
     pid = str(pid)
 
     # Act
@@ -167,12 +166,10 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Assert
     assert utils.config.tmp_storage.endswith(pid)
     assert utils.config.tmp_prefix.endswith(pid)
-    assert utils.config.test_dset_prefix.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
     utils.config.tmp_prefix = tmp_prefix
-    utils.config.test_dset_prefix = test_dset_prefix
 
 
 def test_cleanup_removes_temporary_storage(mocker):
