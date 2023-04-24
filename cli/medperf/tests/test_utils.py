@@ -134,7 +134,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -173,7 +173,6 @@ def test_cleanup_removes_temporary_storage(mocker):
     mocker.patch("os.path.exists", return_value=True)
     spy = mocker.patch(patch_utils.format("cleanup_path"))
     mocker.patch(patch_utils.format("get_uids"), return_value=[])
-    mocker.patch(patch_utils.format("cleanup_benchmarks"))
 
     # Act
     utils.cleanup()
