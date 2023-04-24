@@ -199,7 +199,6 @@ def set_unique_tmp_config():
     """
     pid = str(os.getpid())
     config.tmp_storage += pid
-    config.tmp_prefix += pid
 
 
 def cleanup_path(path):
@@ -228,20 +227,6 @@ def cleanup(extra_paths: List[str] = []):
     extra_paths += config.extra_cleanup_paths
     for path in extra_paths:
         cleanup_path(path)
-
-    cleanup_benchmarks()
-
-
-def cleanup_benchmarks():
-    """Removes clutter related to benchmarks
-    """
-    bmks_path = storage_path(config.benchmarks_storage)
-    bmks = os.listdir(bmks_path)
-    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
-
-    for bmk in clutter_bmks:
-        bmk_path = os.path.join(bmks_path, bmk)
-        cleanup_path(bmk_path)
 
 
 def get_uids(path: str) -> List[str]:
@@ -284,10 +269,9 @@ def generate_tmp_datapath() -> str:
         str: General temporary folder location
         str: Specific data path for the temporary dataset
     """
-    uid = generate_tmp_uid()
-    tmp = config.tmp_prefix + uid
-    out_path = os.path.join(storage_path(config.data_storage), tmp)
+    out_path = os.path.join(storage_path(config.data_storage), generate_tmp_uid())
     out_path = os.path.abspath(out_path)
+    config.extra_cleanup_paths.append(out_path)
     return out_path
 
 

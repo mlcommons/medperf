@@ -33,7 +33,6 @@ def datasets(request):
     size = request.param
     uids = list(range(size))
     uids = [str(x) for x in uids]
-    uids[-1] = config.tmp_prefix + uids[-1]
 
     return uids
 
@@ -135,7 +134,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -157,7 +156,6 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Arrange
     mocker.patch("os.getpid", return_value=pid)
     tmp_storage = utils.config.tmp_storage
-    tmp_prefix = utils.config.tmp_prefix
     pid = str(pid)
 
     # Act
@@ -165,11 +163,9 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
 
     # Assert
     assert utils.config.tmp_storage.endswith(pid)
-    assert utils.config.tmp_prefix.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
-    utils.config.tmp_prefix = tmp_prefix
 
 
 def test_cleanup_removes_temporary_storage(mocker):
@@ -256,7 +252,7 @@ def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
     timestamp = dt.datetime.timestamp(datetime)
     mocker.patch("os.path.isdir", return_value=False)
     mocker.patch("random.randint", return_value=salt)
-    tmp_path = f"{config.tmp_prefix}{int(timestamp + salt)}"
+    tmp_path = f"{int(timestamp + salt)}"
     exp_out_path = os.path.join(data, tmp_path)
 
     # Act
