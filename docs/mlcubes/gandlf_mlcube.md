@@ -2,13 +2,13 @@
 
 ## Overview
 
-This guide will walk you through how to wrap a model trained using [GaNDLF](https://mlcommons.github.io/GaNDLF/){target="\_blank"} as a MedPerf-compatible MLCube ready to be used for **inference** (i.e. as a [Model MLCube](/mlcubes/mlcubes/#model-mlcube)). The steps can be summarized as follows:
+This guide will walk you through how to wrap a model trained using [GaNDLF](https://mlcommons.github.io/GaNDLF/){target="\_blank"} as a MedPerf-compatible MLCube ready to be used for **inference** (i.e. as a [Model MLCube](mlcube_models.md)). The steps can be summarized as follows:
 
 1. Train a GaNDLF model
 2. Create the MLCube file
 3. Deploy the GaNDLF model as an MLCube
 
-We assume that you already have [medperf installed](/installation) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
+We assume that you already have [medperf installed](../installation.md) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
 
 ## Before We Start
 
@@ -96,10 +96,10 @@ GaNDLF will use your initial MLCube configuration `my_gandlf_mlcube`, the GaNDLF
 
 ## 4. Next Steps
 
-That's it! You have built a MedPerf-compatible MLCube with GaNDLF. You may want to submit your MLCube to MedPerf, you can follow [this tutorial](/getting_started/model_owner_demo).
+That's it! You have built a MedPerf-compatible MLCube with GaNDLF. You may want to submit your MLCube to MedPerf, you can follow [this tutorial](../getting_started/model_owner_demo.md).
 
 !!! tip
-    MLCubes created by GaNDLF have the model weights and configuration file embedded in the docker image. When you want to [deploy your MLCube for MedPerf](/concepts/mlcube_files), all you need to do is pushing the docker image and [hosting the mlcube.yaml file](/concepts/hosting_files/).
+    MLCubes created by GaNDLF have the model weights and configuration file embedded in the docker image. When you want to [deploy your MLCube for MedPerf](../concepts/mlcube_files.md), all you need to do is pushing the docker image and [hosting the mlcube.yaml file](../concepts/hosting_files.md).
 
 ## Cleanup (Optional)
 
@@ -113,4 +113,4 @@ rm -fr medperf_tutorial
 
 ## See Also
 
-- [Creating a Model MLCube from scratch.](/mlcubes/mlcube_models)
+- [Creating a Model MLCube from scratch.](mlcube_models.md)
