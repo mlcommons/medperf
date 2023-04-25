@@ -300,7 +300,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
-        if proc.exitstatus and proc.exitstatus != 0:
+        if proc.exitstatus:
             raise ExecutionError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))
