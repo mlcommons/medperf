@@ -93,12 +93,10 @@ def validate_additional_parameters(task_contents, expected_parameters, workspace
         val = get_param_value(task_contents["parameters"]["inputs"][param])
         if not val.startswith(ADD_PATH):
             raise RuntimeError(f'Additional Parameter "{val}" must point to a file in "{ADD_PATH}"')
-        
+
         add_file_path = os.path.join(workspace_path, val)
         if not os.path.exists(add_file_path):
             raise RuntimeError(f'Additional file "{add_file_path}" not found')
-
-
 
 
 def validate_expected_param(key, val, task, task_contents, type):
@@ -113,9 +111,9 @@ def validate_expected_param(key, val, task, task_contents, type):
 
 
 def get_param_value(val):
-        if isinstance(val, dict):
-            return val["default"]
-        return val
+    if isinstance(val, dict):
+        return val["default"]
+    return val
 
 
 def check_runners(mlcube):
