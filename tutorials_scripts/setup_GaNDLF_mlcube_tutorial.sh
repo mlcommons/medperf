@@ -10,7 +10,8 @@ rm y8162xkq1zz5555ye3pwadry2m2e39bs.zip
 rm -rf data
 
 # Setup the data CSV
-echo "001,2d_rad_segmentation/001/image.png,2d_rad_segmentation/001/mask.png
+echo "SubjectID,Channel_0,Label,ValueToPredict
+001,2d_rad_segmentation/001/image.png,2d_rad_segmentation/001/mask.png
 002,2d_rad_segmentation/002/image.png,2d_rad_segmentation/002/mask.png
 003,2d_rad_segmentation/003/image.png,2d_rad_segmentation/003/mask.png
 004,2d_rad_segmentation/004/image.png,2d_rad_segmentation/004/mask.png
