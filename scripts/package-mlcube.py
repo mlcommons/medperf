@@ -1,5 +1,5 @@
 import argparse
-from utils.deploy import deploy
+from utils.package import package
 from utils.validate import is_valid
 
 
@@ -31,7 +31,7 @@ def main():
     if not is_valid(mlcube_path):
         exit()
 
-    deploy(mlcube_path, output_path)
+    package(mlcube_path, output_path)
 
 
 if __name__ == "__main__":

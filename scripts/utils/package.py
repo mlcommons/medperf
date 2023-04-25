@@ -15,12 +15,7 @@ def make_tarfile(source_dir, output_filename):
             tar.add(abs_path, arcname=os.path.basename(abs_path))
 
 
-def create_empty_file(path):
-    with open(path, "w"):
-        pass
-
-
-def deploy(mlcube_path, output_path):
+def package(mlcube_path, output_path):
     workspace_path = os.path.join(mlcube_path, WSPACE_PATH)
     parameters_path = os.path.join(workspace_path, PARAMS_FILE)
     additional_path = os.path.join(workspace_path, ADD_PATH)
@@ -42,8 +37,6 @@ def deploy(mlcube_path, output_path):
     # Handle the possibility of non-existing parameters file
     if os.path.exists(parameters_path):
         shutil.copyfile(parameters_path, deploy_parameters_path)
-    else:
-        create_empty_file(deploy_parameters_path)
 
     # Package additional files if needed
     if os.path.exists(additional_path):

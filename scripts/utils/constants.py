@@ -23,15 +23,15 @@ TASK_DEFINITIONS = {
     "sanity_check": {"inputs": {"data_path": None, "parameters_file": PARAMS_FILE}},
     "statistics": {
         "inputs": {"data_path": None, "parameters_file": PARAMS_FILE},
-        "outputs": {"output_path": STATS_FILE},
+        "outputs": {"output_path": None},
     },
     "evaluate": {
         "inputs": {"predictions": None, "labels": None, "parameters_file": PARAMS_FILE},
-        "outputs": {"output_path": RESULTS_FILE},
+        "outputs": {"output_path": None},
     },
 }
-VALID_COMBINATIONS = [
-    {"prepare", "sanity_check", "statistics"},
-    {"infer",},
-    {"evaluate",},
-]
+VALID_COMBINATIONS = {
+    "Data Preparation MLCube": {"prepare", "sanity_check", "statistics"},
+    "Model MLCube": {"infer",},
+    "Evaluator MLCube": {"evaluate",},
+}
