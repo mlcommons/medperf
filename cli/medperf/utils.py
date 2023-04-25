@@ -124,6 +124,14 @@ def set_custom_config(args: dict):
         setattr(config, param, val)
 
 
+def validate_config():
+    """Validates the configuration is valid for the current machine
+    """
+    if config.platform == "singularity" and sys.platform == "win32":
+        raise MedperfException("Windows doesn't support singularity runner")
+    # Add additional checks here
+
+
 def storage_path(subpath: str):
     """Helper function that converts a path to deployment storage-related path"""
     server_path = config.server.split("//")[1]
