@@ -1,8 +1,6 @@
 import os
 import pytest
 import logging
-import time_machine
-import datetime as dt
 from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
@@ -239,27 +237,6 @@ def test_pretty_error_exits_program(mocker, ui):
 
     # Assert
     spy.assert_called_once()
-
-
-@pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-@pytest.mark.parametrize("salt", [342, 87])
-def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
-    # Arrange
-    datetime = dt.datetime(*timeparams)
-    traveller = time_machine.travel(datetime)
-    traveller.start()
-    timestamp = dt.datetime.timestamp(datetime)
-    mocker.patch("os.path.isdir", return_value=False)
-    mocker.patch("random.randint", return_value=salt)
-    tmp_path = f"{int(timestamp + salt)}"
-    exp_out_path = os.path.join(data, tmp_path)
-
-    # Act
-    out_path = utils.generate_tmp_datapath()
-
-    # Assert
-    assert out_path == exp_out_path
-    traveller.stop()
 
 
 @pytest.mark.parametrize("is_valid", [True, False])

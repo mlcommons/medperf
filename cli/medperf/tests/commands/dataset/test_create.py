@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
 import medperf.config as config
-from medperf.exceptions import ExecutionError, InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError
+from medperf.utils import storage_path
 import pytest
 from unittest.mock import MagicMock, call
 
@@ -27,7 +27,7 @@ def preparation(mocker, comms, ui):
     mocker.patch("os.path.abspath", side_effect=lambda x: x)
     mocker.patch(PATCH_DATAPREP.format("init_storage"))
     mocker.patch(
-        PATCH_DATAPREP.format("generate_tmp_datapath"), return_value=OUT_PATH,
+        PATCH_DATAPREP.format("generate_tmp_path"), return_value=OUT_PATH,
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=TestBenchmark())
     preparation = DataPreparation(
@@ -301,7 +301,7 @@ class TestWithDefaultUID:
         mocker.patch("os.path.exists", return_value=False)
         preparation.generated_uid = str(uid)
         preparation.out_path = out_path
-        expected_path = os.path.join(str(Path(out_path).parent), str(uid))
+        expected_path = os.path.join(storage_path(config.data_storage), str(uid))
 
         # Act
         preparation.to_permanent_path()
@@ -374,22 +374,3 @@ def test_run_returns_generated_uid(mocker, comms, ui, preparation, uid):
 
     # Assert
     assert returned_uid == uid
-
-
-def test_run_deletes_output_path_on_failure(mocker, preparation):
-    # Arrange
-    mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
-    mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
-
-    mocker.patch.object(
-        preparation.cube, "run", side_effect=ExecutionError,
-    )
-    spy_clean = mocker.patch(PATCH_DATAPREP.format("cleanup"))
-
-    exp_outpaths = [preparation.out_path]
-
-    # Act & Assert
-    with pytest.raises(ExecutionError):
-        preparation.run_cube_tasks()
-
-    spy_clean.assert_called_once_with(exp_outpaths)

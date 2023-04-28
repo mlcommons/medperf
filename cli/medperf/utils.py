@@ -262,19 +262,6 @@ def pretty_error(msg: str, clean: bool = True):
     sys.exit(1)
 
 
-def generate_tmp_datapath() -> str:
-    """Builds a temporary folder for prepared but yet-to-register datasets.
-
-    Returns:
-        str: General temporary folder location
-        str: Specific data path for the temporary dataset
-    """
-    out_path = os.path.join(storage_path(config.data_storage), generate_tmp_uid())
-    out_path = os.path.abspath(out_path)
-    config.extra_cleanup_paths.append(out_path)
-    return out_path
-
-
 def generate_tmp_uid() -> str:
     """Generates a temporary uid by means of getting the current timestamp
     with a random salt

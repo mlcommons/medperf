@@ -1,5 +1,4 @@
 import os
-import logging
 from pathlib import Path
 import shutil
 from medperf.entities.dataset import Dataset
@@ -9,12 +8,12 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
-    generate_tmp_datapath,
+    generate_tmp_path,
     get_folder_sha1,
     init_storage,
-    cleanup,
+    storage_path
 )
-from medperf.exceptions import ExecutionError, InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError
 import yaml
 
 
@@ -67,7 +66,7 @@ class DataPreparation:
         self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
-        out_path = generate_tmp_datapath()
+        out_path = generate_tmp_path()
         self.out_path = out_path
         self.name = name
         self.description = description
@@ -154,36 +153,31 @@ class DataPreparation:
 
         # Run the tasks
         self.ui.text = "Running preparation step..."
-        try:
-            self.cube.run(
-                task="prepare",
-                string_params=prepare_str_params,
-                timeout=prepare_timeout,
-                **prepare_params,
-            )
-            self.ui.print("> Cube execution complete")
+        self.cube.run(
+            task="prepare",
+            string_params=prepare_str_params,
+            timeout=prepare_timeout,
+            **prepare_params,
+        )
+        self.ui.print("> Cube execution complete")
 
-            self.ui.text = "Running sanity check..."
-            self.cube.run(
-                task="sanity_check",
-                string_params=sanity_str_params,
-                timeout=sanity_check_timeout,
-                **sanity_params,
-            )
-            self.ui.print("> Sanity checks complete")
+        self.ui.text = "Running sanity check..."
+        self.cube.run(
+            task="sanity_check",
+            string_params=sanity_str_params,
+            timeout=sanity_check_timeout,
+            **sanity_params,
+        )
+        self.ui.print("> Sanity checks complete")
 
-            self.ui.text = "Generating statistics..."
-            self.cube.run(
-                task="statistics",
-                string_params=statistics_str_params,
-                timeout=statistics_timeout,
-                **statistics_params,
-            )
-            self.ui.print("> Statistics complete")
-        except ExecutionError as e:
-            logging.error(f"MLCube Execution failed: {e}")
-            cleanup([self.out_path])
-            raise ExecutionError("Data preparation failed")
+        self.ui.text = "Generating statistics..."
+        self.cube.run(
+            task="statistics",
+            string_params=statistics_str_params,
+            timeout=statistics_timeout,
+            **statistics_params,
+        )
+        self.ui.print("> Statistics complete")
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths
@@ -195,7 +189,7 @@ class DataPreparation:
         """Renames the temporary data folder to permanent one using the hash of
         the registration file
         """
-        new_path = os.path.join(str(Path(self.out_path).parent), self.generated_uid)
+        new_path = os.path.join(storage_path(config.data_storage), self.generated_uid)
         if os.path.exists(new_path):
             shutil.rmtree(new_path)
         os.rename(self.out_path, new_path)
