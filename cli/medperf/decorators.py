@@ -43,6 +43,8 @@ def clean_except(func: Callable) -> Callable:
             logging.exception(e)
             pretty_error(str(e))
 
+        cleanup()
+
     return wrapper
 
 

@@ -69,6 +69,7 @@ class SubmitBenchmark:
         """
         self.ui.print("Running compatibility test")
         self.bmk.write()
+        config.extra_cleanup_paths.append(self.bmk.path)
         data_uid, results = CompatibilityTestExecution.run(
             benchmark=self.bmk.generated_uid, no_cache=self.no_cache
         )
