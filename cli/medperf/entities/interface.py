@@ -41,6 +41,14 @@ class Entity(ABC):
         """
 
     @abstractmethod
+    def update(self, **kwargs):
+        """Updates the current entity with the given fields
+
+        Arguments:
+            kwargs (dict): Key-value pair of properties to edit and their corresponding new values
+        """
+
+    @abstractmethod
     def write(self) -> str:
         """Writes the entity to the local storage
 

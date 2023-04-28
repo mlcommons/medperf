@@ -267,6 +267,16 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         """
         return config.comms.get_benchmark_models(benchmark_uid)
 
+    def update(self, **kwargs):
+        """Updates a benchmark with the given property-value pairs
+        """
+        data = self.todict()
+        data.update(kwargs)
+        # Edit entity by creating a new one. This ensures any extra steps
+        # that depend on the fields are being taken care of
+        new_bmk = Benchmark(**data)
+        self.__dict__ = new_bmk.__dict__ 
+
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance
 

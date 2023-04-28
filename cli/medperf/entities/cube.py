@@ -64,6 +64,39 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
+    def __is_valid_update(cls, old_cube: "Cube", new_cube: "Cube") -> bool:
+        """Determines if an update is valid given the changes between entities
+
+        Args:
+            old_cube (Cube): The old version of the MLCube
+            new_cube (Cube): The new version of the same MLCube
+
+        Returns:
+            bool: Wether updating the old_cube to the new_cube is possible
+        """
+        if old_cube.id != new_cube.id:
+            # id change should not be possible in any instance
+            return False
+
+        if old_cube.state == "DEVELOPMENT":
+            # Development entities can be freely edited
+            return True
+
+        production_inmutable_fields = {
+            "mlcube_hash",
+            "parameters_hash",
+            "image_tarball_hash",
+            "additional_files_tarball_hash"
+        }
+
+        updated_field_values = set(new_cube.items()) - set(old_cube.items())
+        updated_fields = {field for field, val in updated_field_values}
+        updated_inmutable_fields = updated_fields.intersection(production_inmutable_fields)
+
+        if len(updated_inmutable_fields):
+            return False
+
+    @classmethod
     def all(cls, local_only: bool = False, filters: dict = {}) -> List["Cube"]:
         """Class method for retrieving all retrievable MLCubes
 
@@ -234,15 +267,22 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             proc.close()
             return ""
 
-    def download(self):
+    def download(self, provided_fields: List[str] = None):
         """Downloads the required elements for an mlcube to run locally."""
+        try:
+            local_hashes = self.get_local_hashes()
+        except FileNotFoundError:
+            local_hashes = {}
 
-        local_hashes = {
-            "mlcube_hash": self.download_mlcube(),
-            "parameters_hash": self.download_parameters(),
-            "additional_files_tarball_hash": self.download_additional(),
-            "image_tarball_hash": self.download_image(),
-        }
+        if provided_fields is None or "git_mlcube_url" in provided_fields:
+            local_hashes["mlcube_hash"] = self.download_mlcube()
+        if provided_fields is None or "git_parameters_url" in provided_fields:
+            local_hashes["parameters_hash"] = self.download_parameters()
+        if provided_fields is None or "additional_files_tarball_url" in provided_fields:
+            local_hashes["additional_files_tarball_hash"] = self.download_additional()
+        if provided_fields is None or "image_tarball_url" in provided_fields:
+            local_hashes["image_tarball_hash"] = self.download_image()
+
         self.store_local_hashes(local_hashes)
 
     def valid(self) -> bool:
@@ -334,6 +374,21 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             out_path = os.path.join(out_path, params[param_key])
 
         return out_path
+
+    def update(self, **kwargs):
+        """Updates a cube with the given property-value pairs
+        """
+        data = self.todict()
+        data.update(kwargs)
+        new_cube = Cube(**data)
+
+        provided_fields = set(kwargs.keys())
+
+        # Download any files that were modified
+        self.download(provided_fields)
+
+        if new_cube.is_valid() and Cube.__is_valid_update(self, new_cube):
+            self.__dict__ = new_cube.__dict__
 
     def todict(self) -> Dict:
         return self.extended_dict()
