@@ -3,7 +3,6 @@ import shutil
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import storage_path
 from medperf.exceptions import InvalidEntityError
 
 
@@ -46,10 +45,9 @@ class SubmitCube:
         """Renames the temporary cube submission to a permanent one using the uid of
         the registered cube
         """
-        cube = Cube(**cube_dict)
-        cubes_storage = storage_path(config.cubes_storage)
-        old_cube_loc = os.path.join(cubes_storage, cube.generated_uid)
-        new_cube_loc = cube.path
+        old_cube_loc = self.cube.path
+        updated_cube = Cube(**cube_dict)
+        new_cube_loc = updated_cube.path
         if os.path.exists(new_cube_loc):
             shutil.rmtree(new_cube_loc)
         os.rename(old_cube_loc, new_cube_loc)

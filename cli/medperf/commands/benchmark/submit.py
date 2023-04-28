@@ -4,7 +4,7 @@ import logging
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import get_file_sha1, generate_tmp_uid, storage_path
+from medperf.utils import get_file_sha1, generate_tmp_uid
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 from medperf.exceptions import InvalidEntityError
 from medperf.comms.entity_resources import resources
@@ -86,10 +86,9 @@ class SubmitBenchmark:
         Args:
             bmk_dict (dict): dictionary containing updated information of the submitted benchmark
         """
-        bmk = Benchmark(**bmk_dict)
-        bmks_storage = storage_path(config.benchmarks_storage)
-        old_bmk_loc = os.path.join(bmks_storage, bmk.generated_uid)
-        new_bmk_loc = bmk.path
+        old_bmk_loc = self.bmk.path
+        updated_bmk = Benchmark(**bmk_dict)
+        new_bmk_loc = updated_bmk.path
         if os.path.exists(new_bmk_loc):
             shutil.rmtree(new_bmk_loc)
         os.rename(old_bmk_loc, new_bmk_loc)
