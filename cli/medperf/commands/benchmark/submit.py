@@ -68,6 +68,7 @@ class SubmitBenchmark:
         and to extract additional information required for submission
         """
         self.ui.print("Running compatibility test")
+        self.bmk.write()
         data_uid, results = CompatibilityTestExecution.run(
             benchmark=self.bmk.generated_uid, no_cache=self.no_cache
         )
