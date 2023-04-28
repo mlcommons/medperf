@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
+from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -157,19 +157,14 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 logging.info(f"Retrieving MLCube {cube_uid} from local storage")
                 cube = cls.__local_get(cube_uid)
 
+        config.extra_cleanup_paths.append(cube.path)
         if cube.valid():
             return cube
 
-        try:
-            cube.download()
-        except CommunicationRetrievalError as e:
-            cleanup([cube.path])
-            logging.error(f"Could not download the mlcube files of {cube_uid}")
-            raise e
+        cube.download()
 
         if cube.valid():
             return cube
-        cleanup([cube.path])
         raise InvalidEntityError(f"MLCube {cube_uid} files hash check failed")
 
     @classmethod
