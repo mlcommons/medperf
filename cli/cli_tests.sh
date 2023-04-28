@@ -218,7 +218,7 @@ echo "Running data submission step"
 echo "====================================="
 medperf dataset submit -d $DSET_A_GENUID -y
 checkFailed "Data submission step failed"
-DSET_A_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+DSET_A_UID=$(medperf dataset ls | tail -n 2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
