@@ -3,11 +3,7 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.utils import (
-    generate_tmp_path,
-    storage_path,
-    cleanup_path,
-)
+from medperf.utils import generate_tmp_path, storage_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
@@ -49,6 +45,7 @@ class Execution:
         preds_path = os.path.join(
             config.predictions_storage, str(model_uid), str(data_hash)
         )
+        config.extra_cleanup_paths.append(preds_path)
 
         self.partial = False
         self.out_path = generate_tmp_path()
@@ -72,7 +69,6 @@ class Execution:
         except ExecutionError as e:
             if not self.ignore_model_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
-                cleanup_path(preds_path)
                 raise ExecutionError("Model MLCube failed")
             else:
                 self.partial = True
@@ -84,24 +80,18 @@ class Execution:
         preds_path = self.preds_path
         labels_path = self.dataset.labels_path
         out_path = self.out_path
-        try:
-            self.ui.text = "Evaluating results"
-            self.evaluator.run(
-                task="evaluate",
-                timeout=evaluate_timeout,
-                predictions=preds_path,
-                labels=labels_path,
-                output_path=out_path,
-                string_params={
-                    "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-                    "Ptasks.evaluate.parameters.input.labels.opts": "ro",
-                },
-            )
-        except ExecutionError as e:
-            logging.error(f"Metrics MLCube Execution failed: {e}")
-            # NOTE: the line below should be removed if we want to cache predictions
-            cleanup_path(preds_path)
-            raise ExecutionError("Metrics MLCube failed")
+        self.ui.text = "Evaluating results"
+        self.evaluator.run(
+            task="evaluate",
+            timeout=evaluate_timeout,
+            predictions=preds_path,
+            labels=labels_path,
+            output_path=out_path,
+            string_params={
+                "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
+                "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+            },
+        )
 
     def todict(self):
         return {

@@ -56,12 +56,10 @@ def setup(request, mocker, ui, fs):
     # mocks/spies
     model_run_spy = mock_model(mocker, state_variables)
     eval_run_spy = mock_eval(mocker, fs, state_variables)
-    cleanup_spy = mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
 
     spies = {
         "model_run": model_run_spy,
         "eval_run": eval_run_spy,
-        "cleanup": cleanup_spy,
     }
     return state_variables, spies
 
@@ -76,8 +74,6 @@ class TestFailures:
             Execution.run(
                 INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=False
             )
-        spies = setup[1]
-        spies["cleanup"].assert_called_once()
 
     @pytest.mark.parametrize("setup", [{"failing_eval": True}], indirect=True)
     def test_failure_with_failing_eval_and_ignore_error(mocker, setup):
@@ -86,19 +82,13 @@ class TestFailures:
             Execution.run(
                 INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
             )
-        spies = setup[1]
-        spies["cleanup"].assert_called_once()
 
     @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
     def test_no_failure_with_ignore_error(mocker, setup):
-        # Act
+        # Act & Assert
         Execution.run(
             INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
         )
-
-        # Assert
-        spies = setup[1]
-        spies["cleanup"].assert_not_called()
 
 
 @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
