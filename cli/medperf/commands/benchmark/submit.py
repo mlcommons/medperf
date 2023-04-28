@@ -68,14 +68,8 @@ class SubmitBenchmark:
         and to extract additional information required for submission
         """
         self.ui.print("Running compatibility test")
-        data_prep = self.bmk.data_preparation_mlcube
-        model = self.bmk.reference_model_mlcube
-        evaluator = self.bmk.data_evaluator_mlcube
-        demo_url = self.bmk.demo_dataset_tarball_url
-        demo_hash = self.bmk.demo_dataset_tarball_hash
-        benchmark = Benchmark.tmp(data_prep, model, evaluator, demo_url, demo_hash)
         data_uid, results = CompatibilityTestExecution.run(
-            benchmark=benchmark.generated_uid, no_cache=self.no_cache
+            benchmark=self.bmk.generated_uid, no_cache=self.no_cache
         )
 
         return data_uid, results
