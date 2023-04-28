@@ -45,11 +45,11 @@ class Execution:
         preds_path = os.path.join(
             config.predictions_storage, str(model_uid), str(data_hash)
         )
-        config.extra_cleanup_paths.append(preds_path)
 
         self.partial = False
         self.out_path = generate_tmp_path()
         self.preds_path = storage_path(preds_path)
+        config.extra_cleanup_paths.append(self.preds_path)
 
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"
