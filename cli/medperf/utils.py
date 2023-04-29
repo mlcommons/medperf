@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 import os
-import sys
 import yaml
 import random
 import hashlib
@@ -43,7 +42,7 @@ def setup_logging(log_lvl):
         r"""(["']?(password|pwd|token)["']?[:=] ?)["'][^\n\[\]{}"']*["']"""
     )
 
-    redacting_filter = RedactingFilter(patterns=[sensitive_pattern,])
+    redacting_filter = RedactingFilter(patterns=[sensitive_pattern])
     requests_logger = logging.getLogger("requests")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(log_lvl)
@@ -152,8 +151,7 @@ def get_file_sha1(path: str) -> str:
 
 
 def init_storage():
-    """Builds the general medperf folder structure.
-    """
+    """Builds the general medperf folder structure."""
     logging.info("Initializing storage")
     parent = config.storage
     data = storage_path(config.data_storage)
@@ -176,8 +174,7 @@ def init_storage():
 
 
 def init_config():
-    """builds the initial configuration file
-    """
+    """builds the initial configuration file"""
     os.makedirs(config.storage, exist_ok=True)
     config_file = base_storage_path(config.config_path)
     if os.path.exists(config_file):
@@ -242,13 +239,11 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, clean: bool = True):
-    """Prints an error message with typer protocol and exits the script
+def pretty_error(msg: str):
+    """Prints an error message with typer protocol
 
     Args:
         msg (str): Error message to show to the user
-        clean (bool, optional):
-            Run the cleanup process before exiting. Defaults to True.
     """
     ui = config.ui
     logging.warning(
@@ -257,9 +252,6 @@ def pretty_error(msg: str, clean: bool = True):
     if msg[-1] != ".":
         msg = msg + "."
     ui.print_error(msg)
-    if clean:
-        cleanup()
-    sys.exit(1)
 
 
 def generate_tmp_uid() -> str:

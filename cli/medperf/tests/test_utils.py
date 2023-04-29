@@ -198,8 +198,6 @@ def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
 def test_pretty_error_displays_message(mocker, ui, msg):
     # Arrange
     spy = mocker.patch.object(ui, "print_error")
-    mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error(msg)
@@ -207,36 +205,6 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     # Assert
     printed_msg = spy.call_args_list[0][0][0]
     assert msg in printed_msg
-
-
-@pytest.mark.parametrize("clean", [True, False])
-def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
-    # Arrange
-    spy = mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch("typer.echo")
-    mocker.patch(patch_utils.format("sys.exit"))
-
-    # Act
-    utils.pretty_error("test", clean)
-
-    # Assert
-    if clean:
-        spy.assert_called_once()
-    else:
-        spy.assert_not_called()
-
-
-def test_pretty_error_exits_program(mocker, ui):
-    # Arrange
-    mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch("typer.echo")
-    spy = mocker.patch(patch_utils.format("sys.exit"))
-
-    # Act
-    utils.pretty_error("test")
-
-    # Assert
-    spy.assert_called_once()
 
 
 @pytest.mark.parametrize("is_valid", [True, False])
