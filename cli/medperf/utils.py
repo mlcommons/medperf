@@ -191,39 +191,66 @@ def init_config():
 
 
 def set_unique_tmp_config():
-    """Set current process' temporary unique names
+    """Set current process' temporary unique storage
     Enables simultaneous execution without cleanup collision
     """
     pid = str(os.getpid())
     config.tmp_storage += pid
 
 
+def cleanup_tmp_storage():
+    tmp_storage = storage_path(config.tmp_storage)
+    for path in os.listdir(tmp_storage):
+        path = os.path.join(tmp_storage, path)
+        try:
+            cleanup_path(path)
+        except OSError as e:
+            logging.error(
+                f"Cleanup failed: Could not remove {path} from tmp storage: {str(e)}"
+            )
+    if os.listdir(tmp_storage):
+        msg = f'Failed to completely remove "{tmp_storage}".'
+        msg += " Consider removing this folder manually to avoid unnecessary storage."
+        config.ui.print_warning(msg)
+    else:
+        os.remove(tmp_storage)
+
+
+def handle_cleanup_failure(path):
+    try:
+        os.rename(path, generate_tmp_path())
+    except OSError as e:
+        logging.error(
+            f"Cleanup handler failed: Could not move {path} to tmp storage: {str(e)}"
+        )
+        msg = f'Failed to cleanup path: "{path}".'
+        msg += " Remove these files manually BEFORE running another command"
+        config.ui.print_warning(msg)
+
+
 def cleanup_path(path):
     if os.path.exists(path):
         logging.info(f"Removing clutter path: {path}")
-        try:
-            if os.path.islink(path):
-                os.unlink(path)
-            elif os.path.isfile(path):
-                os.remove(path)
-            else:
-                rmtree(path)
-        except OSError as e:
-            logging.error(f"Cleanup failed: Could not remove {path}")
-            raise MedperfException(str(e))
+        if os.path.islink(path):
+            os.unlink(path)
+        elif os.path.isfile(path):
+            os.remove(path)
+        else:
+            rmtree(path)
 
 
-def cleanup(extra_paths: List[str] = []):
-    """Removes clutter and unused files from the medperf folder structure.
-    """
+def cleanup():
+    """Removes clutter and unused files from the medperf folder structure."""
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
-    tmp_path = storage_path(config.tmp_storage)
-    extra_paths.append(tmp_path)
-    extra_paths += config.extra_cleanup_paths
-    for path in extra_paths:
-        cleanup_path(path)
+    for path in config.cleanup_paths:
+        try:
+            cleanup_path(path)
+        except OSError as e:
+            logging.error(f"Cleanup failed: Could not remove {path}: {str(e)}")
+            handle_cleanup_failure(path)
+    cleanup_tmp_storage()
 
 
 def get_uids(path: str) -> List[str]:
