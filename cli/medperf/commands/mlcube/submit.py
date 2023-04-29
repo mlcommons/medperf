@@ -29,10 +29,10 @@ class SubmitCube:
         self.comms = config.comms
         self.ui = config.ui
         self.submit_info = submit_info
+        self.cube = Cube(**self.submit_info)
+        config.cleanup_paths.append(self.cube.path)
 
     def download(self):
-        self.cube = Cube(**self.submit_info)
-        config.extra_cleanup_paths.append(self.cube.path)
         self.cube.download()
         if not self.cube.valid():
             raise InvalidEntityError("MLCube hash check failed. Submission aborted.")

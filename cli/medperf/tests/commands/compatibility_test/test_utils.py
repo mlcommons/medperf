@@ -15,7 +15,7 @@ class TestPrepareCube:
     @pytest.fixture(autouse=True)
     def setup(self, fs):
         init_storage()
-        cube_path = "path/to/cube"
+        cube_path = "/path/to/cube"
         cube_path_config = os.path.join(cube_path, config.cube_filename)
         fs.create_file(cube_path_config, contents="cube mlcube.yaml contents")
 
@@ -46,10 +46,14 @@ class TestPrepareCube:
 
         # Assert
         metadata_file = os.path.join(
-            storage_path(config.cubes_storage), new_uid, config.cube_metadata_filename,
+            storage_path(config.cubes_storage),
+            new_uid,
+            config.cube_metadata_filename,
         )
         hashes_file = os.path.join(
-            storage_path(config.cubes_storage), new_uid, config.cube_hashes_filename,
+            storage_path(config.cubes_storage),
+            new_uid,
+            config.cube_hashes_filename,
         )
 
         assert os.path.exists(metadata_file)
@@ -71,10 +75,14 @@ class TestPrepareCube:
 
         # Assert
         metadata_file = os.path.join(
-            storage_path(config.cubes_storage), new_uid, config.cube_metadata_filename,
+            storage_path(config.cubes_storage),
+            new_uid,
+            config.cube_metadata_filename,
         )
         hashes_file = os.path.join(
-            storage_path(config.cubes_storage), new_uid, config.cube_hashes_filename,
+            storage_path(config.cubes_storage),
+            new_uid,
+            config.cube_hashes_filename,
         )
         assert open(metadata_file).read() == metadata_contents
         assert open(hashes_file).read() == hashes_contents
@@ -83,6 +91,23 @@ class TestPrepareCube:
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
             utils.prepare_cube("path/that/doesn't/exist")
+
+    def test_cleanup_is_set_up_correctly(self):
+        # Act
+        uid = utils.prepare_cube(self.cube_path)
+        symlinked_path = storage_path(os.path.join(config.cubes_storage, uid))
+        metadata_file = os.path.join(
+            self.cube_path,
+            config.cube_metadata_filename,
+        )
+        hashes_file = os.path.join(
+            self.cube_path,
+            config.cube_hashes_filename,
+        )
+        # Assert
+        assert set([symlinked_path, metadata_file, hashes_file]).issubset(
+            config.cleanup_paths
+        )
 
 
 def test_download_demo_dataset_fails_for_invalid_hash(mocker):

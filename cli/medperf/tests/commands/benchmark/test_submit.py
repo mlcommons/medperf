@@ -3,6 +3,7 @@ import pytest
 
 from medperf.entities.result import Result
 from medperf.commands.benchmark.submit import SubmitBenchmark
+from medperf import config
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
 NAME_MAX_LEN = 20
@@ -26,6 +27,14 @@ def result(mocker):
     # mocker.patch.object(result_obj, "todict", return_value={})
     result_obj.results = {}
     return result_obj
+
+
+def test_submit_prepares_tmp_path_for_cleanup():
+    # Act
+    submission = SubmitBenchmark(BENCHMARK_INFO)
+
+    # Assert
+    assert submission.bmk.path in config.cleanup_paths
 
 
 def test_submit_uploads_benchmark_data(mocker, result, comms, ui):

@@ -43,6 +43,7 @@ class SubmitBenchmark:
         self.ui = config.ui
         self.bmk = Benchmark(**benchmark_info)
         self.no_cache = no_cache
+        config.cleanup_paths.append(self.bmk.path)
 
     def get_extra_information(self):
         """Retrieves information that must be populated automatically,
@@ -69,7 +70,6 @@ class SubmitBenchmark:
         """
         self.ui.print("Running compatibility test")
         self.bmk.write()
-        config.extra_cleanup_paths.append(self.bmk.path)
         data_uid, results = CompatibilityTestExecution.run(
             benchmark=self.bmk.generated_uid, no_cache=self.no_cache
         )

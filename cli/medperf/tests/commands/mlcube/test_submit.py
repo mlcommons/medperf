@@ -19,6 +19,17 @@ def cube(mocker):
     return TestCube()
 
 
+def test_submit_prepares_tmp_path_for_cleanup():
+    # Arrange
+    cube = TestCube(id=None)
+
+    # Act
+    submission = SubmitCube(cube.todict())
+
+    # Assert
+    assert submission.cube.path in config.cleanup_paths
+
+
 def test_run_runs_expected_flow(mocker, comms, ui, cube):
     # Arrange
     mock_body = cube.todict()
