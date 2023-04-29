@@ -1,4 +1,4 @@
-from medperf.exceptions import CleanExit, InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError
 import pytest
 
 from medperf.tests.mocks.dataset import TestDataset
@@ -131,11 +131,7 @@ class TestWithApproval:
         mocker.patch("os.rename")
 
         # Act
-        if approved:
-            DatasetRegistration.run("hash1")
-        else:
-            with pytest.raises(CleanExit):
-                DatasetRegistration.run("hash1")
+        DatasetRegistration.run("hash1")
 
         # Assert
         if approved:
@@ -172,11 +168,7 @@ class TestWithApproval:
         mocker.patch("os.rename")
 
         # Act
-        if approved:
-            DatasetRegistration.run("hash1")
-        else:
-            with pytest.raises(CleanExit):
-                DatasetRegistration.run("hash1")
+        DatasetRegistration.run("hash1")
 
         # Assert
         if approved:
