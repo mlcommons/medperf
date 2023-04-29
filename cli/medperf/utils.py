@@ -199,6 +199,7 @@ def set_unique_tmp_config():
 
 
 def cleanup_tmp_storage():
+    """Cleans up the temporary storage folder."""
     tmp_storage = storage_path(config.tmp_storage)
     for path in os.listdir(tmp_storage):
         path = os.path.join(tmp_storage, path)
@@ -217,6 +218,8 @@ def cleanup_tmp_storage():
 
 
 def handle_cleanup_failure(path):
+    """Moves a folder/file to tmp storage. This function is used
+    when the MedPerf fails to remove a certain path."""
     try:
         os.rename(path, generate_tmp_path())
     except OSError as e:
@@ -229,6 +232,8 @@ def handle_cleanup_failure(path):
 
 
 def cleanup_path(path):
+    """Removes a path whether it is a file or a folder. If the
+    path is a symlink, it only gets unlinked."""
     if os.path.exists(path):
         logging.info(f"Removing clutter path: {path}")
         if os.path.islink(path):
