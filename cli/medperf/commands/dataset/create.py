@@ -11,7 +11,7 @@ from medperf.utils import (
     generate_tmp_path,
     get_folder_sha1,
     init_storage,
-    storage_path
+    storage_path,
 )
 from medperf.exceptions import InvalidArgumentError
 import yaml
@@ -30,7 +30,6 @@ class DataPreparation:
         description: str = None,
         location: str = None,
     ):
-
         preparation = cls(
             benchmark_uid,
             prep_cube_uid,
@@ -45,10 +44,10 @@ class DataPreparation:
         with preparation.ui.interactive():
             preparation.get_prep_cube()
             preparation.run_cube_tasks()
+        preparation.get_statistics()
         preparation.generate_uids()
         preparation.to_permanent_path()
         preparation.write()
-        preparation.remove_temp_stats()
         return preparation.generated_uid
 
     def __init__(
@@ -67,6 +66,7 @@ class DataPreparation:
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         out_path = generate_tmp_path()
+        self.out_statistics_path = generate_tmp_path()
         self.out_path = out_path
         self.name = name
         self.description = description
@@ -113,7 +113,6 @@ class DataPreparation:
         labels_path = self.labels_path
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
-        out_statistics_path = os.path.join(self.out_path, config.statistics_filename)
 
         # Specify parameters for the tasks
         prepare_params = {
@@ -135,7 +134,7 @@ class DataPreparation:
 
         statistics_params = {
             "data_path": out_datapath,
-            "output_path": out_statistics_path,
+            "output_path": self.out_statistics_path,
         }
         statistics_str_params = {
             "Ptasks.statistics.parameters.input.data_path.opts": "ro"
@@ -179,9 +178,13 @@ class DataPreparation:
         )
         self.ui.print("> Statistics complete")
 
+    def get_statistics(self):
+        with open(self.out_statistics_path, "r") as f:
+            stats = yaml.safe_load(f)
+        self.generated_metadata = stats
+
     def generate_uids(self):
-        """Auto-generates dataset UIDs for both input and output paths
-        """
+        """Auto-generates dataset UIDs for both input and output paths"""
         self.in_uid = get_folder_sha1(self.data_path)
         self.generated_uid = get_folder_sha1(self.out_datapath)
 
@@ -210,22 +213,12 @@ class DataPreparation:
             "input_data_hash": self.in_uid,
             "generated_uid": self.generated_uid,
             "split_seed": 0,  # Currently this is not used
-            "generated_metadata": self.get_temp_stats(),
+            "generated_metadata": self.generated_metadata,
             "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
             "separate_labels": self.labels_specified,  # not in the server
             "for_test": self.run_test,  # not in the server (OK)
         }
-
-    def get_temp_stats(self):
-        stats_path = os.path.join(self.out_path, config.statistics_filename)
-        with open(stats_path, "r") as f:
-            stats = yaml.safe_load(f)
-        return stats
-
-    def remove_temp_stats(self):
-        stats_path = os.path.join(self.out_path, config.statistics_filename)
-        os.remove(stats_path)
 
     def write(self) -> str:
         """Writes the registration into disk
