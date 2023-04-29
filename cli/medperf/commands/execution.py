@@ -26,7 +26,9 @@ class Execution:
         with execution.ui.interactive():
             execution.run_inference()
             execution.run_evaluation()
-        return execution.todict()
+        execution_summary = execution.todict()
+        execution.store_predictions()
+        return execution_summary
 
     def __init__(
         self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
@@ -40,16 +42,9 @@ class Execution:
         self.ignore_model_errors = ignore_model_errors
 
     def prepare(self):
-        model_uid = self.model.id
-        data_hash = self.dataset.generated_uid
-        preds_path = os.path.join(
-            config.predictions_storage, str(model_uid), str(data_hash)
-        )
-
         self.partial = False
-        self.out_path = generate_tmp_path()
-        self.preds_path = storage_path(preds_path)
-        config.extra_cleanup_paths.append(self.preds_path)
+        self.preds_path = generate_tmp_path()
+        self.results_path = generate_tmp_path()
 
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"
@@ -79,14 +74,14 @@ class Execution:
         evaluate_timeout = config.evaluate_timeout
         preds_path = self.preds_path
         labels_path = self.dataset.labels_path
-        out_path = self.out_path
+        results_path = self.results_path
         self.ui.text = "Evaluating results"
         self.evaluator.run(
             task="evaluate",
             timeout=evaluate_timeout,
             predictions=preds_path,
             labels=labels_path,
-            output_path=out_path,
+            output_path=results_path,
             string_params={
                 "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
                 "Ptasks.evaluate.parameters.input.labels.opts": "ro",
@@ -95,12 +90,26 @@ class Execution:
 
     def todict(self):
         return {
-            "results": self.get_temp_results(),
+            "results": self.get_results(),
             "partial": self.partial,
         }
 
-    def get_temp_results(self):
-        with open(self.out_path, "r") as f:
+    def get_results(self):
+        with open(self.results_path, "r") as f:
             results = yaml.safe_load(f)
-        os.remove(self.out_path)
         return results
+
+    def store_predictions(self):
+        model_uid = self.model.generated_uid
+        data_hash = self.dataset.generated_uid
+        new_preds_path = os.path.join(
+            config.predictions_storage, str(model_uid), str(data_hash)
+        )
+        new_preds_path = storage_path(new_preds_path)
+        if os.path.exists(new_preds_path):
+            # TODO: when we really start caring about storing predictions
+            # for use after result creation, we should check existence by hash
+            # not by model and data UIDs.
+            return
+        os.makedirs(os.path.join(new_preds_path, os.pardir), exist_ok=True)
+        os.rename(self.preds_path, new_preds_path)
