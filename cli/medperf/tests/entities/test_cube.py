@@ -110,15 +110,6 @@ class TestGetFiles:
         # Assert
         spy.assert_has_calls(calls)
 
-    @pytest.mark.parametrize("setup", [{"remote": [FAILING_CUBE]}], indirect=True)
-    def test_get_cube_deletes_cube_if_failed(self, setup):
-        # Act
-        with pytest.raises(InvalidEntityError):
-            Cube.get(self.id)
-
-        # Assert
-        assert self.cube_path in config.extra_cleanup_paths
-
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange

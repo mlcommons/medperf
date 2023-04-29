@@ -157,7 +157,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 logging.info(f"Retrieving MLCube {cube_uid} from local storage")
                 cube = cls.__local_get(cube_uid)
 
-        config.extra_cleanup_paths.append(cube.path)
         if cube.valid():
             return cube
 
