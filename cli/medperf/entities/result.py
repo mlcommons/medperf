@@ -191,12 +191,6 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
 
     def write(self):
         result_file = os.path.join(self.path, config.results_info_file)
-        if os.path.exists(result_file):
-            write_access = os.access(result_file, os.W_OK)
-            logging.debug(f"file has write access? {write_access}")
-            if not write_access:
-                logging.debug("removing outdated and inaccessible results")
-                os.remove(result_file)
         os.makedirs(self.path, exist_ok=True)
         with open(result_file, "w") as f:
             yaml.dump(self.todict(), f)
