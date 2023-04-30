@@ -13,7 +13,7 @@ from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
-from shutil import rmtree
+import shutil
 from pexpect import spawn
 from datetime import datetime
 from typing import List
@@ -214,7 +214,7 @@ def cleanup_tmp_storage():
         msg += " Consider removing this folder manually to avoid unnecessary storage."
         config.ui.print_warning(msg)
     else:
-        rmtree(tmp_storage)
+        shutil.rmtree(tmp_storage)
 
 
 def handle_cleanup_failure(path):
@@ -246,7 +246,7 @@ def cleanup_path(path):
         elif os.path.isfile(path):
             os.remove(path)
         else:
-            rmtree(path)
+            shutil.rmtree(path)
 
 
 def cleanup():
