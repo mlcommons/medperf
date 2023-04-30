@@ -1,7 +1,6 @@
 import os
-import shutil
 
-from medperf.utils import approval_prompt, dict_pretty_print
+from medperf.utils import approval_prompt, cleanup_path, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
@@ -46,8 +45,7 @@ class DatasetRegistration:
 
             old_dset_loc = dset.path
             new_dset_loc = updated_dset.path
-            if os.path.exists(new_dset_loc):
-                shutil.rmtree(new_dset_loc)
+            cleanup_path(new_dset_loc)
             os.rename(old_dset_loc, new_dset_loc)
 
             updated_dset.write()

@@ -1,10 +1,9 @@
 import os
-import shutil
 import logging
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import get_file_sha1, generate_tmp_uid
+from medperf.utils import cleanup_path, get_file_sha1, generate_tmp_uid
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 from medperf.exceptions import InvalidEntityError
 from medperf.comms.entity_resources import resources
@@ -89,8 +88,7 @@ class SubmitBenchmark:
         old_bmk_loc = self.bmk.path
         updated_bmk = Benchmark(**bmk_dict)
         new_bmk_loc = updated_bmk.path
-        if os.path.exists(new_bmk_loc):
-            shutil.rmtree(new_bmk_loc)
+        cleanup_path(new_bmk_loc)
         os.rename(old_bmk_loc, new_bmk_loc)
 
     def write(self, updated_body):

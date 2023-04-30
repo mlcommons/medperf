@@ -1,9 +1,9 @@
 import os
-import shutil
 
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.exceptions import InvalidEntityError
+from medperf.utils import cleanup_path
 
 
 class SubmitCube:
@@ -48,8 +48,7 @@ class SubmitCube:
         old_cube_loc = self.cube.path
         updated_cube = Cube(**cube_dict)
         new_cube_loc = updated_cube.path
-        if os.path.exists(new_cube_loc):
-            shutil.rmtree(new_cube_loc)
+        cleanup_path(new_cube_loc)
         os.rename(old_cube_loc, new_cube_loc)
 
     def write(self, updated_cube_dict):

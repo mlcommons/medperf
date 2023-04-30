@@ -307,7 +307,7 @@ class TestWithDefaultUID:
     ):
         # Arrange
         rename_spy = mocker.patch("os.rename")
-        rmtree_spy = mocker.patch("shutil.rmtree")
+        cleanup_spy = mocker.patch(PATCH_DATAPREP.format("cleanup_path"))
         mocker.patch("os.path.exists", return_value=exists)
         mocker.patch("os.path.join", return_value=new_path)
         preparation.generated_uid = "hash0"
@@ -317,10 +317,7 @@ class TestWithDefaultUID:
         preparation.to_permanent_path()
 
         # Assert
-        if exists:
-            rmtree_spy.assert_called_once_with(new_path)
-        else:
-            rmtree_spy.assert_not_called()
+        cleanup_spy.assert_called_once_with(new_path)
         rename_spy.assert_called_once_with(out_path, new_path)
 
     def test_write_calls_dataset_write(self, mocker, preparation):

@@ -1,8 +1,7 @@
 import os
-import shutil
 
 from medperf.exceptions import CleanExit
-from medperf.utils import dict_pretty_print, approval_prompt, storage_path
+from medperf.utils import cleanup_path, dict_pretty_print, approval_prompt, storage_path
 from medperf.entities.result import Result
 from medperf.enums import Status
 from medperf import config
@@ -55,8 +54,7 @@ class ResultSubmission:
         result_storage = storage_path(config.results_storage)
         old_res_loc = os.path.join(result_storage, result.generated_uid)
         new_res_loc = result.path
-        if os.path.exists(new_res_loc):
-            shutil.rmtree(new_res_loc)
+        cleanup_path(new_res_loc)
         os.rename(old_res_loc, new_res_loc)
 
     def write(self, updated_result_dict):

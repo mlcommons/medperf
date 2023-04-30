@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import shutil
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 import medperf.config as config
@@ -8,6 +7,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
+    cleanup_path,
     generate_tmp_path,
     get_folder_sha1,
     init_storage,
@@ -193,8 +193,7 @@ class DataPreparation:
         the registration file
         """
         new_path = os.path.join(storage_path(config.data_storage), self.generated_uid)
-        if os.path.exists(new_path):
-            shutil.rmtree(new_path)
+        cleanup_path(new_path)
         os.rename(self.out_path, new_path)
         self.out_path = new_path
 
