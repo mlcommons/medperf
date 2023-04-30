@@ -219,16 +219,21 @@ def cleanup_tmp_storage():
 
 def handle_cleanup_failure(path):
     """Moves a folder/file to tmp storage. This function is used
-    when the MedPerf fails to remove a certain path."""
-    try:
-        os.rename(path, generate_tmp_path())
-    except OSError as e:
-        logging.error(
-            f"Cleanup handler failed: Could not move {path} to tmp storage: {str(e)}"
-        )
-        msg = f'Failed to cleanup path: "{path}".'
-        msg += " Remove these files manually BEFORE running another command"
-        config.ui.print_warning(msg)
+    when MedPerf fails to remove a certain path."""
+    if os.path.islink(path):
+        # Don't move if the path is a symlink
+        logging.error(f"Cleanup handler: {path} is a symlink")
+    else:
+        try:
+            os.rename(path, generate_tmp_path())
+            return
+        except OSError as e:
+            logging.error(
+                f"Cleanup handler failed: Could not move {path} to tmp storage: {str(e)}"
+            )
+    msg = f'Failed to cleanup path: "{path}".'
+    msg += " Remove these files manually BEFORE running another command"
+    config.ui.print_warning(msg)
 
 
 def cleanup_path(path):
