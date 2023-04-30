@@ -27,7 +27,7 @@ def test_submit_prepares_tmp_path_for_cleanup():
     submission = SubmitCube(cube.todict())
 
     # Assert
-    assert submission.cube.path in config.cleanup_paths
+    assert submission.cube.path in config.tmp_paths
 
 
 def test_run_runs_expected_flow(mocker, comms, ui, cube):

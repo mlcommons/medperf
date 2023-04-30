@@ -254,7 +254,7 @@ def cleanup():
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
-    for path in config.cleanup_paths:
+    for path in config.tmp_paths:
         try:
             cleanup_path(path)
         except OSError as e:

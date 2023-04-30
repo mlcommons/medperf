@@ -55,7 +55,7 @@ def prepare_local_cube(path):
     else:
         os.symlink(path, dst)
         logging.info(f"local cube will be linked to path: {dst}")
-    config.cleanup_paths.append(dst)
+    config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
     if not os.path.exists(cube_metadata_file):
@@ -72,7 +72,7 @@ def prepare_local_cube(path):
         metadata = Cube(**temp_metadata).todict()
         with open(cube_metadata_file, "w") as f:
             yaml.dump(metadata, f)
-        config.cleanup_paths.append(cube_metadata_file)
+        config.tmp_paths.append(cube_metadata_file)
     if not os.path.exists(cube_hashes_filename):
         hashes = {
             "mlcube_hash": "",
@@ -82,7 +82,7 @@ def prepare_local_cube(path):
         }
         with open(cube_hashes_filename, "w") as f:
             yaml.dump(hashes, f)
-        config.cleanup_paths.append(cube_hashes_filename)
+        config.tmp_paths.append(cube_hashes_filename)
 
     return temp_uid
 

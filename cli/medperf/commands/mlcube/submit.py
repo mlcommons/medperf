@@ -30,7 +30,7 @@ class SubmitCube:
         self.ui = config.ui
         self.submit_info = submit_info
         self.cube = Cube(**self.submit_info)
-        config.cleanup_paths.append(self.cube.path)
+        config.tmp_paths.append(self.cube.path)
 
     def download(self):
         self.cube.download()

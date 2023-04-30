@@ -76,4 +76,5 @@ templates = {
     "evaluator": "templates/evaluator_mlcube",
 }
 
-cleanup_paths = []
+# Temporary paths to cleanup that cannot be created in `tmp_storage`
+tmp_paths = []

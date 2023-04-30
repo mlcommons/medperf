@@ -43,7 +43,7 @@ class SubmitBenchmark:
         self.ui = config.ui
         self.bmk = Benchmark(**benchmark_info)
         self.no_cache = no_cache
-        config.cleanup_paths.append(self.bmk.path)
+        config.tmp_paths.append(self.bmk.path)
 
     def get_extra_information(self):
         """Retrieves information that must be populated automatically,

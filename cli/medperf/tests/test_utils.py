@@ -182,7 +182,7 @@ def test_cleanup_handles_failed_deletions(mocker, ui, fs):
     utils.init_storage()
     path = "/path/to/garbage.html"
     fs.create_file(path, contents="garbage")
-    config.cleanup_paths = [path]
+    config.tmp_paths = [path]
 
     def side_effect(*args, **kwargs):
         raise OSError

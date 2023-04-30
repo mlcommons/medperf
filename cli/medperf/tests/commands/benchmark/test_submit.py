@@ -34,7 +34,7 @@ def test_submit_prepares_tmp_path_for_cleanup():
     submission = SubmitBenchmark(BENCHMARK_INFO)
 
     # Assert
-    assert submission.bmk.path in config.cleanup_paths
+    assert submission.bmk.path in config.tmp_paths
 
 
 def test_submit_uploads_benchmark_data(mocker, result, comms, ui):

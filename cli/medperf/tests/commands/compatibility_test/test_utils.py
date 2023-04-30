@@ -106,7 +106,7 @@ class TestPrepareCube:
         )
         # Assert
         assert set([symlinked_path, metadata_file, hashes_file]).issubset(
-            config.cleanup_paths
+            config.tmp_paths
         )
 
 
