@@ -214,7 +214,7 @@ def cleanup_tmp_storage():
         msg += " Consider removing this folder manually to avoid unnecessary storage."
         config.ui.print_warning(msg)
     else:
-        os.remove(tmp_storage)
+        rmtree(tmp_storage)
 
 
 def handle_cleanup_failure(path):
