@@ -238,7 +238,7 @@ def test_untar_opens_specified_file(mocker, file):
     spy = mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
     mocker.patch("tarfile.TarFile.close")
-    mocker.patch("os.remove")
+    mocker.patch(patch_utils.format("cleanup_path"))
 
     # Act
     utils.untar(file)
@@ -253,7 +253,7 @@ def test_untar_extracts_to_parent_directory(mocker, file):
     parent_path = str(Path(file).parent)
     mocker.patch("tarfile.open", return_value=MockTar())
     spy = mocker.spy(MockTar, "extractall")
-    mocker.patch("os.remove")
+    mocker.patch(patch_utils.format("cleanup_path"))
 
     # Act
     utils.untar(file)
@@ -268,7 +268,7 @@ def test_untar_removes_tarfile(mocker, file):
     mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
     mocker.patch("tarfile.TarFile.close")
-    spy = mocker.patch("os.remove")
+    spy = mocker.patch(patch_utils.format("cleanup_path"))
 
     # Act
     utils.untar(file)

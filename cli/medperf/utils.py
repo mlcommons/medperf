@@ -321,12 +321,12 @@ def untar(filepath: str, remove: bool = True) -> str:
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [
-        os.remove(spurious_file)
+        cleanup_path(spurious_file)
         for spurious_file in glob(addpath + "/**/._*", recursive=True)
     ]
     if remove:
         logging.info(f"Deleting {filepath}")
-        os.remove(filepath)
+        cleanup_path(filepath)
     return addpath
 
 
