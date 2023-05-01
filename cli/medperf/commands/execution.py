@@ -77,17 +77,21 @@ class Execution:
         labels_path = self.dataset.labels_path
         results_path = self.results_path
         self.ui.text = "Evaluating results"
-        self.evaluator.run(
-            task="evaluate",
-            timeout=evaluate_timeout,
-            predictions=preds_path,
-            labels=labels_path,
-            output_path=results_path,
-            string_params={
-                "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-                "Ptasks.evaluate.parameters.input.labels.opts": "ro",
-            },
-        )
+        try:
+            self.evaluator.run(
+                task="evaluate",
+                timeout=evaluate_timeout,
+                predictions=preds_path,
+                labels=labels_path,
+                output_path=results_path,
+                string_params={
+                    "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
+                    "Ptasks.evaluate.parameters.input.labels.opts": "ro",
+                },
+            )
+        except ExecutionError as e:
+            logging.error(f"Metrics MLCube Execution failed: {e}")
+            raise ExecutionError("Metrics MLCube failed")
 
     def todict(self):
         return {
