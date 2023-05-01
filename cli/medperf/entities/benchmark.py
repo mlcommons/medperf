@@ -262,6 +262,8 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         Args:
             comms (Comms): communications entity to submit through
         """
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test benchmarks.")
         body = self.todict()
         updated_body = config.comms.upload_benchmark(body)
         updated_body["models"] = body["models"]

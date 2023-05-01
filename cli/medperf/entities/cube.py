@@ -341,6 +341,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         return meta_file
 
     def upload(self):
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test mlcubes.")
         cube_dict = self.todict()
         updated_cube_dict = config.comms.upload_mlcube(cube_dict)
         return updated_cube_dict

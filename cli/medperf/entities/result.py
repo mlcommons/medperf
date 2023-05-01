@@ -185,6 +185,8 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
         Args:
             comms (Comms): Instance of the communications interface.
         """
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test results.")
         results_info = self.todict()
         updated_results_info = config.comms.upload_result(results_info)
         return updated_results_info
