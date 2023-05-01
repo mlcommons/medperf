@@ -154,6 +154,7 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Arrange
     mocker.patch("os.getpid", return_value=pid)
     tmp_storage = utils.config.tmp_storage
+    trash_folder = utils.config.trash_folder
     pid = str(pid)
 
     # Act
@@ -161,9 +162,11 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
 
     # Assert
     assert utils.config.tmp_storage.endswith(pid)
+    assert utils.config.trash_folder.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
+    utils.config.trash_folder = trash_folder
 
 
 def test_cleanup_removes_files(mocker, ui, fs):
@@ -179,6 +182,26 @@ def test_cleanup_removes_files(mocker, ui, fs):
     # Assert
     assert not os.path.exists(path)
     assert not os.path.exists(utils.storage_path(config.tmp_storage))
+
+
+def test_cleanup_moves_files_to_trash_on_failure(mocker, ui, fs):
+    # Arrange
+    utils.init_storage()
+
+    def side_effect(*args, **kwargs):
+        raise PermissionError
+
+    mocker.patch("shutil.rmtree", side_effect=side_effect)
+    trash_folder = utils.base_storage_path(config.trash_folder)
+
+    # Act
+    utils.cleanup()
+
+    # Assert
+    assert not os.path.exists(utils.storage_path(config.tmp_storage))
+    trash_id = os.listdir(trash_folder)[0]
+    exp_path = os.path.join(trash_folder, trash_id, config.tmp_storage)
+    assert os.path.exists(exp_path)
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
