@@ -183,7 +183,7 @@ echo "Submit benchmark"
 echo "====================================="
 medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID
 checkFailed "Benchmark submission failed"
-BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+BMK_UID=$(medperf benchmark ls | grep testbmk | tr -s ' ' | cut -d ' ' -f 2)
 
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
@@ -207,7 +207,7 @@ echo "Running data preparation step"
 echo "====================================="
 medperf dataset create -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a"
 checkFailed "Data preparation step failed"
-DSET_A_GENUID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_A_GENUID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -218,7 +218,7 @@ echo "Running data submission step"
 echo "====================================="
 medperf dataset submit -d $DSET_A_GENUID -y
 checkFailed "Data submission step failed"
-DSET_A_UID=$(medperf dataset ls | tail -n 2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
