@@ -3,7 +3,7 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.utils import generate_tmp_path, storage_path
+from medperf.utils import cleanup_path, generate_tmp_path, storage_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
@@ -12,7 +12,7 @@ import yaml
 class Execution:
     @classmethod
     def run(
-        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
+        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
         """Benchmark execution flow.
 
@@ -21,7 +21,7 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(dataset, model, evaluator, ignore_model_errors,)
+        execution = cls(dataset, model, evaluator, ignore_model_errors)
         execution.prepare()
         with execution.ui.interactive():
             execution.run_inference()
@@ -31,9 +31,8 @@ class Execution:
         return execution_summary
 
     def __init__(
-        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
+        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
-
         self.comms = config.comms
         self.ui = config.ui
         self.dataset = dataset
@@ -106,10 +105,9 @@ class Execution:
             config.predictions_storage, str(model_uid), str(data_hash)
         )
         new_preds_path = storage_path(new_preds_path)
-        if os.path.exists(new_preds_path):
-            # TODO: when we really start caring about storing predictions
-            # for use after result creation, we should check existence by hash
-            # not by model and data UIDs.
-            return
-        os.makedirs(os.path.join(new_preds_path, os.pardir), exist_ok=True)
+        cleanup_path(new_preds_path)
+        # NOTE: currently prediction are overwritten if found.
+        # when we start caring about storing predictions for use after
+        # result creation, we should change this
+        os.makedirs(new_preds_path)
         os.rename(self.preds_path, new_preds_path)
