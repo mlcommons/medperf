@@ -24,6 +24,7 @@ benchmarks_filename = "benchmark.yaml"
 config_path = "config.yaml"
 workspace_path = "workspace"
 test_storage = "tests"
+trash_folder = ".trash"
 cleanup = True
 
 test_report_file = "test_report.yaml"

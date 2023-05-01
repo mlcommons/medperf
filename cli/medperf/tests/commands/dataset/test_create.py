@@ -304,7 +304,7 @@ class TestWithDefaultUID:
     ):
         # Arrange
         rename_spy = mocker.patch("os.rename")
-        cleanup_spy = mocker.patch(PATCH_DATAPREP.format("cleanup_path"))
+        cleanup_spy = mocker.patch(PATCH_DATAPREP.format("remove_path"))
         mocker.patch("os.path.exists", return_value=exists)
         mocker.patch("os.path.join", return_value=new_path)
         preparation.generated_uid = "hash0"

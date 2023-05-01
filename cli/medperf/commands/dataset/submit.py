@@ -1,6 +1,6 @@
 import os
 
-from medperf.utils import approval_prompt, cleanup_path, dict_pretty_print
+from medperf.utils import approval_prompt, remove_path, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
@@ -45,7 +45,7 @@ class DatasetRegistration:
 
             old_dset_loc = dset.path
             new_dset_loc = updated_dset.path
-            cleanup_path(new_dset_loc)
+            remove_path(new_dset_loc)
             os.rename(old_dset_loc, new_dset_loc)
 
             updated_dset.write()

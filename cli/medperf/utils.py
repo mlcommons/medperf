@@ -196,34 +196,40 @@ def set_unique_tmp_config():
     """
     pid = str(os.getpid())
     config.tmp_storage += pid
+    config.trash_folder = os.path.join(config.trash_folder, pid)
 
 
-def delete_tmp_storage():
-    """Deletes the temporary storage folder."""
-    tmp_storage = storage_path(config.tmp_storage)
+def remove_path(path):
+    """Cleans up a clutter object. In case of failure, it is moved to `.trash`"""
+
+    # NOTE: We assume medperf will always have permissions to unlink
+    # and rename clutter paths, since for now they are expected to live
+    # in folders owned by medperf
+
+    if not os.path.exists(path):
+        return
+    logging.info(f"Removing clutter path: {path}")
+
+    # Don't delete symlinks
+    if os.path.islink(path):
+        os.unlink(path)
+        return
+
     try:
-        shutil.rmtree(tmp_storage)
-    except OSError as e:
-        logging.error(f"Could not remove tmp storage: {str(e)}")
-        msg = f'Failed to completely remove "{tmp_storage}".'
-        msg += " Consider removing this folder manually to avoid unnecessary storage."
-        config.ui.print_warning(msg)
-
-
-def cleanup_path(path):
-    """Moves a clutter object to config.tmp_storage. If the
-    object is a symlink, it only gets unlinked."""
-
-    # We assume unlinking and renaming won't fail since for now
-    # objects to cleanup live in folders owned by medperf
-    if os.path.exists(path):
-        logging.info(f"Removing clutter path: {path}")
-        if os.path.islink(path):
-            os.unlink(path)
+        if os.path.isfile(path):
+            os.remove(path)
         else:
-            tmp_path = generate_tmp_path()
-            logging.debug(f"Clutter path {path}: {tmp_path}")
-            os.rename(path, tmp_path)
+            shutil.rmtree(path)
+    except OSError as e:
+        logging.error(f"Could not remove {path}: {str(e)}")
+        move_to_trash(path)
+
+
+def move_to_trash(path):
+    trash_folder = base_storage_path(config.trash_folder)
+    unique_path = os.path.join(trash_folder, generate_tmp_uid())
+    os.makedirs(unique_path)
+    shutil.move(path, unique_path)
 
 
 def cleanup():
@@ -231,9 +237,16 @@ def cleanup():
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
-    for path in config.tmp_paths:
-        cleanup_path(path)
-    delete_tmp_storage()
+
+    tmp_storage = storage_path(config.tmp_storage)
+    for path in config.tmp_paths + [tmp_storage]:
+        remove_path(path)
+
+    trash_folder = base_storage_path(config.trash_folder)
+    if os.path.exists(trash_folder):
+        msg = "Failed to premanently cleanup some files. Consider deleting"
+        msg += f" '{trash_folder}' manually to avoid unnecessary storage."
+        config.ui.print_warning(msg)
 
 
 def get_uids(path: str) -> List[str]:
@@ -323,12 +336,12 @@ def untar(filepath: str, remove: bool = True) -> str:
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [
-        cleanup_path(spurious_file)
+        remove_path(spurious_file)
         for spurious_file in glob(addpath + "/**/._*", recursive=True)
     ]
     if remove:
         logging.info(f"Deleting {filepath}")
-        cleanup_path(filepath)
+        remove_path(filepath)
     return addpath
 
 

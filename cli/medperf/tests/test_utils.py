@@ -166,17 +166,6 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     utils.config.tmp_storage = tmp_storage
 
 
-def test_cleanup_removes_temporary_storage(mocker):
-    # Arrange
-    spy = mocker.patch(patch_utils.format("delete_tmp_storage"))
-
-    # Act
-    utils.cleanup()
-
-    # Assert
-    spy.assert_called_once()
-
-
 def test_cleanup_removes_files(mocker, ui, fs):
     # Arrange
     utils.init_storage()
@@ -189,6 +178,7 @@ def test_cleanup_removes_files(mocker, ui, fs):
 
     # Assert
     assert not os.path.exists(path)
+    assert not os.path.exists(utils.storage_path(config.tmp_storage))
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
@@ -238,7 +228,7 @@ def test_untar_opens_specified_file(mocker, file):
     spy = mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
     mocker.patch("tarfile.TarFile.close")
-    mocker.patch(patch_utils.format("cleanup_path"))
+    mocker.patch(patch_utils.format("remove_path"))
 
     # Act
     utils.untar(file)
@@ -253,7 +243,7 @@ def test_untar_extracts_to_parent_directory(mocker, file):
     parent_path = str(Path(file).parent)
     mocker.patch("tarfile.open", return_value=MockTar())
     spy = mocker.spy(MockTar, "extractall")
-    mocker.patch(patch_utils.format("cleanup_path"))
+    mocker.patch(patch_utils.format("remove_path"))
 
     # Act
     utils.untar(file)
@@ -268,7 +258,7 @@ def test_untar_removes_tarfile(mocker, file):
     mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
     mocker.patch("tarfile.TarFile.close")
-    spy = mocker.patch(patch_utils.format("cleanup_path"))
+    spy = mocker.patch(patch_utils.format("remove_path"))
 
     # Act
     utils.untar(file)

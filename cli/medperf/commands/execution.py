@@ -3,7 +3,7 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.utils import cleanup_path, generate_tmp_path, storage_path
+from medperf.utils import remove_path, generate_tmp_path, storage_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
@@ -111,7 +111,7 @@ class Execution:
             config.predictions_storage, str(model_uid), str(data_hash)
         )
         new_preds_path = storage_path(new_preds_path)
-        cleanup_path(new_preds_path)
+        remove_path(new_preds_path)
         # NOTE: currently prediction are overwritten if found.
         # when we start caring about storing predictions for use after
         # result creation, we should change this

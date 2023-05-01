@@ -8,7 +8,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     check_cube_validity,
-    cleanup_path,
+    remove_path,
     generate_tmp_path,
     get_folder_sha1,
     storage_path,
@@ -194,7 +194,7 @@ class DataPreparation:
         the registration file
         """
         new_path = os.path.join(storage_path(config.data_storage), self.generated_uid)
-        cleanup_path(new_path)
+        remove_path(new_path)
         os.rename(self.out_path, new_path)
         self.out_path = new_path
 
