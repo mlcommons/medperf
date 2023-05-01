@@ -168,7 +168,7 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
 
 def test_cleanup_removes_temporary_storage(mocker):
     # Arrange
-    spy = mocker.patch(patch_utils.format("cleanup_tmp_storage"))
+    spy = mocker.patch(patch_utils.format("delete_tmp_storage"))
 
     # Act
     utils.cleanup()
@@ -177,26 +177,18 @@ def test_cleanup_removes_temporary_storage(mocker):
     spy.assert_called_once()
 
 
-def test_cleanup_handles_failed_deletions(mocker, ui, fs):
+def test_cleanup_removes_files(mocker, ui, fs):
     # Arrange
     utils.init_storage()
     path = "/path/to/garbage.html"
     fs.create_file(path, contents="garbage")
     config.tmp_paths = [path]
 
-    def side_effect(*args, **kwargs):
-        raise OSError
-
-    mocker.patch(patch_utils.format("os.remove"), side_effect=side_effect)
-    tmp_storage = utils.storage_path(config.tmp_storage)
-
     # Act
     utils.cleanup()
 
     # Assert
-    expected_tmp_file = os.listdir(tmp_storage)[0]
-    expected_tmp_file = os.path.join(tmp_storage, expected_tmp_file)
-    assert open(expected_tmp_file).read() == "garbage"
+    assert not os.path.exists(path)
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
