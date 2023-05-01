@@ -183,7 +183,7 @@ echo "Submit benchmark"
 echo "====================================="
 medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID
 checkFailed "Benchmark submission failed"
-BMK_UID=$(medperf benchmark ls | grep testbmk | tr -s ' ' | cut -d ' ' -f 2)
+BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
