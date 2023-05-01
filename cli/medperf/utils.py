@@ -221,7 +221,9 @@ def cleanup_path(path):
         if os.path.islink(path):
             os.unlink(path)
         else:
-            os.rename(path, generate_tmp_path())
+            tmp_path = generate_tmp_path()
+            logging.debug(f"Clutter path {path}: {tmp_path}")
+            os.rename(path, tmp_path)
 
 
 def cleanup():

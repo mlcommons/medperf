@@ -44,6 +44,8 @@ class Execution:
         self.partial = False
         self.preds_path = generate_tmp_path()
         self.results_path = generate_tmp_path()
+        logging.debug(f"tmp predictions output: {self.preds_path}")
+        logging.debug(f"tmp results output: {self.results_path}")
 
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"

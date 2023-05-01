@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 from medperf.entities.dataset import Dataset
@@ -10,7 +11,6 @@ from medperf.utils import (
     cleanup_path,
     generate_tmp_path,
     get_folder_sha1,
-    init_storage,
     storage_path,
 )
 from medperf.exceptions import InvalidArgumentError
@@ -79,7 +79,8 @@ class DataPreparation:
         self.prep_cube_uid = prep_cube_uid
         self.in_uid = None
         self.generated_uid = None
-        init_storage()
+        logging.debug(f"tmp data preparation output: {out_path}")
+        logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
 
     def validate(self):
         if not os.path.exists(self.data_path):
