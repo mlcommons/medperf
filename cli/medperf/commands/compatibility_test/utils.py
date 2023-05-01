@@ -48,13 +48,8 @@ def prepare_local_cube(path):
     temp_uid = get_folder_sha1(path)
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
-    if os.path.exists(dst):
-        logging.warning(
-            f"The mlcube symlink already exists: {dst}. Skipping creation of a new symlink"
-        )
-    else:
-        os.symlink(path, dst)
-        logging.info(f"local cube will be linked to path: {dst}")
+    os.symlink(path, dst)
+    logging.info(f"local cube will be linked to path: {dst}")
     config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
