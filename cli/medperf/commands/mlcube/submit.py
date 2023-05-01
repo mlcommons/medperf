@@ -28,8 +28,7 @@ class SubmitCube:
     def __init__(self, submit_info: dict):
         self.comms = config.comms
         self.ui = config.ui
-        self.submit_info = submit_info
-        self.cube = Cube(**self.submit_info)
+        self.cube = Cube(**submit_info)
         config.tmp_paths.append(self.cube.path)
 
     def download(self):
