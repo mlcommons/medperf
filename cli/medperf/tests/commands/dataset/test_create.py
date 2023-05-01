@@ -26,7 +26,6 @@ LOCATION = "location"
 @pytest.fixture
 def preparation(mocker, comms, ui):
     mocker.patch("os.path.abspath", side_effect=lambda x: x)
-    mocker.patch(PATCH_DATAPREP.format("init_storage"))
     mocker.patch(
         PATCH_DATAPREP.format("generate_tmp_path"),
         side_effect=[OUT_PATH, STATISTICS_PATH],
@@ -231,9 +230,7 @@ class TestWithDefaultUID:
 
     @pytest.mark.parametrize("benchmark_uid", [None, 1])
     @pytest.mark.parametrize("cube_uid", [None, 1])
-    def test_fails_if_invalid_params(
-        self, mocker, benchmark_uid, cube_uid, comms, ui
-    ):
+    def test_fails_if_invalid_params(self, mocker, benchmark_uid, cube_uid, comms, ui):
         # Arrange
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
