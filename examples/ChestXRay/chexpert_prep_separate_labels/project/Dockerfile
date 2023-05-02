@@ -28,4 +28,4 @@ COPY . /project
 
 WORKDIR /project
 
-ENTRYPOINT ["python3", "mlcube.py"]
+ENTRYPOINT ["python3", "/project/mlcube.py"]
