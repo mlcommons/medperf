@@ -28,7 +28,7 @@ from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfExcept
 def setup_logging(log_lvl):
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     log_file = storage_path(config.log_file)
-    handler = handlers.RotatingFileHandler(log_file, maxBytes=10000000, backupCount=5)
+    handler = handlers.RotatingFileHandler(log_file, backupCount=20)
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
         level=log_lvl,
@@ -48,6 +48,9 @@ def setup_logging(log_lvl):
     requests_logger.setLevel(log_lvl)
     logger = logging.getLogger()
     logger.addFilter(redacting_filter)
+
+    # Force the creation of a new log file for each execution
+    handler.doRollover()
 
 
 def delete_credentials():
