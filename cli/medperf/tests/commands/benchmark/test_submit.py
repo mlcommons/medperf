@@ -3,6 +3,7 @@ import pytest
 
 from medperf.entities.result import Result
 from medperf.commands.benchmark.submit import SubmitBenchmark
+from medperf import config
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
 NAME_MAX_LEN = 20
@@ -26,6 +27,14 @@ def result(mocker):
     # mocker.patch.object(result_obj, "todict", return_value={})
     result_obj.results = {}
     return result_obj
+
+
+def test_submit_prepares_tmp_path_for_cleanup():
+    # Act
+    submission = SubmitBenchmark(BENCHMARK_INFO)
+
+    # Assert
+    assert submission.bmk.path in config.tmp_paths
 
 
 def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
@@ -75,9 +84,7 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
     # Arrange
     bmk = TestBenchmark()
     submission = SubmitBenchmark(BENCHMARK_INFO)
-    tmp_bmk_spy = mocker.patch(
-        PATCH_BENCHMARK.format("Benchmark.tmp"), return_value=bmk
-    )
+    submission.bmk = bmk
     comp_spy = mocker.patch(
         PATCH_BENCHMARK.format("CompatibilityTestExecution.run"),
         return_value=("data_uid", {}),
@@ -87,7 +94,6 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
     submission.run_compatibility_test()
 
     # Assert
-    tmp_bmk_spy.assert_called_once()
     comp_spy.assert_called_once_with(benchmark=bmk.generated_uid, no_cache=True)
 
 

@@ -8,7 +8,6 @@ PATCH_LOGIN = "medperf.commands.auth.login.{}"
 @pytest.fixture(params=["token123"])
 def comms(mocker, request, comms):
     mocker.patch.object(comms, "login")
-    mocker.patch("os.remove")
     mocker.patch("os.chmod")
     comms.token = request.param
     return comms
