@@ -1,7 +1,7 @@
 import requests
 from medperf.exceptions import CommunicationRetrievalError
 from medperf import config
-from medperf.utils import log_response_error
+from medperf.utils import remove_path, log_response_error
 from .source import BaseSource
 import validators
 import os
@@ -65,7 +65,7 @@ class DirectLinkSource(BaseSource):
                 return
             except CommunicationRetrievalError:
                 if os.path.exists(output_path):
-                    os.remove(output_path)
+                    remove_path(output_path)
                 attempt += 1
 
         raise CommunicationRetrievalError(f"Could not download {resource_identifier}")

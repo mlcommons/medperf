@@ -2,7 +2,6 @@ import typer
 from typing import Optional
 
 import medperf.config as config
-from medperf.utils import cleanup
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
@@ -113,7 +112,6 @@ def submit(
         "additional_files_tarball_hash": additional_hash,
     }
     SubmitCube.run(mlcube_info)
-    cleanup()
     config.ui.print("✅ Done!")
 
 
