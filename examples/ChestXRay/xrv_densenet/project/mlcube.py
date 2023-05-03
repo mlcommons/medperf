@@ -1,6 +1,6 @@
 import os
 import typer
-from model import XRVInference
+from model_def import XRVInference
 
 app = typer.Typer()
 
