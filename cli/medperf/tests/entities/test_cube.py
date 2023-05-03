@@ -188,7 +188,7 @@ class TestRun:
         )
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f"--platform={self.platform} --gpus={self.gpus}"
+            + f"--platform={self.platform}"
         )
 
         # Act
@@ -204,7 +204,7 @@ class TestRun:
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f'--platform={self.platform} --gpus={self.gpus} test="test"'
+            + f'--platform={self.platform} test="test"'
         )
 
         # Act
