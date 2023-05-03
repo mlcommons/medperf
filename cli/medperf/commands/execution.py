@@ -3,11 +3,7 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.utils import (
-    generate_tmp_path,
-    storage_path,
-    cleanup_path,
-)
+from medperf.utils import remove_path, generate_tmp_path, storage_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
@@ -16,7 +12,7 @@ import yaml
 class Execution:
     @classmethod
     def run(
-        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
+        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
         """Benchmark execution flow.
 
@@ -25,17 +21,18 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(dataset, model, evaluator, ignore_model_errors,)
+        execution = cls(dataset, model, evaluator, ignore_model_errors)
         execution.prepare()
         with execution.ui.interactive():
             execution.run_inference()
             execution.run_evaluation()
-        return execution.todict()
+        execution_summary = execution.todict()
+        execution.store_predictions()
+        return execution_summary
 
     def __init__(
-        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False,
+        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
-
         self.comms = config.comms
         self.ui = config.ui
         self.dataset = dataset
@@ -44,15 +41,11 @@ class Execution:
         self.ignore_model_errors = ignore_model_errors
 
     def prepare(self):
-        model_uid = self.model.id
-        data_hash = self.dataset.generated_uid
-        preds_path = os.path.join(
-            config.predictions_storage, str(model_uid), str(data_hash)
-        )
-
         self.partial = False
-        self.out_path = generate_tmp_path()
-        self.preds_path = storage_path(preds_path)
+        self.preds_path = generate_tmp_path()
+        self.results_path = generate_tmp_path()
+        logging.debug(f"tmp predictions output: {self.preds_path}")
+        logging.debug(f"tmp results output: {self.results_path}")
 
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"
@@ -72,7 +65,6 @@ class Execution:
         except ExecutionError as e:
             if not self.ignore_model_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
-                cleanup_path(preds_path)
                 raise ExecutionError("Model MLCube failed")
             else:
                 self.partial = True
@@ -83,15 +75,15 @@ class Execution:
         evaluate_timeout = config.evaluate_timeout
         preds_path = self.preds_path
         labels_path = self.dataset.labels_path
-        out_path = self.out_path
+        results_path = self.results_path
+        self.ui.text = "Evaluating results"
         try:
-            self.ui.text = "Evaluating results"
             self.evaluator.run(
                 task="evaluate",
                 timeout=evaluate_timeout,
                 predictions=preds_path,
                 labels=labels_path,
-                output_path=out_path,
+                output_path=results_path,
                 string_params={
                     "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
                     "Ptasks.evaluate.parameters.input.labels.opts": "ro",
@@ -99,18 +91,29 @@ class Execution:
             )
         except ExecutionError as e:
             logging.error(f"Metrics MLCube Execution failed: {e}")
-            # NOTE: the line below should be removed if we want to cache predictions
-            cleanup_path(preds_path)
             raise ExecutionError("Metrics MLCube failed")
 
     def todict(self):
         return {
-            "results": self.get_temp_results(),
+            "results": self.get_results(),
             "partial": self.partial,
         }
 
-    def get_temp_results(self):
-        with open(self.out_path, "r") as f:
+    def get_results(self):
+        with open(self.results_path, "r") as f:
             results = yaml.safe_load(f)
-        os.remove(self.out_path)
         return results
+
+    def store_predictions(self):
+        model_uid = self.model.generated_uid
+        data_hash = self.dataset.generated_uid
+        new_preds_path = os.path.join(
+            config.predictions_storage, str(model_uid), str(data_hash)
+        )
+        new_preds_path = storage_path(new_preds_path)
+        remove_path(new_preds_path)
+        # NOTE: currently prediction are overwritten if found.
+        # when we start caring about storing predictions for use after
+        # result creation, we should change this
+        os.makedirs(new_preds_path)
+        os.rename(self.preds_path, new_preds_path)

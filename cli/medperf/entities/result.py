@@ -185,18 +185,14 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
         Args:
             comms (Comms): Instance of the communications interface.
         """
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test results.")
         results_info = self.todict()
         updated_results_info = config.comms.upload_result(results_info)
         return updated_results_info
 
     def write(self):
         result_file = os.path.join(self.path, config.results_info_file)
-        if os.path.exists(result_file):
-            write_access = os.access(result_file, os.W_OK)
-            logging.debug(f"file has write access? {write_access}")
-            if not write_access:
-                logging.debug("removing outdated and inaccessible results")
-                os.remove(result_file)
         os.makedirs(self.path, exist_ok=True)
         with open(result_file, "w") as f:
             yaml.dump(self.todict(), f)

@@ -6,7 +6,6 @@ from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
 from medperf.entities.report import TestReport
 from medperf.commands.list import EntityList
-from medperf.utils import cleanup
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 
 app = typer.Typer()
@@ -84,7 +83,6 @@ def run(
         offline=offline,
     )
     config.ui.print("✅ Done!")
-    cleanup()
 
 
 @app.command("ls")

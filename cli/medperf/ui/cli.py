@@ -29,6 +29,16 @@ class CLI(UI):
         msg = typer.style(msg, fg=typer.colors.RED, bold=True)
         self.__print(msg)
 
+    def print_warning(self, msg: str):
+        """Display a warning message on the command line
+
+        Args:
+            msg (str): warning message to display
+        """
+        msg = f"WARNING: {msg}"
+        msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
+        self.__print(msg)
+
     def __print(self, msg: str = ""):
         if self.is_interactive:
             self.spinner.write(msg)
@@ -42,8 +52,7 @@ class CLI(UI):
         self.spinner.start()
 
     def stop_interactive(self):
-        """Stop an interactive session
-        """
+        """Stop an interactive session"""
         self.is_interactive = False
         self.spinner.stop()
 
