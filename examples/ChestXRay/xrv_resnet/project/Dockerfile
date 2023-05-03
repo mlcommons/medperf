@@ -11,16 +11,14 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y && apt-get update
 
 RUN apt-get install python3.8 python3-pip -y
 
-COPY ./requirements.txt project/requirements.txt 
+COPY ./requirements.txt /project/requirements.txt 
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install --no-cache-dir -r project/requirements.txt
+RUN pip3 install --no-cache-dir -r /project/requirements.txt
 
 ENV LANG C.UTF-8
 
 COPY . /project
-
-WORKDIR /project
 
 ENTRYPOINT ["python3", "/project/mlcube.py"]
