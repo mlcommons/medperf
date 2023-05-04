@@ -41,14 +41,6 @@ class Entity(ABC):
         """
 
     @abstractmethod
-    def update(self, **kwargs):
-        """Updates the current entity with the given fields
-
-        Arguments:
-            kwargs (dict): Key-value pair of properties to edit and their corresponding new values
-        """
-
-    @abstractmethod
     def write(self) -> str:
         """Writes the entity to the local storage
 
@@ -83,3 +75,20 @@ class Uploadable:
     @property
     def is_registered(self):
         return self.id is not None
+
+
+class Editable:
+    @abstractmethod
+    def edit(self, **kwargs):
+        """Edits the current entity with the given fields
+
+        Arguments:
+            kwargs (dict): Key-value pair of properties to edit and their corresponding new values
+        """
+
+
+class Updatable(Uploadable, Editable):
+    @abstractmethod
+    def update(self):
+        """Updates the current entity on the server
+        """

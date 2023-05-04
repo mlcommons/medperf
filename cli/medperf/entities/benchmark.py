@@ -6,13 +6,13 @@ from typing import List, Optional, Union
 from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
-from medperf.entities.interface import Entity, Uploadable
+from medperf.entities.interface import Entity, Updatable
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 
 
-class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 
@@ -58,6 +58,43 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         else:
             path = os.path.join(path, self.generated_uid)
         self.path = path
+
+    def __validate_edit(cls, old_bmk: "Benchmark", new_bmk: "Benchmark"):
+        """Validates that an update is valid given the changes made
+
+        Args:
+            old_bmk (Benchmark): The old version of the Benchmark
+            new_bmk (Benchmark): The new version of the same Benchmark
+
+        Raises:
+            InvalidArgumentError: The changed fields are not mutable
+        """
+        # Field that shouldn't ber modified directly by the user
+        inmutable_fields = {"id",}
+
+        # Fields that can no longer be modified while in production
+        production_inmutable_fields = {
+            "name",
+            "demo_dataset_tarball_hash",
+            "demo_dataset_generated_uid",
+            "data_preparation_mlcube",
+            "reference_model_mlcube",
+            "data_evaluator_mlcube"
+        }
+
+        if old_bmk.state == "PRODCUTION":
+            inmutable_fields = inmutable_fields.join(production_inmutable_fields)
+
+        updated_field_values = set(new_bmk.items()) - set(old_bmk.items())
+        updated_fields = {field for field, _ in updated_field_values}
+        updated_inmutable_fields = updated_fields.intersection(production_inmutable_fields)
+
+        if len(updated_inmutable_fields):
+            fields_msg = ", ".join(updated_inmutable_fields)
+            msg = (f"The following fields can't be directly edited: "\
+                    + fields_msg \
+                    + ". For these changes, a new Dataset is required")
+            raise InvalidArgumentError(msg)
 
     @classmethod
     def all(cls, local_only: bool = False, filters: dict = {}) -> List["Benchmark"]:
@@ -267,15 +304,24 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         """
         return config.comms.get_benchmark_models(benchmark_uid)
 
-    def update(self, **kwargs):
-        """Updates a benchmark with the given property-value pairs
+    def edit(self, **kwargs):
+        """Edits a benchmark with the given property-value pairs
         """
         data = self.todict()
         data.update(kwargs)
-        # Edit entity by creating a new one. This ensures any extra steps
-        # that depend on the fields are being taken care of
         new_bmk = Benchmark(**data)
+
+        Benchmark.__validate_edit(self, new_bmk)
+
         self.__dict__ = new_bmk.__dict__ 
+
+    def update(self):
+        """Updates the benchmark on the server
+        """
+        if not self.is_registered:
+            raise MedperfException("Can't update an unregistered benchmark")
+        body = self.todict()
+        config.comms.update_benchmark(body)
 
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance

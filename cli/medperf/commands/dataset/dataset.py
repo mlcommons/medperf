@@ -6,9 +6,18 @@ from medperf.decorators import clean_except
 from medperf.entities.dataset import Dataset
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+from medperf.commands.edit import EntityEdit
 from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.dataset.submit import DatasetRegistration
 from medperf.commands.dataset.associate import AssociateDataset
+
+NAME_OPTION = typer.Option(..., "--name", help="Name of the dataset")
+DESC_OPTION = typer.Option(
+    ..., "--description", help="Description of the dataset"
+)
+LOC_OPTION = typer.Option(
+    ..., "--location", help="Location or Institution the data belongs to"
+)
 
 app = typer.Typer()
 
@@ -43,13 +52,9 @@ def create(
     labels_path: str = typer.Option(
         ..., "--labels_path", "-l", help="Labels file location"
     ),
-    name: str = typer.Option(..., "--name", help="Name of the dataset"),
-    description: str = typer.Option(
-        ..., "--description", help="Description of the dataset"
-    ),
-    location: str = typer.Option(
-        ..., "--location", help="Location or Institution the data belongs to"
-    ),
+    name: str = NAME_OPTION,
+    description: str = DESC_OPTION,
+    location: str = LOC_OPTION
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
@@ -85,6 +90,24 @@ def register(
     ui.print(
         f"Next step: associate the dataset with 'medperf dataset associate -b <BENCHMARK_UID> -d {uid}'"
     )
+
+
+@app.command("edit")
+@clean_except
+def edit(
+    entity_id: int = typer.Argument(..., help="Dataset ID"),
+    name: str = NAME_OPTION,
+    description: str = DESC_OPTION,
+    location: str = LOC_OPTION
+):
+    """Edits a Dataset"""
+    dset_info = {
+        "name": name,
+        "description": description,
+        "location": location,
+    }
+    EntityEdit.run(Dataset, entity_id, dset_info)
+    config.ui.print("✅ Done!")
 
 
 @app.command("associate")

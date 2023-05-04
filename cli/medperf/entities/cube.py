@@ -7,7 +7,7 @@ from pydantic import Field
 from pathlib import Path
 
 from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
-from medperf.entities.interface import Entity, Uploadable
+from medperf.entities.interface import Entity, Updatable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
@@ -20,7 +20,7 @@ import medperf.config as config
 from medperf.comms.entity_resources import resources
 
 
-class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
+class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
     """
     Class representing an MLCube Container
 
@@ -64,24 +64,21 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
-    def __is_valid_update(cls, old_cube: "Cube", new_cube: "Cube") -> bool:
-        """Determines if an update is valid given the changes between entities
+    def __validate_edit(cls, old_cube: "Cube", new_cube: "Cube"):
+        """Validates that an edit is valid given the changes made
 
         Args:
             old_cube (Cube): The old version of the MLCube
             new_cube (Cube): The new version of the same MLCube
 
-        Returns:
-            bool: Wether updating the old_cube to the new_cube is possible
+        Raises:
+            InvalidEntityError: The changes created an invalid entity configuration
+            InvalidArugmentError: The changed fields are not mutable
         """
-        if old_cube.id != new_cube.id:
-            # id change should not be possible in any instance
-            return False
+        # Fields that shouldn't be modified directly by the user
+        inmutable_fields = {"id",}
 
-        if old_cube.state == "DEVELOPMENT":
-            # Development entities can be freely edited
-            return True
-
+        # Fields that can no longer be modified while in production
         production_inmutable_fields = {
             "mlcube_hash",
             "parameters_hash",
@@ -89,12 +86,28 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             "additional_files_tarball_hash"
         }
 
+        if old_cube.state == "PRODUCTION":
+            inmutable_fields = inmutable_fields.join(production_inmutable_fields)
+
         updated_field_values = set(new_cube.items()) - set(old_cube.items())
-        updated_fields = {field for field, val in updated_field_values}
+        updated_fields = {field for field, _ in updated_field_values}
+
+        # Download any new files
+        new_cube.download(updated_fields)
+
         updated_inmutable_fields = updated_fields.intersection(production_inmutable_fields)
 
+        if not new_cube.valid():
+            msg = "Invalid MLCube configuration"
+            raise InvalidEntityError(msg)
+
+
         if len(updated_inmutable_fields):
-            return False
+            fields_msg = ", ".join(updated_inmutable_fields)
+            msg = (f"The following fields can't be directly edited: "\
+                    + fields_msg \
+                    + ". For these changes, a new MLCube is required")
+            raise InvalidArgumentError(msg)
 
     @classmethod
     def all(cls, local_only: bool = False, filters: dict = {}) -> List["Cube"]:
@@ -375,20 +388,24 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         return out_path
 
-    def update(self, **kwargs):
-        """Updates a cube with the given property-value pairs
+    def edit(self, **kwargs):
+        """Edits a cube with the given property-value pairs
         """
         data = self.todict()
         data.update(kwargs)
         new_cube = Cube(**data)
 
-        provided_fields = set(kwargs.keys())
+        Cube.__validate_edit(self, new_cube)
 
-        # Download any files that were modified
-        self.download(provided_fields)
+        self.__dict__ = new_cube.__dict__
 
-        if new_cube.is_valid() and Cube.__is_valid_update(self, new_cube):
-            self.__dict__ = new_cube.__dict__
+    def update(self):
+        """Updates the benchmark on the server
+        """
+        if not self.is_registered:
+            raise MedperfException("Can't update an unregistered cube")
+        body = self.todict()
+        config.comms.update_mlcube(body)
 
     def todict(self) -> Dict:
         return self.extended_dict()
