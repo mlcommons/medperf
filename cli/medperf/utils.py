@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 import os
-import sys
 import yaml
 import random
 import hashlib
@@ -14,7 +13,7 @@ from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
-from shutil import rmtree
+import shutil
 from pexpect import spawn
 from datetime import datetime
 from typing import List
@@ -29,7 +28,7 @@ from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfExcept
 def setup_logging(log_lvl):
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     log_file = storage_path(config.log_file)
-    handler = handlers.RotatingFileHandler(log_file, maxBytes=10000000, backupCount=5)
+    handler = handlers.RotatingFileHandler(log_file, backupCount=20)
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
         level=log_lvl,
@@ -43,12 +42,15 @@ def setup_logging(log_lvl):
         r"""(["']?(password|pwd|token)["']?[:=] ?)["'][^\n\[\]{}"']*["']"""
     )
 
-    redacting_filter = RedactingFilter(patterns=[sensitive_pattern,])
+    redacting_filter = RedactingFilter(patterns=[sensitive_pattern])
     requests_logger = logging.getLogger("requests")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(log_lvl)
     logger = logging.getLogger()
     logger.addFilter(redacting_filter)
+
+    # Force the creation of a new log file for each execution
+    handler.doRollover()
 
 
 def delete_credentials():
@@ -152,8 +154,7 @@ def get_file_sha1(path: str) -> str:
 
 
 def init_storage():
-    """Builds the general medperf folder structure.
-    """
+    """Builds the general medperf folder structure."""
     logging.info("Initializing storage")
     parent = config.storage
     data = storage_path(config.data_storage)
@@ -176,8 +177,7 @@ def init_storage():
 
 
 def init_config():
-    """builds the initial configuration file
-    """
+    """builds the initial configuration file"""
     os.makedirs(config.storage, exist_ok=True)
     config_file = base_storage_path(config.config_path)
     if os.path.exists(config_file):
@@ -194,89 +194,62 @@ def init_config():
 
 
 def set_unique_tmp_config():
-    """Set current process' temporary unique names
+    """Set current process' temporary unique storage
     Enables simultaneous execution without cleanup collision
     """
     pid = str(os.getpid())
     config.tmp_storage += pid
-    config.tmp_prefix += pid
-    config.test_dset_prefix += pid
-    config.test_cube_prefix += pid
+    config.trash_folder = os.path.join(config.trash_folder, pid)
 
 
-def cleanup_path(path):
-    if os.path.exists(path):
-        logging.info(f"Removing clutter path: {path}")
-        try:
-            if os.path.islink(path):
-                os.unlink(path)
-            elif os.path.isfile(path):
-                os.remove(path)
-            else:
-                rmtree(path)
-        except OSError as e:
-            logging.error(f"Cleanup failed: Could not remove {path}")
-            raise MedperfException(str(e))
+def remove_path(path):
+    """Cleans up a clutter object. In case of failure, it is moved to `.trash`"""
+
+    # NOTE: We assume medperf will always have permissions to unlink
+    # and rename clutter paths, since for now they are expected to live
+    # in folders owned by medperf
+
+    if not os.path.exists(path):
+        return
+    logging.info(f"Removing clutter path: {path}")
+
+    # Don't delete symlinks
+    if os.path.islink(path):
+        os.unlink(path)
+        return
+
+    try:
+        if os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
+    except OSError as e:
+        logging.error(f"Could not remove {path}: {str(e)}")
+        move_to_trash(path)
 
 
-def cleanup(extra_paths: List[str] = []):
-    """Removes clutter and unused files from the medperf folder structure.
-    """
+def move_to_trash(path):
+    trash_folder = base_storage_path(config.trash_folder)
+    unique_path = os.path.join(trash_folder, generate_tmp_uid())
+    os.makedirs(unique_path)
+    shutil.move(path, unique_path)
+
+
+def cleanup():
+    """Removes clutter and unused files from the medperf folder structure."""
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
-    tmp_path = storage_path(config.tmp_storage)
-    extra_paths.append(tmp_path)
-    extra_paths += config.extra_cleanup_paths
-    for path in extra_paths:
-        cleanup_path(path)
 
-    cleanup_dsets()
-    cleanup_cubes()
-    cleanup_benchmarks()
+    tmp_storage = storage_path(config.tmp_storage)
+    for path in config.tmp_paths + [tmp_storage]:
+        remove_path(path)
 
-
-def cleanup_dsets():
-    """Removes clutter related to datsets
-    """
-    dsets_path = storage_path(config.data_storage)
-    dsets = get_uids(dsets_path)
-    tmp_prefix = config.tmp_prefix
-    test_prefix = config.test_dset_prefix
-    clutter_dsets = [
-        dset
-        for dset in dsets
-        if dset.startswith(tmp_prefix) or dset.startswith(test_prefix)
-    ]
-
-    for dset in clutter_dsets:
-        dset_path = os.path.join(dsets_path, dset)
-        cleanup_path(dset_path)
-
-
-def cleanup_cubes():
-    """Removes clutter related to cubes
-    """
-    cubes_path = storage_path(config.cubes_storage)
-    cubes = get_uids(cubes_path)
-    test_prefix = config.test_cube_prefix
-    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
-
-    for cube in clutter_cubes:
-        cube_path = os.path.join(cubes_path, cube)
-        cleanup_path(cube_path)
-
-
-def cleanup_benchmarks():
-    """Removes clutter related to benchmarks
-    """
-    bmks_path = storage_path(config.benchmarks_storage)
-    bmks = os.listdir(bmks_path)
-    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
-
-    for bmk in clutter_bmks:
-        bmk_path = os.path.join(bmks_path, bmk)
-        cleanup_path(bmk_path)
+    trash_folder = base_storage_path(config.trash_folder)
+    if os.path.exists(trash_folder):
+        msg = "Failed to premanently cleanup some files. Consider deleting"
+        msg += f" '{trash_folder}' manually to avoid unnecessary storage."
+        config.ui.print_warning(msg)
 
 
 def get_uids(path: str) -> List[str]:
@@ -292,13 +265,11 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, clean: bool = True):
-    """Prints an error message with typer protocol and exits the script
+def pretty_error(msg: str):
+    """Prints an error message with typer protocol
 
     Args:
         msg (str): Error message to show to the user
-        clean (bool, optional):
-            Run the cleanup process before exiting. Defaults to True.
     """
     ui = config.ui
     logging.warning(
@@ -307,23 +278,6 @@ def pretty_error(msg: str, clean: bool = True):
     if msg[-1] != ".":
         msg = msg + "."
     ui.print_error(msg)
-    if clean:
-        cleanup()
-    sys.exit(1)
-
-
-def generate_tmp_datapath() -> str:
-    """Builds a temporary folder for prepared but yet-to-register datasets.
-
-    Returns:
-        str: General temporary folder location
-        str: Specific data path for the temporary dataset
-    """
-    uid = generate_tmp_uid()
-    tmp = config.tmp_prefix + uid
-    out_path = os.path.join(storage_path(config.data_storage), tmp)
-    out_path = os.path.abspath(out_path)
-    return out_path
 
 
 def generate_tmp_uid() -> str:
@@ -385,12 +339,12 @@ def untar(filepath: str, remove: bool = True) -> str:
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [
-        os.remove(spurious_file)
+        remove_path(spurious_file)
         for spurious_file in glob(addpath + "/**/._*", recursive=True)
     ]
     if remove:
         logging.info(f"Deleting {filepath}")
-        os.remove(filepath)
+        remove_path(filepath)
     return addpath
 
 

@@ -1,4 +1,4 @@
-from medperf.exceptions import CleanExit, InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
@@ -30,7 +30,6 @@ def benchmark(mocker, request):
 def test_fails_if_dataset_inexecatible_with_benchmark(
     mocker, comms, ui, dataset, benchmark
 ):
-
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
         AssociateDataset.run(1, 1)
@@ -97,8 +96,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     assoc_spy = mocker.patch.object(comms, "associate_dset")
 
     # Act
-    with pytest.raises(CleanExit):
-        AssociateDataset.run(1, 1)
+    AssociateDataset.run(1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -126,5 +124,8 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
 
     # Assert
     spy.assert_called_once_with(
-        benchmark_uid, data_uid, [benchmark.reference_model_mlcube], no_cache=False,
+        benchmark_uid,
+        data_uid,
+        [benchmark.reference_model_mlcube],
+        no_cache=False,
     )

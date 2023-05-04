@@ -87,7 +87,7 @@ class TestAll:
 
 
 @pytest.mark.parametrize(
-    "setup", [{"local": [78], "remote": [479, 42, 7, 1]}], indirect=True,
+    "setup", [{"local": [78], "remote": [479, 42, 7, 1]}], indirect=True
 )
 class TestGet:
     def test_get_retrieves_entity_from_server(self, Implementation, setup):
@@ -119,9 +119,7 @@ class TestGet:
             Implementation.get(id)
 
 
-@pytest.mark.parametrize(
-    "setup", [{"local": [742]}], indirect=True,
-)
+@pytest.mark.parametrize("setup", [{"local": [742]}], indirect=True)
 class TestToDict:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
@@ -150,9 +148,7 @@ class TestToDict:
         assert ent_dict == ent_copy_dict
 
 
-@pytest.mark.parametrize(
-    "setup", [{"local": [36]}], indirect=True,
-)
+@pytest.mark.parametrize("setup", [{"local": [36]}], indirect=True)
 class TestUpload:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
@@ -179,9 +175,22 @@ class TestUpload:
         # Assert
         assert ent_dict == ent.todict()
 
+    def test_upload_fails_for_test_entity(self, Implementation, setup):
+        # Arrange
+        uploaded_entities = setup["uploaded"]
+        ent = Implementation.get(self.id)
+        ent.for_test = True
+
+        # Act
+        with pytest.raises(InvalidArgumentError):
+            ent.upload()
+
+        # Assert
+        assert ent.todict() not in uploaded_entities
+
 
 @pytest.mark.parametrize(
-    "setup", [{"remote": [284]}, {"remote": [753], "local": [753]}], indirect=True,
+    "setup", [{"remote": [284]}, {"remote": [753], "local": [753]}], indirect=True
 )
 class TestWrite:
     def test_write_stores_entity_locally(self, Implementation, setup):

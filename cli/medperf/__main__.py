@@ -1,3 +1,4 @@
+import sys
 import typer
 import logging
 import logging.handlers
@@ -147,6 +148,7 @@ def main(ctx: typer.Context):
     log_lvl = getattr(logging, log)
     setup_logging(log_lvl)
     logging.info(f"Running MedPerf v{__version__} on {log_lvl} logging level")
+    logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
