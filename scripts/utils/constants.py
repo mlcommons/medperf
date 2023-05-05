@@ -3,8 +3,6 @@ ADD_PATH = "additional_files"
 ADD_FILE = "additional_files.tar.gz"
 MLCUBE_FILE = "mlcube.yaml"
 PARAMS_FILE = "parameters.yaml"
-STATS_FILE = "statistics.yaml"
-RESULTS_FILE = "results.yaml"
 RUNNERS = ["docker", "singularity"]
 
 TASK_DEFINITIONS = {
