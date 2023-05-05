@@ -16,9 +16,10 @@ nav:
   - Hands-on Tutorial for Data Owners: getting_started/data_owner_demo.md
 - MedPerf MLCubes: 
   - Introduction: mlcubes/mlcubes.md
-  - Data Preparator MLCube Template: mlcubes/mlcube_data.md
-  - Model MLCube Template: mlcubes/mlcube_models.md
-  - Metrics MLCube Template: mlcubes/mlcube_metrics.md
+  - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md
+  - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
+  - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
+  - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
 - Concepts:
   - MedPerf Account: concepts/accounts.md
   - Client Configuration: concepts/profiles.md
