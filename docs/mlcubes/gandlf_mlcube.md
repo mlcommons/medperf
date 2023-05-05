@@ -20,7 +20,7 @@ We provide a script that downloads necessary files so that you follow the tutori
 sh tutorials_scripts/setup_GaNDLF_mlcube_tutorial.sh
 ```
 
-This will create a workspace folder `medperf_tutorial` where all necessary files are downloaded.
+This will create a workspace folder `medperf_tutorial` where all necessary files are downloaded. Run `cd medperf_tutorial` to switch to this folder.
 
 ## 1. Train a GaNDLF Model
 
