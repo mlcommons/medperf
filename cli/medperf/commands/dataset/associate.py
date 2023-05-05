@@ -3,7 +3,7 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, approval_prompt
 from medperf.commands.result.create import BenchmarkExecution
-from medperf.exceptions import CleanExit, InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError
 
 
 class AssociateDataset:
@@ -49,4 +49,4 @@ class AssociateDataset:
             metadata = {"test_result": result.results}
             comms.associate_dset(dset.id, benchmark_uid, metadata)
         else:
-            raise CleanExit("Dataset association operation cancelled.")
+            ui.print("Dataset association operation cancelled.")

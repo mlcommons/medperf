@@ -1,10 +1,8 @@
-import os
 from unittest.mock import ANY, call
 from medperf.commands.execution import Execution
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.utils import storage_path
 import pytest
 from medperf import config
 import yaml
@@ -18,10 +16,12 @@ INPUT_MODEL = TestCube(id=2)
 INPUT_EVALUATOR = TestCube(id=3)
 
 
-def mock_model(mocker, state_variables):
+def mock_model(mocker, fs, state_variables):
     failing_model = state_variables["failing_model"]
 
     def _side_effect(*args, **kwargs):
+        out_path = kwargs["output_path"]
+        fs.create_dir(out_path)
         if failing_model:
             raise ExecutionError
 
@@ -50,18 +50,22 @@ def setup(request, mocker, ui, fs):
         "failing_model": False,
         "failing_eval": False,
         "execution_results": {"res": 1, "metric": 55},
+        "preds_path": "tmp_preds_path",
+        "result_path": "tmp_result_path",
     }
     state_variables.update(request.param)
 
     # mocks/spies
-    model_run_spy = mock_model(mocker, state_variables)
+    model_run_spy = mock_model(mocker, fs, state_variables)
     eval_run_spy = mock_eval(mocker, fs, state_variables)
-    cleanup_spy = mocker.patch(PATCH_EXECUTION.format("cleanup_path"))
 
+    mocker.patch(
+        PATCH_EXECUTION.format("generate_tmp_path"),
+        side_effect=[state_variables["preds_path"], state_variables["result_path"]],
+    )
     spies = {
         "model_run": model_run_spy,
         "eval_run": eval_run_spy,
-        "cleanup": cleanup_spy,
     }
     return state_variables, spies
 
@@ -76,8 +80,6 @@ class TestFailures:
             Execution.run(
                 INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=False
             )
-        spies = setup[1]
-        spies["cleanup"].assert_called_once()
 
     @pytest.mark.parametrize("setup", [{"failing_eval": True}], indirect=True)
     def test_failure_with_failing_eval_and_ignore_error(mocker, setup):
@@ -86,19 +88,13 @@ class TestFailures:
             Execution.run(
                 INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
             )
-        spies = setup[1]
-        spies["cleanup"].assert_called_once()
 
     @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
     def test_no_failure_with_ignore_error(mocker, setup):
-        # Act
+        # Act & Assert
         Execution.run(
             INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
         )
-
-        # Assert
-        spies = setup[1]
-        spies["cleanup"].assert_not_called()
 
 
 @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
@@ -131,22 +127,18 @@ def test_results_are_returned(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
-    preds_path = os.path.join(
-        storage_path(config.predictions_storage),
-        str(INPUT_MODEL.id),
-        str(INPUT_DATASET.generated_uid),
-    )
+    state_variables = setup[0]
     exp_model_call = call(
         task="infer",
         timeout=config.infer_timeout,
         data_path=INPUT_DATASET.data_path,
-        output_path=preds_path,
+        output_path=state_variables["preds_path"],
         string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
     )
     exp_eval_call = call(
         task="evaluate",
         timeout=config.evaluate_timeout,
-        predictions=preds_path,
+        predictions=state_variables["preds_path"],
         labels=INPUT_DATASET.labels_path,
         output_path=ANY,
         string_params={
