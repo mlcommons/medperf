@@ -113,7 +113,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         comms_fn = config.comms.get_cubes
         if "owner" in filters and filters["owner"] == config.current_user["id"]:
-            comms_fn = config.comms.get_user_results
+            comms_fn = config.comms.get_user_cubes
 
         return comms_fn
 
