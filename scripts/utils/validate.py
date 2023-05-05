@@ -2,7 +2,13 @@ import os
 import yaml
 
 from .bcolors import bcolors
-from .constants import WSPACE_PATH, MLCUBE_FILE, VALID_COMBINATIONS, TASK_DEFINITIONS, ADD_PATH
+from .constants import (
+    WSPACE_PATH,
+    MLCUBE_FILE,
+    VALID_COMBINATIONS,
+    TASK_DEFINITIONS,
+    ADD_PATH,
+)
 
 
 def is_valid(mlcube_path):
@@ -53,7 +59,9 @@ def validate_tasks(mlcube, workspace_path):
     # Identify MLCube task configurations
     for config_name, combination in VALID_COMBINATIONS.items():
         if len(combination - tasks) == 0:
-            print(f"{bcolors.OKGREEN}{config_name} configuration identified{bcolors.ENDC}")
+            print(
+                f"{bcolors.OKGREEN}{config_name} configuration identified{bcolors.ENDC}"
+            )
             valid_config_found = True
 
     # Raise error if no valid task configuration was found
@@ -77,29 +85,37 @@ def validate_task(task, task_contents, expected_parameters, workspace_path):
     types = ["inputs", "outputs"]
     for type in types:
         if type in expected_parameters:
-            validate_parameters(task, task_contents, expected_parameters, type)
+            validate_parameters(
+                task, task_contents, expected_parameters, type, workspace_path
+            )
 
     validate_additional_parameters(task_contents, expected_parameters, workspace_path)
 
 
-def validate_parameters(task, task_contents, expected_parameters, type):
+def validate_parameters(task, task_contents, expected_parameters, type, workspace_path):
     for exp_key, exp_val in expected_parameters[type].items():
-        validate_expected_param(exp_key, exp_val, task, task_contents, type)
+        validate_expected_param(
+            exp_key, exp_val, task, task_contents, type, workspace_path
+        )
 
 
 def validate_additional_parameters(task_contents, expected_parameters, workspace_path):
-    unexpected_params = set(task_contents["parameters"]["inputs"].keys()) - set(expected_parameters["inputs"].keys())
+    unexpected_params = set(task_contents["parameters"]["inputs"].keys()) - set(
+        expected_parameters["inputs"].keys()
+    )
     for param in unexpected_params:
         val = get_param_value(task_contents["parameters"]["inputs"][param])
         if not val.startswith(ADD_PATH):
-            raise RuntimeError(f'Additional Parameter "{val}" must point to a file in "{ADD_PATH}"')
+            raise RuntimeError(
+                f'Additional Parameter "{val}" must point to a file in "{ADD_PATH}"'
+            )
 
         add_file_path = os.path.join(workspace_path, val)
         if not os.path.exists(add_file_path):
             raise RuntimeError(f'Additional file "{add_file_path}" not found')
 
 
-def validate_expected_param(key, val, task, task_contents, type):
+def validate_expected_param(key, val, task, task_contents, type, workspace_path):
     error_msg = f'Task "{task}" requires {type[:-1]} "{key}"'
     if key not in task_contents["parameters"][type]:
         raise RuntimeError(error_msg + " to be defined")
@@ -108,6 +124,9 @@ def validate_expected_param(key, val, task, task_contents, type):
         retrieved_val = get_param_value(task_contents["parameters"][type][key])
         if retrieved_val != val:
             raise RuntimeError(error_msg + f' to be assigned to "{val}"')
+        path = os.path.join(workspace_path, val)
+        if not os.path.exists(path):
+            raise RuntimeError(f'Path "{path}" configured for {key} does not exist')
 
 
 def get_param_value(val):
