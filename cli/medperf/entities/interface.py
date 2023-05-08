@@ -77,7 +77,7 @@ class Uploadable:
         return self.id is not None
 
 
-class Editable:
+class Updatable(Uploadable):
     @abstractmethod
     def edit(self, **kwargs):
         """Edits the current entity with the given fields
@@ -86,8 +86,6 @@ class Editable:
             kwargs (dict): Key-value pair of properties to edit and their corresponding new values
         """
 
-
-class Updatable(Uploadable, Editable):
     @abstractmethod
     def update(self):
         """Updates the current entity on the server
