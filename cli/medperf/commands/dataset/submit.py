@@ -1,11 +1,10 @@
 import os
-import shutil
 
-from medperf.utils import approval_prompt, dict_pretty_print
+from medperf.utils import approval_prompt, remove_path, dict_pretty_print
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 from medperf import config
-from medperf.exceptions import InvalidArgumentError, CleanExit
+from medperf.exceptions import InvalidArgumentError
 
 
 class DatasetRegistration:
@@ -46,11 +45,10 @@ class DatasetRegistration:
 
             old_dset_loc = dset.path
             new_dset_loc = updated_dset.path
-            if os.path.exists(new_dset_loc):
-                shutil.rmtree(new_dset_loc)
+            remove_path(new_dset_loc)
             os.rename(old_dset_loc, new_dset_loc)
 
             updated_dset.write()
             return updated_dset.id
         else:
-            raise CleanExit("Registration request cancelled.")
+            ui.print("Registration request cancelled.")

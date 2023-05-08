@@ -1,10 +1,9 @@
 import os
-import shutil
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import storage_path
 from medperf.exceptions import InvalidEntityError
+from medperf.utils import remove_path
 
 
 class SubmitCube:
@@ -29,10 +28,10 @@ class SubmitCube:
     def __init__(self, submit_info: dict):
         self.comms = config.comms
         self.ui = config.ui
-        self.submit_info = submit_info
+        self.cube = Cube(**submit_info)
+        config.tmp_paths.append(self.cube.path)
 
     def download(self):
-        self.cube = Cube(**self.submit_info)
         self.cube.download()
         if not self.cube.valid():
             raise InvalidEntityError("MLCube hash check failed. Submission aborted.")
@@ -45,12 +44,10 @@ class SubmitCube:
         """Renames the temporary cube submission to a permanent one using the uid of
         the registered cube
         """
-        cube = Cube(**cube_dict)
-        cubes_storage = storage_path(config.cubes_storage)
-        old_cube_loc = os.path.join(cubes_storage, cube.generated_uid)
-        new_cube_loc = cube.path
-        if os.path.exists(new_cube_loc):
-            shutil.rmtree(new_cube_loc)
+        old_cube_loc = self.cube.path
+        updated_cube = Cube(**cube_dict)
+        new_cube_loc = updated_cube.path
+        remove_path(new_cube_loc)
         os.rename(old_cube_loc, new_cube_loc)
 
     def write(self, updated_cube_dict):

@@ -10,7 +10,6 @@ local_server = "https://localhost:8000"
 local_certificate = "server/cert.crt"
 
 storage = abspath(expanduser("~/.medperf"))
-tmp_prefix = "tmp_"
 logs_storage = "logs"
 tmp_storage = "tmp"
 data_storage = "data"
@@ -19,13 +18,13 @@ cubes_storage = "cubes"
 images_storage = ".images"
 predictions_storage = "predictions"
 results_storage = "results"
-statistics_filename = "tmp_statistics.yaml"
 results_info_file = "result-info.yaml"
 benchmarks_storage = "benchmarks"
 benchmarks_filename = "benchmark.yaml"
 config_path = "config.yaml"
 workspace_path = "workspace"
 test_storage = "tests"
+trash_folder = ".trash"
 cleanup = True
 
 test_report_file = "test_report.yaml"
@@ -37,8 +36,6 @@ image_path = "workspace/.image"
 reg_file = "registration-info.yaml"
 log_file = "logs/medperf.log"
 loglevel = "info"
-test_cube_prefix = "test_"
-test_dset_prefix = "test_"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 cube_hashes_filename = "mlcube-hashes.yaml"
@@ -78,6 +75,8 @@ templates = {
     "data_preparator": "templates/data_preparator_mlcube",
     "model": "templates/model_mlcube",
     "evaluator": "templates/evaluator_mlcube",
+    "gandlf": "templates/gandlf_mlcube",
 }
 
-extra_cleanup_paths = []
+# Temporary paths to cleanup that cannot be created in `tmp_storage`
+tmp_paths = []
