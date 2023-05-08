@@ -1,4 +1,4 @@
-from medperf.entities.interface import Editable, Updatable
+from medperf.entities.interface import Updatable
 from medperf.exceptions import InvalidEntityError
 
 class EntityEdit:
@@ -11,6 +11,7 @@ class EntityEdit:
             fields (dict): Dicitonary of fields and values to modify
         """
         editor = EntityEdit(entity_class, id, fields)
+        editor.prepare()
         editor.validate()
         editor.edit()
 
@@ -23,7 +24,7 @@ class EntityEdit:
         self.entity = self.entity_class(self.id)
 
     def validate(self):
-        if not isinstance(self.entity, Editable):
+        if not isinstance(self.entity, Updatable):
             raise InvalidEntityError("The passed entity can't be edited") 
 
     def edit(self):

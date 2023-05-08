@@ -107,6 +107,7 @@ def edit(
         "data_evaluator_mlcube": evaluator_mlcube,
     }
     EntityEdit.run(Benchmark, entity_id, benchmark_info)
+    cleanup()
     config.ui.print("✅ Done!")
 
 
