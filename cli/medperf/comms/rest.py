@@ -287,6 +287,17 @@ class REST(Comms):
             raise CommunicationRetrievalError("Could not upload benchmark")
         return res.json()
 
+    def update_benchmark(self, id: int, benchmark_dict: dict):
+        """Updates the benchmark with the given id and the new dictionary
+
+        Args:
+            benchmark_dict (dict): updated benchmark data
+        """
+        res = self.__auth_put(f"{self.server_url}/benchmarks/{id}/", json=benchmark_dict)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(f"Could not update benchmark")
+
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
 
@@ -301,6 +312,17 @@ class REST(Comms):
             log_response_error(res)
             raise CommunicationRetrievalError("Could not upload the mlcube")
         return res.json()
+
+    def update_mlcube(self, id: int, mlcube_dict: dict):
+        """Updates the mlcube with the given id and the new dictionary
+
+        Args:
+            mlcube_dict (dict): updated mlcube data
+        """
+        res = self.__auth_put(f"{self.server_url}/mlcubes/{id}/", json=mlcube_dict)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(f"Could not update mlcube")
 
     def get_datasets(self) -> List[dict]:
         """Retrieves all datasets in the platform
@@ -351,6 +373,17 @@ class REST(Comms):
             log_response_error(res)
             raise CommunicationRequestError("Could not upload the dataset")
         return res.json()
+
+    def update_dataset(self, id: int, dataset_dict: dict):
+        """Updates the dataset with the given id and the new dictionary
+
+        Args:
+            dataset_dict (dict): updated dataset data
+        """
+        res = self.__auth_put(f"{self.server_url}/datasets/{id}/", json=dataset_dict)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(f"Could not update dataset")
 
     def get_results(self) -> List[dict]:
         """Retrieves all results
