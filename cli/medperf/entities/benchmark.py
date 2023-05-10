@@ -296,6 +296,7 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
         # Fields that can no longer be modified while in production
         production_inmutable_fields = {
             "name",
+            "description"
             "demo_dataset_tarball_hash",
             "demo_dataset_generated_uid",
             "data_preparation_mlcube",
@@ -303,8 +304,8 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
             "data_evaluator_mlcube"
         }
 
-        if old_bmk.state == "PRODCUTION":
-            inmutable_fields = inmutable_fields.join(production_inmutable_fields)
+        if old_bmk.state == "OPERATION":
+            inmutable_fields = inmutable_fields.union(production_inmutable_fields)
 
         bmk_diffs = DeepDiff(new_bmk.todict(), old_bmk.todict())
         updated_fields = set(bmk_diffs.affected_root_keys)
@@ -315,7 +316,7 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
             fields_msg = ", ".join(updated_inmutable_fields)
             msg = (f"The following fields can't be directly edited: "\
                     + fields_msg \
-                    + ". For these changes, a new Dataset is required")
+                    + ". For these changes, a new Benchmark is required")
             raise InvalidArgumentError(msg)
 
     def update(self):
@@ -324,7 +325,7 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
         if not self.is_registered:
             raise MedperfException("Can't update an unregistered benchmark")
         body = self.todict()
-        config.comms.update_benchmark(body)
+        config.comms.update_benchmark(self.id, body)
 
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance

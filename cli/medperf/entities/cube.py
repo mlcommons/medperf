@@ -2,6 +2,7 @@ import os
 import yaml
 import pexpect
 import logging
+from deepdiff import DeepDiff
 from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
@@ -62,52 +63,6 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         self.params_path = None
         if self.git_parameters_url:
             self.params_path = os.path.join(path, config.params_filename)
-
-    @classmethod
-    def __validate_edit(cls, old_cube: "Cube", new_cube: "Cube"):
-        """Validates that an edit is valid given the changes made
-
-        Args:
-            old_cube (Cube): The old version of the MLCube
-            new_cube (Cube): The new version of the same MLCube
-
-        Raises:
-            InvalidEntityError: The changes created an invalid entity configuration
-            InvalidArugmentError: The changed fields are not mutable
-        """
-        # Fields that shouldn't be modified directly by the user
-        inmutable_fields = {"id",}
-
-        # Fields that can no longer be modified while in production
-        production_inmutable_fields = {
-            "mlcube_hash",
-            "parameters_hash",
-            "image_tarball_hash",
-            "additional_files_tarball_hash"
-        }
-
-        if old_cube.state == "PRODUCTION":
-            inmutable_fields = inmutable_fields.join(production_inmutable_fields)
-
-        updated_field_values = set(new_cube.items()) - set(old_cube.items())
-        updated_fields = {field for field, _ in updated_field_values}
-
-        # Download any new files
-        new_cube.download(updated_fields)
-
-        updated_inmutable_fields = updated_fields.intersection(production_inmutable_fields)
-
-        if not new_cube.valid():
-            msg = "Invalid MLCube configuration"
-            raise InvalidEntityError(msg)
-
-
-        if len(updated_inmutable_fields):
-            fields_msg = ", ".join(updated_inmutable_fields)
-            msg = (f"The following fields can't be directly edited: "\
-                    + fields_msg \
-                    + ". For these changes, a new MLCube is required")
-            raise InvalidArgumentError(msg)
 
     @classmethod
     def all(cls, local_only: bool = False, filters: dict = {}) -> List["Cube"]:
@@ -395,9 +350,56 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         data.update(kwargs)
         new_cube = Cube(**data)
 
-        Cube.__validate_edit(self, new_cube)
+        self.__validate_edit(new_cube)
 
-        self.__dict__ = new_cube.__dict__
+        self.__dict__.update(**new_cube.__dict__)
+
+    def __validate_edit(self, new_cube: "Cube"):
+        """Validates that an edit is valid given the changes made
+
+        Args:
+            new_cube (Cube): The new version of the same MLCube
+
+        Raises:
+            InvalidEntityError: The changes created an invalid entity configuration
+            InvalidArugmentError: The changed fields are not mutable
+        """
+        old_cube = self
+        # Fields that shouldn't be modified directly by the user
+        inmutable_fields = {"id",}
+
+        # Fields that can no longer be modified while in production
+        production_inmutable_fields = {
+            "mlcube_hash",
+            "parameters_hash",
+            "image_tarball_hash",
+            "additional_files_tarball_hash"
+        }
+        
+
+        if old_cube.state == "OPERATION":
+            inmutable_fields = inmutable_fields.union(production_inmutable_fields)
+
+        cube_diffs = DeepDiff(new_cube.todict(), old_cube.todict())
+        updated_fields = set(cube_diffs.affected_root_keys)
+
+        # Download any new files
+        # TODO: Download procedure should also update cube hashes and recheck difference
+        new_cube.download(updated_fields)
+
+        updated_inmutable_fields = updated_fields.intersection(inmutable_fields)
+
+        if not new_cube.valid():
+            msg = "Invalid MLCube configuration"
+            raise InvalidEntityError(msg)
+
+
+        if len(updated_inmutable_fields):
+            fields_msg = ", ".join(updated_inmutable_fields)
+            msg = (f"The following fields can't be directly edited: "\
+                    + fields_msg \
+                    + ". For these changes, a new MLCube is required")
+            raise InvalidArgumentError(msg)
 
     def update(self):
         """Updates the benchmark on the server

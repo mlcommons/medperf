@@ -1,6 +1,7 @@
 import os
 import yaml
 import logging
+from deepdiff import DeepDiff
 from pydantic import Field, validator
 from typing import List, Optional, Union
 
@@ -68,48 +69,6 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         self.labels_path = self.data_path
         if self.separate_labels:
             self.labels_path = os.path.join(self.path, "labels")
-
-    @classmethod
-    def __validate_edit(cls, old_dset: "Dataset", new_dset: "Dataset"):
-        """Determines if an update is valid given the changes made
-
-        Args:
-            old_dset (Dataset): The old version of the dataset
-            new_dset (Dataset): The updated version of the same dataset
-        
-        Raises:
-            InvalidArugmentError: The changed fields are not mutable
-        """
-
-        # Fields that shouldn't be modified directly by the user
-        inmutable_fields = {
-            "id",
-            "input_data_hash",
-            "generated_uid",
-            "separate_labels",
-            "generated_metadata",
-            "data_preparation_mlcube",
-        }
-
-        # Fields that can no longer be modified while in production
-        production_inmutable_fields = {
-            "name",
-            "split_seed"
-        }
-
-        if old_dset.state == "PRODUCTION":
-            inmutable_fields = inmutable_fields.join(production_inmutable_fields)
-
-        updated_field_values = set(new_dset.items()) - set(old_dset.items())
-        updated_fields = {field for field, _ in updated_field_values}
-        updated_inmutable_fields = updated_fields.intersection(inmutable_fields)
-
-        if len(updated_inmutable_fields):
-            fields_msg = ", ".join(updated_inmutable_fields)
-            msg = (f"The following fields can't be directly edited: " \
-                   + fields_msg \
-                   + ". For these changes, a new dataset is required")
-            raise InvalidArgumentError(msg)
 
     def todict(self):
         return self.extended_dict()
@@ -266,9 +225,49 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         data.update(kwargs)
         new_dset = Dataset(**data)
 
-        Dataset.__validate_edit(self, new_dset)
+        self.__validate_edit(new_dset)
 
-        self.__dict__ = new_dset.__dict__
+        self.__dict__.update(**new_dset.__dict__)
+
+    def __validate_edit(self, new_dset: "Dataset"):
+        """Determines if an update is valid given the changes made
+
+        Args:
+            new_dset (Dataset): The updated version of the same dataset
+        
+        Raises:
+            InvalidArugmentError: The changed fields are not mutable
+        """
+        old_dset = self
+        # Fields that shouldn't be modified directly by the user
+        inmutable_fields = {
+            "id",
+            "input_data_hash",
+            "generated_uid",
+            "separate_labels",
+            "generated_metadata",
+            "data_preparation_mlcube",
+        }
+
+        # Fields that can no longer be modified while in production
+        production_inmutable_fields = {
+            "name",
+            "split_seed"
+        }
+
+        if old_dset.state == "OPERATION":
+            inmutable_fields = inmutable_fields.union(production_inmutable_fields)
+
+        dset_diffs = DeepDiff(new_dset.todict(), old_dset.todict())
+        updated_fields = set(dset_diffs.affected_root_keys)
+        updated_inmutable_fields = updated_fields.intersection(inmutable_fields)
+
+        if len(updated_inmutable_fields):
+            fields_msg = ", ".join(updated_inmutable_fields)
+            msg = (f"The following fields can't be directly edited: " \
+                   + fields_msg \
+                   + ". For these changes, a new Dataset is required")
+            raise InvalidArgumentError(msg)
 
     def update(self):
         """Updates the benchmark on the server
