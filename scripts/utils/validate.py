@@ -1,138 +1,31 @@
-import os
 import yaml
+from schema import SchemaError
 
 from .bcolors import bcolors
-from .constants import (
-    WSPACE_PATH,
-    MLCUBE_FILE,
-    VALID_COMBINATIONS,
-    TASK_DEFINITIONS,
-    ADD_PATH,
-)
+from .constants import PARAMS_FILE, ADD_PATH
+from .schemas import schemas
 
 
-def is_valid(mlcube_path):
-    workspace_path = os.path.join(mlcube_path, WSPACE_PATH)
-    mlcube_manifest_path = os.path.join(mlcube_path, MLCUBE_FILE)
-    expected_paths = [mlcube_manifest_path]
-
+def validate_and_parse_manifest(mlcube_manifest_path, mlcube_types):
+    with open(mlcube_manifest_path, "r") as f:
+        mlcube = yaml.safe_load(f)
     try:
-        validate_path(expected_paths)
-
-        with open(mlcube_manifest_path, "r") as f:
-            mlcube = yaml.safe_load(f)
-
         check_runners(mlcube)
-        validate_singularity_image(mlcube, workspace_path)
-        validate_tasks(mlcube, workspace_path)
-    except RuntimeError as e:
+        found_files = validate_tasks(mlcube, mlcube_types)
+    except (RuntimeError, SchemaError) as e:
         print(f"{bcolors.FAIL}ERROR: {e}{bcolors.ENDC}")
-        return False
-    return True
+        exit()
 
+    required_files = {}
 
-def validate_singularity_image(mlcube, workspace_path):
-    if "singularity" not in mlcube or "image" not in mlcube["singularity"]:
-        return
+    required_files["singularity_image"] = False
+    if "singularity" in mlcube and "image" in mlcube["singularity"]:
+        required_files["singularity_image"] = mlcube["singularity"]["image"]
 
-    img_name = mlcube["singularity"]["image"]
-    img_path = os.path.join(workspace_path, ".image", img_name)
-    if not os.path.exists(img_path):
-        raise RuntimeError(f"Singularity image {img_path} not found.")
+    required_files["parameters_file"] = PARAMS_FILE in found_files
+    required_files["additional_files"] = ADD_PATH in found_files
 
-
-def validate_path(expected_paths):
-    if not all([os.path.exists(path) for path in expected_paths]):
-        expected_paths_str = "\n".join([f"\t- {path}" for path in expected_paths])
-        msg = (
-            "Couldn't find the expected paths. Please ensure the\n"
-            + "provided path is a valid mlcube, and that the following files\n"
-            + "exist in the given path:\n"
-            + f"{expected_paths_str}"
-        )
-        raise RuntimeError(msg)
-
-
-def validate_tasks(mlcube, workspace_path):
-    tasks = set(mlcube["tasks"])
-    valid_config_found = False
-    # Identify MLCube task configurations
-    for config_name, combination in VALID_COMBINATIONS.items():
-        if len(combination - tasks) == 0:
-            print(
-                f"{bcolors.OKGREEN}{config_name} configuration identified{bcolors.ENDC}"
-            )
-            valid_config_found = True
-
-    # Raise error if no valid task configuration was found
-    if not valid_config_found:
-        msg = (
-            "No valid task combination was found. "
-            + "Could not infer any medperf MLCube type. "
-            + "Please refer to the documentation on building medperf MLCubes"
-        )
-        raise RuntimeError(msg)
-
-    medperf_tasks = TASK_DEFINITIONS.keys()
-    for task, contents in mlcube["tasks"].items():
-        if task not in medperf_tasks:
-            continue
-        expected_parameters = TASK_DEFINITIONS[task]
-        validate_task(task, contents, expected_parameters, workspace_path)
-
-
-def validate_task(task, task_contents, expected_parameters, workspace_path):
-    types = ["inputs", "outputs"]
-    for type in types:
-        if type in expected_parameters:
-            validate_parameters(
-                task, task_contents, expected_parameters, type, workspace_path
-            )
-
-    validate_additional_parameters(task_contents, expected_parameters, workspace_path)
-
-
-def validate_parameters(task, task_contents, expected_parameters, type, workspace_path):
-    for exp_key, exp_val in expected_parameters[type].items():
-        validate_expected_param(
-            exp_key, exp_val, task, task_contents, type, workspace_path
-        )
-
-
-def validate_additional_parameters(task_contents, expected_parameters, workspace_path):
-    unexpected_params = set(task_contents["parameters"]["inputs"].keys()) - set(
-        expected_parameters["inputs"].keys()
-    )
-    for param in unexpected_params:
-        val = get_param_value(task_contents["parameters"]["inputs"][param])
-        if not val.startswith(ADD_PATH):
-            raise RuntimeError(
-                f'Additional Parameter "{val}" must point to a file in "{ADD_PATH}"'
-            )
-
-        add_file_path = os.path.join(workspace_path, val)
-        if not os.path.exists(add_file_path):
-            raise RuntimeError(f'Additional file "{add_file_path}" not found')
-
-
-def validate_expected_param(key, val, task, task_contents, type, workspace_path):
-    error_msg = f'Task "{task}" requires {type[:-1]} "{key}"'
-    if key not in task_contents["parameters"][type]:
-        raise RuntimeError(error_msg + " to be defined")
-
-    if val:
-        retrieved_val = get_param_value(task_contents["parameters"][type][key])
-        if retrieved_val != val:
-            raise RuntimeError(error_msg + f' to be assigned to "{val}"')
-        path = os.path.join(workspace_path, val)
-        if not os.path.exists(path):
-            raise RuntimeError(f'Path "{path}" configured for {key} does not exist')
-
-
-def get_param_value(val):
-    if isinstance(val, dict):
-        return val["default"]
-    return val
+    return required_files
 
 
 def check_runners(mlcube):
@@ -158,3 +51,14 @@ def check_runners(mlcube):
                 + "Only one image can be defined across runners"
             )
             raise RuntimeError(msg)
+
+
+def validate_tasks(mlcube, mlcube_types):
+    tasks = mlcube["tasks"]
+    found_files = set()
+    schemas_list = [schemas[type_] for type_ in mlcube_types]
+    for schema in schemas_list:
+        files = set()
+        schema.validate(tasks, files=files)
+        found_files = found_files.union(files)
+    return found_files
