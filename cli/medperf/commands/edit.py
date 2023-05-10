@@ -21,7 +21,9 @@ class EntityEdit:
         self.fields = fields
 
     def prepare(self):
-        self.entity = self.entity_class(self.id)
+        self.entity = self.entity_class.get(self.id)
+        # Filter out empty fields
+        self.fields = {k: v for k, v in self.fields.items() if v is not None}
 
     def validate(self):
         if not isinstance(self.entity, Updatable):
@@ -29,8 +31,9 @@ class EntityEdit:
 
     def edit(self):
         entity = self.entity
-        entity.edit(self.fields)
-        entity.write()
+        entity.edit(**self.fields)
 
         if isinstance(entity, Updatable) and entity.is_registered:
             entity.update()
+
+        entity.write()
