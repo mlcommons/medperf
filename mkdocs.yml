@@ -20,13 +20,12 @@ nav:
   - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
   - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
   - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
-  - Deploying MLCubes: mlcubes/mlcube_deploy.md
 
 - Concepts:
   - MedPerf Account: concepts/accounts.md
   - Client Configuration: concepts/profiles.md
   - MLCube Files: concepts/mlcube_files.md
-  - Hosting Files: concepts/hosting_files.md
+  - File Hosting: concepts/hosting_files.md
   - Benchmark Associations: concepts/associations.md
   - Model Priority: concepts/priorities.md
   - Running Specific Models: concepts/single_run.md

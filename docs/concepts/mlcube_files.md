@@ -27,11 +27,11 @@ tar -czf additional_files.tar.gz -C <path_to_mlcube>/workspace/additional_files 
 MLCubes execute a container image behind the scenes. This container image is usually hosted on a container registry, like docker hub. In cases where this is not possible, medperf provides the option of passing the image file directly. MLCubes that work with images outside of the docker registry usually store the image inside the `<path_to_mlcube>/workspace/.image` folder. MedPerf supports using container image files for Singularity only.
 
 !!! note
-   While we provide the option of hosting the singularity image directly, we encourage using a container registry for accesability and usability purposes. MLCube also has mechanisms for converting containers to other runners, like Docker to Singularity.
+    While we provide the option of hosting the singularity image directly, we encourage using a container registry for accesability and usability purposes. MLCube also has mechanisms for converting containers to other runners, like Docker to Singularity.
 
 ## Preparing an MLCube for hosting
 
-To facilitate hosting and implementation validation, we provide a script that finds all the required assets, compresses them if necessary, and places them in a single location for easy access. To run it:
+To facilitate hosting and implementation validation, we provide a script that finds all the required assets, compresses them if necessary, and places them in a single location for easy access. To run the script, make sure you have [medperf installed](../installation.md) and you are in medperf's root directory:
 
 ```bash
 python scripts/package-mlcube.py \
@@ -43,10 +43,16 @@ python scripts/package-mlcube.py \
 where:
 
   - `path/to/mlcube` is the path to the MLCube folder containing the manifest file (`mlcube.yaml`)
-  - `--mlcube-types` specifies a comma-separated list of MLCube types (e.g. is it a supposed to be a Preparation MLCube, Model MLcube, ...)
+  - `--mlcube-types` specifies a comma-separated list of MLCube types (e.g. is it supposed to be a Preparation MLCube, Model MLcube, ...)
   - `path/to/file.tar.gz` is a path to the output file where you want to store the compressed version of all assets.
+
+See `python scripts/package-mlcube.py --help` for more information.
 
 Once executed, you should be able to find all prepared assets at `./mlcube/assets`, as well as a compressed version of the `assets` folder at the output path provided.
 
 !!! note
     The `--output` parameter is optional. The compressed version of the `assets` folder can be useful in cases where you don't directly interact with the medperf server, but instead you do so through a third party. This is usually the case for challenges and competitions.
+
+## See Also
+
+- [File Hosting](hosting_files.md)
