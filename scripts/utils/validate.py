@@ -1,18 +1,20 @@
 import yaml
+import os
 from schema import SchemaError
 
 from .bcolors import bcolors
-from .constants import PARAMS_FILE, ADD_PATH
+from .constants import PARAMS_FILE, ADD_PATH, MLCUBE_FILE
 from .schemas import schemas
 
 
-def validate_and_parse_manifest(mlcube_manifest_path, mlcube_types):
-    with open(mlcube_manifest_path, "r") as f:
-        mlcube = yaml.safe_load(f)
+def validate_and_parse_manifest(mlcube_path, mlcube_types):
+    mlcube_manifest_path = os.path.join(mlcube_path, MLCUBE_FILE)
     try:
+        with open(mlcube_manifest_path, "r") as f:
+            mlcube = yaml.safe_load(f)
         check_runners(mlcube)
         found_files = validate_tasks(mlcube, mlcube_types)
-    except (RuntimeError, SchemaError) as e:
+    except (FileNotFoundError, RuntimeError, SchemaError) as e:
         print(f"{bcolors.FAIL}ERROR: {e}{bcolors.ENDC}")
         exit()
 

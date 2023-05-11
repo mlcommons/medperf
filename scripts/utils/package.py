@@ -14,12 +14,11 @@ def make_tarfile(source_dir, output_filename):
             tar.add(abs_path, arcname=os.path.basename(abs_path))
 
 
-def package(mlcube_manifest_path, required_files, output_path):
-    mlcube_path = os.path.dirname(os.path.abspath(mlcube_manifest_path))
-
+def package(mlcube_path, required_files, output_path):
     workspace_path = os.path.join(mlcube_path, WSPACE_PATH)
     parameters_path = os.path.join(workspace_path, PARAMS_FILE)
     additional_path = os.path.join(workspace_path, ADD_PATH)
+    mlcube_manifest_path = os.path.join(mlcube_path, MLCUBE_FILE)
 
     assets_path = os.path.join(mlcube_path, "assets")
     target_manifest_path = os.path.join(assets_path, MLCUBE_FILE)
