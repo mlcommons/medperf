@@ -8,7 +8,7 @@ def get_args():
         "Helper script to prepare an MLCube for medperf/challenge submission.\n"
         + "This script will create an 'assets' path with the files that need to be hosted\n"
         + "for medperf mlcube submission. Additionally, if an output path is provided,\n"
-        + "all deployment files are packaged into the output tarball file. Useful for competitions"
+        + "all assets are packaged into the output tarball file. Useful for competitions"
     )
 
     parser = argparse.ArgumentParser(prog="PackageMLCube", description=desc)
@@ -24,7 +24,7 @@ def get_args():
     )
     parser.add_argument(
         "--output",
-        help="(Optional) Output tarball path. If provided, the contents of the deploy folder are packaged into this file",
+        help="(Optional) Output tarball path. If provided, the contents of the assets folder are packaged into this file",
     )
     args = parser.parse_args()
     args.mlcube_types = args.mlcube_types.split(",")
