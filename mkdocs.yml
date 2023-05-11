@@ -24,8 +24,8 @@ nav:
 - Concepts:
   - MedPerf Account: concepts/accounts.md
   - Client Configuration: concepts/profiles.md
-  - MLCube Files: concepts/mlcube_files.md
-  - File Hosting: concepts/hosting_files.md
+  - MLCube Components: concepts/mlcube_files.md
+  - Hosting Files: concepts/hosting_files.md
   - Benchmark Associations: concepts/associations.md
   - Model Priority: concepts/priorities.md
   - Running Specific Models: concepts/single_run.md

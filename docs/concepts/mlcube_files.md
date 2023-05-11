@@ -1,10 +1,20 @@
-# MLCube Files Hosting: What to Host?
+# MLCube Components: What to Host?
 
 Once you have built an MLCube ready for MedPerf, you need to host it somewhere on the cloud so that it can be identified and retrieved by the MedPerf client on other machines. This requires hosting the MLCube components somewhere on the cloud. The following is a description of what needs to be hosted.
 
-## Components to be hosted
+## Hosting Your Container Image
 
-The following is the list of components that must be hosted separately so they can be used by MedPerf:
+MLCubes execute a container image behind the scenes. This container image is usually hosted on a container registry, like Docker Hub. In cases where this is not possible, medperf provides the option of passing the image file directly (i.e. having the [image file hosted somewhere](hosting_files.md) and providing MedPerf with the download link). MLCubes that work with images outside of the docker registry usually store the image inside the `<path_to_mlcube>/workspace/.image` folder. MedPerf supports using direct container image files **for Singularity only**.
+
+!!! note Note 1
+    While we provide the option of hosting the singularity image directly, we encourage using a container registry for accessability and usability purposes. MLCube also has mechanisms for converting containers to other runners, like Docker to Singularity.
+
+!!! note Note 2
+    Docker Images can be on any docker container registry, not necessarily on Docker Hub.
+
+## Files to be hosted
+
+The following is the list of files that must be hosted separately so they can be used by MedPerf:
 
 ### `mlcube.yaml`
 
@@ -21,13 +31,6 @@ MLCubes may require additional files that may be desired to keep separate from t
 ```bash
 tar -czf additional_files.tar.gz -C <path_to_mlcube>/workspace/additional_files .
 ```
-
-### `Singularity image` (Optional)
-
-MLCubes execute a container image behind the scenes. This container image is usually hosted on a container registry, like docker hub. In cases where this is not possible, medperf provides the option of passing the image file directly. MLCubes that work with images outside of the docker registry usually store the image inside the `<path_to_mlcube>/workspace/.image` folder. MedPerf supports using container image files for Singularity only.
-
-!!! note
-    While we provide the option of hosting the singularity image directly, we encourage using a container registry for accesability and usability purposes. MLCube also has mechanisms for converting containers to other runners, like Docker to Singularity.
 
 ## Preparing an MLCube for hosting
 
