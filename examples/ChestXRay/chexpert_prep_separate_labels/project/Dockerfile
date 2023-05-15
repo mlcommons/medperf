@@ -16,16 +16,14 @@ RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py && \
 	python3 get-pip.py && \
 	rm get-pip.py
 
-COPY ./requirements.txt project/requirements.txt 
+COPY ./requirements.txt /project/requirements.txt 
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install --no-cache-dir -r project/requirements.txt
+RUN pip3 install --no-cache-dir -r /project/requirements.txt
 
 ENV LANG C.UTF-8
 
 COPY . /project
 
-WORKDIR /project
-
-ENTRYPOINT ["python3", "mlcube.py"]
+ENTRYPOINT ["python3", "/project/mlcube.py"]
