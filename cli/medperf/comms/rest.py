@@ -296,7 +296,7 @@ class REST(Comms):
         res = self.__auth_put(f"{self.server_url}/benchmarks/{id}/", json=benchmark_dict)
         if res.status_code != 200:
             log_response_error(res)
-            raise CommunicationRequestError(f"Could not update benchmark")
+            raise CommunicationRequestError(f"Could not update benchmark: {res.text}")
 
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
@@ -322,7 +322,7 @@ class REST(Comms):
         res = self.__auth_put(f"{self.server_url}/mlcubes/{id}/", json=mlcube_dict)
         if res.status_code != 200:
             log_response_error(res)
-            raise CommunicationRequestError(f"Could not update mlcube")
+            raise CommunicationRequestError(f"Could not update mlcube: {res.text}")
 
     def get_datasets(self) -> List[dict]:
         """Retrieves all datasets in the platform
@@ -383,7 +383,7 @@ class REST(Comms):
         res = self.__auth_put(f"{self.server_url}/datasets/{id}/", json=dataset_dict)
         if res.status_code != 200:
             log_response_error(res)
-            raise CommunicationRequestError(f"Could not update dataset")
+            raise CommunicationRequestError(f"Could not update dataset: {res.text}")
 
     def get_results(self) -> List[dict]:
         """Retrieves all results
