@@ -91,7 +91,8 @@ def edit(
     ),
     evaluator_mlcube: int = typer.Option(
         None, "--evaluator-mlcube", "-e", help=EVAL_HELP
-    )
+    ),
+    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Flags a dataset valid/invalid. Invalid datasets can't be used for experiments")
 ):
     """Edits a benchmark"""
     benchmark_info = {
@@ -103,6 +104,7 @@ def edit(
         "data_preparation_mlcube": data_preparation_mlcube,
         "reference_model_mlcube": reference_model_mlcube,
         "data_evaluator_mlcube": evaluator_mlcube,
+        "is_valid": is_valid,
     }
     EntityEdit.run(Benchmark, entity_id, benchmark_info)
     cleanup()

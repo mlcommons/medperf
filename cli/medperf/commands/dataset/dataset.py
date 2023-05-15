@@ -11,13 +11,10 @@ from medperf.commands.dataset.create import DataPreparation
 from medperf.commands.dataset.submit import DatasetRegistration
 from medperf.commands.dataset.associate import AssociateDataset
 
-NAME_OPTION = typer.Option(..., "--name", help="Name of the dataset")
-DESC_OPTION = typer.Option(
-    ..., "--description", help="Description of the dataset"
-)
-LOC_OPTION = typer.Option(
-    ..., "--location", help="Location or Institution the data belongs to"
-)
+NAME_HELP = "Name of the dataset"
+DESC_HELP = "Description of the dataset"
+LOC_HELP = "Location or Institution the data belongs to"
+LOC_OPTION = typer.Option(..., "--location", help=LOC_HELP)
 
 app = typer.Typer()
 
@@ -52,9 +49,9 @@ def create(
     labels_path: str = typer.Option(
         ..., "--labels_path", "-l", help="Labels file location"
     ),
-    name: str = NAME_OPTION,
-    description: str = DESC_OPTION,
-    location: str = LOC_OPTION
+    name: str = typer.Option(..., "--name", help=NAME_HELP),
+    description: str = typer.Option(..., "--description", help=DESC_HELP),
+    location: str = typer.Option(..., "--location", help=LOC_HELP)
 ):
     """Runs the Data preparation step for a specified benchmark and raw dataset
     """
@@ -96,15 +93,17 @@ def register(
 @clean_except
 def edit(
     entity_id: int = typer.Argument(..., help="Dataset ID"),
-    name: str = NAME_OPTION,
-    description: str = DESC_OPTION,
-    location: str = LOC_OPTION
+    name: str = typer.Option(None, "--name", help=NAME_HELP),
+    description: str = typer.Option(None, "--description", help=DESC_HELP),
+    location: str = typer.Option(None, "--location", help=LOC_HELP),
+    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Flags a dataset valid/invalid. Invalid datasets can't be used for experiments")
 ):
     """Edits a Dataset"""
     dset_info = {
         "name": name,
         "description": description,
         "location": location,
+        "is_valid": is_valid,
     }
     EntityEdit.run(Dataset, entity_id, dset_info)
     config.ui.print("✅ Done!")

@@ -252,7 +252,9 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         # Fields that can no longer be modified while in production
         production_inmutable_fields = {
             "name",
-            "split_seed"
+            "split_seed",
+            "description",
+            "location"
         }
 
         if old_dset.state == "OPERATION":
@@ -275,7 +277,7 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         if not self.is_registered:
             raise MedperfException("Can't update an unregistered dataset")
         body = self.todict()
-        config.comms.update_dataset(body)
+        config.comms.update_dataset(self.id, body)
 
     @classmethod
     def __get_local_dict(cls, data_uid):
