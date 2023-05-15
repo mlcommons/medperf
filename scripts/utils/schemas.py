@@ -32,13 +32,20 @@ class TrackAdditionalFiles(Schema):
 
 # Setup extra inputs validators: params file and additional files
 
+# Chain validators using Schema's `And` class
 params_validator = And(
+    # Transform the input using `parse_value` function
     Use(parse_value),
+    # Validate literal value to be PARAMS_FILE, and track file
     TrackParamsFile(PARAMS_FILE),
     error=f'"parameters_file" to be assigned to "{PARAMS_FILE}"',
 )
+
+# Chain validators using Schema's `And` class
 additional_files_validator = And(
+    # Transform the input using `parse_value` function
     Use(parse_value),
+    # Validate according to regex, and track file
     TrackAdditionalFiles(Regex(rf"^{ADD_PATH}{os.path.sep}")),
     error=f'Additional inputs must point to files in "{ADD_PATH}"',
 )
