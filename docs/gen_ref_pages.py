@@ -13,6 +13,8 @@ build_params = [
     # ("server", "server", "", "reference"),
 ]
 
+exclude_paths = ["tests", "templates", "logging"]
+
 for path, mod, doc, full_doc in build_params:
     for path in sorted(Path(path).rglob("*.py")):
         module_path = path.relative_to(mod).with_suffix("")
@@ -28,9 +30,7 @@ for path, mod, doc, full_doc in build_params:
             continue
         if parts == ():
             continue
-        if parts[0] == "tests":
-            continue
-        if parts[0] == "templates":
+        if parts[0] in exclude_paths:
             continue
 
         nav[parts] = str(doc_path)  #
