@@ -38,7 +38,6 @@ log_file = "logs/medperf.log"
 loglevel = "info"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
-cube_hashes_filename = "mlcube-hashes.yaml"
 
 credentials_keyword = "credentials"
 default_profile_name = "default"

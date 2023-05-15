@@ -2,7 +2,7 @@ import os
 from typing import Optional
 from medperf.utils import generate_tmp_path, get_file_sha1, remove_path
 from .sources import supported_sources
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
 def __parse_resource(resource: str):
@@ -62,7 +62,9 @@ def verify_or_get_hash(tmp_output_path, expected_hash):
     if provided. The function returns the calculated hash."""
     calculated_hash = get_file_sha1(tmp_output_path)
     if expected_hash and expected_hash != calculated_hash:
-        raise InvalidArgumentError("Hash check failed")
+        raise InvalidEntityError(
+            f"Hash mismatch. Expected {expected_hash}, found {calculated_hash}."
+        )
     return calculated_hash
 
 
