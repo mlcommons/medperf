@@ -12,7 +12,7 @@ tutorial_id: model
 
 ## Overview
 
-This guide will walk you through the essentials of how a model owner can use MedPerf to participate in a benchmark. We highly recommend to the user to follow [this](../mlcubes/mlcube_models.md) tutorial first to implement their own model MLCube and use it throughout this tutorial. However, we provide an already implemented MLCube in case they want to directly proceed to learn how to interact with MedPerf.
+This guide will walk you through the essentials of how a model owner can use MedPerf to participate in a benchmark. We highly recommend to the user to follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) tutorial first to implement their own model MLCube and use it throughout this tutorial. However, we provide an already implemented MLCube in case they want to directly proceed to learn how to interact with MedPerf.
 
 The main tasks of this tutorial can be summarized as follows:
 
