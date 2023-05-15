@@ -16,33 +16,39 @@ from .utils import download_resource
 
 
 def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Downloads and writes an mlcube.yaml file from the server
+    """Downloads and writes an mlcube.yaml file. If the hash is provided,
+    the downloaded file's integrity will be checked.
 
     Args:
         url (str): URL where the mlcube.yaml file can be downloaded.
         cube_path (str): Cube location.
+        expected_hash (str, optional): expected sha1 hash of the downloaded file
 
     Returns:
-        str: location where the mlcube.yaml file is stored locally.
+        output_path (str): location where the mlcube.yaml file is stored locally.
+        hash_value (str): The hash of the downloaded file
     """
     output_path = os.path.join(cube_path, config.cube_filename)
-    hash = download_resource(url, output_path, expected_hash)
-    return output_path, hash
+    hash_value = download_resource(url, output_path, expected_hash)
+    return output_path, hash_value
 
 
 def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Retrieves the cube parameters.yaml file from the server
+    """Downloads and writes a cube parameters file. If the hash is provided,
+    the downloaded file's integrity will be checked.
 
     Args:
         url (str): URL where the parameters.yaml file can be downloaded.
         cube_path (str): Cube location.
+        expected_hash (str, optional): expected sha1 hash of the downloaded file
 
     Returns:
-        str: Location where the parameters.yaml file is stored locally.
+        output_path (str): location where the parameters file is stored locally.
+        hash_value (str): The hash of the downloaded file
     """
     output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
-    hash = download_resource(url, output_path, expected_hash)
-    return output_path, hash
+    hash_value = download_resource(url, output_path, expected_hash)
+    return output_path, hash_value
 
 
 def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
@@ -53,10 +59,11 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
     Args:
         url (str): URL where the image file can be downloaded.
         cube_path (str): Path to cube.
-        hash (str, Optional): File hash to store under shared storage. Defaults to None.
+        hash_value (str, Optional): File hash to store under shared storage. Defaults to None.
 
     Returns:
-        str: Location where the image file is stored locally.
+        image_cube_file: Location where the image file is stored locally.
+        hash_value (str): The hash of the downloaded file
     """
     image_path = config.image_path
     image_name = get_cube_image_name(cube_path)
@@ -90,20 +97,26 @@ def get_cube_additional(
     expected_tarball_hash: str = None,
     expected_folder_hash: str = None,
 ) -> str:
-    """Retrieves and stores the additional_files.tar.gz file from the server
+    """Retrieves additional files of an MLCube. The additional files
+    will be in a compressed tarball file. The function will extract this
+    file and returns the hash of its contents.
 
-    Note: there is no scenario of having expected_tarball_hash == None and
-    expected_folder_hash != None, since passing the expected_folder_hash is
-    something controlled by the client not the user. If the client has
-    expected_tarball_hash == None, then there is no way the client has
-    expected_folder_hash != None.
+    Note: there is no scenario of having `expected_tarball_hash == None` and
+    `expected_folder_hash != None` at the same time, since passing the
+    expected_folder_hash is something controlled by the client not the user.
+    If the client had `expected_tarball_hash == None`, then there is no way the
+    client would have expected_folder_hash != None.
 
     Args:
         url (str): URL where the additional_files.tar.gz file can be downloaded.
         cube_path (str): Cube location.
+        expected_tarball_hash (str, optional): expected sha1 hash of tarball file
+        expected_folder_hash (str, optional): expected sha1 hash of uncompressed
+        version of the tarball file
 
     Returns:
-        str: Location where the additional_files.tar.gz file is stored locally.
+        tarball_hash (str): The hash of the downloaded file
+        folder_hash (str): The hash of the uncompressed version of the downloaded file
     """
     additional_files_folder = os.path.join(cube_path, config.additional_path)
 
@@ -127,14 +140,16 @@ def get_cube_additional(
 
 
 def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
-    """Downloads the benchmark demo dataset and stores it in the user's machine
+    """Downloads and writes a demo dataset. If the hash is provided,
+    the downloaded file's integrity will be checked.
 
     Args:
-        demo_data_url (str): location of demo data for download
-        uid (str): UID to use for storing the demo dataset. Defaults to generate_tmp_uid().
+        url (str): URL where the compressed demo dataset file can be downloaded.
+        expected_hash (str, optional): expected sha1 hash of the downloaded file
 
     Returns:
-        str: path where the downloaded demo dataset can be found
+        output_path (str): location where the compressed demo dataset file is stored locally.
+        hash_value (str): The hash of the downloaded file
     """
     demo_storage = storage_path(config.demo_data_storage)
     if expected_hash:
@@ -144,14 +159,15 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
             # first, handle the possibility of having clutter uncompressed files
             remove_path(demo_dataset_folder)
             download_resource(url, output_path, expected_hash)
+        hash_value = expected_hash
     else:
         tmp_output_path = generate_tmp_path()
-        expected_hash = download_resource(url, tmp_output_path)
-        demo_dataset_folder = os.path.join(demo_storage, expected_hash)
+        hash_value = download_resource(url, tmp_output_path)
+        demo_dataset_folder = os.path.join(demo_storage, hash_value)
         output_path = os.path.join(demo_dataset_folder, config.tarball_filename)
         # first, handle the possibility of having clutter uncompressed files
         remove_path(demo_dataset_folder)
         os.makedirs(demo_dataset_folder)
         os.rename(tmp_output_path, output_path)
 
-    return output_path, expected_hash
+    return output_path, hash_value

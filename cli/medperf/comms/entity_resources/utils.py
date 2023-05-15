@@ -34,7 +34,7 @@ def __parse_resource(resource: str):
 
 def valid_file_exists(output_path, expected_hash):
     """Checks if the existing file matches the passed expected hash.
-    If it is not or no hash was passed, it will be removed
+    If it is not, or no hash was passed, it will be removed
     from the filesystem."""
 
     if expected_hash:
@@ -69,6 +69,7 @@ def verify_or_get_hash(tmp_output_path, expected_hash):
 
 
 def to_permanent_path(tmp_output_path, output_path):
+    """Writes a file from the temporary storage to the desired output path."""
     output_folder = os.path.dirname(os.path.abspath(output_path))
     os.makedirs(output_folder, exist_ok=True)
     os.rename(tmp_output_path, output_path)
