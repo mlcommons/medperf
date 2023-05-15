@@ -54,13 +54,13 @@ Assuming the test passes, we are ready to submit the MLCube to the MedPerf serve
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
 
-To prepare the files of our three MLCubes, run (make sure you are in MedPerf's root folder):
+To prepare the files of our MLCube, run (make sure you are in MedPerf's root folder):
 
 ```bash
-python scripts/package-mlcube.py medperf_tutorial/xrv_densenet/mlcube
+python scripts/package-mlcube.py --mlcube medperf_tutorial/xrv_densenet/mlcube --mlcube-types model
 ```
 
-This script will create a new folder in the MLCube directory, named `deploy`, containing all the files that should be hosted separately.
+This script will create a new folder in the MLCube directory, named `assets`, containing all the files that should be hosted separately.
 
 {% include "getting_started/shared/redirect_to_hosting_files.md" %}
 
