@@ -85,7 +85,7 @@ Assuming the test passes, we are ready to submit the MLCubes to the MedPerf serv
 To prepare the files of our three MLCubes, run (make sure you are in MedPerf's root folder):
 
 ```bash
-python scripts/package-mlcube.py --mlcube medperf_tutorial/chexpert_prep/mlcube --mlcube-types prep
+python scripts/package-mlcube.py --mlcube medperf_tutorial/chexpert_prep/mlcube --mlcube-types data-preparator
 python scripts/package-mlcube.py --mlcube medperf_tutorial/xrv_densenet/mlcube --mlcube-types model
 python scripts/package-mlcube.py --mlcube medperf_tutorial/metrics/mlcube --mlcube-types metrics
 ```

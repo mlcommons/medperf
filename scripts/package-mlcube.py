@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument(
         "--mlcube-types",
         help="""Comma-separated list of mlcube types to look for. Valid ones are:
-        'prep' for a data preparation MLCube, 'prep-sep' for a data preparation MLCube with
+        'data-preparator' for a data preparation MLCube, 'data-preparator-separate-labels' for a data preparation MLCube with
         separate output labels path, 'model' for a model MLCube, and 'metrics' for a metrics MLCube.""",
     )
     parser.add_argument(
@@ -28,7 +28,7 @@ def get_args():
     )
     args = parser.parse_args()
     args.mlcube_types = args.mlcube_types.split(",")
-    if not set(args.mlcube_types).issubset(["prep", "prep-sep", "model", "metrics"]):
+    if not set(args.mlcube_types).issubset(["data-preparator", "data-preparator-separate-labels", "model", "metrics"]):
         raise ValueError("Invalid MLCube type")
     return args
 

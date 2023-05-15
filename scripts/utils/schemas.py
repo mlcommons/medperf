@@ -137,8 +137,8 @@ METRICS_MLCUBE_TASKS = Schema(
 
 # Put the available schemas in a dict
 schemas = {
-    "prep": PREP_MLCUBE_TASKS,
-    "prep-sep": SEPARATE_LABELS_PREP_MLCUBE_TASKS,
+    "data-preparator": PREP_MLCUBE_TASKS,
+    "data-preparator-separate-labels": SEPARATE_LABELS_PREP_MLCUBE_TASKS,
     "model": MODEL_MLCUBE_TASKS,
     "metrics": METRICS_MLCUBE_TASKS,
 }

@@ -46,7 +46,7 @@ python scripts/package-mlcube.py \
 where:
 
   - `path/to/mlcube` is the path to the MLCube folder containing the manifest file (`mlcube.yaml`)
-  - `--mlcube-types` specifies a comma-separated list of MLCube types (e.g. is it supposed to be a Preparation MLCube, Model MLcube, ...)
+  - `--mlcube-types` specifies a comma-separated list of MLCube types ('data-preparator' for a data preparation MLCube, 'data-preparator-separate-labels' for a data preparation MLCube with separate output labels path, 'model' for a model MLCube, and 'metrics' for a metrics MLCube.)
   - `path/to/file.tar.gz` is a path to the output file where you want to store the compressed version of all assets.
 
 See `python scripts/package-mlcube.py --help` for more information.
