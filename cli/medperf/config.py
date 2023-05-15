@@ -77,6 +77,7 @@ templates = {
     "data_preparator": "templates/data_preparator_mlcube",
     "model": "templates/model_mlcube",
     "evaluator": "templates/evaluator_mlcube",
+    "gandlf": "templates/gandlf_mlcube",
 }
 
 # Temporary paths to cleanup that cannot be created in `tmp_storage`
