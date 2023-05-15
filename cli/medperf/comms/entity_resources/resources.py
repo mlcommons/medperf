@@ -138,13 +138,20 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
     """
     demo_storage = storage_path(config.demo_data_storage)
     if expected_hash:
-        output_path = os.path.join(demo_storage, expected_hash, config.tarball_filename)
+        demo_dataset_folder = os.path.join(demo_storage, expected_hash)
+        output_path = os.path.join(demo_dataset_folder, config.tarball_filename)
         if not os.path.exists(output_path):
+            # first, handle the possibility of having clutter uncompressed files
+            remove_path(demo_dataset_folder)
             download_resource(url, output_path, expected_hash)
     else:
         tmp_output_path = generate_tmp_path()
         expected_hash = download_resource(url, tmp_output_path)
-        output_path = os.path.join(demo_storage, expected_hash, config.tarball_filename)
+        demo_dataset_folder = os.path.join(demo_storage, expected_hash)
+        output_path = os.path.join(demo_dataset_folder, config.tarball_filename)
+        # first, handle the possibility of having clutter uncompressed files
+        remove_path(demo_dataset_folder)
+        os.makedirs(demo_dataset_folder)
         os.rename(tmp_output_path, output_path)
 
     return output_path, expected_hash
