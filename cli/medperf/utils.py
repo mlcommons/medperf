@@ -493,6 +493,25 @@ def log_response_error(res, warn=False):
         logging_method(res.content)
 
 
+def format_errors_dict(errors_dict: dict):
+    """Reformats the error details from a field-error(s) dictionary into a human-readable string for printing"""
+    error_msg = ""
+    for field, errors in errors_dict.items():
+        error_msg += "\n"
+        if isinstance(field, tuple):
+            field = field[0]
+        error_msg += f"- {field}: "
+        if len(errors) == 1:
+            # If a single error for a field is given, don't create a sublist
+            error_msg += errors[0]
+        else:
+            # Create a sublist otherwise
+            for e_msg in errors:
+                error_msg += "\n"
+                error_msg += f"\t- {e_msg}"
+    return error_msg
+
+
 def get_cube_image_name(cube_path: str) -> str:
     """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
     cube_config_path = os.path.join(cube_path, config.cube_filename)
