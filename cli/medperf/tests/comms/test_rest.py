@@ -122,8 +122,8 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     [
         ("get_benchmark", [1], {}, CommunicationRetrievalError),
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
-        ("upload_dataset", [{}], {"id": 1}, CommunicationRequestError),
-        ("upload_result", [{}], {"id": 1}, CommunicationRequestError),
+        ("upload_dataset", [{}], {"id": "invalid id"}, CommunicationRequestError),
+        ("upload_result", [{}], {"id": "invalid id"}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
         ("change_password", [{}], {"password": "pwd"}, CommunicationRequestError),
     ],
