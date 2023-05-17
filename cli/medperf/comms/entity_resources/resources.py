@@ -151,6 +151,10 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
         output_path (str): location where the compressed demo dataset file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
+    # TODO: at some point maybe it is better to download demo datasets in
+    # their benchmark folder. Doing this, we should then modify
+    # the compatibility test command and remove the option of directly passing
+    # demo datasets. This would look cleaner.
     demo_storage = storage_path(config.demo_data_storage)
     if expected_hash:
         demo_dataset_folder = os.path.join(demo_storage, expected_hash)

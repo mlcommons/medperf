@@ -1,14 +1,7 @@
-def cube_local_hashes_generator(valid=True, with_tarball=True, with_image=True):
-    local_hashes = {"additional_files_tarball_hash": "", "image_tarball_hash": ""}
+from medperf.utils import get_file_sha1
 
-    if with_tarball:
-        local_hashes["additional_files_tarball_hash"] = (
-            "additional_files_tarball_hash" if valid else "incorrect_hash"
-        )
 
-    if with_image:
-        local_hashes["image_tarball_hash"] = (
-            "image_tarball_hash" if valid else "incorrect_hash"
-        )
-
-    return local_hashes
+def calculate_fake_file_hash(fs, contents):
+    # TODO: should calculate the hash of a string in memory
+    fs.create_file("some_file", contents=contents)
+    return get_file_sha1("some_file")
