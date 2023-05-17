@@ -1,13 +1,8 @@
 import os
 import typer
-import subprocess
+from model_def import XRVInference
 
 app = typer.Typer()
-
-
-def exec_python(cmd: str) -> None:
-    splitted_cmd = cmd.split()
-    subprocess.run(splitted_cmd, cwd=".", check=True)
 
 
 class InferTask(object):
@@ -21,8 +16,7 @@ class InferTask(object):
 
     @staticmethod
     def run(data_path: str, weights: str, out_path: str) -> None:
-        cmd = f"python3 model.py --data_path={data_path} --weights={weights} --out_path={out_path}"
-        exec_python(cmd)
+        XRVInference.run(data_path, weights, out_path)
 
 
 @app.command("hotfix")
