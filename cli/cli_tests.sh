@@ -101,6 +101,16 @@ curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "data", "l
 
 ##########################################################
 echo "=========================================="
+echo "Printing MedPerf version"
+echo "=========================================="
+medperf --version
+checkFailed "MedPerf version failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "=========================================="
 echo "Setting and activating the testing profile"
 echo "=========================================="
 medperf profile create -n mocktest --server=${SERVER_URL} --certificate=${CERT_FILE}
