@@ -1,4 +1,16 @@
-"""haha"""
+"""This module downloads files from the internet. It provides a set of
+functions to download common files that are necessary for workflow executions
+and are not on the MedPerf server. An example of such files is model weights
+of a Model MLCube.
+
+This module takes care of validating the integrity of the downloaded file
+if a hash was specified when requesting the file. It also returns the hash
+of the downloaded file, which can be the original specified hash or the
+calculated hash of the freshly downloaded file if no hash was specified.
+
+Additionally, to avoid unnecessary downloads, an existing file with
+a valid integrity will not be re-downloaded.
+"""
 
 import shutil
 import os
