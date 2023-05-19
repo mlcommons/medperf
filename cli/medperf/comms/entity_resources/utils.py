@@ -47,7 +47,15 @@ def valid_file_exists(output_path, expected_hash):
 
 
 def tmp_download_resource(resource):
-    """Downloads a resource to the temporary storage."""
+    """Downloads a resource to the temporary storage.
+
+    Args:
+        resource (str): The resource string. Must be in the form <source_prefix>:<resource_identifier>
+        or a url.
+
+    Returns:
+        tmp_output_path (str): The location where the resource was downloaded
+    """
 
     tmp_output_path = generate_tmp_path()
     source_class, resource_identifier = __parse_resource(resource)
