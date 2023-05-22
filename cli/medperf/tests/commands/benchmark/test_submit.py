@@ -63,9 +63,8 @@ def test_get_extra_information_retrieves_expected_info(
     submission = SubmitBenchmark(BENCHMARK_INFO)
     mocker.patch(
         PATCH_BENCHMARK.format("resources.get_benchmark_demo_dataset"),
-        return_value="demo_path",
+        return_value=("_", demo_hash),
     )
-    mocker.patch(PATCH_BENCHMARK.format("get_file_sha1"), return_value=demo_hash)
     mocker.patch(
         PATCH_BENCHMARK.format("SubmitBenchmark.run_compatibility_test"),
         return_value=(demo_uid, results),

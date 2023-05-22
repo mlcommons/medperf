@@ -39,7 +39,10 @@ def mock_dataset(mocker, state_variables):
     dataset_prep_cube = state_variables["dataset_prep_cube"]
 
     def __get_side_effect(id):
-        return TestDataset(id=id, data_preparation_mlcube=dataset_prep_cube,)
+        return TestDataset(
+            id=id,
+            data_preparation_mlcube=dataset_prep_cube,
+        )
 
     mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
 
@@ -58,22 +61,17 @@ def mock_cube(mocker, state_variables):
     evaluator = state_variables["evaluator"]
 
     def __get_side_effect(id):
-        return TestCube(id=id)
-
-    mocker.patch(PATCH_EXECUTION.format("Cube.get"), side_effect=__get_side_effect)
-
-    def __valid_side_effect(cube):
+        cube = TestCube(id=id)
         if cube.id == evaluator["uid"]:
             if evaluator["invalid"]:
                 raise InvalidEntityError
             else:
-                return
+                return cube
         if models_props[cube.id] == "invalid":
             raise InvalidEntityError
+        return cube
 
-    mocker.patch(
-        PATCH_EXECUTION.format("check_cube_validity"), side_effect=__valid_side_effect
-    )
+    mocker.patch(PATCH_EXECUTION.format("Cube.get"), side_effect=__get_side_effect)
 
 
 def mock_execution(mocker, state_variables):
@@ -98,9 +96,18 @@ def setup(request, mocker, ui, fs):
         "dataset_prep_cube": 1,
         "cached_results_triplets": [[1, 2, 1], [2, 4, 1]],
         "models_props": {
-            2: {"results": {"res": 41}, "partial": False,},
-            4: {"results": {"res": 1}, "partial": False,},
-            5: {"results": {"res": 66}, "partial": True,},
+            2: {
+                "results": {"res": 41},
+                "partial": False,
+            },
+            4: {
+                "results": {"res": 1},
+                "partial": False,
+            },
+            5: {
+                "results": {"res": 66},
+                "partial": True,
+            },
             6: "exec_error",
             7: "invalid",
         },
@@ -205,11 +212,17 @@ class TestDefaultSetup:
         if not ignore_failed_experiments:
             with pytest.raises(ExecutionError):
                 BenchmarkExecution.run(
-                    1, 2, models_uids=[fail_model_uid], ignore_failed_experiments=False,
+                    1,
+                    2,
+                    models_uids=[fail_model_uid],
+                    ignore_failed_experiments=False,
                 )
         else:
             BenchmarkExecution.run(
-                1, 2, models_uids=[fail_model_uid], ignore_failed_experiments=True,
+                1,
+                2,
+                models_uids=[fail_model_uid],
+                ignore_failed_experiments=True,
             )
             self.spies["ui_error"].assert_called_once()
 
@@ -229,7 +242,10 @@ class TestDefaultSetup:
                 )
         else:
             BenchmarkExecution.run(
-                1, 2, models_uids=[invalid_model_uid], ignore_failed_experiments=True,
+                1,
+                2,
+                models_uids=[invalid_model_uid],
+                ignore_failed_experiments=True,
             )
             self.spies["ui_error"].assert_called_once()
 

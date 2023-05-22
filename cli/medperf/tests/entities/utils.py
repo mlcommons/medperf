@@ -51,15 +51,6 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
 
 
 # Setup Cube
-def generate_cube_hashes(**kwargs):
-    return {
-        "additional_files_tarball_hash": kwargs.get(
-            "additional_files_tarball_hash", "additional_files_tarball_hash"
-        ),
-        "image_tarball_hash": kwargs.get("image_tarball_hash", "image_tarball_hash"),
-    }
-
-
 def setup_cube_fs(ents, fs):
     cubes_path = storage_path(config.cubes_storage)
     for ent in ents:
@@ -70,14 +61,10 @@ def setup_cube_fs(ents, fs):
         meta_cube_file = os.path.join(
             cubes_path, str(id), config.cube_metadata_filename
         )
-        hash_cube_file = os.path.join(cubes_path, str(id), config.cube_hashes_filename)
         cube = TestCube(**ent)
         meta = cube.dict()
-        hash_keys = ("additional_files_tarball_hash", "image_tarball_hash")
-        hashes = {k: v for k, v in meta.items() if k in hash_keys}
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
-            fs.create_file(hash_cube_file, contents=yaml.dump(hashes))
         except FileExistsError:
             pass
 
@@ -107,6 +94,9 @@ def generate_cubefile_fn(fs, path, filename):
         except FileExistsError:
             pass
         hash = get_file_sha1(filepath)
+        # special case: tarball file
+        if filename == config.tarball_filename:
+            return hash
         return filepath, hash
 
     return cubefile_fn

@@ -7,7 +7,6 @@ import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
-    check_cube_validity,
     remove_path,
     generate_tmp_path,
     get_folder_sha1,
@@ -104,7 +103,6 @@ class DataPreparation:
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
-        check_cube_validity(self.cube)
 
     def run_cube_tasks(self):
         prepare_timeout = config.prepare_timeout
