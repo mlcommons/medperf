@@ -92,9 +92,10 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
     imgs_storage = base_storage_path(config.images_storage)
     if not hash_value:
         # No hash provided, we need to download the file first
-        hash_value = download_resource(url, image_cube_file)
+        tmp_output_path = generate_tmp_path()
+        hash_value = download_resource(url, tmp_output_path)
         img_storage = os.path.join(imgs_storage, hash_value)
-        shutil.move(image_cube_file, img_storage)
+        shutil.move(tmp_output_path, img_storage)
     else:
         img_storage = os.path.join(imgs_storage, hash_value)
         if not os.path.exists(img_storage):
