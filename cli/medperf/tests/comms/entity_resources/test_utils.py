@@ -4,7 +4,6 @@ from medperf.tests.utils import calculate_fake_file_hash
 import pytest
 from medperf.comms.entity_resources import sources, utils
 import synapseclient
-from medperf.utils import get_file_sha1
 
 # prefixes
 DIRECT = sources.DirectLinkSource.prefix
@@ -27,7 +26,7 @@ def setup_download_side_effect(mocker, fs):
     )
 
 
-class TestNoCacheWithNoHash:
+class TestWithNoHash:
     @pytest.fixture(autouse=True)
     def synapse_client(self, mocker):
         mock = mocker.create_autospec(synapseclient.Synapse)
@@ -72,42 +71,8 @@ class TestNoCacheWithNoHash:
 
 
 # From here, we will be using only the direct link source
-class TestCacheAndHash:
-    def test_existing_file_with_valid_hash(self, mocker, fs):
-        # Arrange
-        output_path = "out"
-        fs.create_file(output_path)
-        expected_hash = get_file_sha1(output_path)
-
-        download_spy = mocker.spy(utils, "tmp_download_resource")
-
-        # Act
-        utils.download_resource("https://url.com", output_path, expected_hash)
-
-        # Assert
-        download_spy.assert_not_called()
-
-    @pytest.mark.parametrize(
-        "expected_hash",
-        ["", "some unmatching hash"],
-    )
-    def test_existing_file_with_invalid_or_unspecified_hash(
-        self, mocker, fs, expected_hash
-    ):
-        # Arrange
-        output_path = "out"
-        fs.create_file(output_path)
-
-        download_spy = mocker.spy(utils, "tmp_download_resource")
-        mocker.patch.object(utils, "verify_or_get_hash")
-
-        # Act
-        utils.download_resource("https://url.com", output_path, expected_hash)
-
-        # Assert
-        download_spy.assert_called_once()
-
-    def test_nocache_and_invalid_hash(self, fs):
+class TestWithHash:
+    def test_download_with_invalid_hash(self, fs):
         # Arrange
         output_path = "out"
         expected_hash = "some unmatching hash"
@@ -116,7 +81,7 @@ class TestCacheAndHash:
         with pytest.raises(InvalidEntityError):
             utils.download_resource("https://url.com", output_path, expected_hash)
 
-    def test_nocache_and_valid_hash(self, fs):
+    def test_download_with_valid_hash(self, fs):
         # Arrange
         output_path = "out"
 

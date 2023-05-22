@@ -1,6 +1,6 @@
 import os
 from typing import Optional
-from medperf.utils import generate_tmp_path, get_file_sha1, remove_path
+from medperf.utils import generate_tmp_path, get_file_sha1
 from .sources import supported_sources
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
@@ -30,20 +30,6 @@ def __parse_resource(resource: str):
     in the following format: '<source_prefix>:<resource_identifier>'. Run
     `medperf mlcube submit --help` for more details."""
     raise InvalidArgumentError(msg)
-
-
-def valid_file_exists(output_path, expected_hash):
-    """Checks if the existing file matches the passed expected hash.
-    If it is not, or no hash was passed, it will be removed
-    from the filesystem."""
-
-    if expected_hash:
-        file_hash = get_file_sha1(output_path)
-        if file_hash == expected_hash:
-            return True
-
-    remove_path(output_path)
-    return False
 
 
 def tmp_download_resource(resource):
@@ -90,8 +76,6 @@ def download_resource(
     If hash is provided, the downloaded file's hash will be checked and an error
     will be raised if it is incorrect.
 
-    The file will not be re-downloaded if it already exists and has the correct hash.
-
     Upon success, the function returns the hash of the downloaded file.
 
     Args:
@@ -104,9 +88,6 @@ def download_resource(
         The hash of the downloaded file (or existing file)
 
     """
-    if os.path.exists(output_path) and valid_file_exists(output_path, expected_hash):
-        return expected_hash
-
     tmp_output_path = tmp_download_resource(resource)
 
     calculated_hash = verify_or_get_hash(tmp_output_path, expected_hash)

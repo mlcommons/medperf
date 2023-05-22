@@ -56,7 +56,6 @@ def prepare_local_cube(path):
             "parameters_hash": "",
             "image_tarball_hash": "",
             "additional_files_tarball_hash": "",
-            "additional_files_folder_hash": "",
             "for_test": True,
         }
         metadata = Cube(**temp_metadata).todict()

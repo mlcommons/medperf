@@ -38,7 +38,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     image_tarball_hash: Optional[str]
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
-    additional_files_folder_hash: Optional[str]
     metadata: dict = {}
     user_metadata: dict = {}
 
@@ -196,11 +195,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            file_hash, folder_hash = resources.get_cube_additional(
+            file_hash = resources.get_cube_additional(
                 url, self.path, self.additional_files_tarball_hash
             )
             self.additional_files_tarball_hash = file_hash
-            self.additional_files_folder_hash = folder_hash
 
     def download_image(self):
         url = self.image_tarball_url

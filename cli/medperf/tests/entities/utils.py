@@ -96,8 +96,7 @@ def generate_cubefile_fn(fs, path, filename):
         hash = get_file_sha1(filepath)
         # special case: tarball file
         if filename == config.tarball_filename:
-            folder_hash = ""
-            return hash, folder_hash
+            return hash
         return filepath, hash
 
     return cubefile_fn

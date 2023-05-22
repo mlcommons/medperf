@@ -68,11 +68,8 @@ class TestGetAdditionalFiles:
     @pytest.fixture(autouse=True)
     def class_setup(self, mocker):
         mocker.patch.object(resources, "untar")
-        mocker.patch.object(resources, "get_folder_sha1", return_value="folder_hash")
 
-    def test_get_additional_files_does_not_download_if_valid_folder_hash(
-        self, mocker, fs
-    ):
+    def test_get_additional_files_does_not_download_if_folder_exists(self, mocker, fs):
         # Arrange
         cube_path = "cube/1"
         additional_files_folder = os.path.join(cube_path, config.additional_path)
@@ -80,24 +77,7 @@ class TestGetAdditionalFiles:
         spy = mocker.spy(resources, "download_resource")
 
         # Act
-        resources.get_cube_additional(
-            url, cube_path, expected_folder_hash="folder_hash"
-        )
+        resources.get_cube_additional(url, cube_path)
 
         # Assert
         spy.assert_not_called()
-
-    def test_get_additional_files_downloads_if_invalid_folder_hash(self, mocker, fs):
-        # Arrange
-        cube_path = "cube/1"
-        additional_files_folder = os.path.join(cube_path, config.additional_path)
-        fs.create_dir(additional_files_folder)
-        spy = mocker.spy(resources, "download_resource")
-
-        # Act
-        resources.get_cube_additional(
-            url, cube_path, expected_folder_hash="unmatching folder hash"
-        )
-
-        # Assert
-        spy.assert_called_once()

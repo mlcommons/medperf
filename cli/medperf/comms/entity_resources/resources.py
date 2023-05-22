@@ -8,8 +8,8 @@ if a hash was specified when requesting the file. It also returns the hash
 of the downloaded file, which can be the original specified hash or the
 calculated hash of the freshly downloaded file if no hash was specified.
 
-Additionally, to avoid unnecessary downloads, an existing file with
-a valid integrity will not be re-downloaded.
+Additionally, to avoid unnecessary downloads, an existing file
+will not be re-downloaded.
 """
 
 import shutil
@@ -19,7 +19,6 @@ from medperf.utils import (
     base_storage_path,
     generate_tmp_path,
     get_cube_image_name,
-    get_folder_sha1,
     remove_path,
     storage_path,
     untar,
@@ -29,7 +28,7 @@ from .utils import download_resource
 
 def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
     """Downloads and writes an mlcube.yaml file. If the hash is provided,
-    the downloaded file's integrity will be checked.
+    the downloaded file's integrity will be checked upon download.
 
     Args:
         url (str): URL where the mlcube.yaml file can be downloaded.
@@ -41,13 +40,15 @@ def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
         hash_value (str): The hash of the downloaded file
     """
     output_path = os.path.join(cube_path, config.cube_filename)
+    if os.path.exists(output_path):
+        return output_path, expected_hash
     hash_value = download_resource(url, output_path, expected_hash)
     return output_path, hash_value
 
 
 def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
     """Downloads and writes a cube parameters file. If the hash is provided,
-    the downloaded file's integrity will be checked.
+    the downloaded file's integrity will be checked upon download.
 
     Args:
         url (str): URL where the parameters.yaml file can be downloaded.
@@ -59,6 +60,8 @@ def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
         hash_value (str): The hash of the downloaded file
     """
     output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
+    if os.path.exists(output_path):
+        return output_path, expected_hash
     hash_value = download_resource(url, output_path, expected_hash)
     return output_path, hash_value
 
@@ -104,51 +107,35 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
 
 
 def get_cube_additional(
-    url: str,
-    cube_path: str,
-    expected_tarball_hash: str = None,
-    expected_folder_hash: str = None,
+    url: str, cube_path: str, expected_tarball_hash: str = None,
 ) -> str:
     """Retrieves additional files of an MLCube. The additional files
-    will be in a compressed tarball file. The function will extract this
-    file and returns the hash of its contents.
-
-    Note: there is no scenario of having `expected_tarball_hash == None` and
-    `expected_folder_hash != None` at the same time, since passing the
-    expected_folder_hash is something controlled by the client not the user.
-    If the client had `expected_tarball_hash == None`, then there is no way the
-    client would have expected_folder_hash != None.
+    will be in a compressed tarball file. The function will additionally
+    extract this file.
 
     Args:
         url (str): URL where the additional_files.tar.gz file can be downloaded.
         cube_path (str): Cube location.
         expected_tarball_hash (str, optional): expected sha1 hash of tarball file
-        expected_folder_hash (str, optional): expected sha1 hash of uncompressed
-        version of the tarball file
 
     Returns:
         tarball_hash (str): The hash of the downloaded file
-        folder_hash (str): The hash of the uncompressed version of the downloaded file
     """
     additional_files_folder = os.path.join(cube_path, config.additional_path)
 
-    # If the additional_files folder exists, check if it has the expected hash
-    if expected_folder_hash and os.path.exists(additional_files_folder):
-        folder_hash = get_folder_sha1(additional_files_folder)
-        if folder_hash == expected_folder_hash:
-            return expected_tarball_hash, expected_folder_hash
+    if os.path.exists(additional_files_folder):
+        return expected_tarball_hash
 
-    # Remove the folder if it exists
-    remove_path(additional_files_folder)
+    # make sure files are uncompressed while in tmp storage, to avoid any clutter
+    # objects if uncompression fails for some reason.
+    tmp_output_folder = generate_tmp_path()
+    output_tarball_path = os.path.join(tmp_output_folder, config.tarball_filename)
+    tarball_hash = download_resource(url, output_tarball_path, expected_tarball_hash)
 
-    # Download the tarball file as usual
-    output_path = os.path.join(additional_files_folder, config.tarball_filename)
-    tarball_hash = download_resource(url, output_path, expected_tarball_hash)
+    untar(output_tarball_path)
+    os.rename(tmp_output_folder, additional_files_folder)
 
-    # Untar and keep track of the folder hash.
-    untar(output_path)
-    folder_hash = get_folder_sha1(additional_files_folder)
-    return tarball_hash, folder_hash
+    return tarball_hash
 
 
 def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
