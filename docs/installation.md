@@ -53,10 +53,10 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
     cd medperf
     ```
 
-3. Install MedPerf package:
+3. Install MedPerf from source:
 
     ```bash
-    pip install cli
+    pip install -e ./cli
     ```
 
 4. Verify the installation:
