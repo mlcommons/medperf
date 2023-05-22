@@ -28,7 +28,7 @@ from .utils import download_resource
 
 def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
     """Downloads and writes an mlcube.yaml file. If the hash is provided,
-    the downloaded file's integrity will be checked upon download.
+    the file's integrity will be checked upon download.
 
     Args:
         url (str): URL where the mlcube.yaml file can be downloaded.
@@ -48,7 +48,7 @@ def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
 
 def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
     """Downloads and writes a cube parameters file. If the hash is provided,
-    the downloaded file's integrity will be checked upon download.
+    the file's integrity will be checked upon download.
 
     Args:
         url (str): URL where the parameters.yaml file can be downloaded.
@@ -120,7 +120,7 @@ def get_cube_additional(
         expected_tarball_hash (str, optional): expected sha1 hash of tarball file
 
     Returns:
-        tarball_hash (str): The hash of the downloaded file
+        tarball_hash (str): The hash of the downloaded tarball file
     """
     additional_files_folder = os.path.join(cube_path, config.additional_path)
 
@@ -140,16 +140,16 @@ def get_cube_additional(
 
 
 def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
-    """Downloads and writes a demo dataset. If the hash is provided,
-    the downloaded file's integrity will be checked.
+    """Downloads and extracts a demo dataset. If the hash is provided,
+    the file's integrity will be checked upon download.
 
     Args:
         url (str): URL where the compressed demo dataset file can be downloaded.
         expected_hash (str, optional): expected sha1 hash of the downloaded file
 
     Returns:
-        output_path (str): location where the compressed demo dataset file is stored locally.
-        hash_value (str): The hash of the downloaded file
+        output_path (str): location where the uncompressed demo dataset is stored locally.
+        hash_value (str): The hash of the downloaded tarball file
     """
     # TODO: at some point maybe it is better to download demo datasets in
     # their benchmark folder. Doing this, we should then modify
@@ -158,21 +158,21 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
     # Possible cons: if multiple benchmarks use the same demo dataset.
     demo_storage = storage_path(config.demo_data_storage)
     if expected_hash:
+        # If the folder exists, return
         demo_dataset_folder = os.path.join(demo_storage, expected_hash)
-        output_path = os.path.join(demo_dataset_folder, config.tarball_filename)
-        if not os.path.exists(output_path):
-            # first, handle the possibility of having clutter uncompressed files
-            remove_path(demo_dataset_folder)
-            download_resource(url, output_path, expected_hash)
-        hash_value = expected_hash
-    else:
-        tmp_output_path = generate_tmp_path()
-        hash_value = download_resource(url, tmp_output_path)
-        demo_dataset_folder = os.path.join(demo_storage, hash_value)
-        output_path = os.path.join(demo_dataset_folder, config.tarball_filename)
-        # first, handle the possibility of having clutter uncompressed files
-        remove_path(demo_dataset_folder)
-        os.makedirs(demo_dataset_folder)
-        os.rename(tmp_output_path, output_path)
+        if os.path.exists(demo_dataset_folder):
+            return demo_dataset_folder, expected_hash
 
-    return output_path, hash_value
+    # make sure files are uncompressed while in tmp storage, to avoid any clutter
+    # objects if uncompression fails for some reason.
+    tmp_output_folder = generate_tmp_path()
+    output_tarball_path = os.path.join(tmp_output_folder, config.tarball_filename)
+    hash_value = download_resource(url, output_tarball_path, expected_hash)
+
+    untar(output_tarball_path)
+    demo_dataset_folder = os.path.join(demo_storage, hash_value)
+    if os.path.exists(demo_dataset_folder):
+        # handle the possibility of having clutter uncompressed files
+        remove_path(demo_dataset_folder)
+    os.rename(tmp_output_folder, demo_dataset_folder)
+    return demo_dataset_folder, hash_value

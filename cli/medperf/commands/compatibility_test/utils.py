@@ -1,8 +1,4 @@
-from medperf.utils import (
-    untar,
-    storage_path,
-    get_folder_sha1,
-)
+from medperf.utils import storage_path, get_folder_sha1
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -22,20 +18,18 @@ def download_demo_data(dset_url, dset_hash):
         labels_path (str): Location of the downloaded labels
     """
     try:
-        file_path, _ = resources.get_benchmark_demo_dataset(dset_url, dset_hash)
+        demo_dset_path, _ = resources.get_benchmark_demo_dataset(dset_url, dset_hash)
     except InvalidEntityError as e:
         raise InvalidEntityError(f"Demo dataset {dset_url}: {e}")
 
-    untar_path = untar(file_path, remove=False)
-
     # It is assumed that all demo datasets contain a file
     # which specifies the input of the data preparation step
-    paths_file = os.path.join(untar_path, config.demo_dset_paths_file)
+    paths_file = os.path.join(demo_dset_path, config.demo_dset_paths_file)
     with open(paths_file, "r") as f:
         paths = yaml.safe_load(f)
 
-    data_path = os.path.join(untar_path, paths["data_path"])
-    labels_path = os.path.join(untar_path, paths["labels_path"])
+    data_path = os.path.join(demo_dset_path, paths["data_path"])
+    labels_path = os.path.join(demo_dset_path, paths["labels_path"])
     return data_path, labels_path
 
 
