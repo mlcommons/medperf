@@ -2,7 +2,6 @@ import os
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.exceptions import InvalidEntityError
 from medperf.utils import remove_path
 
 
@@ -33,8 +32,6 @@ class SubmitCube:
 
     def download(self):
         self.cube.download()
-        if not self.cube.valid():
-            raise InvalidEntityError("MLCube hash check failed. Submission aborted.")
 
     def upload(self):
         updated_body = self.cube.upload()
