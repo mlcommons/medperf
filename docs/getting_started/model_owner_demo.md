@@ -12,32 +12,32 @@ tutorial_id: model
 
 ## Overview
 
-This guide will walk you through the essentials of how a model owner can use MedPerf to participate in a benchmark. We highly recommend to the user to follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) tutorial first to implement their own model MLCube and use it throughout this tutorial. However, we provide an already implemented MLCube in case they want to directly proceed to learn how to interact with MedPerf.
+In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. It's highly recommend that you to follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) tutorial first to implement your own model MLCube and use it throughout this tutorial. However, this guide provide an already implemented MLCube if you want to directly proceed to learn how to interact with MedPerf.
 
-The main tasks of this tutorial can be summarized as follows:
+The main tasks of this guide are:
 
-1. Test your MLCube compatibility with the benchmark
-2. Submit your MLCube
-3. Request participation in a benchmark
+1. Testing MLCube compatibility with the benchmark.
+2. Submitting the MLCube.
+3. Requesting participation in a benchmark.
 
-We assume that you had [set up the general testing environment](setup.md).
+It's assumed that you have already set up the general testing environment as explained in the [setup guide](setup.md).
 
 {% include "getting_started/shared/before_we_start.md" %}
 
 ## 1. Test your MLCube Compatibility
 
-Before submitting your MLCube, it's highly recommended that you test your MLCube compatibility with the benchmarks of interest to avoid later edits and multiple submissions. Your MLCube should be compatible with the benchmark workflow in two main ways:
+Before submitting your MLCube, it is highly recommended that you test your MLCube compatibility with the benchmarks of interest to avoid later edits and multiple submissions. Your MLCube should be compatible with the benchmark workflow in two main ways:
 
-1. It should expect a certain data input structure
-2. Its outputs should follow a certain structure expected by the benchmark's metrics evaluator MLCube
+1. It should expect a specific data input structure
+2. Its outputs should follow a particular structure expected by the benchmark's metrics evaluator MLCube
 
-These details usually should be acquired by reaching out to the benchmark committee and following their instructions.
+These details should usually be acquired by contacting the Benchmark Committee and following their instructions.
 
 To test your MLCube validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In our case, it is going to be `1`.
 
 Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we will be using is `medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml`.
 
-Now run the compatibility test:
+After that, run the compatibility test:
 
 ```bash
 medperf test run \
@@ -46,21 +46,21 @@ medperf test run \
 
 ```
 
-Assuming the test passes, we are ready to submit the MLCube to the MedPerf server.
+Assuming the test passes sucessfuly, you are ready to submit the MLCube to the MedPerf server.
 
-## 2. Submitting the MLCube
+## 2. Submit the MLCube
 
 #### How does MedPerf Recognize an MLCube?
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
 
-To prepare the files of our MLCube, run (make sure you are in MedPerf's root folder):
+To prepare the files of our three MLCubes, run the following command ensuring you are in MedPerf's root folder:
 
 ```bash
 python scripts/package-mlcube.py --mlcube medperf_tutorial/xrv_densenet/mlcube --mlcube-types model
 ```
 
-This script will create a new folder in the MLCube directory, named `assets`, containing all the files that should be hosted separately.
+This script will create a new folder in the MLCube directory, named `deploy`, containing all the files that should be hosted separately.
 
 {% include "getting_started/shared/redirect_to_hosting_files.md" %}
 
@@ -68,25 +68,25 @@ This script will create a new folder in the MLCube directory, named `assets`, co
 
 The submission should include the URLs of all the hosted files. For our tutorial's MLCube:
 
-a. The URL to the hosted mlcube manifest file:
+- The URL to the hosted mlcube manifest file is
 
-```text
-{{ page.meta.model_mlcube }}
-```
+   ```text
+   {{ page.meta.model_mlcube }}
+   ```
 
-b. The URL to the hosted mlcube parameters file:
+- The URL to the hosted mlcube parameters file is
 
-```text
-{{ page.meta.model_params }}
-```
+   ```text
+   {{ page.meta.model_params }}
+   ```
 
-c. The URL to the hosted additional files tarball file:
+- The URL to the hosted additional files tarball file is
 
-```text
-{{ page.meta.model_add }}
-```
+   ```text
+   {{ page.meta.model_add }}
+   ```
 
-Command to submit:
+Use the following command to submit:
 
 ```bash
 medperf mlcube submit \
@@ -104,9 +104,9 @@ medperf mlcube ls --mine
 
 ## 3. Request Participation
 
-Benchmarks are run by data owners. Data owners will get notified when a new model was added to a benchmark so that they can run the model and submit a new result to the benchmark. In order for your model to be part of the benchmark, you have to request association.
+Benchmarks are run by Data Owners, which will get notified when a new model is added to a benchmark. Therefore, they can run the model and submit a new result to the benchmark. You must request the association for your model to be part of the benchmark.
 
-To initiate an association request, you need to collect these information:
+To initiate an association request, you need to collect the following information:
 
 - The target benchmark ID, which is `1`
 - The server UID of your MLCube, which is `4`.
@@ -117,10 +117,10 @@ Run the following command to request associating your MLCube with the benchmark:
 medperf mlcube associate --benchmark 1 --model_uid 4
 ```
 
-This command will first run the benchmark's workflow on your model to ensure it is compatible. After that, the association request information are printed to the screen, which includes an execution summary of the test mentioned. You will be prompted to confirm sending these information and initiating this association request.
+This command will first run the benchmark's workflow on your model to ensure your model is compatible with the benchmark workflow. Then, the association request information is printed on the screen, which includes an executive summary of the test mentioned. You will be prompted to confirm sending this information and initiating this association request.
 
 #### What Happens After Requesting the Association?
 
-When you are participating with a real benchmark, you have to wait for the benchmark committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your MLCube and the benchmark you are requesting to be associated with.
+When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your MLCube and the benchmark you are requesting association.
 
 {% include "getting_started/shared/cleanup.md" %}
