@@ -1,13 +1,14 @@
 # Overview
 
-This set of tutorials will cover the basic usage of MedPerf. We will present a guided walkthrough of a simple benchmarking scenario through an example.
-The example will simulate benchmarking the task of chest X-ray classification. It will involve the roles of the three entities of interest:
+In this getting started section, you will understand the fundamentals of MedPerf through a straightforward benchmarking example, which involves the simulation of a chest X-rays classification process. 
 
-- **The benchmark committee:** This will simulate a user that wants to kick-off a benchmark on Chest X-ray classification. Their main actions involve defining, creating, and submitting the benchmark, as well as managing experiments (e.g. approve which datasets and models can participate)
-- **The model owner:** This will simulate a researcher that wants to test the performance of their deep learning model (a ResNet model) on chest-Xray classification. Their main actions involve submitting a model MLCube and requesting participation in the benchmark.
-- **The data owner:** This will simulate a hospital that has raw chest X-ray data and wants to allow testing deep learning models on their data while keeping it private. Their main actions involve preparing the data, submitting the metadata of the prepared dataset, requesting participation in the benchmark, execute the benchmark models on the prepared dataset, and submitting the results of the execution.
+First of all, you will learn about the roles of three key entities involved in this scenario, including:  
 
-Before proceeding, make sure you have the [MedPerf client installed.](../installation.md), and you have [set up](setup.md) the general testing environment. Depending on how you are going to use MedPerf, we provide the following hands-on tutorials:
+- **Benchmark Committee:** The Benchmark Commitee will simulate a user that wants to kick off a benchmark on Chest X-ray classification. Their main actions involve defining, creating, and submitting the benchmark, as well as managing experiments (e.g., approving which datasets and models will be allowed to participate)
+- **Model Owner:** The Model Owner will simulate a researcher who wants to test the performance of their deep learning (a ResNet model) on chest-Xray classification. The main actions of this entity involve submitting a model MLCube and requesting participation in the benchmark.
+- **Data Owner:** The Data Owner will simulate a hospital that has a raw chest X-ray data and wants to allow testing deep learning models on their data while keeping it private. The main actions of this entity involve preparing the data, submitting the metadata of the prepared dataset, requesting participation in the benchmark, executing the benchmark models on the prepared dataset, and submitting the results of the execution.
+
+Before proceeding, make sure you have the [MedPerf client installed](../installation.md) and the general testing environment [set up](setup.md). The following list provides useful links to hands-on tutorials that can help you get started with MedPerf:
 
 - [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
 
