@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
-from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
+from medperf.exceptions import ExecutionError, MedperfException
 
 
 def setup_logging(log_lvl):
@@ -304,21 +304,6 @@ def generate_tmp_path() -> str:
     tmp_path = os.path.join(config.tmp_storage, generate_tmp_uid())
     tmp_path = storage_path(tmp_path)
     return os.path.abspath(tmp_path)
-
-
-def check_cube_validity(cube: "Cube"):
-    """Helper function for pretty printing the cube validity process.
-
-    Args:
-        cube (Cube): Cube to check for validity
-    """
-    logging.info(f"Checking cube {cube.name} validity")
-    ui = config.ui
-    ui.text = "Checking cube MD5 hash..."
-    if not cube.valid():
-        raise InvalidEntityError("MD5 hash doesn't match")
-    logging.info(f"Cube {cube.name} is valid")
-    ui.print(f"> {cube.name} MD5 hash check complete")
 
 
 def untar(filepath: str, remove: bool = True) -> str:

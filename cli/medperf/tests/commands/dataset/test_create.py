@@ -105,17 +105,6 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once_with(cube_uid)
 
-    def test_get_prep_cube_checks_validity(self, mocker, preparation):
-        # Arrange
-        mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
-        spy = mocker.patch(PATCH_DATAPREP.format("check_cube_validity"))
-
-        # Act
-        preparation.get_prep_cube()
-
-        # Assert
-        spy.assert_called_once_with(preparation.cube)
-
     def test_run_cube_tasks_runs_required_tasks(self, mocker, preparation):
         # Arrange
         spy = mocker.patch.object(preparation.cube, "run")

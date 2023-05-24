@@ -12,8 +12,6 @@ PATCH_MLCUBE = "medperf.commands.mlcube.submit.{}"
 @pytest.fixture
 def cube(mocker):
     mocker.patch(PATCH_MLCUBE.format("Cube.download"))
-    mocker.patch(PATCH_MLCUBE.format("Cube.get_local_hashes"))
-    mocker.patch(PATCH_MLCUBE.format("Cube.valid"), return_value=True)
     mocker.patch(PATCH_MLCUBE.format("Cube.upload"))
     mocker.patch(PATCH_MLCUBE.format("Cube.write"))
     return TestCube()
@@ -94,11 +92,9 @@ def test_upload_uploads_using_entity(mocker, comms, ui, cube):
 def test_download_executes_expected_commands(mocker, comms, ui, cube):
     submission = SubmitCube(cube.todict())
     down_spy = mocker.patch(PATCH_MLCUBE.format("Cube.download"))
-    valid_spy = mocker.patch(PATCH_MLCUBE.format("Cube.valid"))
 
     # Act
     submission.download()
 
     # Assert
     down_spy.assert_called_once_with()
-    valid_spy.assert_called_once_with()

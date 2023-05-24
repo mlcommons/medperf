@@ -1,11 +1,10 @@
 import os
-import logging
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import remove_path, get_file_sha1, generate_tmp_uid
-from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 from medperf.exceptions import InvalidEntityError
+from medperf.utils import remove_path
+from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 from medperf.comms.entity_resources import resources
 
 
@@ -50,14 +49,10 @@ class SubmitBenchmark:
         """
         bmk_demo_url = self.bmk.demo_dataset_tarball_url
         bmk_demo_hash = self.bmk.demo_dataset_tarball_hash
-        tmp_uid = bmk_demo_hash if bmk_demo_hash else generate_tmp_uid()
-        demo_dset_path = resources.get_benchmark_demo_dataset(bmk_demo_url, tmp_uid)
-        demo_hash = get_file_sha1(demo_dset_path)
-        if bmk_demo_hash and demo_hash != bmk_demo_hash:
-            logging.error(f"Demo dataset hash mismatch: {demo_hash} != {bmk_demo_hash}")
-            raise InvalidEntityError(
-                "Demo dataset hash does not match the provided hash"
-            )
+        try:
+            _, demo_hash = resources.get_benchmark_demo_dataset(bmk_demo_url, bmk_demo_hash)
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"Demo dataset {bmk_demo_url}: {e}")
         self.bmk.demo_dataset_tarball_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.bmk.demo_dataset_generated_uid = demo_uid
