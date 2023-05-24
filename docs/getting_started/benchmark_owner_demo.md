@@ -138,7 +138,7 @@ For the Reference Model MLCube, the submission should include:
     {{ model_params }}
     ```
 
--The URL to the hosted additional files tarball file:
+- The URL to the hosted additional files tarball file:
 
     ```text
     {{ model_add }}
