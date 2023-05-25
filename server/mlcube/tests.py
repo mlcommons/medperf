@@ -1,11 +1,13 @@
 import string
 import random
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
 from medperf.tests import MedPerfTest
+
+User = get_user_model()
 
 
 class MlCubeTest(MedPerfTest):
