@@ -5,6 +5,7 @@ from collections import defaultdict
 
 from medperf.enums import Status
 from medperf.exceptions import MedperfException
+from medperf.utils import format_errors_dict
 
 
 class MedperfBaseSchema(BaseModel):
@@ -22,18 +23,7 @@ class MedperfBaseSchema(BaseModel):
                 errors_dict[field].append(msg)
 
             error_msg = "Field Validation Error:"
-            for field, errors in errors_dict.items():
-                error_msg += "\n"
-                field = field[0]
-                error_msg += f"- {field}: "
-                if len(errors) == 1:
-                    # If a single error for a field is given, don't create a sublist
-                    error_msg += errors[0]
-                else:
-                    # Create a sublist otherwise
-                    for e_msg in errors:
-                        error_msg += "\n"
-                        error_msg += f"\t- {e_msg}"
+            error_msg += format_errors_dict(errors_dict)
 
             raise MedperfException(error_msg)
 
