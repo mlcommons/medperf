@@ -18,9 +18,11 @@ MLCUBE_HELP = "Identifier to download the mlcube file. See the description above
 MLCUBE_HASH_HELP = "SHA1 of mlcube file"
 PARAMS_HELP = "Identifier to download the parameters file. See the description above"
 PARAMS_HASH_HELP = "SHA1 of parameters file"
-ADD_HELP = "Identifier to download the additional files tarball. See the description above"
+ADD_HELP = (
+    "Identifier to download the additional files tarball. See the description above"
+)
 ADD_HASH_HELP = "SHA1 of additional file"
-IMG_HELP = "Identifier to download the image file. See the description above" 
+IMG_HELP = "Identifier to download the image file. See the description above"
 IMG_HASH_HELP = "SHA1 of image file"
 
 
@@ -77,18 +79,14 @@ def submit(
         "-p",
         help=PARAMS_HELP,
     ),
-    parameters_hash: str = typer.Option(
-        "", "--parameters-hash", help=PARAMS_HASH_HELP
-    ),
+    parameters_hash: str = typer.Option("", "--parameters-hash", help=PARAMS_HASH_HELP),
     additional_file: str = typer.Option(
         "",
         "--additional-file",
         "-a",
         help=ADD_HELP,
     ),
-    additional_hash: str = typer.Option(
-        "", "--additional-hash", help=ADD_HASH_HELP
-    ),
+    additional_hash: str = typer.Option("", "--additional-hash", help=ADD_HASH_HELP),
     image_file: str = typer.Option(
         "",
         "--image-file",
@@ -153,9 +151,7 @@ def edit(
         "-a",
         help=ADD_HELP,
     ),
-    additional_hash: str = typer.Option(
-        None, "--additional-hash", help=ADD_HASH_HELP
-    ),
+    additional_hash: str = typer.Option(None, "--additional-hash", help=ADD_HASH_HELP),
     image_file: str = typer.Option(
         None,
         "--image-file",
@@ -163,7 +159,11 @@ def edit(
         help=IMG_HELP,
     ),
     image_hash: str = typer.Option(None, "--image-hash", help=IMG_HASH_HELP),
-    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Flags an MLCube valid/invalid. Invalid MLCubes can't be used for experiments")
+    is_valid: bool = typer.Option(
+        None,
+        "--valid/--invalid",
+        help="Flags an MLCube valid/invalid. Invalid MLCubes can't be used for experiments",
+    ),
 ):
     """Edits an MLCube"""
     mlcube_info = {
@@ -176,6 +176,7 @@ def edit(
         "image_tarball_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
+        "is_valid": is_valid,
     }
     EntityEdit.run(Cube, entity_id, mlcube_info)
     config.ui.print("✅ Done!")
@@ -188,7 +189,9 @@ def associate(
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute the test even if results already exist",
     ),
 ):
     """Associates an MLCube to a benchmark"""
@@ -221,6 +224,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more mlcubes
-    """
+    """Displays the information of one or more mlcubes"""
     EntityView.run(entity_id, Cube, format, local, mine, output)

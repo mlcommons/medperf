@@ -178,35 +178,37 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         cube = cls(**local_meta)
         return cube
 
-    def download_mlcube(self):
+    def download_mlcube(self, force=False):
         url = self.git_mlcube_url
-        path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
+        path, file_hash = resources.get_cube(
+            url, self.path, self.mlcube_hash, force=force
+        )
         self.cube_path = path
         self.mlcube_hash = file_hash
 
-    def download_parameters(self):
+    def download_parameters(self, force=False):
         url = self.git_parameters_url
         if url:
             path, file_hash = resources.get_cube_params(
-                url, self.path, self.parameters_hash
+                url, self.path, self.parameters_hash, force=force
             )
             self.params_path = path
             self.parameters_hash = file_hash
 
-    def download_additional(self):
+    def download_additional(self, force=False):
         url = self.additional_files_tarball_url
         if url:
             file_hash = resources.get_cube_additional(
-                url, self.path, self.additional_files_tarball_hash
+                url, self.path, self.additional_files_tarball_hash, force=force
             )
             self.additional_files_tarball_hash = file_hash
 
-    def download_image(self):
+    def download_image(self, force=False):
         url = self.image_tarball_url
         hash = self.image_tarball_hash
 
         if url:
-            _, local_hash = resources.get_cube_image(url, self.path, hash)
+            _, local_hash = resources.get_cube_image(url, self.path, hash, force=force)
             self.image_tarball_hash = local_hash
         else:
             # Retrieve image from image registry
@@ -308,15 +310,35 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
     def edit(self, **kwargs):
         """Edits a cube with the given property-value pairs"""
         data = self.todict()
+
+        # Include the updated fields
         data.update(kwargs)
         new_cube = Cube(**data)
+
+        # If any resource is being updated, download and get the new hash
+        # Hash difference checking is done between the old and new cube
+        # According to update policies
+        if "git_mlcube_url" in kwargs:
+            new_cube.mlcube_hash = kwargs.get("mlcube_hash", None)
+            new_cube.download_mlcube(force=True)
+        if "git_parameters_url" in kwargs:
+            new_cube.parameters_hash = kwargs.get("parameters_hash", None)
+            new_cube.download_parameters(force=True)
+        if "image_tarball_url" in kwargs:
+            new_cube.image_tarball_hash = kwargs.get("image_tarball_hash", None)
+            new_cube.download_image(force=True)
+        if "additional_files_tarball_url" in kwargs:
+            new_cube.additional_files_tarball_hash = kwargs.get(
+                "additional_files_tarball_hash", None
+            )
+            new_cube.download_additional(force=True)
 
         self.__validate_edit(new_cube)
 
         self.__dict__.update(**new_cube.__dict__)
 
     def __validate_edit(self, new_cube: "Cube"):
-        """Validates that an edit is valid given the changes made
+        """Ensure an edit is valid given the changes made
 
         Args:
             new_cube (Cube): The new version of the same MLCube
@@ -345,15 +367,7 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         cube_diffs = DeepDiff(new_cube.todict(), old_cube.todict())
         updated_fields = set(cube_diffs.affected_root_keys)
 
-        # Download any new files
-        # TODO: Download procedure should also update cube hashes and recheck difference
-        new_cube.download(updated_fields)
-
         updated_inmutable_fields = updated_fields.intersection(inmutable_fields)
-
-        if not new_cube.valid():
-            msg = "Invalid MLCube configuration"
-            raise InvalidEntityError(msg)
 
         if len(updated_inmutable_fields):
             fields_msg = ", ".join(updated_inmutable_fields)
@@ -369,7 +383,7 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         if not self.is_registered:
             raise MedperfException("Can't update an unregistered cube")
         body = self.todict()
-        config.comms.update_mlcube(body)
+        config.comms.update_mlcube(self.id, body)
 
     def todict(self) -> Dict:
         return self.extended_dict()
