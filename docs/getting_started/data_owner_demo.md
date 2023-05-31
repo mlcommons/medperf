@@ -6,7 +6,7 @@ tutorial_id: data
 
 ## Overview
 
-This guide provides you with the necessary steps to effectively use MedPerf as a Data Owner. The key tasks can be summarized as follows:
+This guide provides you with the necessary steps to use MedPerf as a Data Owner. The key tasks can be summarized as follows:
 
 1. Prepare your data.
 2. Submit your data information.
@@ -32,7 +32,7 @@ To prepare your data, you need to collect the following information:
 !!! note
     The `data_path` and `labels_path` are determined according to the input path requirements of the data preparation MLCube. To ensure that your data is structured correctly, it is recommended to check with the Benchmark Committee for specific details or instructions.
 
-In order to obtain the benchmark ID, you can execute the following command to view the list of available benchmarks.
+In order to find the benchmark ID, you can execute the following command to view the list of available benchmarks.
 
 ```bash
 medperf benchmark ls
@@ -73,16 +73,15 @@ Run the following command to submit your dataset information to the MedPerf serv
 medperf dataset submit --data_uid {{ page.meta.prepared_hash }}
 ```
 
-Once you run this command, the information to be submitted will be displayed on the screen and you will be asked to confirm your submission. 
+Once you run this command, the information to be submitted will be displayed on the screen and you will be asked to confirm your submission.
 
 After successfully submitting your dataset, you can proceed to request participation in the benchmark by initiating an association request.
 
-
 ## 3. Request Participation
 
-For submitting the results of executing the benchmark models on your data in the future, you must associate your data with the benchmark. To do so, you need to provide the target benchmark ID, which is `1` and the server UID of your data. 
+For submitting the results of executing the benchmark models on your data in the future, you must associate your data with the benchmark.
 
-Once you have submitted your dataset to the server, it will be assigned a server UID, which you can find by running `medperf dataset ls --mine`. Your dataset's server UID is also `1`. 
+Once you have submitted your dataset to the server, it will be assigned a server UID, which you can find by running `medperf dataset ls --mine`. Your dataset's server UID is also `1`.
 
 Run the following command to request associating your dataset with the benchmark:
 
@@ -94,7 +93,7 @@ This command will first run the benchmark's reference model on your dataset to e
 
 #### How to proceed after requesting association
 
-When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your dataset and the benchmark you are requesting association.
+When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your dataset and the benchmark with which you are requesting association.
 
 _For the sake of continuing our tutorial only_, run the following to simulate the benchmark committee approving your association (make sure you are in the MedPerf's root directory):
 
@@ -107,8 +106,8 @@ You can verify if your association request has been approved by running `medperf
 ## 4. Execute the Benchmark
 
 Let's run the benchmark now! We have a command that runs all the models related to the benchmark effortlessly. You only need to provide two parameters:
- 
-- The benchmark ID you want to target, which is `1`.
+
+- The benchmark ID you want to run, which is `1`.
 - The server UID of your data, which is `1`.
 
 For that, run the following command:
@@ -135,7 +134,7 @@ Total number of models: 2
 This means that the benchmark has two models:
 
 - A model that you already ran when you requested the association. This explains why it was skipped.
-- Another model that ran successfully. For ou example, its result generated UID is `b1m4d1`.
+- Another model that ran successfully. For our example, its result generated UID is `b1m4d1`.
 
 You can view the results by running the following command with the specific local result UID (in our case: `b1m4d1`):
 
@@ -149,7 +148,7 @@ For now, your results are only local. Next, you will learn how to submit the res
 
 After executing the benchmark, you will submit a result to the MedPerf server. To do so, you have to find the target result generated UID.
 
-For our example, we will be submitting the result of UID `b1m4d1`. Theefore, run the following command:
+For our example, we will be submitting the result of UID `b1m4d1`. To do this, run the following command:
 
 ```bash
 medperf result submit --result b1m4d1
@@ -159,6 +158,6 @@ The information that is going to be submitted will be printed to the screen and 
 
 {% include "getting_started/shared/cleanup.md" %}
 
-## Additional Instructions
+## See Also
 
 - [Running a Single Model.](../concepts/single_run.md)
