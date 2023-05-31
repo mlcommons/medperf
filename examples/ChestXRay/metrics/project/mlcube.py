@@ -1,7 +1,9 @@
 """MLCube handler file"""
 import os
 import typer
-import subprocess
+import yaml
+import pandas as pd
+from metrics import AUC, F1, reformat_data
 
 
 app = typer.Typer()
@@ -18,11 +20,29 @@ class EvaluateTask(object):
     def run(
         labels_csv: str, preds_csv: str, parameters_file: str, output_file: str
     ) -> None:
-        cmd = f"python3 metrics.py --labels_csv={labels_csv} --preds_csv={preds_csv} --parameters_file={parameters_file} --output_file={output_file}"
-        splitted_cmd = cmd.split()
+        with open(parameters_file, "r") as f:
+            params = yaml.full_load(f)
 
-        subprocess.run(splitted_cmd, cwd=".", check=True)
-        
+        labels = pd.read_csv(labels_csv)
+        preds = pd.read_csv(preds_csv)
+
+        labels = reformat_data(labels, params)
+        preds = reformat_data(preds, params)
+
+        available_metrics = {
+            "AUC": AUC,
+            "F1": F1,
+        }
+        results = {}
+        cols = list(labels.columns)
+        for metric_name in params["metrics"]:
+            metric = available_metrics[metric_name]
+            scores = metric.run(labels, preds)
+            scores = {col: score for col, score in zip(cols, scores)}
+            results[metric_name] = scores
+
+        with open(output_file, "w") as f:
+            yaml.dump(results, f)
 
 
 @app.command("evaluate")

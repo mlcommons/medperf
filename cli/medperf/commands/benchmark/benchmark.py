@@ -2,7 +2,6 @@ import typer
 from typing import Optional
 
 import medperf.config as config
-from medperf.utils import cleanup
 from medperf.decorators import clean_except
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.list import EntityList
@@ -70,7 +69,6 @@ def submit(
         "data_evaluator_mlcube": evaluator_mlcube,
     }
     SubmitBenchmark.run(benchmark_info)
-    cleanup()
     config.ui.print("✅ Done!")
 
 

@@ -7,15 +7,15 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
+from medperf.utils import combine_proc_sp_text, list_files, storage_path
 from medperf.entities.interface import Entity, Updatable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
+    InvalidEntityError,
     MedperfException,
     CommunicationRetrievalError,
-    InvalidEntityError,
 )
 import medperf.config as config
 from medperf.comms.entity_resources import resources
@@ -114,7 +114,7 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         """
         comms_fn = config.comms.get_cubes
         if "owner" in filters and filters["owner"] == config.current_user["id"]:
-            comms_fn = config.comms.get_user_results
+            comms_fn = config.comms.get_user_cubes
 
         return comms_fn
 
@@ -158,20 +158,10 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
                 logging.info(f"Retrieving MLCube {cube_uid} from local storage")
                 cube = cls.__local_get(cube_uid)
 
-        if cube.valid():
-            return cube
-
-        try:
-            cube.download()
-        except CommunicationRetrievalError as e:
-            cleanup([cube.path])
-            logging.error(f"Could not download the mlcube files of {cube_uid}")
-            raise e
-
-        if cube.valid():
-            return cube
-        cleanup([cube.path])
-        raise InvalidEntityError(f"MLCube {cube_uid} files hash check failed")
+        if not cube.is_valid:
+            raise InvalidEntityError("The requested MLCube is marked as INVALID.")
+        cube.download()
+        return cube
 
     @classmethod
     def __remote_get(cls, cube_uid: int) -> "Cube":
@@ -190,31 +180,26 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path, local_hash = resources.get_cube(url, self.path)
-        if not self.mlcube_hash:
-            self.mlcube_hash = local_hash
+        path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
         self.cube_path = path
-        return local_hash
+        self.mlcube_hash = file_hash
 
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path, local_hash = resources.get_cube_params(url, self.path)
-            if not self.parameters_hash:
-                self.parameters_hash = local_hash
+            path, file_hash = resources.get_cube_params(
+                url, self.path, self.parameters_hash
+            )
             self.params_path = path
-            return local_hash
-        return ""
+            self.parameters_hash = file_hash
 
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path, local_hash = resources.get_cube_additional(url, self.path)
-            if not self.additional_files_tarball_hash:
-                self.additional_files_tarball_hash = local_hash
-            untar(path)
-            return local_hash
-        return ""
+            file_hash = resources.get_cube_additional(
+                url, self.path, self.additional_files_tarball_hash
+            )
+            self.additional_files_tarball_hash = file_hash
 
     def download_image(self):
         url = self.image_tarball_url
@@ -222,9 +207,7 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
 
         if url:
             _, local_hash = resources.get_cube_image(url, self.path, hash)
-            if not self.image_tarball_hash:
-                self.image_tarball_hash = local_hash
-            return local_hash
+            self.image_tarball_hash = local_hash
         else:
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
@@ -233,49 +216,28 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
             proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
             proc.close()
-            return ""
 
-    def download(self, provided_fields: List[str] = None):
+    def download(self):
         """Downloads the required elements for an mlcube to run locally."""
         try:
-            local_hashes = self.get_local_hashes()
-        except FileNotFoundError:
-            local_hashes = {}
+            self.download_mlcube()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} manifest file: {e}")
 
-        if provided_fields is None or "git_mlcube_url" in provided_fields:
-            local_hashes["mlcube_hash"] = self.download_mlcube()
-        if provided_fields is None or "git_parameters_url" in provided_fields:
-            local_hashes["parameters_hash"] = self.download_parameters()
-        if provided_fields is None or "additional_files_tarball_url" in provided_fields:
-            local_hashes["additional_files_tarball_hash"] = self.download_additional()
-        if provided_fields is None or "image_tarball_url" in provided_fields:
-            local_hashes["image_tarball_hash"] = self.download_image()
-
-        self.store_local_hashes(local_hashes)
-
-    def valid(self) -> bool:
-        """Checks the validity of the cube and related files through hash checking.
-
-        Returns:
-            bool: Wether the cube and related files match the expeced hashes
-        """
         try:
-            local_hashes = self.get_local_hashes()
-        except FileNotFoundError:
-            logging.warning("Local MLCube files not found. Defaulting to invalid")
-            return False
+            self.download_parameters()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
-        valid_cube = self.is_valid
-        valid_hashes = True
-        server_hashes = self.todict()
-        for key in local_hashes:
-            if local_hashes[key]:
-                if local_hashes[key] != server_hashes[key]:
-                    valid_hashes = False
-                    msg = f"{key.replace('_', ' ')} doesn't match"
-                    logging.warning(msg)
+        try:
+            self.download_additional()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} additional files: {e}")
 
-        return valid_cube and valid_hashes
+        try:
+            self.download_image()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
 
     def run(
         self,
@@ -344,8 +306,7 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         return out_path
 
     def edit(self, **kwargs):
-        """Edits a cube with the given property-value pairs
-        """
+        """Edits a cube with the given property-value pairs"""
         data = self.todict()
         data.update(kwargs)
         new_cube = Cube(**data)
@@ -366,16 +327,17 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         """
         old_cube = self
         # Fields that shouldn't be modified directly by the user
-        inmutable_fields = {"id",}
+        inmutable_fields = {
+            "id",
+        }
 
         # Fields that can no longer be modified while in production
         production_inmutable_fields = {
             "mlcube_hash",
             "parameters_hash",
             "image_tarball_hash",
-            "additional_files_tarball_hash"
+            "additional_files_tarball_hash",
         }
-        
 
         if old_cube.state == "OPERATION":
             inmutable_fields = inmutable_fields.union(production_inmutable_fields)
@@ -393,17 +355,17 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
             msg = "Invalid MLCube configuration"
             raise InvalidEntityError(msg)
 
-
         if len(updated_inmutable_fields):
             fields_msg = ", ".join(updated_inmutable_fields)
-            msg = (f"The following fields can't be directly edited: "\
-                    + fields_msg \
-                    + ". For these changes, a new MLCube is required")
+            msg = (
+                f"The following fields can't be directly edited: "
+                + fields_msg
+                + ". For these changes, a new MLCube is required"
+            )
             raise InvalidArgumentError(msg)
 
     def update(self):
-        """Updates the benchmark on the server
-        """
+        """Updates the benchmark on the server"""
         if not self.is_registered:
             raise MedperfException("Can't update an unregistered cube")
         body = self.todict()
@@ -421,20 +383,11 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         return meta_file
 
     def upload(self):
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test mlcubes.")
         cube_dict = self.todict()
         updated_cube_dict = config.comms.upload_mlcube(cube_dict)
         return updated_cube_dict
-
-    def get_local_hashes(self):
-        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
-        with open(local_hashes_file, "r") as f:
-            local_hashes = yaml.safe_load(f)
-        return local_hashes
-
-    def store_local_hashes(self, local_hashes):
-        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
-        with open(local_hashes_file, "w") as f:
-            yaml.dump(local_hashes, f)
 
     @classmethod
     def __get_local_dict(cls, uid):

@@ -11,8 +11,8 @@ from medperf.enums import Status
 app = typer.Typer()
 
 
-@clean_except
 @app.command("ls")
+@clean_except
 def list(filter: Optional[str] = typer.Argument(None)):
     """Display all associations related to the current user.
 
@@ -23,8 +23,8 @@ def list(filter: Optional[str] = typer.Argument(None)):
     ListAssociations.run(filter)
 
 
-@clean_except
 @app.command("approve")
+@clean_except
 def approve(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
@@ -41,8 +41,8 @@ def approve(
     config.ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("reject")
+@clean_except
 def reject(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
@@ -59,12 +59,12 @@ def reject(
     config.ui.print("✅ Done!")
 
 
-@clean_except
 @app.command("set_priority")
+@clean_except
 def set_priority(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
     mlcube_uid: int = typer.Option(..., "--mlcube", "-m", help="MLCube UID"),
-    priority: int = typer.Option(..., "--priority", "-p", help="Priority, an integer",),
+    priority: int = typer.Option(..., "--priority", "-p", help="Priority, an integer"),
 ):
     """Updates the priority of a benchmark-model association. Model priorities within
     a benchmark define which models need to be executed before others when

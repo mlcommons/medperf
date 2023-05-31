@@ -7,7 +7,6 @@ from tabulate import tabulate
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import check_cube_validity
 import medperf.config as config
 from medperf.exceptions import (
     InvalidArgumentError,
@@ -145,7 +144,6 @@ class BenchmarkExecution:
         self.ui.text = f"Retrieving {name} cube"
         cube = Cube.get(uid)
         self.ui.print(f"> {name} cube download complete")
-        check_cube_validity(cube)
         return cube
 
     def run_experiments(self):

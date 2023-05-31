@@ -101,6 +101,16 @@ curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "data", "l
 
 ##########################################################
 echo "=========================================="
+echo "Printing MedPerf version"
+echo "=========================================="
+medperf --version
+checkFailed "MedPerf version failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "=========================================="
 echo "Setting and activating the testing profile"
 echo "=========================================="
 medperf profile create -n mocktest --server=${SERVER_URL} --certificate=${CERT_FILE}
@@ -207,7 +217,7 @@ echo "Running data preparation step"
 echo "====================================="
 medperf dataset create -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a"
 checkFailed "Data preparation step failed"
-DSET_A_GENUID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_A_GENUID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -218,7 +228,7 @@ echo "Running data submission step"
 echo "====================================="
 medperf dataset submit -d $DSET_A_GENUID -y
 checkFailed "Data submission step failed"
-DSET_A_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"

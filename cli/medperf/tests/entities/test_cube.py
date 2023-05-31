@@ -1,7 +1,6 @@
 import os
 import yaml
 import pytest
-from unittest.mock import call
 
 import medperf
 import medperf.config as config
@@ -13,36 +12,11 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
 )
 from medperf.tests.mocks.pexpect import MockPexpect
-from medperf.exceptions import (
-    ExecutionError,
-    InvalidEntityError
-)
+from medperf.exceptions import ExecutionError
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
-FAILING_CUBE = {"id": 46, "parameters_hash": "error"}
 NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
-BASIC_CUBE = {
-    "id": 598,
-    "git_parameters_url": None,
-    "git_parameters_hash": None,
-    "image_tarball_url": None,
-    "image_tarball_hash": None,
-    "additional_files_tarball_url": None,
-    "additional_files_tarball_hash": None,
-}
-VALID_CUBES = [{"remote": [DEFAULT_CUBE]}, {"remote": [BASIC_CUBE]}]
-INVALID_CUBES = [
-    {"remote": [{"id": 190, "is_valid": False}]},
-    {"remote": [{"id": 53, "mlcube_hash": "incorrect"}]},
-    {"remote": [{"id": 7, "parameters_hash": "incorrect"}]},
-    {"remote": [{"id": 874, "image_tarball_hash": "incorrect"}]},
-    {"remote": [{"id": 286, "additional_files_tarball_hash": "incorrect"}]},
-]
-
-CUBE_CONTENTS = {
-    "tasks": {"task": {"parameters": {"outputs": {"out_key": "out_value"}}}}
-}
 
 
 @pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
@@ -62,7 +36,6 @@ def setup(request, mocker, comms, fs):
     mpexpect = MockPexpect(0)
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
-    mocker.patch(PATCH_CUBE.format("untar"))
 
     return request.param
 
@@ -98,30 +71,6 @@ class TestGetFiles:
         for file in self.file_paths:
             assert os.path.exists(file) and os.path.isfile(file)
 
-    @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
-    def test_get_cube_untars_files(self, mocker, setup):
-        # Arrange
-        spy = mocker.spy(medperf.entities.cube, "untar")
-        calls = [call(self.add_path)]
-
-        # Act
-        Cube.get(self.id)
-
-        # Assert
-        spy.assert_has_calls(calls)
-
-    @pytest.mark.parametrize("setup", [{"remote": [FAILING_CUBE]}], indirect=True)
-    def test_get_cube_deletes_cube_if_failed(self, mocker, setup):
-        # Arrange
-        spy = mocker.patch(PATCH_CUBE.format("cleanup"))
-
-        # Act
-        with pytest.raises(InvalidEntityError):
-            Cube.get(self.id)
-
-        # Assert
-        spy.assert_called_once_with([self.cube_path])
-
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
@@ -144,29 +93,6 @@ class TestGetFiles:
 
         # Assert
         spy.assert_not_called()
-
-
-class TestValidity:
-    @pytest.mark.parametrize("setup", VALID_CUBES, indirect=True)
-    def test_valid_cube_is_detected(self, setup):
-        # Arrange
-        uid = setup["remote"][0]["id"]
-
-        # Act
-        cube = Cube.get(uid)
-
-        # Assert
-        assert cube.valid()
-
-    @pytest.mark.parametrize("setup", INVALID_CUBES, indirect=True)
-    def test_invalid_cube_is_detected(self, mocker, setup):
-        # Arrange
-        uid = setup["remote"][0]["id"]
-        mocker.patch(PATCH_CUBE.format("cleanup"))
-
-        # Act & Assert
-        with pytest.raises(InvalidEntityError):
-            Cube.get(uid)
 
 
 @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
@@ -263,7 +189,9 @@ class TestDefaultOutput:
         # Arrange
         # Create a params file with minimal content
         params_contents = {param_key: param_val}
-        params_path = os.path.join(self.cube_path, config.params_filename)
+        params_path = os.path.join(
+            self.cube_path, config.workspace_path, config.params_filename
+        )
         fs.create_file(params_path, contents=yaml.dump(params_contents))
 
         # Construct the expected path

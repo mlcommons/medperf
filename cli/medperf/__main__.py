@@ -1,3 +1,4 @@
+import sys
 import typer
 import logging
 import logging.handlers
@@ -68,8 +69,7 @@ def login(
         None, "--password", "-p", help="Password to login with"
     ),
 ):
-    """Login to the medperf server. Must be done only once.
-    """
+    """Login to the medperf server. Must be done only once."""
     Login.run(username=username, password=password)
     config.ui.print("✅ Done!")
 
@@ -77,8 +77,7 @@ def login(
 @app.command("passwd")
 @clean_except
 def passwd():
-    """Set a new password. Must be logged in.
-    """
+    """Set a new password. Must be logged in."""
     comms = config.comms
     ui = config.ui
     comms.authenticate()
@@ -110,8 +109,7 @@ def execute(
         help="Ignore existing results. The experiment then will be rerun",
     ),
 ):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model
-    """
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     result = BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
@@ -130,9 +128,20 @@ def execute(
     config.ui.print("✅ Done!")
 
 
+def version_callback(value: bool):
+    if value:
+        print(f"MedPerf version {__version__}")
+        raise typer.Exit()
+
+
 @app.callback()
 @configurable
-def main(ctx: typer.Context):
+def main(
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        None, "--version", callback=version_callback, is_eager=True
+    ),
+):
     # Set inline parameters
     inline_args = ctx.params
     set_custom_config(inline_args)
@@ -147,6 +156,7 @@ def main(ctx: typer.Context):
     log_lvl = getattr(logging, log)
     setup_logging(log_lvl)
     logging.info(f"Running MedPerf v{__version__} on {log_lvl} logging level")
+    logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)

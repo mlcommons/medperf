@@ -212,6 +212,8 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         Args:
             comms (Comms): Instance of the comms interface.
         """
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test datasets.")
         dataset_dict = self.todict()
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
         updated_dataset_dict["status"] = dataset_dict["status"]
