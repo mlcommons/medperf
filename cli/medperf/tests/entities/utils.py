@@ -85,7 +85,7 @@ def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
 def generate_cubefile_fn(fs, path, filename):
     # all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
 
-    def cubefile_fn(url, cube_path, *args):
+    def cubefile_fn(url, cube_path, *args, **kwargs):
         if url == "broken_url":
             raise CommunicationRetrievalError
         filepath = os.path.join(cube_path, path, filename)

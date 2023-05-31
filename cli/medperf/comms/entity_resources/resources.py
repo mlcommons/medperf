@@ -117,7 +117,7 @@ def get_cube_image(
 
 
 def get_cube_additional(
-    url: str, cube_path: str, expected_tarball_hash: str = None, force: bool = True
+    url: str, cube_path: str, expected_tarball_hash: str = None, force: bool = False
 ) -> str:
     """Retrieves additional files of an MLCube. The additional files
     will be in a compressed tarball file. The function will additionally
