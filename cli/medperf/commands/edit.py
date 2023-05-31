@@ -1,6 +1,7 @@
 from medperf.entities.interface import Updatable
 from medperf.exceptions import InvalidEntityError
 
+
 class EntityEdit:
     @staticmethod
     def run(entity_class, id: str, fields: dict):
@@ -27,7 +28,7 @@ class EntityEdit:
 
     def validate(self):
         if not isinstance(self.entity, Updatable):
-            raise InvalidEntityError("The passed entity can't be edited") 
+            raise InvalidEntityError("The passed entity can't be edited")
 
     def edit(self):
         entity = self.entity

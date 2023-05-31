@@ -233,8 +233,7 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
         return config.comms.get_benchmark_models(benchmark_uid)
 
     def edit(self, **kwargs):
-        """Edits a benchmark with the given property-value pairs
-        """
+        """Edits a benchmark with the given property-value pairs"""
         data = self.todict()
         data.update(kwargs)
         new_bmk = Benchmark(**data)
@@ -255,17 +254,18 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
         """
         old_bmk = self
         # Field that shouldn't ber modified directly by the user
-        inmutable_fields = {"id",}
+        inmutable_fields = {
+            "id",
+        }
 
         # Fields that can no longer be modified while in production
         production_inmutable_fields = {
             "name",
-            "description"
-            "demo_dataset_tarball_hash",
+            "description" "demo_dataset_tarball_hash",
             "demo_dataset_generated_uid",
             "data_preparation_mlcube",
             "reference_model_mlcube",
-            "data_evaluator_mlcube"
+            "data_evaluator_mlcube",
         }
 
         if old_bmk.state == "OPERATION":
@@ -278,14 +278,15 @@ class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSc
 
         if len(updated_inmutable_fields):
             fields_msg = ", ".join(updated_inmutable_fields)
-            msg = (f"The following fields can't be directly edited: "\
-                    + fields_msg \
-                    + ". For these changes, a new Benchmark is required")
+            msg = (
+                "The following fields can't be directly edited: "
+                + fields_msg
+                + ". For these changes, a new Benchmark is required"
+            )
             raise InvalidArgumentError(msg)
 
     def update(self):
-        """Updates the benchmark on the server
-        """
+        """Updates the benchmark on the server"""
         if not self.is_registered:
             raise MedperfException("Can't update an unregistered benchmark")
         body = self.todict()

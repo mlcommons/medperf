@@ -51,10 +51,9 @@ def create(
     ),
     name: str = typer.Option(..., "--name", help=NAME_HELP),
     description: str = typer.Option(..., "--description", help=DESC_HELP),
-    location: str = typer.Option(..., "--location", help=LOC_HELP)
+    location: str = typer.Option(..., "--location", help=LOC_HELP),
 ):
-    """Runs the Data preparation step for a specified benchmark and raw dataset
-    """
+    """Runs the Data preparation step for a specified benchmark and raw dataset"""
     ui = config.ui
     data_uid = DataPreparation.run(
         benchmark_uid,
@@ -79,8 +78,7 @@ def register(
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
-    """Submits an unregistered Dataset instance to the backend
-    """
+    """Submits an unregistered Dataset instance to the backend"""
     ui = config.ui
     uid = DatasetRegistration.run(data_uid, approved=approval)
     ui.print("✅ Done!")
@@ -96,7 +94,11 @@ def edit(
     name: str = typer.Option(None, "--name", help=NAME_HELP),
     description: str = typer.Option(None, "--description", help=DESC_HELP),
     location: str = typer.Option(None, "--location", help=LOC_HELP),
-    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Flags a dataset valid/invalid. Invalid datasets can't be used for experiments")
+    is_valid: bool = typer.Option(
+        None,
+        "--valid/--invalid",
+        help="Flags a dataset valid/invalid. Invalid datasets can't be used for experiments",
+    ),
 ):
     """Edits a Dataset"""
     dset_info = {
@@ -120,7 +122,9 @@ def associate(
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute the test even if results already exist",
     ),
 ):
     """Associate a registered dataset with a specific benchmark.
@@ -159,6 +163,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more datasets
-    """
+    """Displays the information of one or more datasets"""
     EntityView.run(entity_id, Dataset, format, local, mine, output)

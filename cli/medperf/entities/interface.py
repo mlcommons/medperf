@@ -88,5 +88,4 @@ class Updatable(Uploadable):
 
     @abstractmethod
     def update(self):
-        """Updates the current entity on the server
-        """
+        """Updates the current entity on the server"""

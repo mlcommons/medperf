@@ -221,8 +221,7 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         return updated_dataset_dict
 
     def edit(self, **kwargs):
-        """Edits a dataset with the given property-value pairs
-        """
+        """Edits a dataset with the given property-value pairs"""
         data = self.todict()
         data.update(kwargs)
         new_dset = Dataset(**data)
@@ -236,7 +235,7 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
 
         Args:
             new_dset (Dataset): The updated version of the same dataset
-        
+
         Raises:
             InvalidArugmentError: The changed fields are not mutable
         """
@@ -252,12 +251,7 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
         }
 
         # Fields that can no longer be modified while in production
-        production_inmutable_fields = {
-            "name",
-            "split_seed",
-            "description",
-            "location"
-        }
+        production_inmutable_fields = {"name", "split_seed", "description", "location"}
 
         if old_dset.state == "OPERATION":
             inmutable_fields = inmutable_fields.union(production_inmutable_fields)
@@ -268,14 +262,15 @@ class Dataset(Entity, Updatable, MedperfSchema, DeployableSchema):
 
         if len(updated_inmutable_fields):
             fields_msg = ", ".join(updated_inmutable_fields)
-            msg = (f"The following fields can't be directly edited: " \
-                   + fields_msg \
-                   + ". For these changes, a new Dataset is required")
+            msg = (
+                f"The following fields can't be directly edited: "
+                + fields_msg
+                + ". For these changes, a new Dataset is required"
+            )
             raise InvalidArgumentError(msg)
 
     def update(self):
-        """Updates the benchmark on the server
-        """
+        """Updates the benchmark on the server"""
         if not self.is_registered:
             raise MedperfException("Can't update an unregistered dataset")
         body = self.todict()

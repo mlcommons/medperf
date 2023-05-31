@@ -372,7 +372,7 @@ class Cube(Entity, Updatable, MedperfSchema, DeployableSchema):
         if len(updated_inmutable_fields):
             fields_msg = ", ".join(updated_inmutable_fields)
             msg = (
-                f"The following fields can't be directly edited: "
+                "The following fields can't be directly edited: "
                 + fields_msg
                 + ". For these changes, a new MLCube is required"
             )
