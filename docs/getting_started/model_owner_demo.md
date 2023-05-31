@@ -50,7 +50,7 @@ Assuming the test passes sucessfuly, you are ready to submit the MLCube to the M
 
 ## 2. Submit the MLCube
 
-#### How does MedPerf Recognize an MLCube?
+### How does MedPerf Recognize an MLCube?
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
 
@@ -64,7 +64,7 @@ This script will create a new folder in the MLCube directory, named `deploy`, co
 
 {% include "getting_started/shared/redirect_to_hosting_files.md" %}
 
-#### Submit the MLCube
+### Submit the MLCube
 
 The submission should include the URLs of all the hosted files. For our tutorial's MLCube:
 

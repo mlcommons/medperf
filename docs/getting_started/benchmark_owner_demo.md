@@ -31,9 +31,9 @@ It's assumed that you have already set up the general testing environment as exp
 
 ## 1. Implement a Valid Workflow
 
-The implementation of a valid workflow accomplished by implementing three [MLCubes](../mlcubes/mlcubes.md):
+The implementation of a valid workflow is accomplished by implementing three [MLCubes](../mlcubes/mlcubes.md):
 
-1. **ata Preparator MLCube:** This MLCube will transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark will have their data prepared using this MLCube. A tutorial on how to implement data preparation MLCubes can be found [here](../mlcubes/mlcube_data.md).
+1. **Data Preparator MLCube:** This MLCube will transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark will have their data prepared using this MLCube. A tutorial on how to implement data preparation MLCubes can be found [here](../mlcubes/mlcube_data.md).
 
 2. **Reference Model MLCube:** This MLCube will contain an example model implementation for the desired AI task. It should be compatible with the data preparation MLCube (i.e., the outputs of the data preparation MLCube can be directly fed as inputs to this MLCube). A tutorial on how to implement model MLCubes can be found [here](../mlcubes/mlcube_models.md).
 
@@ -51,7 +51,7 @@ A demo dataset is a small reference dataset. It contains a few data records and 
 
 For this tutorial, we have already developed a demo dataset for the workflow provided in the previous section. The dataset can be found in your workspace folder under `mock_chexpert`. It is a mock dataset comprising images and labels, which will replace real X-ray images.
 
-You can test the workflow now that you have three MLCubes and the demo data. Testing the workflow before submitting any asset to the MedPerf server is usually recommended.
+You can test the workflow now that you have the three MLCubes and the demo data. Testing the workflow before submitting any asset to the MedPerf server is usually recommended.
 
 ## 3. Test your Workflow
 
@@ -78,7 +78,7 @@ Assuming the test passes successfully, you are ready to submit the MLCubes to th
 
 ## 4. Submitting the MLCubes
 
-#### How does MedPerf Recognize an MLCube?
+### How does MedPerf Recognize an MLCube?
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
 
@@ -90,11 +90,11 @@ python scripts/package-mlcube.py --mlcube medperf_tutorial/xrv_densenet/mlcube -
 python scripts/package-mlcube.py --mlcube medperf_tutorial/metrics/mlcube --mlcube-types metrics
 ```
 
-For each MLCube, this script will create a new folder named `deploy` in the MLCube directory. This folder will contain all the files that should be hosted separately.
+For each MLCube, this script will create a new folder named `assets` in the MLCube directory. This folder will contain all the files that should be hosted separately.
 
 {% include "getting_started/shared/redirect_to_hosting_files.md" %}
 
-#### Submit the MLCubes
+### Submit the MLCubes
 
 #### Data Preparator MLCube
 
@@ -113,16 +113,16 @@ For the Data Preparator MLCube, the submission should include:
     {{ prep_params }}
     ```
 
-- The command to submit, as presented below:
+Use the following command to submit:
 
-    ```bash
-    medperf mlcube submit \
-        --name my-prep-cube \
-        --mlcube-file "{{ prep_mlcube }}" \
-        --parameters-file "{{ prep_params }}" \
-    ```
+```bash
+medperf mlcube submit \
+    --name my-prep-cube \
+    --mlcube-file "{{ prep_mlcube }}" \
+    --parameters-file "{{ prep_params }}" \
+```
 
-#### Reference Model MLCube:
+#### Reference Model MLCube
 
 For the Reference Model MLCube, the submission should include:
 
@@ -146,15 +146,15 @@ For the Reference Model MLCube, the submission should include:
 
 Use the following command to submit:
 
-    ```bash
-    medperf mlcube submit \
-    --name my-modelref-cube \
-    --mlcube-file "{{ model_mlcube }}" \
-    --parameters-file "{{ model_params }}" \
-    --additional-file "{{ model_add }}"
-    ```
+```bash
+medperf mlcube submit \
+--name my-modelref-cube \
+--mlcube-file "{{ model_mlcube }}" \
+--parameters-file "{{ model_params }}" \
+--additional-file "{{ model_add }}"
+```
 
-#### Metrics MLCube:
+#### Metrics MLCube
 
 For the Metrics MLCube, the submission should include:
 
@@ -172,14 +172,14 @@ For the Metrics MLCube, the submission should include:
 
 Use the following command to submit:
 
-    ```bash
-    medperf mlcube submit \
-    --name my-metrics-cube \
-    --mlcube-file "{{ metrics_mlcube }}" \
-    --parameters-file "{{ metrics_params }}" \
-    ```
+```bash
+medperf mlcube submit \
+--name my-metrics-cube \
+--mlcube-file "{{ metrics_mlcube }}" \
+--parameters-file "{{ metrics_params }}" \
+```
 
-Each of the three MLCubes will be assigned by a server UID. You can check the server UIDs for each MLCube by running:
+Each of the three MLCubes will be assigned by a server UID. You can check the server UID for each MLCube by running:
 
 ```bash
 medperf mlcube ls --mine
@@ -189,7 +189,7 @@ Next, you will learn how to host the demo dataset.
 
 ## 5. Host the Demo Dataset
 
-The demo dataset should be packaged in a specific way as a compressed tarball file. The folder stucture in the workspace should look like the following:
+The demo dataset should be packaged in a specific way as a compressed tarball file. The folder stucture in the workspace currently looks like the following:
 
 ```text
 .
@@ -211,7 +211,7 @@ labels_path: mock_chexpert/labels
 ```
 
 !!! note
-    The paths are determined by MLCube's expected input path for data preparation.
+    The paths are determined by the Data Preparator MLCube's expected input path.
 
 After that, the workspace should look like the following:
 
@@ -226,7 +226,7 @@ After that, the workspace should look like the following:
     ...
 ```
 
-Finally, compress the required assets (`mock_chexpert` and `paths.yaml`) into a tarball file and then run the following command in your workspace directory:
+Finally, compress the required assets (`mock_chexpert` and `paths.yaml`) into a tarball file by running the following command in your workspace directory:
 
 ```bash
 tar -czf mock_xrv_demo_data.tar.gz mock_chexpert paths.yaml
@@ -248,7 +248,7 @@ Finally, since we now have our MLCubes submitted and demo dataset hosted, we can
 
 You need to keep at hand the following information:
 
-- The Demo Dataset URL. In our case, this URl will be:
+- The Demo Dataset URL. In our case, this URL will be:
 
 ```text
 {{ demo_url }}
