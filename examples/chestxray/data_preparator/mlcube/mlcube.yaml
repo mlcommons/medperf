@@ -1,0 +1,45 @@
+name: Chest X-ray Data Preparator
+description: MedPerf Tutorial - Data Preparation MLCube.
+authors:
+  - { name: MLCommons Medical Working Group }
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name
+  image: mlcommons/chestxray-tutorial-prep:0.0.0
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  prepare:
+    parameters:
+      inputs:
+        {
+          data_path: input_data,
+          labels_path: input_labels,
+          parameters_file: parameters.yaml,
+        }
+      outputs: { output_path: data/, output_labels_path: labels/ }
+  sanity_check:
+    parameters:
+      inputs:
+        {
+          data_path: data/,
+          labels_path: labels/,
+
+          parameters_file: parameters.yaml,
+        }
+  statistics:
+    parameters:
+      inputs:
+        {
+          data_path: data/,
+          labels_path: labels/,
+
+          parameters_file: parameters.yaml,
+        }
+      outputs: { output_path: { type: file, default: statistics.yaml } }
