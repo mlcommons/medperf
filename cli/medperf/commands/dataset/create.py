@@ -11,8 +11,10 @@ from medperf.utils import (
     generate_tmp_path,
     get_folder_sha1,
     storage_path,
+    dict_pretty_print,
+    approval_prompt,
 )
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, CommunicationError
 import yaml
 
 
@@ -42,7 +44,15 @@ class DataPreparation:
         preparation.validate()
         with preparation.ui.interactive():
             preparation.get_prep_cube()
-            preparation.run_cube_tasks()
+            preparation.set_staging_parameters()
+
+            # Run cube tasks
+            preparation.run_prepare()
+            if benchmark_uid:
+                preparation.submit_report()
+            preparation.run_sanity_check()
+            preparation.run_statistics()
+
         preparation.get_statistics()
         preparation.generate_uids()
         preparation.to_permanent_path()
@@ -64,22 +74,19 @@ class DataPreparation:
         self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
-        out_path = generate_tmp_path()
+        self.in_uid = get_folder_sha1(self.data_path)
         self.out_statistics_path = generate_tmp_path()
-        self.out_path = out_path
         self.name = name
         self.description = description
         self.location = location
-        self.out_datapath = os.path.join(out_path, "data")
-        self.out_labelspath = os.path.join(out_path, "labels")
         self.labels_specified = False
         self.run_test = run_test
         self.benchmark_uid = benchmark_uid
         self.prep_cube_uid = prep_cube_uid
         self.in_uid = None
         self.generated_uid = None
-        logging.debug(f"tmp data preparation output: {out_path}")
-        logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
+        self.approved = False
+        self.report_uid = None
 
     def validate(self):
         if not os.path.exists(self.data_path):
@@ -104,52 +111,58 @@ class DataPreparation:
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
 
-    def run_cube_tasks(self):
+    def set_staging_parameters(self):
+        staging_path = storage_path(config.staging_data_storage)
+        out_path = os.path.join(staging_path, f"{self.in_uid}_{self.cube.id}")
+        self.out_path = out_path
+        self.report_path = os.path.join(out_path, config.report_file)
+        self.report_metadata_path = os.path.join(out_path, config.report_metadata_file)
+        self.out_datapath = os.path.join(out_path, "data")
+        self.out_labelspath = os.path.join(out_path, "labels")
+
+        if os.path.exists(self.out_labelspath):
+            # This dataset has already been processed once.
+            # Use the out paths as input paths for the next execution
+            # This is needed to maintain state continuiti between executions
+            self.data_path = self.out_datapath
+            self.labels_path = self.out_labelspath
+
+        if os.path.exists(self.report_metadata_path):
+            # The report has already been submitted
+            # Retrieve the report server ID
+            with open(self.report_metadata_path, "r") as f:
+                report_metadata = yaml.safe_load(f)
+            self.report_uid = report_metadata["id"]
+
+        # Check if labels_path is specified
+        self.labels_specified = (
+            self.cube.get_default_output("prepare", "output_labels_path") is not None
+        )
+        logging.debug(f"tmp data preparation output: {out_path}")
+        logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
+
+    def run_prepare(self):
         prepare_timeout = config.prepare_timeout
-        sanity_check_timeout = config.sanity_check_timeout
-        statistics_timeout = config.statistics_timeout
         data_path = self.data_path
         labels_path = self.labels_path
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
+        out_report = self.report_path
 
-        # Specify parameters for the tasks
         prepare_params = {
             "data_path": data_path,
             "labels_path": labels_path,
             "output_path": out_datapath,
+            "report_file": out_report,
         }
         prepare_str_params = {
             "Ptasks.prepare.parameters.input.data_path.opts": "ro",
             "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
         }
 
-        sanity_params = {
-            "data_path": out_datapath,
-        }
-        sanity_str_params = {
-            "Ptasks.sanity_check.parameters.input.data_path.opts": "ro"
-        }
-
-        statistics_params = {
-            "data_path": out_datapath,
-            "output_path": self.out_statistics_path,
-        }
-        statistics_str_params = {
-            "Ptasks.statistics.parameters.input.data_path.opts": "ro"
-        }
-
-        # Check if labels_path is specified
-        self.labels_specified = (
-            self.cube.get_default_output("prepare", "output_labels_path") is not None
-        )
         if self.labels_specified:
-            # Add the labels parameter
             prepare_params["output_labels_path"] = out_labelspath
-            sanity_params["labels_path"] = out_labelspath
-            statistics_params["labels_path"] = out_labelspath
 
-        # Run the tasks
         self.ui.text = "Running preparation step..."
         self.cube.run(
             task="prepare",
@@ -158,6 +171,26 @@ class DataPreparation:
             **prepare_params,
         )
         self.ui.print("> Cube execution complete")
+
+    def run_sanity_check(self):
+        sanity_check_timeout = config.sanity_check_timeout
+        out_datapath = self.out_datapath
+        out_labelspath = self.out_labelspath
+        out_report = self.report_path
+
+        # Specify parameters for the tasks
+        sanity_params = {
+            "data_path": out_datapath,
+            "report_file": out_report,
+        }
+        sanity_str_params = {
+            "Ptasks.sanity_check.parameters.input.data_path.opts": "ro",
+            "Ptasks.sanity_check.parameters.input.report_file.opts": "ro",
+        }
+
+        if self.labels_specified:
+            # Add the labels parameter
+            sanity_params["labels_path"] = out_labelspath
 
         self.ui.text = "Running sanity check..."
         self.cube.run(
@@ -168,7 +201,20 @@ class DataPreparation:
         )
         self.ui.print("> Sanity checks complete")
 
+    def run_statistics(self):
+        statistics_timeout = config.statistics_timeout
+        out_datapath = self.out_datapath
+
+        statistics_params = {
+            "data_path": out_datapath,
+            "output_path": self.out_statistics_path,
+        }
+        statistics_str_params = {
+            "Ptasks.statistics.parameters.input.data_path.opts": "ro"
+        }
+
         self.ui.text = "Generating statistics..."
+
         self.cube.run(
             task="statistics",
             string_params=statistics_str_params,
@@ -176,6 +222,42 @@ class DataPreparation:
             **statistics_params,
         )
         self.ui.print("> Statistics complete")
+
+    # TODO: this could be a separate commmand, and be executed inside this workflow
+    # That would be more inline with our previous code structure
+    def submit_report(self):
+        with open(self.report_path, "r") as f:
+            report = yaml.safe_load(f)
+
+        if self.report_uid is None:
+            self.request_submission_approval()
+
+        if not self.approved:
+            config.ui.print("Report submission cancelled")
+            return
+
+        config.ui.print("Uploading report")
+        body = {
+            "benchmark_id": self.benchmark_uid,
+            "dataset_input_hash": self.in_uid,
+            "report": report,
+        }
+        if self.report_uid is not None:
+            config.comms.update_report(self.report_uid, body)
+        else:
+            config.comms.upload_report(body)
+
+    def request_submission_approval(self):
+        with open(self.report_path, "r") as f:
+            report = yaml.safe_load(f)
+        dict_pretty_print(report)
+        msg = (
+            "Do you approve the submission of the status report to the MedPerf Server?"
+        )
+        +" This report will be visible by the benchmark owner and updated in subsequent calls"
+        +" [Y/n]"
+
+        self.approved = self.approved or approval_prompt(msg)
 
     def get_statistics(self):
         with open(self.out_statistics_path, "r") as f:
