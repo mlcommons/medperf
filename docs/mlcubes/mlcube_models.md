@@ -5,11 +5,31 @@ slug: model
 ---
 # {{ page.meta.name }}
 
-## Purpose
+## Introduction
 
-Model MLCubes are in charge of running inference on the prepared data. They receive as input the output of the Data Preparator MLCube, and output the predictions on the data into a separate folder. Currently, Medperf only supports federated evaluation, and therefore it is expected for models to be pre-trained before being used on a Medperf pipeline.
+This is one of the three guides that help the user build MedPerf-compatible MLCubes. The other two guides are for building a [Data Preparator MLCube](mlcube_data.md) and a [Metrics MLCube](mlcube_metrics.md). Together, the three MLCubes examples constitute a complete benchmark workflow for the task of thoracic disease detection from Chest X-rays.
 
-{% include "mlcubes/shared/hello_world.md" %}
+## About this Guide
+
+This guide will help users familiarize themselves with the expected interface of the Model MLCube and gain a comprehensive understanding of its components. By following this walkthrough, users will gain insights into the structure and organization of a Model MLCube, allowing them at the end to be able to implement their own MedPerf-compatible Model MLCube.
+
+The guide will start by providing general advice, steps, and hints on building these MLCubes. Then, an example will be presented through which the provided guidance will be applied step-by-step to build a Chest X-ray classifier MLCube. You can find the final MLCube code [here]({{ page.meta.url }}).
+
+## What?
+
+### Before Building the MLCube
+
+It is assumed that you already have a working code that runs inference on data and generates predictions, and what you want to accomplish through this guide is to wrap your inference code within an MLCube.
+
+- Make sure you decouple your inference logic from the other ML common pipelines (e.g.; training, metrics, ...). Your MLCube will be run by hospitals, and you want to make sure you don't have unnecessary extra compute going on.
+- Your inference logic can be written in any structure, can be split into any number of files, can represent any number of inference stages, etc..., **as long as the following hold**:
+    - The whole inference flow can be invoked by a single command/function.
+    - This command/function has **at least** the following arguments:
+        - A string representing a path that points to all input data records
+        - A string representing a path that points to the desired output directory where the predictions will be stored.
+- Your inference logic should not alter the input files and folders.
+- Your inference logic should expect the input data in a certain structure. This is usually determined by following the specifications of the benchmark you want to participate in.
+- Your inference logic should save the predictions in the output directory in a certain structure. This is usually determined by following the specifications of the benchmark you want to participate in.
 
 {% include "mlcubes/shared/setup.md" %}
 
