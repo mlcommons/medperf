@@ -2,6 +2,7 @@ import os
 import shutil
 import argparse
 import pandas as pd
+import yaml
 
 
 def prepare(data: pd.DataFrame, labels: pd.DataFrame, report: pd.DataFrame):
@@ -167,23 +168,10 @@ def generate_report(data: pd.DataFrame):
 def get_data_df(files):
     files = os.listdir(files)
     csv_files = [file for file in files if file.endswith(".csv")]
-    tsv_files = [file for file in files if file.endswith(".tsv")]
-    txt_files = [file for file in files if file.endswith(".txt")]
 
     if len(csv_files):
         filepath = os.path.join(files, csv_files[0])
-        df = pd.read_csv(filepath, usecols=[column_name])
-        return df
-    if len(tsv_files):
-        filepath = os.path.join(files, tsv_files[0])
-        df = pd.read_csv(filepath, usecols=[column_name], sep="\t")
-        return df
-    if len(txt_files):
-        filepath = os.path.join(files, txt_files[0])
-        with open(filepath, "r") as f:
-            data = f.readlines()
-
-        df = pd.DataFrame(data=data, columns=[column_name])
+        df = pd.read_csv(filepath)
         return df
 
 
@@ -222,12 +210,22 @@ if __name__ == "__main__":
 
     out_data = os.path.join(args.data_out, "data.csv")
 
-    out_labels = os.path.join(args.labels_out, "labels.csv")
+    if os.path.exists(out_data):
+        data_df = pd.read_csv(out_data)
+    else:
+        data_df = get_df(args.data)
 
-    data_df = get_df(args.data)
-    labels_df = get_df(args.labels)
+    out_labels = os.path.join(args.labels_out, "labels.csv")
+    if os.path.exists(out_labels):
+        labels_df = pd.read_csv(out_labels)
+    else:
+        labels_df = get_df(args.labels)
+
     if os.path.exists(args.report):
-        report = pd.read_csv(args.report)
+        with open(args.report, "r") as f:
+            report_dict = yaml.safe_load(f)
+
+        report = pd.DataFrame(data=report_dict)
     else:
         report = generate_report(data_df)
 
@@ -235,4 +233,7 @@ if __name__ == "__main__":
 
     prepared_data.to_csv(out_data, index=False)
     prepared_labels.to_csv(out_labels, index=False)
-    report.to_csv(args.report, index=False)
+
+    report_dict = report.to_dict()
+    with open(args.report, "w") as f:
+        yaml.dump(report_dict, f)

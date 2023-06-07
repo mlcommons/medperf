@@ -1,4 +1,5 @@
 import os
+import yaml
 import argparse
 import pandas as pd
 
@@ -64,6 +65,9 @@ if __name__ == "__main__":
 
     data_df = pd.read_csv(data_file)
     labels_df = pd.read_csv(labels_file)
-    report_df = pd.read_csv(args.report)
+
+    with open(args.report, "r") as f:
+        report_dict = yaml.safe_load(f)
+        report_df = pd.DataFrame(data=report_dict)
 
     sanity_check(data_df, labels_df, report_df)

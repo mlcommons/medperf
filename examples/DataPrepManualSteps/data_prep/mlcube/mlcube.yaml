@@ -25,7 +25,7 @@ tasks:
       outputs: {
         output_path: data/,
         output_labels_path: labels/,
-        report_file: {type: file, default: report.csv},
+        report_file: {type: file, default: report.yaml},
       }
   sanity_check:
     parameters:
@@ -33,7 +33,7 @@ tasks:
         data_path: data/,
         labels_path: labels/, 
         parameters_file: parameters.yaml,
-        report_file: report.csv,
+        report_file: report.yaml,
       }
   statistics:
     parameters:
