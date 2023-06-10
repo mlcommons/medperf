@@ -215,7 +215,8 @@ SERVER_API_VERSION = "v0"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",  # TMP: for the admin
+        "user.backends.JWTAuthenticateOrCreateUser",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
@@ -254,3 +255,17 @@ SPECTACULAR_SETTINGS = {
 # Setup support for proxy headers
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+SIMPLE_JWT = {
+    "ALGORITHM": "RS256",
+    "AUDIENCE": "https://api.medperf.org/",
+    "ISSUER": "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/",
+    "JWK_URL": "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/.well-known/jwks.json",
+    "USER_ID_FIELD": "username",
+    "USER_ID_CLAIM": "sub",
+    "TOKEN_TYPE_CLAIM": None,
+    "JTI_CLAIM": None,
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "LEEWAY": 0,
+}
