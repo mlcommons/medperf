@@ -49,7 +49,7 @@ class DataPreparation:
 
             # Run cube tasks
             preparation.run_prepare()
-        if benchmark_uid:
+        if preparation.report_specified and benchmark_uid:
             preparation.submit_report()
         with preparation.ui.interactive():
             preparation.run_sanity_check()
@@ -133,6 +133,10 @@ class DataPreparation:
         self.labels_specified = (
             self.cube.get_default_output("prepare", "output_labels_path") is not None
         )
+        # Backwards compatibility. Run a cube as before if no report is specified
+        self.report_specified = (
+            self.cube.get_default_output("prepare", "report") is not None
+        )
         logging.debug(f"tmp data preparation output: {out_path}")
         logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
 
@@ -148,7 +152,6 @@ class DataPreparation:
             "data_path": data_path,
             "labels_path": labels_path,
             "output_path": out_datapath,
-            "report_file": out_report,
         }
         prepare_str_params = {
             "Ptasks.prepare.parameters.input.data_path.opts": "ro",
@@ -157,6 +160,9 @@ class DataPreparation:
 
         if self.labels_specified:
             prepare_params["output_labels_path"] = out_labelspath
+
+        if self.report_specified:
+            prepare_params["report_file"] = out_report
 
         self.ui.text = "Running preparation step..."
         self.cube.run(
@@ -176,7 +182,6 @@ class DataPreparation:
         # Specify parameters for the tasks
         sanity_params = {
             "data_path": out_datapath,
-            "report_file": out_report,
         }
         sanity_str_params = {
             "Ptasks.sanity_check.parameters.input.data_path.opts": "ro",
@@ -186,6 +191,9 @@ class DataPreparation:
         if self.labels_specified:
             # Add the labels parameter
             sanity_params["labels_path"] = out_labelspath
+
+        if self.report_specified:
+            sanity_params["report_file"] = out_report
 
         self.ui.text = "Running sanity check..."
         try:
