@@ -13,8 +13,9 @@ from medperf.utils import (
     storage_path,
     dict_pretty_print,
     approval_prompt,
+    pretty_error,
 )
-from medperf.exceptions import InvalidArgumentError, CommunicationError
+from medperf.exceptions import InvalidArgumentError, ExecutionError
 import yaml
 
 
@@ -48,8 +49,9 @@ class DataPreparation:
 
             # Run cube tasks
             preparation.run_prepare()
-            if benchmark_uid:
-                preparation.submit_report()
+        if benchmark_uid:
+            preparation.submit_report()
+        with preparation.ui.interactive():
             preparation.run_sanity_check()
             preparation.run_statistics()
 
@@ -83,7 +85,6 @@ class DataPreparation:
         self.run_test = run_test
         self.benchmark_uid = benchmark_uid
         self.prep_cube_uid = prep_cube_uid
-        self.in_uid = None
         self.generated_uid = None
         self.approved = False
         self.report_uid = None
@@ -120,19 +121,13 @@ class DataPreparation:
         self.out_datapath = os.path.join(out_path, "data")
         self.out_labelspath = os.path.join(out_path, "labels")
 
-        if os.path.exists(self.out_labelspath):
-            # This dataset has already been processed once.
-            # Use the out paths as input paths for the next execution
-            # This is needed to maintain state continuiti between executions
-            self.data_path = self.out_datapath
-            self.labels_path = self.out_labelspath
-
         if os.path.exists(self.report_metadata_path):
             # The report has already been submitted
             # Retrieve the report server ID
             with open(self.report_metadata_path, "r") as f:
                 report_metadata = yaml.safe_load(f)
             self.report_uid = report_metadata["id"]
+            self.approved = True
 
         # Check if labels_path is specified
         self.labels_specified = (
@@ -193,12 +188,19 @@ class DataPreparation:
             sanity_params["labels_path"] = out_labelspath
 
         self.ui.text = "Running sanity check..."
-        self.cube.run(
-            task="sanity_check",
-            string_params=sanity_str_params,
-            timeout=sanity_check_timeout,
-            **sanity_params,
-        )
+        try:
+            self.cube.run(
+                task="sanity_check",
+                string_params=sanity_str_params,
+                timeout=sanity_check_timeout,
+                **sanity_params,
+            )
+        except ExecutionError:
+            msg = (
+                "The sanity check process failed. This most probably means the data could not be completely prepared. "
+                + f"You may want to check the status report at: {self.report_path}"
+            )
+            raise ExecutionError(msg)
         self.ui.print("> Sanity checks complete")
 
     def run_statistics(self):
@@ -242,10 +244,14 @@ class DataPreparation:
             "dataset_input_hash": self.in_uid,
             "report": report,
         }
+
         if self.report_uid is not None:
-            config.comms.update_report(self.report_uid, body)
+            report_metadata = config.comms.update_report(self.report_uid, body)
         else:
-            config.comms.upload_report(body)
+            report_metadata = config.comms.upload_report(body)
+
+        with open(self.report_metadata_path, "w") as f:
+            yaml.dump(report_metadata, f)
 
     def request_submission_approval(self):
         with open(self.report_path, "r") as f:
@@ -253,9 +259,9 @@ class DataPreparation:
         dict_pretty_print(report)
         msg = (
             "Do you approve the submission of the status report to the MedPerf Server?"
+            + " This report will be visible by the benchmark owner and updated in subsequent calls"
+            + " [Y/n]"
         )
-        +" This report will be visible by the benchmark owner and updated in subsequent calls"
-        +" [Y/n]"
 
         self.approved = self.approved or approval_prompt(msg)
 
