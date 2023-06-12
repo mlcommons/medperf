@@ -15,6 +15,7 @@ def exec_python(cmd: str) -> None:
     splitted_cmd = cmd.split()
     process = subprocess.Popen(splitted_cmd, cwd=".")
     process.wait()
+    assert process.returncode == 0, f"command failed: {cmd}"
 
 
 @app.command("prepare")

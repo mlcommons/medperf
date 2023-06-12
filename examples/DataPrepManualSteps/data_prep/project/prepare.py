@@ -32,6 +32,7 @@ def prepare(data: pd.DataFrame, labels: pd.DataFrame, report: pd.DataFrame):
 
     # TODO: decide if "verified" goes here
     data = processing_df[["weight", "volume", "density", "verified"]]
+    labels = processing_df["label"]
     report = processing_df[["status", "status_name", "comment"]]
 
     return data, labels, report
@@ -50,12 +51,15 @@ def transform_row(row: pd.Series):
     # But, this might be error-prone and unintuitive for the user
 
     # Current implementation assumes sequential, non-avoidable steps
+    print(row["status"])
     if row["status"] == 0:
         row["status"] = 1
         row["status_name"] = "PROCESSING_STARTED"
+        print(row["status"])
 
     if abs(row["status"]) == 1:
         try:
+            print("transforming weight")
             # kg to g
             row["weight"] = float(row["weight"]) * 1000
             row["status"] = 2
@@ -65,9 +69,11 @@ def transform_row(row: pd.Series):
             row["status"] = -1
             row["status_name"] = "WEIGHT_ERROR"
             row["comment"] = "The weight could not be scaled. Check the weight value"
+        print(row["status"])
 
     if abs(row["status"]) == 2:
         try:
+            print("transforming volume")
             # m^3 to cm^3
             row["volume"] *= 1e6
             row["status"] = 3
@@ -77,9 +83,11 @@ def transform_row(row: pd.Series):
             row["status"] = -2
             row["status_name"] = "VOLUME_ERROR"
             row["comment"] = "Volume could not be scaled. Check volume value"
+        print(row["status"])
 
     if abs(row["status"]) == 3:
         try:
+            print("computing density")
             # compute density g/cm^3
             row["density"] = row["weight"] / row["volume"]
             row["status"] = 4
@@ -90,11 +98,13 @@ def transform_row(row: pd.Series):
             row["status"] = -3
             row["status_name"] = "DENSITY_ERROR"
             row["comment"] = "Density computation could not be done. Check your data"
+        print(row["status"])
 
     if abs(row["status"]) == 4:
         try:
+            print("transforming labels")
             # Transform labels
-            row["test_passed"] = row["test_passed"] == "YES"
+            row["label"] = row["label"] == "YES"
             row["status"] = 5
             row["status_name"] = "LABEL_TRANSFORMED"
             row["comment"] = ""
@@ -104,8 +114,10 @@ def transform_row(row: pd.Series):
             row[
                 "comment"
             ] = 'Could not transform label. Check labels are either YES or NO and label name is "test_passed"'
+        print(row["status"])
 
     if abs(row["status"]) == 5:
+        print("checking verification")
         if "verified" in row and row["verified"]:
             row["status"] = 6
             row["status_name"] = "VERIFIED"
@@ -117,6 +129,7 @@ def transform_row(row: pd.Series):
             row[
                 "comment"
             ] = 'Ensure the sample looks correct, and manually change the "verified" flag to 1 if so'
+        print(row["status"])
 
     return row
 

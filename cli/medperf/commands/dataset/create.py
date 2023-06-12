@@ -239,6 +239,9 @@ class DataPreparation:
             return
 
         config.ui.print("Uploading report")
+        # TODO: if we have a path to the case file, remove it from the submisison body
+        # example:
+        # del report["path"]
         body = {
             "benchmark_id": self.benchmark_uid,
             "dataset_input_hash": self.in_uid,
