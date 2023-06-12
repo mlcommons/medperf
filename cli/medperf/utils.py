@@ -489,8 +489,8 @@ def log_response_error(res, warn=False):
     try:
         logging_method(res.json())
     except requests.exceptions.JSONDecodeError:
-        logging_method("JSON Response could not be parsed. Showing response content:")
-        logging_method(res.content)
+        logging_method("JSON Response could not be parsed. Showing response text:")
+        logging_method(res.text)
 
 
 def get_cube_image_name(cube_path: str) -> str:

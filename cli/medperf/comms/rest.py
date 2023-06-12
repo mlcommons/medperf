@@ -5,11 +5,7 @@ import logging
 from medperf.enums import Status
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.utils import (
-    read_credentials,
-    sanitize_json,
-    log_response_error,
-)
+from medperf.utils import sanitize_json, log_response_error
 from medperf.exceptions import (
     CommunicationError,
     CommunicationRetrievalError,
@@ -46,38 +42,8 @@ class REST(Comms):
 
         return f"https://{url}{api_path}"
 
-    def login(self, user: str, pwd: str):
-        """Authenticates the user with the server. Required for most endpoints
-
-        Args:
-            ui (UI): Instance of an implementation of the UI interface
-            user (str): Username
-            pwd (str): Password
-        """
-        body = {"username": user, "password": pwd}
-        res = self.__req(f"{self.server_url}/auth-token/", requests.post, json=body)
-        if res.status_code != 200:
-            log_response_error(res)
-            raise CommunicationAuthenticationError(
-                "Unable to authenticate user with provided credentials"
-            )
-        else:
-            self.token = res.json()["token"]
-
-    def change_password(self, pwd: str):
-        """Sets a new password for the current user.
-
-        Args:
-            pwd (str): New password to be set
-        """
-        body = {"password": pwd}
-        res = self.__auth_post(f"{self.server_url}/me/password/", json=body)
-        if res.status_code != 200:
-            log_response_error(res)
-            raise CommunicationRequestError("Unable to change the current password")
-
     def authenticate(self):
-        token = read_credentials()
+        token = config.auth.authenticate()
         if token is not None:
             self.token = token
             return
@@ -99,7 +65,7 @@ class REST(Comms):
         if self.token is None:
             self.authenticate()
         return self.__req(
-            url, req_func, headers={"Authorization": f"Token {self.token}"}, **kwargs
+            url, req_func, headers={"Authorization": f"Bearer {self.token}"}, **kwargs
         )
 
     def __req(self, url, req_func, **kwargs):
@@ -184,12 +150,11 @@ class REST(Comms):
             requests.Response: Response object returned by the update
         """
         data = {"approval_status": status}
-        res = self.__auth_put(url, json=data,)
+        res = self.__auth_put(url, json=data)
         return res
 
     def get_current_user(self):
-        """Retrieve the currently-authenticated user information
-        """
+        """Retrieve the currently-authenticated user information"""
         res = self.__auth_get(f"{self.server_url}/me/")
         return res.json()
 
@@ -521,7 +486,7 @@ class REST(Comms):
         """
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
         data = {"priority": priority}
-        res = self.__auth_put(url, json=data,)
+        res = self.__auth_put(url, json=data)
         if res.status_code != 200:
             log_response_error(res)
             raise CommunicationRequestError(

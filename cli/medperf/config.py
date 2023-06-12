@@ -50,6 +50,13 @@ ddl_max_redownload_attempts = 3
 comms = "REST"
 ui = "CLI"
 
+auth_settings = {
+    "domain": "dev-5xl8y6uuc2hig2ly.us.auth0.com",
+    "client_id": "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat",
+    "database": "Username-Password-Authentication",
+    "audience": "https://api.medperf.org/",
+}
+
 prepare_timeout = None
 sanity_check_timeout = None
 statistics_timeout = None
