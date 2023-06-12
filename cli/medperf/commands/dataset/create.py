@@ -204,10 +204,9 @@ class DataPreparation:
                 **sanity_params,
             )
         except ExecutionError:
-            msg = (
-                "The sanity check process failed. This most probably means the data could not be completely prepared. "
-                + f"You may want to check the status report at: {self.report_path}"
-            )
+            msg = "The sanity check process failed. This most probably means the data could not be completely prepared. "
+            if self.report_specified:
+                msg += f"You may want to check the status report at: {self.report_path}"
             raise ExecutionError(msg)
         self.ui.print("> Sanity checks complete")
 
