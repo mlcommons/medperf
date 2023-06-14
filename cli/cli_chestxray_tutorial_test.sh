@@ -53,13 +53,13 @@ echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/mock_chexpert.tar.gz
-tar -xzvf $DIRECTORY/mock_chexpert.tar.gz -C $DIRECTORY
-chmod a+w $DIRECTORY/mock_chexpert
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_raw_data.tar.gz
+tar -xzvf $DIRECTORY/sample_raw_data.tar.gz -C $DIRECTORY
+chmod a+w $DIRECTORY/sample_raw_data
 echo "====================================="
 echo "Setting testing profile"
 echo "====================================="
-medperf profile create -n localtest --server=${SERVER_URL} --certificate=${CERT_FILE}
+medperf profile create -n localtest --server=${SERVER_URL} --certificate=${CERT_FILE} --loglevel=debug --no-cleanup
 medperf profile activate localtest
 echo "====================================="
 echo "Logging the user with username: testdataowner and password: test"
@@ -70,7 +70,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset create -b 1 -d $DIRECTORY/mock_chexpert/images -l $DIRECTORY/mock_chexpert/labels --name="mock_chexpert" --description="mock dataset" --location="mock location"
+medperf dataset create -b 1 -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data --name="nih_chestxray" --description="sample dataset" --location="mock location"
 checkFailed "Data preparation step failed"
 
 echo "\n"

@@ -176,7 +176,8 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         logging.debug(f"Retrieving dataset {dset_uid} remotely")
         meta = config.comms.get_dataset(dset_uid)
-        dataset = cls(**meta)
+        # tmp fix. TODO: stop using separate labels
+        dataset = cls(**meta, separate_labels=True)
         dataset.write()
         return dataset
 

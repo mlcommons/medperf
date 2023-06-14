@@ -60,7 +60,7 @@ jobs:
 
     - name: Run xrv demo
       working-directory: .
-      run: sh cli/cli_xrv_demo.sh -f
+      run: sh cli/cli_chestxray_tutorial_test.sh -f
 
     - name: Run client integration tests
       working-directory: .

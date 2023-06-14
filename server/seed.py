@@ -6,7 +6,7 @@ import curlify
 
 ASSETS_URL = (
     "https://raw.githubusercontent.com/hasan7n/medperf/"
-    "88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/"
+    "094d96006291290fc416b32c6d95cbcca73f200e/examples/chestxray/"
 )
 
 
@@ -18,7 +18,9 @@ class Server:
     def validate(self, verify=False, version=None):
         try:
             resp = requests.request(
-                method="GET", url=self.host + "/version", verify=self.cert,
+                method="GET",
+                url=self.host + "/version",
+                verify=self.cert,
             )
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
@@ -153,12 +155,12 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_prep",
-            "git_mlcube_url": (ASSETS_URL + "chexpert_prep/mlcube/mlcube.yaml"),
-            "mlcube_hash": "074d0593ed5a0a168bf99e077cd09538fb65e001",
+            "git_mlcube_url": (ASSETS_URL + "data_preparator/mlcube/mlcube.yaml"),
+            "mlcube_hash": "425d1d64c2247e8270ec7159b858ae1cc34d2281",
             "git_parameters_url": (
-                ASSETS_URL + "chexpert_prep/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "data_preparator/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "72b3a7570b9e56e31511f2a75041ecc820dd5cc3",
+            "parameters_hash": "2b28ab34a12e0c0767ea9022ab14e9a0dfba67f2",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "additional_files_tarball_url": "",
@@ -193,14 +195,17 @@ def seed(args):
         benchmark_owner_token,
         {
             "name": "xrv_chex_densenet",
-            "git_mlcube_url": (ASSETS_URL + "xrv_densenet/mlcube/mlcube.yaml"),
-            "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
+            "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/mlcube/mlcube.yaml"),
+            "mlcube_hash": "5e5ca7f0228b2b660f4dc672fa8cc23e28df2df4",
             "git_parameters_url": (
-                ASSETS_URL + "xrv_densenet/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "model_custom_cnn/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "4271dbfa5e22a85b2a62ae3cefb340defc2fe74e",
-            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz",
-            "additional_files_tarball_hash": "c5c408b5f9ef8b1da748e3b1f2d58b8b3eebf96e",
+            "parameters_hash": "c5f977a7d1b40d125e6450b3cc0956ea5b0a652c",
+            "additional_files_tarball_url": (
+                "https://storage.googleapis.com/medperf-storage/"
+                "chestxray_tutorial/cnn_weights.tar.gz"
+            ),
+            "additional_files_tarball_hash": "6c2346c11a3e5e7afa575bce711eea755266b1ed",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {},
@@ -234,11 +239,11 @@ def seed(args):
         {
             "name": "xrv_metrics",
             "git_mlcube_url": (ASSETS_URL + "metrics/mlcube/mlcube.yaml"),
-            "mlcube_hash": "5adafd609bb5100ff34f8dd563bd98f67de7d01f",
+            "mlcube_hash": "7b3bd8ece694470abf5cb76159d638811d698049",
             "git_parameters_url": (
                 ASSETS_URL + "metrics/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "302f2f565c630c18b96c89a7584987b95f43be80",
+            "parameters_hash": "277598e53d6a75431e9bec610595e8590be5bf01",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "additional_files_tarball_url": "",
@@ -248,7 +253,8 @@ def seed(args):
         "id",
     )
     print(
-        "Data Evaluator MlCube Created(by Benchmark Owner). ID:", data_evaluator_mlcube,
+        "Data Evaluator MlCube Created(by Benchmark Owner). ID:",
+        data_evaluator_mlcube,
     )
 
     # Update state of the Data Evaluator MLCube to OPERATION
@@ -274,9 +280,9 @@ def seed(args):
             "name": "xrv",
             "description": "benchmark-sample",
             "docs_url": "",
-            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz",
-            "demo_dataset_tarball_hash": "242a67d65ae3c2c8ff55277399ee3cb49dec12fb",
-            "demo_dataset_generated_uid": "fe5f74f8e345662b81acb53d8558a39fbec75837",
+            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz",
+            "demo_dataset_tarball_hash": "0a7df144b704d9d13ccbb6b0a3a3e508ea83d5fe",
+            "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,
             "data_evaluator_mlcube": data_evaluator_mlcube,
@@ -326,14 +332,17 @@ def seed(args):
         model_owner_token,
         {
             "name": "xrv_pc_densenet",
-            "git_mlcube_url": (ASSETS_URL + "xrv_densenet/mlcube/mlcube.yaml"),
-            "mlcube_hash": "4cbecdfd7eebb96691f2d7b634a4fdf02b386bbf",
+            "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/mlcube/mlcube.yaml"),
+            "mlcube_hash": "172a58c365864552d0718e094e9454a2f8eec30f",
             "git_parameters_url": (
-                ASSETS_URL + "xrv_densenet/mlcube/workspace/parameters_pc.yaml"
+                ASSETS_URL + "model_mobilenetv2/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "9ff226e8c0464b8e20742c2eca51704c9c850518",
-            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/xrv_pc_densenet.tar.gz",
-            "additional_files_tarball_hash": "6518e81b3b5a7200964cfe363499ec2ce8ecde14",
+            "parameters_hash": "b36a5bbf9cbdad8be232840e040235918e98a2c6",
+            "additional_files_tarball_url": (
+                "https://storage.googleapis.com/medperf-storage/"
+                "chestxray_tutorial/mobilenetv2_weights.tar.gz"
+            ),
+            "additional_files_tarball_hash": "b99eb6d11a141e32333389d234e819da7a409c17",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {},
@@ -351,7 +360,9 @@ def seed(args):
         "state",
     )
     print(
-        "Model MlCube state updated to", model_executor1_mlcube_state, "by Model Owner",
+        "Model MlCube state updated to",
+        model_executor1_mlcube_state,
+        "by Model Owner",
     )
 
     # Associate the model-executor1 mlcube to the created benchmark by model owner user
