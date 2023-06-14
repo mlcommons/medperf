@@ -2,11 +2,19 @@ comment:
   0: ''
   1: ''
   2: ''
+data_path:
+  0: data.csv
+  1: data.csv
+  2: data.csv
+labels_path:
+  0: labels.csv
+  1: labels.csv
+  2: labels.csv
 status:
-  0: 8
-  1: 8
-  2: 8
+  0: 9
+  1: 9
+  2: 9
 status_name:
-  0: VOLUME_NORMALIZED
-  1: VOLUME_NORMALIZED
-  2: VOLUME_NORMALIZED
+  0: DONE
+  1: DONE
+  2: DONE

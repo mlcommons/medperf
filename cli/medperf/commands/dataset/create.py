@@ -6,14 +6,13 @@ from medperf.enums import Status
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
+from medperf.commands.report.submit import ReportRegistration
+from medperf.commands.report.generate_summary import SummaryGenerator
 from medperf.utils import (
     remove_path,
     generate_tmp_path,
     get_folder_sha1,
     storage_path,
-    dict_pretty_print,
-    approval_prompt,
-    pretty_error,
 )
 from medperf.exceptions import InvalidArgumentError, ExecutionError
 import yaml
@@ -31,7 +30,9 @@ class DataPreparation:
         name: str = None,
         description: str = None,
         location: str = None,
+        summary_out_path: str = "",
     ):
+        summary_out_path = os.path.join(summary_out_path, "summary.md")
         preparation = cls(
             benchmark_uid,
             prep_cube_uid,
@@ -49,8 +50,21 @@ class DataPreparation:
 
             # Run cube tasks
             preparation.run_prepare()
-        if preparation.report_specified and benchmark_uid:
-            preparation.submit_report()
+
+        in_data_hash = preparation.in_uid
+        prep_cube_uid = preparation.prep_cube_uid
+        if preparation.report_specified:
+            # Maybe this doesn't need to be in the middle of the workflow
+            # It could be placed outside the prepare command and executed after
+            # it. There would need to be a way to get the necessary information
+            # outside this logic though. Investigate further
+            in_data_hash = preparation.in_uid
+            prep_cube_uid = preparation.prep_cube_uid
+            if benchmark_uid:
+                ReportRegistration.run(in_data_hash, prep_cube_uid, benchmark_uid)
+            SummaryGenerator.run(
+                in_data_hash, prep_cube_uid, summary_out_path, benchmark_uid
+            )
         with preparation.ui.interactive():
             preparation.run_sanity_check()
             preparation.run_statistics()
@@ -117,17 +131,8 @@ class DataPreparation:
         out_path = os.path.join(staging_path, f"{self.in_uid}_{self.cube.id}")
         self.out_path = out_path
         self.report_path = os.path.join(out_path, config.report_file)
-        self.report_metadata_path = os.path.join(out_path, config.report_metadata_file)
         self.out_datapath = os.path.join(out_path, "data")
         self.out_labelspath = os.path.join(out_path, "labels")
-
-        if os.path.exists(self.report_metadata_path):
-            # The report has already been submitted
-            # Retrieve the report server ID
-            with open(self.report_metadata_path, "r") as f:
-                report_metadata = yaml.safe_load(f)
-            self.report_uid = report_metadata["id"]
-            self.approved = True
 
         # Check if labels_path is specified
         self.labels_specified = (
@@ -135,7 +140,7 @@ class DataPreparation:
         )
         # Backwards compatibility. Run a cube as before if no report is specified
         self.report_specified = (
-            self.cube.get_default_output("prepare", "report") is not None
+            self.cube.get_default_output("prepare", "report_file") is not None
         )
         logging.debug(f"tmp data preparation output: {out_path}")
         logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
@@ -231,49 +236,6 @@ class DataPreparation:
             **statistics_params,
         )
         self.ui.print("> Statistics complete")
-
-    # TODO: this could be a separate commmand, and be executed inside this workflow
-    # That would be more inline with our previous code structure
-    def submit_report(self):
-        with open(self.report_path, "r") as f:
-            report = yaml.safe_load(f)
-
-        if self.report_uid is None:
-            self.request_submission_approval()
-
-        if not self.approved:
-            config.ui.print("Report submission cancelled")
-            return
-
-        config.ui.print("Uploading report")
-        # TODO: if we have a path to the case file, remove it from the submisison body
-        # example:
-        # del report["path"]
-        body = {
-            "benchmark_id": self.benchmark_uid,
-            "dataset_input_hash": self.in_uid,
-            "report": report,
-        }
-
-        if self.report_uid is not None:
-            report_metadata = config.comms.update_report(self.report_uid, body)
-        else:
-            report_metadata = config.comms.upload_report(body)
-
-        with open(self.report_metadata_path, "w") as f:
-            yaml.dump(report_metadata, f)
-
-    def request_submission_approval(self):
-        with open(self.report_path, "r") as f:
-            report = yaml.safe_load(f)
-        dict_pretty_print(report)
-        msg = (
-            "Do you approve the submission of the status report to the MedPerf Server?"
-            + " This report will be visible by the benchmark owner and updated in subsequent calls"
-            + " [Y/n]"
-        )
-
-        self.approved = self.approved or approval_prompt(msg)
 
     def get_statistics(self):
         with open(self.out_statistics_path, "r") as f:

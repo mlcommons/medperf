@@ -30,10 +30,11 @@ def prepare(data: pd.DataFrame, labels: pd.DataFrame, report: pd.DataFrame):
     # Apply whole dataset transforms
     processing_df = transform_dataframe(processing_df)
 
-    # TODO: decide if "verified" goes here
     data = processing_df[["weight", "volume", "density", "verified"]]
     labels = processing_df["label"]
-    report = processing_df[["status", "status_name", "comment"]]
+    report = processing_df[
+        ["status", "status_name", "comment", "data_path", "labels_path"]
+    ]
 
     return data, labels, report
 
@@ -162,6 +163,12 @@ def transform_dataframe(df: pd.DataFrame):
             df["status_name"] = "VOLUME_NORMALIZATION_ERROR"
             df["comment"] = "Volume could not be normalized. Check the volume values"
 
+    if all(abs(df["status"]) == 8):
+        # DONE is a special status, which will always be tracked by the summary report
+        df["status"] = 9
+        df["status_name"] = "DONE"
+        df["comment"] = ""
+
     return df
 
 
@@ -242,6 +249,17 @@ if __name__ == "__main__":
     else:
         report = generate_report(data_df)
 
+    # Paths inside MLCubes don't behave as expected
+    # They point to the mlcube volume path
+    # Therefore, paths only include what goes after the volume
+    # For example:
+    # My case is at /workspace/data/patients/patient_0374/patient.DICOM
+    # and labels at /workspace/data/labels/labels.csv
+    # the paths would be:
+    # data_path = patients/patient_0374/patient.DICOM
+    # labels_path = labels.csv
+    data_df["data_path"] = "data.csv"
+    data_df["labels_path"] = "labels.csv"
     prepared_data, prepared_labels, report = prepare(data_df, labels_df, report)
 
     prepared_data.to_csv(out_data, index=False)
