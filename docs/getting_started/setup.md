@@ -17,7 +17,7 @@ For this tutorial, you should spawn a local MedPerf server for the MedPerf clien
 
     ```bash
     cd server
-    sh setup_dev_server.sh
+    sh setup-dev-server.sh
     ```
 
 The local server now is ready to recieve requests. You can always stop the server by pressing `CTRL`+`C` in the terminal where you ran the server.

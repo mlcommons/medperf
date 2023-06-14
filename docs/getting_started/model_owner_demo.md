@@ -71,13 +71,13 @@ The submission should include the URLs of all the hosted files. For our tutorial
 - The URL to the hosted mlcube manifest file is
 
    ```text
-   {{ page.meta.model_mlcube }}
+   {{ model_mlcube }}
    ```
 
 - The URL to the hosted mlcube parameters file is
 
    ```text
-   {{ page.meta.model_params }}
+   {{ model_params }}
    ```
 
 - The URL to the hosted additional files tarball file is
@@ -91,8 +91,8 @@ Use the following command to submit:
 ```bash
 medperf mlcube submit \
    --name my-modelref-cube \
-   --mlcube-file "{{ page.meta.model_mlcube }}" \
-   --parameters-file "{{ page.meta.model_params }}" \
+   --mlcube-file "{{ model_mlcube }}" \
+   --parameters-file "{{ model_params }}" \
    --additional-file "{{ page.meta.model_add }}"
 ```
 

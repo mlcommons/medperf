@@ -3,9 +3,16 @@ mkdir -p medperf_tutorial
 cd medperf_tutorial
 
 # Download a clean, unpackaged demo dataset
-wget https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz
-tar -xf mock_xrv_demo_data.tar.gz
-rm mock_xrv_demo_data.tar.gz
+url=https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz 
+filename=$(basename $url)
+
+if [ -x "$(which wget)" ] ; then
+    wget $url
+elif [ -x "$(which curl)" ]; then
+    curl -o $filename $url
+fi
+tar -xf $filename
+rm $filename
 rm paths.yaml
 
 # Copy the MLCubes to be used
