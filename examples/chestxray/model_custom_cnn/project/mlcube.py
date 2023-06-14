@@ -8,7 +8,7 @@ app = typer.Typer()
 
 
 @app.command("infer")
-def prepare(
+def infer(
     data_path: str = typer.Option(..., "--data_path"),
     parameters_file: str = typer.Option(..., "--parameters_file"),
     output_path: str = typer.Option(..., "--output_path"),
