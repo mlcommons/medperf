@@ -4,31 +4,33 @@ Before proceeding, make sure you have the [MedPerf client installed.](../install
 
 ## Run a Local Server
 
-For the purpose of the tutorials, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not to the internet.
+For this tutorial, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not on the internet.
 
-1. Install the server requirements if you didn't before: (make sure you are in MedPerf's root folder)
+1. Install the server requirements ensuring you are in MedPerf's root folder (skip if you have already installed them):
 
     ```bash
     pip install -r server/requirements.txt
     pip install -r server/test-requirements.txt
     ```
 
-2. Switch to the server directory and run the server:
+2. Switch to the server directory and run the server using the following command:
 
     ```bash
     cd server
-    sh setup_dev_server.sh
+    sh setup-dev-server.sh
     ```
 
 The local server now is ready to recieve requests. You can always stop the server by pressing `CTRL`+`C` in the terminal where you ran the server.
 
-It's time now to configure the client to communicate with the local server. Make sure you continue following the instructions in a new terminal.
+After that, you will be configuring the client to communicate with the local server. Make sure you continue following the instructions in a new terminal.
 
 ## Configure the Client
 
-The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. MedPerf comes with two already created profiles: the `default` and `test` profiles. The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, we will be using the `test` profile as it is preconfigured so that the client communicates with the local server.
+The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. MedPerf comes with two already created profiles: the `default` and `test` profiles. 
 
-To activate the `test` profile, run:
+The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, we will be using the `test` profile as it is preconfigured so that the client communicates with the local server.
+
+To activate the `test` profile, run the following command:
 
 ```bash
 medperf profile activate test
@@ -54,7 +56,7 @@ You can configure the client to use either Docker or Singularity. The `test` pro
 medperf profile set --platform singularity
 ```
 
-This will modify the `platform` parameter of the currently activated profile.
+This command will modify the `platform` parameter of the currently activated profile.
 
 ## What's Next?
 
