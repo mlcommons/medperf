@@ -266,7 +266,7 @@ You can create and submit your benchmark using the following command:
 ```bash
 medperf benchmark submit \
    --name tutorial_bmk \
-   --description "A benchmark created following MedPerf tutorial" \
+   --description "MedPerf demo bmk" \
    --demo-url "{{ demo_url }}" \
    --data-preparation-mlcube 1 \
    --reference-model-mlcube 2 \
