@@ -154,7 +154,7 @@ def seed(args):
         "POST",
         benchmark_owner_token,
         {
-            "name": "xrv_prep",
+            "name": "chestxray_prep",
             "git_mlcube_url": (ASSETS_URL + "data_preparator/mlcube/mlcube.yaml"),
             "mlcube_hash": "425d1d64c2247e8270ec7159b858ae1cc34d2281",
             "git_parameters_url": (
@@ -194,7 +194,7 @@ def seed(args):
         "POST",
         benchmark_owner_token,
         {
-            "name": "xrv_chex_densenet",
+            "name": "chestxray_cnn",
             "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/mlcube/mlcube.yaml"),
             "mlcube_hash": "5e5ca7f0228b2b660f4dc672fa8cc23e28df2df4",
             "git_parameters_url": (
@@ -237,7 +237,7 @@ def seed(args):
         "POST",
         benchmark_owner_token,
         {
-            "name": "xrv_metrics",
+            "name": "chestxray_metrics",
             "git_mlcube_url": (ASSETS_URL + "metrics/mlcube/mlcube.yaml"),
             "mlcube_hash": "7b3bd8ece694470abf5cb76159d638811d698049",
             "git_parameters_url": (
@@ -277,7 +277,7 @@ def seed(args):
         "POST",
         benchmark_owner_token,
         {
-            "name": "xrv",
+            "name": "chestxray",
             "description": "benchmark-sample",
             "docs_url": "",
             "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz",
@@ -331,7 +331,7 @@ def seed(args):
         "POST",
         model_owner_token,
         {
-            "name": "xrv_pc_densenet",
+            "name": "chestxray_mobilenet",
             "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/mlcube/mlcube.yaml"),
             "mlcube_hash": "172a58c365864552d0718e094e9454a2f8eec30f",
             "git_parameters_url": (

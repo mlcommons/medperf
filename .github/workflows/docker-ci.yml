@@ -58,7 +58,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f cli/requirements.txt ]; then pip install -e cli; fi
 
-    - name: Run xrv demo
+    - name: Run chestxray demo
       working-directory: .
       run: sh cli/cli_chestxray_tutorial_test.sh -f
 
