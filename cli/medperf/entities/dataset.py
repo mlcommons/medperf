@@ -34,7 +34,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     split_seed: Optional[int]
     generated_metadata: dict = Field(..., alias="metadata")
     status: Status = None
-    separate_labels: Optional[bool]
     user_metadata: dict = {}
 
     @validator("status", pre=True, always=True)
@@ -65,9 +64,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         self.path = path
         self.data_path = os.path.join(self.path, "data")
-        self.labels_path = self.data_path
-        if self.separate_labels:
-            self.labels_path = os.path.join(self.path, "labels")
+        self.labels_path = os.path.join(self.path, "labels")
 
     def todict(self):
         return self.extended_dict()
@@ -176,8 +173,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         logging.debug(f"Retrieving dataset {dset_uid} remotely")
         meta = config.comms.get_dataset(dset_uid)
-        # tmp fix. TODO: stop using separate labels
-        dataset = cls(**meta, separate_labels=True)
+        dataset = cls(**meta)
         dataset.write()
         return dataset
 
@@ -217,7 +213,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         dataset_dict = self.todict()
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
         updated_dataset_dict["status"] = dataset_dict["status"]
-        updated_dataset_dict["separate_labels"] = dataset_dict["separate_labels"]
         return updated_dataset_dict
 
     @classmethod

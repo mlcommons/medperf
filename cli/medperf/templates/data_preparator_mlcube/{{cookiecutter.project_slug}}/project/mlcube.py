@@ -11,9 +11,7 @@ def prepare(
     labels_path: str = typer.Option(..., "--labels_path"),
     parameters_file: str = typer.Option(..., "--parameters_file"),
     output_path: str = typer.Option(..., "--output_path"),
-    {% if cookiecutter.use_separate_output_labels == 'y' -%}
     output_labels_path: str = typer.Option(..., "--output_labels_path"),
-    {% endif %}
 ):
     # Modify the prepare command as needed
     raise NotImplementedError("The prepare method is not yet implemented")
@@ -22,9 +20,7 @@ def prepare(
 @app.command("sanity_check")
 def sanity_check(
     data_path: str = typer.Option(..., "--data_path"),
-    {% if cookiecutter.use_separate_output_labels == 'y' -%}
     labels_path: str = typer.Option(..., "--labels_path"),
-    {% endif %}
     parameters_file: str = typer.Option(..., "--parameters_file"),
 ):
     # Modify the sanity_check command as needed
@@ -34,9 +30,7 @@ def sanity_check(
 @app.command("statistics")
 def statistics(
     data_path: str = typer.Option(..., "--data_path"),
-    {% if cookiecutter.use_separate_output_labels == 'y' -%}
     labels_path: str = typer.Option(..., "--labels_path"),
-    {% endif %}
     parameters_file: str = typer.Option(..., "--parameters_file"),
     out_path: str = typer.Option(..., "--output_path"),
 ):
