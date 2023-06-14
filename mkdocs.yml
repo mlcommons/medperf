@@ -16,9 +16,9 @@ nav:
   - Hands-on Tutorial for Data Owners: getting_started/data_owner_demo.md
 - MedPerf MLCubes: 
   - Introduction: mlcubes/mlcubes.md
-  - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md
+  - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data_tmp.md
   - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
-  - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
+  - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics_tmp.md
   - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
 
 - Concepts:
