@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.models import Sequential
+import json
 
 
 def preprocess(images):
@@ -53,9 +54,11 @@ def run_inference(data_path, parameters, output_path, weights):
     # inference
     predictions = model.predict(images, batch_size)
     predictions_dict = {
-        file_id: prediction for file_id, prediction in zip(files_ids, predictions)
+        file_id: prediction.tolist()
+        for file_id, prediction in zip(files_ids, predictions)
     }
 
     # save
-    preds_file = os.path.join(output_path, "predictions.npz")
-    np.savez(preds_file, **predictions_dict)
+    preds_file = os.path.join(output_path, "predictions.json")
+    with open(preds_file, "w") as f:
+        json.dump(predictions_dict, f, indent=4)

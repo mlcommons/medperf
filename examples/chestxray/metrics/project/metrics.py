@@ -3,6 +3,7 @@ import numpy as np
 import yaml
 import os
 from sklearn.metrics import accuracy_score, roc_auc_score
+import json
 
 
 def global_accuracy(y_true, y_score, threshold=0.5):
@@ -28,12 +29,13 @@ def global_auc(y_true, y_score):
 def calculate_metrics(labels, predictions, parameters, output_path):
     threshold = parameters["threshold"]
 
-    predictions_file = os.path.join(predictions, "predictions.npz")
+    predictions_file = os.path.join(predictions, "predictions.json")
 
-    predictions_dict = np.load(predictions_file)
+    with open(predictions_file) as f:
+        predictions_dict = json.load(f)
     predictions = []
     labels_array = []
-    for file_id in predictions_dict.files:
+    for file_id in predictions_dict:
         predictions.append(predictions_dict[file_id])
         label_file = os.path.join(labels, f"{file_id}.npy")
         labels_array.append(np.load(label_file))

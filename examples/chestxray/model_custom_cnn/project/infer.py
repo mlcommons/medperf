@@ -1,10 +1,10 @@
-import numpy as np
 import torch
 import os
 from models import SimpleCNN
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from data_loader import CustomImageDataset
+import json
 
 
 def run_inference(data_path, parameters, output_path, weights):
@@ -27,11 +27,12 @@ def run_inference(data_path, parameters, output_path, weights):
         for images, files_ids in tqdm(dataloader):
             outputs = model(images)
             outputs = torch.nn.Sigmoid()(outputs)
-            outputs = outputs.detach().numpy()
+            outputs = outputs.detach().numpy().tolist()
 
             for file_id, output in zip(files_ids, outputs):
                 predictions_dict[file_id] = output
 
     # save
-    preds_file = os.path.join(output_path, "predictions.npz")
-    np.savez(preds_file, **predictions_dict)
+    preds_file = os.path.join(output_path, "predictions.json")
+    with open(preds_file, "w") as f:
+        json.dump(predictions_dict, f, indent=4)
