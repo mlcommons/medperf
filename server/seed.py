@@ -281,7 +281,7 @@ def seed(args):
             "description": "benchmark-sample",
             "docs_url": "",
             "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz",
-            "demo_dataset_tarball_hash": "0a7df144b704d9d13ccbb6b0a3a3e508ea83d5fe",
+            "demo_dataset_tarball_hash": "fd54a97f52ebc0e2f533a17b77165ee4d343f5b4",
             "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,

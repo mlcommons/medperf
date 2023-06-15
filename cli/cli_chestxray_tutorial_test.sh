@@ -70,7 +70,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset create -b 1 -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data --name="nih_chestxray" --description="sample dataset" --location="mock location"
+medperf dataset create -b 1 -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data/labels --name="nih_chestxray" --description="sample dataset" --location="mock location"
 checkFailed "Data preparation step failed"
 
 echo "\n"
