@@ -1,16 +1,16 @@
 ---
-demo_url: https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz
-model_add: https://storage.googleapis.com/medperf-storage/xrv_chex_densenet.tar.gz
-assets_url: https://raw.githubusercontent.com/hasan7n/medperf/88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/
+demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
+model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
+assets_url: https://raw.githubusercontent.com/hasan7n/medperf/094d96006291290fc416b32c6d95cbcca73f200e/examples/chestxray/
 tutorial_id: benchmark
 ---
 
 # Hands-on Tutorial for Bechmark Committee
 
-{% set prep_mlcube = assets_url+"chexpert_prep/mlcube/mlcube.yaml" %}
-{% set prep_params = assets_url+"chexpert_prep/mlcube/workspace/parameters.yaml" %}
-{% set model_mlcube = assets_url+"xrv_densenet/mlcube/mlcube.yaml" %}
-{% set model_params = assets_url+"xrv_densenet/mlcube/workspace/parameters.yaml" %}
+{% set prep_mlcube = assets_url+"data_preparator/mlcube/mlcube.yaml" %}
+{% set prep_params = assets_url+"data_preparator/mlcube/workspace/parameters.yaml" %}
+{% set model_mlcube = assets_url+"model_custom_cnn/mlcube/mlcube.yaml" %}
+{% set model_params = assets_url+"model_custom_cnn/mlcube/workspace/parameters.yaml" %}
 {% set metrics_mlcube = assets_url+"metrics/mlcube/mlcube.yaml" %}
 {% set metrics_params = assets_url+"metrics/mlcube/workspace/parameters.yaml" %}
 
@@ -33,13 +33,13 @@ It's assumed that you have already set up the general testing environment as exp
 
 The implementation of a valid workflow is accomplished by implementing three [MLCubes](../mlcubes/mlcubes.md):
 
-1. **Data Preparator MLCube:** This MLCube will transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark will have their data prepared using this MLCube. A tutorial on how to implement data preparation MLCubes can be found [here](../mlcubes/mlcube_data.md).
+1. **Data Preparator MLCube:** This MLCube will transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark will have their data prepared using this MLCube. A guide on how to implement data preparation MLCubes can be found [here](../mlcubes/mlcube_data.md).
 
-2. **Reference Model MLCube:** This MLCube will contain an example model implementation for the desired AI task. It should be compatible with the data preparation MLCube (i.e., the outputs of the data preparation MLCube can be directly fed as inputs to this MLCube). A tutorial on how to implement model MLCubes can be found [here](../mlcubes/mlcube_models.md).
+2. **Reference Model MLCube:** This MLCube will contain an example model implementation for the desired AI task. It should be compatible with the data preparation MLCube (i.e., the outputs of the data preparation MLCube can be directly fed as inputs to this MLCube). A guide on how to implement model MLCubes can be found [here](../mlcubes/mlcube_models.md).
 
-3. **Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e., the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). A tutorial on how to implement metrics MLCubes can be found [here](../mlcubes/mlcube_metrics.md).
+3. **Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e., the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). A guide on how to implement metrics MLCubes can be found [here](../mlcubes/mlcube_metrics.md).
 
-For this tutorial, we have already implemented the three mlcubes for the task of chest X-ray classification. The implementations can be found in the following links: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/chexpert_prep), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/xrv_densenet), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/ChestXRay/metrics). We set up these mlcubes locally for you and they can be found in your workspace folder under `chexpert_prep`, `xrv_densenet`, and `metrics`.
+For this tutorial, we have already implemented the three mlcubes for the task of chest X-ray classification. The implementations can be found in the following links: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/data_preparator), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/model_custom_cnn), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/metrics). We set up these mlcubes locally for you and they can be found in your workspace folder under `data_preparator`, `model_custom_cnn`, and `metrics`.
 
 ## 2. Develop a Demo Dataset
 
@@ -49,7 +49,7 @@ A demo dataset is a small reference dataset. It contains a few data records and 
 
 2. When a model owner wants to participate in the benchmark, the MedPerf client tests the compatibility of their model with the benchmark's data preparation cube and metrics cube. The test is run using the benchmark's demo dataset as input.
 
-For this tutorial, we have already developed a demo dataset for the workflow provided in the previous section. The dataset can be found in your workspace folder under `mock_chexpert`. It is a mock dataset comprising images and labels, which will replace real X-ray images.
+For this tutorial, we have already developed a demo dataset for the workflow provided in the previous section. The dataset can be found in your workspace folder under `demo_data`. It is a small dataset comprising two chest X-ray images and corresponding thoracic disease labels.
 
 You can test the workflow now that you have the three MLCubes and the demo data. Testing the workflow before submitting any asset to the MedPerf server is usually recommended.
 
@@ -57,21 +57,21 @@ You can test the workflow now that you have the three MLCubes and the demo data.
 
 MedPerf provides a single command to test an inference workflow. To test your workflow with local MLCubes and local data, the following need to be passed to the command:
 
-1. Path to the data preparation MLCube manifest file: `medperf_tutorial/chexpert_prep/mlcube/mlcube.yaml`.
-2. Path to the model MLCube manifest file: `medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml`.
+1. Path to the data preparation MLCube manifest file: `medperf_tutorial/data_preparator/mlcube/mlcube.yaml`.
+2. Path to the model MLCube manifest file: `medperf_tutorial/model_custom_cnn/mlcube/mlcube.yaml`.
 3. Path to the metrics MLCube manifest file: `medperf_tutorial/metrics/mlcube/mlcube.yaml`.
-4. Path to the demo dataset data records: `medperf_tutorial/mock_chexpert/images`.
-5. Path to the demo dataset data labels. `medperf_tutorial/mock_chexpert/labels`.
+4. Path to the demo dataset data records: `medperf_tutorial/demo_data/images`.
+5. Path to the demo dataset data labels. `medperf_tutorial/demo_data/labels`.
 
 Run the following command to execute the test ensuring you are in MedPerf's root folder:
 
 ```bash
 medperf test run \
-   --data_preparation "medperf_tutorial/chexpert_prep/mlcube/mlcube.yaml" \
-   --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml" \
+   --data_preparation "medperf_tutorial/data_preparator/mlcube/mlcube.yaml" \
+   --model "medperf_tutorial/model_custom_cnn/mlcube/mlcube.yaml" \
    --evaluator "medperf_tutorial/metrics/mlcube/mlcube.yaml" \
-   --data_path "medperf_tutorial/mock_chexpert/images" \
-   --labels_path "medperf_tutorial/mock_chexpert/labels"
+   --data_path "medperf_tutorial/demo_data/images" \
+   --labels_path "medperf_tutorial/demo_data/labels"
 ```
 
 Assuming the test passes successfully, you are ready to submit the MLCubes to the MedPerf server.
@@ -85,8 +85,8 @@ Assuming the test passes successfully, you are ready to submit the MLCubes to th
 To prepare the files of our three MLCubes, run the following command ensuring you are in MedPerf's root folder:
 
 ```bash
-python scripts/package-mlcube.py --mlcube medperf_tutorial/chexpert_prep/mlcube --mlcube-types data-preparator
-python scripts/package-mlcube.py --mlcube medperf_tutorial/xrv_densenet/mlcube --mlcube-types model
+python scripts/package-mlcube.py --mlcube medperf_tutorial/data_preparator/mlcube --mlcube-types data-preparator
+python scripts/package-mlcube.py --mlcube medperf_tutorial/model_custom_cnn/mlcube --mlcube-types model
 python scripts/package-mlcube.py --mlcube medperf_tutorial/metrics/mlcube --mlcube-types metrics
 ```
 
@@ -194,20 +194,20 @@ The demo dataset should be packaged in a specific way as a compressed tarball fi
 ```text
 .
 └── medperf_tutorial
-    ├── mock_chexpert
+    ├── demo_data
     │   ├── images
     │   └── labels
     │
     ...
 ```
 
-Our goal is to package the folder `mock_chexpert`, we must first create a file called `paths.yaml`. This file will provide instructions on how to locate the data records path and the labels path. The `paths.yaml` file should specify both the data records path and the labels path.
+Our goal is to package the folder `demo_data`, we must first create a file called `paths.yaml`. This file will provide instructions on how to locate the data records path and the labels path. The `paths.yaml` file should specify both the data records path and the labels path.
 
 In your workspace directory (`medperf_tutorial`), create a file `paths.yaml` and fill it with the following:
 
 ```text
-data_path: mock_chexpert/images
-labels_path: mock_chexpert/labels
+data_path: demo_data/images
+labels_path: demo_data/labels
 ```
 
 !!! note
@@ -218,7 +218,7 @@ After that, the workspace should look like the following:
 ```text
 .
 └── medperf_tutorial
-    ├── mock_chexpert
+    ├── demo_data
     │   ├── images
     │   └── labels
     ├── paths.yaml
@@ -226,13 +226,13 @@ After that, the workspace should look like the following:
     ...
 ```
 
-Finally, compress the required assets (`mock_chexpert` and `paths.yaml`) into a tarball file by running the following command in your workspace directory:
+Finally, compress the required assets (`demo_data` and `paths.yaml`) into a tarball file by running the following command in your workspace directory:
 
 ```bash
-tar -czf mock_xrv_demo_data.tar.gz mock_chexpert paths.yaml
+tar -czf demo_data.tar.gz demo_data paths.yaml
 ```
 
-And that's it! Now you have to host the tarball file (`mock_xrv_demo_data.tar.gz`) on the internet.
+And that's it! Now you have to host the tarball file (`demo_data.tar.gz`) on the internet.
 
 For the tutorial to run smoothly, we already have the file hosted at the following URL:
 
@@ -276,7 +276,7 @@ The MedPerf client will first automatically run a compatibility test between the
 !!! note
     The benchmark will stay inactive until the MedPerf admin approves your submission.
 
-That's it! You check your benchmark's server UID by running:
+That's it! You can check your benchmark's server UID by running:
 
 ```bash
 medperf benchmark ls --mine

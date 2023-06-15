@@ -1,5 +1,5 @@
 ---
-prepared_hash: fe5f74f8e345662b81acb53d8558a39fbec75837
+prepared_hash: 9d56e799a9e63a6c3ced056ebd67eb6381483381
 tutorial_id: data
 ---
 # Hands-on Tutorial for Data Owners
@@ -25,8 +25,8 @@ To prepare your data, you need to collect the following information:
 - A name you wish to have for your dataset.
 - A small description of the dataset.
 - The source location of your data (e.g., hospital name).
-- The path to the data records (in our case, it is `medperf_tutorial/mock_chexpert/images`).
-- The path to the labels of the data (in our case, it is `medperf_tutorial/mock_chexpert/labels`)
+- The path to the data records (in our case, it is `medperf_tutorial/sample_raw_data/images`).
+- The path to the labels of the data (in our case, it is `medperf_tutorial/sample_raw_data/labels`)
 - The benchmark ID that you wish to participate in. This ensures your data is prepared using the benchmark's data preparation MLCube.
 
 !!! note
@@ -47,8 +47,8 @@ medperf dataset create \
   --name "mytestdata" \
   --description "A tutorial dataset" \
   --location "My machine" \
-  --data_path "medperf_tutorial/mock_chexpert/images" \
-  --labels_path "medperf_tutorial/mock_chexpert/labels" \
+  --data_path "medperf_tutorial/sample_raw_data/images" \
+  --labels_path "medperf_tutorial/sample_raw_data/labels" \
   --benchmark 1
 ```
 

@@ -1,18 +1,18 @@
 ---
-demo_url: https://storage.googleapis.com/medperf-storage/mock_xrv_demo_data.tar.gz
-model_add: https://storage.googleapis.com/medperf-storage/xrv_pc_densenet.tar.gz
-assets_url: https://raw.githubusercontent.com/hasan7n/medperf/88155cf4cac9b3201269d16e680d7d915a2f8adc/examples/ChestXRay/
+demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
+model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz
+assets_url: https://raw.githubusercontent.com/hasan7n/medperf/094d96006291290fc416b32c6d95cbcca73f200e/examples/chestxray/
 tutorial_id: model
 ---
 
 # Hands-on Tutorial for Model Owners
 
-{% set model_mlcube = assets_url+"xrv_densenet/mlcube/mlcube.yaml" %}
-{% set model_params = assets_url+"xrv_densenet/mlcube/workspace/parameters_pc.yaml" %}
+{% set model_mlcube = assets_url+"model_mobilenetv2/mlcube/mlcube.yaml" %}
+{% set model_params = assets_url+"model_mobilenetv2/mlcube/workspace/parameters.yaml" %}
 
 ## Overview
 
-In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. It's highly recommend that you to follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) tutorial first to implement your own model MLCube and use it throughout this tutorial. However, this guide provides an already implemented MLCube if you want to directly proceed to learn how to interact with MedPerf.
+In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. It's highly recommend that you to follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) guide first to implement your own model MLCube and use it throughout this tutorial. However, this guide provides an already implemented MLCube if you want to directly proceed to learn how to interact with MedPerf.
 
 The main tasks of this guide are:
 
@@ -35,14 +35,14 @@ These details should usually be acquired by contacting the Benchmark Committee a
 
 To test your MLCube validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In our case, it is going to be `1`.
 
-Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we will be using is `medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml`.
+Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we will be using is `medperf_tutorial/model_mobilenetv2/mlcube/mlcube.yaml`.
 
 After that, run the compatibility test:
 
 ```bash
 medperf test run \
    --benchmark 1 \
-   --model "medperf_tutorial/xrv_densenet/mlcube/mlcube.yaml"
+   --model "medperf_tutorial/model_mobilenetv2/mlcube/mlcube.yaml"
 
 ```
 
@@ -57,7 +57,7 @@ Assuming the test passes successfuly, you are ready to submit the MLCube to the 
 To prepare the files of our MLCube, run the following command ensuring you are in MedPerf's root folder:
 
 ```bash
-python scripts/package-mlcube.py --mlcube medperf_tutorial/xrv_densenet/mlcube --mlcube-types model
+python scripts/package-mlcube.py --mlcube medperf_tutorial/model_mobilenetv2/mlcube --mlcube-types model
 ```
 
 This script will create a new folder in the MLCube directory, named `assets`, containing all the files that should be hosted separately.
@@ -90,7 +90,7 @@ Use the following command to submit:
 
 ```bash
 medperf mlcube submit \
-   --name my-modelref-cube \
+   --name my-model-cube \
    --mlcube-file "{{ model_mlcube }}" \
    --parameters-file "{{ model_params }}" \
    --additional-file "{{ page.meta.model_add }}"

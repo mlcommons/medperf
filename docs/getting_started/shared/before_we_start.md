@@ -8,6 +8,7 @@ For the purpose of the tutorial, you have to start with a fresh server database 
 cd server
 sh reset_db.sh
 python seed.py --cert cert.crt --demo {{page.meta.tutorial_id}}
+cd ..
 ```
 
 #### Download the Necessary files

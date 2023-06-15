@@ -39,14 +39,14 @@ To facilitate hosting and implementation validation, we provide a script that fi
 ```bash
 python scripts/package-mlcube.py \
    --mlcube path/to/mlcube \
-   --mlcube-types <list-of-comma-seprated-strings> \
+   --mlcube-types <list-of-comma-separated-strings> \
    --output path/to/file.tar.gz
 ```
 
 where:
 
   - `path/to/mlcube` is the path to the MLCube folder containing the manifest file (`mlcube.yaml`)
-  - `--mlcube-types` specifies a comma-separated list of MLCube types ('data-preparator' for a data preparation MLCube, 'data-preparator-separate-labels' for a data preparation MLCube with separate output labels path, 'model' for a model MLCube, and 'metrics' for a metrics MLCube.)
+  - `--mlcube-types` specifies a comma-separated list of MLCube types ('data-preparator' for a data preparation MLCube, 'model' for a model MLCube, and 'metrics' for a metrics MLCube.)
   - `path/to/file.tar.gz` is a path to the output file where you want to store the compressed version of all assets.
 
 See `python scripts/package-mlcube.py --help` for more information.
