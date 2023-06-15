@@ -2,17 +2,18 @@ import os
 from medperf.exceptions import MedperfException
 import yaml
 import logging
+from deepdiff import DeepDiff
 from typing import List, Optional, Union
 from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
-from medperf.entities.interface import Entity, Uploadable
+from medperf.entities.interface import Entity, Updatable
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 
 
-class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity, Updatable, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 
@@ -230,6 +231,66 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             List[int]: List of mlcube uids
         """
         return config.comms.get_benchmark_models(benchmark_uid)
+
+    def edit(self, **kwargs):
+        """Edits a benchmark with the given property-value pairs"""
+        data = self.todict()
+        data.update(kwargs)
+        new_bmk = Benchmark(**data)
+
+        self.__validate_edit(new_bmk)
+
+        self.__dict__.update(**new_bmk.__dict__)
+
+    def __validate_edit(self, new_bmk: "Benchmark"):
+        """Validates that an update is valid given the changes made
+
+        Args:
+            old_bmk (Benchmark): The old version of the Benchmark
+            new_bmk (Benchmark): The new version of the same Benchmark
+
+        Raises:
+            InvalidArgumentError: The changed fields are not mutable
+        """
+        old_bmk = self
+        # Field that shouldn't ber modified directly by the user
+        inmutable_fields = {
+            "id",
+        }
+
+        # Fields that can no longer be modified while in production
+        production_inmutable_fields = {
+            "name",
+            "description" "demo_dataset_tarball_hash",
+            "demo_dataset_generated_uid",
+            "data_preparation_mlcube",
+            "reference_model_mlcube",
+            "data_evaluator_mlcube",
+        }
+
+        if old_bmk.state == "OPERATION":
+            inmutable_fields = inmutable_fields.union(production_inmutable_fields)
+
+        bmk_diffs = DeepDiff(new_bmk.todict(), old_bmk.todict())
+        updated_fields = set(bmk_diffs.affected_root_keys)
+
+        updated_inmutable_fields = updated_fields.intersection(inmutable_fields)
+
+        if len(updated_inmutable_fields):
+            fields_msg = ", ".join(updated_inmutable_fields)
+            msg = (
+                "The following fields can't be directly edited: "
+                + fields_msg
+                + ". For these changes, a new Benchmark is required"
+            )
+            raise InvalidArgumentError(msg)
+
+    def update(self):
+        """Updates the benchmark on the server"""
+        if not self.is_registered:
+            raise MedperfException("Can't update an unregistered benchmark")
+        body = self.todict()
+        config.comms.update_benchmark(self.id, body)
 
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance

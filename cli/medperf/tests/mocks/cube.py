@@ -38,4 +38,4 @@ class TestCube(Cube):
         str
     ] = "https://test.com/additional_files.tar.gz"
     additional_files_tarball_hash: Optional[str] = EMPTY_FILE_HASH
-    state: str = "PRODUCTION"
+    state: str = "OPERATION"

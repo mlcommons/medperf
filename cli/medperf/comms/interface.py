@@ -134,6 +134,14 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def update_benchmark(self, id: int, benchmark_dict: dict):
+        """Updates the benchmark with the given id and the new dictionary
+
+        Args:
+            benchmark_dict (dict): updated benchmark data
+        """
+
+    @abstractmethod
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
 
@@ -142,6 +150,14 @@ class Comms(ABC):
 
         Returns:
             int: id of the created mlcube instance on the platform
+        """
+
+    @abstractmethod
+    def update_mlcube(self, id: int, mlcube_dict: dict):
+        """Updates the mlcube with the given id and the new dictionary
+
+        Args:
+            mlcube_dict (dict): updated mlcube data
         """
 
     @abstractmethod
@@ -180,6 +196,14 @@ class Comms(ABC):
 
         Returns:
             int: id of the created dataset registration.
+        """
+
+    @abstractmethod
+    def update_dataset(self, id: int, dataset_dict: dict):
+        """Updates the dataset with the given id and the new dictionary
+
+        Args:
+            dataset_dict (dict): updated dataset data
         """
 
     @abstractmethod

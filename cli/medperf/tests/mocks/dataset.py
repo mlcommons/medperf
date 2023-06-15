@@ -12,4 +12,4 @@ class TestDataset(Dataset):
     generated_uid: str = "generated_uid"
     generated_metadata: dict = {}
     status: Status = Status.APPROVED.value
-    state: str = "PRODUCTION"
+    state: str = "OPERATION"

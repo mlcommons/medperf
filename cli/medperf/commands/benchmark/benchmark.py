@@ -6,9 +6,20 @@ from medperf.decorators import clean_except
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+from medperf.commands.edit import EntityEdit
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
 from medperf.commands.result.create import BenchmarkExecution
+
+NAME_HELP = "Name of the benchmark"
+DESC_HELP = "Description of the benchmark"
+DOCS_HELP = "URL to documentation"
+DEMO_URL_HELP = """Identifier to download the demonstration dataset tarball file.\n
+    See `medperf mlcube submit --help` for more information"""
+DEMO_HASH_HELP = "SHA1 of demonstration dataset tarball file"
+DATA_PREP_HELP = "Data Preparation MLCube UID"
+MODEL_HELP = "Reference Model MLCube UID"
+EVAL_HELP = "Evaluator MLCube UID"
 
 app = typer.Typer()
 
@@ -31,28 +42,19 @@ def list(
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the benchmark"),
-    description: str = typer.Option(
-        ..., "--description", "-d", help="Description of the benchmark"
-    ),
-    docs_url: str = typer.Option("", "--docs-url", "-u", help="URL to documentation"),
-    demo_url: str = typer.Option(
-        "",
-        "--demo-url",
-        help="""Identifier to download the demonstration dataset tarball file.\n
-        See `medperf mlcube submit --help` for more information""",
-    ),
-    demo_hash: str = typer.Option(
-        "", "--demo-hash", help="SHA1 of demonstration dataset tarball file"
-    ),
+    name: str = typer.Option(..., "--name", "-n", help=NAME_HELP),
+    description: str = typer.Option(..., "--description", "-d", help=DESC_HELP),
+    docs_url: str = typer.Option("", "--docs-url", "-u", help=DOCS_HELP),
+    demo_url: str = typer.Option("", "--demo-url", help=DEMO_URL_HELP),
+    demo_hash: str = typer.Option("", "--demo-hash", help=DEMO_HASH_HELP),
     data_preparation_mlcube: int = typer.Option(
-        ..., "--data-preparation-mlcube", "-p", help="Data Preparation MLCube UID"
+        ..., "--data-preparation-mlcube", "-p", help=DATA_PREP_HELP
     ),
     reference_model_mlcube: int = typer.Option(
-        ..., "--reference-model-mlcube", "-m", help="Reference Model MLCube UID"
+        ..., "--reference-model-mlcube", "-m", help=MODEL_HELP
     ),
     evaluator_mlcube: int = typer.Option(
-        ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
+        ..., "--evaluator-mlcube", "-e", help=EVAL_HELP
     ),
 ):
     """Submits a new benchmark to the platform"""
@@ -70,6 +72,46 @@ def submit(
     config.ui.print("✅ Done!")
 
 
+@app.command("edit")
+@clean_except
+def edit(
+    entity_id: int = typer.Argument(..., help="Benchmark ID"),
+    name: str = typer.Option(None, "--name", "-n", help=NAME_HELP),
+    description: str = typer.Option(None, "--description", "-d", help=DESC_HELP),
+    docs_url: str = typer.Option(None, "--docs-url", "-u", help=DOCS_HELP),
+    demo_url: str = typer.Option(None, "--demo-url", help=DEMO_URL_HELP),
+    demo_hash: str = typer.Option(None, "--demo-hash", help=DEMO_HASH_HELP),
+    data_preparation_mlcube: int = typer.Option(
+        None, "--data-preparation-mlcube", "-p", help=DATA_PREP_HELP
+    ),
+    reference_model_mlcube: int = typer.Option(
+        None, "--reference-model-mlcube", "-m", help=MODEL_HELP
+    ),
+    evaluator_mlcube: int = typer.Option(
+        None, "--evaluator-mlcube", "-e", help=EVAL_HELP
+    ),
+    is_valid: bool = typer.Option(
+        None,
+        "--valid/--invalid",
+        help="Flags a dataset valid/invalid. Invalid datasets can't be used for experiments",
+    ),
+):
+    """Edits a benchmark"""
+    benchmark_info = {
+        "name": name,
+        "description": description,
+        "docs_url": docs_url,
+        "demo_dataset_tarball_url": demo_url,
+        "demo_dataset_tarball_hash": demo_hash,
+        "data_preparation_mlcube": data_preparation_mlcube,
+        "reference_model_mlcube": reference_model_mlcube,
+        "data_evaluator_mlcube": evaluator_mlcube,
+        "is_valid": is_valid,
+    }
+    EntityEdit.run(Benchmark, entity_id, benchmark_info)
+    config.ui.print("✅ Done!")
+
+
 @app.command("associate")
 @clean_except
 def associate(
@@ -84,11 +126,12 @@ def associate(
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute the test even if results already exist",
     ),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
-    """
+    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
     AssociateBenchmark.run(
         benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
@@ -118,11 +161,12 @@ def run(
         help="Ignore failing model cubes, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute even if results already exist",
     ),
 ):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model
-    """
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
@@ -163,6 +207,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more benchmarks
-    """
+    """Displays the information of one or more benchmarks"""
     EntityView.run(entity_id, Benchmark, format, local, mine, output)

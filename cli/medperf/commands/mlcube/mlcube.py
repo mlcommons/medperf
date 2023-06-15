@@ -6,11 +6,24 @@ from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+from medperf.commands.edit import EntityEdit
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 
 app = typer.Typer()
+
+NAME_HELP = "Name of the mlcube"
+MLCUBE_HELP = "Identifier to download the mlcube file. See the description above"
+MLCUBE_HASH_HELP = "SHA1 of mlcube file"
+PARAMS_HELP = "Identifier to download the parameters file. See the description above"
+PARAMS_HASH_HELP = "SHA1 of parameters file"
+ADD_HELP = (
+    "Identifier to download the additional files tarball. See the description above"
+)
+ADD_HASH_HELP = "SHA1 of additional file"
+IMG_HELP = "Identifier to download the image file. See the description above"
+IMG_HASH_HELP = "SHA1 of image file"
 
 
 @app.command("ls")
@@ -52,39 +65,35 @@ def create(
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the mlcube"),
+    name: str = typer.Option(..., "--name", "-n", help=NAME_HELP),
     mlcube_file: str = typer.Option(
         ...,
         "--mlcube-file",
         "-m",
-        help="Identifier to download the mlcube file. See the description above",
+        help=MLCUBE_HELP,
     ),
-    mlcube_hash: str = typer.Option("", "--mlcube-hash", help="SHA1 of mlcube file"),
+    mlcube_hash: str = typer.Option("", "--mlcube-hash", help=MLCUBE_HASH_HELP),
     parameters_file: str = typer.Option(
         "",
         "--parameters-file",
         "-p",
-        help="Identifier to download the parameters file. See the description above",
+        help=PARAMS_HELP,
     ),
-    parameters_hash: str = typer.Option(
-        "", "--parameters-hash", help="SHA1 of parameters file"
-    ),
+    parameters_hash: str = typer.Option("", "--parameters-hash", help=PARAMS_HASH_HELP),
     additional_file: str = typer.Option(
         "",
         "--additional-file",
         "-a",
-        help="Identifier to download the additional files tarball. See the description above",
+        help=ADD_HELP,
     ),
-    additional_hash: str = typer.Option(
-        "", "--additional-hash", help="SHA1 of additional file"
-    ),
+    additional_hash: str = typer.Option("", "--additional-hash", help=ADD_HASH_HELP),
     image_file: str = typer.Option(
         "",
         "--image-file",
         "-i",
-        help="Identifier to download the image file. See the description above",
+        help=IMG_HELP,
     ),
-    image_hash: str = typer.Option("", "--image-hash", help="SHA1 of image file"),
+    image_hash: str = typer.Option("", "--image-hash", help=IMG_HASH_HELP),
 ):
     """Submits a new cube to the platform.\n
     The following assets:\n
@@ -115,6 +124,64 @@ def submit(
     config.ui.print("✅ Done!")
 
 
+@app.command("edit")
+@clean_except
+def edit(
+    entity_id: int = typer.Argument(..., help="Dataset ID"),
+    name: str = typer.Option(None, "--name", "-n", help=NAME_HELP),
+    mlcube_file: str = typer.Option(
+        None,
+        "--mlcube-file",
+        "-m",
+        help=MLCUBE_HELP,
+    ),
+    mlcube_hash: str = typer.Option(None, "--mlcube-hash", help=MLCUBE_HASH_HELP),
+    parameters_file: str = typer.Option(
+        None,
+        "--parameters-file",
+        "-p",
+        help=PARAMS_HELP,
+    ),
+    parameters_hash: str = typer.Option(
+        None, "--parameters-hash", help=PARAMS_HASH_HELP
+    ),
+    additional_file: str = typer.Option(
+        None,
+        "--additional-file",
+        "-a",
+        help=ADD_HELP,
+    ),
+    additional_hash: str = typer.Option(None, "--additional-hash", help=ADD_HASH_HELP),
+    image_file: str = typer.Option(
+        None,
+        "--image-file",
+        "-i",
+        help=IMG_HELP,
+    ),
+    image_hash: str = typer.Option(None, "--image-hash", help=IMG_HASH_HELP),
+    is_valid: bool = typer.Option(
+        None,
+        "--valid/--invalid",
+        help="Flags an MLCube valid/invalid. Invalid MLCubes can't be used for experiments",
+    ),
+):
+    """Edits an MLCube"""
+    mlcube_info = {
+        "name": name,
+        "git_mlcube_url": mlcube_file,
+        "git_mlcube_hash": mlcube_hash,
+        "git_parameters_url": parameters_file,
+        "parameters_hash": parameters_hash,
+        "image_tarball_url": image_file,
+        "image_tarball_hash": image_hash,
+        "additional_files_tarball_url": additional_file,
+        "additional_files_tarball_hash": additional_hash,
+        "is_valid": is_valid,
+    }
+    EntityEdit.run(Cube, entity_id, mlcube_info)
+    config.ui.print("✅ Done!")
+
+
 @app.command("associate")
 @clean_except
 def associate(
@@ -122,7 +189,9 @@ def associate(
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute the test even if results already exist",
     ),
 ):
     """Associates an MLCube to a benchmark"""
@@ -155,6 +224,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more mlcubes
-    """
+    """Displays the information of one or more mlcubes"""
     EntityView.run(entity_id, Cube, format, local, mine, output)

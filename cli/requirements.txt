@@ -16,6 +16,7 @@ mlcube-singularity==0.0.9
 validators==0.18.2
 merge-args==0.1.4
 synapseclient==2.7.0
+deepdiff==6.3.0
 schema==0.7.5
 # setuptools hotfix: https://github.com/mlcommons/medperf/issues/449
 setuptools<=66.1.1

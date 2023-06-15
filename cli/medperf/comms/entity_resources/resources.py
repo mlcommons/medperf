@@ -26,7 +26,9 @@ from medperf.utils import (
 from .utils import download_resource
 
 
-def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
+def get_cube(
+    url: str, cube_path: str, expected_hash: str = None, force: bool = False
+) -> str:
     """Downloads and writes an mlcube.yaml file. If the hash is provided,
     the file's integrity will be checked upon download.
 
@@ -34,39 +36,45 @@ def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
         url (str): URL where the mlcube.yaml file can be downloaded.
         cube_path (str): Cube location.
         expected_hash (str, optional): expected sha1 hash of the downloaded file
+        force (bool, optional): Wether to force redownload or not
 
     Returns:
         output_path (str): location where the mlcube.yaml file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
     output_path = os.path.join(cube_path, config.cube_filename)
-    if os.path.exists(output_path):
+    if not force and os.path.exists(output_path):
         return output_path, expected_hash
     hash_value = download_resource(url, output_path, expected_hash)
     return output_path, hash_value
 
 
-def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
+def get_cube_params(
+    url: str, cube_path: str, expected_hash: str = None, force: bool = False
+) -> str:
     """Downloads and writes a cube parameters file. If the hash is provided,
     the file's integrity will be checked upon download.
 
     Args:
         url (str): URL where the parameters.yaml file can be downloaded.
         cube_path (str): Cube location.
-        expected_hash (str, optional): expected sha1 hash of the downloaded file
+        expected_hash (str, Optional): expected sha1 hash of the downloaded file
+        force (bool, Optional): Wether to force redownload or not
 
     Returns:
         output_path (str): location where the parameters file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
     output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
-    if os.path.exists(output_path):
+    if not force and os.path.exists(output_path):
         return output_path, expected_hash
     hash_value = download_resource(url, output_path, expected_hash)
     return output_path, hash_value
 
 
-def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
+def get_cube_image(
+    url: str, cube_path: str, hash_value: str = None, force: bool = False
+) -> str:
     """Retrieves and stores the image file from the server. Stores images
     on a shared location, and retrieves a cached image by hash if found locally.
     Creates a symbolic link to the cube storage.
@@ -75,6 +83,7 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
         url (str): URL where the image file can be downloaded.
         cube_path (str): Path to cube.
         hash_value (str, Optional): File hash to store under shared storage. Defaults to None.
+        force (bool, Optional): Wether to force redownload or not
 
     Returns:
         image_cube_file: Location where the image file is stored locally.
@@ -98,7 +107,7 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
         shutil.move(tmp_output_path, img_storage)
     else:
         img_storage = os.path.join(imgs_storage, hash_value)
-        if not os.path.exists(img_storage):
+        if force or not os.path.exists(img_storage):
             # If image doesn't exist locally, download it normally
             download_resource(url, img_storage, hash_value)
 
@@ -108,7 +117,7 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
 
 
 def get_cube_additional(
-    url: str, cube_path: str, expected_tarball_hash: str = None,
+    url: str, cube_path: str, expected_tarball_hash: str = None, force: bool = False
 ) -> str:
     """Retrieves additional files of an MLCube. The additional files
     will be in a compressed tarball file. The function will additionally
@@ -117,7 +126,8 @@ def get_cube_additional(
     Args:
         url (str): URL where the additional_files.tar.gz file can be downloaded.
         cube_path (str): Cube location.
-        expected_tarball_hash (str, optional): expected sha1 hash of tarball file
+        expected_tarball_hash (str, Optional): expected sha1 hash of tarball file
+        force (bool, Optional): Wether to force redownload or not
 
     Returns:
         tarball_hash (str): The hash of the downloaded tarball file
@@ -125,7 +135,10 @@ def get_cube_additional(
     additional_files_folder = os.path.join(cube_path, config.additional_path)
 
     if os.path.exists(additional_files_folder):
-        return expected_tarball_hash
+        if force:
+            shutil.rmtree(additional_files_folder)
+        else:
+            return expected_tarball_hash
 
     # make sure files are uncompressed while in tmp storage, to avoid any clutter
     # objects if uncompression fails for some reason.

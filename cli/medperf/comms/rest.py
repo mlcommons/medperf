@@ -295,6 +295,17 @@ class REST(Comms):
             raise CommunicationRetrievalError(f"Could not upload benchmark: {details}")
         return res.json()
 
+    def update_benchmark(self, id: int, benchmark_dict: dict):
+        """Updates the benchmark with the given id and the new dictionary
+
+        Args:
+            benchmark_dict (dict): updated benchmark data
+        """
+        res = self.__auth_put(f"{self.server_url}/benchmarks/{id}/", json=benchmark_dict)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(f"Could not update benchmark: {res.text}")
+
     def upload_mlcube(self, mlcube_body: dict) -> int:
         """Uploads an MLCube instance to the platform
 
@@ -310,6 +321,17 @@ class REST(Comms):
             details = format_errors_dict(res.json())
             raise CommunicationRetrievalError(f"Could not upload the mlcube: {details}")
         return res.json()
+
+    def update_mlcube(self, id: int, mlcube_dict: dict):
+        """Updates the mlcube with the given id and the new dictionary
+
+        Args:
+            mlcube_dict (dict): updated mlcube data
+        """
+        res = self.__auth_put(f"{self.server_url}/mlcubes/{id}/", json=mlcube_dict)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(f"Could not update mlcube: {res.text}")
 
     def get_datasets(self) -> List[dict]:
         """Retrieves all datasets in the platform
@@ -362,6 +384,17 @@ class REST(Comms):
             details = format_errors_dict(res.json())
             raise CommunicationRequestError(f"Could not upload the dataset: {details}")
         return res.json()
+
+    def update_dataset(self, id: int, dataset_dict: dict):
+        """Updates the dataset with the given id and the new dictionary
+
+        Args:
+            dataset_dict (dict): updated dataset data
+        """
+        res = self.__auth_put(f"{self.server_url}/datasets/{id}/", json=dataset_dict)
+        if res.status_code != 200:
+            log_response_error(res)
+            raise CommunicationRequestError(f"Could not update dataset: {res.text}")
 
     def get_results(self) -> List[dict]:
         """Retrieves all results
