@@ -1,8 +1,8 @@
 ## Before You Start
 
-#### Seed the server
+#### Prepare the Local MedPerf Server
 
-For the purpose of the tutorial, you have to start with a fresh server database and seed it to create necessary entities that you will be interacting with. Run the following: (make sure you are in MedPerf's root folder)
+For the purpose of the tutorial, you have to initialize the server with a fresh database and then create the necessary entities that you will be interacting with. To do so, run the following: (make sure you are in MedPerf's root folder)
 
 ```bash
 cd server
