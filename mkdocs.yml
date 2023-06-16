@@ -6,7 +6,7 @@ nav:
 - Introduction: index.md
 - Benchmark Roles: roles.md
 - Benchmark Workflow: workflow.md
-- The Software: medperf_components.md
+- MedPerf Components: medperf_components.md
 - Getting Started:
   - Overview: getting_started/overview.md
   - Installing MedPerf: getting_started/installation.md
