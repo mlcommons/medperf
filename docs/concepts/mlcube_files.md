@@ -54,7 +54,7 @@ See `python scripts/package-mlcube.py --help` for more information.
 Once executed, you should be able to find all prepared assets at `./mlcube/assets`, as well as a compressed version of the `assets` folder at the output path provided.
 
 !!! note
-    The `--output` parameter is optional. The compressed version of the `assets` folder can be useful in cases where you don't directly interact with the medperf server, but instead you do so through a third party. This is usually the case for challenges and competitions.
+    The `--output` parameter is optional. The compressed version of the `assets` folder can be useful in cases where you don't directly interact with the MedPerf server, but instead you do so through a third party. This is usually the case for challenges and competitions.
 
 ## See Also
 

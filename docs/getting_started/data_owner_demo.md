@@ -81,7 +81,7 @@ After successfully submitting your dataset, you can proceed to request participa
 
 For submitting the results of executing the benchmark models on your data in the future, you must associate your data with the benchmark.
 
-Once you have submitted your dataset to the server, it will be assigned a server UID, which you can find by running `medperf dataset ls --mine`. Your dataset's server UID is also `1`.
+Once you have submitted your dataset to the MedPerf server, it will be assigned a server UID, which you can find by running `medperf dataset ls --mine`. Your dataset's server UID is also `1`.
 
 Run the following command to request associating your dataset with the benchmark:
 
