@@ -1,6 +1,6 @@
 ---
 name: Model MLCube
-url: https://github.com/mlcommons/medperf/examples/HelloWorld/model
+url: https://github.com/mlcommons/medperf/examples/chestxray/model_custom_cnn
 data_url: https://example.com
 weights_url: https://example.com
 ---
@@ -14,13 +14,13 @@ This is one of the three guides that help the user build MedPerf-compatible MLCu
 
 This guide will help users familiarize themselves with the expected interface of the Model MLCube and gain a comprehensive understanding of its components. By following this walkthrough, users will gain insights into the structure and organization of a Model MLCube, allowing them at the end to be able to implement their own MedPerf-compatible Model MLCube.
 
-The guide will start by providing general advice, steps, and hints on building these MLCubes. Then, an example will be presented through which the provided guidance will be applied step-by-step to build a Chest X-ray classifier MLCube. You can find the final MLCube code [here]({{ page.meta.url }}).
+The guide will start by providing general advice, steps, and hints on building these MLCubes. Then, an example will be presented through which the provided guidance will be applied step-by-step to build a Chest X-ray classifier MLCube. The final MLCube code can be found [here]({{ page.meta.url }}).
 
 ## Before Building the MLCube
 
 It is assumed that you already have a working code that runs inference on data and generates predictions, and what you want to accomplish through this guide is to wrap your inference code within an MLCube.
 
-- Make sure you decouple your inference logic from the other ML common pipelines (e.g.; training, metrics, ...). Your MLCube will be run by hospitals, and you want to make sure you don't have unnecessary extra compute going on.
+- Make sure you decouple your inference logic from the other machine learning common pipelines (e.g.; training, metrics, ...).
 - Your inference logic can be written in any structure, can be split into any number of files, can represent any number of inference stages, etc..., **as long as the following hold**:
     - The whole inference flow can be invoked by a single command/function.
     - This command/function has **at least** the following arguments:
@@ -30,7 +30,7 @@ It is assumed that you already have a working code that runs inference on data a
 - Your inference logic should expect the input data in a certain structure. This is usually determined by following the specifications of the benchmark you want to participate in.
 - Your inference logic should save the predictions in the output directory in a certain structure. This is usually determined by following the specifications of the benchmark you want to participate in.
 
-## Use an MLCube Template
+## Using an MLCube Template
 
 MedPerf provides MLCube templates. You should start from a template for faster implementation and to build MLCubes that are compatible with MedPerf.
 
@@ -54,7 +54,7 @@ docker_image_name [docker/image:latest]: # (6)!
 1. Gives a Human-readable name to the MLCube Project.
 2. Determines how the MLCube root folder will be named.
 3. Gives a Human-readable description to the MLCube Project.
-4. Documents the MLCube implementation by specifying the author. Please use your own name here.
+4. Documents the MLCube implementation by specifying the author.
 5. Indicates how many GPUs should be visible by the MLCube.
 6. MLCubes use Docker containers under the hood. Here, you can provide an image tag to the image that will be created by this MLCube. **You should use a correct name that allows you to upload it to a Docker registry.**
 
@@ -73,11 +73,13 @@ The following directory structure will be generated:
         └── requirements.txt
 ```
 
-Let's examine this directory and customize it.
+The next sections will examine this directory in details and customize it.
 
 ### The `project` folder
 
-The is where your inference logic will live. This folder contains initially three files as shown above, we will talk about them soon. The first thing to do is put your code in this folder.
+The is where your inference logic will live. This folder initially contains three files as shown above. The upcoming sections will cover their use in details.
+
+The first thing to do is put your code in this folder.
 
 #### How will the MLCube identify your code?
 
@@ -97,7 +99,7 @@ The MLCube will execute a docker image whose entrypoint is a command line interf
 
 Make sure you include in your docker file any system dependency your code depends on. It is also common to have `pip` dependencies. Make sure you install them in the docker file as well.
 
-Below we show the docker file provided in the template:
+Below is the docker file provided in the template:
 
 ``` dockerfile title="Dockerfile"
 --8<-- "examples/chestxray/model_custom_cnn/project/Dockerfile"
@@ -180,11 +182,11 @@ In this example, assume you have the code base below. This code can be used to p
     --8<-- "docs/snippets/model_mlcube/infer_unorganized.py"
     ```
 
-Throughout the next sections, we will wrap this code within an MLCube.
+Throughout the next sections, this code will be wrapped within an MLCube.
 
 ### Before Building the MLCube
 
-We will follow the guidlines listed previously in [this section](#before-building-the-mlcube). Assume that you were instructed to have your MLCube interface as follows:
+The guidlines listed previously in [this section](#before-building-the-mlcube) will now be applied to the given code base. Assume that you were instructed by the benchmark you are participating with to have your MLCube interface as follows:
 
 - The MLCube should expect input data to be a list of numpy files in a certain folder
 - The MLCube should save the predictions in a compressed numpy file (`.npz`), as key-value pairs of image file ID and its corresponding prediction. A prediction should be a vector of length 14 and has to be the output of the Sigmoid activation layer.
@@ -194,8 +196,8 @@ It is important make sure that your MLCube will output an expected predictions f
 Considering the code base above, here are the things that should be done before proceeding to build the MLCube:
 
 - `infer.py` only prints predictions but doesn't store them. This has to be changed.
-- `infer.py` hardcodes some parameters (`num_classes`, `in_channels`, `batch_size`) as well as the path to the trained model weights. Let's make these as configurable parameters.
-- Let's refactor `infer.py` to be a function so that is can easily be called by `mlcube.py` that we will create soon.
+- `infer.py` hardcodes some parameters (`num_classes`, `in_channels`, `batch_size`) as well as the path to the trained model weights. Consider making these items configurable parameters.
+- Consider refactoring `infer.py` to be a function so that is can easily be called by `mlcube.py`.
 
 The other files `models.py` and `data_loader.py` seem to be good already. The data loader expects a folder containing a list of numpy arrays.
 
@@ -253,7 +255,7 @@ Move the three files mentioned above to the `project` folder. The directory will
 
 ### Add your parameters and model weights
 
-Since we chose to parameterize `num_classes`, `in_channels`, and `batch_size`, we need to define them in `workspace/parameters.yaml`. We need to also put model weights inside `workspace/additional_files`.
+Since `num_classes`, `in_channels`, and `batch_size` are now parametrized, they should be defined in `workspace/parameters.yaml`. Also, the model weights should be placed inside `workspace/additional_files`.
 
 #### Add parameters
 
@@ -289,7 +291,7 @@ Move the file to `workspace/additional_files`. The directory should look like th
 
 ### Modify `mlcube.py`
 
-Let's call our inference logic from `mlcube.py`. We chose to read the `parameters_file` in `mlcube.py` and pass the dictionary to the inference logic. We also added a `weights` parameter which will correspond to the model weights path. See below the modified `mlcube.py` file.
+Next, the inference logic should be triggered from `mlcube.py`. The `parameters_file` will be read in `mlcube.py` and passed as a dictionary to the inference logic. Also, an extra parameter `weights` is added to the function signature which will correspond to the model weights path. See below the modified `mlcube.py` file.
 
 ??? note "modified mlcube.py"
     ```python hl_lines="3 5 15 17 18 19 20"
@@ -299,7 +301,7 @@ Let's call our inference logic from `mlcube.py`. We chose to read the `parameter
 
 ### Prepare the Dockerfile
 
-The provided Dockerfile in the template is enough and preconfigured to download `pip` dependencies from the `requirements.txt` file. We only need to modify the `requirements.txt` file to include the project's pip dependencies.
+The provided Dockerfile in the template is enough and preconfigured to download `pip` dependencies from the `requirements.txt` file. Modifying the `requirements.txt` file to include the project's pip dependencies is all that's needed.
 
 ```txt title="requirements.txt"
 --8<-- "examples/chestxray/model_custom_cnn/project/requirements.txt"
@@ -307,7 +309,7 @@ The provided Dockerfile in the template is enough and preconfigured to download 
 
 ### Modify `mlcube.yaml`
 
-Since we added the `weights` parameter to the `infer` task in `mlcube.py`, we need to reflect this change also on the defined MLCube interface in the `mlcube.yaml` file. Modify the `tasks` section to include an extra input parameter: `weights: additional_files/cnn_weights.pth`. The `tasks` section will then look like this:
+Since the extra parameter `weights` was added to the `infer` task in `mlcube.py`, this has to be reflected on the defined MLCube interface in the `mlcube.yaml` file. Modify the `tasks` section to include an extra input parameter: `weights: additional_files/cnn_weights.pth`. The `tasks` section will then look like this:
 
 ```yaml title="mlcube.yaml" hl_lines="9"
 --8<-- "examples/chestxray/model_custom_cnn/mlcube/mlcube.yaml:17:27"
