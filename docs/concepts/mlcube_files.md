@@ -7,7 +7,7 @@ Once you have built an MLCube ready for MedPerf, you need to host it somewhere o
 MLCubes execute a container image behind the scenes. This container image is usually hosted on a container registry, like Docker Hub. In cases where this is not possible, medperf provides the option of passing the image file directly (i.e. having the [image file hosted somewhere](hosting_files.md) and providing MedPerf with the download link). MLCubes that work with images outside of the docker registry usually store the image inside the `<path_to_mlcube>/workspace/.image` folder. MedPerf supports using direct container image files **for Singularity only**.
 
 !!! note Note 1
-    While we provide the option of hosting the singularity image directly, we encourage using a container registry for accessability and usability purposes. MLCube also has mechanisms for converting containers to other runners, like Docker to Singularity.
+    While there is the option of hosting the singularity image directly, it is highly recommended to use a container registry for accessability and usability purposes. MLCube also has mechanisms for converting containers to other runners, like Docker to Singularity.
 
 !!! note Note 2
     Docker Images can be on any docker container registry, not necessarily on Docker Hub.
@@ -34,7 +34,7 @@ tar -czf additional_files.tar.gz -C <path_to_mlcube>/workspace/additional_files 
 
 ## Preparing an MLCube for hosting
 
-To facilitate hosting and implementation validation, we provide a script that finds all the required assets, compresses them if necessary, and places them in a single location for easy access. To run the script, make sure you have [medperf installed](../installation.md) and you are in medperf's root directory:
+To facilitate hosting and interface compatibility validation, MedPerf provides a script that finds all the required assets, compresses them if necessary, and places them in a single location for easy access. To run the script, make sure you have [medperf installed](../installation.md) and you are in medperf's root directory:
 
 ```bash
 python scripts/package-mlcube.py \

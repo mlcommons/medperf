@@ -28,7 +28,7 @@ After that, you will be configuring the client to communicate with the local ser
 
 The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. MedPerf comes with two already created profiles: the `default` and `test` profiles.
 
-The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, we will be using the `test` profile as it is preconfigured so that the client communicates with the local server.
+The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `test` profile as it is preconfigured so that the client communicates with the local server.
 
 To activate the `test` profile, run the following command:
 
@@ -60,7 +60,7 @@ This command will modify the `platform` parameter of the currently activated pro
 
 ## What's Next?
 
-The local server now is ready to recieve requests, and the client is ready to communicate. Depending on how you want to use MedPerf, you can follow our hands-on tutorials:
+The local server now is ready to recieve requests, and the client is ready to communicate. Depending on how you want to use MedPerf, you can follow these hands-on tutorials:
 
 - [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
 

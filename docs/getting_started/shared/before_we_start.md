@@ -1,4 +1,4 @@
-## Before We Start
+## Before You Start
 
 #### Seed the server
 
@@ -13,7 +13,7 @@ cd ..
 
 #### Download the Necessary files
 
-We provide a script that downloads necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
+A script is provided to download all the necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
 
 ```bash
 sh tutorials_scripts/setup_{{page.meta.tutorial_id}}_tutorial.sh

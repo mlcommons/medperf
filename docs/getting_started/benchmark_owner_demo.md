@@ -39,7 +39,7 @@ The implementation of a valid workflow is accomplished by implementing three [ML
 
 3. **Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e., the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). A guide on how to implement metrics MLCubes can be found [here](../mlcubes/mlcube_metrics.md).
 
-For this tutorial, we have already implemented the three mlcubes for the task of chest X-ray classification. The implementations can be found in the following links: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/data_preparator), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/model_custom_cnn), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/metrics). We set up these mlcubes locally for you and they can be found in your workspace folder under `data_preparator`, `model_custom_cnn`, and `metrics`.
+For this tutorial, you are provided with following three already implemented mlcubes for the task of chest X-ray classification. The implementations can be found in the following links: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/data_preparator), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/model_custom_cnn), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/metrics). These mlcubes are setup locally for you and can be found in your workspace folder under `data_preparator`, `model_custom_cnn`, and `metrics`.
 
 ## 2. Develop a Demo Dataset
 
@@ -49,7 +49,7 @@ A demo dataset is a small reference dataset. It contains a few data records and 
 
 2. When a model owner wants to participate in the benchmark, the MedPerf client tests the compatibility of their model with the benchmark's data preparation cube and metrics cube. The test is run using the benchmark's demo dataset as input.
 
-For this tutorial, we have already developed a demo dataset for the workflow provided in the previous section. The dataset can be found in your workspace folder under `demo_data`. It is a small dataset comprising two chest X-ray images and corresponding thoracic disease labels.
+For this tutorial, you are provided with a demo dataset for the chest X-ray classification workflow. The dataset can be found in your workspace folder under `demo_data`. It is a small dataset comprising two chest X-ray images and corresponding thoracic disease labels.
 
 You can test the workflow now that you have the three MLCubes and the demo data. Testing the workflow before submitting any asset to the MedPerf server is usually recommended.
 
@@ -82,7 +82,7 @@ Assuming the test passes successfully, you are ready to submit the MLCubes to th
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
 
-To prepare the files of our three MLCubes, run the following command ensuring you are in MedPerf's root folder:
+To prepare the files of the three MLCubes, run the following command ensuring you are in MedPerf's root folder:
 
 ```bash
 python scripts/package-mlcube.py --mlcube medperf_tutorial/data_preparator/mlcube --mlcube-types data-preparator
@@ -201,7 +201,7 @@ The demo dataset should be packaged in a specific way as a compressed tarball fi
     ...
 ```
 
-Our goal is to package the folder `demo_data`, we must first create a file called `paths.yaml`. This file will provide instructions on how to locate the data records path and the labels path. The `paths.yaml` file should specify both the data records path and the labels path.
+The goal is to package the folder `demo_data`. You must first create a file called `paths.yaml`. This file will provide instructions on how to locate the data records path and the labels path. The `paths.yaml` file should specify both the data records path and the labels path.
 
 In your workspace directory (`medperf_tutorial`), create a file `paths.yaml` and fill it with the following:
 
@@ -234,7 +234,7 @@ tar -czf demo_data.tar.gz demo_data paths.yaml
 
 And that's it! Now you have to host the tarball file (`demo_data.tar.gz`) on the internet.
 
-For the tutorial to run smoothly, we already have the file hosted at the following URL:
+For the tutorial to run smoothly, the file is already hosted at the following URL:
 
 ```text
 {{ demo_url }}
@@ -242,13 +242,13 @@ For the tutorial to run smoothly, we already have the file hosted at the followi
 
 If you wish to host it by yourself, you can find the list of supported options and details about hosting files in [this page](../concepts/hosting_files.md).
 
-Finally, since we now have our MLCubes submitted and demo dataset hosted, we can submit the benchmark to the MedPerf server.
+Finally, now after having the MLCubes submitted and the demo dataset hosted, you can submit the benchmark to the MedPerf server.
 
 ## 6. Submit your Benchmark
 
 You need to keep at hand the following information:
 
-- The Demo Dataset URL. In our case, this URL will be:
+- The Demo Dataset URL. Here, the URL will be:
 
 ```text
 {{ demo_url }}

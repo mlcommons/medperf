@@ -1,6 +1,6 @@
 ## Cleanup (Optional)
 
-You have reached the end of the tutorial! If you are planning to rerun any of our tutorials, don't forget to cleanup:
+You have reached the end of the tutorial! If you are planning to rerun any of the tutorials, don't forget to cleanup:
 
 - To shut down the server: press `CTRL`+`C` in the terminal where the server is running.
 

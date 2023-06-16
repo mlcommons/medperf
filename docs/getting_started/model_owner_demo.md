@@ -12,7 +12,7 @@ tutorial_id: model
 
 ## Overview
 
-In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. It's highly recommend that you to follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) guide first to implement your own model MLCube and use it throughout this tutorial. However, this guide provides an already implemented MLCube if you want to directly proceed to learn how to interact with MedPerf.
+In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. It's highly recommend that you follow [this](../mlcubes/mlcube_models.md) or [this](../mlcubes/gandlf_mlcube.md) guide first to implement your own model MLCube and use it throughout this tutorial. However, this guide provides an already implemented MLCube if you want to directly proceed to learn how to interact with MedPerf.
 
 The main tasks of this guide are:
 
@@ -33,9 +33,9 @@ Before submitting your MLCube, it is highly recommended that you test your MLCub
 
 These details should usually be acquired by contacting the Benchmark Committee and following their instructions.
 
-To test your MLCube validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In our case, it is going to be `1`.
+To test your MLCube validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In this case, it is going to be `1`.
 
-Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube we will be using is `medperf_tutorial/model_mobilenetv2/mlcube/mlcube.yaml`.
+Next, locate the MLCube. Unless you implemented your own MLCube, the MLCube provided for this tutorial is located in your workspace: `medperf_tutorial/model_mobilenetv2/mlcube/mlcube.yaml`.
 
 After that, run the compatibility test:
 
@@ -54,7 +54,7 @@ Assuming the test passes successfuly, you are ready to submit the MLCube to the 
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
 
-To prepare the files of our MLCube, run the following command ensuring you are in MedPerf's root folder:
+To prepare the files of the MLCube, run the following command ensuring you are in MedPerf's root folder:
 
 ```bash
 python scripts/package-mlcube.py --mlcube medperf_tutorial/model_mobilenetv2/mlcube --mlcube-types model
@@ -66,7 +66,7 @@ This script will create a new folder in the MLCube directory, named `assets`, co
 
 ### Submit the MLCube
 
-The submission should include the URLs of all the hosted files. For our tutorial's MLCube:
+The submission should include the URLs of all the hosted files. For the MLCube provided for the tutorial:
 
 - The URL to the hosted mlcube manifest file is
 
