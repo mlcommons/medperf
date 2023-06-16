@@ -1,6 +1,6 @@
 # Setup
 
-Before proceeding, make sure you have the [MedPerf client installed.](../installation.md).
+Before proceeding, make sure you have the [MedPerf client installed.](installation.md).
 
 ## Run a Local Server
 

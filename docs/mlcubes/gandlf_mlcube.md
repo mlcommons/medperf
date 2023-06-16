@@ -8,7 +8,7 @@ This guide will walk you through how to wrap a model trained using [GaNDLF](http
 2. Create the MLCube file
 3. Deploy the GaNDLF model as an MLCube
 
-We assume that you already have [medperf installed](../installation.md) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
+We assume that you already have [medperf installed](../getting_started/installation.md) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
 
 ## Before We Start
 

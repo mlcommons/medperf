@@ -34,7 +34,7 @@ tar -czf additional_files.tar.gz -C <path_to_mlcube>/workspace/additional_files 
 
 ## Preparing an MLCube for hosting
 
-To facilitate hosting and interface compatibility validation, MedPerf provides a script that finds all the required assets, compresses them if necessary, and places them in a single location for easy access. To run the script, make sure you have [medperf installed](../installation.md) and you are in medperf's root directory:
+To facilitate hosting and interface compatibility validation, MedPerf provides a script that finds all the required assets, compresses them if necessary, and places them in a single location for easy access. To run the script, make sure you have [medperf installed](../getting_started/installation.md) and you are in medperf's root directory:
 
 ```bash
 python scripts/package-mlcube.py \
