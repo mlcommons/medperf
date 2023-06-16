@@ -1,5 +1,7 @@
 # SurgMLCube
 
+**(This example is currently not compatible with the latest MedPerf version. This will be fixed soon)**
+
 Benchmarking machine learning models on surgical videos.
 
 This Folder contains three MLCubes:

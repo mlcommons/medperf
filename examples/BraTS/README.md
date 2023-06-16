@@ -1,5 +1,7 @@
 # BraTS MLCubes
 
+**(This example is currently not compatible with the latest MedPerf version. This will be fixed soon)**
+
 This contains examples to create MLCubes for the [Brain Tumor Segmentation (BraTS) challenge](http://braintumorsegmentation.org/).
 
 This Folder contains 5 MLCubes:
