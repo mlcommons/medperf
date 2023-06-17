@@ -30,7 +30,7 @@ nav:
   - Model Priority: concepts/priorities.md
   - Running Specific Models: concepts/single_run.md
 - CLI Reference: cli_reference.md
-- Code Reference: reference/
+# - Code Reference: reference/
 theme: 
   features:
     - search.suggest
