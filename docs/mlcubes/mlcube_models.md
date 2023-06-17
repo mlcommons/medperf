@@ -134,7 +134,7 @@ After placing your model weights in `mlcube/workspace/additional_files`, you hav
 
 #### Configure your MLCube
 
-The `mlcube.yaml` file contains metadata and configuration of your mlcube. This file was already populated with the configuration you provided during the step of creating the template. There is no need to edit anything in this file except if you are specifying extra parameters to the `infer` command (e.g. model weights as described in the previous section).
+The `mlcube.yaml` file contains metadata and configuration of your mlcube. This file was already populated with the configuration you provided during the step of creating the template. There is no need to edit anything in this file except if you are specifying extra parameters to the `infer` command (e.g., model weights as described in the previous section).
 
 You will be modifying the `tasks` section of the `mlcube.yaml` file in order to account for extra additional inputs:
 
@@ -221,7 +221,7 @@ Assuming you installed MedPerf, run the following:
 medperf mlcube create model
 ```
 
-You will be prompted to fill in the configuration options:
+You will be prompted to fill in the configuration options. Use the following configuration as a reference:
 
 ```bash
 project_name [Model MLCube]: Custom CNN Classification Model
