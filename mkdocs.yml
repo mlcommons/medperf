@@ -14,12 +14,12 @@ nav:
   - Hands-on Tutorial for Bechmark Committee: getting_started/benchmark_owner_demo.md
   - Hands-on Tutorial for Model Owners: getting_started/model_owner_demo.md
   - Hands-on Tutorial for Data Owners: getting_started/data_owner_demo.md
-- MedPerf MLCubes: 
-  - Introduction: mlcubes/mlcubes.md
-  - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md
-  - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
-  - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
-  - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
+  - MedPerf MLCubes: 
+    - Introduction: mlcubes/mlcubes.md
+    - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md
+    - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
+    - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
+    - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
 
 - Concepts:
   - MedPerf Account: concepts/accounts.md
