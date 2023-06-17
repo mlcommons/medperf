@@ -2,6 +2,9 @@
 
 Before proceeding, make sure you have the [MedPerf client installed.](installation.md).
 
+!!! note
+    This setup is only for running the tutorials. If you are using MedPerf with a real benchmark and real experiments, skip to [this section](#choose-the-container-runner) to optionally change your container runner. Then, follow the tutorials as a general guidance for your real experiments.
+
 ## Run a Local MedPerf Server
 
 For this tutorial, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not on the internet.
@@ -50,7 +53,7 @@ medperf profile view
 
 #### Choose the Container Runner
 
-You can configure the MedPerf client to use either Docker or Singularity. The `test` profile is configured to use Docker. If you want to run the tutorials with Singularity, modify the `test` profile configured parameters by running the following:
+You can configure the MedPerf client to use either Docker or Singularity. The `test` profile is configured to use Docker. If you want to use MedPerf with Singularity, modify the `test` profile configured parameters by running the following:
 
 ```bash
 medperf profile set --platform singularity
@@ -60,7 +63,7 @@ This command will modify the `platform` parameter of the currently activated pro
 
 ## What's Next?
 
-The local MedPerf server now is ready to recieve requests, and the MedPerf client is ready to communicate. Depending on how you want to use MedPerf, you can follow these hands-on tutorials:
+The local MedPerf server now is ready to recieve requests, and the MedPerf client is ready to communicate. Depending on your role, you can follow these hands-on tutorials:
 
 - [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
 
