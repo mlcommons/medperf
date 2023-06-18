@@ -1,6 +1,6 @@
 ---
 name: Model MLCube
-url: https://github.com/mlcommons/medperf/examples/chestxray/model_custom_cnn
+url: https://github.com/mlcommons/medperf/tree/main/examples/chestxray/model_custom_cnn
 data_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_prepared_data.tar.gz
 weights_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
 ---
