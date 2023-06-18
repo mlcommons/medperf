@@ -1,6 +1,6 @@
 ---
 name: Model MLCube
-url: https://github.com/mlcommons/medperf/tree/main/examples/chestxray/model_custom_cnn
+url: https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/model_custom_cnn
 data_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_prepared_data.tar.gz
 weights_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
 ---
@@ -106,7 +106,7 @@ Make sure you include in your Dockerfile any system dependency your code depends
 Below is the docker file provided in the template:
 
 ``` dockerfile title="Dockerfile"
---8<-- "examples/chestxray/model_custom_cnn/project/Dockerfile"
+--8<-- "examples/chestxray_tutorial/model_custom_cnn/project/Dockerfile"
 ```
 
 As shown above, this docker file makes sure `python` is available by using the python base image, installs `pip` dependencies using the `requirements.txt` file, and sets the entrypoint to run `mlcube.py`. Note that the MLCube tool will invoke the Docker `build` command from the `project` folder, so it will copy all your files found in the `project` to the Docker image.
@@ -171,13 +171,13 @@ Assume you have the codebase below. This code can be used to predict thoracic di
 ??? note "models.py"
     ```python
 
-    --8<-- "examples/chestxray/model_custom_cnn/project/models.py"
+    --8<-- "examples/chestxray_tutorial/model_custom_cnn/project/models.py"
     ```
 
 ??? note "data_loader.py"
     ```python
 
-    --8<-- "examples/chestxray/model_custom_cnn/project/data_loader.py"
+    --8<-- "examples/chestxray_tutorial/model_custom_cnn/project/data_loader.py"
     ```
 
 ??? note "infer.py"
@@ -210,7 +210,7 @@ Here is the modified version of `infer.py` according to the points listed above:
 ??? note "infer.py (Modified)"
     ```python hl_lines="10 11 12 13 17 35 36 37 38"
 
-    --8<-- "examples/chestxray/model_custom_cnn/project/infer.py"
+    --8<-- "examples/chestxray_tutorial/model_custom_cnn/project/infer.py"
     ```
 
 ### Create an MLCube Template
@@ -266,7 +266,7 @@ Since `num_classes`, `in_channels`, and `batch_size` are now parametrized, they 
 Modify `parameters.yaml` to include the following:
 
 ```yaml title="parameters.yaml"
---8<-- "examples/chestxray/model_custom_cnn/mlcube/workspace/parameters.yaml"
+--8<-- "examples/chestxray_tutorial/model_custom_cnn/mlcube/workspace/parameters.yaml"
 ```
 
 #### Add model weights
@@ -300,7 +300,7 @@ Next, the inference logic should be triggered from `mlcube.py`. The `parameters_
 ??? note "mlcube.py (Modified)"
     ```python hl_lines="3 5 15 17 18 19 20"
 
-    --8<-- "examples/chestxray/model_custom_cnn/project/mlcube.py"
+    --8<-- "examples/chestxray_tutorial/model_custom_cnn/project/mlcube.py"
     ```
 
 ### Prepare the Dockerfile
@@ -308,7 +308,7 @@ Next, the inference logic should be triggered from `mlcube.py`. The `parameters_
 The provided Dockerfile in the template is enough and preconfigured to download `pip` dependencies from the `requirements.txt` file. All that is needed is to modify the `requirements.txt` file to include the project's pip dependencies.
 
 ```txt title="requirements.txt"
---8<-- "examples/chestxray/model_custom_cnn/project/requirements.txt"
+--8<-- "examples/chestxray_tutorial/model_custom_cnn/project/requirements.txt"
 ```
 
 ### Modify `mlcube.yaml`
@@ -321,7 +321,7 @@ Since the extra parameter `weights` was added to the `infer` task in `mlcube.py`
 The `tasks` section will then look like this:
 
 ```yaml title="mlcube.yaml" hl_lines="9"
---8<-- "examples/chestxray/model_custom_cnn/mlcube/mlcube.yaml:17:27"
+--8<-- "examples/chestxray_tutorial/model_custom_cnn/mlcube/mlcube.yaml:17:27"
 ```
 
 ### Build your MLCube

@@ -1,0 +1,5 @@
+torchxrayvision==0.0.39
+torch
+torchvision
+typer
+PyYAML
