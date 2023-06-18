@@ -1,19 +1,21 @@
 # Overview
 
-In this getting started section, you will understand the fundamentals of MedPerf through a straightforward benchmarking example, which involves the simulation of a chest X-rays classification process.
+The MedPerf client provides all the necessary tools for a complete benchmark experiment. Below, you will find a comprehensive breakdown of user roles and the corresponding functionalities they can access and perform using the MedPerf client:
 
-You will learn about the roles of three key entities involved in this scenario, including:  
+- **Benchmark Committee:** The [Benchmark Commitee](../roles.md#benchmark-committee) can define and create a benchmark, as well as manage experiments (e.g., approving which datasets and models will be allowed to participate)
+- **Model Owner:** The [Model Owner](../roles.md#model-owners) can submit a model to the MedPerf server and request participation in a benchmark.
+- **Data Owner:** The [Data Owner](../roles.md#data-providers) can prepare their raw medical data, register the **metadata** of their prepared dataset, request participation in a benchmark, execute a benchmark's models on their data, and submit the results of the execution.
 
-- **Benchmark Committee:** The Benchmark Commitee will simulate a user that wants to kick off a benchmark on Chest X-ray classification. Their main actions involve defining, creating, and submitting the benchmark, as well as managing experiments (e.g., approving which datasets and models will be allowed to participate)
-- **Model Owner:** The Model Owner will simulate a researcher who wants to test the performance of their deep learning model (a ResNet model) on chest-Xray classification. The main actions of this entity involve submitting a model MLCube and requesting participation in the benchmark.
-- **Data Owner:** The Data Owner will simulate a hospital that has a raw chest X-ray data and wants to allow testing deep learning models on their data while keeping it private. The main actions of this entity involve preparing the data, submitting the metadata of the prepared dataset, requesting participation in the benchmark, executing the benchmark models on the prepared dataset, and submitting the results of the execution.
+To ensure users have the best experience in learning the fundamentals of MedPerf and utilizing the MedPerf client, the following set of tutorials are provided:
 
-Before proceeding, make sure you have the [MedPerf client installed](../installation.md) and the general testing environment [set up](setup.md). The following list provides useful links to hands-on tutorials that can help you get started with MedPerf:
+- [How a Benchmark Committee can create and submit a benchmark.](benchmark_owner_demo.md)
 
-- [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
+- [How a Model Owner can submit a model.](model_owner_demo.md)
 
-- [How a model owner can submit a model.](model_owner_demo.md)
+- [How a Data Owner can prepare their data and execute a benchmark.](data_owner_demo.md)
 
-- [How a data owner can prepare their data and execute a benchmark.](data_owner_demo.md)
+The tutorials simulate a benchmarking example for the task of detecting thoracic diseases from chest X-ray scans. You can find the description of the used data [here](https://www.nih.gov/news-events/news-releases/nih-clinical-center-provides-one-largest-publicly-available-chest-x-ray-datasets-scientific-community). Throughout the tutorials, you will be interacting with a temporary local MedPerf server as described in the [setup page](setup.md). This allows you to freely experiment with the MedPerf client and rerun the tutorials as many times as you want, providing you with an immersive learning experience. Please note, however, that these tutorials also serve as a general guidance to be followed when using the MedPerf client in a real scenario.
+
+Before proceeding to the tutorials, make sure you have the [MedPerf client installed](installation.md) and the general tutorial environment [set up](setup.md).
 
 For a detailed reference on the commands used throughout the tutorials, you can always refer to the [command line interface documentation](../cli_reference.md).

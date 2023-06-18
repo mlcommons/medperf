@@ -3,10 +3,9 @@ mkdir -p medperf_tutorial
 cd medperf_tutorial
 
 # Copy the MLCube to be used
-cp -r ../examples/ChestXRay/xrv_densenet xrv_densenet
+cp -r ../examples/chestxray/model_mobilenetv2 model_mobilenetv2
 
-## use pc model instead of chex
-rm xrv_densenet/mlcube/workspace/parameters.yaml
-rm xrv_densenet/mlcube/workspace/additional_files/weights.pt
-mv xrv_densenet/mlcube/workspace/parameters_pc.yaml xrv_densenet/mlcube/workspace/parameters.yaml
-mv xrv_densenet/mlcube/workspace/additional_files/weights_pc.pt xrv_densenet/mlcube/workspace/additional_files/weights.pt
+## download model weights
+cd model_mobilenetv2/mlcube/workspace/additional_files
+sh download.sh
+rm download.sh
