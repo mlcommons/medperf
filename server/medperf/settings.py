@@ -122,7 +122,9 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "libraries": {"staticfiles": "django.templatetags.static",},
+            "libraries": {
+                "staticfiles": "django.templatetags.static",
+            },
         },
     },
 ]
@@ -215,7 +217,7 @@ SERVER_API_VERSION = "v0"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",  # TMP: for the admin
+        "rest_framework.authentication.TokenAuthentication",  # TMP: for the admin
         "user.backends.JWTAuthenticateOrCreateUser",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
@@ -245,7 +247,7 @@ SPECTACULAR_SETTINGS = {
     "PARSER_WHITELIST": [
         "rest_framework.parsers.JSONParser",
     ],
-    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
+    "SCHEMA_PATH_PREFIX": r"/api/v[0-9]",
     "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "REDOC_DIST": "SIDECAR",
