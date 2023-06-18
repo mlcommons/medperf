@@ -1,7 +1,7 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz
-assets_url: https://raw.githubusercontent.com/hasan7n/medperf/094d96006291290fc416b32c6d95cbcca73f200e/examples/chestxray/
+assets_url: https://raw.githubusercontent.com/mlcommons/medperf/7bcfddeade143f926d19b15021ba52dd38f0f362/examples/chestxray/
 tutorial_id: model
 ---
 
