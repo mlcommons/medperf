@@ -5,7 +5,7 @@ import json
 import curlify
 
 ASSETS_URL = (
-    "https://raw.githubusercontent.com/mlcommons/hasan7n/"
+    "https://raw.githubusercontent.com/hasan7n/medperf/"
     "99b0d84bc107415d9fc6f69c4ea3fcdfbf22315d/examples/chestxray_tutorial/"
 )
 
