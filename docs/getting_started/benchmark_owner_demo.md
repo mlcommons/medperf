@@ -1,7 +1,7 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
-assets_url: https://raw.githubusercontent.com/mlcommons/medperf/7bcfddeade143f926d19b15021ba52dd38f0f362/examples/chestxray/
+assets_url: https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/
 tutorial_id: benchmark
 ---
 
@@ -39,7 +39,7 @@ The implementation of a valid workflow is accomplished by implementing three [ML
 
 3. **Metrics MLCube:** This MLCube will be responsible for evaluating the performance of a model. It should be compatible with the reference model MLCube (i.e., the outputs of the reference model MLCube can be directly fed as inputs to this MLCube). A guide on how to implement metrics MLCubes can be found [here](../mlcubes/mlcube_metrics.md).
 
-For this tutorial, you are provided with following three already implemented mlcubes for the task of chest X-ray classification. The implementations can be found in the following links: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/data_preparator), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/model_custom_cnn), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/chestxray/metrics). These mlcubes are setup locally for you and can be found in your workspace folder under `data_preparator`, `model_custom_cnn`, and `metrics`.
+For this tutorial, you are provided with following three already implemented mlcubes for the task of chest X-ray classification. The implementations can be found in the following links: [Data Preparator](https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/data_preparator), [Reference Model](https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/model_custom_cnn), [Metrics](https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/metrics). These mlcubes are setup locally for you and can be found in your workspace folder under `data_preparator`, `model_custom_cnn`, and `metrics`.
 
 ## 2. Develop a Demo Dataset
 
