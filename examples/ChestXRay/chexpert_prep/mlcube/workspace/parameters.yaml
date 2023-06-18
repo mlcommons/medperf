@@ -1,0 +1,7 @@
+output_datafile: data.csv
+output_imagepath: images
+labels:
+ - Atelectasis
+ - Cardiomegaly
+ - Consolidation
+ - Edema
