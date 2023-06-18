@@ -14,7 +14,7 @@ To ensure users have the best experience in learning the fundamentals of MedPerf
 
 - [How a Data Owner can prepare their data and execute a benchmark.](data_owner_demo.md)
 
-The tutorials simulate a benchmarking example for the task of detecting thoracic diseases from chest X-ray scans. You will be interacting with a temporary local MedPerf server as described in the [setup page](setup.md). This allows you to freely experiment with the tool and rerun the tutorial as many times as you want, providing you with an immersive learning experience. Please note, however, that these tutorials also serve as a guide to be followed when you are using the tool in a real scenario.
+The tutorials simulate a benchmarking example for the task of detecting thoracic diseases from chest X-ray scans. You can find the description of the used data [here](https://www.nih.gov/news-events/news-releases/nih-clinical-center-provides-one-largest-publicly-available-chest-x-ray-datasets-scientific-community). Throughout the tutorials, you will be interacting with a temporary local MedPerf server as described in the [setup page](setup.md). This allows you to freely experiment with the MedPerf client and rerun the tutorials as many times as you want, providing you with an immersive learning experience. Please note, however, that these tutorials also serve as a general guidance to be followed when using the MedPerf client in a real scenario.
 
 Before proceeding to the tutorials, make sure you have the [MedPerf client installed](installation.md) and the general tutorial environment [set up](setup.md).
 
