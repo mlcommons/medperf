@@ -33,7 +33,9 @@ clean(){
   rm -fr $MEDPERF_SUBSTORAGE
   # errors of the commands below are ignored
   medperf profile activate default
-  medperf profile delete mocktest
+  medperf profile delete testbenchmark
+  medperf profile delete testmodel
+  medperf profile delete testdata
 }
 checkFailed(){
   if [ "$?" -ne "0" ]; then
@@ -86,13 +88,14 @@ METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/mock-metrics.sim
 # admin token
 ADMIN_TOKEN=$(curl -sk -X POST $SERVER_URL$VERSION_PREFIX/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
 
-# create users
-MODELOWNER="mockmodelowner"
-DATAOWNER="mockdataowner"
-BENCHMARKOWNER="mockbenchmarkowner"
-curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "model", "last_name": "owner", "username": "'"$MODELOWNER"'", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "'"$BENCHMARKOWNER"'", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "data", "last_name": "owner", "username": "'"$DATAOWNER"'", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+# test users credentials
+MODELOWNER="testmodelowner@medperf.org"
+DATAOWNER="testdataowner@medperf.org"
+BENCHMARKOWNER="testbenchmarkowner@medperf.org"
+
+MODELOWNERPASSWORD="Model123"
+DATAOWNERPASSWORD="Dataset123"
+BENCHMARKOWNERPASSWORD="Benchmark123"
 
 ##########################################################
 ################### Start Testing ########################
@@ -111,12 +114,14 @@ echo "\n"
 
 ##########################################################
 echo "=========================================="
-echo "Setting and activating the testing profile"
+echo "Creating test profiles for each user"
 echo "=========================================="
-medperf profile create -n mocktest --server=${SERVER_URL} --certificate=${CERT_FILE}
-checkFailed "Profile creation failed"
-medperf profile activate mocktest
-checkFailed "Profile activation failed"
+medperf profile create -n testbenchmark --server=${SERVER_URL} --certificate=${CERT_FILE}
+checkFailed "testbenchmark profile creation failed"
+medperf profile create -n testmodel --server=${SERVER_URL} --certificate=${CERT_FILE}
+checkFailed "testmodel profile creation failed"
+medperf profile create -n testdata --server=${SERVER_URL} --certificate=${CERT_FILE}
+checkFailed "testdata profile creation failed"
 ##########################################################
 
 echo "\n"
@@ -136,11 +141,36 @@ chmod -R a+w $DIRECTORY
 echo "\n"
 
 ##########################################################
+echo "=========================================="
+echo "Login each user"
+echo "=========================================="
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
+
+bash "$(dirname "$0")/auto_login.sh" -e $BENCHMARKOWNER -p $BENCHMARKOWNERPASSWORD
+checkFailed "testbenchmark login failed"
+
+medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+
+bash "$(dirname "$0")/auto_login.sh" -e $MODELOWNER -p $MODELOWNERPASSWORD
+checkFailed "testmodel login failed"
+
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+
+bash "$(dirname "$0")/auto_login.sh" -e $DATAOWNER -p $DATAOWNERPASSWORD
+checkFailed "testdata login failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
 echo "====================================="
-echo "Login with modelowner"
+echo "Activate modelowner profile"
 echo "====================================="
-medperf login --username=$MODELOWNER --password=test
-checkFailed "modelowner login failed"
+medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
 ##########################################################
 
 echo "\n"
@@ -179,10 +209,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with benchmarkowner"
+echo "Activate benchmarkowner profile"
 echo "====================================="
-medperf login --username=$BENCHMARKOWNER --password=test
-checkFailed "benchmarkowner login failed"
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
 ##########################################################
 
 echo "\n"
@@ -203,10 +233,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with dataowner"
+echo "Activate dataowner profile"
 echo "====================================="
-medperf login --username=$DATAOWNER --password=test
-checkFailed "dataowner login failed"
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
 ##########################################################
 
 echo "\n"
@@ -245,10 +275,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with benchmarkowner"
+echo "Activate benchmarkowner profile"
 echo "====================================="
-medperf login --username=$BENCHMARKOWNER --password=test
-checkFailed "benchmarkowner login failed"
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
 ##########################################################
 
 echo "\n"
@@ -306,10 +336,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with modelowner"
+echo "Activate modelowner profile"
 echo "====================================="
-medperf login --username=$MODELOWNER --password=test
-checkFailed "modelowner login failed"
+medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
 ##########################################################
 
 echo "\n"
@@ -330,10 +360,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Login with dataowner"
+echo "Activate dataowner profile"
 echo "====================================="
-medperf login --username=$DATAOWNER --password=test
-checkFailed "dataowner login failed"
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
 ##########################################################
 
 echo "\n"
@@ -370,11 +400,43 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Delete mocktest profile"
+echo "Logout users"
+echo "====================================="
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
+
+medperf auth logout
+checkFailed "logout failed"
+
+medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+
+medperf auth logout
+checkFailed "logout failed"
+
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+
+medperf auth logout
+checkFailed "logout failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Delete test profiles"
 echo "====================================="
 medperf profile activate default
 checkFailed "default profile activation failed"
-medperf profile delete mocktest
+
+medperf profile delete testbenchmark
+checkFailed "Profile deletion failed"
+
+medperf profile delete testmodel
+checkFailed "Profile deletion failed"
+
+medperf profile delete testdata
 checkFailed "Profile deletion failed"
 ##########################################################
 
