@@ -1,12 +1,10 @@
 from typing import List
 from abc import ABC, abstractmethod
 
-from medperf.ui.interface import UI
-
 
 class Comms(ABC):
     @abstractmethod
-    def __init__(self, source: str, ui: UI, token: str = None):
+    def __init__(self, source: str):
         """Create an instance of a communication object.
 
         Args:
@@ -27,10 +25,6 @@ class Comms(ABC):
         Returns:
             str: parsed URL with protocol and version
         """
-
-    @abstractmethod
-    def authenticate(self):
-        """Retrieve a token stored locally for authentication"""
 
     @abstractmethod
     def get_current_user(self):
