@@ -64,9 +64,9 @@ DSET_C_URL="${ASSETS_URL}/assets/datasets/dataset_c.tar.gz"
 DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 
 # prep cubes
-PREP_MLCUBE="$ASSETS_URL/prep/mlcube/mlcube.yaml"
-PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
-PREP_SING_IMAGE="$ASSETS_URL/prep/mlcube/workspace/.image/mock-prep.simg"
+PREP_MLCUBE="$ASSETS_URL/prep-sep/mlcube/mlcube.yaml"
+PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
+PREP_SING_IMAGE="$ASSETS_URL/prep-sep/mlcube/workspace/.image/mock-prep-sep.simg"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association

@@ -6,8 +6,8 @@ from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
 import medperf.config as config
-from medperf.tests.mocks import MockCube, MockTar
-from medperf.exceptions import InvalidEntityError, MedperfException
+from medperf.tests.mocks import MockTar
+from medperf.exceptions import MedperfException
 import yaml
 
 parent = config.storage
@@ -230,19 +230,6 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     # Assert
     printed_msg = spy.call_args_list[0][0][0]
     assert msg in printed_msg
-
-
-@pytest.mark.parametrize("is_valid", [True, False])
-def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
-    # Arrange
-    cube = MockCube(is_valid)
-
-    # Act & Assert
-    if not is_valid:
-        with pytest.raises(InvalidEntityError):
-            utils.check_cube_validity(cube)
-    else:
-        utils.check_cube_validity(cube)
 
 
 @pytest.mark.parametrize("file", ["test.tar.bz", "path/to/file.tar.bz"])

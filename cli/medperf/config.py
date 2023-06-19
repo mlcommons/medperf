@@ -38,12 +38,12 @@ log_file = "logs/medperf.log"
 loglevel = "info"
 demo_dset_paths_file = "paths.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
-cube_hashes_filename = "mlcube-hashes.yaml"
 
 credentials_keyword = "credentials"
 default_profile_name = "default"
 test_profile_name = "test"
 platform = "docker"
+gpus = None
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
 ddl_max_redownload_attempts = 3
@@ -76,6 +76,7 @@ configurable_parameters = [
     "infer_timeout",
     "evaluate_timeout",
     "platform",
+    "gpus",
     "cleanup",
 ]
 

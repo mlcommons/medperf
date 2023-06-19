@@ -64,33 +64,6 @@ PREP_MLCUBE_TASKS = Schema(
         "prepare": {
             "parameters": {
                 "inputs": {"data_path": object, "labels_path": object, **extra_inputs},
-                "outputs": {"output_path": object},
-            },
-            **wild_card,
-        },
-        "sanity_check": {
-            "parameters": {
-                "inputs": {"data_path": object, **extra_inputs},
-            },
-            **wild_card,
-        },
-        "statistics": {
-            "parameters": {
-                "inputs": {"data_path": object, **extra_inputs},
-                "outputs": {"output_path": object},
-            },
-            **wild_card,
-        },
-        **wild_card,
-    },
-    name="Data Preparation MLCube",
-)
-
-SEPARATE_LABELS_PREP_MLCUBE_TASKS = Schema(
-    {
-        "prepare": {
-            "parameters": {
-                "inputs": {"data_path": object, "labels_path": object, **extra_inputs},
                 "outputs": {"output_path": object, "output_labels_path": object},
             },
             **wild_card,
@@ -145,7 +118,6 @@ METRICS_MLCUBE_TASKS = Schema(
 # Put the available schemas in a dict
 schemas = {
     "data-preparator": PREP_MLCUBE_TASKS,
-    "data-preparator-separate-labels": SEPARATE_LABELS_PREP_MLCUBE_TASKS,
     "model": MODEL_MLCUBE_TASKS,
     "metrics": METRICS_MLCUBE_TASKS,
 }

@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
-from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
+from medperf.exceptions import ExecutionError, MedperfException
 
 
 def setup_logging(log_lvl):
@@ -306,21 +306,6 @@ def generate_tmp_path() -> str:
     return os.path.abspath(tmp_path)
 
 
-def check_cube_validity(cube: "Cube"):
-    """Helper function for pretty printing the cube validity process.
-
-    Args:
-        cube (Cube): Cube to check for validity
-    """
-    logging.info(f"Checking cube {cube.name} validity")
-    ui = config.ui
-    ui.text = "Checking cube MD5 hash..."
-    if not cube.valid():
-        raise InvalidEntityError("MD5 hash doesn't match")
-    logging.info(f"Cube {cube.name} is valid")
-    ui.print(f"> {cube.name} MD5 hash check complete")
-
-
 def untar(filepath: str, remove: bool = True) -> str:
     """Untars and optionally removes the tar.gz file
 
@@ -491,6 +476,25 @@ def log_response_error(res, warn=False):
     except requests.exceptions.JSONDecodeError:
         logging_method("JSON Response could not be parsed. Showing response text:")
         logging_method(res.text)
+
+
+def format_errors_dict(errors_dict: dict):
+    """Reformats the error details from a field-error(s) dictionary into a human-readable string for printing"""
+    error_msg = ""
+    for field, errors in errors_dict.items():
+        error_msg += "\n"
+        if isinstance(field, tuple):
+            field = field[0]
+        error_msg += f"- {field}: "
+        if len(errors) == 1:
+            # If a single error for a field is given, don't create a sublist
+            error_msg += errors[0]
+        else:
+            # Create a sublist otherwise
+            for e_msg in errors:
+                error_msg += "\n"
+                error_msg += f"\t- {e_msg}"
+    return error_msg
 
 
 def get_cube_image_name(cube_path: str) -> str:

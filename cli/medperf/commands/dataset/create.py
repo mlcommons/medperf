@@ -7,7 +7,6 @@ import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
-    check_cube_validity,
     remove_path,
     generate_tmp_path,
     get_folder_sha1,
@@ -73,7 +72,6 @@ class DataPreparation:
         self.location = location
         self.out_datapath = os.path.join(out_path, "data")
         self.out_labelspath = os.path.join(out_path, "labels")
-        self.labels_specified = False
         self.run_test = run_test
         self.benchmark_uid = benchmark_uid
         self.prep_cube_uid = prep_cube_uid
@@ -104,7 +102,6 @@ class DataPreparation:
         self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
-        check_cube_validity(self.cube)
 
     def run_cube_tasks(self):
         prepare_timeout = config.prepare_timeout
@@ -120,6 +117,7 @@ class DataPreparation:
             "data_path": data_path,
             "labels_path": labels_path,
             "output_path": out_datapath,
+            "output_labels_path": out_labelspath,
         }
         prepare_str_params = {
             "Ptasks.prepare.parameters.input.data_path.opts": "ro",
@@ -128,6 +126,7 @@ class DataPreparation:
 
         sanity_params = {
             "data_path": out_datapath,
+            "labels_path": out_labelspath,
         }
         sanity_str_params = {
             "Ptasks.sanity_check.parameters.input.data_path.opts": "ro"
@@ -136,20 +135,11 @@ class DataPreparation:
         statistics_params = {
             "data_path": out_datapath,
             "output_path": self.out_statistics_path,
+            "labels_path": out_labelspath,
         }
         statistics_str_params = {
             "Ptasks.statistics.parameters.input.data_path.opts": "ro"
         }
-
-        # Check if labels_path is specified
-        self.labels_specified = (
-            self.cube.get_default_output("prepare", "output_labels_path") is not None
-        )
-        if self.labels_specified:
-            # Add the labels parameter
-            prepare_params["output_labels_path"] = out_labelspath
-            sanity_params["labels_path"] = out_labelspath
-            statistics_params["labels_path"] = out_labelspath
 
         # Run the tasks
         self.ui.text = "Running preparation step..."
@@ -216,7 +206,6 @@ class DataPreparation:
             "generated_metadata": self.generated_metadata,
             "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
-            "separate_labels": self.labels_specified,  # not in the server
             "for_test": self.run_test,  # not in the server (OK)
         }
 

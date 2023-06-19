@@ -105,60 +105,10 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_called_once_with(cube_uid)
 
-    def test_get_prep_cube_checks_validity(self, mocker, preparation):
-        # Arrange
-        mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
-        spy = mocker.patch(PATCH_DATAPREP.format("check_cube_validity"))
-
-        # Act
-        preparation.get_prep_cube()
-
-        # Assert
-        spy.assert_called_once_with(preparation.cube)
-
     def test_run_cube_tasks_runs_required_tasks(self, mocker, preparation):
         # Arrange
         spy = mocker.patch.object(preparation.cube, "run")
-        mocker.patch.object(preparation.cube, "get_default_output", return_value=None)
-        prepare = call(
-            task="prepare",
-            timeout=None,
-            data_path=DATA_PATH,
-            labels_path=LABELS_PATH,
-            output_path=OUT_DATAPATH,
-            string_params={
-                "Ptasks.prepare.parameters.input.data_path.opts": "ro",
-                "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
-            },
-        )
-        check = call(
-            task="sanity_check",
-            string_params={"Ptasks.sanity_check.parameters.input.data_path.opts": "ro"},
-            data_path=OUT_DATAPATH,
-            timeout=None,
-        )
-        stats = call(
-            task="statistics",
-            data_path=OUT_DATAPATH,
-            timeout=None,
-            output_path=STATISTICS_PATH,
-            string_params={"Ptasks.statistics.parameters.input.data_path.opts": "ro"},
-        )
-        calls = [prepare, check, stats]
 
-        # Act
-        preparation.run_cube_tasks()
-
-        # Assert
-        spy.assert_has_calls(calls)
-
-    def test_run_cube_tasks_uses_labels_path_if_specified(self, mocker, preparation):
-        # Arrange
-        spy = mocker.patch.object(preparation.cube, "run")
-        # Make sure getting the labels_output returns a value
-        mocker.patch.object(
-            preparation.cube, "get_default_output", return_value=OUT_LABELSPATH
-        )
         prepare = call(
             task="prepare",
             timeout=None,
