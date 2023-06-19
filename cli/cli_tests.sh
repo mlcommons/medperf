@@ -19,6 +19,7 @@ MEDPERF_STORAGE=~/.medperf
 MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
 VERSION_PREFIX="/api/v0"
+LOGIN_SCRIPT="$(dirname "$0")/auto_login.sh"
 
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
@@ -147,19 +148,19 @@ echo "=========================================="
 medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 
-bash "$(dirname "$0")/auto_login.sh" -e $BENCHMARKOWNER -p $BENCHMARKOWNERPASSWORD
+timeout -k 30s 30s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER -p $BENCHMARKOWNERPASSWORD
 checkFailed "testbenchmark login failed"
 
 medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
 
-bash "$(dirname "$0")/auto_login.sh" -e $MODELOWNER -p $MODELOWNERPASSWORD
+timeout -k 30s 30s bash $LOGIN_SCRIPT -e $MODELOWNER -p $MODELOWNERPASSWORD
 checkFailed "testmodel login failed"
 
 medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 
-bash "$(dirname "$0")/auto_login.sh" -e $DATAOWNER -p $DATAOWNERPASSWORD
+timeout -k 30s 30s bash $LOGIN_SCRIPT -e $DATAOWNER -p $DATAOWNERPASSWORD
 checkFailed "testdata login failed"
 ##########################################################
 
