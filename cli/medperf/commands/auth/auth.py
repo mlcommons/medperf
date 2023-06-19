@@ -67,3 +67,11 @@ def change_password(
     email = email if email else config.ui.prompt("Email: ")
     config.auth.change_password(email)
     config.ui.print("✅ Done!")
+
+
+@app.command("logout")
+@clean_except
+def logout():
+    """Login to the medperf server. Must be done only once."""
+    config.auth.logout()
+    config.ui.print("✅ Done!")

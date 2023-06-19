@@ -2,7 +2,12 @@ import time
 from medperf.exceptions import CommunicationError
 import requests
 import medperf.config as config
-from medperf.utils import set_credentials, set_current_user, read_credentials
+from medperf.utils import (
+    set_credentials,
+    set_current_user,
+    read_credentials,
+    delete_credentials,
+)
 from medperf.utils import log_response_error
 
 
@@ -201,7 +206,25 @@ class Auth:
         return access_token
 
     def logout(self):
-        pass  # TODO
+        creds = read_credentials()
+        refresh_token = creds["refresh_token"]
+
+        url = f"https://{self.domain}/oauth/revoke"
+        headers = {"content-type": "application/json"}
+        body = {
+            "client_id": self.client_id,
+            "token": refresh_token,
+        }
+        res = requests.post(url=url, headers=headers, json=body)
+
+        if res.status_code != 200:
+            log_response_error(res)
+            if res.status_code == 429:
+                raise CommunicationError("Too many requests. Try again later.")
+
+            raise CommunicationError("Unexpected logout failure")
+
+        delete_credentials()
 
     def set_medperf_server_id(self):
         # TODO: where to use it
