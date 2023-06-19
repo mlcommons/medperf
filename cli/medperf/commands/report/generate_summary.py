@@ -63,13 +63,17 @@ class SummaryGenerator:
             tasks = []
             if len(cases):
                 desc = cases["comment"].iloc[0]
-                tasks = cases.apply(
-                    lambda x: task_template.format(
-                        id=x.name, data_path=x.data_path, label_path=x.labels_path
-                    ),
-                    axis=1,
-                )
-                tasks = tasks.to_list()
+                if desc:
+                    # If no comment is available, then the user doesn't need to
+                    # do anything here.
+                    # Don't show unnecessary information for such cases
+                    tasks = cases.apply(
+                        lambda x: task_template.format(
+                            id=x.name, data_path=x.data_path, label_path=x.labels_path
+                        ),
+                        axis=1,
+                    )
+                    tasks = tasks.to_list()
 
             status_body = "\n".join([title] + [desc] + tasks)
             body = "\n".join([body, status_body])

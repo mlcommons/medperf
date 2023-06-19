@@ -30,14 +30,15 @@ class DataPreparation:
         name: str = None,
         description: str = None,
         location: str = None,
-        summary_out_path: str = "",
+        summary_path: str = "",
     ):
-        summary_out_path = os.path.join(summary_out_path, "summary.md")
+        summary_path = os.path.join(summary_path, "summary.md")
         preparation = cls(
             benchmark_uid,
             prep_cube_uid,
             data_path,
             labels_path,
+            summary_path,
             name,
             description,
             location,
@@ -63,7 +64,7 @@ class DataPreparation:
             if benchmark_uid:
                 ReportRegistration.run(in_data_hash, prep_cube_uid, benchmark_uid)
             SummaryGenerator.run(
-                in_data_hash, prep_cube_uid, summary_out_path, benchmark_uid
+                in_data_hash, prep_cube_uid, summary_path, benchmark_uid
             )
         with preparation.ui.interactive():
             preparation.run_sanity_check()
@@ -81,6 +82,7 @@ class DataPreparation:
         prep_cube_uid: int,
         data_path: str,
         labels_path: str,
+        summary_path: str,
         name: str,
         description: str,
         location: str,
@@ -90,6 +92,7 @@ class DataPreparation:
         self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
+        self.summary_path = str(Path(summary_path).resolve())
         self.in_uid = get_folder_sha1(self.data_path)
         self.out_statistics_path = generate_tmp_path()
         self.name = name
@@ -211,7 +214,9 @@ class DataPreparation:
         except ExecutionError:
             msg = "The sanity check process failed. This most probably means the data could not be completely prepared. "
             if self.report_specified:
-                msg += f"You may want to check the status report at: {self.report_path}"
+                msg += (
+                    f"You may want to check the status report at: {self.summary_path} "
+                )
             raise ExecutionError(msg)
         self.ui.print("> Sanity checks complete")
 
