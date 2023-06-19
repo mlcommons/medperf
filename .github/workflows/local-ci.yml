@@ -17,7 +17,7 @@ jobs:
     name: local-deploy
     runs-on: ubuntu-latest
     container: 
-      image: mlcommons/medperf-tests-container:tmp
+      image: mlcommons/medperf-tests-container:latest
       options: --privileged --name medperf-tests
       volumes:
         - /tmp:/tmp # To share the directory where the test dataset is downloaded
@@ -50,10 +50,14 @@ jobs:
     #   working-directory: .
     #   run: sh cli/cli_chestxray_tutorial_test.sh -f
 
-    # - name: Setup Chrome
-    #   uses: browser-actions/setup-chrome@v1
-    #   with:
-    #     chrome-version: stable
+    - name: Install chrome dependencies
+      working-directory: /tmp
+      run: apt install libnss
+
+    - name: Setup Chrome
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
     - name: Run client integration tests
       working-directory: .
       run: sh cli/cli_tests.sh
