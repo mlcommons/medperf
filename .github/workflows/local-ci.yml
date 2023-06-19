@@ -52,7 +52,7 @@ jobs:
 
     - name: Install chrome dependencies
       working-directory: /tmp
-      run: apt install libnss3
+      run: apt install libnss3 -y
 
     - name: Setup Chrome
       uses: browser-actions/setup-chrome@v1
