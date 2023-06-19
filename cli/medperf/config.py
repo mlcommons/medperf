@@ -56,6 +56,7 @@ auth_settings = {
     "database": "Username-Password-Authentication",
     "audience": "https://api.medperf.org/",
 }
+token_expiration_leeway = 2  # 2 seconds. Refresh tokens 2 seconds before expiration
 
 prepare_timeout = None
 sanity_check_timeout = None

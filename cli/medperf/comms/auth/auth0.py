@@ -196,7 +196,7 @@ class Auth:
         refresh_token = creds["refresh_token"]
         expires_in = creds["expires_in"]
         issued_at = creds["issued_at"]
-        if time.time() > issued_at + expires_in or True:
+        if time.time() > issued_at + expires_in - config.token_expiration_leeway:
             access_token = self.refresh_access_token(refresh_token)
         return access_token
 
