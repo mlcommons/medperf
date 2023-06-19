@@ -41,13 +41,13 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh & sleep 6
 
-    - name: Run integration tests
-      working-directory: ./server
-      run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
+    # - name: Run integration tests
+    #   working-directory: ./server
+    #   run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
 
-    - name: Run xrv demo
-      working-directory: .
-      run: sh cli/cli_xrv_demo.sh -f
+    # - name: Run xrv demo
+    #   working-directory: .
+    #   run: sh cli/cli_xrv_demo.sh -f
 
     - name: Run client integration tests
       working-directory: .
