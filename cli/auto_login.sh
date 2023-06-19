@@ -3,7 +3,7 @@
 unset -v EMAIL
 unset -v PASSWORD
 
-while getopts e:p flag
+while getopts e:p: flag
 do
     case "${flag}" in
         e) EMAIL=${OPTARG};;
