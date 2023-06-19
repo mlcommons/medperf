@@ -1,5 +1,7 @@
 # Pancreas Segmentation MLCubes
 
+**(This example is currently not compatible with the latest MedPerf version. This will be fixed soon)**
+
 This contains the code for the MLCubes related to Pancreas Segmentation that took place acroos Dana-Farber Cancer Institute and Harvard T.H. Chan School of Public Health.
 
 There are 3 MLCubes:
