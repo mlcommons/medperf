@@ -56,7 +56,8 @@ jobs:
 
     - name: Setup Chrome
       uses: browser-actions/setup-chrome@v1
-
+      with:
+        chrome-version: stable
     - name: Run client integration tests
       working-directory: .
       run: sh cli/cli_tests.sh
