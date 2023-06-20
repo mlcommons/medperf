@@ -52,12 +52,11 @@ jobs:
 
     - name: Install chrome dependencies
       working-directory: /tmp
-      run: apt update && apt install libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev -y
+      run: apt update && apt install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev libasound2
 
     - name: Setup Chrome
       uses: browser-actions/setup-chrome@v1
-      with:
-        chrome-version: stable
+
     - name: Run client integration tests
       working-directory: .
       run: sh cli/cli_tests.sh
