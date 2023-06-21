@@ -18,6 +18,7 @@ CERT_FILE="${AUTH_CERT:-$(dirname $(dirname $(realpath "$0")))/server/cert.crt}"
 MEDPERF_STORAGE=~/.medperf
 MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
+LOGIN_SCRIPT="$(dirname "$0")/auto_login.sh"
 
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
@@ -32,7 +33,8 @@ clean(){
   rm -fr $MEDPERF_SUBSTORAGE
   # errors of the commands below are ignored
   medperf profile activate default
-  medperf profile delete localtest
+  medperf profile delete testbenchmark
+  medperf profile delete testdata
 }
 checkFailed(){
   if [ "$?" -ne "0" ]; then
@@ -45,6 +47,12 @@ checkFailed(){
   fi
 }
 
+# test users credentials
+DATAOWNER="testdataowner@medperf.org"
+BENCHMARKOWNER="testbenchmarkowner@medperf.org"
+
+DATAOWNERPASSWORD="Dataset123"
+BENCHMARKOWNERPASSWORD="Benchmark123"
 
 if ${FRESH}; then
   clean
@@ -56,16 +64,35 @@ echo "downloading files to $DIRECTORY"
 wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_raw_data.tar.gz
 tar -xzvf $DIRECTORY/sample_raw_data.tar.gz -C $DIRECTORY
 chmod a+w $DIRECTORY/sample_raw_data
+
+echo "=========================================="
+echo "Creating test profiles for each user"
+echo "=========================================="
+medperf profile create -n testbenchmark --server=${SERVER_URL} --certificate=${CERT_FILE}
+checkFailed "testbenchmark profile creation failed"
+medperf profile create -n testdata --server=${SERVER_URL} --certificate=${CERT_FILE}
+checkFailed "testdata profile creation failed"
+
+echo "=========================================="
+echo "Login each user"
+echo "=========================================="
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
+
+timeout -k 30s 30s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER -p $BENCHMARKOWNERPASSWORD
+checkFailed "testbenchmark login failed"
+
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+
+timeout -k 30s 30s bash $LOGIN_SCRIPT -e $DATAOWNER -p $DATAOWNERPASSWORD
+checkFailed "testdata login failed"
+
 echo "====================================="
-echo "Setting testing profile"
+echo "Activate dataowner profile"
 echo "====================================="
-medperf profile create -n localtest --server=${SERVER_URL} --certificate=${CERT_FILE} --loglevel=debug --no-cleanup
-medperf profile activate localtest
-echo "====================================="
-echo "Logging the user with username: testdataowner and password: test"
-echo "====================================="
-medperf login --username=testdataowner --password=test
-checkFailed "Login failed"
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
 echo "\n"
 echo "====================================="
 echo "Running data preparation step"
@@ -91,10 +118,11 @@ medperf dataset associate -d $DSET_UID -b 1 -y
 checkFailed "Data association step failed"
 
 echo "====================================="
-echo "Approving dataset association"
+echo ""Activate benchmarkowner profile""
 echo "====================================="
 # Log in as the benchmark owner
-medperf login --username=testbenchmarkowner --password=test
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
 # Get association information
 ASSOC_INFO=$(medperf association ls | head -n 4 | tail -n 1 | tr -s ' ')
 ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
@@ -107,17 +135,38 @@ echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
 # log back as user
-medperf login --username=testdataowner --password=test
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
 # Create results
 medperf run -b 1 -d $DSET_UID -m 4 -y
 checkFailed "Benchmark execution step failed"
 
 echo "====================================="
-echo "Delete localtest profile"
+echo "Logout users"
+echo "====================================="
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
+
+medperf auth logout
+checkFailed "logout failed"
+
+medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+
+medperf auth logout
+checkFailed "logout failed"
+
+
+echo "====================================="
+echo "Delete test profiles"
 echo "====================================="
 medperf profile activate default
 checkFailed "default profile activation failed"
-medperf profile delete localtest
+
+medperf profile delete testbenchmark
+checkFailed "Profile deletion failed"
+
+medperf profile delete testdata
 checkFailed "Profile deletion failed"
 
 if ${CLEANUP}; then
