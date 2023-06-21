@@ -72,22 +72,35 @@ class Server:
                 return res[out_field]
 
 
-def seed(args):
-    # Get Admin API token using admin credentials
-    api_server = Server(host=args.server, cert=args.cert)
-    if args.version:
-        api_server.validate(True, args.version)
-    else:
-        api_server.validate(False)
-    admin_token = api_server.request(
-        "/auth-token/",
-        "POST",
-        None,
-        {"username": args.username, "password": args.password},
-        "token",
-    )
-    print("Admin User Token:", admin_token)
+def auth0_token(email, password):
+    """Retrieve access tokens using the Resource Owner Flow"""
+    auth0_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
+    audience = "https://localhost-dev/"
+    client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
 
+    url = f"https://{auth0_domain}/oauth/device/code"
+    headers = {"content-type": "application/x-www-form-urlencoded"}
+    body = {
+        "client_id": client_id,
+        "audience": audience,
+        "grant_type": "password",
+        "username": email,
+        "password": password,
+    }
+    res = requests.post(url=url, headers=headers, data=body)
+    if res.status_code != 200:
+        sys.exit(
+            "Auth0 Response code is "
+            + str(res.status_code)
+            + " : "
+            + res.text
+            + " curl request "
+            + curlify.to_curl(res.request)
+        )
+    return res.json()["access_token"]
+
+
+def create_users(api_server, admin_token):
     # Create a new user 'testbenchmarkowner' by admin(Admin API token is used)
     benchmark_owner = api_server.request(
         "/users/",
@@ -135,17 +148,44 @@ def seed(args):
         "id",
     )
     print("Data Owner User Created(by Admin User). Id:", data_owner)
+
+
+def seed(args):
+    # Get Admin API token using admin credentials
+    api_server = Server(host=args.server, cert=args.cert)
+    if args.version:
+        api_server.validate(True, args.version)
+    else:
+        api_server.validate(False)
+    admin_token = api_server.request(
+        "/auth-token/",
+        "POST",
+        None,
+        {"username": args.username, "password": args.password},
+        "token",
+    )
+    print("Admin User Token:", admin_token)
+
+    if args.demo:
+        create_users(api_server, admin_token)
+
     if args.demo == "benchmark":
         return
     print("##########################BENCHMARK OWNER##########################")
     # Get Benchmark Owner API token(token of testbenchmarkowner user)
-    benchmark_owner_token = api_server.request(
-        "/auth-token/",
-        "POST",
-        None,
-        {"username": "testbenchmarkowner", "password": "test"},
-        "token",
-    )
+    if args.demo:
+        benchmark_owner_token = api_server.request(
+            "/auth-token/",
+            "POST",
+            None,
+            {"username": "testbenchmarkowner", "password": "test"},
+            "token",
+        )
+    else:
+        benchmark_owner_token = auth0_token(
+            "testbenchmarkowner@medperf.org", "Benchmark123"
+        )
+
     print("Benchmark Owner Token:", benchmark_owner_token)
 
     # Create a Data preprocessor MLCube by Benchmark Owner
@@ -316,13 +356,17 @@ def seed(args):
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
     # Get Model Owner API token(token of testmodelowner user)
-    model_owner_token = api_server.request(
-        "/auth-token/",
-        "POST",
-        None,
-        {"username": "testmodelowner", "password": "test"},
-        "token",
-    )
+    if args.demo:
+        model_owner_token = api_server.request(
+            "/auth-token/",
+            "POST",
+            None,
+            {"username": "testmodelowner", "password": "test"},
+            "token",
+        )
+    else:
+        model_owner_token = auth0_token("testmodelowner@medperf.org", "Model123")
+
     print("Model Owner Token:", model_owner_token)
 
     # Create a model mlcube by Model Owner
@@ -425,8 +469,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--demo",
         type=str,
-        help="Seed for a specific demo: 'benchmark', 'model', or 'data'",
-        default="data",
+        help="Seed for a tutorial: 'benchmark', 'model', or 'data'. Default is empty string",
+        default="",
     )
     parser.add_argument("--version", type=str, help="Server version")
     args = parser.parse_args()

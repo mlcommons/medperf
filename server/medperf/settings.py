@@ -71,7 +71,7 @@ GS_BUCKET_NAME = env("GS_BUCKET_NAME", default=None)
 DEPLOY_ENV = env("DEPLOY_ENV")
 
 # Possible deployment enviroments
-if DEPLOY_ENV not in ["local", "gcp-ci", "gcp-prod"]:
+if DEPLOY_ENV not in ["local", "local-tutorials", "gcp-ci", "gcp-prod"]:
     raise Exception("Invalid deployment enviroment")
 
 # Application definition
@@ -138,7 +138,7 @@ DATABASES = {"default": env.db()}
 
 # Deploy using python manage.py runserver_plus or via docker.
 # Refer .github/workflows/local-ci.yml, .github/workflows/docker-ci.yml
-if DEPLOY_ENV == "local":
+if DEPLOY_ENV in ["local", "local-tutorials"]:
     print("Local Build environment")
     # Always run SSL server during local deployment
     INSTALLED_APPS += ["django_extensions"]
@@ -217,9 +217,9 @@ SERVER_API_VERSION = "v0"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",  # TMP: for the admin
+        "rest_framework.authentication.TokenAuthentication",
         "user.backends.JWTAuthenticateOrCreateUser",
-    ],
+    ],  # TokenAuthentication will only be used for the admin, and for test users in tutorials
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
@@ -258,16 +258,24 @@ SPECTACULAR_SETTINGS = {
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-
 SIMPLE_JWT = {
     "ALGORITHM": "RS256",
     "AUDIENCE": "https://api.medperf.org/",
-    "ISSUER": "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/",
-    "JWK_URL": "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/.well-known/jwks.json",
+    "ISSUER": "https://mlc-medperf.us.auth0.com/",
+    "JWK_URL": "https://mlc-medperf.us.auth0.com/.well-known/jwks.json",
     "USER_ID_FIELD": "username",
     "USER_ID_CLAIM": "sub",
     "TOKEN_TYPE_CLAIM": None,
     "JTI_CLAIM": None,
-    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
-    "LEEWAY": 0,
+    "AUTH_HEADER_TYPES": ("Token",),
 }
+
+if DEPLOY_ENV == "local-tutorials":
+    SIMPLE_JWT["AUDIENCE"] = "https://localhost-tutorials/"
+
+elif DEPLOY_ENV == "local":
+    SIMPLE_JWT["ISSUER"] = "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/"
+    SIMPLE_JWT["AUDIENCE"] = "https://localhost-dev/"
+    SIMPLE_JWT[
+        "JWK_URL"
+    ] = "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/.well-known/jwks.json"
