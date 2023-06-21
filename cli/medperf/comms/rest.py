@@ -52,7 +52,7 @@ class REST(Comms):
     def __auth_req(self, url, req_func, **kwargs):
         token = config.auth.authenticate()
         return self.__req(
-            url, req_func, headers={"Authorization": f"Bearer {token}"}, **kwargs
+            url, req_func, headers={"Authorization": f"Token {token}"}, **kwargs
         )
 
     def __req(self, url, req_func, **kwargs):
