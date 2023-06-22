@@ -78,7 +78,7 @@ def auth0_token(email, password):
     audience = "https://localhost-dev/"
     client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
 
-    url = f"https://{auth0_domain}/oauth/device/code"
+    url = f"https://{auth0_domain}/oauth/token"
     headers = {"content-type": "application/x-www-form-urlencoded"}
     body = {
         "client_id": client_id,
