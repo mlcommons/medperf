@@ -91,7 +91,7 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
         comms_fn = config.comms.get_results
         if "owner" in filters and filters["owner"] == config.current_user["id"]:
             comms_fn = config.comms.get_user_results
-        if "benchmark" in filters:
+        if "benchmark" in filters and filters["benchmark"] is not None:
             bmk = filters["benchmark"]
 
             def get_benchmark_results():
