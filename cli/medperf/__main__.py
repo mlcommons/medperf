@@ -116,7 +116,12 @@ def main(
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
-    config.auth = Auth(**config.auth_settings)
+    config.auth = Auth(
+        config.auth_domain,
+        config.auth_client_id,
+        config.auth_database_connection,
+        config.auth_audience,
+    )
     config.ui.print(f"MedPerf {__version__}")
 
 

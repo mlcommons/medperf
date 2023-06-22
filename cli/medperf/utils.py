@@ -184,10 +184,22 @@ def init_config():
         return
 
     config_p = ConfigManager()
+    # default profile
     config_p[config.default_profile_name] = default_profile()
+    # developement profile
     config_p[config.test_profile_name] = default_profile()
     config_p[config.test_profile_name]["server"] = config.local_server
     config_p[config.test_profile_name]["certificate"] = config.local_certificate
+    config_p[config.test_profile_name]["auth_audience"] = config.auth_dev_audience
+    config_p[config.test_profile_name]["auth_domain"] = config.auth_dev_domain
+    config_p[config.test_profile_name]["auth_client_id"] = config.auth_dev_client_id
+    # tutorials profile
+    config_p[config.tutorials_profile_name] = default_profile()
+    config_p[config.tutorials_profile_name]["server"] = config.local_server
+    config_p[config.tutorials_profile_name]["certificate"] = config.local_certificate
+    config_p[config.tutorials_profile_name][
+        "auth_audience"
+    ] = config.auth_tutorials_audience
 
     config_p.activate(config.default_profile_name)
     config_p.write(config_file)

@@ -9,6 +9,22 @@ certificate = None
 local_server = "https://localhost:8000"
 local_certificate = "server/cert.crt"
 
+# START Auth0 config
+auth_domain = "mlc-medperf.us.auth0.com"
+auth_dev_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
+
+auth_client_id = "vFtfndViDFd0BeMdMKBgsKA9aV9BDtrY"
+auth_dev_client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
+
+auth_database_connection = "Username-Password-Authentication"
+
+auth_audience = "https://api.medperf.org/"
+auth_dev_audience = "https://localhost-dev/"
+auth_tutorials_audience = "https://localhost-tutorials/"
+# END Auth0 config
+
+token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
+
 storage = abspath(expanduser("~/.medperf"))
 logs_storage = "logs"
 tmp_storage = "tmp"
@@ -41,7 +57,8 @@ cube_metadata_filename = "mlcube-meta.yaml"
 
 credentials_keyword = "credentials"
 default_profile_name = "default"
-test_profile_name = "test"
+test_profile_name = "developement"
+tutorials_profile_name = "sandbox"
 platform = "docker"
 gpus = None
 default_page_size = 32  # This number was chosen arbitrarily
@@ -49,14 +66,6 @@ ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitra
 ddl_max_redownload_attempts = 3
 comms = "REST"
 ui = "CLI"
-
-auth_settings = {
-    "domain": "dev-5xl8y6uuc2hig2ly.us.auth0.com",
-    "client_id": "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat",
-    "database": "Username-Password-Authentication",
-    "audience": "https://api.medperf.org/",
-}
-token_expiration_leeway = 2  # 2 seconds. Refresh tokens 2 seconds before expiration
 
 prepare_timeout = None
 sanity_check_timeout = None
@@ -67,6 +76,10 @@ evaluate_timeout = None
 configurable_parameters = [
     "server",
     "certificate",
+    "auth_domain",
+    "auth_client_id",
+    "auth_database_connection",
+    "auth_audience",
     "comms",
     "ui",
     "loglevel",
