@@ -223,7 +223,7 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
         spy = mocker.patch("requests.post")
         func = requests.post
 
-    exp_headers = {"Authorization": f"Token {token}"}
+    exp_headers = {"Authorization": f"Bearer {token}"}
     cert_verify = config.certificate or True
 
     # Act

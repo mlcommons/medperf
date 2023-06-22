@@ -38,10 +38,12 @@ class Server:
         self.version = res["version"]
         return res["version"]
 
-    def request(self, endpoint, method, token, data, out_field=None):
+    def request(
+        self, endpoint, method, token, data, out_field=None, token_header_type="Token"
+    ):
         headers = {}
         if token:
-            headers = {"Authorization": "Token " + token}
+            headers = {"Authorization": token_header_type + " " + token}
         headers.update(
             {"accept": "application/json", "Content-Type": "application/json"}
         )
@@ -151,6 +153,11 @@ def create_users(api_server, admin_token):
 
 
 def seed(args):
+    if args.demo:
+        token_header_type = "Token"
+    else:
+        token_header_type = "Bearer"
+
     # Get Admin API token using admin credentials
     api_server = Server(host=args.server, cert=args.cert)
     if args.version:
@@ -208,6 +215,7 @@ def seed(args):
             "metadata": {},
         },
         "id",
+        token_header_type=token_header_type,
     )
     print(
         "Data Preprocessor MLCube Created(by Benchmark Owner). ID:",
@@ -221,6 +229,7 @@ def seed(args):
         benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
+        token_header_type=token_header_type,
     )
     print(
         "Data Preprocessor MlCube state updated to",
@@ -251,6 +260,7 @@ def seed(args):
             "metadata": {},
         },
         "id",
+        token_header_type=token_header_type,
     )
     print(
         "Reference Model Executor MlCube Created(by Benchmark Owner). ID:",
@@ -264,6 +274,7 @@ def seed(args):
         benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
+        token_header_type=token_header_type,
     )
     print(
         "Reference Model Executor MlCube state updated to",
@@ -291,6 +302,7 @@ def seed(args):
             "metadata": {},
         },
         "id",
+        token_header_type=token_header_type,
     )
     print(
         "Data Evaluator MlCube Created(by Benchmark Owner). ID:",
@@ -304,6 +316,7 @@ def seed(args):
         benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
+        token_header_type=token_header_type,
     )
     print(
         "Data Evaluator MlCube state updated to",
@@ -328,6 +341,7 @@ def seed(args):
             "data_evaluator_mlcube": data_evaluator_mlcube,
         },
         "id",
+        token_header_type=token_header_type,
     )
     print("Benchmark Created(by Benchmark Owner). ID:", benchmark)
 
@@ -338,6 +352,7 @@ def seed(args):
         benchmark_owner_token,
         {"state": "OPERATION"},
         "state",
+        token_header_type=token_header_type,
     )
     print("Benchmark state updated to", benchmark_state, "by Benchmark owner")
 
@@ -392,6 +407,7 @@ def seed(args):
             "metadata": {},
         },
         "id",
+        token_header_type=token_header_type,
     )
     print("Model MLCube Created(by Model Owner). ID:", model_executor1_mlcube)
 
@@ -402,6 +418,7 @@ def seed(args):
         model_owner_token,
         {"state": "OPERATION"},
         "state",
+        token_header_type=token_header_type,
     )
     print(
         "Model MlCube state updated to",
@@ -420,6 +437,7 @@ def seed(args):
             "metadata": {"key1": "value1", "key2": "value2"},
         },
         "approval_status",
+        token_header_type=token_header_type,
     )
 
     print(
@@ -443,6 +461,7 @@ def seed(args):
         benchmark_owner_token,
         {"approval_status": "APPROVED"},
         "approval_status",
+        token_header_type=token_header_type,
     )
     print(
         "Model MlCube Id:",

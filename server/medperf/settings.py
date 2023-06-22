@@ -267,7 +267,7 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "sub",
     "TOKEN_TYPE_CLAIM": None,
     "JTI_CLAIM": None,
-    "AUTH_HEADER_TYPES": ("Token",),
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 if DEPLOY_ENV == "local-tutorials":
