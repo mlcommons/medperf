@@ -117,11 +117,14 @@ echo "\n"
 echo "=========================================="
 echo "Creating test profiles for each user"
 echo "=========================================="
-medperf profile create -n testbenchmark --server=${SERVER_URL} --certificate=${CERT_FILE}
+medperf profile activate developement
+checkFailed "developement profile creation failed"
+
+medperf profile create -n testbenchmark
 checkFailed "testbenchmark profile creation failed"
-medperf profile create -n testmodel --server=${SERVER_URL} --certificate=${CERT_FILE}
+medperf profile create -n testmodel
 checkFailed "testmodel profile creation failed"
-medperf profile create -n testdata --server=${SERVER_URL} --certificate=${CERT_FILE}
+medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
 ##########################################################
 
