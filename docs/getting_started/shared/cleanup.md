@@ -1,8 +1,8 @@
 ## Cleanup (Optional)
 
-You have reached the end of the tutorial! If you are planning to rerun any of our tutorials, don't forget to cleanup:
+You have reached the end of the tutorial! If you are planning to rerun any of the tutorials, don't forget to cleanup:
 
-- To shut down the server: press `CTRL`+`C` in the terminal where the server is running.
+- To shut down the local MedPerf server: press `CTRL`+`C` in the terminal where the server is running.
 
 - To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
 
@@ -10,7 +10,7 @@ You have reached the end of the tutorial! If you are planning to rerun any of ou
 rm -fr medperf_tutorial
 ```
 
-- To cleanup the server database: (make sure you are in the MedPerf's root directory)
+- To cleanup the local MedPerf server database: (make sure you are in the MedPerf's root directory)
 
 ```bash
 cd server
