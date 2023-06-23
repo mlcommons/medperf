@@ -53,13 +53,13 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh & sleep 6
 
-    # - name: Run integration tests
-    #   working-directory: ./server
-    #   run: pip install -r test-requirements.txt --user && python seed.py --cert cert.crt
+    - name: Run server integration tests
+      working-directory: ./server
+      run: python seed.py --cert cert.crt
 
-    # - name: Run chestxray demo
-    #   working-directory: .
-    #   run: sh cli/cli_chestxray_tutorial_test.sh -f
+    - name: Run chestxray demo
+      working-directory: .
+      run: sh cli/cli_chestxray_tutorial_test.sh -f
 
     - name: Run client integration tests
       working-directory: .
