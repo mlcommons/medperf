@@ -102,6 +102,7 @@ class TestRun:
     def set_common_attributes(self, setup):
         self.id = setup["remote"][0]["id"]
         self.platform = config.platform
+        self.gpus = config.gpus
 
         # Specify expected path for the manifest files
         self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
@@ -114,7 +115,10 @@ class TestRun:
         spy = mocker.patch(
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
-        expected_cmd = f"mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform}"
+        expected_cmd = (
+            f"mlcube run --mlcube={self.manifest_path} --task={task} "
+            + f"--platform={self.platform}"
+        )
 
         # Act
         cube = Cube.get(self.id)
@@ -127,7 +131,10 @@ class TestRun:
         # Arrange
         mpexpect = MockPexpect(0)
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
-        expected_cmd = f'mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform} test="test"'
+        expected_cmd = (
+            f"mlcube run --mlcube={self.manifest_path} --task={task} "
+            + f'--platform={self.platform} test="test"'
+        )
 
         # Act
         cube = Cube.get(self.id)
