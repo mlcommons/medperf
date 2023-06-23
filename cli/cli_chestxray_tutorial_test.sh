@@ -40,7 +40,11 @@ clean(){
 }
 checkFailed(){
   if [ "$?" -ne "0" ]; then
+    if [ "$?" -eq 124 ]; then
+      echo "Process timed out"
+    fi
     echo $1
+    echo "medperf log:"
     tail "$MEDPERF_LOG_STORAGE"
     if ${CLEANUP}; then
       clean
