@@ -24,6 +24,7 @@ CERT_FILE="${AUTH_CERT:-$(dirname $(dirname $(realpath "$0")))/server/cert.crt}"
 MEDPERF_STORAGE=~/.medperf
 MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
+VERSION_PREFIX="/api/v0"
 
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
@@ -64,14 +65,14 @@ ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/b9e862ea68a5f07a5
 DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 
 # prep cubes
-PREP_MLCUBE="$ASSETS_URL/prep/mlcube/mlcube.yaml"
-PREP_PARAMS="$ASSETS_URL/prep/mlcube/workspace/parameters.yaml"
+PREP_MLCUBE="$ASSETS_URL/prep-sep/mlcube/mlcube.yaml"
+PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
 
 # model cubes
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
 MODEL_ADD="synapse:syn51089171"
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
-PREP_SING_IMAGE="direct:$ASSETS_URL/prep/mlcube/workspace/.image/mock-prep.simg"
+PREP_SING_IMAGE="direct:$ASSETS_URL/prep-sep/mlcube/workspace/.image/mock-prep-sep.simg"
 MODEL_SING_IMAGE="synapse:syn51080138"
 
 METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/mock-metrics.simg"
@@ -81,15 +82,15 @@ METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 
 # admin token
-ADMIN_TOKEN=$(curl -sk -X POST $SERVER_URL/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
+ADMIN_TOKEN=$(curl -sk -X POST $SERVER_URL$VERSION_PREFIX/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
 
 # create users
 MODELOWNER="mockmodelowner"
 DATAOWNER="mockdataowner"
 BENCHMARKOWNER="mockbenchmarkowner"
-curl -sk -X POST $SERVER_URL/users/ -d '{"first_name": "model", "last_name": "owner", "username": "'"$MODELOWNER"'", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST $SERVER_URL/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "'"$BENCHMARKOWNER"'", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
-curl -sk -X POST $SERVER_URL/users/ -d '{"first_name": "data", "last_name": "owner", "username": "'"$DATAOWNER"'", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "model", "last_name": "owner", "username": "'"$MODELOWNER"'", "password": "test", "email": "model@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "bmk", "last_name": "owner", "username": "'"$BENCHMARKOWNER"'", "password": "test", "email": "bmk@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X POST $SERVER_URL$VERSION_PREFIX/users/ -d '{"first_name": "data", "last_name": "owner", "username": "'"$DATAOWNER"'", "password": "test", "email": "data@owner.com"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
 
 ##########################################################
 ################### Start Testing ########################
@@ -100,7 +101,7 @@ curl -sk -X POST $SERVER_URL/users/ -d '{"first_name": "data", "last_name": "own
 echo "=========================================="
 echo "Setting and activating the testing profile"
 echo "=========================================="
-medperf profile create -n mocktest --server=${SERVER_URL} --certificate=${CERT_FILE}
+medperf profile create -n mocktest --server=${SERVER_URL} --certificate=${CERT_FILE} --loglevel=debug --no-cleanup
 checkFailed "Profile creation failed"
 medperf profile activate mocktest
 checkFailed "Profile activation failed"
