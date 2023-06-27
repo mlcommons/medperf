@@ -1,13 +1,14 @@
 import medperf.config as config
-from medperf.utils import delete_current_user
+from medperf.utils import unset_user_medperf_id
 
 
 class Login:
     @staticmethod
     def run():
-        """Login to the medperf server. Must be done only once."""
+        """Authenticate to be able to access the MedPerf server. A verification link will
+        be provided and should be open in a browser to complete the login process."""
 
         config.auth.login()
 
         # unset user's medperf server ID
-        delete_current_user()
+        unset_user_medperf_id()

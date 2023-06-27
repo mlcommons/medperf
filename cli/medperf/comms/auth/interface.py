@@ -4,25 +4,25 @@ from abc import ABC, abstractmethod
 class Auth(ABC):
     @abstractmethod
     def __init__(self):
-        """constructor"""
+        """Initialize the class"""
 
     @abstractmethod
     def signup(self, email, password):
-        """signup"""
+        """Sign up a user"""
 
     @abstractmethod
     def change_password(self, email):
-        """change password"""
+        """User password change"""
 
     @abstractmethod
     def login(self):
-        """login"""
+        """Log in a user"""
 
     @abstractmethod
     def logout(self):
-        """logout"""
+        """Log out a user"""
 
     @property
     @abstractmethod
     def access_token(self):
-        """access token"""
+        """An access token to authorize requests to the MedPerf server"""

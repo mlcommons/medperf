@@ -7,7 +7,7 @@ from email_validator import validate_email, EmailNotValidError
 class Signup:
     @staticmethod
     def run(email: str, password: str):
-        """Change the user's password. Must be logged in"""
+        """Create a new MedPerf account. A verification email will be sent."""
 
         config.ui.print(config.password_policy_msg)
 
@@ -18,7 +18,7 @@ class Signup:
         except EmailNotValidError as e:
             raise InvalidArgumentError(str(e))
 
-        # Password
+        # Password. Prompt the user for the password two times.
         if not password:
             password1 = config.ui.hidden_prompt("Please type your password: ")
             password2 = config.ui.hidden_prompt("Please type again your password: ")

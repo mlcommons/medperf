@@ -73,13 +73,13 @@ def read_credentials():
     return config_p.active_profile[config.credentials_keyword]
 
 
-def delete_current_user():
+def unset_user_medperf_id():
     config_p = read_config()
     config_p.active_profile.pop("current_user", None)
     write_config(config_p)
 
 
-def get_current_user():
+def get_user_medperf_id():
     config_p = read_config()
     if "current_user" in config.config_p.active_profile:
         return config_p.active_profile["current_user"]

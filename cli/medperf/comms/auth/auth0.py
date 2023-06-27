@@ -19,6 +19,12 @@ class Auth0(Auth):
         self.audience = config.auth_audience
 
     def signup(self, email, password):
+        """Signs up a user to the auth0 backend
+
+        Args:
+            email (str): user email
+            password (str): user password
+        """
         url = f"https://{self.domain}/dbconnections/signup"
         headers = {"content-type": "application/json"}
         body = {
@@ -33,6 +39,11 @@ class Auth0(Auth):
             self.__raise_errors(res, "Signup")
 
     def change_password(self, email):
+        """Requests a password-change email from the auth0 server
+
+        Args:
+            email (str): user email
+        """
         url = f"https://{self.domain}/dbconnections/change_password"
         headers = {"content-type": "application/json"}
         body = {
@@ -46,6 +57,10 @@ class Auth0(Auth):
             self.__raise_errors(res, "Password change")
 
     def login(self):
+        """Retrieves and stores an access token/refresh token pair from the auth0
+        backend using the device authorization flow.
+
+        """
         device_code_response = self.__request_device_code()
 
         device_code = device_code_response["device_code"]
@@ -59,7 +74,9 @@ class Auth0(Auth):
             "Make sure that you will be presented with the following code:\n"
             f"\t{user_code}\n\n"
         )
-        token_response, issued_at = self.__get_device_auth_token(device_code, interval)
+        token_response, issued_at = self.__get_device_access_token(
+            device_code, interval
+        )
         access_token = token_response["access_token"]
         refresh_token = token_response["refresh_token"]
         expires_in = token_response["expires_in"]
@@ -74,6 +91,7 @@ class Auth0(Auth):
         )
 
     def __request_device_code(self):
+        """Get a device code from the auth0 backend to be used for the authorization process"""
         url = f"https://{self.domain}/oauth/device/code"
         headers = {"content-type": "application/x-www-form-urlencoded"}
         body = {
@@ -88,7 +106,20 @@ class Auth0(Auth):
 
         return res.json()
 
-    def __get_device_auth_token(self, device_code, polling_interval):
+    def __get_device_access_token(self, device_code, polling_interval):
+        """Get the access token from the auth0 backend associated with
+        the device code requested before. This function will keep polling
+        the access token until the user completes the browser flow part
+        of the authorization process.
+
+        Args:
+            device_code (str): A temporary device code requested by `__request_device_code`
+            polling_interval (float): number of seconds to wait between each two polling requests
+
+        Returns:
+            json_res (dict): the response of the successful request, containg the access/refresh tokens pair
+            issued_at (float): the timestamp when the access token was issued
+        """
         url = f"https://{self.domain}/oauth/token"
         headers = {"content-type": "application/x-www-form-urlencoded"}
         body = {
@@ -102,7 +133,8 @@ class Auth0(Auth):
             issued_at = time.time()
             res = requests.post(url=url, headers=headers, data=body)
             if res.status_code == 200:
-                return res.json(), issued_at
+                json_res = res.json()
+                return json_res, issued_at
 
             try:
                 json_res = res.json()
@@ -113,6 +145,9 @@ class Auth0(Auth):
                 self.__raise_errors(res, "Login")
 
     def logout(self):
+        """Logs out the user by revoking their refresh token and deleting the
+        stored tokens."""
+
         creds = read_credentials()
         refresh_token = creds["refresh_token"]
 
@@ -131,6 +166,14 @@ class Auth0(Auth):
 
     @property
     def access_token(self):
+        """Reads and returns an access token of the currently logged
+        in user to be used for authorizing requests to the MedPerf server.
+        Refresh the token if necessary.
+
+        Returns:
+            access_token (str): the access token
+        """
+
         creds = read_credentials()
         access_token = creds["access_token"]
         refresh_token = creds["refresh_token"]
@@ -141,6 +184,15 @@ class Auth0(Auth):
         return access_token
 
     def __refresh_access_token(self, refresh_token):
+        """Retrieve and store a new access token using a refresh token.
+        A new refresh token will also be retrieved and stored.
+
+        Args:
+            refresh_token (str): the refresh token
+        Returns:
+            access_token (str): the new access token
+        """
+
         url = f"https://{self.domain}/oauth/token"
         headers = {"content-type": "application/x-www-form-urlencoded"}
         body = {
@@ -171,6 +223,14 @@ class Auth0(Auth):
         return access_token
 
     def __raise_errors(self, res, action):
+        """log the failed request's response and raise errors.
+
+        Args:
+            res (requests.Response): the response of a failed request
+            action (str): a string for more informative error display
+            to the user.
+        """
+
         log_response_error(res)
         if res.status_code == 429:
             raise CommunicationError("Too many requests. Try again later.")

@@ -23,7 +23,7 @@ def synapse_login(
         None, "--token", "-t", help="Personal Access Token to login with"
     ),
 ):
-    """Login to the synapse server. Must be done only once.
+    """Login to the synapse server.
     Provide either a username and a password, or a token
     """
     SynapseLogin.run(username=username, password=password, token=token)
@@ -33,12 +33,17 @@ def synapse_login(
 @app.command("signup")
 @clean_except
 def signup(
-    email: str = typer.Option(None, "--email", "-e", help="Email to sign up with"),
+    email: str = typer.Option(
+        None, "--email", "-e", help="An email address to sign up with"
+    ),
     password: str = typer.Option(
-        None, "--password", "-p", help="Password to sign up with."
+        None,
+        "--password",
+        "-p",
+        help=f"A Password to sign up with. {config.password_policy_msg}",
     ),
 ):
-    """Login to the medperf server. Must be done only once."""
+    """Create a new MedPerf account. A verification email will be sent."""
     Signup.run(email, password)
     config.ui.print(
         "✅ Successfully signed up! Please verify your email to be able to log in."
@@ -48,9 +53,11 @@ def signup(
 @app.command("change_password")
 @clean_except
 def change_password(
-    email: str = typer.Option(None, "--email", "-e", help="Email to sign up with"),
+    email: str = typer.Option(
+        None, "--email", "-e", help="The email associated with your account"
+    ),
 ):
-    """Set a new password. Must be logged in."""
+    """Send an email for changing the password. The user will change their password on the web UI."""
     PasswordChange.run(email)
     config.ui.print("✅ A password change email has been sent.")
 
@@ -58,7 +65,8 @@ def change_password(
 @app.command("login")
 @clean_except
 def login():
-    """Login to the medperf server. Must be done only once."""
+    """Authenticate to be able to access the MedPerf server. A verification link will
+    be provided and should be open in a browser to complete the login process."""
     Login.run()
     config.ui.print("✅ Done!")
 
@@ -66,6 +74,6 @@ def login():
 @app.command("logout")
 @clean_except
 def logout():
-    """Login to the medperf server. Must be done only once."""
+    """Revoke the currently active login state."""
     Logout.run()
     config.ui.print("✅ Done!")

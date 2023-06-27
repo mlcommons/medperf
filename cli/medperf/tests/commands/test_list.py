@@ -6,8 +6,7 @@ from medperf.entities.interface import Entity
 
 
 def generate_display_dicts():
-    """Mocks a list of dicts to be returned by Entity.display_dict
-    """
+    """Mocks a list of dicts to be returned by Entity.display_dict"""
     return [
         {"UID": 1, "Registered": True, "Is Valid": False, "Benchmark": 4},
         {"UID": 2, "Registered": True, "Is Valid": False, "Benchmark": 1},
@@ -23,7 +22,7 @@ def setup(request, mocker, ui):
     # mocks
     entity_object = mocker.create_autospec(spec=Entity)
     mocker.patch.object(entity_object, "display_dict", side_effect=display_dicts)
-    mocker.patch("medperf.commands.list.get_current_user", return_value={"id": 1})
+    mocker.patch("medperf.commands.list.get_user_medperf_id", return_value={"id": 1})
 
     # spies
     generated_entities = [entity_object for _ in display_dicts]
