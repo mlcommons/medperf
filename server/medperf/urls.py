@@ -37,6 +37,7 @@ urlpatterns = [
         path("results/", include("result.urls", namespace=API_VERSION), name="result"),
         path("users/", include("user.urls", namespace=API_VERSION), name="users"),
         path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
-        path("auth-token/", obtain_auth_token, name="auth-token"),  # TMP: for the admin
+        # auth-token/ can only be used by the admin, and for mocked users in local tutorials
+        path("auth-token/", obtain_auth_token, name="auth-token"),
     ])),
 ]

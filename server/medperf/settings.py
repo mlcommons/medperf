@@ -108,6 +108,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# NOTE: Django's default authentication backend (ModelBackend) as well as the session middleware
+#       will only be functional/usable for the admin user and for mocked users in local tutorial mode
+
 ROOT_URLCONF = "medperf.urls"
 
 TEMPLATES = [
@@ -219,7 +222,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
         "user.backends.JWTAuthenticateOrCreateUser",
-    ],  # TokenAuthentication will only be used for the admin, and for test users in tutorials
+    ],  # TokenAuthentication can only be used by the admin, and for mocked users in local tutorials
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
