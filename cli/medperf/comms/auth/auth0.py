@@ -1,4 +1,5 @@
 import time
+from medperf.comms.auth.interface import Auth
 from medperf.exceptions import CommunicationError
 import requests
 import medperf.config as config
@@ -10,12 +11,12 @@ from medperf.utils import (
 )
 
 
-class Auth:
-    def __init__(self, domain, client_id, database, audience):
-        self.domain = domain
-        self.client_id = client_id
-        self.database = database
-        self.audience = audience
+class Auth0(Auth):
+    def __init__(self):
+        self.domain = config.auth_domain
+        self.client_id = config.auth_client_id
+        self.database = config.auth_database_connection
+        self.audience = config.auth_audience
 
     def signup(self, email, password):
         url = f"https://{self.domain}/dbconnections/signup"
