@@ -19,3 +19,4 @@ synapseclient==2.7.0
 schema==0.7.5
 # setuptools hotfix: https://github.com/mlcommons/medperf/issues/449
 setuptools<=66.1.1
+email-validator==2.0.0

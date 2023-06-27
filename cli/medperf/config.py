@@ -102,3 +102,13 @@ templates = {
 
 # Temporary paths to cleanup that cannot be created in `tmp_storage`
 tmp_paths = []
+
+# If password policy changed, make sure you also modify utils.validate_password
+password_policy_msg = """Password policy:
+* At least 8 characters in length
+* Contain at least 3 of the following 4 types of characters:
+    * lower case letters (a-z)
+    * upper case letters (A-Z)
+    * numbers (i.e. 0-9)
+    * special characters (e.g. !@#$%^&*).
+"""

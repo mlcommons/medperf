@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import ExecutionError, InvalidArgumentError, MedperfException
 
 
 def setup_logging(log_lvl):
@@ -55,36 +55,41 @@ def setup_logging(log_lvl):
 
 def delete_credentials():
     config_p = read_config()
-    del config_p.active_profile[config.credentials_keyword]
+    if config.credentials_keyword not in config_p.active_profile:
+        raise MedperfException("You are not logged in")
     write_config(config_p)
 
 
-def set_credentials(token):
+def set_credentials(credentials):
     config_p = read_config()
-    config_p.active_profile[config.credentials_keyword] = token
+    config_p.active_profile[config.credentials_keyword] = credentials
     write_config(config_p)
 
 
 def read_credentials():
     config_p = read_config()
-    token = config_p.active_profile.get(config.credentials_keyword, None)
-    return token
+    if config.credentials_keyword not in config_p.active_profile:
+        raise MedperfException("You are not logged in")
+    return config_p.active_profile[config.credentials_keyword]
 
 
-def set_current_user(current_user: dict):
+def delete_current_user():
     config_p = read_config()
-    config_p.active_profile["current_user"] = current_user
+    config_p.active_profile.pop("current_user", None)
     write_config(config_p)
 
 
 def get_current_user():
     config_p = read_config()
-    try:
-        current_user = config_p.active_profile["current_user"]
-    except KeyError:
-        raise MedperfException(
-            "Couldn't retrieve current user information. Please login again"
-        )
+    if "current_user" in config.config_p.active_profile:
+        return config_p.active_profile["current_user"]
+
+    current_user = config.comms.get_current_user()
+
+    # cache current user
+    config_p.active_profile["current_user"] = current_user
+    write_config(config_p)
+
     return current_user
 
 
@@ -520,3 +525,30 @@ def get_cube_image_name(cube_path: str) -> str:
     except KeyError:
         msg = "The provided mlcube doesn't seem to be configured for singularity"
         raise MedperfException(msg)
+
+
+def validate_password(password):
+    # NOTE: if password checks are changed, make sure you modify config.password_policy_msg
+    patterns = {
+        "contain at least one special character": r"^(?=.*[!@#$%^&*]).+$",
+        "contain at least one digit": r"^(?=.*[0-9]).+$",
+        "contain at least one uppercase letter": r"^(?=.*[A-Z]).+$",
+        "contain at least one lowercase letter": r"^(?=.*[a-z]).+$",
+    }
+
+    checks = {}
+    for pattern, regex in patterns.items():
+        checks[pattern] = re.match(regex, password) is not None
+
+    num_passed_checks = sum([int(val) for val in checks.values()])
+
+    if len(password) < 8:
+        msg = "Your password DOES NOT contain at least 8 characters"
+        raise InvalidArgumentError(msg)
+
+    if num_passed_checks < 3:
+        msg = "You password DOES NOT"
+        for pattern, valid in checks.items():
+            if not valid:
+                msg += "\n\t" + pattern
+        raise InvalidArgumentError(msg)

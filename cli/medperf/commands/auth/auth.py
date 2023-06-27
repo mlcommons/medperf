@@ -1,4 +1,8 @@
 from medperf.commands.auth import SynapseLogin
+from medperf.commands.auth.login import Login
+from medperf.commands.auth.logout import Logout
+from medperf.commands.auth.password_change import PasswordChange
+from medperf.commands.auth.signup import Signup
 from medperf.decorators import clean_except
 import medperf.config as config
 import typer
@@ -35,27 +39,10 @@ def signup(
     ),
 ):
     """Login to the medperf server. Must be done only once."""
-    email = email if email else config.ui.prompt("Email: ")
-    password = password if password else config.ui.hidden_prompt("Password: ")
-    config.auth.signup(email, password)
+    Signup.run(email, password)
     config.ui.print(
-        "✅ Sign up successful! Please go and verify your email before logging in."
+        "✅ Successfully signed up! Please verify your email to be able to log in."
     )
-
-
-@app.command("login")
-@clean_except
-def login():
-    """Login to the medperf server. Must be done only once."""
-    config.auth.login()
-    config.ui.print("✅ Done!")
-
-
-@app.command("test_server")
-@clean_except
-def test_server():
-    config.auth.set_medperf_server_id()
-    config.ui.print("✅ Done!")
 
 
 @app.command("change_password")
@@ -64,8 +51,15 @@ def change_password(
     email: str = typer.Option(None, "--email", "-e", help="Email to sign up with"),
 ):
     """Set a new password. Must be logged in."""
-    email = email if email else config.ui.prompt("Email: ")
-    config.auth.change_password(email)
+    PasswordChange.run(email)
+    config.ui.print("✅ A password change email has been sent.")
+
+
+@app.command("login")
+@clean_except
+def login():
+    """Login to the medperf server. Must be done only once."""
+    Login.run()
     config.ui.print("✅ Done!")
 
 
@@ -73,5 +67,5 @@ def change_password(
 @clean_except
 def logout():
     """Login to the medperf server. Must be done only once."""
-    config.auth.logout()
+    Logout.run()
     config.ui.print("✅ Done!")
