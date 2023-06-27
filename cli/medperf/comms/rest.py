@@ -50,7 +50,7 @@ class REST(Comms):
         return self.__auth_req(url, requests.put, **kwargs)
 
     def __auth_req(self, url, req_func, **kwargs):
-        token = config.auth.authenticate()
+        token = config.auth.access_token
         return self.__req(
             url, req_func, headers={"Authorization": f"Bearer {token}"}, **kwargs
         )
