@@ -101,16 +101,16 @@ class Auth0(Auth):
             time.sleep(polling_interval)
             issued_at = time.time()
             res = requests.post(url=url, headers=headers, data=body)
-            if res.status_code != 200:
-                try:
-                    json_res = res.json()
-                except requests.exceptions.JSONDecodeError:
-                    json_res = {}
-                error = json_res.get("error", None)
-                if error not in ["slow_down", "authorization_pending"]:
-                    self.__raise_errors(res, "Login")
-                continue
-            return res.json(), issued_at
+            if res.status_code == 200:
+                return res.json(), issued_at
+
+            try:
+                json_res = res.json()
+            except requests.exceptions.JSONDecodeError:
+                json_res = {}
+            error = json_res.get("error", None)
+            if error not in ["slow_down", "authorization_pending"]:
+                self.__raise_errors(res, "Login")
 
     def logout(self):
         creds = read_credentials()
