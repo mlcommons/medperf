@@ -486,7 +486,9 @@ def format_errors_dict(errors_dict: dict):
         if isinstance(field, tuple):
             field = field[0]
         error_msg += f"- {field}: "
-        if len(errors) == 1:
+        if isinstance(errors, str):
+            error_msg += errors
+        elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
             error_msg += errors[0]
         else:
