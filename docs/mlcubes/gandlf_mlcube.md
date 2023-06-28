@@ -30,8 +30,8 @@ Make sure you are in the workspace folder `medperf_tutorial`. Run:
 
 ```bash
 gandlf_run \
-  -c ./config_classification.yaml \
-  -i ./inputs.csv \
+  -c ./config_getting_started_segmentation_rad3d.yaml \
+  -i ./data.csv \
   -m ./trained_model_output \
   -t True \
   -d cpu
@@ -40,7 +40,7 @@ gandlf_run \
 Note that if you want to train on GPU you can use `-d cuda`, but the example used here should take only few seconds using the CPU.
 
 !!! warning
-    This tutorial assumes the user is using the latest GaNDLF version. The configuration file `config_classification.yaml` will cause problems if you are using a different version, make sure you do the necesary changes.
+    This tutorial assumes the user is using the latest GaNDLF version. The configuration file `config_getting_started_segmentation_rad3d.yaml` will cause problems if you are using a different version, make sure you do the necessary changes.
 
 You will now have your trained model and its related files in the folder `trained_model_output`. We are ready to start deployment steps.
 
@@ -85,12 +85,16 @@ To deploy the GaNDLF model as an MLCube, run the following: (make sure you are i
 
 ```bash
 gandlf_deploy \
-  -c ./config_classification.yaml \
+  -c ./config_getting_started_segmentation_rad3d.yaml \
   -m ./trained_model_output \
   --target docker \
   --mlcube-root ./my_gandlf_mlcube \
-  -o ./built_gandlf_mlcube
+  -o ./built_gandlf_mlcube \
+  --mlcube-type model \
+  -g False # (1)!
 ```
+
+1. Change to `True` if you want the resulting MLCube to use a GPU for inference.
 
 GaNDLF will use your initial MLCube configuration `my_gandlf_mlcube`, the GaNDLF experiment configuration file `config_classification.yaml`, and the trained model `trained_model_output` to create a ready MLCube `built_gandlf_mlcube` and build the docker image that will be used by the MLCube. The docker image will have the model weights and the GaNDLF experiment configuration file embedded. You can check that your image was built by running `docker image ls`. You will see `johnsmith/gandlf_model:0.0.1` (or whatever image name that was used) created moments ago.
 
