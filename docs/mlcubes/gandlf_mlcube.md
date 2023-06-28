@@ -8,13 +8,13 @@ This guide will walk you through how to wrap a model trained using [GaNDLF](http
 2. Create the MLCube file
 3. Deploy the GaNDLF model as an MLCube
 
-We assume that you already have [medperf installed](../getting_started/installation.md) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
+Before proceeding, make sure you have [medperf installed](../getting_started/installation.md) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
 
 ## Before We Start
 
 #### Download the Necessary files
 
-We provide a script that downloads necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
+A script is provided to download all the necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)
 
 ```bash
 sh tutorials_scripts/setup_GaNDLF_mlcube_tutorial.sh
@@ -24,7 +24,7 @@ This will create a workspace folder `medperf_tutorial` where all necessary files
 
 ## 1. Train a GaNDLF Model
 
-We will first train a small model using GaNDLF. You can skip this step if you already have a trained model.
+Train a small GaNDLF model to use for this guide. You can skip this step if you already have a trained model.
 
 Make sure you are in the workspace folder `medperf_tutorial`. Run:
 
@@ -42,7 +42,7 @@ Note that if you want to train on GPU you can use `-d cuda`, but the example use
 !!! warning
     This tutorial assumes the user is using the latest GaNDLF version. The configuration file `config_getting_started_segmentation_rad3d.yaml` will cause problems if you are using a different version, make sure you do the necessary changes.
 
-You will now have your trained model and its related files in the folder `trained_model_output`. We are ready to start deployment steps.
+You will now have your trained model and its related files in the folder `trained_model_output`. Next, you will start learning how to wrap this trained model within an MLCube.
 
 ## 2. Create the MLCube File
 
@@ -74,7 +74,7 @@ docker_image_name [docker/image:latest]: johnsmith/gandlf_model:0.0.1 # (7)!
 6. Indicates the Dockerfile name from GaNDLF that should be used for building your docker image. Use the name of the Dockerfile that aligns with your model's dependencies. Any "Dockerfile-*" in the [GaNDLF source repository](https://github.com/mlcommons/GaNDLF) is valid.
 7. MLCubes use containers under the hood. Medperf supports both Docker and Singularity. Here, you can provide an image tag to the image that will be created by this MLCube. **It's recommended to use a naming convention that allows you to upload it to Docker Hub.**
 
-Assuming you chose `my_gandlf_mlcube` as the project slug, you will find your MLCube created under the folder `my_gandlf_mlcube`. Now we are ready to instruct `GaNDLF` to build the MLCube.
+Assuming you chose `my_gandlf_mlcube` as the project slug, you will find your MLCube created under the folder `my_gandlf_mlcube`. Next, you will use a `GaNDLF` utility to build the MLCube.
 
 !!! note
     You **might** need to specify additional configurations in the `mlcube.yaml` file if you are using a GPU. Check the generated `mlcube.yaml` file for more info, as well as the [MLCube documentation](https://mlcommons.github.io/mlcube/).
@@ -107,7 +107,7 @@ That's it! You have built a MedPerf-compatible MLCube with GaNDLF. You may want 
 
 ## Cleanup (Optional)
 
-You have reached the end of the tutorial! If you are planning to rerun any of our tutorials, don't forget to cleanup:
+You have reached the end of the tutorial! If you are planning to rerun any of the tutorials, don't forget to cleanup:
 
 - To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
 
