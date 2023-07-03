@@ -1,5 +1,5 @@
 from ._version import __version__
-from os.path import expanduser, abspath
+from pathlib import Path
 
 major_version, minor_version, patch_version = __version__.split(".")
 
@@ -7,7 +7,9 @@ server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = "server/cert.crt"
+local_certificate = str(
+    Path(__file__).resolve().parent.parent.parent / "server" / "cert.crt"
+)
 
 # START Auth0 config
 auth_domain = "mlc-medperf.us.auth0.com"
@@ -26,7 +28,7 @@ auth_tutorials_audience = "https://localhost-tutorials/"
 
 token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
 
-storage = abspath(expanduser("~/.medperf"))
+storage = str(Path.home().resolve() / ".medperf")
 logs_storage = "logs"
 tmp_storage = "tmp"
 data_storage = "data"

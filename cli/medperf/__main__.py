@@ -2,7 +2,6 @@ import sys
 import typer
 import logging
 import logging.handlers
-from os.path import expanduser, abspath
 
 from medperf import __version__
 import medperf.config as config
@@ -101,10 +100,6 @@ def main(
     # Set inline parameters
     inline_args = ctx.params
     set_custom_config(inline_args)
-
-    if config.certificate is not None:
-        config.certificate = abspath(expanduser(config.certificate))
-
     set_unique_tmp_config()
 
     init_storage()

@@ -15,7 +15,6 @@ SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
-CERT_FILE="${AUTH_CERT:-$(dirname $(dirname $(realpath "$0")))/server/cert.crt}"
 MEDPERF_STORAGE=~/.medperf
 MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
@@ -26,7 +25,6 @@ ADMIN_LOGIN_SCRIPT="$(dirname $(dirname "$0"))/server/token_from_credentials.py"
 
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
-echo "Certificate: $CERT_FILE"
 
 # frequently used
 clean(){
