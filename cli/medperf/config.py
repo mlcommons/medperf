@@ -15,6 +15,7 @@ auth_dev_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
 
 auth_client_id = "vFtfndViDFd0BeMdMKBgsKA9aV9BDtrY"
 auth_dev_client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
+auth_tutorials_client_id = "yOabw1jHnGRfcWTDDyQyzkBbPUinhpsr"
 
 auth_database_connection = "Username-Password-Authentication"
 
