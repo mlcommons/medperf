@@ -26,16 +26,6 @@ class UserList(GenericAPIView):
         serializer = UserSerializer(users, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def post(self, request, format=None):
-        """
-        Creates a new user
-        """
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UserDetail(GenericAPIView):
     serializer_class = UserSerializer

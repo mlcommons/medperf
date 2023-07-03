@@ -109,7 +109,7 @@ MIDDLEWARE = [
 ]
 
 # NOTE: Django's default authentication backend (ModelBackend) as well as the session middleware
-#       will only be functional/usable for the admin user and for mocked users in local tutorial mode
+#       will only be functional/usable for the built-in admin user
 
 ROOT_URLCONF = "medperf.urls"
 
@@ -220,9 +220,8 @@ SERVER_API_VERSION = "v0"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
         "user.backends.JWTAuthenticateOrCreateUser",
-    ],  # TokenAuthentication can only be used by the admin, and for mocked users in local tutorials
+    ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
