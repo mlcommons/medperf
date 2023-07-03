@@ -123,8 +123,8 @@ echo "\n"
 echo "=========================================="
 echo "Creating test profiles for each user"
 echo "=========================================="
-medperf profile activate developement
-checkFailed "developement profile creation failed"
+medperf profile activate development
+checkFailed "development profile creation failed"
 
 medperf profile create -n testbenchmark
 checkFailed "testbenchmark profile creation failed"

@@ -191,7 +191,7 @@ def init_config():
     config_p = ConfigManager()
     # default profile
     config_p[config.default_profile_name] = default_profile()
-    # developement profile
+    # development profile
     config_p[config.test_profile_name] = default_profile()
     config_p[config.test_profile_name]["server"] = config.local_server
     config_p[config.test_profile_name]["certificate"] = config.local_certificate

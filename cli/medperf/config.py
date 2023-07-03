@@ -57,7 +57,7 @@ cube_metadata_filename = "mlcube-meta.yaml"
 
 credentials_keyword = "credentials"
 default_profile_name = "default"
-test_profile_name = "developement"
+test_profile_name = "development"
 tutorials_profile_name = "sandbox"
 platform = "docker"
 gpus = None
