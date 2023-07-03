@@ -3,6 +3,7 @@ import argparse
 import requests
 import json
 import curlify
+from seed_utils import auth0_token_for_ci, auth0_token_for_tutorials, set_user_as_admin
 
 ASSETS_URL = (
     "https://raw.githubusercontent.com/hasan7n/medperf/"
@@ -72,124 +73,31 @@ class Server:
                 return res[out_field]
 
 
-def auth0_token(email, password):
-    """Retrieve access tokens using the Resource Owner Flow"""
-    auth0_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
-    audience = "https://localhost-dev/"
-    client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
-
-    url = f"https://{auth0_domain}/oauth/token"
-    headers = {"content-type": "application/x-www-form-urlencoded"}
-    body = {
-        "client_id": client_id,
-        "audience": audience,
-        "grant_type": "password",
-        "username": email,
-        "password": password,
-    }
-    res = requests.post(url=url, headers=headers, data=body)
-    if res.status_code != 200:
-        sys.exit(
-            "Auth0 Response code is "
-            + str(res.status_code)
-            + " : "
-            + res.text
-            + " curl request "
-            + curlify.to_curl(res.request)
-        )
-    return res.json()["access_token"]
-
-
-def create_users(api_server, admin_token):
-    # Create a new user 'testbenchmarkowner' by admin(Admin API token is used)
-    benchmark_owner = api_server.request(
-        "/users/",
-        "POST",
-        admin_token,
-        {
-            "username": "testbenchmarkowner",
-            "email": "testbo@example.com",
-            "password": "test",
-            "first_name": "testowner",
-            "last_name": "benchmark",
-        },
-        "id",
-    )
-    print("Benchmark Owner User Created(by Admin User). ID:", benchmark_owner)
-
-    # Create a new user 'testmodelowner' by admin(Admin API token is used)
-    model_owner = api_server.request(
-        "/users/",
-        "POST",
-        admin_token,
-        {
-            "username": "testmodelowner",
-            "email": "testmo@example.com",
-            "password": "test",
-            "first_name": "testowner",
-            "last_name": "model",
-        },
-        "id",
-    )
-    print("Model Owner User Created(by Admin User). Id:", model_owner)
-
-    # Create a new user 'testdataowner' by admin(Admin API token is used)
-    data_owner = api_server.request(
-        "/users/",
-        "POST",
-        admin_token,
-        {
-            "username": "testdataowner",
-            "email": "testdo@example.com",
-            "password": "test",
-            "first_name": "testowner",
-            "last_name": "data",
-        },
-        "id",
-    )
-    print("Data Owner User Created(by Admin User). Id:", data_owner)
-
-
 def seed(args):
-    if args.demo:
-        token_header_type = "Token"
-    else:
-        token_header_type = "Bearer"
-
-    # Get Admin API token using admin credentials
     api_server = Server(host=args.server, cert=args.cert)
     if args.version:
         api_server.validate(True, args.version)
     else:
         api_server.validate(False)
-    admin_token = api_server.request(
-        "/auth-token/",
-        "POST",
-        None,
-        {"username": args.username, "password": args.password},
-        "token",
-    )
-    print("Admin User Token:", admin_token)
 
+    # Get Admin API token
     if args.demo:
-        create_users(api_server, admin_token)
+        admin_token = auth0_token_for_tutorials("testadmin@example.com")
+    else:
+        admin_token = auth0_token_for_ci("testadmin@example.com", "Admin123")
+    # Set a user as admin to be able to access the REST API
+    set_user_as_admin(api_server, admin_token)
+
+    print("Admin User Token:", admin_token)
 
     if args.demo == "benchmark":
         return
     print("##########################BENCHMARK OWNER##########################")
     # Get Benchmark Owner API token(token of testbenchmarkowner user)
     if args.demo:
-        benchmark_owner_token = api_server.request(
-            "/auth-token/",
-            "POST",
-            None,
-            {"username": "testbenchmarkowner", "password": "test"},
-            "token",
-        )
+        benchmark_owner_token = auth0_token_for_tutorials("testbo@example.com")
     else:
-        benchmark_owner_token = auth0_token(
-            "testbenchmarkowner@medperf.org", "Benchmark123"
-        )
+        benchmark_owner_token = auth0_token_for_ci("testbo@example.com", "Benchmark123")
 
     print("Benchmark Owner Token:", benchmark_owner_token)
 
@@ -362,15 +270,9 @@ def seed(args):
     # Model Owner Interaction
     # Get Model Owner API token(token of testmodelowner user)
     if args.demo:
-        model_owner_token = api_server.request(
-            "/auth-token/",
-            "POST",
-            None,
-            {"username": "testmodelowner", "password": "test"},
-            "token",
-        )
+        model_owner_token = auth0_token_for_tutorials("testmo@example.com")
     else:
-        model_owner_token = auth0_token("testmodelowner@medperf.org", "Model123")
+        model_owner_token = auth0_token_for_ci("testmo@example.com", "Model123")
 
     print("Model Owner Token:", model_owner_token)
 
@@ -474,8 +376,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--demo",
         type=str,
-        help="Seed for a tutorial: 'benchmark', 'model', or 'data'. Default is empty string",
-        default="",
+        help="Seed for a tutorial: 'benchmark', 'model', or 'data'. Default is seed for CI tests",
+        default=None,
     )
     parser.add_argument("--version", type=str, help="Server version")
     args = parser.parse_args()
