@@ -22,6 +22,7 @@ MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
 LOGIN_SCRIPT="$(dirname "$0")/auto_login.sh"
+ADMIN_LOGIN_SCRIPT="$(dirname $(dirname "$0"))/server/token_from_credentials.py"
 
 echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
@@ -92,17 +93,20 @@ METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 METRICS_SING_IMAGE="$ASSETS_URL/metrics/mlcube/workspace/.image/mock-metrics.simg"
 
-# admin token
-ADMIN_TOKEN=$(curl -sk -X POST $SERVER_URL$VERSION_PREFIX/auth-token/ -d '{"username": "admin", "password": "admin"}' -H 'Content-Type: application/json' | jq -r '.token')
-
 # test users credentials
-MODELOWNER="testmodelowner@medperf.org"
-DATAOWNER="testdataowner@medperf.org"
-BENCHMARKOWNER="testbenchmarkowner@medperf.org"
+MODELOWNER="testmo@example.com"
+DATAOWNER="testdo@example.com"
+BENCHMARKOWNER="testbo@example.com"
+ADMIN="testadmin@example.com"
 
 MODELOWNERPASSWORD="Model123"
 DATAOWNERPASSWORD="Dataset123"
 BENCHMARKOWNERPASSWORD="Benchmark123"
+ADMINPASSWORD="Admin123"
+
+# admin token
+ADMIN_TOKEN=$(python $ADMIN_LOGIN_SCRIPT --email $ADMIN --password $ADMINPASSWORD --env dev)
+checkFailed "Retrieving admin token failed"
 
 ##########################################################
 ################### Start Testing ########################
@@ -235,7 +239,7 @@ medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --dat
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Token $ADMIN_TOKEN"
+curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
 ##########################################################
 

@@ -3,7 +3,11 @@ import argparse
 import requests
 import json
 import curlify
-from seed_utils import auth0_token_for_ci, auth0_token_for_tutorials, set_user_as_admin
+import os
+import django
+from django.contrib.auth import get_user_model
+from token_from_credentials import token_from_credentials
+from token_from_online_storage import token_from_online_storage
 
 ASSETS_URL = (
     "https://raw.githubusercontent.com/hasan7n/medperf/"
@@ -73,6 +77,20 @@ class Server:
                 return res[out_field]
 
 
+def set_user_as_admin(api_server, access_token):
+    os.environ["DJANGO_SETTINGS_MODULE"] = "medperf.settings"
+    django.setup()
+
+    user_id = api_server.request("/me/", "GET", access_token, {}, out_field="id")
+
+    User = get_user_model()
+    user = User.objects.get(id=user_id)
+
+    user.is_staff = True
+    user.is_superuser = True
+    user.save()
+
+
 def seed(args):
     api_server = Server(host=args.server, cert=args.cert)
     if args.version:
@@ -82,9 +100,9 @@ def seed(args):
 
     # Get Admin API token
     if args.demo:
-        admin_token = auth0_token_for_tutorials("testadmin@example.com")
+        admin_token = token_from_online_storage("testadmin@example.com")
     else:
-        admin_token = auth0_token_for_ci("testadmin@example.com", "Admin123")
+        admin_token = token_from_credentials("testadmin@example.com", "Admin123")
     # Set a user as admin to be able to access the REST API
     set_user_as_admin(api_server, admin_token)
 
@@ -95,9 +113,11 @@ def seed(args):
     print("##########################BENCHMARK OWNER##########################")
     # Get Benchmark Owner API token(token of testbenchmarkowner user)
     if args.demo:
-        benchmark_owner_token = auth0_token_for_tutorials("testbo@example.com")
+        benchmark_owner_token = token_from_online_storage("testbo@example.com")
     else:
-        benchmark_owner_token = auth0_token_for_ci("testbo@example.com", "Benchmark123")
+        benchmark_owner_token = token_from_credentials(
+            "testbo@example.com", "Benchmark123"
+        )
 
     print("Benchmark Owner Token:", benchmark_owner_token)
 
@@ -270,9 +290,9 @@ def seed(args):
     # Model Owner Interaction
     # Get Model Owner API token(token of testmodelowner user)
     if args.demo:
-        model_owner_token = auth0_token_for_tutorials("testmo@example.com")
+        model_owner_token = token_from_online_storage("testmo@example.com")
     else:
-        model_owner_token = auth0_token_for_ci("testmo@example.com", "Model123")
+        model_owner_token = token_from_credentials("testmo@example.com", "Model123")
 
     print("Model Owner Token:", model_owner_token)
 
