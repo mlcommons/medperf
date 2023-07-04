@@ -397,6 +397,33 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
     assert sanitized_dict["test"] == exp_encoding
 
 
+@pytest.mark.parametrize(
+    "error_dict,expected_out",
+    [
+        (
+            {"name": ["can't be a duplicate", "must be longer"]},
+            "\n- name: \n\t- can't be a duplicate\n\t- must be longer",
+        ),
+        (
+            {"detail": "You do not have permission to perform this action"},
+            "\n- detail: You do not have permission to perform this action",
+        ),
+        (
+            {("field1",): "error1", "field2": ["error2", "error3"]},
+            "\n- field1: error1\n- field2: \n\t- error2\n\t- error3",
+        ),
+    ],
+)
+def test_format_errors_dict_correctly_formats_all_expected_inputs(
+    error_dict, expected_out
+):
+    # Act
+    out = utils.format_errors_dict(error_dict)
+
+    # Assert
+    assert out == expected_out
+
+
 def test_get_cube_image_name_retrieves_name(mocker, fs):
     # Arrange
     exp_image_name = "some_image_name"
