@@ -102,10 +102,6 @@ DATAOWNERPASSWORD="Dataset123"
 BENCHMARKOWNERPASSWORD="Benchmark123"
 ADMINPASSWORD="Admin123"
 
-# admin token
-ADMIN_TOKEN=$(python $ADMIN_LOGIN_SCRIPT --email $ADMIN --password $ADMINPASSWORD --env dev)
-checkFailed "Retrieving admin token failed"
-
 ##########################################################
 ################### Start Testing ########################
 ##########################################################
@@ -237,6 +233,9 @@ medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --dat
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
+# Approve benchmark
+ADMIN_TOKEN=$(python $ADMIN_LOGIN_SCRIPT --email $ADMIN --password $ADMINPASSWORD --env dev)
+checkFailed "Retrieving admin token failed"
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
 ##########################################################
