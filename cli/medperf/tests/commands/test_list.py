@@ -22,7 +22,7 @@ def setup(request, mocker, ui):
     # mocks
     entity_object = mocker.create_autospec(spec=Entity)
     mocker.patch.object(entity_object, "display_dict", side_effect=display_dicts)
-    mocker.patch("medperf.commands.list.get_user_medperf_id", return_value={"id": 1})
+    mocker.patch("medperf.commands.list.get_medperf_user_data", return_value={"id": 1})
 
     # spies
     generated_entities = [entity_object for _ in display_dicts]

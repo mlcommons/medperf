@@ -73,13 +73,15 @@ def read_credentials():
     return config_p.active_profile[config.credentials_keyword]
 
 
-def unset_user_medperf_id():
+def unset_medperf_user_data():
+    """Delete the cached MedPerf server's user data"""
     config_p = read_config()
     config_p.active_profile.pop("current_user", None)
     write_config(config_p)
 
 
-def get_user_medperf_id():
+def get_medperf_user_data():
+    """Get and cache user data from the MedPerf server"""
     config_p = read_config()
     if "current_user" in config.config_p.active_profile:
         return config_p.active_profile["current_user"]

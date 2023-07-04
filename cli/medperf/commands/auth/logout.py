@@ -1,5 +1,5 @@
 import medperf.config as config
-from medperf.utils import unset_user_medperf_id
+from medperf.utils import unset_medperf_user_data
 
 
 class Logout:
@@ -10,4 +10,4 @@ class Logout:
         config.auth.logout()
 
         # unset user's medperf server ID
-        unset_user_medperf_id()
+        unset_medperf_user_data()

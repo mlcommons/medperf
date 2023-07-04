@@ -1,5 +1,5 @@
 import medperf.config as config
-from medperf.utils import unset_user_medperf_id
+from medperf.utils import unset_medperf_user_data
 
 
 class Login:
@@ -15,4 +15,4 @@ class Login:
         # logic tries to use the user's MedPerf server ID, it will call the server to get
         # the currently logged in user's MedPerf server ID, not a cached one which may
         # belong to the previously logged in user.
-        unset_user_medperf_id()
+        unset_medperf_user_data()
