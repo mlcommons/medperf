@@ -10,5 +10,9 @@ class Login:
 
         config.auth.login()
 
-        # unset user's medperf server ID
+        # Some logic may have cached the user's MedPerf server ID in the local storage.
+        # After login, we need to make sure this ID is removed so that later when that same
+        # logic tries to use the user's MedPerf server ID, it will call the server to get
+        # the currently logged in user's MedPerf server ID, not a cached one which may
+        # belong to the previously logged in user.
         unset_user_medperf_id()
