@@ -1,4 +1,4 @@
-SERVER_URL="${SERVER_URL:-https://localhost:8000}"
+SERVER_URL="https://localhost:8000"
 VERSION_PREFIX="/api/v0"
 BENCHMARK_OWNER="testbo@example.com"
 DATASET="1"
