@@ -1,11 +1,10 @@
 #! /bin/bash
-while getopts s:d:c:a:ft: flag
+while getopts s:d:c:ft: flag
 do
     case "${flag}" in
         s) SERVER_URL=${OPTARG};;
         d) DIRECTORY=${OPTARG};;
         c) CLEANUP="true";;
-        a) AUTH_CERT=${OPTARG};;
         f) FRESH="true";;
         t) TIMEOUT=${OPTARG};;
     esac
