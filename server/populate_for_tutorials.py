@@ -1,41 +1,27 @@
-"""Seed the server database with demo entries for integration tests. Tokens used for
-mock users are retrieved by password-authentication with auth0"""
+"""Seed the server database with demo entries for tutorials. Tokens used for
+mock users are retrieved from an online storage"""
 
 import argparse
 from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
-from token_from_credentials import token_from_credentials
+from token_from_online_storage import token_from_online_storage
 from pathlib import Path
 
 
 def seed(args):
     api_server = Server(host=args.server, cert=args.cert)
-    if args.version:
-        api_server.validate(True, args.version)
-    else:
-        api_server.validate(False)
+    api_server.validate(False)
 
     # get tokens
-    admin_token = token_from_credentials(
-        "testadmin@example.com",
-        "Admin123",
-        env="dev",
-    )
-    benchmark_owner_token = token_from_credentials(
-        "testbo@example.com",
-        "Benchmark123",
-        env="dev",
-    )
-    model_owner_token = token_from_credentials(
-        "testmo@example.com",
-        "Model123",
-        env="dev",
-    )
+    admin_token = token_from_online_storage("testadmin@example.com")
+    benchmark_owner_token = token_from_online_storage("testbo@example.com")
+    model_owner_token = token_from_online_storage("testmo@example.com")
 
-    # set admin
     set_user_as_admin(api_server, admin_token)
-    # create benchmark
+    if args.demo == "benchmark":
+        return
     benchmark = create_benchmark(api_server, benchmark_owner_token, admin_token)
-    # create model
+    if args.demo == "model":
+        return
     create_model(api_server, model_owner_token, benchmark_owner_token, benchmark)
 
 
@@ -51,7 +37,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cert", type=str, help="Server certificate", default=default_cert_file
     )
-    parser.add_argument("--version", type=str, help="Server version")
+    parser.add_argument(
+        "--demo",
+        type=str,
+        help="Populate for a tutorial: 'benchmark', 'model', or 'data'.",
+        choices=["benchmark", "model", "data"],
+    )
     args = parser.parse_args()
     if args.cert.lower() == "none":
         args.cert = None
