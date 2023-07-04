@@ -7,7 +7,7 @@ For the purpose of the tutorial, you have to initialize a local MedPerf server w
 ```bash
 cd server
 sh reset_db.sh
-python seed.py --cert cert.crt --demo {{page.meta.tutorial_id}}
+python populate_for_tutorials.py --demo {{page.meta.tutorial_id}}
 cd ..
 ```
 
