@@ -12,7 +12,8 @@ class Signup:
         config.ui.print(config.password_policy_msg)
 
         # Email
-        email = email if email else config.ui.prompt("Please type your email: ")
+        if not email:
+            email = config.ui.prompt("Please type your email: ")
         try:
             validate_email(email, check_deliverability=False)
         except EmailNotValidError as e:
