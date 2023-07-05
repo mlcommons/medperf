@@ -1,5 +1,7 @@
 """Seed the server database with demo entries for integration tests. Tokens used for
-mock users are retrieved by password-authentication with auth0"""
+mock users are retrieved by password-authentication with auth0.
+This script can only be invoked from its parent folder, that's because is
+executes Django code to set admin permissions for a test user."""
 
 import argparse
 from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
