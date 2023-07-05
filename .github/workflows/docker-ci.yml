@@ -61,11 +61,11 @@ jobs:
 
     - name: Run server in background
       working-directory: ./server
-      run: PORT=8080 && docker run -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
+      run: PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Run server integration tests
       working-directory: ./server
-      run: python seed.py --cert cert.crt
+      run: docker exec medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt"
 
     - name: Run chestxray demo
       working-directory: .
