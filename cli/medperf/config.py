@@ -15,6 +15,12 @@ local_certificate = str(
 auth_domain = "mlc-medperf.us.auth0.com"
 auth_dev_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
 
+auth_jwks_url = f"https://{auth_domain}/.well-known/jwks.json"
+auth_dev_jwks_url = f"https://{auth_dev_domain}/.well-known/jwks.json"
+
+auth_idtoken_issuer = f"https://{auth_domain}/"
+auth_dev_idtoken_issuer = f"https://{auth_dev_domain}/"
+
 auth_client_id = "vFtfndViDFd0BeMdMKBgsKA9aV9BDtrY"
 auth_dev_client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
 auth_tutorials_client_id = "yOabw1jHnGRfcWTDDyQyzkBbPUinhpsr"
@@ -24,9 +30,15 @@ auth_database_connection = "Username-Password-Authentication"
 auth_audience = "https://api.medperf.org/"
 auth_dev_audience = "https://localhost-dev/"
 auth_tutorials_audience = "https://localhost-tutorials/"
+
+auth_jwks_storage = ".jwks"
+auth_jwks_cache_ttl = 600  # fetch jwks every 10 mins. Default value in auth0 python SDK
+
 # END Auth0 config
 
 token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
+keyring_access_token_service_name = "auth0_access_token"
+keyring_refresh_token_service_name = "auth0_refresh_token"
 
 storage = str(Path.home().resolve() / ".medperf")
 logs_storage = "logs"
@@ -80,6 +92,8 @@ configurable_parameters = [
     "server",
     "certificate",
     "auth_domain",
+    "auth_jwks_url",
+    "auth_idtoken_issuer",
     "auth_client_id",
     "auth_database_connection",
     "auth_audience",

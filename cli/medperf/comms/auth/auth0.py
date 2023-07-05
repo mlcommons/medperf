@@ -1,5 +1,6 @@
 import time
 from medperf.comms.auth.interface import Auth
+from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError
 import requests
 import medperf.config as config
@@ -74,20 +75,21 @@ class Auth0(Auth):
             "Make sure that you will be presented with the following code:\n"
             f"\t{user_code}\n\n"
         )
-        token_response, issued_at = self.__get_device_access_token(
+        token_response, token_issued_at = self.__get_device_access_token(
             device_code, interval
         )
         access_token = token_response["access_token"]
+        id_token = token_response["id_token"]
         refresh_token = token_response["refresh_token"]
-        expires_in = token_response["expires_in"]
+        token_expires_in = token_response["expires_in"]
 
+        id_token_payload = verify_token(id_token)
         set_credentials(
-            {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "expires_in": expires_in,
-                "issued_at": issued_at,
-            }
+            access_token,
+            refresh_token,
+            id_token_payload,
+            token_issued_at,
+            token_expires_in,
         )
 
     def __request_device_code(self):
@@ -97,7 +99,7 @@ class Auth0(Auth):
         body = {
             "client_id": self.client_id,
             "audience": self.audience,
-            "scope": "offline_access",  # to get a refresh token
+            "scope": "offline_access openid email",
         }
         res = requests.post(url=url, headers=headers, data=body)
 
@@ -118,7 +120,7 @@ class Auth0(Auth):
 
         Returns:
             json_res (dict): the response of the successful request, containg the access/refresh tokens pair
-            issued_at (float): the timestamp when the access token was issued
+            token_issued_at (float): the timestamp when the access token was issued
         """
         url = f"https://{self.domain}/oauth/token"
         headers = {"content-type": "application/x-www-form-urlencoded"}
@@ -130,11 +132,11 @@ class Auth0(Auth):
 
         while True:
             time.sleep(polling_interval)
-            issued_at = time.time()
+            token_issued_at = time.time()
             res = requests.post(url=url, headers=headers, data=body)
             if res.status_code == 200:
                 json_res = res.json()
-                return json_res, issued_at
+                return json_res, token_issued_at
 
             try:
                 json_res = res.json()
@@ -177,9 +179,12 @@ class Auth0(Auth):
         creds = read_credentials()
         access_token = creds["access_token"]
         refresh_token = creds["refresh_token"]
-        expires_in = creds["expires_in"]
-        issued_at = creds["issued_at"]
-        if time.time() > issued_at + expires_in - config.token_expiration_leeway:
+        token_expires_in = creds["token_expires_in"]
+        token_issued_at = creds["token_issued_at"]
+        if (
+            time.time()
+            > token_issued_at + token_expires_in - config.token_expiration_leeway
+        ):
             access_token = self.__refresh_access_token(refresh_token)
         return access_token
 
@@ -200,7 +205,7 @@ class Auth0(Auth):
             "client_id": self.client_id,
             "refresh_token": refresh_token,
         }
-        issued_at = time.time()
+        token_issued_at = time.time()
         res = requests.post(url=url, headers=headers, data=body)
 
         if res.status_code != 200:
@@ -209,15 +214,17 @@ class Auth0(Auth):
         json_res = res.json()
 
         access_token = json_res["access_token"]
+        id_token = json_res["id_token"]
         refresh_token = json_res["refresh_token"]
-        expires_in = json_res["expires_in"]
+        token_expires_in = json_res["expires_in"]
+
+        id_token_payload = verify_token(id_token)
         set_credentials(
-            {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "expires_in": expires_in,
-                "issued_at": issued_at,
-            }
+            access_token,
+            refresh_token,
+            id_token_payload,
+            token_expires_in,
+            token_issued_at,
         )
 
         return access_token

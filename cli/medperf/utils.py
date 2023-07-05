@@ -19,6 +19,7 @@ from datetime import datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
+import keyring
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
@@ -57,12 +58,35 @@ def delete_credentials():
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
         raise MedperfException("You are not logged in")
+
+    email = config_p.active_profile[config.credentials_keyword]["email"]
+    keyring.delete_password(config.keyring_refresh_token_service_name, email)
+    keyring.delete_password(config.keyring_access_token_service_name, email)
+
+    config_p.active_profile.pop(config.credentials_keyword)
     write_config(config_p)
 
 
-def set_credentials(credentials):
+def set_credentials(
+    access_token,
+    refresh_token,
+    id_token_payload,
+    token_issued_at,
+    token_expires_in,
+):
+    email = id_token_payload["email"]
+    keyring.set_password(
+        config.keyring_refresh_token_service_name, email, refresh_token
+    )
+    keyring.set_password(config.keyring_access_token_service_name, email, access_token)
+
+    account_info = {
+        "email": email,
+        "token_issued_at": token_issued_at,
+        "token_expires_in": token_expires_in,
+    }
     config_p = read_config()
-    config_p.active_profile[config.credentials_keyword] = credentials
+    config_p.active_profile[config.credentials_keyword] = account_info
     write_config(config_p)
 
 
@@ -70,7 +94,18 @@ def read_credentials():
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
         raise MedperfException("You are not logged in")
-    return config_p.active_profile[config.credentials_keyword]
+
+    email = config_p.active_profile[config.credentials_keyword]["email"]
+    access_token = keyring.get_password(config.keyring_access_token_service_name, email)
+    refresh_token = keyring.get_password(
+        config.keyring_refresh_token_service_name, email
+    )
+
+    return {
+        **config_p.active_profile[config.credentials_keyword],
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+    }
 
 
 def unset_medperf_user_data():
@@ -199,6 +234,10 @@ def init_config():
     config_p[config.test_profile_name]["certificate"] = config.local_certificate
     config_p[config.test_profile_name]["auth_audience"] = config.auth_dev_audience
     config_p[config.test_profile_name]["auth_domain"] = config.auth_dev_domain
+    config_p[config.test_profile_name]["auth_jwks_url"] = config.auth_dev_jwks_url
+    config_p[config.test_profile_name][
+        "auth_idtoken_issuer"
+    ] = config.auth_dev_idtoken_issuer
     config_p[config.test_profile_name]["auth_client_id"] = config.auth_dev_client_id
     # tutorials profile
     config_p[config.tutorials_profile_name] = default_profile()

@@ -74,6 +74,14 @@ def configurable(func: Callable) -> Callable:
         auth_domain: str = typer.Option(
             config.auth_domain, "--auth_domain", help="Auth0 domain name"
         ),
+        auth_jwks_url: str = typer.Option(
+            config.auth_jwks_url, "--auth_jwks_url", help="Auth0 Json Web Key set URL"
+        ),
+        auth_idtoken_issuer: str = typer.Option(
+            config.auth_idtoken_issuer,
+            "--auth_idtoken_issuer",
+            help="Auth0 ID token issuer",
+        ),
         auth_client_id: str = typer.Option(
             config.auth_client_id, "--auth_client_id", help="Auth0 client ID"
         ),
