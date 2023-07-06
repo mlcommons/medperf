@@ -103,6 +103,9 @@ def set_medperf_user_data():
 def get_medperf_user_data():
     """Return cached medperf user data. Get from the server if not found"""
     config_p = read_config()
+    if config.credentials_keyword not in config_p.active_profile:
+        raise MedperfException("You are not logged in")
+
     medperf_user = config_p.active_profile[config.credentials_keyword].get(
         "medperf_user", None
     )
