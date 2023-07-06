@@ -19,7 +19,6 @@ from datetime import datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
-import keyring
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
@@ -52,82 +51,6 @@ def setup_logging(log_lvl):
 
     # Force the creation of a new log file for each execution
     handler.doRollover()
-
-
-def delete_credentials():
-    config_p = read_config()
-    if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
-
-    email = config_p.active_profile[config.credentials_keyword]["email"]
-    keyring.delete_password(config.keyring_refresh_token_service_name, email)
-    keyring.delete_password(config.keyring_access_token_service_name, email)
-
-    config_p.active_profile.pop(config.credentials_keyword)
-    write_config(config_p)
-
-
-def set_credentials(
-    access_token,
-    refresh_token,
-    id_token_payload,
-    token_issued_at,
-    token_expires_in,
-):
-    email = id_token_payload["email"]
-    keyring.set_password(
-        config.keyring_refresh_token_service_name, email, refresh_token
-    )
-    keyring.set_password(config.keyring_access_token_service_name, email, access_token)
-
-    account_info = {
-        "email": email,
-        "token_issued_at": token_issued_at,
-        "token_expires_in": token_expires_in,
-    }
-    config_p = read_config()
-    config_p.active_profile[config.credentials_keyword] = account_info
-    write_config(config_p)
-
-
-def read_credentials():
-    config_p = read_config()
-    if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
-
-    email = config_p.active_profile[config.credentials_keyword]["email"]
-    access_token = keyring.get_password(config.keyring_access_token_service_name, email)
-    refresh_token = keyring.get_password(
-        config.keyring_refresh_token_service_name, email
-    )
-
-    return {
-        **config_p.active_profile[config.credentials_keyword],
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-    }
-
-
-def unset_medperf_user_data():
-    """Delete the cached MedPerf server's user data"""
-    config_p = read_config()
-    config_p.active_profile.pop("current_user", None)
-    write_config(config_p)
-
-
-def get_medperf_user_data():
-    """Get and cache user data from the MedPerf server"""
-    config_p = read_config()
-    if "current_user" in config.config_p.active_profile:
-        return config_p.active_profile["current_user"]
-
-    current_user = config.comms.get_current_user()
-
-    # cache current user
-    config_p.active_profile["current_user"] = current_user
-    write_config(config_p)
-
-    return current_user
 
 
 def default_profile():

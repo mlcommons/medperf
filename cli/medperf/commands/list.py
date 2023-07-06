@@ -2,7 +2,7 @@ from medperf.exceptions import InvalidArgumentError
 from tabulate import tabulate
 
 from medperf import config
-from medperf.utils import get_medperf_user_data
+from medperf.account_management import get_medperf_user_data
 
 
 class EntityList:

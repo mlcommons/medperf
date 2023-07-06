@@ -4,11 +4,11 @@ from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError
 import requests
 import medperf.config as config
-from medperf.utils import (
+from medperf.utils import log_response_error
+from medperf.account_management import (
     set_credentials,
     read_credentials,
     delete_credentials,
-    log_response_error,
 )
 
 
