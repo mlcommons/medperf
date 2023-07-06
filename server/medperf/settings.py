@@ -219,9 +219,7 @@ SERVER_API_VERSION = "v0"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "user.backends.JWTAuthenticateOrCreateUser",
-    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["user.backends.JWTAuthenticateOrCreateUser"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
