@@ -7,7 +7,7 @@ from unittest.mock import mock_open, call, ANY
 from medperf import utils
 import medperf.config as config
 from medperf.tests.mocks import MockTar
-from medperf.exceptions import MedperfException
+from medperf.exceptions import InvalidArgumentError, MedperfException
 import yaml
 
 parent = config.storage
@@ -452,3 +452,20 @@ def test_get_cube_image_name_fails_if_cube_not_configured(mocker, fs):
     # Act & Assert
     with pytest.raises(MedperfException):
         utils.get_cube_image_name(cube_path)
+
+
+@pytest.mark.parametrize(
+    "password",
+    ["Pass1234", "Pass1234*", "Passss1*", "Pass*/#*", "pass12*#"],
+)
+def test_validate_password_valid_ones(password):
+    utils.validate_password(password)
+
+
+@pytest.mark.parametrize(
+    "password",
+    ["pass1234", "Pa12*", "pass***#", "PASS1234"],
+)
+def test_validate_password_invalid_ones(password):
+    with pytest.raises(InvalidArgumentError):
+        utils.validate_password(password)
