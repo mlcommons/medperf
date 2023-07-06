@@ -1,5 +1,5 @@
 """This module defines a wrapper around the existing token verifier in auth0-python library.
-The library is designed to cache public keys in memory. Since our client is ephemeral, we 
+The library is designed to cache public keys in memory. Since our client is ephemeral, we
 wrapped auth0's `JwksFetcher` to cache keys in the filesystem storage, and wrapped auth0's
 signature verifier to use this new `JwksFetcher`"""
 
