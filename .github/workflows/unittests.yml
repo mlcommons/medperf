@@ -43,7 +43,6 @@ jobs:
     - name: Run migrations
       working-directory: ./server
       run: python manage.py migrate
-    # TMP
-    # - name: Run server unit tests
-    #   working-directory: ./server
-    #   run: python manage.py test
+    - name: Run server unit tests
+      working-directory: ./server
+      run: python manage.py test

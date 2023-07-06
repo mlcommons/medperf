@@ -1,5 +1,3 @@
-import string
-import random
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -16,17 +14,11 @@ class DatasetTest(MedPerfTest):
     def setUp(self):
         super(DatasetTest, self).setUp()
         username = "dataowner"
-        password = "".join(random.choice(string.ascii_letters) for m in range(10))
-        user = User.objects.create_user(username=username, password=password,)
-        user.save()
+        token, _ = self.create_user(username)
         self.api_prefix = "/api/" + settings.SERVER_API_VERSION
         self.client = APIClient()
-        response = self.client.post(
-            self.api_prefix + "/auth-token/", {"username": username, "password": password}, format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.token = response.data["token"]
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token)
+        self.token = token
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
         data_preproc_mlcube = {
             "name": "testmlcube",
             "git_mlcube_url": "string",
