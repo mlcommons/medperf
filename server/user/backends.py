@@ -2,6 +2,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, InvalidToken
 from rest_framework_simplejwt.settings import api_settings
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
+from drf_spectacular.plumbing import build_bearer_security_scheme_object
 
 
 class JWTAuthenticateOrCreateUser(JWTAuthentication):
@@ -22,3 +24,16 @@ class JWTAuthenticateOrCreateUser(JWTAuthentication):
             raise AuthenticationFailed(_("User is inactive"), code="user_inactive")
 
         return user
+
+
+class JWTScheme(OpenApiAuthenticationExtension):
+    target_class = "user.backends.JWTAuthenticateOrCreateUser"
+    name = "JWTAuth"
+    match_subclasses = True
+    priority = -1
+
+    def get_security_definition(self, auto_schema):
+        return build_bearer_security_scheme_object(
+            header_name="Authorization",
+            token_prefix=api_settings.AUTH_HEADER_TYPES[0],
+        )
