@@ -263,9 +263,8 @@ SIMPLE_JWT = {
     "AUDIENCE": env("AUTH0_AUDIENCE"),
     "ISSUER": env("AUTH0_ISSUER"),
     "JWK_URL": env("AUTH0_JWK_URL"),
-    "USER_ID_FIELD": "username",
+    "USER_ID_FIELD": "username",  # store auth0 ID as the username field
     "USER_ID_CLAIM": "sub",
-    "TOKEN_TYPE_CLAIM": None,
-    "JTI_CLAIM": None,
-    "AUTH_HEADER_TYPES": ("Bearer",),
+    "TOKEN_TYPE_CLAIM": None,  # Auth0 tokens don't contain such a claim
+    "JTI_CLAIM": None,  # Auth0 tokens don't contain such a claim
 }
