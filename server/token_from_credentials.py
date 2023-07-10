@@ -5,16 +5,16 @@ import argparse
 def token_from_credentials(email, password, env):
     """Retrieve access tokens using the Resource Owner Flow"""
     if env == "dev":
-        auth0_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
+        auth_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
         audience = "https://localhost-dev/"
         client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
 
     else:
-        auth0_domain = "mlc-medperf.us.auth0.com"
+        auth_domain = "mlc-medperf.us.auth0.com"
         audience = "https://localhost-tutorials/"
         client_id = "yOabw1jHnGRfcWTDDyQyzkBbPUinhpsr"
 
-    url = f"https://{auth0_domain}/oauth/token"
+    url = f"https://{auth_domain}/oauth/token"
     headers = {"content-type": "application/x-www-form-urlencoded"}
     body = {
         "client_id": client_id,

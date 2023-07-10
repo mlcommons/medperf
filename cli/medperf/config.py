@@ -37,8 +37,8 @@ auth_jwks_cache_ttl = 600  # fetch jwks every 10 mins. Default value in auth0 py
 # END Auth0 config
 
 token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
-keyring_access_token_service_name = "auth0_access_token"
-keyring_refresh_token_service_name = "auth0_refresh_token"
+keyring_access_token_service_name = "medperf_access_token"
+keyring_refresh_token_service_name = "medperf_refresh_token"
 
 storage = str(Path.home().resolve() / ".medperf")
 logs_storage = "logs"

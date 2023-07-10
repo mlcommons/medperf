@@ -1,7 +1,7 @@
 """This module defines a wrapper around the existing token verifier in auth0-python library.
 The library is designed to cache public keys in memory. Since our client is ephemeral, we
-wrapped auth0's `JwksFetcher` to cache keys in the filesystem storage, and wrapped auth0's
-signature verifier to use this new `JwksFetcher`"""
+wrapped the library's `JwksFetcher` to cache keys in the filesystem storage, and wrapped the
+library's signature verifier to use this new `JwksFetcher`"""
 
 from typing import Any
 from medperf import config

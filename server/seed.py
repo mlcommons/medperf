@@ -1,5 +1,5 @@
-"""Seed the server database with demo entries for integration tests. Tokens used for
-mock users are retrieved by password-authentication with auth0.
+"""Seed the server database with demo entries for integration tests. For simplicity,
+Tokens used for mock users are retrieved by password-grant authorization flow.
 This script can only be invoked from its parent folder, that's because is
 executes Django code to set admin permissions for a test user."""
 
