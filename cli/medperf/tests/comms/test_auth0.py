@@ -44,6 +44,24 @@ def test_token_is_not_refreshed_if_not_expired(mocker):
     spy.assert_not_called()
 
 
+def test_token_is_refreshed_if_expired(mocker):
+    # Arrange
+    creds = {
+        "refresh_token": "",
+        "access_token": "",
+        "token_expires_in": 900,
+        "token_issued_at": time.time() - 1000,
+    }
+    mocker.patch(PATCH_AUTH.format("read_credentials"), return_value=creds)
+    spy = mocker.patch(PATCH_AUTH.format("Auth0._Auth0__refresh_access_token"))
+
+    # Act
+    Auth0().access_token
+
+    # Assert
+    spy.assert_called_once()
+
+
 def test_refresh_token_sets_new_tokens(mocker):
     # Arrange
     access_token = "access_token"
