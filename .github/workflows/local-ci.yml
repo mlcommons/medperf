@@ -2,6 +2,9 @@ name: Integration local workflow
 
 on: pull_request
 
+env:
+  MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
+
 jobs:
   setup:
     name: local-deploy
