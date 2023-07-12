@@ -96,11 +96,6 @@ DATAOWNER="testdo@example.com"
 BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
 
-MODELOWNERPASSWORD="Model123"
-DATAOWNERPASSWORD="Dataset123"
-BENCHMARKOWNERPASSWORD="Benchmark123"
-ADMINPASSWORD="Admin123"
-
 ##########################################################
 ################### Start Testing ########################
 ##########################################################
@@ -154,19 +149,19 @@ echo "=========================================="
 medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER -p $BENCHMARKOWNERPASSWORD
+timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER
 checkFailed "testbenchmark login failed"
 
 medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $MODELOWNER -p $MODELOWNERPASSWORD
+timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $MODELOWNER
 checkFailed "testmodel login failed"
 
 medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $DATAOWNER -p $DATAOWNERPASSWORD
+timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $DATAOWNER
 checkFailed "testdata login failed"
 ##########################################################
 
@@ -233,7 +228,7 @@ checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # Approve benchmark
-ADMIN_TOKEN=$(python $ADMIN_LOGIN_SCRIPT --email $ADMIN --password $ADMINPASSWORD --env dev)
+ADMIN_TOKEN=$(python $ADMIN_LOGIN_SCRIPT --email $ADMIN --env dev)
 checkFailed "Retrieving admin token failed"
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"

@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import argparse
+import os
 
 
 def execute_browser_flow(email, password, url):
@@ -57,8 +58,16 @@ def execute_browser_flow(email, password, url):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--email")
-    parser.add_argument("--password")
     parser.add_argument("--url")
 
     args = parser.parse_args()
-    execute_browser_flow(args.email, args.password, args.url)
+
+    # load password from the environment
+    try:
+        password = os.environ["MOCK_USERS_PASSWORD"]
+    except KeyError:
+        raise RuntimeError(
+            "The environment variable `MOCK_USERS_PASSWORD` must be set."
+        )
+
+    execute_browser_flow(args.email, password, args.url)

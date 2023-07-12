@@ -54,9 +54,6 @@ checkFailed(){
 DATAOWNER="testdo@example.com"
 BENCHMARKOWNER="testbo@example.com"
 
-DATAOWNERPASSWORD="Dataset123"
-BENCHMARKOWNERPASSWORD="Benchmark123"
-
 if ${FRESH}; then
   clean
 fi
@@ -85,13 +82,13 @@ echo "=========================================="
 medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER -p $BENCHMARKOWNERPASSWORD
+timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER
 checkFailed "testbenchmark login failed"
 
 medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $DATAOWNER -p $DATAOWNERPASSWORD
+timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $DATAOWNER
 checkFailed "testdata login failed"
 
 echo "====================================="

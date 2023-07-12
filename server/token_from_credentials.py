@@ -1,9 +1,19 @@
 import requests
 import argparse
+import os
 
 
-def token_from_credentials(email, password, env):
+def token_from_credentials(email, env):
     """Retrieve access tokens using the Resource Owner Flow"""
+
+    # load password from the environment
+    try:
+        password = os.environ["MOCK_USERS_PASSWORD"]
+    except KeyError:
+        raise RuntimeError(
+            "The environment variable `MOCK_USERS_PASSWORD` must be set."
+        )
+
     if env == "dev":
         auth_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
         audience = "https://localhost-dev/"
@@ -34,9 +44,8 @@ def token_from_credentials(email, password, env):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--email")
-    parser.add_argument("--password")
     parser.add_argument("--env", choices=["dev", "tutorial"])
 
     args = parser.parse_args()
-    access_token = token_from_credentials(args.email, args.password, args.env)
+    access_token = token_from_credentials(args.email, args.env)
     print(access_token)

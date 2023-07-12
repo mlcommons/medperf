@@ -17,21 +17,9 @@ def seed(args):
         api_server.validate(False)
 
     # get tokens
-    admin_token = token_from_credentials(
-        "testadmin@example.com",
-        "Admin123",
-        env="dev",
-    )
-    benchmark_owner_token = token_from_credentials(
-        "testbo@example.com",
-        "Benchmark123",
-        env="dev",
-    )
-    model_owner_token = token_from_credentials(
-        "testmo@example.com",
-        "Model123",
-        env="dev",
-    )
+    admin_token = token_from_credentials("testadmin@example.com", env="dev")
+    benchmark_owner_token = token_from_credentials("testbo@example.com", env="dev")
+    model_owner_token = token_from_credentials("testmo@example.com", env="dev")
 
     # set admin
     set_user_as_admin(api_server, admin_token)
