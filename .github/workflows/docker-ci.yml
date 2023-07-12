@@ -2,15 +2,13 @@ name: Integration local docker workflow
 
 on: pull_request
 
-env:
-  MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
-
 jobs:
   setup:
     name: local-docker-deploy
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: medperf-api:test
+      MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2

@@ -2,13 +2,12 @@ name: Integration local workflow
 
 on: pull_request
 
-env:
-  MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
-
 jobs:
   setup:
     name: local-deploy
     runs-on: ubuntu-latest
+    env:
+      MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
