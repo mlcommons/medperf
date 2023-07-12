@@ -3,7 +3,7 @@ name: "cla-bot"
 on:
   issue_comment:
     types: [created]
-  pull_request_target:
+  pull_request:
     types: [opened,closed,synchronize]
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
           PERSONAL_ACCESS_TOKEN : ${{ secrets.MLCOMMONS_BOT_CLA_TOKEN }}
         run: echo $PERSONAL_ACCESS_TOKEN $GITHUB_TOKEN
       - name: "MLCommons CLA bot check"
-        if: (github.event.comment.body == 'recheck') || github.event_name == 'pull_request_target'
+        if: (github.event.comment.body == 'recheck') || github.event_name == 'pull_request'
         # Alpha Release
         uses: mlcommons/cla-bot@master
         env:
