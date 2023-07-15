@@ -1,9 +1,16 @@
 name: Integration local workflow
 
-on: pull_request
+on: pull_request_target
 
 jobs:
+  authorize:
+    environment:
+      'testing-external-code'
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
   setup:
+    needs: authorize
     name: local-deploy
     runs-on: ubuntu-latest
     env:
@@ -11,6 +18,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -18,9 +27,11 @@ jobs:
         python-version: '3.9'
     
     - name: Setup Chrome
-      uses: browser-actions/setup-chrome@v1
-      with:
-        chrome-version: stable
+      run: |
+        sudo apt-get install -y wget
+        wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.198-1_amd64.deb
+        sudo dpkg -i chrome.deb
+        rm chrome.deb
 
     - name: Install Singularity
       run: |
