@@ -21,7 +21,7 @@ jobs:
       run: |
         sudo apt-get install -y wget
         wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.198-1_amd64.deb
-        sudo apt install -y chrome.deb
+        sudo dpkg -i chrome.deb
         rm chrome.deb
 
     - name: Install dependencies
