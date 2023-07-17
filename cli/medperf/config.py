@@ -12,7 +12,7 @@ local_certificate = str(
 )
 
 # START Auth0 config
-auth_domain = "mlc-medperf.us.auth0.com"
+auth_domain = "auth.medperf.org"
 auth_dev_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
 
 auth_jwks_url = f"https://{auth_domain}/.well-known/jwks.json"
