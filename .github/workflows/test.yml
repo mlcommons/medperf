@@ -1,4 +1,4 @@
-name: TMP Test Chrome
+name: TMP Test docker deploy
 
 on: pull_request
 
@@ -16,21 +16,30 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
-    
-    - name: Setup Chrome
-      run: |
-        sudo apt-get install -y wget
-        wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.198-1_amd64.deb
-        sudo dpkg -i chrome.deb
-        rm chrome.deb
 
     - name: Install dependencies
       working-directory: .
       run: |
         python -m pip install --upgrade pip
-        pip install -e cli/
-        pip install -r cli/test-requirements.txt
+        pip install -r server/requirements.txt
+        pip install -r server/test-requirements.txt
 
-    - name: Run login test
-      working-directory: .
-      run: sh cli/test_login.sh
+    - name: Set server environment vars
+      working-directory: ./server
+      run: cp .env.example .env
+
+    - name: Generate SSL certificate
+      working-directory: ./server
+      run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
+
+    - name: Build container image
+      working-directory: ./server
+      run: docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
+
+    - name: Run server in background
+      working-directory: ./server
+      run: PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
+
+    - name: Run server integration tests
+      working-directory: ./server
+      run: docker exec -e MOCK_USERS_PASSWORD medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt"
