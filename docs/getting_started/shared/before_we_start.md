@@ -23,12 +23,12 @@ This will create a workspace folder `medperf_tutorial` where all necessary files
 
 #### Login to the Local MedPerf Server
 
-You credentials in this tutorial will be a username: `test{{page.meta.tutorial_id}}owner` and a password: `test`. Run:
+Run the command below and follow the instructions printed on the screen:
 
 ```bash
-medperf login
+medperf auth login
 ```
 
-You will be prompted to enter your credentials.
+For more details about how to login, check [this guide](../concepts/auth.md#login)
 
 You are now ready to start!

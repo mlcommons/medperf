@@ -1,6 +1,6 @@
 # Overview
 
-The MedPerf client provides all the necessary tools for a complete benchmark experiment. Below, you will find a comprehensive breakdown of user roles and the corresponding functionalities they can access and perform using the MedPerf client:
+The MedPerf client provides all the necessary tools to run a complete benchmark experiment. Below, you will find a comprehensive breakdown of user roles and the corresponding functionalities they can access and perform using the MedPerf client:
 
 - **Benchmark Committee:** The [Benchmark Commitee](../roles.md#benchmark-committee) can define and create a benchmark, as well as manage experiments (e.g., approving which datasets and models will be allowed to participate)
 - **Model Owner:** The [Model Owner](../roles.md#model-owners) can submit a model to the MedPerf server and request participation in a benchmark.

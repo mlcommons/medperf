@@ -30,14 +30,14 @@ After that, you will be configuring the MedPerf client to communicate with the l
 
 ## Configure the MedPerf Client
 
-The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. MedPerf comes with two already created profiles: the `default` and `test` profiles.
+The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. By default, the profile named `default` will be active.
 
-The `default` profile is the active one by default, and is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `test` profile as it is preconfigured so that the client communicates with the local MedPerf server.
+The `default` profile is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `tutorials` profile as it is preconfigured so that the client communicates with the local MedPerf server.
 
 To activate the `test` profile, run the following command:
 
 ```bash
-medperf profile activate test
+medperf profile activate tutorials
 ```
 
 You can always check which profile is active by running:
