@@ -46,6 +46,12 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
     conda create -n medperf-env python=3.9
     ```
 
+    Then, activate your environment:
+
+    ```bash
+    conda activate medperf-env
+    ```
+
 2. Clone the MedPerf repository:
 
     ```bash

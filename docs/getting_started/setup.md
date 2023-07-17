@@ -1,9 +1,6 @@
 # Setup
 
-Before proceeding, make sure you have the [MedPerf client installed.](installation.md).
-
-!!! note
-    This setup is only for running the tutorials. If you are using MedPerf with a real benchmark and real experiments, skip to [this section](#choose-the-container-runner) to optionally change your container runner. Then, follow the tutorials as a general guidance for your real experiments.
+This setup is only for running the tutorials. If you are using MedPerf with a real benchmark and real experiments, skip to [this section](#choose-the-container-runner) to optionally change your container runner. Then, follow the tutorials as a general guidance for your real experiments.
 
 ## Run a Local MedPerf Server
 
@@ -34,7 +31,7 @@ The MedPerf client can be configured by creating or modifying ["`profiles`"](../
 
 The `default` profile is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `tutorials` profile as it is preconfigured so that the client communicates with the local MedPerf server.
 
-To activate the `test` profile, run the following command:
+To activate the `tutorials` profile, run the following command:
 
 ```bash
 medperf profile activate tutorials
