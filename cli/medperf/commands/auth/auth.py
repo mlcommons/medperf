@@ -3,6 +3,7 @@ from medperf.commands.auth.login import Login
 from medperf.commands.auth.logout import Logout
 from medperf.commands.auth.password_change import PasswordChange
 from medperf.commands.auth.signup import Signup
+from medperf.commands.auth.status import Status
 from medperf.decorators import clean_except
 import medperf.config as config
 import typer
@@ -77,3 +78,10 @@ def logout():
     """Revoke the currently active login state."""
     Logout.run()
     config.ui.print("✅ Done!")
+
+
+@app.command("status")
+@clean_except
+def status():
+    """Shows the currently logged in user."""
+    Status.run()

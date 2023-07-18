@@ -175,6 +175,14 @@ medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
 ##########################################################
 
+##########################################################
+echo "====================================="
+echo "Test auth status command"
+echo "====================================="
+medperf auth status
+checkFailed "auth status command failed"
+##########################################################
+
 echo "\n"
 
 ##########################################################

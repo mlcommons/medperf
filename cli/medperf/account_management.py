@@ -42,6 +42,15 @@ class TokenStore:
         )
 
 
+def read_user_account():
+    config_p = read_config()
+    if config.credentials_keyword not in config_p.active_profile:
+        raise MedperfException("You are not logged in")
+
+    account_info = config_p.active_profile[config.credentials_keyword]
+    return account_info
+
+
 def set_credentials(
     access_token,
     refresh_token,
@@ -63,15 +72,12 @@ def set_credentials(
 
 
 def read_credentials():
-    config_p = read_config()
-    if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
-
-    email = config_p.active_profile[config.credentials_keyword]["email"]
+    account_info = read_user_account()
+    email = account_info["email"]
     access_token, refresh_token = TokenStore().read_tokens(email)
 
     return {
-        **config_p.active_profile[config.credentials_keyword],
+        **account_info,
         "access_token": access_token,
         "refresh_token": refresh_token,
     }
