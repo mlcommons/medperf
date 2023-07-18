@@ -70,3 +70,7 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
     ```bash
     medperf --version
     ```
+
+## What's Next?
+
+Create your MedPerf account by following the instructions [here](signup.md).
