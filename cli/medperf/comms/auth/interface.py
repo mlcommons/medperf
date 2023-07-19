@@ -15,7 +15,7 @@ class Auth(ABC):
         """User password change"""
 
     @abstractmethod
-    def login(self):
+    def login(self, email):
         """Log in a user"""
 
     @abstractmethod

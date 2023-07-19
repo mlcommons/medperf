@@ -65,10 +65,14 @@ def change_password(
 
 @app.command("login")
 @clean_except
-def login():
+def login(
+    email: str = typer.Option(
+        None, "--email", "-e", help="The email associated with your account"
+    )
+):
     """Authenticate to be able to access the MedPerf server. A verification link will
     be provided and should be open in a browser to complete the login process."""
-    Login.run()
+    Login.run(email)
     config.ui.print("✅ Done!")
 
 

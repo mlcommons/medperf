@@ -57,9 +57,13 @@ class Auth0(Auth):
         if res.status_code != 200:
             self.__raise_errors(res, "Password change")
 
-    def login(self):
+    def login(self, email):
         """Retrieves and stores an access token/refresh token pair from the auth0
         backend using the device authorization flow.
+
+        Args:
+            email (str): user email. This will be used to validate that the received
+                         id_token contains the same email address.
 
         """
         device_code_response = self.__request_device_code()
@@ -84,6 +88,8 @@ class Auth0(Auth):
         token_expires_in = token_response["expires_in"]
 
         id_token_payload = verify_token(id_token)
+        self.__check_token_email(id_token_payload, email)
+
         set_credentials(
             access_token,
             refresh_token,
@@ -145,6 +151,15 @@ class Auth0(Auth):
             error = json_res.get("error", None)
             if error not in ["slow_down", "authorization_pending"]:
                 self.__raise_errors(res, "Login")
+
+    def __check_token_email(self, id_token_payload, email):
+        """Checks if the email provided by the user in the terminal matches the
+        email found in the recieved id token."""
+        email_in_token = id_token_payload["email"]
+        if email.lower() != email_in_token:
+            raise CommunicationError(
+                "The email provided in the terminal does not match the one provided during login"
+            )
 
     def logout(self):
         """Logs out the user by revoking their refresh token and deleting the

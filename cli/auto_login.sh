@@ -21,7 +21,7 @@ get_url() {
   done
 }
 
-coproc medperf auth login
+coproc medperf auth login -e $EMAIL
 sleep 2
 
 PROC_STREAM=${COPROC[0]}
