@@ -85,11 +85,6 @@ def configurable(func: Callable) -> Callable:
         auth_client_id: str = typer.Option(
             config.auth_client_id, "--auth_client_id", help="Auth0 client ID"
         ),
-        auth_database_connection: str = typer.Option(
-            config.auth_database_connection,
-            "--auth_database_connection",
-            help="Auth0 database connection",
-        ),
         auth_audience: str = typer.Option(
             config.auth_audience,
             "--auth_audience",

@@ -23,9 +23,6 @@ auth_dev_idtoken_issuer = f"https://{auth_dev_domain}/"
 
 auth_client_id = "vFtfndViDFd0BeMdMKBgsKA9aV9BDtrY"
 auth_dev_client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
-auth_tutorials_client_id = "yOabw1jHnGRfcWTDDyQyzkBbPUinhpsr"
-
-auth_database_connection = "Username-Password-Authentication"
 
 auth_audience = "https://api.medperf.org/"
 auth_dev_audience = "https://localhost-dev/"
@@ -95,7 +92,6 @@ configurable_parameters = [
     "auth_jwks_url",
     "auth_idtoken_issuer",
     "auth_client_id",
-    "auth_database_connection",
     "auth_audience",
     "comms",
     "ui",
@@ -119,13 +115,3 @@ templates = {
 
 # Temporary paths to cleanup that cannot be created in `tmp_storage`
 tmp_paths = []
-
-# If password policy changed, make sure you also modify utils.validate_password
-password_policy_msg = """Password policy:
-* At least 8 characters in length
-* Contain at least 3 of the following 4 types of characters:
-    * lower case letters (a-z)
-    * upper case letters (A-Z)
-    * numbers (i.e. 0-9)
-    * special characters (e.g. !@#$%^&*).
-"""

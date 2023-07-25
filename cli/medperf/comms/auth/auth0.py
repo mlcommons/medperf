@@ -16,28 +16,7 @@ class Auth0(Auth):
     def __init__(self):
         self.domain = config.auth_domain
         self.client_id = config.auth_client_id
-        self.database = config.auth_database_connection
         self.audience = config.auth_audience
-
-    def signup(self, email, password):
-        """Signs up a user to the auth0 backend
-
-        Args:
-            email (str): user email
-            password (str): user password
-        """
-        url = f"https://{self.domain}/dbconnections/signup"
-        headers = {"content-type": "application/json"}
-        body = {
-            "email": email,
-            "password": password,
-            "client_id": self.client_id,
-            "connection": self.database,
-        }
-        res = requests.post(url=url, headers=headers, json=body)
-
-        if res.status_code != 200:
-            self.__raise_errors(res, "Signup")
 
     def change_password(self, email):
         """Requests a password-change email from the auth0 server
@@ -50,7 +29,7 @@ class Auth0(Auth):
         body = {
             "client_id": self.client_id,
             "email": email,
-            "connection": self.database,
+            "connection": "Username-Password-Authentication",
         }
         res = requests.post(url=url, headers=headers, json=body)
 
