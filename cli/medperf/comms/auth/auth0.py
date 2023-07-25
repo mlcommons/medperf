@@ -18,24 +18,6 @@ class Auth0(Auth):
         self.client_id = config.auth_client_id
         self.audience = config.auth_audience
 
-    def change_password(self, email):
-        """Requests a password-change email from the auth0 server
-
-        Args:
-            email (str): user email
-        """
-        url = f"https://{self.domain}/dbconnections/change_password"
-        headers = {"content-type": "application/json"}
-        body = {
-            "client_id": self.client_id,
-            "email": email,
-            "connection": "Username-Password-Authentication",
-        }
-        res = requests.post(url=url, headers=headers, json=body)
-
-        if res.status_code != 200:
-            self.__raise_errors(res, "Password change")
-
     def login(self, email):
         """Retrieves and stores an access token/refresh token pair from the auth0
         backend using the device authorization flow.

@@ -7,10 +7,6 @@ class Auth(ABC):
         """Initialize the class"""
 
     @abstractmethod
-    def change_password(self, email):
-        """User password change"""
-
-    @abstractmethod
     def login(self, email):
         """Log in a user"""
 

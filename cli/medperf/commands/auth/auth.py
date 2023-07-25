@@ -1,7 +1,6 @@
 from medperf.commands.auth import SynapseLogin
 from medperf.commands.auth.login import Login
 from medperf.commands.auth.logout import Logout
-from medperf.commands.auth.password_change import PasswordChange
 from medperf.commands.auth.status import Status
 from medperf.decorators import clean_except
 import medperf.config as config
@@ -28,18 +27,6 @@ def synapse_login(
     """
     SynapseLogin.run(username=username, password=password, token=token)
     config.ui.print("✅ Done!")
-
-
-@app.command("change_password")
-@clean_except
-def change_password(
-    email: str = typer.Option(
-        None, "--email", "-e", help="The email associated with your account"
-    ),
-):
-    """Send an email for changing the password. The user will change their password on the web UI."""
-    PasswordChange.run(email)
-    config.ui.print("✅ A password change email has been sent.")
 
 
 @app.command("login")
