@@ -169,9 +169,6 @@ def init_config():
     config_p[config.tutorials_profile_name][
         "auth_audience"
     ] = config.auth_tutorials_audience
-    config_p[config.tutorials_profile_name][
-        "auth_client_id"
-    ] = config.auth_tutorials_client_id
 
     config_p.activate(config.default_profile_name)
     config_p.write(config_file)
