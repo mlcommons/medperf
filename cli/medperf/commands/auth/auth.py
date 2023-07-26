@@ -1,4 +1,4 @@
-from medperf.commands.auth import SynapseLogin
+from medperf.commands.auth.synapse_login import SynapseLogin
 from medperf.commands.auth.login import Login
 from medperf.commands.auth.logout import Logout
 from medperf.commands.auth.status import Status
