@@ -20,6 +20,8 @@ def execute_browser_flow(email, password, url):
     wait = WebDriverWait(driver, 30)
     driver.get(url)
 
+    # Confirm device code
+
     continue_btn = wait.until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, "button[name='action'][type='submit']")
@@ -30,13 +32,33 @@ def execute_browser_flow(email, password, url):
 
     continue_btn.click()
 
+    # Enter email and click continue
+
     email_field = wait.until(EC.presence_of_element_located((By.ID, "username")))
-    password_field = wait.until(EC.presence_of_element_located((By.ID, "password")))
 
     wait.until(EC.element_to_be_clickable(email_field))
-    wait.until(EC.element_to_be_clickable(password_field))
 
     email_field.send_keys(email)
+
+    continue_btn = wait.until(
+        EC.presence_of_element_located(
+            (
+                By.CSS_SELECTOR,
+                "button[name='action'][type='submit'][data-action-button-primary='true']",
+            )
+        )
+    )
+
+    wait.until(EC.element_to_be_clickable(continue_btn))
+
+    continue_btn.click()
+
+    # Enter password and click continue (login)
+
+    password_field = wait.until(EC.presence_of_element_located((By.ID, "password")))
+
+    wait.until(EC.element_to_be_clickable(password_field))
+
     password_field.send_keys(password)
 
     login_btn = wait.until(
