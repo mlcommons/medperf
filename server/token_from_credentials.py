@@ -20,9 +20,9 @@ def token_from_credentials(email, env):
         client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
 
     else:
-        auth_domain = "mlc-medperf.us.auth0.com"
+        auth_domain = "auth.medperf.org"
         audience = "https://localhost-tutorials/"
-        client_id = "yOabw1jHnGRfcWTDDyQyzkBbPUinhpsr"
+        client_id = "CbZSoeHUY4J1X2Pfl8m2WSeNOOK7J6hT"
 
     url = f"https://{auth_domain}/oauth/token"
     headers = {"content-type": "application/x-www-form-urlencoded"}
