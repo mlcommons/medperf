@@ -1,6 +1,6 @@
 import os
 from typing import Optional
-from medperf.utils import generate_tmp_path, get_file_sha1
+from medperf.utils import generate_tmp_path, get_file_sha1, verify_hash
 from .sources import supported_sources
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
@@ -51,14 +51,19 @@ def tmp_download_resource(resource):
     return tmp_output_path
 
 
-def verify_or_get_hash(tmp_output_path, expected_hash):
+def verify_or_get_hash(tmp_output_path: str, expected_hash: str) -> str:
     """Checks if the downloaded file matches the passed expected hash
-    if provided. The function returns the calculated hash."""
+    if provided. The function returns the calculated hash.
+
+    Args:
+        tmp_output_path (str): path to the asset that will be checked
+        expected_hash (str): expected hash of the asset
+
+    Returns:
+        str: Calculated hash of the asset. Only returns if the hashes match
+    """
     calculated_hash = get_file_sha1(tmp_output_path)
-    if expected_hash and expected_hash != calculated_hash:
-        raise InvalidEntityError(
-            f"Hash mismatch. Expected {expected_hash}, found {calculated_hash}."
-        )
+    verify_hash(calculated_hash, expected_hash)
     return calculated_hash
 
 
