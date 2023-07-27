@@ -10,9 +10,9 @@ colorama==0.4.4
 time-machine==2.4.0
 pytest-mock==1.13.0
 pyfakefs==5.0.0
-mlcube==0.0.9
-mlcube-docker==0.0.9
-mlcube-singularity==0.0.9
+mlcube==0.0.10rc
+mlcube-docker==0.0.10rc
+mlcube-singularity==0.0.10rc
 validators==0.18.2
 merge-args==0.1.4
 synapseclient==2.7.0
