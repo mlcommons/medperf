@@ -2,7 +2,7 @@ import os
 from typing import Optional
 from medperf.utils import generate_tmp_path, get_file_sha1, verify_hash
 from .sources import supported_sources
-from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+from medperf.exceptions import InvalidArgumentError
 
 
 def __parse_resource(resource: str):
