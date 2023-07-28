@@ -71,6 +71,11 @@ def configurable(func: Callable) -> Callable:
         server: str = typer.Option(
             config.server, "--server", help="URL of a hosted MedPerf API instance"
         ),
+        auth_class: str = typer.Option(
+            config.auth_class,
+            "--auth_class",
+            help="Authentication interface to use [Auth0]",
+        ),
         auth_domain: str = typer.Option(
             config.auth_domain, "--auth_domain", help="Auth0 domain name"
         ),

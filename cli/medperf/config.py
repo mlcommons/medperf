@@ -1,17 +1,20 @@
 from ._version import __version__
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 major_version, minor_version, patch_version = __version__.split(".")
 
 server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = str(
-    Path(__file__).resolve().parent.parent.parent / "server" / "cert.crt"
-)
+local_certificate = str(BASE_DIR / "server" / "cert.crt")
 
 # START Auth0 config
+
+auth_class = "Auth0"
+
 auth_domain = "auth.medperf.org"
 auth_dev_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
 
@@ -26,12 +29,13 @@ auth_dev_client_id = "PSe6pJzYJ9ZmLuLPagHEDh6W44fv9nat"
 
 auth_audience = "https://api.medperf.org/"
 auth_dev_audience = "https://localhost-dev/"
-auth_tutorials_audience = "https://localhost-tutorials/"
 
 auth_jwks_storage = ".jwks"
 auth_jwks_cache_ttl = 600  # fetch jwks every 10 mins. Default value in auth0 python SDK
 
 # END Auth0 config
+
+local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 
 token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
 keyring_access_token_service_name = "medperf_access_token"
@@ -88,6 +92,7 @@ evaluate_timeout = None
 configurable_parameters = [
     "server",
     "certificate",
+    "auth_class",
     "auth_domain",
     "auth_jwks_url",
     "auth_idtoken_issuer",

@@ -258,11 +258,29 @@ SPECTACULAR_SETTINGS = {
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# Validating public key config
+verifying_key = env("AUTH_VERIFYING_KEY", default=None)
+jwk_url = env("AUTH_JWK_URL", default=None)
+
+if verifying_key and jwk_url:
+    raise ValueError(
+        "Only one of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified"
+    )
+if not verifying_key and not jwk_url:
+    raise ValueError("One of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified")
+
+if verifying_key:
+    # Unescape the possibly escaped newlines
+    verifying_key = verifying_key.replace("\\n", "\n")
+
+
+# Setting drf-simplejwt config
 SIMPLE_JWT = {
     "ALGORITHM": "RS256",
     "AUDIENCE": env("AUTH_AUDIENCE"),
     "ISSUER": env("AUTH_ISSUER"),
-    "JWK_URL": env("AUTH_JWK_URL"),
+    "JWK_URL": jwk_url,
+    "VERIFYING_KEY": verifying_key,
     "USER_ID_FIELD": "username",  # store auth backend user ID as the username field
     "USER_ID_CLAIM": "sub",
     "TOKEN_TYPE_CLAIM": None,  # Currently expected auth tokens don't contain such a claim

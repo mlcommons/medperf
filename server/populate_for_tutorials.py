@@ -3,8 +3,8 @@ mock users are retrieved from an online storage"""
 
 import argparse
 from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
-from token_from_online_storage import token_from_online_storage
 from pathlib import Path
+import json
 
 
 def seed(args):
@@ -12,9 +12,10 @@ def seed(args):
     api_server.validate(False)
 
     # get tokens
-    admin_token = token_from_online_storage("testadmin@example.com")
-    benchmark_owner_token = token_from_online_storage("testbo@example.com")
-    model_owner_token = token_from_online_storage("testmo@example.com")
+    tokens = json.load(open("../mock_tokens/tokens.json"))
+    admin_token = tokens["testadmin@example.com"]
+    benchmark_owner_token = tokens["testbo@example.com"]
+    model_owner_token = tokens["testmo@example.com"]
 
     set_user_as_admin(api_server, admin_token)
     if args.demo == "benchmark":

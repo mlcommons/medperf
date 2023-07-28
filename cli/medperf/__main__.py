@@ -8,7 +8,7 @@ import medperf.config as config
 from medperf.ui.factory import UIFactory
 from medperf.decorators import clean_except, configurable
 from medperf.comms.factory import CommsFactory
-from medperf.comms.auth.auth0 import Auth0
+import medperf.comms.auth as auth_module
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
 from medperf.commands.result.submit import ResultSubmission
@@ -111,7 +111,8 @@ def main(
 
     config.ui = UIFactory.create_ui(config.ui)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
-    config.auth = Auth0()
+    auth_class = getattr(auth_module, config.auth_class)
+    config.auth = auth_class()
     config.ui.print(f"MedPerf {__version__}")
 
 
