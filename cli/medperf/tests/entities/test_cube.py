@@ -1,7 +1,6 @@
 import os
 import yaml
 import pytest
-from unittest.mock import call
 
 import medperf
 import medperf.config as config
