@@ -1,6 +1,6 @@
 name: Integration local docker workflow
 
-on: pull_request_target
+on: pull_request
 
 jobs:
   authorize:
