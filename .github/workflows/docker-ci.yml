@@ -52,7 +52,9 @@ jobs:
 
     - name: Build container image
       working-directory: ./server
-      run: docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
+      run: |
+        cp ../mock_tokens/tokens.json tokens.json
+        docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
       working-directory: ./server
@@ -60,9 +62,7 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: |
-        cp ../mock_tokens/tokens.json tokens.json
-        docker exec medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt --tokens tokens.json"
+      run: docker exec medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt --tokens tokens.json"
 
     - name: Run chestxray demo
       working-directory: .
