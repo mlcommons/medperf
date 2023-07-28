@@ -2,7 +2,7 @@
 
 # MedPerf
 
-Medperf is an open benchmarking platform for medical artificial intelligence using Federated Evaluation.
+Medperf is an open benchmarking platform for medical artificial intelligence using Federated Evaluation. 
 
 ## What's included here
 Inside this repo you can find all important pieces for running MedPerf. In its current state, it includes:
@@ -13,15 +13,23 @@ Inside this repo you can find all important pieces for running MedPerf. In its c
 - ### Results from our Pilots:
   In the `examples` folder we have the results from the following Pilots
   
+## Publications ##
+
+If you use MedPerf, please cite our main paper: Karargyris, A., Umeton, R., Sheller, M.J. et al. Federated benchmarking of medical artificial intelligence with MedPerf. *Nature Machine Intelligence* **5**, 799–810 (2023). [https://www.nature.com/articles/s42256-023-00652-2](https://www.nature.com/articles/s42256-023-00652-2)
+
+Additonally, here you can see how others used MedPerf already: [https://scholar.google.com/scholar?q="medperf"](https://scholar.google.com/scholar?q="medperf").
+
 ## Experiments
 
-**NEWS 12/12/22**: MedPerf also powered the 2022 FeTS Challenge - the largest medical federated learning study - More details at [https://www.businesswire.com/news/home/20221205005170/en/](https://www.businesswire.com/news/home/20221205005170/en/). This page will be updated accordingly once all material will be finalized.
+### FeTS Challenge ###
 
-In order to validate MedPerf we performed a series of pilot experiments with academic groups that are involved in multi-institutional collaborations for the purposes of research and development of medical AI models. The experiments were intentionally designed to include a diversity of domains and modalities in order to test MedPerf’s infrastructure adaptance. The experiments included public and private data highlighting the technical capabilities of MedPerf to operate on private data. We also asked participating teams to provide feedback on their experience with MedPerf (e.g., limitations, issues). 
+🎯 We pressure-tested MedPerf open benchmark framework by supporting the largest real-world federated study to date [FeTS - that was benchmarking 41 medical AI models across 32 treatment and research sites in 6 continents 🌎](https://miccai2022.fets.ai/) as well as on 🔓 public and 🔒 private data through medical research efforts across Dana-Farber Cancer Institute, Harvard T.H. Chan School of Public Health, University of Pennsylvania, Penn Medicine, University of Pennsylvania Health System, University of Strasbourg, Institute of Image-Guided Surgery (IHU Strasbourg), Fondazione Policlinico Universitario Agostino Gemelli IRCCS, and others with the pilot studies below. 
 
-**Data sources**
+![image](https://github.com/mlcommons/medperf/assets/25375373/4b2876e8-d14a-4e24-b7dc-5a4508bfcaef)
 
-The figure below displays the data provider locations used in all pilot experiments. 🟢: Pilot 1 - Brain Tumor Segmentation Pilot Experiment; 🔴: Pilot 2 - Pancreas Segmentation Pilot Experiment. 🔵: Pilot 3 - Surgical Workflow Phase Recognition Pilot Experiment. Pilot 4 - Cloud Experiments, used data and processes from Pilot 1 and 2.
+## Pilot Studies ##
+
+MedPerf was also further utilized to support academic medical research on both public and private data through efforts across Dana-Farber Cancer Institute, Harvard T.H. Chan School of Public Health, University of Pennsylvania, Penn Medicine, University of Pennsylvania Health System, University of Strasbourg, Institute of Image-Guided Surgery (IHU Strasbourg), Fondazione Policlinico Universitario Agostino Gemelli IRCCS, University of California San Francisco, and other academic institutions. The figure below displays the data provider locations used in all pilot experiments. 🟢: Pilot 1 - Brain Tumor Segmentation Pilot Experiment; 🔴: Pilot 2 - Pancreas Segmentation Pilot Experiment. 🔵: Pilot 3 - Surgical Workflow Phase Recognition Pilot Experiment. Pilot 4 - Cloud Experiments, used data and processes from Pilot 1 and 2.
 
 ![image](https://user-images.githubusercontent.com/25375373/163238058-6cf16f00-5238-4c80-8b58-d86f291a5bcf.png)
 
