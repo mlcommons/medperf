@@ -1,6 +1,6 @@
-name: Integration local workflow
+name: Auth Integration workflow
 
-on: pull_request
+on: pull_request_target
 
 jobs:
   authorize:
@@ -11,7 +11,7 @@ jobs:
       - run: true
   setup:
     needs: authorize
-    name: local-deploy
+    name: auth-integration-test
     runs-on: ubuntu-latest
     env:
       MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
@@ -33,22 +33,6 @@ jobs:
         sudo dpkg -i chrome.deb
         rm chrome.deb
 
-    - name: Install Singularity
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev uuid-dev libgpgme11-dev \
-            squashfs-tools libseccomp-dev wget pkg-config git cryptsetup debootstrap libglib2.0-dev
-        wget https://go.dev/dl/go1.17.11.linux-amd64.tar.gz
-        sudo tar --directory=/usr/local -xzvf go1.17.11.linux-amd64.tar.gz
-        export PATH=/usr/local/go/bin:$PATH
-        wget https://github.com/sylabs/singularity/releases/download/v3.10.0/singularity-ce-3.10.0.tar.gz
-        tar -xzvf singularity-ce-3.10.0.tar.gz
-        cd singularity-ce-3.10.0
-        ./mconfig
-        cd builddir
-        make
-        sudo make install
-
     - name: Install dependencies
       working-directory: .
       run: |
@@ -60,7 +44,7 @@ jobs:
 
     - name: Set server environment vars
       working-directory: ./server
-      run: cp .env.example .env
+      run: cp .env.local.online-auth .env
 
     - name: Run django server in background with generated certs
       working-directory: ./server
@@ -68,12 +52,8 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: python seed.py --cert cert.crt
-
-    - name: Run chestxray demo
-      working-directory: .
-      run: sh cli/cli_chestxray_tutorial_test.sh -f
+      run: python seed.py --cert cert.crt --auth online
 
     - name: Run client integration tests
       working-directory: .
-      run: sh cli/cli_tests.sh -f
+      run: sh cli/auth_tests.sh -f
