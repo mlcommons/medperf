@@ -133,7 +133,7 @@ class TestRun:
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f'--platform={self.platform} test="test"'
+            + f'--platform={self.platform} --network=none test="test"'
         )
 
         # Act

@@ -2,6 +2,12 @@ class MockChild:
     def __init__(self, exitstatus):
         self.exitstatus = exitstatus
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self):
+        self.close()
+
     def isalive(self):
         return False
 
