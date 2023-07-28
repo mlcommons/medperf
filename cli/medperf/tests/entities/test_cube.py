@@ -116,7 +116,7 @@ class TestRun:
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
         expected_cmd = (
-            f"mlcube run --mlcube={self.manifest_path} --task={task}"
+            f"mlcube run --mlcube={self.manifest_path} --task={task} "
             + f"--platform={self.platform} --network=none"
         )
 
