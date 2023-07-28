@@ -1,6 +1,7 @@
 import os
 import yaml
 import pytest
+from unittest.mock import call
 
 import medperf
 import medperf.config as config
@@ -33,7 +34,7 @@ def setup(request, mocker, comms, fs):
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
-    mpexpect = MockPexpect(0)
+    mpexpect = MockPexpect(0, "image_hash")
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
 
@@ -75,13 +76,13 @@ class TestGetFiles:
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-        expected_cmd = f"mlcube configure --mlcube={self.manifest_path}"
+        expected_cmds = f"mlcube configure --mlcube={self.manifest_path}"
 
         # Act
         Cube.get(self.id)
 
         # Assert
-        spy.assert_called_once_with(expected_cmd)
+        spy.assert_any_call(expected_cmds)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
@@ -111,7 +112,7 @@ class TestRun:
     @pytest.mark.parametrize("timeout", [847, None])
     def test_cube_runs_command(self, mocker, timeout, setup, task):
         # Arrange
-        mpexpect = MockPexpect(0)
+        mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch(
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
@@ -129,7 +130,7 @@ class TestRun:
 
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
-        mpexpect = MockPexpect(0)
+        mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
@@ -145,7 +146,7 @@ class TestRun:
 
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
-        mpexpect = MockPexpect(1)
+        mpexpect = MockPexpect(1, "expected_hash")
         mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
