@@ -3,7 +3,7 @@ import argparse
 import os
 
 
-def token_from_credentials(email):
+def auth_provider_token(email):
     """Retrieve access tokens using the Resource Owner Flow"""
 
     # load password from the environment
@@ -40,5 +40,5 @@ if __name__ == "__main__":
     parser.add_argument("--email")
 
     args = parser.parse_args()
-    access_token = token_from_credentials(args.email)
+    access_token = auth_provider_token(args.email)
     print(access_token)

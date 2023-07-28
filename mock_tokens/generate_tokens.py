@@ -17,7 +17,7 @@ def token_payload(user):
         "custom_claims/email": f"{user}@example.com",
         "iss": "https://localhost:8000/",
         "sub": user,
-        "aud": "https://localhost-tutorials/",
+        "aud": "https://localhost-localdev/",
         "iat": int(time()),
         "exp": int(time()) + 10**10,
     }

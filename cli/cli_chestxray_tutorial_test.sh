@@ -1,62 +1,10 @@
-#! /bin/bash
-while getopts s:d:c:ft: flag
-do
-    case "${flag}" in
-        s) SERVER_URL=${OPTARG};;
-        d) DIRECTORY=${OPTARG};;
-        c) CLEANUP="true";;
-        f) FRESH="true";;
-        t) TIMEOUT=${OPTARG};;
-    esac
-done
+# import setup
+. "$(dirname $(realpath "$0"))/tests_setup.sh"
 
-SERVER_URL="${SERVER_URL:-https://localhost:8000}"
-DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
-CLEANUP="${CLEANUP:-false}"
-FRESH="${FRESH:-false}"
-MEDPERF_STORAGE=~/.medperf
-MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
-MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
-TIMEOUT="${TIMEOUT:-30}"
-LOGIN_SCRIPT="$(dirname "$0")/auto_login.sh"
+##########################################################
+################### Start Testing ########################
+##########################################################
 
-echo "Server URL: $SERVER_URL"
-echo "Storage location: $MEDPERF_SUBSTORAGE"
-
-# frequently used
-clean(){
-  echo "====================================="
-  echo "Cleaning up medperf tmp files"
-  echo "====================================="
-  rm -fr $DIRECTORY
-  rm -fr $MEDPERF_SUBSTORAGE
-  # errors of the commands below are ignored
-  medperf profile activate default
-  medperf profile delete testbenchmark
-  medperf profile delete testdata
-}
-checkFailed(){
-  if [ "$?" -ne "0" ]; then
-    if [ "$?" -eq 124 ]; then
-      echo "Process timed out"
-    fi
-    echo $1
-    echo "medperf log:"
-    tail "$MEDPERF_LOG_STORAGE"
-    if ${CLEANUP}; then
-      clean
-    fi
-    exit 1
-  fi
-}
-
-# test users credentials
-DATAOWNER="testdo@example.com"
-BENCHMARKOWNER="testbo@example.com"
-
-if ${FRESH}; then
-  clean
-fi
 echo "====================================="
 echo "Retrieving mock dataset"
 echo "====================================="
@@ -68,8 +16,8 @@ chmod a+w $DIRECTORY/sample_raw_data
 echo "=========================================="
 echo "Creating test profiles for each user"
 echo "=========================================="
-medperf profile activate development
-checkFailed "development profile creation failed"
+medperf profile activate local
+checkFailed "local profile creation failed"
 
 medperf profile create -n testbenchmark
 checkFailed "testbenchmark profile creation failed"
@@ -82,13 +30,13 @@ echo "=========================================="
 medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $BENCHMARKOWNER
+medperf auth login -e $BENCHMARKOWNER
 checkFailed "testbenchmark login failed"
 
 medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 
-timeout -k ${TIMEOUT}s ${TIMEOUT}s bash $LOGIN_SCRIPT -e $DATAOWNER
+medperf auth login -e $DATAOWNER
 checkFailed "testdata login failed"
 
 echo "====================================="

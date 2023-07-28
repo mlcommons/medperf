@@ -73,8 +73,8 @@ cube_metadata_filename = "mlcube-meta.yaml"
 
 credentials_keyword = "credentials"
 default_profile_name = "default"
-test_profile_name = "development"
-tutorials_profile_name = "tutorials"
+testauth_profile_name = "testauth"
+test_profile_name = "local"
 platform = "docker"
 gpus = None
 default_page_size = 32  # This number was chosen arbitrarily

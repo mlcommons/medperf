@@ -102,8 +102,8 @@ def delete(profile: str):
 
     if profile in [
         config.default_profile_name,
+        config.testauth_profile_name,
         config.test_profile_name,
-        config.tutorials_profile_name,
     ]:
         raise InvalidArgumentError("Cannot delete reserved profiles")
 
