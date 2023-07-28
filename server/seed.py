@@ -25,7 +25,7 @@ def seed(args):
 
     # setup tokens source
     if args.auth == "local":
-        tokens = json.load(open(REPO_BASE_DIR / "mock_tokens" / "tokens.json"))
+        tokens = json.load(open(args.tokens))
         get_token = lambda email: tokens[email]  # noqa
     else:
         get_token = auth_provider_token
@@ -47,6 +47,8 @@ def seed(args):
 
 if __name__ == "__main__":
     default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
+    default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
+
     parser = argparse.ArgumentParser(description="Seed the db with demo entries")
     parser.add_argument(
         "--server",
@@ -71,6 +73,12 @@ if __name__ == "__main__":
         help="Seed for a tutorial: 'benchmark', 'model', or 'data'.",
         default="data",
         choices=["benchmark", "model", "data"],
+    )
+    parser.add_argument(
+        "--tokens",
+        type=str,
+        help="Path to local tokens file",
+        default=default_tokens_file,
     )
     args = parser.parse_args()
     if args.cert.lower() == "none":
