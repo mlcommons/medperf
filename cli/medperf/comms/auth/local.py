@@ -1,5 +1,6 @@
 from medperf.comms.auth.interface import Auth
 import medperf.config as config
+from medperf.exceptions import InvalidArgumentError
 from medperf.account_management import (
     set_credentials,
     read_credentials,
@@ -20,7 +21,13 @@ class Local(Auth):
             email (str): user email.
         """
 
-        access_token = self.tokens[email]
+        try:
+            access_token = self.tokens[email]
+        except KeyError:
+            raise InvalidArgumentError(
+                "The provided email does not exist for testing. "
+                "Make sure you activated the right profile."
+            )
         refresh_token = "refresh token"
         id_token_payload = {"email": email}
         token_issued_at = 0
