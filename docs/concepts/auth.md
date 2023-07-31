@@ -1,6 +1,6 @@
 # Authentication
 
-This guide helps you learn how to login and logout using the MedPerf client to access the main production MedPerf server.
+This guide helps you learn how to login and logout using the MedPerf client to access the main production MedPerf server. MedPerf uses [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). This means that login will only require you to access your email in order complete the login process.
 
 ## Login
 
