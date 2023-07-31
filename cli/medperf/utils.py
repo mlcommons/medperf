@@ -226,7 +226,7 @@ def cleanup():
 
     trash_folder = base_storage_path(config.trash_folder)
     if os.path.exists(trash_folder):
-        msg = "Failed to premanently cleanup some files. Consider deleting"
+        msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
         config.ui.print_warning(msg)
 

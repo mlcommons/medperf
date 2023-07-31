@@ -35,10 +35,15 @@ class Auth0(Auth):
         interval = device_code_response["interval"]
 
         config.ui.print(
-            "Please go to the following link to complete your login request:\n"
+            "\nPlease go to the following link to complete your login request:\n"
             f"\t{verification_uri_complete}\n\n"
             "Make sure that you will be presented with the following code:\n"
             f"\t{user_code}\n\n"
+        )
+        config.ui.print_warning(
+            "Keep this terminal open until you complete your login request. "
+            "The command will exit on its own once you complete the request. "
+            "If you wish to stop the login request anyway, press Ctrl+C."
         )
         token_response, token_issued_at = self.__get_device_access_token(
             device_code, interval
