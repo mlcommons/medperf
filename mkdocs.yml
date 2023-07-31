@@ -40,6 +40,7 @@ theme:
     - search.highlight
     - search.share
     - content.code.annotate
+    - content.code.copy
   icon:
     admonition:
       note: octicons/tag-16
