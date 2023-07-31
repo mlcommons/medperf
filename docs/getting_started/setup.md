@@ -6,7 +6,7 @@ This setup is only for running the tutorials. If you are using MedPerf with a re
 
 For this tutorial, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not on the internet.
 
-1. Install the server requirements ensuring you are in MedPerf's root folder (skip if you have already installed them):
+1. Install the server requirements ensuring you are in MedPerf's root folder:
 
     ```bash
     pip install -r server/requirements.txt
@@ -17,7 +17,7 @@ For this tutorial, you should spawn a local MedPerf server for the MedPerf clien
 
     ```bash
     cd server
-    cp .env.tutorials .env
+    cp .env.local.local-auth .env
     sh setup-dev-server.sh
     ```
 
@@ -29,12 +29,12 @@ After that, you will be configuring the MedPerf client to communicate with the l
 
 The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. By default, the profile named `default` will be active.
 
-The `default` profile is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `tutorials` profile as it is preconfigured so that the client communicates with the local MedPerf server.
+The `default` profile is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `local` profile as it is preconfigured so that the client communicates with the local MedPerf server.
 
-To activate the `tutorials` profile, run the following command:
+To activate the `local` profile, run the following command:
 
 ```bash
-medperf profile activate tutorials
+medperf profile activate local
 ```
 
 You can always check which profile is active by running:
@@ -51,7 +51,7 @@ medperf profile view
 
 #### Choose the Container Runner
 
-You can configure the MedPerf client to use either Docker or Singularity. The `test` profile is configured to use Docker. If you want to use MedPerf with Singularity, modify the `test` profile configured parameters by running the following:
+You can configure the MedPerf client to use either Docker or Singularity. The `local` profile is configured to use Docker. If you want to use MedPerf with Singularity, modify the `local` profile configured parameters by running the following:
 
 ```bash
 medperf profile set --platform singularity

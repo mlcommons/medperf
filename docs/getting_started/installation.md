@@ -73,4 +73,5 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
 
 ## What's Next?
 
-Create your MedPerf account by following the instructions [here](signup.md).
+- Get familiar with the MedPerf client by following the [hands-on tutorials](tutorials_overview.md).
+- Understand and learn how to [build MedPerf MLCubes](../mlcubes/mlcubes.md).

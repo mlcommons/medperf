@@ -9,8 +9,8 @@ nav:
 - MedPerf Components: medperf_components.md
 - Getting Started:
   - Overview: getting_started/overview.md
-  - Installation: getting_started/installation.md
   - Create an Account: getting_started/signup.md
+  - Installation: getting_started/installation.md
   - Tutorials - User Guide:
     - Introduction: getting_started/tutorials_overview.md
     - Setup: getting_started/setup.md
@@ -25,7 +25,7 @@ nav:
     - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
 
 - Concepts:
-  - Authentication and Account Management: concepts/auth.md
+  - Authentication: concepts/auth.md
   - Client Configuration: concepts/profiles.md
   - MLCube Components: concepts/mlcube_files.md
   - Hosting Files: concepts/hosting_files.md

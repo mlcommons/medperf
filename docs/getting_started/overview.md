@@ -8,8 +8,7 @@ The MedPerf client provides all the necessary tools to run a complete benchmark 
 
 ## What's Next?
 
-You can install the MedPerf client by following the instructions [here](installation.md). After that:
-
 - [Create your MedPerf account](signup.md)
+- [Install the MedPerf client](installation.md)
 - Get familiar with the MedPerf client by following the [hands-on tutorials](tutorials_overview.md)
 - Understand and learn how to [build MedPerf MLCubes](../mlcubes/mlcubes.md)
