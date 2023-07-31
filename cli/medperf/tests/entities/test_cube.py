@@ -1,6 +1,7 @@
 import os
 import yaml
 import pytest
+from unittest.mock import call
 
 import medperf
 import medperf.config as config
@@ -12,11 +13,16 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
 )
 from medperf.tests.mocks.pexpect import MockPexpect
-from medperf.exceptions import ExecutionError
+from medperf.exceptions import ExecutionError, InvalidEntityError
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
-NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
+NO_IMG_CUBE = {
+    "id": 345,
+    "image_tarball_url": None,
+    "image_tarball_hash": None,
+    "image_hash": "hash",
+}
 
 
 @pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
@@ -75,13 +81,28 @@ class TestGetFiles:
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-        expected_cmds = f"mlcube configure --mlcube={self.manifest_path}"
+        mocker.patch(PATCH_CUBE.format("verify_hash"), return_value=True)
+        expected_cmds = [
+            f"mlcube configure --mlcube={self.manifest_path}",
+            f"mlcube inspect --mlcube={self.manifest_path} --format=yaml",
+        ]
+        expected_cmds = [call(cmd) for cmd in expected_cmds]
 
         # Act
         Cube.get(self.id)
 
         # Assert
-        spy.assert_any_call(expected_cmds)
+        spy.assert_has_calls(expected_cmds)
+
+    @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
+    def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup):
+        # By default, the mocked object will not return a hash
+        # This means we would be comparing wrong hashes
+        mocker.spy(medperf.entities.cube.pexpect, "spawn")
+
+        # Act & Assert
+        with pytest.raises(InvalidEntityError):
+            Cube.get(self.id)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
