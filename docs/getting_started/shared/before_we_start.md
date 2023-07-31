@@ -23,6 +23,6 @@ This will create a workspace folder `medperf_tutorial` where all necessary files
 
 #### Login to the Local MedPerf Server
 
-The local MedPerf server is pre-configured with a dummy local authentication system. Remember that when you are communicating with the real MedPerf server, you should follow the steps in [this guide](../concepts/auth.md#login) to login. For the tutorials, you don't have to do anything.
+The local MedPerf server is pre-configured with a dummy local authentication system. Remember that when you are communicating with the real MedPerf server, you should follow the steps in [this guide](../concepts/auth.md#login) to login. For the tutorials, you should not do anything.
 
 You are now ready to start!
