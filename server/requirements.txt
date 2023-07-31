@@ -14,3 +14,4 @@ pyOpenSSL==22.0.0
 cryptography==38.0.4
 Werkzeug==2.2.3
 django-extensions==3.2.1
+djangorestframework-simplejwt==5.2.2

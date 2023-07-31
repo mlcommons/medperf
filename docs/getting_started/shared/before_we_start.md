@@ -7,7 +7,7 @@ For the purpose of the tutorial, you have to initialize a local MedPerf server w
 ```bash
 cd server
 sh reset_db.sh
-python seed.py --cert cert.crt --demo {{page.meta.tutorial_id}}
+python seed.py --demo {{page.meta.tutorial_id}}
 cd ..
 ```
 
@@ -23,12 +23,6 @@ This will create a workspace folder `medperf_tutorial` where all necessary files
 
 #### Login to the Local MedPerf Server
 
-You credentials in this tutorial will be a username: `test{{page.meta.tutorial_id}}owner` and a password: `test`. Run:
-
-```bash
-medperf login
-```
-
-You will be prompted to enter your credentials.
+The local MedPerf server is pre-configured with a dummy local authentication system. Remember that when you are communicating with the real MedPerf server, you should follow the steps in [this guide](../concepts/auth.md#login) to login. For the tutorials, you should not do anything.
 
 You are now ready to start!

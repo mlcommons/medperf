@@ -24,3 +24,6 @@ cp -r ../examples/chestxray_tutorial/model_custom_cnn model_custom_cnn
 cd model_custom_cnn/mlcube/workspace/additional_files
 sh download.sh
 rm download.sh
+
+## Login locally as benchmark owner
+medperf auth login -e testbo@example.com

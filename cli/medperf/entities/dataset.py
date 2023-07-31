@@ -14,6 +14,7 @@ from medperf.exceptions import (
     CommunicationRetrievalError,
 )
 import medperf.config as config
+from medperf.account_management import get_medperf_user_data
 
 
 class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
@@ -117,7 +118,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_datasets
-        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_datasets
         return comms_fn
 

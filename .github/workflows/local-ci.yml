@@ -3,35 +3,17 @@ name: Integration local workflow
 on: pull_request
 
 jobs:
-  authorize:
-    environment:
-      'testing-external-code'
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
   setup:
-    needs: authorize
     name: local-deploy
     runs-on: ubuntu-latest
-    env:
-      MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-    
+
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
-    
-    - name: Setup Chrome
-      run: |
-        sudo apt-get install -y wget
-        wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.198-1_amd64.deb
-        sudo dpkg -i chrome.deb
-        rm chrome.deb
 
     - name: Install Singularity
       run: |
@@ -60,7 +42,7 @@ jobs:
 
     - name: Set server environment vars
       working-directory: ./server
-      run: cp .env.example .env
+      run: cp .env.local.local-auth .env
 
     - name: Run django server in background with generated certs
       working-directory: ./server

@@ -1,12 +1,10 @@
 from typing import List
 from abc import ABC, abstractmethod
 
-from medperf.ui.interface import UI
-
 
 class Comms(ABC):
     @abstractmethod
-    def __init__(self, source: str, ui: UI, token: str = None):
+    def __init__(self, source: str):
         """Create an instance of a communication object.
 
         Args:
@@ -29,33 +27,8 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def login(self, ui: UI):
-        """Authenticate the comms instance for further interactions
-
-        Args:
-            ui (UI): instance of an implementation of the UI interface.
-        """
-
-    @abstractmethod
-    def change_password(self, pwd: str, ui: UI) -> bool:
-        """Sets a new password for the current user.
-
-        Args:
-            pwd (str): New password to be set
-            ui (UI): Instance of an implementation
-        Returns:
-            bool: Whether changing the password was successful or not
-        """
-
-    @abstractmethod
-    def authenticate(self):
-        """Retrieve a token stored locally for authentication
-        """
-
-    @abstractmethod
     def get_current_user(self):
-        """Retrieve the currently-authenticated user information
-        """
+        """Retrieve the currently-authenticated user information"""
 
     @abstractmethod
     def get_benchmarks(self) -> List[dict]:

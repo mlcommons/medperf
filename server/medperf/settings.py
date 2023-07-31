@@ -108,6 +108,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# NOTE: Django's default authentication backend (ModelBackend) as well as the session middleware
+#       will only be functional/usable for the built-in admin user
+
 ROOT_URLCONF = "medperf.urls"
 
 TEMPLATES = [
@@ -122,7 +125,9 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "libraries": {"staticfiles": "django.templatetags.static",},
+            "libraries": {
+                "staticfiles": "django.templatetags.static",
+            },
         },
     },
 ]
@@ -214,9 +219,7 @@ SERVER_API_VERSION = "v0"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["user.backends.JWTAuthenticateOrCreateUser"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
@@ -244,7 +247,7 @@ SPECTACULAR_SETTINGS = {
     "PARSER_WHITELIST": [
         "rest_framework.parsers.JSONParser",
     ],
-    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
+    "SCHEMA_PATH_PREFIX": r"/api/v[0-9]",
     "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "REDOC_DIST": "SIDECAR",
@@ -254,3 +257,32 @@ SPECTACULAR_SETTINGS = {
 # Setup support for proxy headers
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Validating public key config
+verifying_key = env("AUTH_VERIFYING_KEY", default=None)
+jwk_url = env("AUTH_JWK_URL", default=None)
+
+if verifying_key and jwk_url:
+    raise ValueError(
+        "Only one of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified"
+    )
+if not verifying_key and not jwk_url:
+    raise ValueError("One of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified")
+
+if verifying_key:
+    # Unescape the possibly escaped newlines
+    verifying_key = verifying_key.replace("\\n", "\n")
+
+
+# Setting drf-simplejwt config
+SIMPLE_JWT = {
+    "ALGORITHM": "RS256",
+    "AUDIENCE": env("AUTH_AUDIENCE"),
+    "ISSUER": env("AUTH_ISSUER"),
+    "JWK_URL": jwk_url,
+    "VERIFYING_KEY": verifying_key,
+    "USER_ID_FIELD": "username",  # store auth backend user ID as the username field
+    "USER_ID_CLAIM": "sub",
+    "TOKEN_TYPE_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
+    "JTI_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
+}
