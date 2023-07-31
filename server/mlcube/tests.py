@@ -1,11 +1,11 @@
-import string
-import random
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
 from medperf.tests import MedPerfTest
+
+User = get_user_model()
 
 
 class MlCubeTest(MedPerfTest):
@@ -14,17 +14,11 @@ class MlCubeTest(MedPerfTest):
     def setUp(self):
         super(MlCubeTest, self).setUp()
         username = "mlcubeowner"
-        password = "".join(random.choice(string.ascii_letters) for m in range(10))
-        user = User.objects.create_user(username=username, password=password,)
-        user.save()
+        token, _ = self.create_user(username)
         self.api_prefix = "/api/" + settings.SERVER_API_VERSION
         self.client = APIClient()
-        response = self.client.post(
-            self.api_prefix + "/auth-token/", {"username": username, "password": password}, format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.token = response.data["token"]
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token)
+        self.token = token
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
 
     def test_unauthenticated_user(self):
         client = APIClient()

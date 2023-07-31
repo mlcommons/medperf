@@ -10,6 +10,7 @@ from medperf.entities.interface import Entity, Uploadable
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
+from medperf.account_management import get_medperf_user_data
 
 
 class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
@@ -113,7 +114,7 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_benchmarks
-        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_benchmarks
         return comms_fn
 

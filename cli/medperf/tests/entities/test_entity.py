@@ -132,7 +132,7 @@ class TestToDict:
         ent_dict = ent.todict()
 
         # Assert
-        assert type(ent_dict) == dict
+        assert isinstance(ent_dict, dict)
 
     def test_todict_can_recreate_object(self, Implementation):
         # Arrange

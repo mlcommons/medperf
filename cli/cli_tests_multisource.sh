@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# TODO: SHOULD BE ADAPTED TO NEW CHANGES
+
 # This script is for manual testing only.
 # It prompts the user with Synapse credentials
 # And it expects certain assets to be already uploaded on Synapse

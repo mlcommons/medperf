@@ -1,4 +1,4 @@
-from user.serializers import UserSerializer, UserPasswordSerializer
+from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
 from result.serializers import ModelResultSerializer
@@ -16,7 +16,6 @@ from django.conf import settings
 from django.db.models import Q
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
@@ -33,25 +32,6 @@ class User(GenericAPIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
-
-
-class UserPassword(GenericAPIView):
-    serializer_class = UserPasswordSerializer
-    queryset = ""
-
-    def post(self, request, format=None):
-        """
-        Update user credentials
-        """
-        serializer = UserPasswordSerializer(
-            request.user, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            serializer.save()
-            # Delete user token
-            request.user.auth_token.delete()
-            return Response({"message": "Password changed successfully"})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BenchmarkList(GenericAPIView):
@@ -185,10 +165,10 @@ class ServerAPIVersion(GenericAPIView):
     @extend_schema(
         responses={
             200: inline_serializer(
-                name='VersionResponse',
+                name="VersionResponse",
                 fields={
-                    'version': serializers.CharField(),
-                }
+                    "version": serializers.CharField(),
+                },
             )
         }
     )

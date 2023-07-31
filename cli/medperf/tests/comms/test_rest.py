@@ -85,15 +85,6 @@ def server(mocker, ui):
             (f"{full_url}/mlcubes/1/benchmarks/1",),
             {"json": {"approval_status": Status.REJECTED.value}},
         ),
-        (
-            "change_password",
-            "post",
-            200,
-            ["pwd"],
-            {},
-            (f"{full_url}/me/password/",),
-            {"json": {"password": "pwd"}},
-        ),
     ],
 )
 def test_methods_run_authorized_method(mocker, server, method_params):
@@ -125,7 +116,6 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("upload_dataset", [{}], {"id": "invalid id"}, CommunicationRequestError),
         ("upload_result", [{}], {"id": "invalid id"}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
-        ("change_password", [{}], {"password": "pwd"}, CommunicationRequestError),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
@@ -141,36 +131,6 @@ def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
     # Act & Assert
     with pytest.raises(raised_exception):
         method(*args)
-
-
-@pytest.mark.parametrize("uname", ["test", "admin", "user"])
-@pytest.mark.parametrize("pwd", ["test", "admin", "123456"])
-def test_login_with_user_and_pwd(mocker, server, ui, uname, pwd):
-    # Arrange
-    res = MockResponse({"token": ""}, 200)
-    spy = mocker.patch("requests.post", return_value=res)
-    exp_body = {"username": uname, "password": pwd}
-    exp_path = f"{full_url}/auth-token/"
-    cert_verify = config.certificate or True
-
-    # Act
-    server.login(uname, pwd)
-
-    # Assert
-    spy.assert_called_once_with(exp_path, json=exp_body, verify=cert_verify)
-
-
-@pytest.mark.parametrize("token", ["test", "token"])
-def test_login_stores_token(mocker, ui, server, token):
-    # Arrange
-    res = MockResponse({"token": token}, 200)
-    mocker.patch("requests.post", return_value=res)
-
-    # Act
-    server.login("testuser", "testpwd")
-
-    # Assert
-    assert server.token == token
 
 
 def test_auth_get_calls_authorized_request(mocker, server):
@@ -197,24 +157,11 @@ def test_auth_post_calls_authorized_request(mocker, server):
     spy.called_once_with(url, requests.post)
 
 
-def test_auth_req_authenticates_if_token_missing(mocker, server):
-    # Arrange
-    mocker.patch("requests.post")
-    server.token = None
-    spy = mocker.patch(patch_server.format("REST.authenticate"))
-
-    # Act
-    server._REST__auth_req(url, requests.post)
-
-    # Assert
-    spy.assert_called()
-
-
 @pytest.mark.parametrize("req_type", ["get", "post"])
 @pytest.mark.parametrize("token", ["test", "token", "auth_token"])
-def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
+def test_auth_get_adds_token_to_request(mocker, server, token, req_type, auth):
     # Arrange
-    server.token = token
+    auth.access_token = token
 
     if req_type == "get":
         spy = mocker.patch("requests.get")
@@ -223,7 +170,7 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type):
         spy = mocker.patch("requests.post")
         func = requests.post
 
-    exp_headers = {"Authorization": f"Token {token}"}
+    exp_headers = {"Authorization": f"Bearer {token}"}
     cert_verify = config.certificate or True
 
     # Act

@@ -175,7 +175,7 @@ class TestDefaultOutput:
 
         # Construct the expected output path
         out_val_path = out_value
-        if type(out_value) == dict:
+        if isinstance(out_value, dict):
             out_val_path = out_value["default"]
         self.output = os.path.join(self.cube_path, config.workspace_path, out_val_path)
 

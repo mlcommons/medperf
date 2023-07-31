@@ -18,7 +18,7 @@ PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
 def setup_benchmark_fs(ents, fs):
     bmks_path = storage_path(config.benchmarks_storage)
     for ent in ents:
-        if type(ent) != dict:
+        if not isinstance(ent, dict):
             # Assume we're passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
@@ -54,7 +54,7 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
 def setup_cube_fs(ents, fs):
     cubes_path = storage_path(config.cubes_storage)
     for ent in ents:
-        if type(ent) != dict:
+        if not isinstance(ent, dict):
             # Assume we're passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
@@ -127,7 +127,7 @@ def setup_cube_comms_downloads(mocker, fs):
 def setup_dset_fs(ents, fs):
     dsets_path = storage_path(config.data_storage)
     for ent in ents:
-        if type(ent) != dict:
+        if not isinstance(ent, dict):
             # Assume passing ids
             ent = {"id": str(ent)}
         id = ent["id"]
@@ -158,7 +158,7 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
 def setup_result_fs(ents, fs):
     results_path = storage_path(config.results_storage)
     for ent in ents:
-        if type(ent) != dict:
+        if not isinstance(ent, dict):
             # Assume passing ids
             ent = {"id": str(ent)}
         id = ent["id"]

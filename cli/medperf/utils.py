@@ -53,41 +53,6 @@ def setup_logging(log_lvl):
     handler.doRollover()
 
 
-def delete_credentials():
-    config_p = read_config()
-    del config_p.active_profile[config.credentials_keyword]
-    write_config(config_p)
-
-
-def set_credentials(token):
-    config_p = read_config()
-    config_p.active_profile[config.credentials_keyword] = token
-    write_config(config_p)
-
-
-def read_credentials():
-    config_p = read_config()
-    token = config_p.active_profile.get(config.credentials_keyword, None)
-    return token
-
-
-def set_current_user(current_user: dict):
-    config_p = read_config()
-    config_p.active_profile["current_user"] = current_user
-    write_config(config_p)
-
-
-def get_current_user():
-    config_p = read_config()
-    try:
-        current_user = config_p.active_profile["current_user"]
-    except KeyError:
-        raise MedperfException(
-            "Couldn't retrieve current user information. Please login again"
-        )
-    return current_user
-
-
 def default_profile():
     # NOTE: this function is only usable before config is actually initialized.
     # using this function when another profile is activated will not load the defaults
@@ -184,10 +149,24 @@ def init_config():
         return
 
     config_p = ConfigManager()
+    # default profile
     config_p[config.default_profile_name] = default_profile()
+    # testauth profile
+    config_p[config.testauth_profile_name] = default_profile()
+    config_p[config.testauth_profile_name]["server"] = config.local_server
+    config_p[config.testauth_profile_name]["certificate"] = config.local_certificate
+    config_p[config.testauth_profile_name]["auth_audience"] = config.auth_dev_audience
+    config_p[config.testauth_profile_name]["auth_domain"] = config.auth_dev_domain
+    config_p[config.testauth_profile_name]["auth_jwks_url"] = config.auth_dev_jwks_url
+    config_p[config.testauth_profile_name][
+        "auth_idtoken_issuer"
+    ] = config.auth_dev_idtoken_issuer
+    config_p[config.testauth_profile_name]["auth_client_id"] = config.auth_dev_client_id
+    # local profile
     config_p[config.test_profile_name] = default_profile()
     config_p[config.test_profile_name]["server"] = config.local_server
     config_p[config.test_profile_name]["certificate"] = config.local_certificate
+    config_p[config.test_profile_name]["auth_class"] = "Local"
 
     config_p.activate(config.default_profile_name)
     config_p.write(config_file)
@@ -247,7 +226,7 @@ def cleanup():
 
     trash_folder = base_storage_path(config.trash_folder)
     if os.path.exists(trash_folder):
-        msg = "Failed to premanently cleanup some files. Consider deleting"
+        msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
         config.ui.print_warning(msg)
 
@@ -474,8 +453,8 @@ def log_response_error(res, warn=False):
     try:
         logging_method(res.json())
     except requests.exceptions.JSONDecodeError:
-        logging_method("JSON Response could not be parsed. Showing response content:")
-        logging_method(res.content)
+        logging_method("JSON Response could not be parsed. Showing response text:")
+        logging_method(res.text)
 
 
 def format_errors_dict(errors_dict: dict):
