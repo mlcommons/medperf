@@ -124,7 +124,7 @@ class REST(Comms):
                 if data["next"] is None:
                     break
 
-        if type(num_elements) == int:
+        if isinstance(num_elements, int):
             return el_list[:num_elements]
         return el_list
 

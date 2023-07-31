@@ -294,7 +294,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             return None
 
         out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
-        if type(out_path) == dict:
+        if isinstance(out_path, dict):
             # output is specified as a dict with type and default values
             out_path = out_path["default"]
         cube_loc = str(Path(self.cube_path).parent)
