@@ -224,9 +224,11 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model3 association (with singularity)"
+echo "Running model3 association"
 echo "====================================="
-medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+# medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+# TMP: revert to singularity when MLCube issue is fixed
+medperf mlcube associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
