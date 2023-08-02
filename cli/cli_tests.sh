@@ -95,15 +95,15 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS -i $PREP_SING_IMAGE
+medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
 checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
@@ -111,11 +111,11 @@ medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD -i $FAILING_MODEL_SING_IMAGE
+medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS -i $METRICS_SING_IMAGE
+medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
