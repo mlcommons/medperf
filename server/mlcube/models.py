@@ -34,21 +34,6 @@ class MlCube(models.Model):
     def __str__(self):
         return self.name
 
-    def clean(self, *args, **kwargs):
-        if not self.image_hash and not self.image_tarball_hash:
-            raise ValidationError("Image hash or Image tarball hash must be provided")
-        if self.image_hash and self.image_tarball_hash:
-            raise ValidationError(
-                "Image hash and Image tarball hash can't be provided at the same time"
-            )
-        if self.image_tarball_url and not self.image_tarball_hash:
-            raise ValidationError("Image tarball requires both the URL and a hash")
-        if self.git_parameters_url and not self.parameters_hash:
-            raise ValidationError("Parameters require file hash")
-        if self.additional_files_tarball_url and not self.additional_files_tarball_hash:
-            raise ValidationError("Additional files require file hash")
-        return super().clean(*args, **kwargs)
-
     class Meta:
         unique_together = (
             (
