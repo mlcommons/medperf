@@ -1,6 +1,19 @@
+import yaml
+
+
 class MockChild:
-    def __init__(self, exitstatus):
+    def __init__(self, exitstatus, hash):
         self.exitstatus = exitstatus
+        self.inspect = yaml.dump({"hash": hash})
+
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def read(self):
+        return self.inspect
+
+    def __exit__(self, *args, **kwargs):
+        self.close()
 
     def isalive(self):
         return False
@@ -10,8 +23,9 @@ class MockChild:
 
 
 class MockPexpect:
-    def __init__(self, exitstatus):
+    def __init__(self, exitstatus, hash):
         self.exitstatus = exitstatus
+        self.hash = hash
 
     def spawn(self, command: str, timeout: int = 30) -> MockChild:
-        return MockChild(self.exitstatus)
+        return MockChild(self.exitstatus, self.hash)

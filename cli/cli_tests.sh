@@ -95,27 +95,27 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS -i $PREP_SING_IMAGE
+medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
 checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model3 -m $MODEL_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD -i $FAILING_MODEL_SING_IMAGE
+medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS -i $METRICS_SING_IMAGE
+medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
@@ -141,9 +141,7 @@ checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # Approve benchmark
-ADMIN_TOKEN=$(jq --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
-echo $ADMIN_TOKEN
-exit
+ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
 checkFailed "Retrieving admin token failed"
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
@@ -226,9 +224,11 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model3 association (with singularity)"
+echo "Running model3 association"
 echo "====================================="
-medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+# medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+# TMP: revert to singularity when MLCube issue is fixed
+medperf mlcube associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 

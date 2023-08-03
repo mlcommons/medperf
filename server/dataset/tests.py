@@ -25,14 +25,17 @@ class DatasetTest(MedPerfTest):
             "mlcube_hash": "string",
             "git_parameters_url": "string",
             "parameters_hash": "string",
-            "image_tarball_url": "string",
-            "image_tarball_hash": "string",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "image_hash": "string",
             "additional_files_tarball_url": "string",
             "additional_files_tarball_hash": "string",
             "metadata": {"key": "value"},
         }
 
-        response = self.client.post(self.api_prefix + "/mlcubes/", data_preproc_mlcube, format="json")
+        response = self.client.post(
+            self.api_prefix + "/mlcubes/", data_preproc_mlcube, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.data_preproc_mlcube_id = response.data["id"]
 
@@ -61,7 +64,9 @@ class DatasetTest(MedPerfTest):
             "data_preparation_mlcube": self.data_preproc_mlcube_id,
         }
 
-        response = self.client.post(self.api_prefix + "/datasets/", testdataset, format="json")
+        response = self.client.post(
+            self.api_prefix + "/datasets/", testdataset, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         uid = response.data["id"]
         response = self.client.get(self.api_prefix + "/datasets/{0}/".format(uid))
@@ -87,7 +92,9 @@ class DatasetTest(MedPerfTest):
         }
 
         response = self.client.put(
-            self.api_prefix + "/datasets/{0}/".format(uid), newtestdataset, format="json"
+            self.api_prefix + "/datasets/{0}/".format(uid),
+            newtestdataset,
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.api_prefix + "/datasets/{0}/".format(uid))
@@ -106,7 +113,9 @@ class DatasetTest(MedPerfTest):
 
     def test_invalid_dataset(self):
         invalid_id = 9999
-        response = self.client.get(self.api_prefix + "/datasets/{0}/".format(invalid_id))
+        response = self.client.get(
+            self.api_prefix + "/datasets/{0}/".format(invalid_id)
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_duplicate_gen_uid(self):
@@ -122,10 +131,14 @@ class DatasetTest(MedPerfTest):
             "data_preparation_mlcube": self.data_preproc_mlcube_id,
         }
 
-        response = self.client.post(self.api_prefix + "/datasets/", testdataset, format="json")
+        response = self.client.post(
+            self.api_prefix + "/datasets/", testdataset, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.post(self.api_prefix + "/datasets/", testdataset, format="json")
+        response = self.client.post(
+            self.api_prefix + "/datasets/", testdataset, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_optional_fields(self):
