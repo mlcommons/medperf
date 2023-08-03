@@ -40,14 +40,17 @@ class MlCubeTest(MedPerfTest):
             "mlcube_hash": "string",
             "git_parameters_url": "string",
             "parameters_hash": "string",
-            "image_tarball_url": "string",
-            "image_tarball_hash": "string",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "image_hash": "string",
             "additional_files_tarball_url": "string",
             "additional_files_tarball_hash": "string",
             "metadata": {"key": "value"},
         }
 
-        response = self.client.post(self.api_prefix + "/mlcubes/", testmlcube, format="json")
+        response = self.client.post(
+            self.api_prefix + "/mlcubes/", testmlcube, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         uid = response.data["id"]
         response = self.client.get(self.api_prefix + "/mlcubes/{0}/".format(uid))
@@ -67,6 +70,7 @@ class MlCubeTest(MedPerfTest):
             "git_parameters_url": "newstring",
             "tarball_url": "newstring",
             "tarball_hash": "newstring",
+            "image_hash": "string",
             "metadata": {"newkey": "newvalue"},
         }
 

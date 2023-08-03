@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import combine_proc_sp_text, list_files, storage_path
+from medperf.utils import combine_proc_sp_text, list_files, storage_path, verify_hash
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -37,6 +37,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     parameters_hash: Optional[str]
     image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
+    image_hash: Optional[str]
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
@@ -203,19 +204,29 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
     def download_image(self):
         url = self.image_tarball_url
-        hash = self.image_tarball_hash
+        tarball_hash = self.image_tarball_hash
+        img_hash = self.image_hash
 
         if url:
-            _, local_hash = resources.get_cube_image(url, self.path, hash)
+            _, local_hash = resources.get_cube_image(url, self.path, tarball_hash)
             self.image_tarball_hash = local_hash
         else:
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            proc = pexpect.spawn(cmd)
-            proc_out = combine_proc_sp_text(proc)
+            with pexpect.spawn(cmd) as proc:
+                proc_out = combine_proc_sp_text(proc)
             logging.debug(proc_out)
-            proc.close()
+
+            # Retrieve image hash from MLCube
+            logging.debug("Retriving {self.id} image hash")
+            cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
+            with pexpect.spawn(cmd) as proc:
+                proc_stdout = proc.read()
+            mlcube_details = yaml.safe_load(proc_stdout)
+            local_hash = mlcube_details["hash"]
+            verify_hash(local_hash, img_hash)
+            self.image_hash = local_hash
 
     def download(self):
         """Downloads the required elements for an mlcube to run locally."""
@@ -257,7 +268,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
+        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         for k, v in kwargs.items():

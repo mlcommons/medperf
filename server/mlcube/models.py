@@ -17,6 +17,7 @@ class MlCube(models.Model):
     parameters_hash = models.CharField(max_length=100, blank=True)
     image_tarball_url = models.CharField(max_length=256, blank=True)
     image_tarball_hash = models.CharField(max_length=100, blank=True)
+    image_hash = models.CharField(max_length=100, blank=True)
     additional_files_tarball_url = models.CharField(max_length=256, blank=True)
     additional_files_tarball_hash = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -37,6 +38,7 @@ class MlCube(models.Model):
             (
                 "image_tarball_url",
                 "image_tarball_hash",
+                "image_hash",
                 "additional_files_tarball_url",
                 "additional_files_tarball_hash",
                 "git_mlcube_url",

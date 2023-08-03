@@ -85,18 +85,18 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS -i $PREP_SING_IMAGE
+medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
 checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # wait 30s to make sure the token will be refreshed under the hood
 sleep 30
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS -i $METRICS_SING_IMAGE
+medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
