@@ -48,7 +48,7 @@ When your file is hosted on Synapse, MedPerf will be able to identify this file 
 --mlcube-file synapse:<the-synapse-id-of-the-file>
 ```
 
-Note that you need to authenticate with your Synapse credentials if you plan to use a Synaspe file with MedPerf. To do so run `medperf synapse_login`.
+Note that you need to authenticate with your Synapse credentials if you plan to use a Synaspe file with MedPerf. To do so run `medperf auth synapse_login`.
 
 !!! note
     You **must** authenticate if using files on Synapse. If this is not necessary, this means the file has anonymous public access read permission. In this case, Synapse allows you to generate a permanent direct download link for your file and you can follow the [previous section](#file-hosting).
