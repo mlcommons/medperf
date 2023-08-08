@@ -14,6 +14,7 @@ CERT_GENERATE="${CERT_GENERATE:-1}"
 CERT_FILE="${CERT_FILE:-$(realpath cert.crt)}"
 KEY_FILE="${KEY_FILE:-$(realpath cert.key)}"
 RESET_DB="${RESET_DB:-0}"
+
 echo $CERT_FILE
 echo $KEY_FILE
 echo $DEPLOY
@@ -21,10 +22,6 @@ echo $CERT_GENERATE
 echo $CERT_PATH
 echo $RESET_DB
 
-if [ ! -f ".env" ]
-then
-  cp .env.example .env
-fi
 
 if [ -z "$CERT_FILE" ]
 then

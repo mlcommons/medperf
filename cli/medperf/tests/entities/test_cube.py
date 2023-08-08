@@ -1,6 +1,7 @@
 import os
 import yaml
 import pytest
+from unittest.mock import call
 
 import medperf
 import medperf.config as config
@@ -12,11 +13,16 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
 )
 from medperf.tests.mocks.pexpect import MockPexpect
-from medperf.exceptions import ExecutionError
+from medperf.exceptions import ExecutionError, InvalidEntityError
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
-NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
+NO_IMG_CUBE = {
+    "id": 345,
+    "image_tarball_url": None,
+    "image_tarball_hash": None,
+    "image_hash": "hash",
+}
 
 
 @pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
@@ -33,7 +39,7 @@ def setup(request, mocker, comms, fs):
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
-    mpexpect = MockPexpect(0)
+    mpexpect = MockPexpect(0, "image_hash")
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
 
@@ -75,13 +81,28 @@ class TestGetFiles:
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-        expected_cmd = f"mlcube configure --mlcube={self.manifest_path}"
+        mocker.patch(PATCH_CUBE.format("verify_hash"), return_value=True)
+        expected_cmds = [
+            f"mlcube configure --mlcube={self.manifest_path}",
+            f"mlcube inspect --mlcube={self.manifest_path} --format=yaml",
+        ]
+        expected_cmds = [call(cmd) for cmd in expected_cmds]
 
         # Act
         Cube.get(self.id)
 
         # Assert
-        spy.assert_called_once_with(expected_cmd)
+        spy.assert_has_calls(expected_cmds)
+
+    @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
+    def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup):
+        # By default, the mocked object will not return a hash
+        # This means we would be comparing wrong hashes
+        mocker.spy(medperf.entities.cube.pexpect, "spawn")
+
+        # Act & Assert
+        with pytest.raises(InvalidEntityError):
+            Cube.get(self.id)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
@@ -111,13 +132,13 @@ class TestRun:
     @pytest.mark.parametrize("timeout", [847, None])
     def test_cube_runs_command(self, mocker, timeout, setup, task):
         # Arrange
-        mpexpect = MockPexpect(0)
+        mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch(
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f"--platform={self.platform}"
+            + f"--platform={self.platform} --network=none"
         )
 
         # Act
@@ -129,11 +150,11 @@ class TestRun:
 
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
-        mpexpect = MockPexpect(0)
+        mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f'--platform={self.platform} test="test"'
+            + f'--platform={self.platform} --network=none test="test"'
         )
 
         # Act
@@ -145,7 +166,7 @@ class TestRun:
 
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
-        mpexpect = MockPexpect(1)
+        mpexpect = MockPexpect(1, "expected_hash")
         mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
@@ -175,7 +196,7 @@ class TestDefaultOutput:
 
         # Construct the expected output path
         out_val_path = out_value
-        if type(out_value) == dict:
+        if isinstance(out_value, dict):
             out_val_path = out_value["default"]
         self.output = os.path.join(self.cube_path, config.workspace_path, out_val_path)
 

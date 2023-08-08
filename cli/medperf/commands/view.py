@@ -3,7 +3,7 @@ import json
 from typing import Union
 
 from medperf import config
-from medperf.utils import get_current_user
+from medperf.account_management import get_medperf_user_data
 from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError
 
@@ -62,7 +62,7 @@ class EntityView:
             entities = [self.entity_class.get(self.entity_id)]
         else:
             if self.mine_only:
-                self.filters["owner"] = get_current_user()["id"]
+                self.filters["owner"] = get_medperf_user_data()["id"]
 
             entities = self.entity_class.all(
                 local_only=self.local_only, filters=self.filters

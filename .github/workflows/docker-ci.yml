@@ -1,38 +1,21 @@
 name: Integration local docker workflow
 
-on: pull_request_target
+on: pull_request
 
 jobs:
-  authorize:
-    environment:
-      'testing-external-code'
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
   setup:
-    needs: authorize
     name: local-docker-deploy
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: medperf-api:test
-      MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
-
-    - name: Setup Chrome
-      run: |
-        sudo apt-get install -y wget
-        wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.198-1_amd64.deb
-        sudo dpkg -i chrome.deb
-        rm chrome.deb
 
     - name: Install Singularity
       run: |
@@ -61,7 +44,7 @@ jobs:
 
     - name: Set server environment vars
       working-directory: ./server
-      run: cp .env.example .env
+      run: cp .env.local.local-auth .env
 
     - name: Generate SSL certificate
       working-directory: ./server
@@ -69,7 +52,9 @@ jobs:
 
     - name: Build container image
       working-directory: ./server
-      run: docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
+      run: |
+        cp ../mock_tokens/tokens.json tokens.json
+        docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
       working-directory: ./server
@@ -77,7 +62,7 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: docker exec -e MOCK_USERS_PASSWORD medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt"
+      run: docker exec medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt --tokens tokens.json"
 
     - name: Run chestxray demo
       working-directory: .

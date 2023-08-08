@@ -37,8 +37,8 @@ def mock_comms_entity_gets(
     get_instance = comms_calls["get_instance"]
     upload_instance = comms_calls["upload_instance"]
 
-    all_ents = [ent if type(ent) == dict else {"id": ent} for ent in all_ents]
-    user_ents = [ent if type(ent) == dict else {"id": ent} for ent in user_ents]
+    all_ents = [ent if isinstance(ent, dict) else {"id": ent} for ent in all_ents]
+    user_ents = [ent if isinstance(ent, dict) else {"id": ent} for ent in user_ents]
 
     instances = [generate_fn(**ent).dict() for ent in all_ents]
     user_instances = [generate_fn(**ent).dict() for ent in user_ents]
@@ -46,7 +46,9 @@ def mock_comms_entity_gets(
     mocker.patch.object(comms, get_user, return_value=user_instances)
     get_behavior = get_comms_instance_behavior(generate_fn, all_ents)
     mocker.patch.object(
-        comms, get_instance, side_effect=get_behavior,
+        comms,
+        get_instance,
+        side_effect=get_behavior,
     )
     upload_behavior = upload_comms_instance_behavior(uploaded)
     mocker.patch.object(comms, upload_instance, side_effect=upload_behavior)
@@ -65,7 +67,7 @@ def get_comms_instance_behavior(
         function: Function that returns an entity dictionary if found,
         or raises an error if not
     """
-    ids = [ent["id"] if type(ent) == dict else ent for ent in ents]
+    ids = [ent["id"] if isinstance(ent, dict) else ent for ent in ents]
 
     def get_behavior(id: int):
         if id in ids:

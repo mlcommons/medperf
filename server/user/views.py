@@ -2,11 +2,13 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 
 from .serializers import UserSerializer
 from .permissions import IsAdmin, IsOwnUser
+
+User = get_user_model()
 
 
 class UserList(GenericAPIView):
@@ -23,16 +25,6 @@ class UserList(GenericAPIView):
         users = self.paginate_queryset(users)
         serializer = UserSerializer(users, many=True)
         return self.get_paginated_response(serializer.data)
-
-    def post(self, request, format=None):
-        """
-        Creates a new user
-        """
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetail(GenericAPIView):

@@ -1,3 +1,4 @@
+from medperf.comms.auth.interface import Auth
 import pytest
 import requests
 import builtins
@@ -75,3 +76,10 @@ def comms(mocker):
     comms = mocker.create_autospec(spec=Comms)
     config.comms = comms
     return comms
+
+
+@pytest.fixture
+def auth(mocker):
+    auth = mocker.create_autospec(spec=Auth)
+    config.auth = auth
+    return auth

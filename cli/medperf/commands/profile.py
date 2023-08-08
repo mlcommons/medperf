@@ -100,7 +100,11 @@ def delete(profile: str):
     if profile not in config_p.profiles:
         raise InvalidArgumentError("The provided profile does not exists")
 
-    if profile in [config.default_profile_name, config.test_profile_name]:
+    if profile in [
+        config.default_profile_name,
+        config.testauth_profile_name,
+        config.test_profile_name,
+    ]:
         raise InvalidArgumentError("Cannot delete reserved profiles")
 
     if config_p.is_profile_active(profile):

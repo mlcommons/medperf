@@ -39,7 +39,7 @@ jobs:
         pytest
     - name: Set server environment vars
       working-directory: ./server
-      run: cp .env.example .env
+      run: cp .env.local.local-auth .env
     - name: Run migrations
       working-directory: ./server
       run: python manage.py migrate

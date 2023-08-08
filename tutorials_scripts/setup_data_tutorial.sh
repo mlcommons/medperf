@@ -13,3 +13,6 @@ elif [ -x "$(which curl)" ]; then
 fi
 tar -xf $filename
 rm $filename
+
+## Login locally as data owner
+medperf auth login -e testdo@example.com

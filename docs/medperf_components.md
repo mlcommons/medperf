@@ -1,6 +1,6 @@
 # MedPerf Components
 
-MedPerf is composed of software pieces:
+![architecture](assets/components.png)
 
 ## MedPerf Server
 
@@ -15,3 +15,9 @@ The MedPerf client contains all the necessary tools to interact with the server,
 The client communicates to the server through the API to, for example, authenticate a user, retrieve benchmarks/MLcubes and send results.
 
 The client is currently available to the user through a command-line interface (CLI). See the [CLI reference](cli_reference.md).
+
+## Auth Provider
+
+The auth provider manages MedPerf users identities, authentication, and authorization to access the MedPerf server. Users will authenticate with the auth provider and authorize their MedPerf client to access the MedPerf server. Upon authorization, the MedPerf client will use access tokens issued by the auth provider in every request to the MedPerf server. The MedPerf server is configured to processes only requests authorized by the auth provider.
+
+Currently, MedPerf uses Auth0 as the auth provider.
