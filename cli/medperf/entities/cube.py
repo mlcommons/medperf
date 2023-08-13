@@ -215,11 +215,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
             with pexpect.spawn(cmd) as proc:
-                proc_out = combine_proc_sp_text(proc)
+                proc_out = proc.read()
             logging.debug(proc_out)
 
             # Retrieve image hash from MLCube
-            logging.debug("Retriving {self.id} image hash")
+            logging.debug(f"Retrieving {self.id} image hash")
             cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
             with pexpect.spawn(cmd) as proc:
                 proc_stdout = proc.read()
@@ -268,7 +268,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
+        if config.loglevel.lower() == "debug":
+            cmd = f"mlcube run"
+        else:
+            cmd = f"mlcube --log-level critical run"
+        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         for k, v in kwargs.items():
