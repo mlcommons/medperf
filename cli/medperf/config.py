@@ -88,6 +88,8 @@ sanity_check_timeout = None
 statistics_timeout = None
 infer_timeout = None
 evaluate_timeout = None
+mlcube_configure_timeout = None
+mlcube_inspect_timeout = None
 
 configurable_parameters = [
     "server",

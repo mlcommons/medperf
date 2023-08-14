@@ -99,7 +99,7 @@ class DataPreparation:
             benchmark = Benchmark.get(self.benchmark_uid)
             cube_uid = benchmark.data_preparation_mlcube
             self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
-        self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
+        self.ui.text = "Retrieving data preparation cube"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
 

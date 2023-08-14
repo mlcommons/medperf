@@ -363,25 +363,20 @@ def combine_proc_sp_text(proc: spawn) -> str:
     ui = config.ui
     static_text = ui.text
     proc_out = ""
-    while proc.isalive():
+    break_ = False
+    while not break_:
+        if not proc.isalive():
+            break_ = True
         try:
-            line = byte = proc.read(1)
+            line = proc.readline()
         except TIMEOUT:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
-
-        while byte and not re.match(b"[\r\n]", byte):
-            byte = proc.read(1)
-            line += byte
-        if not byte:
-            break
         line = line.decode("utf-8", "ignore")
         if line:
-            # add to proc_out list for logging
             proc_out += line
-        ui.text = (
-            f"{static_text} {Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
-        )
+            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+            ui.text = static_text
 
     return proc_out
 

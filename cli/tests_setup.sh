@@ -61,7 +61,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/7ad8814815fd5d4f9f15e3dbc10128d67fba19be"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/036aaa0c156e1ce9b7952f3b4d5275caec30a0a9"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
