@@ -214,14 +214,14 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            with pexpect.spawn(cmd) as proc:
+            with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
                 proc_out = proc.read()
             logging.debug(proc_out)
 
             # Retrieve image hash from MLCube
             logging.debug(f"Retrieving {self.id} image hash")
             cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
-            with pexpect.spawn(cmd) as proc:
+            with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
                 proc_stdout = proc.read()
             mlcube_details = yaml.safe_load(proc_stdout)
             local_hash = mlcube_details["hash"]
