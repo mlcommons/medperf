@@ -269,9 +269,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         kwargs.update(string_params)
         if config.loglevel.lower() == "debug":
-            cmd = f"mlcube run"
+            cmd = "mlcube run"
         else:
-            cmd = f"mlcube --log-level critical run"
+            cmd = "mlcube --log-level critical run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
