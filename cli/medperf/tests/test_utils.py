@@ -114,8 +114,14 @@ def test_get_file_hash_opens_specified_file(mocker, file):
 @pytest.mark.parametrize(
     "file_io",
     [
-        (b"test file\n", "0181d93fee60b818e3f92e470ea97a2aff4ca56a"),
-        (b"file\nwith\nmultilines\n", "a69ce122f95a94dc02485764d463b10545a558c8"),
+        (
+            b"test file\n",
+            "55f8718109829bf506b09d8af615b9f107a266e19f7a311039d1035f180b22d4",
+        ),
+        (
+            b"file\nwith\nmultilines\n",
+            "7361d0aa589a45156d130cfde89f8ad441770fd87d992f404e5758ece6d36b49",
+        ),
     ],
 )
 def test_get_file_hash_calculates_hash(mocker, file_io):
@@ -378,7 +384,7 @@ def test_get_folder_hash_returns_expected_hash(mocker, filesystem):
     hash = utils.get_folder_hash("test")
 
     # Assert
-    assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
+    assert hash == "b7e9365f1e796ba29e9e6b1b94b5f4cc7238530601fad8ec96ece9fee68c3d7f"
 
 
 @pytest.mark.parametrize(
