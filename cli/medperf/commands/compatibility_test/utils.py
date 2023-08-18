@@ -1,4 +1,4 @@
-from medperf.utils import storage_path, get_folder_sha1
+from medperf.utils import storage_path, get_folder_hash
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -34,7 +34,7 @@ def download_demo_data(dset_url, dset_hash):
 
 
 def prepare_local_cube(path):
-    temp_uid = get_folder_sha1(path)
+    temp_uid = get_folder_hash(path)
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
     os.symlink(path, dst)

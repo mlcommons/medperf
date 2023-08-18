@@ -100,12 +100,12 @@ def test_setup_logging_filters_sensitive_data(text, exp_output, prepare_logs):
 
 
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
-def test_get_file_sha1_opens_specified_file(mocker, file):
+def test_get_file_hash_opens_specified_file(mocker, file):
     # Arrange
     spy = mocker.patch("builtins.open", mock_open())
 
     # Act
-    utils.get_file_sha1(file)
+    utils.get_file_hash(file)
 
     # Assert
     spy.assert_called_once_with(file, "rb")
@@ -118,13 +118,13 @@ def test_get_file_sha1_opens_specified_file(mocker, file):
         (b"file\nwith\nmultilines\n", "a69ce122f95a94dc02485764d463b10545a558c8"),
     ],
 )
-def test_get_file_sha1_calculates_hash(mocker, file_io):
+def test_get_file_hash_calculates_hash(mocker, file_io):
     # Arrange
     file_contents, expected_hash = file_io
     mocker.patch("builtins.open", mock_open(read_data=file_contents))
 
     # Act
-    hash = utils.get_file_sha1("")
+    hash = utils.get_file_hash("")
 
     # Assert
     assert hash == expected_hash
@@ -132,7 +132,7 @@ def test_get_file_sha1_calculates_hash(mocker, file_io):
 
 @pytest.mark.parametrize(
     "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
+    [config_dirs[0:i] + config_dirs[i + 1 :] for i in range(len(config_dirs))],
 )
 def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
     # Arrange
@@ -337,45 +337,45 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     spy.assert_called_once_with(exp_dict)
 
 
-def test_get_folder_sha1_hashes_all_files_in_folder(mocker, filesystem):
+def test_get_folder_hash_hashes_all_files_in_folder(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
     exp_calls = [call(file) for file in files]
     mocker.patch("os.walk", return_value=fs)
-    spy = mocker.patch(patch_utils.format("get_file_sha1"), side_effect=files)
+    spy = mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
 
     # Act
-    utils.get_folder_sha1("test")
+    utils.get_folder_hash("test")
 
     # Assert
     spy.assert_has_calls(exp_calls)
 
 
-def test_get_folder_sha1_sorts_individual_hashes(mocker, filesystem):
+def test_get_folder_hash_sorts_individual_hashes(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
     mocker.patch("os.walk", return_value=fs)
-    mocker.patch(patch_utils.format("get_file_sha1"), side_effect=files)
+    mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
     spy = mocker.patch("builtins.sorted", side_effect=sorted)
 
     # Act
-    utils.get_folder_sha1("test")
+    utils.get_folder_hash("test")
 
     # Assert
     spy.assert_called_once_with(files)
 
 
-def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
+def test_get_folder_hash_returns_expected_hash(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
     mocker.patch("os.walk", return_value=fs)
-    mocker.patch(patch_utils.format("get_file_sha1"), side_effect=files)
+    mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
 
     # Act
-    hash = utils.get_folder_sha1("test")
+    hash = utils.get_folder_hash("test")
 
     # Assert
     assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
