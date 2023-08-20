@@ -14,7 +14,7 @@ pytest-mock==1.13.0
 pyfakefs==5.0.0
 mlcube @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=mlcube
 mlcube-docker @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=runners/mlcube_docker
-mlcube-singularity @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=runners/mlcube_singularity; sys_platform != "win32"
+mlcube-singularity @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=runners/mlcube_singularity ; sys_platform != "win32"
 validators==0.18.2
 merge-args==0.1.4
 synapseclient==2.7.0
