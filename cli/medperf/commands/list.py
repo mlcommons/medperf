@@ -2,7 +2,7 @@ from medperf.exceptions import InvalidArgumentError
 from tabulate import tabulate
 
 from medperf import config
-from medperf.utils import get_current_user
+from medperf.account_management import get_medperf_user_data
 
 
 class EntityList:
@@ -37,7 +37,7 @@ class EntityList:
 
     def prepare(self):
         if self.mine_only:
-            self.filters["owner"] = get_current_user()["id"]
+            self.filters["owner"] = get_medperf_user_data()["id"]
 
         entities = self.entity_class.all(
             local_only=self.local_only, filters=self.filters

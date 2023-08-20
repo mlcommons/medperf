@@ -6,7 +6,7 @@ app = typer.Typer()
 
 
 @app.command("infer")
-def prepare(
+def infer(
     data_path: str = typer.Option(..., "--data_path"),
     parameters_file: str = typer.Option(..., "--parameters_file"),
     output_path: str = typer.Option(..., "--output_path"),
@@ -14,8 +14,8 @@ def prepare(
     # e.g. model weights:
     # weights: str = typer.Option(..., "--weights"),
 ):
-    # Modify the prepare command as needed
-    raise NotImplementedError("The evaluate method is not yet implemented")
+    # Modify the infer command as needed
+    raise NotImplementedError("The infer method is not yet implemented")
 
 
 @app.command("hotfix")

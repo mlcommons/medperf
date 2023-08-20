@@ -56,7 +56,7 @@ def setup(request, mocker):
         else:
             raise InvalidArgumentError
 
-    mocker.patch("medperf.commands.view.get_current_user", return_value={"id": 1})
+    mocker.patch("medperf.commands.view.get_medperf_user_data", return_value={"id": 1})
     mocker.patch.object(Entity, "all", side_effect=mock_all)
     mocker.patch.object(Entity, "get", side_effect=mock_get)
 

@@ -17,28 +17,11 @@ from medperf.exceptions import ExecutionError, InvalidEntityError
 
 PATCH_CUBE = "medperf.entities.cube.{}"
 DEFAULT_CUBE = {"id": 37}
-FAILING_CUBE = {"id": 46, "parameters_hash": "error"}
-NO_IMG_CUBE = {"id": 345, "image_tarball_url": None, "image_tarball_hash": None}
-BASIC_CUBE = {
-    "id": 598,
-    "git_parameters_url": None,
-    "git_parameters_hash": None,
+NO_IMG_CUBE = {
+    "id": 345,
     "image_tarball_url": None,
     "image_tarball_hash": None,
-    "additional_files_tarball_url": None,
-    "additional_files_tarball_hash": None,
-}
-VALID_CUBES = [{"remote": [DEFAULT_CUBE]}, {"remote": [BASIC_CUBE]}]
-INVALID_CUBES = [
-    {"remote": [{"id": 190, "is_valid": False}]},
-    {"remote": [{"id": 53, "mlcube_hash": "incorrect"}]},
-    {"remote": [{"id": 7, "parameters_hash": "incorrect"}]},
-    {"remote": [{"id": 874, "image_tarball_hash": "incorrect"}]},
-    {"remote": [{"id": 286, "additional_files_tarball_hash": "incorrect"}]},
-]
-
-CUBE_CONTENTS = {
-    "tasks": {"task": {"parameters": {"outputs": {"out_key": "out_value"}}}}
+    "image_hash": "hash",
 }
 
 
@@ -56,10 +39,9 @@ def setup(request, mocker, comms, fs):
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
-    mpexpect = MockPexpect(0)
+    mpexpect = MockPexpect(0, "image_hash")
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
-    mocker.patch(PATCH_CUBE.format("untar"))
 
     return request.param
 
@@ -95,41 +77,32 @@ class TestGetFiles:
         for file in self.file_paths:
             assert os.path.exists(file) and os.path.isfile(file)
 
-    @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
-    def test_get_cube_untars_files(self, mocker, setup):
-        # Arrange
-        spy = mocker.spy(medperf.entities.cube, "untar")
-        calls = [call(self.add_path)]
-
-        # Act
-        Cube.get(self.id)
-
-        # Assert
-        spy.assert_has_calls(calls)
-
-    @pytest.mark.parametrize("setup", [{"remote": [FAILING_CUBE]}], indirect=True)
-    def test_get_cube_deletes_cube_if_failed(self, mocker, setup):
-        # Arrange
-        spy = mocker.patch(PATCH_CUBE.format("cleanup"))
-
-        # Act
-        with pytest.raises(InvalidEntityError):
-            Cube.get(self.id)
-
-        # Assert
-        spy.assert_called_once_with([self.cube_path])
-
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
     def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
         # Arrange
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-        expected_cmd = f"mlcube configure --mlcube={self.manifest_path}"
+        mocker.patch(PATCH_CUBE.format("verify_hash"), return_value=True)
+        expected_cmds = [
+            f"mlcube configure --mlcube={self.manifest_path}",
+            f"mlcube inspect --mlcube={self.manifest_path} --format=yaml",
+        ]
+        expected_cmds = [call(cmd, timeout=None) for cmd in expected_cmds]
 
         # Act
         Cube.get(self.id)
 
         # Assert
-        spy.assert_called_once_with(expected_cmd, timeout=None)
+        spy.assert_has_calls(expected_cmds)
+
+    @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
+    def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup):
+        # By default, the mocked object will not return a hash
+        # This means we would be comparing wrong hashes
+        mocker.spy(medperf.entities.cube.pexpect, "spawn")
+
+        # Act & Assert
+        with pytest.raises(InvalidEntityError):
+            Cube.get(self.id)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_with_image_isnt_configured(self, mocker, setup):
@@ -143,29 +116,6 @@ class TestGetFiles:
         spy.assert_not_called()
 
 
-class TestValidity:
-    @pytest.mark.parametrize("setup", VALID_CUBES, indirect=True)
-    def test_valid_cube_is_detected(self, setup):
-        # Arrange
-        uid = setup["remote"][0]["id"]
-
-        # Act
-        cube = Cube.get(uid)
-
-        # Assert
-        assert cube.valid()
-
-    @pytest.mark.parametrize("setup", INVALID_CUBES, indirect=True)
-    def test_invalid_cube_is_detected(self, mocker, setup):
-        # Arrange
-        uid = setup["remote"][0]["id"]
-        mocker.patch(PATCH_CUBE.format("cleanup"))
-
-        # Act & Assert
-        with pytest.raises(InvalidEntityError):
-            Cube.get(uid)
-
-
 @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
 @pytest.mark.parametrize("task", ["infer"])
 class TestRun:
@@ -173,6 +123,7 @@ class TestRun:
     def set_common_attributes(self, setup):
         self.id = setup["remote"][0]["id"]
         self.platform = config.platform
+        self.gpus = config.gpus
 
         # Specify expected path for the manifest files
         self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
@@ -181,11 +132,14 @@ class TestRun:
     @pytest.mark.parametrize("timeout", [847, None])
     def test_cube_runs_command(self, mocker, timeout, setup, task):
         # Arrange
-        mpexpect = MockPexpect(0)
+        mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch(
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
-        expected_cmd = f"mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform}"
+        expected_cmd = (
+            f"mlcube --log-level critical run --mlcube={self.manifest_path} --task={task} "
+            + f"--platform={self.platform} --network=none"
+        )
 
         # Act
         cube = Cube.get(self.id)
@@ -196,9 +150,12 @@ class TestRun:
 
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
-        mpexpect = MockPexpect(0)
+        mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
-        expected_cmd = f'mlcube run --mlcube={self.manifest_path} --task={task} --platform={self.platform} test="test"'
+        expected_cmd = (
+            f"mlcube --log-level critical run --mlcube={self.manifest_path} --task={task} "
+            + f'--platform={self.platform} --network=none test="test"'
+        )
 
         # Act
         cube = Cube.get(self.id)
@@ -209,7 +166,7 @@ class TestRun:
 
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
-        mpexpect = MockPexpect(1)
+        mpexpect = MockPexpect(1, "expected_hash")
         mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
@@ -239,7 +196,7 @@ class TestDefaultOutput:
 
         # Construct the expected output path
         out_val_path = out_value
-        if type(out_value) == dict:
+        if isinstance(out_value, dict):
             out_val_path = out_value["default"]
         self.output = os.path.join(self.cube_path, config.workspace_path, out_val_path)
 
@@ -260,7 +217,9 @@ class TestDefaultOutput:
         # Arrange
         # Create a params file with minimal content
         params_contents = {param_key: param_val}
-        params_path = os.path.join(self.cube_path, config.params_filename)
+        params_path = os.path.join(
+            self.cube_path, config.workspace_path, config.params_filename
+        )
         fs.create_file(params_path, contents=yaml.dump(params_contents))
 
         # Construct the expected path

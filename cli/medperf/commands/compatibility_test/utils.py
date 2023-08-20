@@ -1,11 +1,5 @@
-from medperf.utils import (
-    untar,
-    get_file_sha1,
-    storage_path,
-    check_cube_validity,
-    get_folder_sha1,
-)
-from medperf.exceptions import InvalidEntityError, InvalidArgumentError
+from medperf.utils import storage_path, get_folder_sha1
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
 from medperf.entities.cube import Cube
@@ -23,35 +17,30 @@ def download_demo_data(dset_url, dset_hash):
         data_path (str): Location of the downloaded data
         labels_path (str): Location of the downloaded labels
     """
-    file_path = resources.get_benchmark_demo_dataset(dset_url, dset_hash)
-
-    # Check demo dataset integrity
-    file_hash = get_file_sha1(file_path)
-    # Alllow for empty datset hashes for benchmark registration purposes
-    if dset_hash and file_hash != dset_hash:
-        raise InvalidEntityError("Demo dataset hash doesn't match expected hash")
-
-    untar_path = untar(file_path, remove=False)
+    try:
+        demo_dset_path, _ = resources.get_benchmark_demo_dataset(dset_url, dset_hash)
+    except InvalidEntityError as e:
+        raise InvalidEntityError(f"Demo dataset {dset_url}: {e}")
 
     # It is assumed that all demo datasets contain a file
     # which specifies the input of the data preparation step
-    paths_file = os.path.join(untar_path, config.demo_dset_paths_file)
+    paths_file = os.path.join(demo_dset_path, config.demo_dset_paths_file)
     with open(paths_file, "r") as f:
         paths = yaml.safe_load(f)
 
-    data_path = os.path.join(untar_path, paths["data_path"])
-    labels_path = os.path.join(untar_path, paths["labels_path"])
+    data_path = os.path.join(demo_dset_path, paths["data_path"])
+    labels_path = os.path.join(demo_dset_path, paths["labels_path"])
     return data_path, labels_path
 
 
 def prepare_local_cube(path):
-    temp_uid = config.test_cube_prefix + get_folder_sha1(path)
+    temp_uid = get_folder_sha1(path)
     cubes_storage = storage_path(config.cubes_storage)
     dst = os.path.join(cubes_storage, temp_uid)
     os.symlink(path, dst)
     logging.info(f"local cube will be linked to path: {dst}")
+    config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
-    cube_hashes_filename = os.path.join(path, config.cube_hashes_filename)
     if not os.path.exists(cube_metadata_file):
         temp_metadata = {
             "id": None,
@@ -66,17 +55,7 @@ def prepare_local_cube(path):
         metadata = Cube(**temp_metadata).todict()
         with open(cube_metadata_file, "w") as f:
             yaml.dump(metadata, f)
-        config.extra_cleanup_paths.append(cube_metadata_file)
-    if not os.path.exists(cube_hashes_filename):
-        hashes = {
-            "mlcube_hash": "",
-            "parameters_hash": "",
-            "additional_files_tarball_hash": "",
-            "image_tarball_hash": "",
-        }
-        with open(cube_hashes_filename, "w") as f:
-            yaml.dump(hashes, f)
-        config.extra_cleanup_paths.append(cube_hashes_filename)
+        config.tmp_paths.append(cube_metadata_file)
 
     return temp_uid
 
@@ -117,5 +96,4 @@ def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
     config.ui.text = f"Retrieving {name} cube"
     cube = Cube.get(uid, local_only=local_only)
     config.ui.print(f"> {name} cube download complete")
-    check_cube_validity(cube)
     return cube

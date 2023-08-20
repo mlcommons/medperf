@@ -1,3 +1,4 @@
+import sys
 import typer
 import logging
 import functools
@@ -15,11 +16,11 @@ import medperf.config as config
 
 
 def clean_except(func: Callable) -> Callable:
-    """Decorator for handling unexpected errors. It allows logging
+    """Decorator for handling errors. It allows logging
     and cleaning the project's directory before throwing the error.
 
     Args:
-        func (Callable): Function to handle for unexpected errors
+        func (Callable): Function to handle for errors
 
     Returns:
         Callable: Decorated function
@@ -31,17 +32,18 @@ def clean_except(func: Callable) -> Callable:
             logging.info(f"Running function '{func.__name__}'")
             func(*args, **kwargs)
         except CleanExit as e:
-            logging.exception(e)
+            logging.info(str(e))
             config.ui.print(str(e))
-            if e.clean:
-                cleanup()
         except MedperfException as e:
             logging.exception(e)
-            pretty_error(str(e), clean=e.clean)
+            pretty_error(str(e))
+            sys.exit(1)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
             logging.exception(e)
-            pretty_error(str(e))
+            raise e
+        finally:
+            cleanup()
 
     return wrapper
 
@@ -67,13 +69,37 @@ def configurable(func: Callable) -> Callable:
     def wrapper(
         *args,
         server: str = typer.Option(
-            config.server, "--server", help="URL of a hosted MedPerf API instance",
+            config.server, "--server", help="URL of a hosted MedPerf API instance"
+        ),
+        auth_class: str = typer.Option(
+            config.auth_class,
+            "--auth_class",
+            help="Authentication interface to use [Auth0]",
+        ),
+        auth_domain: str = typer.Option(
+            config.auth_domain, "--auth_domain", help="Auth0 domain name"
+        ),
+        auth_jwks_url: str = typer.Option(
+            config.auth_jwks_url, "--auth_jwks_url", help="Auth0 Json Web Key set URL"
+        ),
+        auth_idtoken_issuer: str = typer.Option(
+            config.auth_idtoken_issuer,
+            "--auth_idtoken_issuer",
+            help="Auth0 ID token issuer",
+        ),
+        auth_client_id: str = typer.Option(
+            config.auth_client_id, "--auth_client_id", help="Auth0 client ID"
+        ),
+        auth_audience: str = typer.Option(
+            config.auth_audience,
+            "--auth_audience",
+            help="Server's Auth0 API identifier",
         ),
         certificate: str = typer.Option(
-            config.certificate, "--certificate", help="path to a valid SSL certificate",
+            config.certificate, "--certificate", help="path to a valid SSL certificate"
         ),
         comms: str = typer.Option(
-            config.comms, "--comms", help="communications interface to use. [REST]",
+            config.comms, "--comms", help="communications interface to use. [REST]"
         ),
         ui: str = typer.Option(config.ui, "--ui", help="UI interface to use. [CLI]"),
         loglevel: str = typer.Option(
@@ -110,6 +136,15 @@ def configurable(func: Callable) -> Callable:
             config.platform,
             "--platform",
             help="Platform to use for MLCube. [docker | singularity]",
+        ),
+        gpus: str = typer.Option(
+            config.gpus,
+            "--gpus",
+            help="""
+            What GPUs to expose to MLCube.
+            Accepted Values are comma separated GPU IDs (e.g "1,2"), or \"all\".
+            MLCubes that aren't configured to use GPUs won't be affected by this.
+            Defaults to all available GPUs""",
         ),
         cleanup: bool = typer.Option(
             config.cleanup,

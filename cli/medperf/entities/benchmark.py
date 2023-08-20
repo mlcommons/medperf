@@ -10,6 +10,7 @@ from medperf.entities.interface import Entity, Uploadable
 from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
+from medperf.account_management import get_medperf_user_data
 
 
 class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
@@ -113,7 +114,7 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_benchmarks
-        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_benchmarks
         return comms_fn
 
@@ -219,42 +220,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         return data
 
     @classmethod
-    def tmp(
-        cls,
-        data_preparator: int,
-        model: int,
-        evaluator: int,
-        demo_url: str = None,
-        demo_hash: str = None,
-    ) -> "Benchmark":
-        """Creates a temporary instance of the benchmark
-
-        Args:
-            data_preparator (int): UID of the data preparator cube to use.
-            model (int): UID of the model cube to use.
-            evaluator (int): UID of the evaluator cube to use.
-            demo_url (str, optional): URL to obtain the demo dataset. Defaults to None.
-            demo_hash (str, optional): Hash of the demo dataset tarball file. Defaults to None.
-
-        Returns:
-            Benchmark: a benchmark instance
-        """
-        name = f"b{data_preparator}m{model}e{evaluator}"
-        benchmark_dict = {
-            "id": None,
-            "name": name,
-            "data_preparation_mlcube": data_preparator,
-            "reference_model_mlcube": model,
-            "data_evaluator_mlcube": evaluator,
-            "demo_dataset_tarball_url": demo_url,
-            "demo_dataset_tarball_hash": demo_hash,
-            "models": [model],  # not in the server (OK)
-        }
-        benchmark = cls(**benchmark_dict)
-        benchmark.write()
-        return benchmark
-
-    @classmethod
     def get_models_uids(cls, benchmark_uid: int) -> List[int]:
         """Retrieves the list of models associated to the benchmark
 
@@ -298,6 +263,8 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         Args:
             comms (Comms): communications entity to submit through
         """
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test benchmarks.")
         body = self.todict()
         updated_body = config.comms.upload_benchmark(body)
         updated_body["models"] = body["models"]

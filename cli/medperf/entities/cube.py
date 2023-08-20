@@ -11,18 +11,19 @@ if sys.platform == "win32":
 else:
     import pexpect
 
-from medperf.utils import untar, combine_proc_sp_text, list_files, storage_path, cleanup
+from medperf.utils import combine_proc_sp_text, list_files, storage_path, verify_hash
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
+    InvalidEntityError,
     MedperfException,
     CommunicationRetrievalError,
-    InvalidEntityError,
 )
 import medperf.config as config
 from medperf.comms.entity_resources import resources
+from medperf.account_management import get_medperf_user_data
 
 
 class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
@@ -41,6 +42,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     parameters_hash: Optional[str]
     image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
+    image_hash: Optional[str]
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
@@ -117,8 +119,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_cubes
-        if "owner" in filters and filters["owner"] == config.current_user["id"]:
-            comms_fn = config.comms.get_user_results
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
+            comms_fn = config.comms.get_user_cubes
 
         return comms_fn
 
@@ -162,20 +164,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 logging.info(f"Retrieving MLCube {cube_uid} from local storage")
                 cube = cls.__local_get(cube_uid)
 
-        if cube.valid():
-            return cube
-
-        try:
-            cube.download()
-        except CommunicationRetrievalError as e:
-            cleanup([cube.path])
-            logging.error(f"Could not download the mlcube files of {cube_uid}")
-            raise e
-
-        if cube.valid():
-            return cube
-        cleanup([cube.path])
-        raise InvalidEntityError(f"MLCube {cube_uid} files hash check failed")
+        if not cube.is_valid:
+            raise InvalidEntityError("The requested MLCube is marked as INVALID.")
+        cube.download()
+        return cube
 
     @classmethod
     def __remote_get(cls, cube_uid: int) -> "Cube":
@@ -194,85 +186,75 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
     def download_mlcube(self):
         url = self.git_mlcube_url
-        path, local_hash = resources.get_cube(url, self.path)
-        if not self.mlcube_hash:
-            self.mlcube_hash = local_hash
+        path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
         self.cube_path = path
-        return local_hash
+        self.mlcube_hash = file_hash
 
     def download_parameters(self):
         url = self.git_parameters_url
         if url:
-            path, local_hash = resources.get_cube_params(url, self.path)
-            if not self.parameters_hash:
-                self.parameters_hash = local_hash
+            path, file_hash = resources.get_cube_params(
+                url, self.path, self.parameters_hash
+            )
             self.params_path = path
-            return local_hash
-        return ""
+            self.parameters_hash = file_hash
 
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            path, local_hash = resources.get_cube_additional(url, self.path)
-            if not self.additional_files_tarball_hash:
-                self.additional_files_tarball_hash = local_hash
-            untar(path)
-            return local_hash
-        return ""
+            file_hash = resources.get_cube_additional(
+                url, self.path, self.additional_files_tarball_hash
+            )
+            self.additional_files_tarball_hash = file_hash
 
     def download_image(self):
         url = self.image_tarball_url
-        hash = self.image_tarball_hash
+        tarball_hash = self.image_tarball_hash
+        img_hash = self.image_hash
 
         if url:
-            _, local_hash = resources.get_cube_image(url, self.path, hash)
-            if not self.image_tarball_hash:
-                self.image_tarball_hash = local_hash
-            return local_hash
+            _, local_hash = resources.get_cube_image(url, self.path, tarball_hash)
+            self.image_tarball_hash = local_hash
         else:
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            proc = pexpect.spawn(cmd, timeout=None)
-            proc_out = combine_proc_sp_text(proc)
+            with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
+                proc_out = proc.read()
             logging.debug(proc_out)
-            proc.close()
-            return ""
+
+            # Retrieve image hash from MLCube
+            logging.debug(f"Retrieving {self.id} image hash")
+            cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
+            with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
+                proc_stdout = proc.read()
+            mlcube_details = yaml.safe_load(proc_stdout)
+            local_hash = mlcube_details["hash"]
+            verify_hash(local_hash, img_hash)
+            self.image_hash = local_hash
 
     def download(self):
         """Downloads the required elements for an mlcube to run locally."""
 
-        local_hashes = {
-            "mlcube_hash": self.download_mlcube(),
-            "parameters_hash": self.download_parameters(),
-            "additional_files_tarball_hash": self.download_additional(),
-            "image_tarball_hash": self.download_image(),
-        }
-        self.store_local_hashes(local_hashes)
-
-    def valid(self) -> bool:
-        """Checks the validity of the cube and related files through hash checking.
-
-        Returns:
-            bool: Wether the cube and related files match the expeced hashes
-        """
         try:
-            local_hashes = self.get_local_hashes()
-        except FileNotFoundError:
-            logging.warning("Local MLCube files not found. Defaulting to invalid")
-            return False
+            self.download_mlcube()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} manifest file: {e}")
 
-        valid_cube = self.is_valid
-        valid_hashes = True
-        server_hashes = self.todict()
-        for key in local_hashes:
-            if local_hashes[key]:
-                if local_hashes[key] != server_hashes[key]:
-                    valid_hashes = False
-                    msg = f"{key.replace('_', ' ')} doesn't match"
-                    logging.warning(msg)
+        try:
+            self.download_parameters()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
-        return valid_cube and valid_hashes
+        try:
+            self.download_additional()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} additional files: {e}")
+
+        try:
+            self.download_image()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
 
     def run(
         self,
@@ -291,7 +273,13 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform}"
+        if config.loglevel.lower() == "debug":
+            cmd = "mlcube run"
+        else:
+            cmd = "mlcube --log-level critical run"
+        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
+        if config.gpus is not None:
+            cmd += f" --gpus={config.gpus}"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
@@ -326,7 +314,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             return None
 
         out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
-        if type(out_path) == dict:
+        if isinstance(out_path, dict):
             # output is specified as a dict with type and default values
             out_path = out_path["default"]
         cube_loc = str(Path(self.cube_path).parent)
@@ -352,20 +340,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         return meta_file
 
     def upload(self):
+        if self.for_test:
+            raise InvalidArgumentError("Cannot upload test mlcubes.")
         cube_dict = self.todict()
         updated_cube_dict = config.comms.upload_mlcube(cube_dict)
         return updated_cube_dict
-
-    def get_local_hashes(self):
-        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
-        with open(local_hashes_file, "r") as f:
-            local_hashes = yaml.safe_load(f)
-        return local_hashes
-
-    def store_local_hashes(self, local_hashes):
-        local_hashes_file = os.path.join(self.path, config.cube_hashes_filename)
-        with open(local_hashes_file, "w") as f:
-            yaml.dump(local_hashes, f)
 
     @classmethod
     def __get_local_dict(cls, uid):

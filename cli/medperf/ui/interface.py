@@ -13,6 +13,9 @@ class UI(ABC):
     def print_error(self, msg: str):
         """Display an error message to the interface"""
 
+    def print_warning(self, msg: str):
+        """Display a warning message on the command line"""
+
     @abstractmethod
     def start_interactive(self):
         """Initialize an interactive session for animations or overriding messages.
@@ -28,8 +31,7 @@ class UI(ABC):
     @abstractmethod
     @contextmanager
     def interactive(self):
-        """Context managed interactive session. Expected to yield the same instance
-        """
+        """Context managed interactive session. Expected to yield the same instance"""
 
     @abstractmethod
     def text(self, msg: str):

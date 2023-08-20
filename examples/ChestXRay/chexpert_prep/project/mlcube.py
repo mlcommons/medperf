@@ -3,17 +3,12 @@ import os
 import yaml
 import typer
 import shutil
-import subprocess
-from pathlib import Path
 
+from preprocess import Preprocessor
+from check import Checker
+from statistics import Stats
 
 app = typer.Typer()
-
-
-def exec_python(cmd: str) -> None:
-    splitted_cmd = cmd.split()
-
-    subprocess.run(splitted_cmd, cwd=".", check=True)
 
 
 class PreprocessTask(object):
@@ -32,8 +27,8 @@ class PreprocessTask(object):
         csvs = [file for file in files if file.endswith(".csv")]
         assert len(csvs) == 1, "Data path must contain only one csv file"
         labels_file = os.path.join(labels_path, csvs[0])
-        cmd = f"python3 preprocess.py --img_path='{data_path}' --csv_path='{labels_file}' --params_file='{params_file}' --output_path='{output_path}'"
-        exec_python(cmd)
+        preprocessor = Preprocessor(data_path, labels_file, params_file, output_path)
+        preprocessor.run()
 
 
 class SanityCheckTask(object):
@@ -47,8 +42,11 @@ class SanityCheckTask(object):
 
     @staticmethod
     def run(data_path: str, params_file: str) -> None:
-        cmd = f"python3 check.py --data_path={data_path} --params_file={params_file}"
-        exec_python(cmd)
+        with open(params_file, "r") as f:
+            params = yaml.full_load(f)
+
+        checker = Checker(data_path, params["output_datafile"])
+        checker.run()
 
 
 class StatisticsTask(object):
@@ -62,8 +60,10 @@ class StatisticsTask(object):
 
     @staticmethod
     def run(data_path: str, params_file: str, out_path: str) -> None:
-        cmd = f"python3 statistics.py --data_path={data_path} --params_file={params_file} --out_path={out_path}"
-        exec_python(cmd)
+        with open(params_file, "r") as f:
+            params = yaml.full_load(f)
+        checker = Stats(data_path, out_path, params)
+        checker.run()
 
 
 class CleanupTask(object):
@@ -105,7 +105,7 @@ def sanity_check(
 
 
 @app.command("statistics")
-def sanity_check(
+def statistics(
     data_path: str = typer.Option(..., "--data_path"),
     parameters_file: str = typer.Option(..., "--parameters_file"),
     out_path: str = typer.Option(..., "--output_path"),

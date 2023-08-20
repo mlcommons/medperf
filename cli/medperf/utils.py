@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 import os
-import sys
 import yaml
 import random
 import hashlib
@@ -14,7 +13,8 @@ from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
-from shutil import rmtree
+import shutil
+from pexpect import spawn
 from datetime import datetime
 from typing import List
 from colorama import Fore, Style
@@ -27,18 +27,13 @@ else:
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
-from medperf.exceptions import ExecutionError, InvalidEntityError, MedperfException
+from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
 
 
 def setup_logging(log_lvl):
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     log_file = storage_path(config.log_file)
-    handler = handlers.RotatingFileHandler(
-        log_file,
-        maxBytes=10000000,
-        backupCount=5,
-        encoding="utf-8"
-    )
+    handler = handlers.RotatingFileHandler(log_file, backupCount=20, encoding="utf-8")
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
         level=log_lvl,
@@ -52,47 +47,15 @@ def setup_logging(log_lvl):
         r"""(["']?(password|pwd|token)["']?[:=] ?)["'][^\n\[\]{}"']*["']"""
     )
 
-    redacting_filter = RedactingFilter(patterns=[sensitive_pattern,])
+    redacting_filter = RedactingFilter(patterns=[sensitive_pattern])
     requests_logger = logging.getLogger("requests")
     requests_logger.addHandler(handler)
     requests_logger.setLevel(log_lvl)
     logger = logging.getLogger()
     logger.addFilter(redacting_filter)
 
-
-def delete_credentials():
-    config_p = read_config()
-    del config_p.active_profile[config.credentials_keyword]
-    write_config(config_p)
-
-
-def set_credentials(token):
-    config_p = read_config()
-    config_p.active_profile[config.credentials_keyword] = token
-    write_config(config_p)
-
-
-def read_credentials():
-    config_p = read_config()
-    token = config_p.active_profile.get(config.credentials_keyword, None)
-    return token
-
-
-def set_current_user(current_user: dict):
-    config_p = read_config()
-    config_p.active_profile["current_user"] = current_user
-    write_config(config_p)
-
-
-def get_current_user():
-    config_p = read_config()
-    try:
-        current_user = config_p.active_profile["current_user"]
-    except KeyError:
-        raise MedperfException(
-            "Couldn't retrieve current user information. Please login again"
-        )
-    return current_user
+    # Force the creation of a new log file for each execution
+    handler.doRollover()
 
 
 def default_profile():
@@ -125,8 +88,7 @@ def set_custom_config(args: dict):
 
 
 def validate_config():
-    """Validates the configuration is valid for the current machine
-    """
+    """Validates the configuration is valid for the current machine"""
     if config.platform == "singularity" and sys.platform == "win32":
         raise MedperfException("Windows doesn't support singularity runner")
     # Add additional checks here
@@ -169,8 +131,7 @@ def get_file_sha1(path: str) -> str:
 
 
 def init_storage():
-    """Builds the general medperf folder structure.
-    """
+    """Builds the general medperf folder structure."""
     logging.info("Initializing storage")
     parent = config.storage
     data = storage_path(config.data_storage)
@@ -193,107 +154,93 @@ def init_storage():
 
 
 def init_config():
-    """builds the initial configuration file
-    """
+    """builds the initial configuration file"""
     os.makedirs(config.storage, exist_ok=True)
     config_file = base_storage_path(config.config_path)
     if os.path.exists(config_file):
         return
 
     config_p = ConfigManager()
+    # default profile
     config_p[config.default_profile_name] = default_profile()
+    # testauth profile
+    config_p[config.testauth_profile_name] = default_profile()
+    config_p[config.testauth_profile_name]["server"] = config.local_server
+    config_p[config.testauth_profile_name]["certificate"] = config.local_certificate
+    config_p[config.testauth_profile_name]["auth_audience"] = config.auth_dev_audience
+    config_p[config.testauth_profile_name]["auth_domain"] = config.auth_dev_domain
+    config_p[config.testauth_profile_name]["auth_jwks_url"] = config.auth_dev_jwks_url
+    config_p[config.testauth_profile_name][
+        "auth_idtoken_issuer"
+    ] = config.auth_dev_idtoken_issuer
+    config_p[config.testauth_profile_name]["auth_client_id"] = config.auth_dev_client_id
+    # local profile
     config_p[config.test_profile_name] = default_profile()
     config_p[config.test_profile_name]["server"] = config.local_server
     config_p[config.test_profile_name]["certificate"] = config.local_certificate
+    config_p[config.test_profile_name]["auth_class"] = "Local"
 
     config_p.activate(config.default_profile_name)
     config_p.write(config_file)
 
 
 def set_unique_tmp_config():
-    """Set current process' temporary unique names
+    """Set current process' temporary unique storage
     Enables simultaneous execution without cleanup collision
     """
     pid = str(os.getpid())
     config.tmp_storage += pid
-    config.tmp_prefix += pid
-    config.test_dset_prefix += pid
-    config.test_cube_prefix += pid
+    config.trash_folder = os.path.join(config.trash_folder, pid)
 
 
-def cleanup_path(path):
-    if os.path.exists(path):
-        logging.info(f"Removing clutter path: {path}")
-        try:
-            if os.path.islink(path):
-                os.unlink(path)
-            elif os.path.isfile(path):
-                os.remove(path)
-            else:
-                rmtree(path)
-        except OSError as e:
-            logging.error(f"Cleanup failed: Could not remove {path}")
-            raise MedperfException(str(e))
+def remove_path(path):
+    """Cleans up a clutter object. In case of failure, it is moved to `.trash`"""
+
+    # NOTE: We assume medperf will always have permissions to unlink
+    # and rename clutter paths, since for now they are expected to live
+    # in folders owned by medperf
+
+    if not os.path.exists(path):
+        return
+    logging.info(f"Removing clutter path: {path}")
+
+    # Don't delete symlinks
+    if os.path.islink(path):
+        os.unlink(path)
+        return
+
+    try:
+        if os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
+    except OSError as e:
+        logging.error(f"Could not remove {path}: {str(e)}")
+        move_to_trash(path)
 
 
-def cleanup(extra_paths: List[str] = []):
-    """Removes clutter and unused files from the medperf folder structure.
-    """
+def move_to_trash(path):
+    trash_folder = base_storage_path(config.trash_folder)
+    unique_path = os.path.join(trash_folder, generate_tmp_uid())
+    os.makedirs(unique_path)
+    shutil.move(path, unique_path)
+
+
+def cleanup():
+    """Removes clutter and unused files from the medperf folder structure."""
     if not config.cleanup:
         logging.info("Cleanup disabled")
         return
-    tmp_path = storage_path(config.tmp_storage)
-    extra_paths.append(tmp_path)
-    extra_paths += config.extra_cleanup_paths
-    for path in extra_paths:
-        cleanup_path(path)
 
-    cleanup_dsets()
-    cleanup_cubes()
-    cleanup_benchmarks()
+    tmp_storage = storage_path(config.tmp_storage)
+    for path in config.tmp_paths + [tmp_storage]:
+        remove_path(path)
 
-
-def cleanup_dsets():
-    """Removes clutter related to datsets
-    """
-    dsets_path = storage_path(config.data_storage)
-    dsets = get_uids(dsets_path)
-    tmp_prefix = config.tmp_prefix
-    test_prefix = config.test_dset_prefix
-    clutter_dsets = [
-        dset
-        for dset in dsets
-        if dset.startswith(tmp_prefix) or dset.startswith(test_prefix)
-    ]
-
-    for dset in clutter_dsets:
-        dset_path = os.path.join(dsets_path, dset)
-        cleanup_path(dset_path)
-
-
-def cleanup_cubes():
-    """Removes clutter related to cubes
-    """
-    cubes_path = storage_path(config.cubes_storage)
-    cubes = get_uids(cubes_path)
-    test_prefix = config.test_cube_prefix
-    clutter_cubes = [cube for cube in cubes if cube.startswith(test_prefix)]
-
-    for cube in clutter_cubes:
-        cube_path = os.path.join(cubes_path, cube)
-        cleanup_path(cube_path)
-
-
-def cleanup_benchmarks():
-    """Removes clutter related to benchmarks
-    """
-    bmks_path = storage_path(config.benchmarks_storage)
-    bmks = os.listdir(bmks_path)
-    clutter_bmks = [bmk for bmk in bmks if bmk.startswith(config.tmp_prefix)]
-
-    for bmk in clutter_bmks:
-        bmk_path = os.path.join(bmks_path, bmk)
-        cleanup_path(bmk_path)
+    trash_folder = base_storage_path(config.trash_folder)
+    if os.path.exists(trash_folder):
+        msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
+        msg += f" '{trash_folder}' manually to avoid unnecessary storage."
+        config.ui.print_warning(msg)
 
 
 def get_uids(path: str) -> List[str]:
@@ -309,13 +256,11 @@ def get_uids(path: str) -> List[str]:
     return uids
 
 
-def pretty_error(msg: str, clean: bool = True):
-    """Prints an error message with typer protocol and exits the script
+def pretty_error(msg: str):
+    """Prints an error message with typer protocol
 
     Args:
         msg (str): Error message to show to the user
-        clean (bool, optional):
-            Run the cleanup process before exiting. Defaults to True.
     """
     ui = config.ui
     logging.warning(
@@ -324,23 +269,6 @@ def pretty_error(msg: str, clean: bool = True):
     if msg[-1] != ".":
         msg = msg + "."
     ui.print_error(msg)
-    if clean:
-        cleanup()
-    sys.exit(1)
-
-
-def generate_tmp_datapath() -> str:
-    """Builds a temporary folder for prepared but yet-to-register datasets.
-
-    Returns:
-        str: General temporary folder location
-        str: Specific data path for the temporary dataset
-    """
-    uid = generate_tmp_uid()
-    tmp = config.tmp_prefix + uid
-    out_path = os.path.join(storage_path(config.data_storage), tmp)
-    out_path = os.path.abspath(out_path)
-    return out_path
 
 
 def generate_tmp_uid() -> str:
@@ -369,21 +297,6 @@ def generate_tmp_path() -> str:
     return os.path.abspath(tmp_path)
 
 
-def check_cube_validity(cube: "Cube"):
-    """Helper function for pretty printing the cube validity process.
-
-    Args:
-        cube (Cube): Cube to check for validity
-    """
-    logging.info(f"Checking cube {cube.name} validity")
-    ui = config.ui
-    ui.text = "Checking cube MD5 hash..."
-    if not cube.valid():
-        raise InvalidEntityError("MD5 hash doesn't match")
-    logging.info(f"Cube {cube.name} is valid")
-    ui.print(f"> {cube.name} MD5 hash check complete")
-
-
 def untar(filepath: str, remove: bool = True) -> str:
     """Untars and optionally removes the tar.gz file
 
@@ -402,12 +315,12 @@ def untar(filepath: str, remove: bool = True) -> str:
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [
-        os.remove(spurious_file)
+        remove_path(spurious_file)
         for spurious_file in glob(addpath + "/**/._*", recursive=True)
     ]
     if remove:
         logging.info(f"Deleting {filepath}")
-        os.remove(filepath)
+        remove_path(filepath)
     return addpath
 
 
@@ -462,31 +375,21 @@ def combine_proc_sp_text(proc: spawn) -> str:
     ui = config.ui
     static_text = ui.text
     proc_out = ""
-    while proc.isalive():
+    break_ = False
+    while not break_:
+        if not proc.isalive():
+            break_ = True
         try:
-            line = byte = proc.read(1)
+            line = proc.readline()
         except TIMEOUT:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
-
-        if type(byte) == str:
-            pattern = "[\r\n]"
-        else:
-            pattern = b"[\r\n]"
-
-        while byte and not re.match(pattern, byte):
-            byte = proc.read(1)
-            line += byte
-        if not byte:
-            break
-        if type(line) != str:
+        if line is not None and type(line) != str:
             line = line.decode("utf-8", "ignore")
         if line:
-            # add to proc_out list for logging
             proc_out += line
-        ui.text = (
-            f"{static_text} {Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
-        )
+            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+            ui.text = static_text
 
     return proc_out
 
@@ -558,8 +461,29 @@ def log_response_error(res, warn=False):
     try:
         logging_method(res.json())
     except requests.exceptions.JSONDecodeError:
-        logging_method("JSON Response could not be parsed. Showing response content:")
-        logging_method(res.content)
+        logging_method("JSON Response could not be parsed. Showing response text:")
+        logging_method(res.text)
+
+
+def format_errors_dict(errors_dict: dict):
+    """Reformats the error details from a field-error(s) dictionary into a human-readable string for printing"""
+    error_msg = ""
+    for field, errors in errors_dict.items():
+        error_msg += "\n"
+        if isinstance(field, tuple):
+            field = field[0]
+        error_msg += f"- {field}: "
+        if isinstance(errors, str):
+            error_msg += errors
+        elif len(errors) == 1:
+            # If a single error for a field is given, don't create a sublist
+            error_msg += errors[0]
+        else:
+            # Create a sublist otherwise
+            for e_msg in errors:
+                error_msg += "\n"
+                error_msg += f"\t- {e_msg}"
+    return error_msg
 
 
 def get_cube_image_name(cube_path: str) -> str:
@@ -573,3 +497,19 @@ def get_cube_image_name(cube_path: str) -> str:
     except KeyError:
         msg = "The provided mlcube doesn't seem to be configured for singularity"
         raise MedperfException(msg)
+
+
+def verify_hash(obtained_hash: str, expected_hash: str):
+    """Checks hash exact match, and throws an error if not a match
+
+    Args:
+        obtained_hash (str): local hash computed from asset
+        expected_hash (str): expected hash obtained externally
+
+    Raises:
+        InvalidEntityError: Thrown if hashes don't match
+    """
+    if expected_hash and expected_hash != obtained_hash:
+        raise InvalidEntityError(
+            f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
+        )

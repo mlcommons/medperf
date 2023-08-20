@@ -1,15 +1,13 @@
 import os
 import pytest
 import logging
-import time_machine
-import datetime as dt
 from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
 import medperf.config as config
-from medperf.tests.mocks import MockCube, MockTar
-from medperf.exceptions import InvalidEntityError, MedperfException
+from medperf.tests.mocks import MockTar
+from medperf.exceptions import MedperfException
 import yaml
 
 parent = config.storage
@@ -33,7 +31,6 @@ def datasets(request):
     size = request.param
     uids = list(range(size))
     uids = [str(x) for x in uids]
-    uids[-1] = config.tmp_prefix + uids[-1]
 
     return uids
 
@@ -157,9 +154,7 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
     # Arrange
     mocker.patch("os.getpid", return_value=pid)
     tmp_storage = utils.config.tmp_storage
-    tmp_prefix = utils.config.tmp_prefix
-    test_dset_prefix = utils.config.test_dset_prefix
-    test_cube_prefix = utils.config.test_cube_prefix
+    trash_folder = utils.config.trash_folder
     pid = str(pid)
 
     # Act
@@ -167,29 +162,46 @@ def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
 
     # Assert
     assert utils.config.tmp_storage.endswith(pid)
-    assert utils.config.tmp_prefix.endswith(pid)
-    assert utils.config.test_dset_prefix.endswith(pid)
-    assert utils.config.test_cube_prefix.endswith(pid)
+    assert utils.config.trash_folder.endswith(pid)
 
     # Cleanup
     utils.config.tmp_storage = tmp_storage
-    utils.config.tmp_prefix = tmp_prefix
-    utils.config.test_dset_prefix = test_dset_prefix
-    utils.config.test_cube_prefix = test_cube_prefix
+    utils.config.trash_folder = trash_folder
 
 
-def test_cleanup_removes_temporary_storage(mocker):
+def test_cleanup_removes_files(mocker, ui, fs):
     # Arrange
-    mocker.patch("os.path.exists", return_value=True)
-    spy = mocker.patch(patch_utils.format("cleanup_path"))
-    mocker.patch(patch_utils.format("get_uids"), return_value=[])
-    mocker.patch(patch_utils.format("cleanup_benchmarks"))
+    utils.init_storage()
+    path = "/path/to/garbage.html"
+    fs.create_file(path, contents="garbage")
+    config.tmp_paths = [path]
 
     # Act
     utils.cleanup()
 
     # Assert
-    spy.assert_called_once_with(tmp)
+    assert not os.path.exists(path)
+    assert not os.path.exists(utils.storage_path(config.tmp_storage))
+
+
+def test_cleanup_moves_files_to_trash_on_failure(mocker, ui, fs):
+    # Arrange
+    utils.init_storage()
+
+    def side_effect(*args, **kwargs):
+        raise PermissionError
+
+    mocker.patch("shutil.rmtree", side_effect=side_effect)
+    trash_folder = utils.base_storage_path(config.trash_folder)
+
+    # Act
+    utils.cleanup()
+
+    # Assert
+    assert not os.path.exists(utils.storage_path(config.tmp_storage))
+    trash_id = os.listdir(trash_folder)[0]
+    exp_path = os.path.join(trash_folder, trash_id, config.tmp_storage)
+    assert os.path.exists(exp_path)
 
 
 @pytest.mark.parametrize("path", ["path/to/uids", "~/.medperf/cubes/"])
@@ -211,8 +223,6 @@ def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
 def test_pretty_error_displays_message(mocker, ui, msg):
     # Arrange
     spy = mocker.patch.object(ui, "print_error")
-    mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch(patch_utils.format("sys.exit"))
 
     # Act
     utils.pretty_error(msg)
@@ -222,77 +232,13 @@ def test_pretty_error_displays_message(mocker, ui, msg):
     assert msg in printed_msg
 
 
-@pytest.mark.parametrize("clean", [True, False])
-def test_pretty_error_runs_cleanup_when_requested(mocker, ui, clean):
-    # Arrange
-    spy = mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch("typer.echo")
-    mocker.patch(patch_utils.format("sys.exit"))
-
-    # Act
-    utils.pretty_error("test", clean)
-
-    # Assert
-    if clean:
-        spy.assert_called_once()
-    else:
-        spy.assert_not_called()
-
-
-def test_pretty_error_exits_program(mocker, ui):
-    # Arrange
-    mocker.patch(patch_utils.format("cleanup"))
-    mocker.patch("typer.echo")
-    spy = mocker.patch(patch_utils.format("sys.exit"))
-
-    # Act
-    utils.pretty_error("test")
-
-    # Assert
-    spy.assert_called_once()
-
-
-@pytest.mark.parametrize("timeparams", [(2000, 10, 23), (2021, 1, 2), (2012, 5, 24)])
-@pytest.mark.parametrize("salt", [342, 87])
-def test_generate_tmp_datapath_creates_expected_path(mocker, timeparams, salt):
-    # Arrange
-    datetime = dt.datetime(*timeparams)
-    traveller = time_machine.travel(datetime)
-    traveller.start()
-    timestamp = dt.datetime.timestamp(datetime)
-    mocker.patch("os.path.isdir", return_value=False)
-    mocker.patch("random.randint", return_value=salt)
-    tmp_path = f"{config.tmp_prefix}{int(timestamp + salt)}"
-    exp_out_path = os.path.join(data, tmp_path)
-
-    # Act
-    out_path = utils.generate_tmp_datapath()
-
-    # Assert
-    assert out_path == exp_out_path
-    traveller.stop()
-
-
-@pytest.mark.parametrize("is_valid", [True, False])
-def test_cube_validity_fails_when_invalid(mocker, ui, is_valid):
-    # Arrange
-    cube = MockCube(is_valid)
-
-    # Act & Assert
-    if not is_valid:
-        with pytest.raises(InvalidEntityError):
-            utils.check_cube_validity(cube)
-    else:
-        utils.check_cube_validity(cube)
-
-
 @pytest.mark.parametrize("file", ["test.tar.bz", "path/to/file.tar.bz"])
 def test_untar_opens_specified_file(mocker, file):
     # Arrange
     spy = mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
     mocker.patch("tarfile.TarFile.close")
-    mocker.patch("os.remove")
+    mocker.patch(patch_utils.format("remove_path"))
 
     # Act
     utils.untar(file)
@@ -307,7 +253,7 @@ def test_untar_extracts_to_parent_directory(mocker, file):
     parent_path = str(Path(file).parent)
     mocker.patch("tarfile.open", return_value=MockTar())
     spy = mocker.spy(MockTar, "extractall")
-    mocker.patch("os.remove")
+    mocker.patch(patch_utils.format("remove_path"))
 
     # Act
     utils.untar(file)
@@ -322,7 +268,7 @@ def test_untar_removes_tarfile(mocker, file):
     mocker.patch("tarfile.open")
     mocker.patch("tarfile.TarFile.extractall")
     mocker.patch("tarfile.TarFile.close")
-    spy = mocker.patch("os.remove")
+    spy = mocker.patch(patch_utils.format("remove_path"))
 
     # Act
     utils.untar(file)
@@ -449,6 +395,33 @@ def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
 
     # Assert
     assert sanitized_dict["test"] == exp_encoding
+
+
+@pytest.mark.parametrize(
+    "error_dict,expected_out",
+    [
+        (
+            {"name": ["can't be a duplicate", "must be longer"]},
+            "\n- name: \n\t- can't be a duplicate\n\t- must be longer",
+        ),
+        (
+            {"detail": "You do not have permission to perform this action"},
+            "\n- detail: You do not have permission to perform this action",
+        ),
+        (
+            {("field1",): "error1", "field2": ["error2", "error3"]},
+            "\n- field1: error1\n- field2: \n\t- error2\n\t- error3",
+        ),
+    ],
+)
+def test_format_errors_dict_correctly_formats_all_expected_inputs(
+    error_dict, expected_out
+):
+    # Act
+    out = utils.format_errors_dict(error_dict)
+
+    # Assert
+    assert out == expected_out
 
 
 def test_get_cube_image_name_retrieves_name(mocker, fs):

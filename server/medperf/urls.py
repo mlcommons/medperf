@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, re_path, path
-from rest_framework.authtoken.views import obtain_auth_token
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.conf import settings
 
@@ -37,6 +36,5 @@ urlpatterns = [
         path("results/", include("result.urls", namespace=API_VERSION), name="result"),
         path("users/", include("user.urls", namespace=API_VERSION), name="users"),
         path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
-        path("auth-token/", obtain_auth_token, name="auth-token"),
     ])),
 ]

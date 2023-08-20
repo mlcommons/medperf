@@ -1,7 +1,7 @@
 import typer
 
 from medperf import config
-from medperf.decorators import configurable
+from medperf.decorators import configurable, clean_except
 from medperf.utils import dict_pretty_print, read_config, write_config
 from medperf.exceptions import InvalidArgumentError
 
@@ -9,6 +9,7 @@ app = typer.Typer()
 
 
 @app.command("activate")
+@clean_except
 def activate(profile: str):
     """Assigns the active profile, which is used by default
 
@@ -25,13 +26,13 @@ def activate(profile: str):
 
 
 @app.command("create")
+@clean_except
 @configurable
 def create(
     ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
 ):
-    """Creates a new profile for managing and customizing configuration
-    """
+    """Creates a new profile for managing and customizing configuration"""
     args = ctx.params
     args.pop("name")
     config_p = read_config()
@@ -44,10 +45,10 @@ def create(
 
 
 @app.command("set")
+@clean_except
 @configurable
 def set_args(ctx: typer.Context):
-    """Assign key-value configuration pairs to the current profile.
-    """
+    """Assign key-value configuration pairs to the current profile."""
     args = ctx.params
     config_p = read_config()
 
@@ -56,9 +57,9 @@ def set_args(ctx: typer.Context):
 
 
 @app.command("ls")
+@clean_except
 def list():
-    """Lists all available profiles
-    """
+    """Lists all available profiles"""
     ui = config.ui
     config_p = read_config()
     for profile in config_p:
@@ -69,6 +70,7 @@ def list():
 
 
 @app.command("view")
+@clean_except
 def view(profile: str = typer.Argument(None)):
     """Displays a profile's configuration.
 
@@ -87,6 +89,7 @@ def view(profile: str = typer.Argument(None)):
 
 
 @app.command("delete")
+@clean_except
 def delete(profile: str):
     """Deletes a profile's configuration.
 
@@ -97,7 +100,11 @@ def delete(profile: str):
     if profile not in config_p.profiles:
         raise InvalidArgumentError("The provided profile does not exists")
 
-    if profile in [config.default_profile_name, config.test_profile_name]:
+    if profile in [
+        config.default_profile_name,
+        config.testauth_profile_name,
+        config.test_profile_name,
+    ]:
         raise InvalidArgumentError("Cannot delete reserved profiles")
 
     if config_p.is_profile_active(profile):
