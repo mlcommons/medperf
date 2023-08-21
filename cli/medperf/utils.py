@@ -384,7 +384,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
         except TIMEOUT:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
-        if line is not None and type(line) != str:
+        if line is not None and not isinstance(line, str):
             line = line.decode("utf-8", "ignore")
         if line:
             proc_out += line
