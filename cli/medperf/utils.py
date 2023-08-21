@@ -15,7 +15,6 @@ from glob import glob
 import json
 from pathlib import Path
 import shutil
-from pexpect import spawn
 from datetime import datetime
 from typing import List
 from colorama import Fore, Style
