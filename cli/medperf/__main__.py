@@ -19,6 +19,7 @@ import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
 from medperf.utils import (
     set_custom_config,
+    validate_config,
     set_unique_tmp_config,
     init_storage,
     setup_logging,
@@ -100,6 +101,8 @@ def main(
     # Set inline parameters
     inline_args = ctx.params
     set_custom_config(inline_args)
+    validate_config()
+
     set_unique_tmp_config()
 
     init_storage()

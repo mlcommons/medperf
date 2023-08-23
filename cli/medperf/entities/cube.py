@@ -1,10 +1,15 @@
 import os
+import sys
 import yaml
-import pexpect
 import logging
 from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
+
+if sys.platform == "win32":
+    import wexpect as pexpect
+else:
+    import pexpect
 
 from medperf.utils import combine_proc_sp_text, list_files, storage_path, verify_hash
 from medperf.entities.interface import Entity, Uploadable
@@ -283,7 +288,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         proc_out = combine_proc_sp_text(proc)
         proc.close()
         logging.debug(proc_out)
-        if proc.exitstatus != 0:
+        if proc.exitstatus:
             raise ExecutionError("There was an error while executing the cube")
 
         logging.debug(list_files(config.storage))

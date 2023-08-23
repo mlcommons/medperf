@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import re
 import os
 import yaml
@@ -14,11 +15,15 @@ from glob import glob
 import json
 from pathlib import Path
 import shutil
-from pexpect import spawn
 from datetime import datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
+
+if sys.platform == "win32":
+    from wexpect import spawn
+else:
+    from pexpect import spawn
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
@@ -28,7 +33,7 @@ from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityEr
 def setup_logging(log_lvl):
     log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
     log_file = storage_path(config.log_file)
-    handler = handlers.RotatingFileHandler(log_file, backupCount=20)
+    handler = handlers.RotatingFileHandler(log_file, backupCount=20, encoding="utf-8")
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
         level=log_lvl,
@@ -80,6 +85,13 @@ def set_custom_config(args: dict):
     for param in args:
         val = args[param]
         setattr(config, param, val)
+
+
+def validate_config():
+    """Validates the configuration is valid for the current machine"""
+    if config.platform == "singularity" and sys.platform == "win32":
+        raise MedperfException("Windows doesn't support singularity runner")
+    # Add additional checks here
 
 
 def storage_path(subpath: str):
@@ -372,7 +384,8 @@ def combine_proc_sp_text(proc: spawn) -> str:
         except TIMEOUT:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
-        line = line.decode("utf-8", "ignore")
+        if line is not None and not isinstance(line, str):
+            line = line.decode("utf-8", "ignore")
         if line:
             proc_out += line
             ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")

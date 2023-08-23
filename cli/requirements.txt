@@ -1,4 +1,5 @@
-typer~=0.6.0
+typer~=0.6.0; sys_platform != "win32"
+typer<0.5.0; sys_platform == "win32"
 rich~=12.5.0
 PyYAML>=5.4,<6
 requests>=2.26.0
@@ -6,13 +7,14 @@ pydantic==1.10.2
 yaspin==2.1.0
 tabulate==0.8.9
 pexpect==4.8.0
+wexpect==4.0.0; sys_platform == "win32"
 colorama==0.4.4
 time-machine==2.4.0
 pytest-mock==1.13.0
 pyfakefs==5.0.0
 mlcube @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=mlcube
 mlcube-docker @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=runners/mlcube_docker
-mlcube-singularity @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=runners/mlcube_singularity
+mlcube-singularity @ git+https://github.com/mlcommons/mlcube@fb371c960938b495e939bf38b161199d529cf912#subdirectory=runners/mlcube_singularity ; sys_platform != "win32"
 validators==0.18.2
 merge-args==0.1.4
 synapseclient==2.7.0
