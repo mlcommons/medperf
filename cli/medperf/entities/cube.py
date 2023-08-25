@@ -6,7 +6,14 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import combine_proc_sp_text, list_files, storage_path, verify_hash
+from medperf.utils import (
+    combine_proc_sp_text,
+    list_files,
+    remove_path,
+    storage_path,
+    verify_hash,
+    generate_tmp_path,
+)
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -220,10 +227,19 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
             # Retrieve image hash from MLCube
             logging.debug(f"Retrieving {self.id} image hash")
+            tmp_out_yaml = generate_tmp_path()
             cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
+            cmd += f" --output-file {tmp_out_yaml}"
             with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
                 proc_stdout = proc.read()
-            mlcube_details = yaml.safe_load(proc_stdout)
+            logging.debug(proc_stdout)
+            if proc.exitstatus != 0:
+                raise ExecutionError(
+                    "There was an error while inspecting the image hash"
+                )
+            with open(tmp_out_yaml) as f:
+                mlcube_details = yaml.safe_load(f)
+            remove_path(tmp_out_yaml)
             local_hash = mlcube_details["hash"]
             verify_hash(local_hash, img_hash)
             self.image_hash = local_hash
