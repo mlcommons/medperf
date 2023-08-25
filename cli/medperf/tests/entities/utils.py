@@ -3,7 +3,7 @@ from medperf.utils import storage_path
 from medperf import config
 import yaml
 
-from medperf.utils import get_file_sha1
+from medperf.utils import get_file_hash
 from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
@@ -93,7 +93,7 @@ def generate_cubefile_fn(fs, path, filename):
             fs.create_file(filepath)
         except FileExistsError:
             pass
-        hash = get_file_sha1(filepath)
+        hash = get_file_hash(filepath)
         # special case: tarball file
         if filename == config.tarball_filename:
             return hash

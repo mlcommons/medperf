@@ -33,7 +33,7 @@ def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
     Args:
         url (str): URL where the mlcube.yaml file can be downloaded.
         cube_path (str): Cube location.
-        expected_hash (str, optional): expected sha1 hash of the downloaded file
+        expected_hash (str, optional): expected hash of the downloaded file
 
     Returns:
         output_path (str): location where the mlcube.yaml file is stored locally.
@@ -53,7 +53,7 @@ def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
     Args:
         url (str): URL where the parameters.yaml file can be downloaded.
         cube_path (str): Cube location.
-        expected_hash (str, optional): expected sha1 hash of the downloaded file
+        expected_hash (str, optional): expected hash of the downloaded file
 
     Returns:
         output_path (str): location where the parameters file is stored locally.
@@ -108,7 +108,9 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
 
 
 def get_cube_additional(
-    url: str, cube_path: str, expected_tarball_hash: str = None,
+    url: str,
+    cube_path: str,
+    expected_tarball_hash: str = None,
 ) -> str:
     """Retrieves additional files of an MLCube. The additional files
     will be in a compressed tarball file. The function will additionally
@@ -117,7 +119,7 @@ def get_cube_additional(
     Args:
         url (str): URL where the additional_files.tar.gz file can be downloaded.
         cube_path (str): Cube location.
-        expected_tarball_hash (str, optional): expected sha1 hash of tarball file
+        expected_tarball_hash (str, optional): expected hash of tarball file
 
     Returns:
         tarball_hash (str): The hash of the downloaded tarball file
@@ -145,7 +147,7 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
 
     Args:
         url (str): URL where the compressed demo dataset file can be downloaded.
-        expected_hash (str, optional): expected sha1 hash of the downloaded file
+        expected_hash (str, optional): expected hash of the downloaded file
 
     Returns:
         output_path (str): location where the uncompressed demo dataset is stored locally.
