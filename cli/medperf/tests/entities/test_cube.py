@@ -86,7 +86,7 @@ class TestGetFiles:
             f"mlcube configure --mlcube={self.manifest_path}",
             f"mlcube inspect --mlcube={self.manifest_path} --format=yaml",
         ]
-        expected_cmds = [call(cmd) for cmd in expected_cmds]
+        expected_cmds = [call(cmd, timeout=None) for cmd in expected_cmds]
 
         # Act
         Cube.get(self.id)
@@ -137,7 +137,7 @@ class TestRun:
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
         expected_cmd = (
-            f"mlcube run --mlcube={self.manifest_path} --task={task} "
+            f"mlcube --log-level critical run --mlcube={self.manifest_path} --task={task} "
             + f"--platform={self.platform} --network=none"
         )
 
@@ -153,7 +153,7 @@ class TestRun:
         mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
         expected_cmd = (
-            f"mlcube run --mlcube={self.manifest_path} --task={task} "
+            f"mlcube --log-level critical run --mlcube={self.manifest_path} --task={task} "
             + f'--platform={self.platform} --network=none test="test"'
         )
 

@@ -356,4 +356,5 @@ The provided example codebase runs only on CPU. You can modify it to have `pytor
 The general instructions for building an MLCube to work with a GPU are the same as the provided instructions, but with the following slight modifications:
 
 - Use a number different than `0` for the `accelerator_count` that you will be prompted with when creating the MLCube template.
-- Make sure you install the required GPU dependencies in the docker image. For instance, this may be done by simply modifying the `pip` dependencies in the `requirements.txt` file to download `pytorch` with cuda.
+- Inside the `docker` section of the `mlcube.yaml`, add a key value pair: `gpu_args: --gpus=all`. These `gpu_args` will be passed to `docker run` under the hood by MLCube. You may add more than just `--gpus=all`.
+- Make sure you install the required GPU dependencies in the docker image. For instance, this may be done by simply modifying the `pip` dependencies in the `requirements.txt` file to download `pytorch` with cuda, or by changing the base image of the dockerfile.
