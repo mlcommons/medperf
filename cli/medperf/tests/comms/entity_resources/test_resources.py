@@ -1,5 +1,5 @@
 import os
-from medperf.utils import base_storage_path, get_file_sha1
+from medperf.utils import base_storage_path, get_file_hash
 import pytest
 import medperf.config as config
 from medperf.comms.entity_resources import resources
@@ -12,7 +12,7 @@ url = "https://mock.url"
 def setup(mocker, fs):
     def download_resource_side_effect(url, outpath, expected_hash=None):
         fs.create_file(outpath, contents=url)
-        return get_file_sha1(outpath)
+        return get_file_hash(outpath)
 
     mocker.patch.object(
         resources, "download_resource", side_effect=download_resource_side_effect
