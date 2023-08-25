@@ -62,13 +62,22 @@ def check_subject_validity_for_synthesis(labels_path, subject_dir, parameters):
                 os.path.join(folder, os.path.basename(subject_dir) + string)
             ):
                 missing_modalities += 1
-        if missing_modalities != 1:
-            raise ValueError(
-                f"{os.path.basename(subject_dir)} does not have one missing modality"
-            )
-        assert (
-            len(os.listdir(folder)) == len(modalities) - 1
-        ), "invalid number of modalities"
+        if folder == subject_dir:
+            if missing_modalities != 1:
+                raise ValueError(
+                    f"{os.path.basename(subject_dir)} does not have one missing modality"
+                )
+            assert (
+                len(os.listdir(folder)) == len(modalities) - 1
+            ), "invalid number of modalities"
+        else:
+            if missing_modalities != 0:
+                raise ValueError(
+                    f"{os.path.basename(subject_dir)} does not have all data in labels"
+                )
+            assert len(os.listdir(folder)) == len(
+                modalities
+            ), "invalid number of modalities"
 
     # labels
     if not os.path.isfile(
