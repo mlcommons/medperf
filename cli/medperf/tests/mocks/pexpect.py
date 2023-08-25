@@ -1,6 +1,3 @@
-import yaml
-
-
 class MockChild:
     def __init__(self, exitstatus, stdout):
         self.exitstatus = exitstatus
