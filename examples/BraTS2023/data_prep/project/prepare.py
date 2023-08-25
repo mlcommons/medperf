@@ -2,6 +2,7 @@ import os
 import shutil
 from glob import iglob
 import random
+import json
 
 random.seed(7)
 
@@ -43,6 +44,7 @@ def post_process_for_synthesis(parameters, output_path, output_labels_path):
     modalities = parameters["segmentation_modalities"]
     original_data_in_labels = parameters["original_data_in_labels"]
     segmentation_labels = parameters["segmentation_labels"]
+    missing_modality_json = parameters["missing_modality_json"]
 
     # move labels to a sub directory
     labels_subdir = os.path.join(output_labels_path, segmentation_labels)
@@ -56,12 +58,19 @@ def post_process_for_synthesis(parameters, output_path, output_labels_path):
     shutil.copytree(output_path, data_subdir)
 
     # drop modalities
+    missing_modality_dict = {}
     for folder in iglob(os.path.join(output_path, "*/")):
         missing_modality = random.choice(modalities)
         for file in iglob(os.path.join(folder, "*.nii.gz")):
             if file.endswith(f"{missing_modality}.nii.gz"):
                 os.remove(file)
                 break
+        foldername = os.path.basename(os.path.normpath(folder))
+        missing_modality_dict[foldername] = missing_modality
+
+    out_json = os.path.join(output_labels_path, missing_modality_json)
+    with open(out_json, "w") as f:
+        json.dump(missing_modality_dict, f)
 
 
 def copy_inpainting_data(

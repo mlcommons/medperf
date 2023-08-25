@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import SimpleITK as sitk
+import json
 
 
 def check_image_dims(path):
@@ -47,6 +48,9 @@ def check_subject_validity_for_synthesis(labels_path, subject_dir, parameters):
     modalities = parameters["segmentation_modalities"]
     original_data_in_labels = parameters["original_data_in_labels"]
     segmentation_labels = parameters["segmentation_labels"]
+    missing_modality_json = parameters["missing_modality_json"]
+    missing_modality_json = os.path.join(labels_path, missing_modality_json)
+    missing_modality_dict = json.load(open(missing_modality_json))
 
     strings_to_check = [f"-{modality}.nii.gz" for modality in modalities]
 
@@ -62,6 +66,10 @@ def check_subject_validity_for_synthesis(labels_path, subject_dir, parameters):
                 os.path.join(folder, os.path.basename(subject_dir) + string)
             ):
                 missing_modalities += 1
+                missing_modality = missing_modality_dict[os.path.basename(subject_dir)]
+                assert (
+                    string == f"-{missing_modality}.nii.gz"
+                ), "Missing modality doesn't appear in the missing modality mapping dict"
         if folder == subject_dir:
             if missing_modalities != 1:
                 raise ValueError(
