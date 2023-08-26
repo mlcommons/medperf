@@ -1,0 +1,59 @@
+batch_size: 1
+data_augmentation: {}
+data_postprocessing: {}
+data_preprocessing:
+  normalize: null
+in_memory: false
+learning_rate: 0.001
+loss_function: cel
+metrics:
+  - cel
+  - classification_accuracy
+  - f1: {
+      average: weighted,
+    }
+  - accuracy
+  - balanced_accuracy
+  - per_label_one_hot_accuracy
+  - precision: {
+      average: weighted,
+    }
+  - recall
+  - specificity
+  - iou: {
+      reduction: sum,
+    }
+compute_ncc: false
+modality: rad
+model:
+  amp: false
+  architecture: vgg16
+  base_filters: 32
+  norm_type: batch
+  class_list:
+  - 0
+  - 1
+  - 2
+  dimension: 3
+  final_layer: softmax
+nested_training:
+  testing: -5
+  validation: -5
+num_epochs: 1
+optimizer: adam
+parallel_compute_command: ''
+patch_sampler: uniform
+patch_size: [32, 32, 32]
+patience: 1
+problem_type: synthesis
+q_max_length: 1
+q_num_workers: 0
+q_samples_per_volume: 1
+q_verbose: false
+save_output: false
+scaling_factor: 1
+scheduler: triangle
+version:
+  maximum: 0.0.17
+  minimum: 0.0.14
+weighted_loss: True
