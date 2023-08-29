@@ -3,7 +3,7 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.utils import remove_path, generate_tmp_path, storage_path
+from medperf.utils import generate_tmp_path, storage_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
