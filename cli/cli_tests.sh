@@ -235,9 +235,9 @@ checkFailed "Model3 association failed"
 echo "\n"
 
 ##########################################################
-echo "====================================="
-echo "Running failing model association"
-echo "====================================="
+echo "======================================================"
+echo "Running failing model association (This will NOT fail)"
+echo "======================================================"
 medperf mlcube associate -m $FAILING_MODEL_UID -b $BMK_UID -y
 checkFailed "Failing model association failed"
 ##########################################################
@@ -309,9 +309,23 @@ checkFailed "run all outstanding models failed"
 echo "\n"
 
 ##########################################################
-echo "====================================="
-echo "Run failing cube with ignore errors"
-echo "====================================="
+echo "======================================================================================"
+echo "Run failing cube with ignore errors (This SHOULD fail since predictions folder exists)"
+echo "======================================================================================"
+medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
+if [ "$?" -eq 0 ]; then
+  i_am_a_command_that_does_not_exist_and_hence_changes_the_last_exit_status_to_nonzero
+fi
+checkFailed "MLCube ran successfuly but should fail since predictions folder exists"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================================================="
+echo "Run failing cube with ignore errors after deleting predictions folder"
+echo "====================================================================="
+rm -rf $MEDPERF_SUBSTORAGE/predictions/model-fail/$DSET_A_GENUID
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
 checkFailed "Failing mlcube run with ignore errors failed"
 ##########################################################
