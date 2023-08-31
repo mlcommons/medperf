@@ -136,6 +136,8 @@ def get_cube_additional(
     tarball_hash = download_resource(url, output_tarball_path, expected_tarball_hash)
 
     untar(output_tarball_path)
+    parent_folder = os.path.dirname(os.path.normpath(additional_files_folder))
+    os.makedirs(parent_folder, exist_ok=True)
     os.rename(tmp_output_folder, additional_files_folder)
 
     return tarball_hash
