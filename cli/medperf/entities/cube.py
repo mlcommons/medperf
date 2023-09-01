@@ -270,6 +270,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def run(
         self,
         task: str,
+        output_logs: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
         **kwargs,
@@ -284,10 +285,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        if config.loglevel.lower() == "debug":
-            cmd = "mlcube run"
-        else:
-            cmd = "mlcube --log-level critical run"
+        # TODO: re-use `loglevel=critical` or figure out a clean MLCube logging
+        cmd = "mlcube run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
@@ -298,7 +297,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc)
         proc.close()
-        logging.debug(proc_out)
+        if output_logs is None:
+            logging.debug(proc_out)
+        else:
+            with open(output_logs, "w") as f:
+                f.write(proc_out)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")
 

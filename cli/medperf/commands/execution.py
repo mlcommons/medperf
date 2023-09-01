@@ -42,8 +42,23 @@ class Execution:
     def prepare(self):
         self.partial = False
         self.preds_path = self.__setup_predictions_path()
+        self.model_logs_path, self.metrics_logs_path = self.__setup_logs_path()
         self.results_path = generate_tmp_path()
         logging.debug(f"tmp results output: {self.results_path}")
+
+    def __setup_logs_path(self):
+        model_uid = self.model.generated_uid
+        eval_uid = self.evaluator.generated_uid
+        data_hash = self.dataset.generated_uid
+
+        logs_path = os.path.join(
+            config.experiments_logs_storage, str(model_uid), str(data_hash)
+        )
+        logs_path = storage_path(logs_path)
+        os.makedirs(logs_path, exist_ok=True)
+        model_logs_path = os.path.join(logs_path, "model.log")
+        metrics_logs_path = os.path.join(logs_path, f"metrics_{eval_uid}.log")
+        return model_logs_path, metrics_logs_path
 
     def __setup_predictions_path(self):
         model_uid = self.model.generated_uid
@@ -67,6 +82,7 @@ class Execution:
         try:
             self.model.run(
                 task="infer",
+                output_logs=self.model_logs_path,
                 timeout=infer_timeout,
                 data_path=data_path,
                 output_path=preds_path,
@@ -92,6 +108,7 @@ class Execution:
         try:
             self.evaluator.run(
                 task="evaluate",
+                output_logs=self.metrics_logs_path,
                 timeout=evaluate_timeout,
                 predictions=preds_path,
                 labels=labels_path,
