@@ -131,8 +131,9 @@ def init_storage():
     log = storage_path(config.logs_storage)
     imgs = base_storage_path(config.images_storage)
     tests = storage_path(config.test_storage)
+    exp_log = storage_path(config.experiments_logs_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests, exp_log]
     for dir in dirs:
         logging.info(f"Creating {dir} directory")
         try:
