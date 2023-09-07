@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
 
 
 def setup_logging(log_lvl):
@@ -51,41 +51,6 @@ def setup_logging(log_lvl):
 
     # Force the creation of a new log file for each execution
     handler.doRollover()
-
-
-def delete_credentials():
-    config_p = read_config()
-    del config_p.active_profile[config.credentials_keyword]
-    write_config(config_p)
-
-
-def set_credentials(token):
-    config_p = read_config()
-    config_p.active_profile[config.credentials_keyword] = token
-    write_config(config_p)
-
-
-def read_credentials():
-    config_p = read_config()
-    token = config_p.active_profile.get(config.credentials_keyword, None)
-    return token
-
-
-def set_current_user(current_user: dict):
-    config_p = read_config()
-    config_p.active_profile["current_user"] = current_user
-    write_config(config_p)
-
-
-def get_current_user():
-    config_p = read_config()
-    try:
-        current_user = config_p.active_profile["current_user"]
-    except KeyError:
-        raise MedperfException(
-            "Couldn't retrieve current user information. Please login again"
-        )
-    return current_user
 
 
 def default_profile():
@@ -184,10 +149,24 @@ def init_config():
         return
 
     config_p = ConfigManager()
+    # default profile
     config_p[config.default_profile_name] = default_profile()
+    # testauth profile
+    config_p[config.testauth_profile_name] = default_profile()
+    config_p[config.testauth_profile_name]["server"] = config.local_server
+    config_p[config.testauth_profile_name]["certificate"] = config.local_certificate
+    config_p[config.testauth_profile_name]["auth_audience"] = config.auth_dev_audience
+    config_p[config.testauth_profile_name]["auth_domain"] = config.auth_dev_domain
+    config_p[config.testauth_profile_name]["auth_jwks_url"] = config.auth_dev_jwks_url
+    config_p[config.testauth_profile_name][
+        "auth_idtoken_issuer"
+    ] = config.auth_dev_idtoken_issuer
+    config_p[config.testauth_profile_name]["auth_client_id"] = config.auth_dev_client_id
+    # local profile
     config_p[config.test_profile_name] = default_profile()
     config_p[config.test_profile_name]["server"] = config.local_server
     config_p[config.test_profile_name]["certificate"] = config.local_certificate
+    config_p[config.test_profile_name]["auth_class"] = "Local"
 
     config_p.activate(config.default_profile_name)
     config_p.write(config_file)
@@ -247,7 +226,7 @@ def cleanup():
 
     trash_folder = base_storage_path(config.trash_folder)
     if os.path.exists(trash_folder):
-        msg = "Failed to premanently cleanup some files. Consider deleting"
+        msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
         config.ui.print_warning(msg)
 
@@ -384,25 +363,20 @@ def combine_proc_sp_text(proc: spawn) -> str:
     ui = config.ui
     static_text = ui.text
     proc_out = ""
-    while proc.isalive():
+    break_ = False
+    while not break_:
+        if not proc.isalive():
+            break_ = True
         try:
-            line = byte = proc.read(1)
+            line = proc.readline()
         except TIMEOUT:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
-
-        while byte and not re.match(b"[\r\n]", byte):
-            byte = proc.read(1)
-            line += byte
-        if not byte:
-            break
         line = line.decode("utf-8", "ignore")
         if line:
-            # add to proc_out list for logging
             proc_out += line
-        ui.text = (
-            f"{static_text} {Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
-        )
+            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+            ui.text = static_text
 
     return proc_out
 
@@ -474,8 +448,29 @@ def log_response_error(res, warn=False):
     try:
         logging_method(res.json())
     except requests.exceptions.JSONDecodeError:
-        logging_method("JSON Response could not be parsed. Showing response content:")
-        logging_method(res.content)
+        logging_method("JSON Response could not be parsed. Showing response text:")
+        logging_method(res.text)
+
+
+def format_errors_dict(errors_dict: dict):
+    """Reformats the error details from a field-error(s) dictionary into a human-readable string for printing"""
+    error_msg = ""
+    for field, errors in errors_dict.items():
+        error_msg += "\n"
+        if isinstance(field, tuple):
+            field = field[0]
+        error_msg += f"- {field}: "
+        if isinstance(errors, str):
+            error_msg += errors
+        elif len(errors) == 1:
+            # If a single error for a field is given, don't create a sublist
+            error_msg += errors[0]
+        else:
+            # Create a sublist otherwise
+            for e_msg in errors:
+                error_msg += "\n"
+                error_msg += f"\t- {e_msg}"
+    return error_msg
 
 
 def format_errors_dict(errors_dict: dict):
@@ -508,3 +503,19 @@ def get_cube_image_name(cube_path: str) -> str:
     except KeyError:
         msg = "The provided mlcube doesn't seem to be configured for singularity"
         raise MedperfException(msg)
+
+
+def verify_hash(obtained_hash: str, expected_hash: str):
+    """Checks hash exact match, and throws an error if not a match
+
+    Args:
+        obtained_hash (str): local hash computed from asset
+        expected_hash (str): expected hash obtained externally
+
+    Raises:
+        InvalidEntityError: Thrown if hashes don't match
+    """
+    if expected_hash and expected_hash != obtained_hash:
+        raise InvalidEntityError(
+            f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
+        )

@@ -1,5 +1,5 @@
 import pytest
-from medperf.commands.auth import SynapseLogin
+from medperf.commands.auth.synapse_login import SynapseLogin
 import synapseclient
 from synapseclient.core.exceptions import SynapseAuthenticationError
 from medperf.exceptions import CommunicationAuthenticationError, InvalidArgumentError

@@ -35,7 +35,6 @@ class CLI(UI):
         Args:
             msg (str): warning message to display
         """
-        msg = f"WARNING: {msg}"
         msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
         self.__print(msg)
 

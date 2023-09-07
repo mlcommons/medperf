@@ -136,7 +136,7 @@ steps:
     args:
       [
        "-c",
-       "pip install -r test-requirements.txt --user && python seed.py --server $(cat /workspace/service-${_PR_NUMBER}.txt) --username $(cat /workspace/username-${_PR_NUMBER}.txt) --password $(cat /workspace/password-${_PR_NUMBER}.txt)"
+       "pip install -r test-requirements.txt --user && python seed.py --server $(cat /workspace/service-${_PR_NUMBER}.txt)"
       ]
 
   - id: "delete cloud run"

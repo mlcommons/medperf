@@ -14,6 +14,7 @@ from medperf.exceptions import (
     CommunicationRetrievalError,
 )
 import medperf.config as config
+from medperf.account_management import get_medperf_user_data
 
 
 class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
@@ -34,7 +35,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     split_seed: Optional[int]
     generated_metadata: dict = Field(..., alias="metadata")
     status: Status = None
-    separate_labels: Optional[bool]
     user_metadata: dict = {}
 
     @validator("status", pre=True, always=True)
@@ -65,9 +65,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         self.path = path
         self.data_path = os.path.join(self.path, "data")
-        self.labels_path = self.data_path
-        if self.separate_labels:
-            self.labels_path = os.path.join(self.path, "labels")
+        self.labels_path = os.path.join(self.path, "labels")
 
     def todict(self):
         return self.extended_dict()
@@ -120,7 +118,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_datasets
-        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_datasets
         return comms_fn
 
@@ -216,7 +214,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         dataset_dict = self.todict()
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
         updated_dataset_dict["status"] = dataset_dict["status"]
-        updated_dataset_dict["separate_labels"] = dataset_dict["separate_labels"]
         return updated_dataset_dict
 
     @classmethod

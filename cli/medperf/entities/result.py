@@ -8,6 +8,7 @@ from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema
 import medperf.config as config
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
+from medperf.account_management import get_medperf_user_data
 
 
 class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
@@ -89,9 +90,9 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
             callable: A function for retrieving remote entities with the applied prefilters
         """
         comms_fn = config.comms.get_results
-        if "owner" in filters and filters["owner"] == config.current_user["id"]:
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_results
-        if "benchmark" in filters:
+        if "benchmark" in filters and filters["benchmark"] is not None:
             bmk = filters["benchmark"]
 
             def get_benchmark_results():

@@ -1,3 +1,3 @@
-medperf login --username=testbenchmarkowner --password=test
+medperf auth login -e testbo@example.com
 medperf association approve -b 1 -d 1
-medperf login --username=testdataowner --password=test
+medperf auth login -e testdo@example.com

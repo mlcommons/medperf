@@ -25,7 +25,7 @@ When your file is hosted with a direct download link, MedPerf will be able to id
 
 ### Direct download links of files on GitHub
 
-We provide below how to find the direct download link of a file on GitHub, since we found that it can be a common practice to have files hosted on GitHub repositories. You can check online for other storage providers.
+It was a common practice by the current MedPerf users to host files on GitHub. You can learn below how to find the direct download link of a file hosted on GitHub. You can check online for other storage providers.
 
 It's important though to make sure the files won't be modified after being submitted to medperf, which could happen due to future commits. Because of this, the URLs of the files hosted on GitHub must contain a reference to the current commit hash. Below are the steps to get this URL for a specific file:
 
@@ -40,7 +40,7 @@ It's important though to make sure the files won't be modified after being submi
 
 ## Synapse hosting
 
-We provide the option of hosting with [Synapse](https://www.synapse.org/), in cases where privacy is a concern. Please refer to [this link](https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html) for hosting files on the Synapse platform.
+You can choose the option of hosting with [Synapse](https://www.synapse.org/) in cases where privacy is a concern. Please refer to [this link](https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html) for hosting files on the Synapse platform.
 
 When your file is hosted on Synapse, MedPerf will be able to identify this file using the Synapse ID corresponding to that file. So for example, when you are [submitting an MLCube](../getting_started/model_owner_demo.md#2-submitting-the-mlcube), you would pass your hosted MLCube manifest file as follows (note the prefix):
 
@@ -48,7 +48,7 @@ When your file is hosted on Synapse, MedPerf will be able to identify this file 
 --mlcube-file synapse:<the-synapse-id-of-the-file>
 ```
 
-Note that you need to authenticate with your Synapse credentials if you plan to use a Synaspe file with MedPerf. To do so run `medperf synapse_login`.
+Note that you need to authenticate with your Synapse credentials if you plan to use a Synaspe file with MedPerf. To do so run `medperf auth synapse_login`.
 
 !!! note
     You **must** authenticate if using files on Synapse. If this is not necessary, this means the file has anonymous public access read permission. In this case, Synapse allows you to generate a permanent direct download link for your file and you can follow the [previous section](#file-hosting).

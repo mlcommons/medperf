@@ -46,7 +46,7 @@ class SynapseSource(BaseSource):
         except SynapseNoCredentialsError:
             msg = "There was an attempt to download resources from the Synapse "
             msg += "platform, but couldn't find Synapse credentials."
-            msg += "\nDid you run 'medperf synapse_login' before?"
+            msg += "\nDid you run 'medperf auth synapse_login' before?"
             raise CommunicationAuthenticationError(msg)
 
     def download(self, resource_identifier: str, output_path: str):

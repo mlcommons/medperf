@@ -98,7 +98,6 @@ class DataPreparation:
         self.name = name
         self.description = description
         self.location = location
-        self.labels_specified = False
         self.run_test = run_test
         self.benchmark_uid = benchmark_uid
         self.prep_cube_uid = prep_cube_uid
@@ -125,7 +124,7 @@ class DataPreparation:
             benchmark = Benchmark.get(self.benchmark_uid)
             cube_uid = benchmark.data_preparation_mlcube
             self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
-        self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
+        self.ui.text = "Retrieving data preparation cube"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
 
@@ -160,14 +159,12 @@ class DataPreparation:
             "data_path": data_path,
             "labels_path": labels_path,
             "output_path": out_datapath,
+            "output_labels_path": out_labelspath,
         }
         prepare_str_params = {
             "Ptasks.prepare.parameters.input.data_path.opts": "ro",
             "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
         }
-
-        if self.labels_specified:
-            prepare_params["output_labels_path"] = out_labelspath
 
         if self.report_specified:
             prepare_params["report_file"] = out_report
@@ -279,7 +276,6 @@ class DataPreparation:
             "generated_metadata": self.generated_metadata,
             "status": Status.PENDING.value,  # not in the server
             "state": "OPERATION",
-            "separate_labels": self.labels_specified,  # not in the server
             "for_test": self.run_test,  # not in the server (OK)
         }
 

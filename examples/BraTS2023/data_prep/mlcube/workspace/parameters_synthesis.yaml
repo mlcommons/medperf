@@ -1,0 +1,5 @@
+task: synthesis
+segmentation_modalities: ["t1c", "t1n", "t2f", "t2w"]
+original_data_in_labels: original_data
+segmentation_labels: segmentation_labels
+missing_modality_json: "missing.json"

@@ -1,18 +1,14 @@
 # Overview
 
-This set of tutorials will cover the basic usage of MedPerf. We will present a guided walkthrough of a simple benchmarking scenario through an example.
-The example will simulate benchmarking the task of chest X-ray classification. It will involve the roles of the three entities of interest:
+The MedPerf client provides all the necessary tools to run a complete benchmark experiment. Below, you will find a comprehensive breakdown of user roles and the corresponding functionalities they can access and perform using the MedPerf client:
 
-- **The benchmark committee:** This will simulate a user that wants to kick-off a benchmark on Chest X-ray classification. Their main actions involve defining, creating, and submitting the benchmark, as well as managing experiments (e.g. approve which datasets and models can participate)
-- **The model owner:** This will simulate a researcher that wants to test the performance of their deep learning model (a ResNet model) on chest-Xray classification. Their main actions involve submitting a model MLCube and requesting participation in the benchmark.
-- **The data owner:** This will simulate a hospital that has raw chest X-ray data and wants to allow testing deep learning models on their data while keeping it private. Their main actions involve preparing the data, submitting the metadata of the prepared dataset, requesting participation in the benchmark, execute the benchmark models on the prepared dataset, and submitting the results of the execution.
+- **Benchmark Committee:** The [Benchmark Commitee](../roles.md#benchmark-committee) can define and create a benchmark, as well as manage experiments (e.g., approving which datasets and models will be allowed to participate)
+- **Model Owner:** The [Model Owner](../roles.md#model-owners) can submit a model to the MedPerf server and request participation in a benchmark.
+- **Data Owner:** The [Data Owner](../roles.md#data-providers) can prepare their raw medical data, register the **metadata** of their prepared dataset, request participation in a benchmark, execute a benchmark's models on their data, and submit the results of the execution.
 
-Before proceeding, make sure you have the [MedPerf client installed.](../installation.md), and you have [set up](setup.md) the general testing environment. Depending on how you are going to use MedPerf, we provide the following hands-on tutorials:
+## What's Next?
 
-- [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
-
-- [How a model owner can submit a model.](model_owner_demo.md)
-
-- [How a data owner can prepare their data and execute a benchmark.](data_owner_demo.md)
-
-For a detailed reference on the commands used throughout the tutorials, you can always refer to the [command line interface documentation](../cli_reference.md).
+- [Create your MedPerf account](signup.md)
+- [Install the MedPerf client](installation.md)
+- Get familiar with the MedPerf client by following the [hands-on tutorials](tutorials_overview.md)
+- Understand and learn how to [build MedPerf MLCubes](../mlcubes/mlcubes.md)

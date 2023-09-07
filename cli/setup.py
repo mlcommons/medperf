@@ -4,6 +4,9 @@ from medperf._version import __version__
 with open("requirements.txt", "r") as f:
     requires = []
     for line in f:
+        if line.startswith("mlcube"):
+            requires.append(line)
+            continue
         req = line.split("#", 1)[0].strip()
         if req and not req.startswith("--"):
             requires.append(req)

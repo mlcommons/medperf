@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+title: "Federated benchmarking of medical artificial intelligence with MedPerf"
+message: "Citation for this repository"
+authors:
+  - family-names: Karargyris
+    given-names: Alexandros
+  - given-names: Renato
+    family-names: Umeton
+  - given-names: Micah J
+    family-names: Sheller
+  - given-names: Alejandro
+    family-names: Aristizabal
+  - given-names: Johnu
+    family-names: George
+  - given-names: Anna
+    family-names: Wuest
+  - given-names: Sarthak
+    family-names: Pati
+doi: 10.1038/s42256-023-00652-2
+url: https://github.com/mlcommons/medperf
+release-date: 2023-07-17
+preferred-citation:
+  type: article
+  authors:
+      - family-names: Karargyris
+        given-names: Alexandros
+      - given-names: Renato
+        family-names: Umeton
+      - given-names: Micah J
+        family-names: Sheller
+      - given-names: Alejandro
+        family-names: Aristizabal
+      - given-names: Johnu
+        family-names: George
+      - given-names: Anna
+        family-names: Wuest
+      - given-names: Sarthak
+        family-names: Pati
+  journal: "Nature Machine Intelligence"
+  publisher: "Nature"
+  year: 2023
+  start: 799
+  month: 7
+  volume: 5
+  title: "Federated benchmarking of medical artificial intelligence with MedPerf"
+  doi: 10.1038/s42256-023-00652-2
+  url: 'https://dx.doi.org/10.1038/s42256-023-00652-2'

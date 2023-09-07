@@ -1,8 +1,10 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import migrations
 from django.db.backends.postgresql.schema import DatabaseSchemaEditor
 from django.db.migrations.state import StateApps
 from django.conf import settings
+
+User = get_user_model()
 
 
 def createsuperuser(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> None:

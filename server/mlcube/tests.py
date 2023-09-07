@@ -1,11 +1,11 @@
-import string
-import random
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 
 from medperf.tests import MedPerfTest
+
+User = get_user_model()
 
 
 class MlCubeTest(MedPerfTest):
@@ -14,17 +14,11 @@ class MlCubeTest(MedPerfTest):
     def setUp(self):
         super(MlCubeTest, self).setUp()
         username = "mlcubeowner"
-        password = "".join(random.choice(string.ascii_letters) for m in range(10))
-        user = User.objects.create_user(username=username, password=password,)
-        user.save()
+        token, _ = self.create_user(username)
         self.api_prefix = "/api/" + settings.SERVER_API_VERSION
         self.client = APIClient()
-        response = self.client.post(
-            self.api_prefix + "/auth-token/", {"username": username, "password": password}, format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.token = response.data["token"]
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token)
+        self.token = token
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
 
     def test_unauthenticated_user(self):
         client = APIClient()
@@ -46,14 +40,17 @@ class MlCubeTest(MedPerfTest):
             "mlcube_hash": "string",
             "git_parameters_url": "string",
             "parameters_hash": "string",
-            "image_tarball_url": "string",
-            "image_tarball_hash": "string",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "image_hash": "string",
             "additional_files_tarball_url": "string",
             "additional_files_tarball_hash": "string",
             "metadata": {"key": "value"},
         }
 
-        response = self.client.post(self.api_prefix + "/mlcubes/", testmlcube, format="json")
+        response = self.client.post(
+            self.api_prefix + "/mlcubes/", testmlcube, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         uid = response.data["id"]
         response = self.client.get(self.api_prefix + "/mlcubes/{0}/".format(uid))
@@ -73,6 +70,7 @@ class MlCubeTest(MedPerfTest):
             "git_parameters_url": "newstring",
             "tarball_url": "newstring",
             "tarball_hash": "newstring",
+            "image_hash": "string",
             "metadata": {"newkey": "newvalue"},
         }
 
