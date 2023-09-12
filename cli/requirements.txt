@@ -1,6 +1,6 @@
 typer~=0.6.0
 rich~=12.5.0
-PyYAML>=5.4,<6
+PyYAML>6
 requests>=2.26.0
 pydantic==1.10.2
 yaspin==2.1.0
@@ -22,3 +22,4 @@ setuptools<=66.1.1
 email-validator==2.0.0
 auth0-python==4.3.0
 keyring==23.4.1
+pandas==2.1.0
