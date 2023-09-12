@@ -47,7 +47,6 @@ class SummaryGenerator:
         idxs = ["DONE"] + [idx for idx in percents_df.index if idx != "DONE"]
         percents_df = percents_df[idxs].round().astype(int)
 
-        # TODO: create body
         body = ""
         for status, pct in percents_df.items():
             name = status.replace("_", " ").capitalize()
@@ -69,13 +68,13 @@ class SummaryGenerator:
                     # Don't show unnecessary information for such cases
                     tasks = cases.apply(
                         lambda x: task_template.format(
-                            id=x.name, data_path=x.data_path, label_path=x.labels_path
+                            id=x.name, desc=x.comment, data_path=x.data_path, label_path=x.labels_path
                         ),
                         axis=1,
                     )
                     tasks = tasks.to_list()
 
-            status_body = "\n".join([title] + [desc] + tasks)
+            status_body = "\n".join([title] + tasks)
             body = "\n".join([body, status_body])
 
         summary = template.format(

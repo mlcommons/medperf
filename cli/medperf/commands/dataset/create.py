@@ -130,7 +130,7 @@ class DataPreparation:
 
     def set_staging_parameters(self):
         staging_path = storage_path(config.staging_data_storage)
-        out_path = os.path.join(staging_path, f"{self.in_uid}_{self.cube.id}")
+        out_path = os.path.join(staging_path, f"{self.name}_{self.cube.id}")
         self.out_path = out_path
         self.report_path = os.path.join(out_path, config.report_file)
         self.out_datapath = os.path.join(out_path, "data")
