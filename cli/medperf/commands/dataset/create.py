@@ -190,7 +190,6 @@ class DataPreparation:
         }
         sanity_str_params = {
             "Ptasks.sanity_check.parameters.input.data_path.opts": "ro",
-            "Ptasks.sanity_check.parameters.input.report_file.opts": "ro",
         }
 
         if self.labels_specified:
@@ -199,6 +198,9 @@ class DataPreparation:
 
         if self.report_specified:
             sanity_params["report_file"] = out_report
+            sanity_str_params[
+                "Ptasks.sanity_check.parameters.input.report_file.opts"
+            ] = "ro"
 
         self.ui.text = "Running sanity check..."
         try:
@@ -220,9 +222,11 @@ class DataPreparation:
     def run_statistics(self):
         statistics_timeout = config.statistics_timeout
         out_datapath = self.out_datapath
+        out_labelspath = self.out_labelspath
 
         statistics_params = {
             "data_path": out_datapath,
+            "labels_path": out_labelspath,
             "output_path": self.out_statistics_path,
         }
         statistics_str_params = {
