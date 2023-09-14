@@ -80,7 +80,7 @@ class TestWithDefaultUID:
 
     @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
     def test_get_prep_cube_gets_prep_cube_if_provided(
-        self, mocker, cube_uid, comms, ui
+        self, mocker, cube_uid, comms, ui, fs
     ):
         # Arrange
         spy = mocker.patch(
@@ -96,7 +96,7 @@ class TestWithDefaultUID:
 
     @pytest.mark.parametrize("cube_uid", [998, 68, 109])
     def test_get_prep_cube_gets_benchmark_cube_if_provided(
-        self, mocker, cube_uid, comms, ui
+        self, mocker, cube_uid, comms, ui, fs
     ):
         # Arrange
         benchmark = TestBenchmark(data_preparation_mlcube=cube_uid)
@@ -153,7 +153,7 @@ class TestWithDefaultUID:
         # Assert
         spy.assert_has_calls(calls)
 
-    def test_run_executes_expected_flow(self, mocker, comms, ui):
+    def test_run_executes_expected_flow(self, mocker, comms, ui, fs):
         # Arrange
         validate_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
         get_cube_spy = mocker.spy(DataPreparation, "get_prep_cube")
