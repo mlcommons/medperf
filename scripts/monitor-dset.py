@@ -42,19 +42,19 @@ LISTITEM_MAX_LEN = 30
 
 
 def to_local_path(mlcube_path: str, local_parent_path: str):
-    mlcube_prefix = "/mlcube_io"
+    mlcube_prefix = "mlcube_io"
     if len(mlcube_path) == 0:
         return ""
 
-    if not mlcube_path.startswith(mlcube_prefix):
-        raise RuntimeError(
-            f"{mlcube_path} doesn't start with expected prefix: {mlcube_prefix}"
-        )
+    if mlcube_path.startswith(os.path.sep):
+        mlcube_path = mlcube_path[1:]
 
-    # normalize both paths
-    path = Path(*Path(mlcube_path).parts[2:])
-    parent_path = str(Path(local_parent_path))
-    return os.path.join(parent_path, str(path))
+    if mlcube_path.startswith(mlcube_prefix):
+        # normalize path
+        mlcube_path = str(Path(*Path(mlcube_path).parts[2:]))
+
+    local_parent_path = str(Path(local_parent_path))
+    return os.path.normpath(os.path.join(local_parent_path, mlcube_path))
 
 
 class ReportState:
@@ -105,8 +105,9 @@ class PromptHandler(FileSystemEventHandler):
 
 
 class ReportUpdated(Message):
-    def __init__(self, report: dict):
+    def __init__(self, report: dict, highlight: set):
         self.report = report
+        self.highlight = highlight
         super().__init__()
 
 
@@ -151,10 +152,11 @@ class SubjectListView(ListView):
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
+        highlight = message.highlight
         if len(report) > 0:
-            self.update_list(message.report)
+            self.update_list(report, highlight)
 
-    def update_list(self, report: dict):
+    def update_list(self, report: dict, highlight: set):
         # Check for content differences with old report
         # apply alert class to listitem
         report_df = pd.DataFrame(report)
@@ -170,7 +172,10 @@ class SubjectListView(ListView):
 
         widgets = []
         for subject in ellipsis_subjects:
-            widgets.append(ListItem(Label(subject)))
+            widget = ListItem(Label(subject))
+            if subject in highlight:
+                widget.set_class(True, "highlight")
+            widgets.append(widget)
 
         current_idx = self.index
         while len(self.children):
@@ -263,8 +268,8 @@ class Subjectbrowser(App):
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         """Called when the user click a subject in the list."""
-        # TODO: Construct a renderable of the subject details
         subject_idx = event.item.children[0].renderable.plain
+        event.item.set_class(False, "highlight")
         summary_container = self.query_one("#summary", Summary)
         subject_container = self.query_one("#details", Static)
         if subject_idx == "SUMMARY":
@@ -301,13 +306,21 @@ class Subjectbrowser(App):
         except:
             return
 
-    def watch_report(self, report: dict) -> None:
+    def watch_report(self, old_report: dict, report: dict) -> None:
         # self.update_summary(report)
         # TODO: compare with old report
         # Get rows that changed and highlight them on the list
         # if the currently viewed row changed, update the details
+        highlight_subjects = set()
+        if len(old_report) == len(report):
+            # There was an old report, check the differences
+            report_df = pd.DataFrame(report)
+            old_report_df = pd.DataFrame(old_report)
+            diff = report_df.compare(old_report_df)
+            highlight_subjects = set(diff.index)
+
         self.notify("report changed")
-        msg = ReportUpdated(report)
+        msg = ReportUpdated(report, highlight_subjects)
         summary = self.query_one("#summary", Summary)
         subjectlist = self.query_one("#subjects-list", SubjectListView)
 
