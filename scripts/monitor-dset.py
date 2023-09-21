@@ -303,6 +303,7 @@ class Subjectbrowser(App):
             prompt_details.update(prompt)
             container = self.query_one("#confirm-prompt", Container)
             container.display = show_prompt
+            container.focus()
         except:
             return
 
