@@ -52,20 +52,17 @@ class DataPreparation:
             # Run cube tasks
             preparation.run_prepare()
 
-        in_data_hash = preparation.in_uid
         prep_cube_uid = preparation.prep_cube_uid
         if preparation.report_specified:
             # Maybe this doesn't need to be in the middle of the workflow
             # It could be placed outside the prepare command and executed after
             # it. There would need to be a way to get the necessary information
             # outside this logic though. Investigate further
-            in_data_hash = preparation.in_uid
+            data_name = preparation.name
             prep_cube_uid = preparation.prep_cube_uid
             if benchmark_uid:
-                ReportRegistration.run(in_data_hash, prep_cube_uid, benchmark_uid)
-            SummaryGenerator.run(
-                in_data_hash, prep_cube_uid, summary_path, benchmark_uid
-            )
+                ReportRegistration.run(data_name, prep_cube_uid, benchmark_uid)
+            SummaryGenerator.run(data_name, prep_cube_uid, summary_path, benchmark_uid)
         with preparation.ui.interactive():
             preparation.run_sanity_check()
             preparation.run_statistics()
