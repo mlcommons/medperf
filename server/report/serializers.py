@@ -16,7 +16,13 @@ class ReportDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["owner"]
 
     def validate(self, data):
-        editable_fields = ["is_valid", "user_metadata", "metadata", "contents"]
+        editable_fields = [
+            "is_valid",
+            "user_metadata",
+            "metadata",
+            "contents",
+            "input_data_hash",
+        ]
         for k, v in data.items():
             if k not in editable_fields:
                 if v != getattr(self.instance, k):
