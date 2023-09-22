@@ -7,7 +7,6 @@ from drf_spectacular.utils import extend_schema
 from .models import MlCube
 from .serializers import MlCubeSerializer, MlCubeDetailSerializer
 from .permissions import IsAdmin, IsMlCubeOwner
-from report.models import Report
 from report.serializers import ReportSerializer
 
 
