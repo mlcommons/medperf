@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "benchmark",
     "dataset",
+    "report",
     "benchmarkdataset",
     "mlcube",
     "benchmarkmodel",
