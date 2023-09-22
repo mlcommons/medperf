@@ -1,6 +1,7 @@
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetSerializer
 from result.serializers import ModelResultSerializer
+from report.serializers import ReportSerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -102,6 +103,28 @@ class BenchmarkResultList(GenericAPIView):
         results = benchmark.modelresult_set.all()
         results = self.paginate_queryset(results)
         serializer = ModelResultSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class BenchmarkReportList(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner]
+    serializer_class = ReportSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Benchmark.objects.get(pk=pk)
+        except Benchmark.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve reports associated with a benchmark instance.
+        """
+        benchmark = self.get_object(pk)
+        reports = benchmark.report_set.all()
+        reports = self.paginate_queryset(reports)
+        serializer = ReportSerializer(reports, many=True)
         return self.get_paginated_response(serializer.data)
 
 

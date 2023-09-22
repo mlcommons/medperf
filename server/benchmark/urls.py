@@ -9,4 +9,5 @@ urlpatterns = [
     path("<int:pk>/models/", views.BenchmarkModelList.as_view()),
     path("<int:pk>/datasets/", views.BenchmarkDatasetList.as_view()),
     path("<int:pk>/results/", views.BenchmarkResultList.as_view()),
+    path("<int:pk>/reports/", views.BenchmarkReportList.as_view()),
 ]

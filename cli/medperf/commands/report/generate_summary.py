@@ -10,7 +10,7 @@ from medperf.utils import storage_path
 class SummaryGenerator:
     @staticmethod
     def run(
-        in_data_hash: str,
+        data_name: str,
         prep_cube_uid: int,
         out_summary_path: str,
         benchmark_uid: int = None,
@@ -22,7 +22,7 @@ class SummaryGenerator:
         template_task_path = os.path.join(dirname, template_task_path)
 
         staging_path = storage_path(config.staging_data_storage)
-        out_path = os.path.join(staging_path, f"{in_data_hash}_{prep_cube_uid}")
+        out_path = os.path.join(staging_path, f"{data_name}_{prep_cube_uid}")
         report_path = os.path.join(out_path, config.report_file)
         data_path = os.path.join(out_path, "data")
         labels_path = os.path.join(out_path, "labels")
@@ -68,7 +68,10 @@ class SummaryGenerator:
                     # Don't show unnecessary information for such cases
                     tasks = cases.apply(
                         lambda x: task_template.format(
-                            id=x.name, desc=x.comment, data_path=x.data_path, label_path=x.labels_path
+                            id=x.name,
+                            desc=x.comment,
+                            data_path=x.data_path,
+                            label_path=x.labels_path,
                         ),
                         axis=1,
                     )
@@ -78,7 +81,7 @@ class SummaryGenerator:
             body = "\n".join([body, status_body])
 
         summary = template.format(
-            input_hash=in_data_hash,
+            data_name=data_name,
             prep_cube=prep_cube_uid,
             benchmark=benchmark_uid,
             last_edited=modified_at_str,

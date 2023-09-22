@@ -1,5 +1,5 @@
 # Summary
-**Hash**: {input_hash}
+**Data Name**: {data_name}
 **Preparation MLCube**: {prep_cube}
 **Benchmark**: {benchmark}
 **Last Edited**: {last_edited}
