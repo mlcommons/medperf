@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema
 from .models import MlCube
 from .serializers import MlCubeSerializer, MlCubeDetailSerializer
 from .permissions import IsAdmin, IsMlCubeOwner
+from report.serializers import ReportSerializer
 
 
 class MlCubeList(GenericAPIView):
@@ -77,3 +78,25 @@ class MlCubeDetail(GenericAPIView):
         mlcube = self.get_object(pk)
         mlcube.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MlCubeReportList(GenericAPIView):
+    permission_classes = [IsAdmin | IsMlCubeOwner]
+    serializer_class = ReportSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return MlCube.objects.get(pk=pk)
+        except MlCube.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve reports associated with an MlCube instance.
+        """
+        mlcube = self.get_object(pk)
+        reports = mlcube.report_set.all()
+        reports = self.paginate_queryset(reports)
+        serializer = ReportSerializer(reports, many=True)
+        return self.get_paginated_response(serializer.data)

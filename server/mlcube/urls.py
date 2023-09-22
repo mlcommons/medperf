@@ -10,4 +10,5 @@ urlpatterns = [
     path("benchmarks/", bviews.BenchmarkModelList.as_view()),
     path("<int:pk>/benchmarks/", bviews.BenchmarkModelApproval.as_view()),
     path("<int:pk>/benchmarks/<int:bid>/", bviews.ModelApproval.as_view()),
+    path("<int:pk>/reports/", views.MlCubeReportList.as_view()),
 ]
