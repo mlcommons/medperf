@@ -108,3 +108,12 @@ Summary Static {
 Center.pbar {
     height: auto;
 }
+
+ListItem.highlight {
+    background: $secondary-lighten-3;
+}
+
+MarkdownViewer {
+    height: auto;
+    min-height: 2;
+}
