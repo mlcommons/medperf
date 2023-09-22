@@ -9,6 +9,7 @@ urlpatterns = [
     path("datasets/", views.DatasetList.as_view()),
     path("mlcubes/", views.MlCubeList.as_view()),
     path("results/", views.ModelResultList.as_view()),
+    path("reports/", views.ReportList.as_view()),
     path("datasets/associations/", views.DatasetAssociationList.as_view()),
     path("mlcubes/associations/", views.MlCubeAssociationList.as_view()),
 ]
