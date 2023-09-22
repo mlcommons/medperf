@@ -13,7 +13,9 @@ class Report(models.Model):
     data_preparation_mlcube = models.ForeignKey(
         "mlcube.MlCube", on_delete=models.PROTECT
     )
-    benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
+    benchmark = models.ForeignKey(
+        "benchmark.Benchmark", on_delete=models.CASCADE, blank=True, null=True
+    )
     is_valid = models.BooleanField(default=True)
 
     contents = models.JSONField(default=dict, blank=True, null=True)
