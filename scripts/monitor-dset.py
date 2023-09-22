@@ -149,31 +149,26 @@ class Summary(Static):
 
 class SubjectListView(ListView):
     report = {}
+    highlight = set()
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
         highlight = message.highlight
+        self.highlight = self.highlight.union(highlight)
         if len(report) > 0:
-            self.update_list(report, highlight)
+            self.update_list(report)
 
-    def update_list(self, report: dict, highlight: set):
+    def update_list(self, report: dict):
         # Check for content differences with old report
         # apply alert class to listitem
         report_df = pd.DataFrame(report)
 
         subjects = ["SUMMARY"] + list(report_df.index)
-        ellipsis_subjects = []
-        for subject in subjects:
-            if len(subject) > LISTITEM_MAX_LEN:
-                idx = LISTITEM_MAX_LEN - 3
-                subject = subject[:idx] + "..."
-
-            ellipsis_subjects.append(subject)
 
         widgets = []
-        for subject in ellipsis_subjects:
+        for subject in subjects:
             widget = ListItem(Label(subject))
-            if subject in highlight:
+            if subject in self.highlight:
                 widget.set_class(True, "highlight")
             widgets.append(widget)
 
@@ -269,7 +264,10 @@ class Subjectbrowser(App):
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         """Called when the user click a subject in the list."""
         subject_idx = event.item.children[0].renderable.plain
+        listview = self.query_one("#subjects-list", SubjectListView)
         event.item.set_class(False, "highlight")
+        if subject_idx in listview.highlight:
+            listview.highlight.remove(subject_idx)
         summary_container = self.query_one("#summary", Summary)
         subject_container = self.query_one("#details", Static)
         if subject_idx == "SUMMARY":
