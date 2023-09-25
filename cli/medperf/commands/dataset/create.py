@@ -16,6 +16,33 @@ from medperf.utils import (
 )
 from medperf.exceptions import InvalidArgumentError, ExecutionError
 import yaml
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+
+class ReportHandler(FileSystemEventHandler):
+    def __init__(self, preparation_obj: "DataPreparation"):
+        self.preparation = preparation_obj
+
+    def on_creatd(self, event):
+        self.on_modified(event)
+
+    def on_modified(self, event):
+        if event.src_path == self.preparation.report_path:
+            # self.report_state.update()
+            preparation = self.preparation
+            in_data_hash = preparation.in_uid
+            name = preparation.name
+            desc = preparation.description
+            loc = preparation.location
+            prep_cube_uid = preparation.prep_cube_uid
+            benchmark_uid = preparation.benchmark_uid
+            summary_path = preparation.summary_path
+
+            ReportRegistration.run(
+                in_data_hash, name, desc, loc, prep_cube_uid, benchmark_uid
+            )
+            SummaryGenerator.run(name, prep_cube_uid, summary_path, benchmark_uid)
 
 
 class DataPreparation:
@@ -49,21 +76,30 @@ class DataPreparation:
             preparation.get_prep_cube()
             preparation.set_staging_parameters()
 
+        if preparation.report_specified:
+            # Send an initial report to the server on execution
+            # of the pipeline
+            in_data_hash = preparation.in_uid
+            name = preparation.name
+            desc = preparation.description
+            loc = preparation.location
+            prep_cube_uid = preparation.prep_cube_uid
+            benchmark_uid = preparation.benchmark_uid
+            summary_path = preparation.summary_path
+
+            ReportRegistration.run(
+                in_data_hash, name, desc, loc, prep_cube_uid, benchmark_uid
+            )
+
+            # After that, send reports when changes are visible
+            observer = Observer()
+            observer.schedule(ReportHandler(preparation), preparation.out_path)
+            observer.start()
+
+        with preparation.ui.interactive():
             # Run cube tasks
             preparation.run_prepare()
-
-        prep_cube_uid = preparation.prep_cube_uid
-        if preparation.report_specified:
-            # Maybe this doesn't need to be in the middle of the workflow
-            # It could be placed outside the prepare command and executed after
-            # it. There would need to be a way to get the necessary information
-            # outside this logic though. Investigate further
-            data_name = preparation.name
-            prep_cube_uid = preparation.prep_cube_uid
-            if benchmark_uid:
-                ReportRegistration.run(data_name, prep_cube_uid, benchmark_uid)
-            SummaryGenerator.run(data_name, prep_cube_uid, summary_path, benchmark_uid)
-        with preparation.ui.interactive():
+            observer.stop()
             preparation.run_sanity_check()
             preparation.run_statistics()
 
@@ -71,6 +107,10 @@ class DataPreparation:
         preparation.generate_uids()
         preparation.to_permanent_path()
         preparation.write()
+
+        # TODO: Should we also send a report when processing has ended?
+        # We could add metadata to know if processing is ongoing, or if it
+        # was stopped due to inactivity or errors were obtained
         return preparation.generated_uid
 
     def __init__(

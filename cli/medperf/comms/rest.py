@@ -519,22 +519,18 @@ class REST(Comms):
 
     def upload_report(self, data: dict):
         url = f"{self.server_url}/reports/"
-        # res = self.__auth_post(url, json=data)
-        print(f"Submitting report to {url}")
-        return {"id": 1}
-        # if res.status_code != 201:
-        #   log_response_error(res)
-        #   details = format_errors_dict(res.json())
-        #   raise CommunicationRequestError(f"Could not submit report: {details}")
-        # return res.json()
+        res = self.__auth_post(url, json=data)
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"Could not submit report: {details}")
+        return res.json()
 
     def update_report(self, report_uid: int, data: dict):
         url = f"{self.server_url}/reports/{report_uid}/"
-        print(f"Updating report {report_uid} to {url}")
-        return {"id": 1}
-        # res = self.__auth_put(url, json=data)
-        # if res.status_code != 200:
-        #     log_response_error(res)
-        #     details = format_errors_dict(res.json())
-        #     raise CommunicationRequestError(f"Could not update report: {details}")
-        # return res.json()
+        res = self.__auth_put(url, json=data)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"Could not update report: {details}")
+        return res.json()
