@@ -1,5 +1,7 @@
 import logging
 import os
+import sys
+import signal
 from pathlib import Path
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
@@ -38,9 +40,16 @@ class ReportHandler(FileSystemEventHandler):
             prep_cube_uid = preparation.prep_cube_uid
             benchmark_uid = preparation.benchmark_uid
             summary_path = preparation.summary_path
+            metadata = {"execution_status": "running"}
 
             ReportRegistration.run(
-                in_data_hash, name, desc, loc, prep_cube_uid, benchmark_uid
+                in_data_hash,
+                name,
+                desc,
+                loc,
+                prep_cube_uid,
+                benchmark_uid,
+                metadata=metadata,
             )
             SummaryGenerator.run(name, prep_cube_uid, summary_path, benchmark_uid)
 
@@ -72,34 +81,14 @@ class DataPreparation:
             run_test,
         )
         preparation.validate()
-        with preparation.ui.interactive():
-            preparation.get_prep_cube()
-            preparation.set_staging_parameters()
+        preparation.get_prep_cube()
+        preparation.set_staging_parameters()
 
-        if preparation.report_specified:
-            # Send an initial report to the server on execution
-            # of the pipeline
-            in_data_hash = preparation.in_uid
-            name = preparation.name
-            desc = preparation.description
-            loc = preparation.location
-            prep_cube_uid = preparation.prep_cube_uid
-            benchmark_uid = preparation.benchmark_uid
-            summary_path = preparation.summary_path
-
-            ReportRegistration.run(
-                in_data_hash, name, desc, loc, prep_cube_uid, benchmark_uid
-            )
-
-            # After that, send reports when changes are visible
-            observer = Observer()
-            observer.schedule(ReportHandler(preparation), preparation.out_path)
-            observer.start()
+        # Run cube tasks
+        # The prepare function handles interactivity from within
+        preparation.run_prepare()
 
         with preparation.ui.interactive():
-            # Run cube tasks
-            preparation.run_prepare()
-            observer.stop()
             preparation.run_sanity_check()
             preparation.run_statistics()
 
@@ -108,9 +97,6 @@ class DataPreparation:
         preparation.to_permanent_path()
         preparation.write()
 
-        # TODO: Should we also send a report when processing has ended?
-        # We could add metadata to know if processing is ongoing, or if it
-        # was stopped due to inactivity or errors were obtained
         return preparation.generated_uid
 
     def __init__(
@@ -130,7 +116,7 @@ class DataPreparation:
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         self.summary_path = str(Path(summary_path).resolve())
-        self.in_uid = get_folder_sha1(self.data_path)
+        self.in_uid = get_folder_hash(self.data_path)
         self.out_statistics_path = generate_tmp_path()
         self.name = name
         self.description = description
@@ -191,6 +177,13 @@ class DataPreparation:
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
         out_report = self.report_path
+        in_data_hash = self.in_uid
+        name = self.name
+        desc = self.description
+        loc = self.location
+        prep_cube_uid = self.prep_cube_uid
+        benchmark_uid = self.benchmark_uid
+        approved = False
 
         prepare_params = {
             "data_path": data_path,
@@ -203,17 +196,84 @@ class DataPreparation:
             "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
         }
 
+        def sigint_handler(sig, frame):
+            metadata = {"execution_status": "interrupted"}
+            ReportRegistration.run(
+                in_data_hash,
+                name,
+                desc,
+                loc,
+                prep_cube_uid,
+                benchmark_uid,
+                metadata=metadata,
+            )
+            sys.exit(0)
+
+        observer = Observer()
+
         if self.report_specified:
             prepare_params["report_file"] = out_report
+            metadata = {"execution_status": "started"}
+
+            approved = ReportRegistration.run(
+                in_data_hash,
+                name,
+                desc,
+                loc,
+                prep_cube_uid,
+                benchmark_uid,
+                metadata=metadata,
+            )
+
+            if approved:
+                signal.signal(signal.SIGINT, sigint_handler)
+                observer.schedule(ReportHandler(self), self.out_path)
+                observer.start()
 
         self.ui.text = "Running preparation step..."
-        self.cube.run(
-            task="prepare",
-            string_params=prepare_str_params,
-            timeout=prepare_timeout,
-            **prepare_params,
-        )
+        try:
+            with self.ui.interactive():
+                self.cube.run(
+                    task="prepare",
+                    string_params=prepare_str_params,
+                    timeout=prepare_timeout,
+                    **prepare_params,
+                )
+        except Exception as e:
+            # Inform the server that a failure occured
+            metadata = {"execution_status": "failed"}
+            if approved:
+                ReportRegistration.run(
+                    in_data_hash,
+                    name,
+                    desc,
+                    loc,
+                    prep_cube_uid,
+                    benchmark_uid,
+                    metadata=metadata,
+                )
+
+            # Let the rest of the code handle the exception
+            raise e
+
         self.ui.print("> Cube execution complete")
+
+        # If any observer or signal was set, stop them
+        signal.pause()
+        observer.stop()
+
+        # Send a last update to indicate preparation process finished
+        # If the user didn't approve before, here we will ask again
+        metadata = {"execution_status": "finished"}
+        ReportRegistration.run(
+            in_data_hash,
+            name,
+            desc,
+            loc,
+            prep_cube_uid,
+            benchmark_uid,
+            metadata=metadata,
+        )
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
