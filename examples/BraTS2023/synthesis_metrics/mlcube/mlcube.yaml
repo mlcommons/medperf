@@ -1,0 +1,27 @@
+name: BraTS2023 Missing MRI task Metrics
+description: BraTS2023 Missing MRI task Metrics
+authors:
+  - { name: MLCommons Medical Working Group }
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name
+  image: mlcommons/brats2023-synthesis-metrics:0.0.0
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  evaluate:
+    # Computes evaluation metrics on the given predictions and ground truths
+    parameters:
+      inputs:
+        {
+          predictions: predictions,
+          labels: labels,
+          parameters_file: parameters.yaml,
+        }
+      outputs: { output_path: { type: "file", default: "results.yaml" } }

@@ -1,0 +1,4 @@
+original_data_in_labels: original_data
+missing_modality_json: "missing.json"
+segmentation_labels: segmentation_labels
+requires_gpu: True

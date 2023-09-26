@@ -1,8 +1,10 @@
+import os
 from unittest.mock import ANY, call
 from medperf.commands.execution import Execution
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
+from medperf.utils import storage_path
 import pytest
 from medperf import config
 import yaml
@@ -50,7 +52,6 @@ def setup(request, mocker, ui, fs):
         "failing_model": False,
         "failing_eval": False,
         "execution_results": {"res": 1, "metric": 55},
-        "preds_path": "tmp_preds_path",
         "result_path": "tmp_result_path",
     }
     state_variables.update(request.param)
@@ -61,7 +62,7 @@ def setup(request, mocker, ui, fs):
 
     mocker.patch(
         PATCH_EXECUTION.format("generate_tmp_path"),
-        side_effect=[state_variables["preds_path"], state_variables["result_path"]],
+        return_value=state_variables["result_path"],
     )
     spies = {
         "model_run": model_run_spy,
@@ -96,6 +97,27 @@ class TestFailures:
             INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
         )
 
+    @pytest.mark.parametrize("setup", [{}], indirect=True)
+    @pytest.mark.parametrize("ignore_model_errors", [True, False])
+    def test_failure_with_existing_predictions(mocker, setup, ignore_model_errors, fs):
+        # Arrange
+        preds_path = storage_path(
+            os.path.join(
+                config.predictions_storage,
+                INPUT_MODEL.generated_uid,
+                INPUT_DATASET.generated_uid,
+            )
+        )
+        fs.create_dir(preds_path)
+        # Act & Assert
+        with pytest.raises(ExecutionError):
+            Execution.run(
+                INPUT_DATASET,
+                INPUT_MODEL,
+                INPUT_EVALUATOR,
+                ignore_model_errors=ignore_model_errors,
+            )
+
 
 @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
 def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
@@ -127,18 +149,42 @@ def test_results_are_returned(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
-    state_variables = setup[0]
+    exp_preds_path = storage_path(
+        os.path.join(
+            config.predictions_storage,
+            INPUT_MODEL.generated_uid,
+            INPUT_DATASET.generated_uid,
+        )
+    )
+    exp_model_logs_path = storage_path(
+        os.path.join(
+            config.experiments_logs_storage,
+            INPUT_MODEL.generated_uid,
+            INPUT_DATASET.generated_uid,
+            "model.log",
+        )
+    )
+    exp_metrics_logs_path = storage_path(
+        os.path.join(
+            config.experiments_logs_storage,
+            INPUT_MODEL.generated_uid,
+            INPUT_DATASET.generated_uid,
+            f"metrics_{INPUT_EVALUATOR.generated_uid}.log",
+        )
+    )
     exp_model_call = call(
         task="infer",
+        output_logs=exp_model_logs_path,
         timeout=config.infer_timeout,
         data_path=INPUT_DATASET.data_path,
-        output_path=state_variables["preds_path"],
+        output_path=exp_preds_path,
         string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
     )
     exp_eval_call = call(
         task="evaluate",
+        output_logs=exp_metrics_logs_path,
         timeout=config.evaluate_timeout,
-        predictions=state_variables["preds_path"],
+        predictions=exp_preds_path,
         labels=INPUT_DATASET.labels_path,
         output_path=ANY,
         string_params={

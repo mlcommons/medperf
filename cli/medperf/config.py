@@ -60,6 +60,7 @@ config_path = "config.yaml"
 workspace_path = "workspace"
 test_storage = "tests"
 trash_folder = ".trash"
+experiments_logs_storage = "experiments_logs"
 cleanup = True
 
 test_report_file = "test_report.yaml"

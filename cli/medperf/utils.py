@@ -94,8 +94,8 @@ def base_storage_path(subpath: str):
     return os.path.join(config.storage, subpath)
 
 
-def get_file_sha1(path: str) -> str:
-    """Calculates the sha1 hash for a given file.
+def get_file_hash(path: str) -> str:
+    """Calculates the sha256 hash for a given file.
 
     Args:
         path (str): Location of the file of interest.
@@ -103,18 +103,18 @@ def get_file_sha1(path: str) -> str:
     Returns:
         str: Calculated hash
     """
-    logging.debug("Calculating SHA1 hash for file {}".format(path))
+    logging.debug("Calculating hash for file {}".format(path))
     BUF_SIZE = 65536
-    sha1 = hashlib.sha1()
+    sha = hashlib.sha256()
     with open(path, "rb") as f:
         while True:
             data = f.read(BUF_SIZE)
             if not data:
                 break
-            sha1.update(data)
+            sha.update(data)
 
-    sha_val = sha1.hexdigest()
-    logging.debug(f"SHA1 hash for file {path}: {sha_val}")
+    sha_val = sha.hexdigest()
+    logging.debug(f"Hash for file {path}: {sha_val}")
     return sha_val
 
 
@@ -131,8 +131,9 @@ def init_storage():
     log = storage_path(config.logs_storage)
     imgs = base_storage_path(config.images_storage)
     tests = storage_path(config.test_storage)
+    exp_log = storage_path(config.experiments_logs_storage)
 
-    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests]
+    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests, exp_log]
     for dir in dirs:
         logging.info(f"Creating {dir} directory")
         try:
@@ -381,7 +382,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
     return proc_out
 
 
-def get_folder_sha1(path: str) -> str:
+def get_folder_hash(path: str) -> str:
     """Generates a hash for all the contents of the folder. This procedure
     hashes all of the files in the folder, sorts them and then hashes that list.
 
@@ -389,20 +390,20 @@ def get_folder_sha1(path: str) -> str:
         path (str): Folder to hash
 
     Returns:
-        str: sha1 hash of the whole folder
+        str: sha256 hash of the whole folder
     """
     hashes = []
     for root, _, files in os.walk(path, topdown=False):
         for file in files:
             logging.debug(f"Hashing file {file}")
             filepath = os.path.join(root, file)
-            hashes.append(get_file_sha1(filepath))
+            hashes.append(get_file_hash(filepath))
 
     hashes = sorted(hashes)
-    sha1 = hashlib.sha1()
+    sha = hashlib.sha256()
     for hash in hashes:
-        sha1.update(hash.encode("utf-8"))
-    hash_val = sha1.hexdigest()
+        sha.update(hash.encode("utf-8"))
+    hash_val = sha.hexdigest()
     logging.debug(f"Folder hash: {hash_val}")
     return hash_val
 
