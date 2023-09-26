@@ -46,18 +46,33 @@ SubjectDetails {
     text-style: bold;
     width: auto;
     color: $panel-lighten-2;
+    column-span: 2;
 }
 
 .subject-item-content {
-    width: 80%;
+    column-span: 8;
+    overflow: scroll;
 }
 
-SubjectDetails Horizontal {
-    height: auto;
+.subject-item-copy {
+    column-span: 2;
+}
+
+SubjectDetails {
+    overflow: scroll;
+    height: 100%;
+}
+
+SubjectDetails CopyableItem {
+    layout: grid;
+    grid-size: 12 1;
+    grid-columns: 1fr;
+    grid-gutter: 1;
     margin: 1;
+    height: auto;
 }
 
-Button {
+Button.prompt-btn {
     margin: 1;
 }
 
@@ -66,7 +81,6 @@ Button {
     align: center middle;
     width: 30%;
     height: auto;
-    # height: 50%;
     background: $primary-background-lighten-1;
     content-align: center middle;
 }

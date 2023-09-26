@@ -9,6 +9,7 @@ Run with:
 import os
 from pathlib import Path
 import typer
+import pyperclip
 from tabulate import tabulate
 from typer import Argument
 from medperf.utils import storage_path, read_config, set_custom_config
@@ -181,27 +182,51 @@ class SubjectListView(ListView):
         self.report = report
 
 
+class CopyableItem(Static):
+    content = reactive("")
+
+    def __init__(self, label: str, content: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label = label
+        self.content = content
+
+    def compose(self) -> ComposeResult:
+        yield Static(f"{self.label}: ", classes="subject-item-label")
+        yield Static(self.content, classes="subject-item-content")
+        yield Button("⎘", classes="subject-item-copy")
+
+    def update(self, content):
+        self.content = content
+
+    def watch_content(self, content):
+        if len(content) == 0:
+            self.display = False
+            return
+        subject = self.query_one(".subject-item-content", Static)
+        subject.update(content)
+        self.display = True
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        event.stop()
+        pyperclip.copy(self.content)
+        self.notify("Text copied to clipboard")
+
+
 class SubjectDetails(Static):
     def compose(self) -> ComposeResult:
         with Center(id="subject-title"):
             yield Static(id="subject-name")
             yield Static(id="subject-status")
-        with Horizontal(id="subject-comment-container"):
-            yield Static("Comment: ", classes="subject-item-label")
-            yield Static(id="subject-comments", classes="subject-item-content")
-        with Horizontal(id="subject-data-container"):
-            yield Static("Data path: ", classes="subject-item-label")
-            yield Static(id="subject-data-path", classes="subject-item-content")
-        with Horizontal(id="subject-labels-container"):
-            yield Static("Labels path: ", classes="subject-item-label")
-            yield Static(id="subject-labels-path", classes="subject-item-content")
+        yield CopyableItem("Comment", "", id="subject-comment-container")
+        yield CopyableItem("Data path", "", id="subject-data-container")
+        yield CopyableItem("Labels path", "", id="subject-labels-container")
 
     def update_subject(self, subject: pd.Series, dset_path: str):
         wname = self.query_one("#subject-name", Static)
         wstatus = self.query_one("#subject-status", Static)
-        wmsg = self.query_one("#subject-comments", Static)
-        wdata = self.query_one("#subject-data-path", Static)
-        wlabels = self.query_one("#subject-labels-path", Static)
+        wmsg = self.query_one("#subject-comment-container", CopyableItem)
+        wdata = self.query_one("#subject-data-container", CopyableItem)
+        wlabels = self.query_one("#subject-labels-container", CopyableItem)
 
         labels_path = os.path.join(dset_path, "../labels")
         wname.update(subject.name)
@@ -209,10 +234,6 @@ class SubjectDetails(Static):
         wmsg.update(subject["comment"])
         wdata.update(to_local_path(subject["data_path"], dset_path))
         wlabels.update(to_local_path(subject["labels_path"], labels_path))
-
-        # Only display labels if there's content
-        labels_container = self.query_one("#subject-labels-container", Horizontal)
-        labels_container.display = len(subject["labels_path"]) > 0
 
 
 class Subjectbrowser(App):
@@ -244,8 +265,15 @@ class Subjectbrowser(App):
         with Container(id="confirm-prompt"):
             yield Static(self.prompt, id="confirm-details")
             yield Horizontal(
-                Button("[Y] Yes", id="confirm-approve", variant="success"),
-                Button("[N] No", id="confirm-deny", variant="error"),
+                Button(
+                    "[Y] Yes",
+                    id="confirm-approve",
+                    variant="success",
+                    classes="prompt-btn",
+                ),
+                Button(
+                    "[N] No", id="confirm-deny", variant="error", classes="prompt-btn"
+                ),
                 id="confirm-buttons",
             )
         yield Footer()
