@@ -1,0 +1,26 @@
+name: mock-model-brats
+description: mock-model-brats
+authors:
+  - { name: MLCommons Medical Working Group }
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name
+  image: mlcommons/brats2023-dummy-model:0.0.0
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  infer:
+    # Computes predictions on input data
+    parameters:
+      inputs:
+        {
+          data_path: data/,
+          parameters_file: parameters.yaml,
+        }
+      outputs: { output_path: { type: directory, default: predictions } }

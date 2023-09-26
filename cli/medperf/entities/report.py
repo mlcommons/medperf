@@ -47,7 +47,7 @@ class TestReport(Entity, MedperfBaseSchema):
         params = self.todict()
         del params["results"]
         params = str(params)
-        return hashlib.sha1(params.encode()).hexdigest()
+        return hashlib.sha256(params.encode()).hexdigest()
 
     def set_results(self, results):
         self.results = results

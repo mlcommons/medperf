@@ -220,7 +220,7 @@ class TestWithDefaultUID:
         self, mocker, in_path, out_path, preparation
     ):
         # Arrange
-        mocker.patch(PATCH_DATAPREP.format("get_folder_sha1"), side_effect=lambda x: x)
+        mocker.patch(PATCH_DATAPREP.format("get_folder_hash"), side_effect=lambda x: x)
         preparation.data_path = in_path
         preparation.out_datapath = out_path
 

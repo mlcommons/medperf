@@ -59,7 +59,7 @@ def submit(
         "-m",
         help="Identifier to download the mlcube file. See the description above",
     ),
-    mlcube_hash: str = typer.Option("", "--mlcube-hash", help="SHA1 of mlcube file"),
+    mlcube_hash: str = typer.Option("", "--mlcube-hash", help="hash of mlcube file"),
     parameters_file: str = typer.Option(
         "",
         "--parameters-file",
@@ -67,7 +67,7 @@ def submit(
         help="Identifier to download the parameters file. See the description above",
     ),
     parameters_hash: str = typer.Option(
-        "", "--parameters-hash", help="SHA1 of parameters file"
+        "", "--parameters-hash", help="hash of parameters file"
     ),
     additional_file: str = typer.Option(
         "",
@@ -76,7 +76,7 @@ def submit(
         help="Identifier to download the additional files tarball. See the description above",
     ),
     additional_hash: str = typer.Option(
-        "", "--additional-hash", help="SHA1 of additional file"
+        "", "--additional-hash", help="hash of additional file"
     ),
     image_file: str = typer.Option(
         "",
@@ -84,7 +84,7 @@ def submit(
         "-i",
         help="Identifier to download the image file. See the description above",
     ),
-    image_hash: str = typer.Option("", "--image-hash", help="SHA1 of image file"),
+    image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
 ):
     """Submits a new cube to the platform.\n
     The following assets:\n
@@ -122,7 +122,9 @@ def associate(
     model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute the test even if results already exist",
     ),
 ):
     """Associates an MLCube to a benchmark"""
@@ -155,6 +157,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more mlcubes
-    """
+    """Displays the information of one or more mlcubes"""
     EntityView.run(entity_id, Cube, format, local, mine, output)

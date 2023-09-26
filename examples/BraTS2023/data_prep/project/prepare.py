@@ -37,7 +37,6 @@ def copy_segmentation_data(
             if file.endswith(f"seg.nii.gz"):
                 new_file = os.path.join(output_labels_path, os.path.basename(file))
                 shutil.copyfile(file, new_file)
-                break
 
 
 def post_process_for_synthesis(parameters, output_path, output_labels_path):

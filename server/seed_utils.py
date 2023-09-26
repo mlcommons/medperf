@@ -103,11 +103,11 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_prep",
             "git_mlcube_url": (ASSETS_URL + "data_preparator/mlcube/mlcube.yaml"),
-            "mlcube_hash": "425d1d64c2247e8270ec7159b858ae1cc34d2281",
+            "mlcube_hash": "a12a2d4e4290ffac38846c81d6300a24090605410eb603f02e8905f9674f1abc",
             "git_parameters_url": (
                 ASSETS_URL + "data_preparator/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "2b28ab34a12e0c0767ea9022ab14e9a0dfba67f2",
+            "parameters_hash": "1541e05437040745d2489e8d2cf14795d4839eecc15c1ac959c84f6b77c1a5df",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "4cefa8a2b9580220a0503076f1e961e4d86ec72dad8e1e78b9c43444dee9a4cd",
@@ -144,16 +144,16 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_cnn",
             "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/mlcube/mlcube.yaml"),
-            "mlcube_hash": "5e5ca7f0228b2b660f4dc672fa8cc23e28df2df4",
+            "mlcube_hash": "0212a9ed74c71c717b4540c154d56726841d1c7c963cdaceb3542bd42e34bd26",
             "git_parameters_url": (
                 ASSETS_URL + "model_custom_cnn/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "c5f977a7d1b40d125e6450b3cc0956ea5b0a652c",
+            "parameters_hash": "af0aed4735b5075c198f8b49b3afbf7a0d7eaaaaa2a2b914d5931f0bee51d3f6",
             "additional_files_tarball_url": (
                 "https://storage.googleapis.com/medperf-storage/"
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
-            "additional_files_tarball_hash": "6c2346c11a3e5e7afa575bce711eea755266b1ed",
+            "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
             "image_hash": "63d48be95598a7474d1bd26fdee41dcc20a752a436c28b35dbd33796087a6d29",
             "image_tarball_url": "",
             "image_tarball_hash": "",
@@ -188,11 +188,11 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_metrics",
             "git_mlcube_url": (ASSETS_URL + "metrics/mlcube/mlcube.yaml"),
-            "mlcube_hash": "7b3bd8ece694470abf5cb76159d638811d698049",
+            "mlcube_hash": "5dce9b6a1498c0e47a3e7f3167c0157b00ab4445b31e37f61f6eab161d6b3624",
             "git_parameters_url": (
                 ASSETS_URL + "metrics/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "277598e53d6a75431e9bec610595e8590be5bf01",
+            "parameters_hash": "16cad451c54b801a5b50d999330465d7f68ab5f6d30a0674268d2d17c7f26b73",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "2dbea6a3ba40d553905427c8bb156f219970306f55061462918fd19b220e9b51",
@@ -231,7 +231,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "description": "benchmark-sample",
             "docs_url": "",
             "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz",
-            "demo_dataset_tarball_hash": "fd54a97f52ebc0e2f533a17b77165ee4d343f5b4",
+            "demo_dataset_tarball_hash": "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00",
             "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
             "data_preparation_mlcube": data_preprocessor_mlcube,
             "reference_model_mlcube": reference_model_executor_mlcube,
@@ -275,16 +275,16 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
         {
             "name": "chestxray_mobilenet",
             "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/mlcube/mlcube.yaml"),
-            "mlcube_hash": "172a58c365864552d0718e094e9454a2f8eec30f",
+            "mlcube_hash": "5ed783c6aaffe813a82ba61e8d7de986aeedae92662ff76288b142968732aad7",
             "git_parameters_url": (
                 ASSETS_URL + "model_mobilenetv2/mlcube/workspace/parameters.yaml"
             ),
-            "parameters_hash": "b36a5bbf9cbdad8be232840e040235918e98a2c6",
+            "parameters_hash": "81a7e5c2006a8f54c4c2bd16d751df44d3cde3feb1a0c12768df095744a76c60",
             "additional_files_tarball_url": (
                 "https://storage.googleapis.com/medperf-storage/"
                 "chestxray_tutorial/mobilenetv2_weights.tar.gz"
             ),
-            "additional_files_tarball_hash": "b99eb6d11a141e32333389d234e819da7a409c17",
+            "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "7ae4a8ecbe899b5486c699d934d74bce7f3aa73d779e0138e6d119cd8040b46e",
