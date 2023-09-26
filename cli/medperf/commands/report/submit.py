@@ -16,7 +16,8 @@ class ReportRegistration:
         prep_cube_uid: int,
         benchmark_uid: int,
         approved=False,
-    ):
+        metadata={},
+    ) -> bool:
         """Registers a report
 
         Args:
@@ -25,6 +26,8 @@ class ReportRegistration:
             prep_cube_uid (int): Data Preparation Cube UID, to identify the report
             benchmark_uid (int): Benchmark UID, to submit report to
             approved (bool, optional): Submission pre-approval. Skipps approval procedure. Defaults to False.
+        Returns:
+            bool: Wether the user gave consent onf submitting reports
         """
         comms = config.comms
         ui = config.ui
@@ -50,11 +53,9 @@ class ReportRegistration:
 
         if os.path.exists(report_metadata_path):
             with open(report_metadata_path, "r") as f:
-                metadata = yaml.safe_load(f)
-            report_uid = metadata["id"]
+                server_metadata = yaml.safe_load(f)
+            report_uid = server_metadata["id"]
             approved = True
-
-        ui.print("Uploading report")
 
         body = {
             "dataset_name": name,
@@ -64,6 +65,7 @@ class ReportRegistration:
             "input_data_hash": in_data_hash,
             "data_preparation_mlcube": prep_cube_uid,
             "contents": report_status_dict,
+            "metadata": metadata,
         }
 
         if report_uid is None:
@@ -79,7 +81,7 @@ class ReportRegistration:
 
         if not approved:
             ui.print("Report submission cancelled")
-            return
+            return False
 
         if report_uid is not None:
             report_metadata = comms.update_report(report_uid, body)
@@ -88,3 +90,5 @@ class ReportRegistration:
 
         with open(report_metadata_path, "w") as f:
             yaml.dump(report_metadata, f)
+
+        return True
