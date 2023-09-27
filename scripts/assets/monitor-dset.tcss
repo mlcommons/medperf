@@ -116,7 +116,7 @@ Summary Static {
 }
 
 #summary-content {
-    margin: 3;
+    margin: 3 0 1 0;
 }
 
 Center.pbar {

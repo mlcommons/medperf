@@ -18,6 +18,7 @@ from watchdog.events import FileSystemEventHandler
 from medperf import config
 import yaml
 import pandas as pd
+import tarfile
 
 from textual import work
 from textual.app import App, ComposeResult
@@ -56,6 +57,22 @@ def to_local_path(mlcube_path: str, local_parent_path: str):
 
     local_parent_path = str(Path(local_parent_path))
     return os.path.normpath(os.path.join(local_parent_path, mlcube_path))
+
+
+def package_review_cases(report: pd.DataFrame, dset_path: str):
+    review_cases = report[report["status_name"] == "MANUAL_REVIEW_REQUIRED"]
+    with tarfile.open("review_cases.tar.gz", "w:gz") as tar:
+        for i, row in review_cases.iterrows():
+            labels_path = to_local_path(row["labels_path"], dset_path)
+
+            id, tp = row.name.split("|")
+            tar_path = os.path.join("review_cases", id, tp)
+            reviewed_path = os.path.join("review_cases", id, tp, "reviewed")
+            reviewed_dir = tarfile.TarInfo(name=reviewed_path)
+            reviewed_dir.type = tarfile.DIRTYPE
+            reviewed_dir.mode = 0o755
+            tar.addfile(reviewed_dir)
+            tar.add(labels_path, tar_path)
 
 
 class ReportState:
@@ -106,31 +123,42 @@ class PromptHandler(FileSystemEventHandler):
 
 
 class ReportUpdated(Message):
-    def __init__(self, report: dict, highlight: set):
+    def __init__(self, report: dict, highlight: set, dset_path: str):
         self.report = report
         self.highlight = highlight
+        self.dset_path = dset_path
         super().__init__()
 
 
 class Summary(Static):
     """Displays a summary of the report"""
 
+    report = None
+    dset_path = ""
+
     def compose(self) -> ComposeResult:
         yield Static("Report Status")
         yield Center(id="summary-content")
+        with Center():
+            yield Button("packages cases for review", id="package-btn")
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
+        self.dset_path = message.dset_path
         if len(report) > 0:
             self.update_summary(message.report)
 
     def update_summary(self, report: dict):
         report_df = pd.DataFrame(report)
+        self.report = report_df
+        package_btn = self.query_one("#package-btn", Button)
         # Generate progress bars for all states
         status_percents = report_df["status_name"].value_counts() / len(report_df)
         if "DONE" not in status_percents:
             # Attach
             status_percents["DONE"] = 0.0
+
+        package_btn.display = "MANUAL_REVIEW_REQUIRED" in status_percents
 
         widgets = []
         for name, val in status_percents.items():
@@ -146,6 +174,11 @@ class Summary(Static):
             content.children[0].remove()
 
         content.mount(*widgets)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        event.stop()
+        package_review_cases(self.report, self.dset_path)
+        self.notify("review_cases.tar.gz was created on the working directory")
 
 
 class SubjectListView(ListView):
@@ -347,7 +380,7 @@ class Subjectbrowser(App):
             highlight_subjects = set(diff.index)
 
         self.notify("report changed")
-        msg = ReportUpdated(report, highlight_subjects)
+        msg = ReportUpdated(report, highlight_subjects, self.dset_data_path)
         summary = self.query_one("#summary", Summary)
         subjectlist = self.query_one("#subjects-list", SubjectListView)
 
