@@ -7,6 +7,7 @@ Run with:
 """
 
 import os
+import re
 from pathlib import Path
 import typer
 import pyperclip
@@ -120,6 +121,55 @@ class PromptHandler(FileSystemEventHandler):
             prompt = f.read()
         self.app.update_prompt(prompt)
         # _confirm_dset(self.manager, prompt, self.dset_data_path)
+
+
+class ReviewedHandler(FileSystemEventHandler):
+    def __init__(self, dset_data_path: str, textual_app):
+        self.dset_data_path = dset_data_path
+        self.app = textual_app
+        self.ext = ".tar.gz"
+
+        for file in os.listdir("."):
+            if file.endswith(self.ext):
+                self.pass_reviews(file)
+
+    def on_created(self, event):
+        if event.src_path.endswith(self.ext):
+            self.pass_reviews(event.src_path)
+
+    def on_modified(self, event):
+        self.on_created(event)
+
+    def pass_reviews(self, file):
+        pattern = r"review_cases\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
+        identified_reviewed = []
+        with tarfile.open(file, "r") as tar:
+            for member in tar.getmembers():
+                match = re.match(pattern, member.name)
+                if match:
+                    identified_reviewed.append(match)
+
+        if len(identified_reviewed):
+            self.app.notify("Reviewed cases identified")
+
+        extracts = []
+        for reviewed in identified_reviewed:
+            id, tp, filename = reviewed.groups()
+            src_path = reviewed.group(0)
+            dest_path = os.path.join(
+                self.dset_data_path,
+                "tumor_extracted",
+                "DataForQC",
+                id,
+                tp,
+                "reviewed",
+                filename,
+            )
+            extracts.append((src_path, dest_path))
+
+        with tarfile.open(file, "r") as tar:
+            for src, dest in extracts:
+                tar.extract(src, dest)
 
 
 class ReportUpdated(Message):
@@ -386,7 +436,6 @@ class Subjectbrowser(App):
 
         summary.post_message(msg)
         subjectlist.post_message(msg)
-        # report_df = pd.DataFrame(report)
 
     def action_respond(self, answer: str):
         if len(self.prompt) == 0:
@@ -441,6 +490,7 @@ def main(
     observer.schedule(
         PromptHandler(dset_data_path, app), os.path.join(dset_path, "data")
     )
+    observer.schedule(ReviewedHandler(dset_data_path, app), ".")
     observer.start()
     app.run()
 
