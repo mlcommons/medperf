@@ -163,8 +163,13 @@ class ReviewedHandler(FileSystemEventHandler):
                 id,
                 tp,
                 "reviewed",
-                filename,
             )
+            if not os.path.exists(dest_path):
+                # Don't try to add reviewed file if the dest path
+                # doesn't exist
+                continue
+
+            dest_path = os.path.join(dest_path, filename)
             extracts.append((src_path, dest_path))
 
         with tarfile.open(file, "r") as tar:
