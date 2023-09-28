@@ -59,7 +59,7 @@ SubjectDetails {
 }
 
 SubjectDetails {
-    overflow: scroll;
+    overflow-y: scroll;
     height: 100%;
 }
 
@@ -108,6 +108,7 @@ Summary {
     padding: 3;
     align: center middle;
     content-align: center middle;
+    overflow-y: scroll;
 }
 
 Summary Static {
