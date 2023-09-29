@@ -143,11 +143,14 @@ class ReviewedHandler(FileSystemEventHandler):
     def pass_reviews(self, file):
         pattern = r"review_cases\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
         identified_reviewed = []
-        with tarfile.open(file, "r") as tar:
-            for member in tar.getmembers():
-                match = re.match(pattern, member.name)
-                if match:
-                    identified_reviewed.append(match)
+        try:
+            with tarfile.open(file, "r") as tar:
+                for member in tar.getmembers():
+                    match = re.match(pattern, member.name)
+                    if match:
+                        identified_reviewed.append(match)
+        except:
+            return
 
         if len(identified_reviewed):
             self.app.notify("Reviewed cases identified")
@@ -169,12 +172,14 @@ class ReviewedHandler(FileSystemEventHandler):
                 # doesn't exist
                 continue
 
-            dest_path = os.path.join(dest_path, filename)
+            # dest_path = os.path.join(dest_path, filename)
             extracts.append((src_path, dest_path))
 
         with tarfile.open(file, "r") as tar:
             for src, dest in extracts:
-                tar.extract(src, dest)
+                member = tar.getmember(src)
+                member.name = os.path.basename(member.name)
+                tar.extract(member, dest)
 
 
 class ReportUpdated(Message):
@@ -305,7 +310,7 @@ class SubjectDetails(Static):
         with Center(id="subject-title"):
             yield Static(id="subject-name")
             yield Static(id="subject-status")
-        yield CopyableItem("Comment", "", id="subject-comment-container")
+        yield CopyableItem("Instructions", "", id="subject-comment-container")
         yield CopyableItem("Data path", "", id="subject-data-container")
         yield CopyableItem("Labels path", "", id="subject-labels-container")
 
