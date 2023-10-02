@@ -284,7 +284,7 @@ class CopyableItem(Static):
     def compose(self) -> ComposeResult:
         yield Static(f"{self.label}: ", classes="subject-item-label")
         yield Static(self.content, classes="subject-item-content")
-        yield Button("⎘", classes="subject-item-copy")
+        yield Button("Copy", classes="subject-item-copy")
 
     def update(self, content):
         self.content = content
@@ -299,8 +299,17 @@ class CopyableItem(Static):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         event.stop()
-        pyperclip.copy(self.content)
-        self.notify("Text copied to clipboard")
+        try:
+            raise pyperclip.PyperclipException()
+            pyperclip.copy(self.content)
+            self.notify("Text copied to clipboard")
+        except pyperclip.PyperclipException:
+            with open("clipboard.txt", "w") as f:
+                f.write(self.content)
+            self.notify(
+                "Clipboard not supported on your machine. Contents copied to clipboard.txt",
+                severity="warning",
+            )
 
 
 class SubjectDetails(Static):
