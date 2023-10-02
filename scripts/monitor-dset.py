@@ -435,19 +435,26 @@ class Subjectbrowser(App):
             return
 
     def watch_report(self, old_report: dict, report: dict) -> None:
-        # self.update_summary(report)
-        # TODO: compare with old report
-        # Get rows that changed and highlight them on the list
-        # if the currently viewed row changed, update the details
         highlight_subjects = set()
-        if len(old_report) == len(report):
-            # There was an old report, check the differences
-            report_df = pd.DataFrame(report)
-            old_report_df = pd.DataFrame(old_report)
+
+        # There was an old report, check the differences
+        report_df = pd.DataFrame(report)
+        old_report_df = pd.DataFrame(old_report)
+
+        try:
+            # Make both dataset identically labeled
+            if len(report_df) > len(old_report_df):
+                old_report_df = old_report_df.reindex(index=report_df.index)
+            elif len(old_report_df) > len(report_df):
+                report_df = report_df.reindex(index=old_report_df.index)
+
             diff = report_df.compare(old_report_df)
             highlight_subjects = set(diff.index)
+            self.notify("report changed")
+        except ValueError:
+            # Could not make the comparison, update freely
+            pass
 
-        self.notify("report changed")
         msg = ReportUpdated(report, highlight_subjects, self.dset_data_path)
         summary = self.query_one("#summary", Summary)
         subjectlist = self.query_one("#subjects-list", SubjectListView)
