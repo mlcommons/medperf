@@ -259,7 +259,7 @@ class DataPreparation:
         self.ui.print("> Cube execution complete")
 
         # If any observer or signal was set, stop them
-        signal.pause()
+        signal.signal(signal.SIGINT, signal.default_int_handler)
         observer.stop()
 
         # Send a last update to indicate preparation process finished
