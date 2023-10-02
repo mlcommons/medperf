@@ -21,7 +21,6 @@ import yaml
 import pandas as pd
 import tarfile
 
-from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, Center
@@ -37,7 +36,6 @@ from textual.widgets import (
     Button,
     ProgressBar,
 )
-from textual.worker import Worker, get_current_worker
 
 NAME_HELP = "The name of the dataset to monitor"
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
