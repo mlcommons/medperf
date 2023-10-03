@@ -158,6 +158,7 @@ class DataPreparation:
         self.report_path = os.path.join(out_path, config.report_file)
         self.out_datapath = os.path.join(out_path, "data")
         self.out_labelspath = os.path.join(out_path, "labels")
+        self.metadata_path = os.path.join(out_path, "metadata")
 
         # Check if labels_path is specified
         self.labels_specified = (
@@ -166,6 +167,10 @@ class DataPreparation:
         # Backwards compatibility. Run a cube as before if no report is specified
         self.report_specified = (
             self.cube.get_default_output("prepare", "report_file") is not None
+        )
+        # Backwards compatibility. Run a cube as before if no metadata is specified
+        self.metadata_specified = (
+            self.cube.get_default_output("prepare", "metadata_path") is not None
         )
         logging.debug(f"tmp data preparation output: {out_path}")
         logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
@@ -210,6 +215,9 @@ class DataPreparation:
             sys.exit(0)
 
         observer = Observer()
+
+        if self.metadata_specified:
+            prepare_params["metadata_path"] = self.metadata_path
 
         if self.report_specified:
             prepare_params["report_file"] = out_report
@@ -293,6 +301,12 @@ class DataPreparation:
             # Add the labels parameter
             sanity_params["labels_path"] = out_labelspath
 
+        if self.metadata_specified:
+            sanity_params["metadata_path"] = self.metadata_path
+            sanity_params[
+                "Ptasks.sanity_check.parameters.input.metadata_paths.opts"
+            ] = "ro"
+
         if self.report_specified:
             sanity_params["report_file"] = out_report
             sanity_str_params[
@@ -329,6 +343,12 @@ class DataPreparation:
         statistics_str_params = {
             "Ptasks.statistics.parameters.input.data_path.opts": "ro"
         }
+
+        if self.metadata_specified:
+            statistics_params["metadata_path"] = self.metadata_path
+            statistics_params[
+                "Ptasks.statistics.parameters.input.metadata_path.opts"
+            ] = "ro"
 
         self.ui.text = "Generating statistics..."
 
