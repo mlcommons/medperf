@@ -11,8 +11,8 @@ done
 
 DEPLOY="${DEPLOY:-1}"
 CERT_GENERATE="${CERT_GENERATE:-1}"
-CERT_FILE="${CERT_FILE:-$(realpath cert.crt)}"
-KEY_FILE="${KEY_FILE:-$(realpath cert.key)}"
+CERT_FILE="${CERT_FILE:-cert.crt}"
+KEY_FILE="${KEY_FILE:-cert.key}"
 RESET_DB="${RESET_DB:-0}"
 
 echo $CERT_FILE
