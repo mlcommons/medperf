@@ -63,6 +63,7 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
     with tarfile.open("review_cases.tar.gz", "w:gz") as tar:
         for i, row in review_cases.iterrows():
             labels_path = to_local_path(row["labels_path"], dset_path)
+            imgs_path = os.path.join(labels_path, "..")
 
             id, tp = row.name.split("|")
             tar_path = os.path.join("review_cases", id, tp)
@@ -72,6 +73,13 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             reviewed_dir.mode = 0o755
             tar.addfile(reviewed_dir)
             tar.add(labels_path, tar_path)
+
+            for file in os.listdir(imgs_path):
+                if not file.endswith(".png"):
+                    continue
+                img_path = os.path.join(imgs_path, file)
+                img_tar_path = os.path.join(tar_path, file)
+                tar.add(img_path, img_tar_path)
 
 
 class ReportState:
@@ -301,7 +309,6 @@ class CopyableItem(Static):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         event.stop()
         try:
-            raise pyperclip.PyperclipException()
             pyperclip.copy(self.content)
             self.notify("Text copied to clipboard")
         except pyperclip.PyperclipException:
