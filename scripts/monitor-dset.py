@@ -336,11 +336,12 @@ class SubjectDetails(Static):
         wdata = self.query_one("#subject-data-container", CopyableItem)
         wlabels = self.query_one("#subject-labels-container", CopyableItem)
 
-        labels_path = dset_path
-        if subject["status_name"] == "DONE":
+        labels_path = os.path.join(dset_path, "../labels")
+        if subject["status_name"] != "DONE":
             # Hard coding some behavior from the RANO data prep cube. This is because
             # for the most part, the labels live within the data path right until the end
-            labels_path = os.path.join(dset_path, "../labels")
+            # This SHOULD NOT be here for general data prep monitoring
+            labels_path = dset_path
         wname.update(subject.name)
         wstatus.update(subject["status_name"])
         wmsg.update(subject["comment"])
