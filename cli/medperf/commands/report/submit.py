@@ -47,9 +47,9 @@ class ReportRegistration:
                 report_dict = yaml.safe_load(f)
 
             report = pd.DataFrame(report_dict)
-
-            report_status = report.status_name.value_counts() / len(report)
-            report_status_dict = report_status.round(3).to_dict()
+            if "status_name" in report:
+                report_status = report.status_name.value_counts() / len(report)
+                report_status_dict = report_status.round(3).to_dict()
 
         if os.path.exists(report_metadata_path):
             with open(report_metadata_path, "r") as f:
