@@ -31,7 +31,6 @@ class ReportHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         if event.src_path == self.preparation.report_path:
-            # self.report_state.update()
             preparation = self.preparation
             in_data_hash = preparation.in_uid
             name = preparation.name
