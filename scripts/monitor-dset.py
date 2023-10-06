@@ -91,7 +91,7 @@ class ReportState:
     def update(self):
         with open(self.report_path, "r") as f:
             report_dict = yaml.safe_load(f)
-        if len(report_dict):
+        if report_dict is not None and len(report_dict):
             self.report = report_dict
             self.__update_app()
 
