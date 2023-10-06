@@ -323,6 +323,6 @@ class TestDefaultSetup:
 
         # Assert
         assert (
-            yaml.load(open(expected_file))["results"]
+            yaml.safe_load(open(expected_file))["results"]
             == self.state_variables["models_props"][model_uid]["results"]
         )
