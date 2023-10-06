@@ -9,7 +9,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     remove_path,
     generate_tmp_path,
-    get_folder_sha1,
+    get_folder_hash,
     storage_path,
 )
 from medperf.exceptions import InvalidArgumentError
@@ -99,7 +99,7 @@ class DataPreparation:
             benchmark = Benchmark.get(self.benchmark_uid)
             cube_uid = benchmark.data_preparation_mlcube
             self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
-        self.ui.text = f"Retrieving data preparation cube: '{cube_uid}'"
+        self.ui.text = "Retrieving data preparation cube"
         self.cube = Cube.get(cube_uid)
         self.ui.print("> Preparation cube download complete")
 
@@ -176,8 +176,8 @@ class DataPreparation:
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths"""
-        self.in_uid = get_folder_sha1(self.data_path)
-        self.generated_uid = get_folder_sha1(self.out_datapath)
+        self.in_uid = get_folder_hash(self.data_path)
+        self.generated_uid = get_folder_hash(self.out_datapath)
 
     def to_permanent_path(self) -> str:
         """Renames the temporary data folder to permanent one using the hash of

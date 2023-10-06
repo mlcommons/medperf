@@ -6,7 +6,8 @@ This guide will walk you through how to wrap a model trained using [GaNDLF](http
 
 1. Train a GaNDLF model
 2. Create the MLCube file
-3. Deploy the GaNDLF model as an MLCube
+3. (Optional) Create a custom entrypoint
+4. Deploy the GaNDLF model as an MLCube
 
 Before proceeding, make sure you have [medperf installed](../getting_started/installation.md) and [GaNDLF installed](https://mlcommons.github.io/GaNDLF/setup/).
 
@@ -79,7 +80,13 @@ Assuming you chose `my_gandlf_mlcube` as the project slug, you will find your ML
 !!! note
     You **might** need to specify additional configurations in the `mlcube.yaml` file if you are using a GPU. Check the generated `mlcube.yaml` file for more info, as well as the [MLCube documentation](https://mlcommons.github.io/mlcube/).
 
-## 3. Deploy the GaNDLF Model as an MLCube
+## 3. (Optional) Create a Custom Entrypoint
+
+When deploying the GaNDLF model directly as a model MLCube, the default entrypoint will be `gandlf_run ...`. You can override the entrypoint with a custom python script. One of the usecases is described below.
+
+`gandlf_run` expects a `data.csv` file in the input data folder, which describes the inference test cases and their associated paths (Read more about GaNDLF's csv file conventions [here](https://mlcommons.github.io/GaNDLF/usage/#constructing-the-data-csv)). In case your MLCube will expect a data folder with a predefined data input structure but without this csv file, you can use a custom script that prepares this csv file as an entrypoint. You can find the recommended template and an example [here](https://github.com/mlcommons/GaNDLF/tree/master/mlcube/model_mlcube/example_custom_entrypoint).
+
+## 4. Deploy the GaNDLF Model as an MLCube
 
 To deploy the GaNDLF model as an MLCube, run the following: (make sure you are in the workspace folder `medperf_tutorial`)
 
@@ -91,14 +98,16 @@ gandlf_deploy \
   --mlcube-root ./my_gandlf_mlcube \
   -o ./built_gandlf_mlcube \
   --mlcube-type model \
-  -g False # (1)!
+  --entrypoint <(optional) path to your custom entrypoint script> \ # (1)!
+  -g False # (2)!
 ```
 
-1. Change to `True` if you want the resulting MLCube to use a GPU for inference.
+1. If you are not using a custom entrypoint, ignore this option.
+2. Change to `True` if you want the resulting MLCube to use a GPU for inference.
 
 GaNDLF will use your initial MLCube configuration `my_gandlf_mlcube`, the GaNDLF experiment configuration file `config_classification.yaml`, and the trained model `trained_model_output` to create a ready MLCube `built_gandlf_mlcube` and build the docker image that will be used by the MLCube. The docker image will have the model weights and the GaNDLF experiment configuration file embedded. You can check that your image was built by running `docker image ls`. You will see `johnsmith/gandlf_model:0.0.1` (or whatever image name that was used) created moments ago.
 
-## 4. Next Steps
+## 5. Next Steps
 
 That's it! You have built a MedPerf-compatible MLCube with GaNDLF. You may want to submit your MLCube to MedPerf, you can follow [this tutorial](../getting_started/model_owner_demo.md).
 

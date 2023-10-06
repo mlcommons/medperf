@@ -100,12 +100,12 @@ def test_setup_logging_filters_sensitive_data(text, exp_output, prepare_logs):
 
 
 @pytest.mark.parametrize("file", ["./test.txt", "../file.yaml", "folder/file.zip"])
-def test_get_file_sha1_opens_specified_file(mocker, file):
+def test_get_file_hash_opens_specified_file(mocker, file):
     # Arrange
     spy = mocker.patch("builtins.open", mock_open())
 
     # Act
-    utils.get_file_sha1(file)
+    utils.get_file_hash(file)
 
     # Assert
     spy.assert_called_once_with(file, "rb")
@@ -114,17 +114,23 @@ def test_get_file_sha1_opens_specified_file(mocker, file):
 @pytest.mark.parametrize(
     "file_io",
     [
-        (b"test file\n", "0181d93fee60b818e3f92e470ea97a2aff4ca56a"),
-        (b"file\nwith\nmultilines\n", "a69ce122f95a94dc02485764d463b10545a558c8"),
+        (
+            b"test file\n",
+            "55f8718109829bf506b09d8af615b9f107a266e19f7a311039d1035f180b22d4",
+        ),
+        (
+            b"file\nwith\nmultilines\n",
+            "7361d0aa589a45156d130cfde89f8ad441770fd87d992f404e5758ece6d36b49",
+        ),
     ],
 )
-def test_get_file_sha1_calculates_hash(mocker, file_io):
+def test_get_file_hash_calculates_hash(mocker, file_io):
     # Arrange
     file_contents, expected_hash = file_io
     mocker.patch("builtins.open", mock_open(read_data=file_contents))
 
     # Act
-    hash = utils.get_file_sha1("")
+    hash = utils.get_file_hash("")
 
     # Assert
     assert hash == expected_hash
@@ -337,48 +343,48 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     spy.assert_called_once_with(exp_dict)
 
 
-def test_get_folder_sha1_hashes_all_files_in_folder(mocker, filesystem):
+def test_get_folder_hash_hashes_all_files_in_folder(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
     exp_calls = [call(file) for file in files]
     mocker.patch("os.walk", return_value=fs)
-    spy = mocker.patch(patch_utils.format("get_file_sha1"), side_effect=files)
+    spy = mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
 
     # Act
-    utils.get_folder_sha1("test")
+    utils.get_folder_hash("test")
 
     # Assert
     spy.assert_has_calls(exp_calls)
 
 
-def test_get_folder_sha1_sorts_individual_hashes(mocker, filesystem):
+def test_get_folder_hash_sorts_individual_hashes(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
     mocker.patch("os.walk", return_value=fs)
-    mocker.patch(patch_utils.format("get_file_sha1"), side_effect=files)
+    mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
     spy = mocker.patch("builtins.sorted", side_effect=sorted)
 
     # Act
-    utils.get_folder_sha1("test")
+    utils.get_folder_hash("test")
 
     # Assert
     spy.assert_called_once_with(files)
 
 
-def test_get_folder_sha1_returns_expected_hash(mocker, filesystem):
+def test_get_folder_hash_returns_expected_hash(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
     mocker.patch("os.walk", return_value=fs)
-    mocker.patch(patch_utils.format("get_file_sha1"), side_effect=files)
+    mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
 
     # Act
-    hash = utils.get_folder_sha1("test")
+    hash = utils.get_folder_hash("test")
 
     # Assert
-    assert hash == "4bf17af7fa48c5b03a3315a1f2eb17a301ed883a"
+    assert hash == "b7e9365f1e796ba29e9e6b1b94b5f4cc7238530601fad8ec96ece9fee68c3d7f"
 
 
 @pytest.mark.parametrize(

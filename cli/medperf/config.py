@@ -57,6 +57,7 @@ config_path = "config.yaml"
 workspace_path = "workspace"
 test_storage = "tests"
 trash_folder = ".trash"
+experiments_logs_storage = "experiments_logs"
 cleanup = True
 
 test_report_file = "test_report.yaml"
@@ -88,6 +89,8 @@ sanity_check_timeout = None
 statistics_timeout = None
 infer_timeout = None
 evaluate_timeout = None
+mlcube_configure_timeout = None
+mlcube_inspect_timeout = None
 
 configurable_parameters = [
     "server",
