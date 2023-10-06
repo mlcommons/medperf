@@ -38,8 +38,7 @@ def clean_except(func: Callable) -> Callable:
             config.ui.print(str(e))
         except MedperfException as e:
             logging.exception(e)
-            logs_path = storage_path(config.logs_storage)
-            log_filepath = os.path.join(logs_path, config.log_file)
+            log_filepath = storage_path(config.log_file)
             additional_msg = f"For more information, check the logs at: {log_filepath}"
             msg = ". ".join([str(e), additional_msg])
             pretty_error(msg)
