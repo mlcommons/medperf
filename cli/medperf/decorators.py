@@ -1,3 +1,4 @@
+import os
 import sys
 import typer
 import logging
@@ -67,7 +68,13 @@ def configurable(func: Callable) -> Callable:
     #       by changing configurable_parameters
     @merge_args(func)
     def wrapper(
+        ctx: typer.Context,
         *args,
+        storage: str = typer.Option(
+            config.storage,
+            "--storage",
+            help="Location to store medperf-related artifacts",
+        ),
         server: str = typer.Option(
             config.server, "--server", help="URL of a hosted MedPerf API instance"
         ),
@@ -153,6 +160,8 @@ def configurable(func: Callable) -> Callable:
         ),
         **kwargs,
     ):
-        return func(*args, **kwargs)
+        # Transform the context as necessary
+        ctx.params["storage"] = os.path.expanduser(storage)
+        return func(ctx, *args, **kwargs)
 
     return wrapper

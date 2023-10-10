@@ -91,7 +91,7 @@ def storage_path(subpath: str):
 
 def base_storage_path(subpath: str):
     """Helper function that converts a path to base storage-related path"""
-    return os.path.join(config.storage, subpath)
+    return os.path.join(config.base_storage, subpath)
 
 
 def get_file_hash(path: str) -> str:

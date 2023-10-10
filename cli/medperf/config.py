@@ -41,7 +41,8 @@ token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
 keyring_access_token_service_name = "medperf_access_token"
 keyring_refresh_token_service_name = "medperf_refresh_token"
 
-storage = str(Path.home().resolve() / ".medperf")
+base_storage = str(Path.home().resolve() / ".medperf")
+storage = base_storage
 logs_storage = "logs"
 tmp_storage = "tmp"
 data_storage = "data"
@@ -93,6 +94,7 @@ mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
 
 configurable_parameters = [
+    "storage",
     "server",
     "certificate",
     "auth_class",
