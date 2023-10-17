@@ -1,45 +1,7 @@
-import keyring
+from .token_storage import TokenStore
 from medperf.utils import read_config, write_config
 from medperf import config
 from medperf.exceptions import MedperfException
-
-
-class TokenStore:
-    def __init__(self):
-        pass
-
-    def set_tokens(self, account_id, access_token, refresh_token):
-        keyring.set_password(
-            config.keyring_access_token_service_name,
-            account_id,
-            access_token,
-        )
-        keyring.set_password(
-            config.keyring_refresh_token_service_name,
-            account_id,
-            refresh_token,
-        )
-
-    def read_tokens(self, account_id):
-        access_token = keyring.get_password(
-            config.keyring_access_token_service_name,
-            account_id,
-        )
-        refresh_token = keyring.get_password(
-            config.keyring_refresh_token_service_name,
-            account_id,
-        )
-        return access_token, refresh_token
-
-    def delete_tokens(self, account_id):
-        keyring.delete_password(
-            config.keyring_access_token_service_name,
-            account_id,
-        )
-        keyring.delete_password(
-            config.keyring_refresh_token_service_name,
-            account_id,
-        )
 
 
 def read_user_account():
