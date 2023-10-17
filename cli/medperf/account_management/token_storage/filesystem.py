@@ -10,6 +10,8 @@ class FilesystemTokenStore:
         os.makedirs(self.creds_folder, exist_ok=True)
 
     def __get_paths(self, account_id):
+        # Base64 encoding is used just to avoid facing a filesystem that doesn't support
+        # special characters used in emails.
         account_id_encoded = base64.b64encode(account_id.encode("utf-8")).decode(
             "utf-8"
         )
