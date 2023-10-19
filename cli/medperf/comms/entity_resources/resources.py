@@ -66,12 +66,12 @@ def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
     return output_path, hash_value
 
 
-def get_cube_report_details(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Downloads and writes a cube report details file. If the hash is provided,
+def get_cube_stages(url: str, cube_path: str, expected_hash: str = None) -> str:
+    """Downloads and writes a cube stages file. If the hash is provided,
     the file's integrity will be checked upon download.
 
     Args:
-        url (str): URL where the report_details.yaml file can be downloaded.
+        url (str): URL where the stages.yaml file can be downloaded.
         cube_path (str): Cube location.
         expected_hash (str, optional): Expected hash of the downloaded file. Defaults to None.
 
