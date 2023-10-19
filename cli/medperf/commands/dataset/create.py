@@ -33,9 +33,11 @@ class ReportHandler(FileSystemEventHandler):
             report["comment"] = {}
         if "status_name" not in report:
             report["status_name"] = {}
-        for case, status in partial_report["status"]:
+        if "docs_url" not in report:
+            report["docs_url"] = {}
+        for case, status in partial_report["status"].items():
             stage = stages[status]
-            for key, val in stage:
+            for key, val in stage.items():
                 # First make sure to populate the stage key for missing cases
                 if case not in report[key]:
                     report[key][case] = ""
