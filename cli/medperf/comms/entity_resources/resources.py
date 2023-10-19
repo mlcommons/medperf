@@ -66,6 +66,26 @@ def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
     return output_path, hash_value
 
 
+def get_cube_report_details(url: str, cube_path: str, expected_hash: str = None) -> str:
+    """Downloads and writes a cube report details file. If the hash is provided,
+    the file's integrity will be checked upon download.
+
+    Args:
+        url (str): URL where the report_details.yaml file can be downloaded.
+        cube_path (str): Cube location.
+        expected_hash (str, optional): Expected hash of the downloaded file. Defaults to None.
+
+    Returns:
+        output_path (str): Location where the stages file is stored locally.
+        hash_value (str): The hash of the downloaded file.
+    """
+    output_path = os.path.join(cube_path, config.stages_filename)
+    if os.path.exists(output_path):
+        return output_path, expected_hash
+    hash_value = download_resource(url, output_path, expected_hash)
+    return output_path, hash_value
+
+
 def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
     """Retrieves and stores the image file from the server. Stores images
     on a shared location, and retrieves a cached image by hash if found locally.

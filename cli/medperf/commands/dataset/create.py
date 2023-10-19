@@ -3,6 +3,7 @@ import os
 import sys
 import signal
 from pathlib import Path
+from copy import deepcopy
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 import medperf.config as config
@@ -26,13 +27,37 @@ class ReportHandler(FileSystemEventHandler):
     def __init__(self, preparation_obj: "DataPreparation"):
         self.preparation = preparation_obj
 
+    def write_full_report(self, partial_report, stages, report_path):
+        report = deepcopy(partial_report)
+        if "comment" not in report:
+            report["comment"] = {}
+        if "status_name" not in report:
+            report["status_name"] = {}
+        for case, status in partial_report["status"]:
+            stage = stages[status]
+            for key, val in stage:
+                # First make sure to populate the stage key for missing cases
+                if case not in report[key]:
+                    report[key][case] = ""
+                # Then, if the stage contains information for that key, add it
+                if val is not None:
+                    report[key][case] = val
+
+        with open(report_path, "w") as f:
+            yaml.dump(report, f)
+
     def on_creatd(self, event):
         self.on_modified(event)
 
     def on_modified(self, event):
-        if event.src_path == self.preparation.report_path:
-            # self.report_state.update()
-            preparation = self.preparation
+        preparation = self.preparation
+        if event.src_path == preparation.partial_report_path:
+            stages = preparation.stages
+            report_path = preparation.report_path
+            with open(preparation.partial_report_path, "r") as f:
+                partial_report = yaml.safe_load(f)
+
+            self.write_full_report(partial_report, stages, report_path)
             in_data_hash = preparation.in_uid
             name = preparation.name
             desc = preparation.description
@@ -155,6 +180,7 @@ class DataPreparation:
         staging_path = storage_path(config.staging_data_storage)
         out_path = os.path.join(staging_path, f"{self.name}_{self.cube.id}")
         self.out_path = out_path
+        self.partial_report_path = os.path.join(out_path, config.partial_report_file)
         self.report_path = os.path.join(out_path, config.report_file)
         self.out_datapath = os.path.join(out_path, "data")
         self.out_labelspath = os.path.join(out_path, "labels")
@@ -172,6 +198,11 @@ class DataPreparation:
         self.metadata_specified = (
             self.cube.get_default_output("prepare", "metadata_path") is not None
         )
+
+        if self.report_specified and self.cube.stages_path:
+            with open(self.cube.stages_path, "r") as f:
+                self.stages = yaml.safe_load(f)
+
         logging.debug(f"tmp data preparation output: {out_path}")
         logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
 
@@ -181,7 +212,7 @@ class DataPreparation:
         labels_path = self.labels_path
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
-        out_report = self.report_path
+        out_partial_report = self.partial_report_path
         in_data_hash = self.in_uid
         name = self.name
         desc = self.description
@@ -220,7 +251,7 @@ class DataPreparation:
             prepare_params["metadata_path"] = self.metadata_path
 
         if self.report_specified:
-            prepare_params["report_file"] = out_report
+            prepare_params["report_file"] = out_partial_report
             metadata = {"execution_status": "started"}
 
             approved = ReportRegistration.run(
