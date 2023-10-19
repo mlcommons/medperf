@@ -69,6 +69,13 @@ def submit(
     parameters_hash: str = typer.Option(
         "", "--parameters-hash", help="hash of parameters file"
     ),
+    stages_file: str = typer.Option(
+        "",
+        "--stages-file",
+        "-s",
+        help="Identifier to download the stages file. See the description above",
+    ),
+    stages_hash: str = typer.Option("", "--stages-hash", help="hash of stages file"),
     additional_file: str = typer.Option(
         "",
         "--additional-file",
@@ -90,6 +97,7 @@ def submit(
     The following assets:\n
         - mlcube_file\n
         - parameters_file\n
+        - stages_file
         - additional_file\n
         - image_file\n
     are expected to be given in the following format: <source_prefix:resource_identifier>
@@ -106,6 +114,8 @@ def submit(
         "git_mlcube_hash": mlcube_hash,
         "git_parameters_url": parameters_file,
         "parameters_hash": parameters_hash,
+        "git_stages_url": stages_file,
+        "stages_hash": stages_hash,
         "image_tarball_url": image_file,
         "image_tarball_hash": image_hash,
         "additional_files_tarball_url": additional_file,
