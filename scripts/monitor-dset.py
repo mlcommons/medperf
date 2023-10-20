@@ -207,7 +207,7 @@ class Summary(Static):
         yield Static("Report Status")
         yield Center(id="summary-content")
         with Center():
-            yield Button("packages cases for review", id="package-btn")
+            yield Button("package cases for review", id="package-btn")
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
