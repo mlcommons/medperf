@@ -3,6 +3,7 @@ import yaml
 import pandas as pd
 
 from medperf import config
+from medperf.entities.cube import Cube
 from medperf.utils import dict_pretty_print, approval_prompt, storage_path
 
 
@@ -51,6 +52,12 @@ class ReportRegistration:
             report_status = report.status_name.value_counts() / len(report)
             report_status_dict = report_status.round(3).to_dict()
 
+        cube = Cube.get(prep_cube_uid)
+        with open(cube.stages_path, "r") as f:
+            stages = yaml.safe_load(f)
+
+        stages = {id: content["status_name"] for id, content in stages.items()}
+
         if os.path.exists(report_metadata_path):
             with open(report_metadata_path, "r") as f:
                 server_metadata = yaml.safe_load(f)
@@ -66,6 +73,7 @@ class ReportRegistration:
             "data_preparation_mlcube": prep_cube_uid,
             "contents": report_status_dict,
             "metadata": metadata,
+            "stages": stages,
         }
 
         if report_uid is None:
@@ -74,6 +82,8 @@ class ReportRegistration:
                 "Do you approve the submission of the status report to the MedPerf Server?"
                 + " This report will be visible by the benchmark owner and updated"
                 + " with the latest status change throughout the preparation process."
+                + " At most, the report will contain the displayed stages and the proportion of"
+                + " the data tha is at any given stage."
                 + " [Y/n]"
             )
 
@@ -82,6 +92,8 @@ class ReportRegistration:
         if not approved:
             ui.print("Report submission cancelled")
             return False
+
+        del body["stages"]  # the stages key is only intended for display
 
         if report_uid is not None:
             report_metadata = comms.update_report(report_uid, body)
