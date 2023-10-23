@@ -24,8 +24,9 @@ from watchdog.events import FileSystemEventHandler
 
 
 class ReportHandler(FileSystemEventHandler):
-    def __init__(self, preparation_obj: "DataPreparation"):
+    def __init__(self, preparation_obj: "DataPreparation", submission_approved):
         self.preparation = preparation_obj
+        self.submission_approved = submission_approved
 
     def write_full_report(self, partial_report, stages, report_path):
         report = deepcopy(partial_report)
@@ -60,6 +61,11 @@ class ReportHandler(FileSystemEventHandler):
                 partial_report = yaml.safe_load(f)
 
             self.write_full_report(partial_report, stages, report_path)
+
+            if not self.submission_approved:
+                # Don't send data to server if not approved
+                return
+
             in_data_hash = preparation.in_uid
             name = preparation.name
             desc = preparation.description
@@ -268,8 +274,8 @@ class DataPreparation:
 
             if approved:
                 signal.signal(signal.SIGINT, sigint_handler)
-                observer.schedule(ReportHandler(self), self.out_path)
-                observer.start()
+            observer.schedule(ReportHandler(self, approved), self.out_path)
+            observer.start()
 
         self.ui.text = "Running preparation step..."
         try:
