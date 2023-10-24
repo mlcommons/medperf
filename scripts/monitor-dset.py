@@ -35,6 +35,7 @@ from textual.widgets import (
     Static,
     Button,
     ProgressBar,
+    Markdown,
 )
 
 NAME_HELP = "The name of the dataset to monitor"
@@ -148,7 +149,7 @@ class ReviewedHandler(FileSystemEventHandler):
         self.on_created(event)
 
     def pass_reviews(self, file):
-        pattern = r"review_cases\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
+        pattern = r".*\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
         identified_reviewed = []
         try:
             with tarfile.open(file, "r") as tar:
@@ -325,14 +326,14 @@ class SubjectDetails(Static):
         with Center(id="subject-title"):
             yield Static(id="subject-name")
             yield Static(id="subject-status")
-        yield CopyableItem("Instructions", "", id="subject-comment-container")
+        yield Markdown(id="subject-comment-md")
         yield CopyableItem("Data path", "", id="subject-data-container")
         yield CopyableItem("Labels path", "", id="subject-labels-container")
 
     def update_subject(self, subject: pd.Series, dset_path: str):
         wname = self.query_one("#subject-name", Static)
         wstatus = self.query_one("#subject-status", Static)
-        wmsg = self.query_one("#subject-comment-container", CopyableItem)
+        wmsg = self.query_one("#subject-comment-md", Markdown)
         wdata = self.query_one("#subject-data-container", CopyableItem)
         wlabels = self.query_one("#subject-labels-container", CopyableItem)
 
@@ -395,6 +396,10 @@ class Subjectbrowser(App):
         # Hide the confirm prompt
         container = self.query_one("#confirm-prompt", Container)
         container.display = False
+
+        # Set title - subtitle
+        self.title = "Subject Browser"
+        self.sub_title = os.getcwd()
 
         # Load report for the first time
         report_path = os.path.join(self.dset_data_path, "..", "report.yaml")
