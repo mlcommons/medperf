@@ -29,6 +29,9 @@ class ReportHandler(FileSystemEventHandler):
         self.submission_approved = submission_approved
 
     def write_full_report(self, partial_report, stages, report_path):
+        if partial_report is None:
+            return
+
         report = deepcopy(partial_report)
         if "comment" not in report:
             report["comment"] = {}
@@ -49,7 +52,7 @@ class ReportHandler(FileSystemEventHandler):
         with open(report_path, "w") as f:
             yaml.dump(report, f)
 
-    def on_creatd(self, event):
+    def on_created(self, event):
         self.on_modified(event)
 
     def on_modified(self, event):
