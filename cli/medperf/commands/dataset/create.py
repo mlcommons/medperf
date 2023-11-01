@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import signal
+from time import sleep
 from pathlib import Path
 from copy import deepcopy
 from medperf.entities.dataset import Dataset
@@ -29,9 +30,6 @@ class ReportHandler(FileSystemEventHandler):
         self.submission_approved = submission_approved
 
     def write_full_report(self, partial_report, stages, report_path):
-        if partial_report is None:
-            return
-
         report = deepcopy(partial_report)
         if "comment" not in report:
             report["comment"] = {}
@@ -55,13 +53,21 @@ class ReportHandler(FileSystemEventHandler):
     def on_created(self, event):
         self.on_modified(event)
 
+    def get_partial_report(self, filepath, attempts=10, sleep_time=1):
+        for _ in range(attempts):
+            with open(filepath, "r") as f:
+                partial_report = yaml.safe_load(f)
+            if partial_report is not None:
+                return partial_report
+
+            sleep(sleep_time)
+
     def on_modified(self, event):
         preparation = self.preparation
         if event.src_path == preparation.partial_report_path:
             stages = preparation.stages
             report_path = preparation.report_path
-            with open(preparation.partial_report_path, "r") as f:
-                partial_report = yaml.safe_load(f)
+            partial_report = self.get_partial_report(preparation.partial_report_path)
 
             self.write_full_report(partial_report, stages, report_path)
 
