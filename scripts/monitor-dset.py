@@ -69,7 +69,7 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             # Add tumor segmentations
             id, tp = row.name.split("|")
             tar_path = os.path.join("review_cases", id, tp)
-            reviewed_path = os.path.join("review_cases", id, tp, "reviewed")
+            reviewed_path = os.path.join("review_cases", id, tp, "finalized")
             reviewed_dir = tarfile.TarInfo(name=reviewed_path)
             reviewed_dir.type = tarfile.DIRTYPE
             reviewed_dir.mode = 0o755
@@ -157,7 +157,7 @@ class ReviewedHandler(FileSystemEventHandler):
         self.on_created(event)
 
     def move_assets(self, file):
-        reviewed_pattern = r".*\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
+        reviewed_pattern = r".*\/(.*)\/(.*)\/finalized\/(.*\.nii\.gz)"
         brainmask_pattern = r".*\/(.*)\/(.*)\/brainMask_fused.nii.gz"
         identified_reviewed = []
         identified_brainmasks = []
