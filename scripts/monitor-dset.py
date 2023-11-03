@@ -64,8 +64,9 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
     with tarfile.open("review_cases.tar.gz", "w:gz") as tar:
         for i, row in review_cases.iterrows():
             labels_path = to_local_path(row["labels_path"], dset_path)
-            imgs_path = os.path.join(labels_path, "..")
+            base_path = os.path.join(labels_path, "..")
 
+            # Add tumor segmentations
             id, tp = row.name.split("|")
             tar_path = os.path.join("review_cases", id, tp)
             reviewed_path = os.path.join("review_cases", id, tp, "reviewed")
@@ -75,10 +76,17 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             tar.addfile(reviewed_dir)
             tar.add(labels_path, tar_path)
 
-            for file in os.listdir(imgs_path):
+            # Add brain mask
+            brain_mask_filename = "brainMask_fused.nii.gz"
+            brain_mask_path = os.path.join(base_path, brain_mask_filename)
+            brain_mask_tar_path = os.path.join(tar_path, brain_mask_filename)
+            tar.add(brain_mask_path, brain_mask_tar_path)
+
+            # Add summary images
+            for file in os.listdir(base_path):
                 if not file.endswith(".png"):
                     continue
-                img_path = os.path.join(imgs_path, file)
+                img_path = os.path.join(base_path, file)
                 img_tar_path = os.path.join(tar_path, file)
                 tar.add(img_path, img_tar_path)
 
@@ -139,24 +147,30 @@ class ReviewedHandler(FileSystemEventHandler):
 
         for file in os.listdir("."):
             if file.endswith(self.ext):
-                self.pass_reviews(file)
+                self.move_assets(file)
 
     def on_created(self, event):
         if event.src_path.endswith(self.ext):
-            self.pass_reviews(event.src_path)
+            self.move_assets(event.src_path)
 
     def on_modified(self, event):
         self.on_created(event)
 
-    def pass_reviews(self, file):
-        pattern = r".*\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
+    def move_assets(self, file):
+        reviewed_pattern = r".*\/(.*)\/(.*)\/reviewed\/(.*\.nii\.gz)"
+        brainmask_pattern = r".*\/(.*)\/(.*)\/brainMask_fused.nii.gz"
         identified_reviewed = []
+        identified_brainmasks = []
         try:
             with tarfile.open(file, "r") as tar:
                 for member in tar.getmembers():
-                    match = re.match(pattern, member.name)
-                    if match:
-                        identified_reviewed.append(match)
+                    review_match = re.match(reviewed_pattern, member.name)
+                    if review_match:
+                        identified_reviewed.append(review_match)
+
+                    brainmask_match = re.match(brainmask_pattern, member.name)
+                    if brainmask_match:
+                        identified_brainmasks.append(brainmask_match)
         except:
             return
 
@@ -183,10 +197,26 @@ class ReviewedHandler(FileSystemEventHandler):
             # dest_path = os.path.join(dest_path, filename)
             extracts.append((src_path, dest_path))
 
+        for mask in identified_brainmasks:
+            id, tp = mask.groups()
+            src_path = mask.group(0)
+            dest_path = os.path.join(
+                self.dset_data_path,
+                "tumor_extracted",
+                "DataForQC",
+                id,
+                tp,
+            )
+            extracts.append((src_path, dest_path))
+
         with tarfile.open(file, "r") as tar:
             for src, dest in extracts:
                 member = tar.getmember(src)
                 member.name = os.path.basename(member.name)
+                target_file = os.path.join(dest, member.name)
+                # TODO: this might be problematic UX. The brainmask might get overwritten without the user aknowledging it
+                if os.path.exists(target_file):
+                    os.remove(target_file)
                 tar.extract(member, dest)
 
 
