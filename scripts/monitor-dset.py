@@ -187,7 +187,8 @@ class ReviewedHandler(FileSystemEventHandler):
                 "DataForQC",
                 id,
                 tp,
-                "reviewed",
+                "TumorMasksForQC",
+                "finalized",
             )
             if not os.path.exists(dest_path):
                 # Don't try to add reviewed file if the dest path
