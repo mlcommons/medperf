@@ -8,6 +8,7 @@ Run with:
 
 import os
 import re
+import shutil
 from pathlib import Path
 import typer
 import pyperclip
@@ -41,6 +42,25 @@ from textual.widgets import (
 NAME_HELP = "The name of the dataset to monitor"
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
 LISTITEM_MAX_LEN = 30
+
+
+def delete(filepath: str, dset_path: str):
+    try:
+        os.remove(filepath)
+        return
+    except PermissionError:
+        pass
+
+    # Handle scenarios where user doesn't have permission to delete stuff
+    # Instead, move the file-of-interest to a trash folder so that it can be
+    # deleted by the MLCube, with proper permissions
+    trash_path = os.path.join(dset_path, ".trash")
+    os.makedirs(trash_path, exist_ok=True)
+    num_trashfiles = len(os.listdir(trash_path))
+
+    # Rename the file to the number of files. This is to avoid collisions
+    target_filepath = os.path.join(trash_path, str(num_trashfiles))
+    shutil.move(filepath, target_filepath)
 
 
 def to_local_path(mlcube_path: str, local_parent_path: str):
@@ -217,7 +237,7 @@ class ReviewedHandler(FileSystemEventHandler):
                 target_file = os.path.join(dest, member.name)
                 # TODO: this might be problematic UX. The brainmask might get overwritten without the user aknowledging it
                 if os.path.exists(target_file):
-                    os.remove(target_file)
+                    delete(target_file, self.dset_data_path)
                 tar.extract(member, dest)
 
 
