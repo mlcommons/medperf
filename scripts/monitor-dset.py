@@ -450,7 +450,7 @@ class SubjectDetails(Static):
         return os.path.exists(under_review_filepath)
 
     def __review(self):
-        review_cmd = "itksnap -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {seg}"
+        review_cmd = "itksnap -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
         data_path = to_local_path(self.subject["data_path"], self.dset_path)
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
         id, tp = self.subject.name.split("|")
