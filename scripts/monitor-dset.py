@@ -459,6 +459,7 @@ class SubjectDetails(Static):
         t1n_file = os.path.join(data_path, f"{id}_{tp}_brain_t1n.nii.gz")
         t2f_file = os.path.join(data_path, f"{id}_{tp}_brain_t2f.nii.gz")
         t2w_file = os.path.join(data_path, f"{id}_{tp}_brain_t2w.nii.gz")
+        label_file = os.path.join(os.path.dirname(__file__), "assets/postop_gbm.label")
         under_review_file = os.path.join(
             labels_path,
             "under_review",
@@ -473,6 +474,7 @@ class SubjectDetails(Static):
             t2=t2w_file,
             t1=t1n_file,
             seg=under_review_file,
+            label=label_file,
         )
         with open(os.devnull, "w") as fp:
             Popen(review_cmd.split(), stdout=fp)
