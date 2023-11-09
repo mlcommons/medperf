@@ -21,7 +21,7 @@ from medperf import config
 import yaml
 import pandas as pd
 import tarfile
-from subprocess import Popen
+from subprocess import Popen, DEVNULL
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -476,8 +476,7 @@ class SubjectDetails(Static):
             seg=under_review_file,
             label=label_file,
         )
-        with open(os.devnull, "w") as fp:
-            Popen(review_cmd.split(), stdout=fp)
+        Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
 
         self.__update_buttons()
         self.notify("This subject can be finalized now")
