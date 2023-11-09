@@ -21,6 +21,7 @@ from medperf import config
 import yaml
 import pandas as pd
 import tarfile
+from subprocess import Popen, DEVNULL
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -41,6 +42,8 @@ from textual.widgets import (
 
 NAME_HELP = "The name of the dataset to monitor"
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
+DEFAULT_SEGMENTATION = "tumorMask_fused-staple.nii.gz"
+REVIEW_COMMAND = "itksnap"
 LISTITEM_MAX_LEN = 30
 
 
@@ -380,13 +383,28 @@ class SubjectDetails(Static):
         yield Markdown(id="subject-comment-md")
         yield CopyableItem("Data path", "", id="subject-data-container")
         yield CopyableItem("Labels path", "", id="subject-labels-container")
+        with Center(id="review-buttons"):
+            yield Button(
+                "Review with ITK-SNAP (ITK-SNAP must be installed)",
+                variant="primary",
+                disabled=True,
+                id="review-button",
+            )
+            yield Button.success(
+                "Mark as finalized (must review first)",
+                id="reviewed-button",
+                disabled=True,
+            )
 
     def update_subject(self, subject: pd.Series, dset_path: str):
+        self.subject = subject
+        self.dset_path = dset_path
         wname = self.query_one("#subject-name", Static)
         wstatus = self.query_one("#subject-status", Static)
         wmsg = self.query_one("#subject-comment-md", Markdown)
         wdata = self.query_one("#subject-data-container", CopyableItem)
         wlabels = self.query_one("#subject-labels-container", CopyableItem)
+        buttons_container = self.query_one("#review-buttons", Center)
 
         labels_path = os.path.join(dset_path, "../labels")
         if subject["status_name"] != "DONE":
@@ -399,6 +417,91 @@ class SubjectDetails(Static):
         wmsg.update(subject["comment"])
         wdata.update(to_local_path(subject["data_path"], dset_path))
         wlabels.update(to_local_path(subject["labels_path"], labels_path))
+        # Hardcoding manual review behavior. This SHOULD NOT be here for general data prep monitoring.
+        # Additional configuration must be set to make this kind of features generic
+        buttons_container.display = subject["status_name"] == "MANUAL_REVIEW_REQUIRED"
+        self.__update_buttons()
+
+    def __update_buttons(self):
+        review_button = self.query_one("#review-button", Button)
+        reviewed_button = self.query_one("#reviewed-button", Button)
+
+        if self.__can_review():
+            review_button.label = "Review with ITK-SNAP"
+            review_button.disabled = False
+        if self.__can_finalize():
+            reviewed_button.label = "Mark as finalized"
+            reviewed_button.disabled = False
+
+    def __can_review(self):
+        review_command_path = shutil.which(REVIEW_COMMAND)
+        return review_command_path is not None
+
+    def __can_finalize(self):
+        labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        id, tp = self.subject.name.split("|")
+        filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
+        under_review_filepath = os.path.join(
+            labels_path,
+            "under_review",
+            filename,
+        )
+
+        return os.path.exists(under_review_filepath)
+
+    def __review(self):
+        review_cmd = "itksnap -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
+        data_path = to_local_path(self.subject["data_path"], self.dset_path)
+        labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        id, tp = self.subject.name.split("|")
+        seg_file = os.path.join(labels_path, f"{id}_{tp}_{DEFAULT_SEGMENTATION}")
+        t1c_file = os.path.join(data_path, f"{id}_{tp}_brain_t1c.nii.gz")
+        t1n_file = os.path.join(data_path, f"{id}_{tp}_brain_t1n.nii.gz")
+        t2f_file = os.path.join(data_path, f"{id}_{tp}_brain_t2f.nii.gz")
+        t2w_file = os.path.join(data_path, f"{id}_{tp}_brain_t2w.nii.gz")
+        label_file = os.path.join(os.path.dirname(__file__), "assets/postop_gbm.label")
+        under_review_file = os.path.join(
+            labels_path,
+            "under_review",
+            seg_file,
+        )
+        if not os.path.exists(under_review_file):
+            shutil.copyfile(seg_file, under_review_file)
+
+        review_cmd = review_cmd.format(
+            t1c=t1c_file,
+            flair=t2f_file,
+            t2=t2w_file,
+            t1=t1n_file,
+            seg=under_review_file,
+            label=label_file,
+        )
+        Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+
+        self.__update_buttons()
+        self.notify("This subject can be finalized now")
+
+    def __finalize(self):
+        labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        id, tp = self.subject.name.split("|")
+        filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
+        under_review_filepath = os.path.join(
+            labels_path,
+            "under_review",
+            filename,
+        )
+        finalized_filepath = os.path.join(labels_path, "finalized", filename)
+        shutil.copyfile(under_review_filepath, finalized_filepath)
+        self.notify("Subject finalized")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        review_button = self.query_one("#review-button", Button)
+        reviewed_button = self.query_one("#reviewed-button", Button)
+
+        if event.control == review_button:
+            self.__review()
+        elif event.control == reviewed_button:
+            self.__finalize()
 
 
 class Subjectbrowser(App):

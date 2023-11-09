@@ -38,6 +38,16 @@ SubjectDetails {
     padding: 1;
 }
 
+SubjectDetails #review-buttons {
+    margin: 0 5;
+}
+
+SubjectDetails Button {
+    text-align: center;
+    width: 100%;
+    margin: 1;
+}
+
 #subject-status {
     color: $accent-lighten-3;
 }
