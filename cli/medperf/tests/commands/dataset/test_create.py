@@ -310,7 +310,6 @@ def test_run_returns_generated_uid(mocker, comms, ui, uid):
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_prepare"))
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_sanity_check"))
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_statistics"))
-    mocker.patch(PATCH_DATAPREP.format("SummaryGenerator.run"))
     mocker.patch(
         PATCH_DATAPREP.format("DataPreparation.get_statistics"),
     )

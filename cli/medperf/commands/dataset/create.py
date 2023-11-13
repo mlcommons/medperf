@@ -10,7 +10,6 @@ import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.report.submit import ReportRegistration
-from medperf.commands.report.generate_summary import SummaryGenerator
 from medperf.utils import (
     remove_path,
     generate_tmp_path,
@@ -51,7 +50,6 @@ class ReportHandler(FileSystemEventHandler):
                 benchmark_uid,
                 metadata=metadata,
             )
-            SummaryGenerator.run(name, prep_cube_uid, summary_path, benchmark_uid)
 
 
 class DataPreparation:
