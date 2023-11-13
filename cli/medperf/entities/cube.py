@@ -42,8 +42,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     mlcube_hash: Optional[str]
     git_parameters_url: Optional[str]
     parameters_hash: Optional[str]
-    git_stages_url: Optional[str]
-    stages_hash: Optional[str]
     image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
     image_hash: Optional[str]
@@ -203,15 +201,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             self.params_path = path
             self.parameters_hash = file_hash
 
-    def download_stages(self):
-        url = self.git_stages_url
-        if url:
-            path, file_hash = resources.get_cube_stages(
-                url, self.path, self.stages_hash
-            )
-            self.stages_path = path
-            self.stages_hash = file_hash
-
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
@@ -267,11 +256,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             self.download_parameters()
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
-
-        try:
-            self.download_stages()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} stages file: {e}")
 
         try:
             self.download_additional()

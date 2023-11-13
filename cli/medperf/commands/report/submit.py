@@ -53,10 +53,14 @@ class ReportRegistration:
             report_status_dict = report_status.round(3).to_dict()
 
         cube = Cube.get(prep_cube_uid)
-        with open(cube.stages_path, "r") as f:
-            stages = yaml.safe_load(f)
+        with open(cube.params_path, "r") as f:
+            parameters = yaml.safe_load(f)
 
-        stages = {id: content["status_name"] for id, content in stages.items()}
+        example = {}
+        if "medperf_report_stages" in parameters:
+            # Generate example percentages
+            stages = parameters["medperf_report_stages"]
+            example = {stage: 1 / len(stages) for stage in stages}
 
         if os.path.exists(report_metadata_path):
             with open(report_metadata_path, "r") as f:
@@ -73,7 +77,7 @@ class ReportRegistration:
             "data_preparation_mlcube": prep_cube_uid,
             "contents": report_status_dict,
             "metadata": metadata,
-            "stages": stages,
+            "content_example": example,
         }
 
         if report_uid is None:
@@ -82,8 +86,7 @@ class ReportRegistration:
                 "Do you approve the submission of the status report to the MedPerf Server?"
                 + " This report will be visible by the benchmark owner and updated"
                 + " with the latest status change throughout the preparation process."
-                + " At most, the report will contain the displayed stages and the proportion of"
-                + " the data tha is at any given stage."
+                + " An example of the contents has been provided, showcasing all available stages."
                 + " [Y/n]"
             )
 
@@ -93,7 +96,7 @@ class ReportRegistration:
             ui.print("Report submission cancelled")
             return False
 
-        del body["stages"]  # the stages key is only intended for display
+        del body["content_example"]  # the example is only meant for display
 
         if report_uid is not None:
             report_metadata = comms.update_report(report_uid, body)
