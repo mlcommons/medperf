@@ -11,7 +11,6 @@ import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.report.submit import ReportRegistration
-from medperf.commands.report.generate_summary import SummaryGenerator
 from medperf.utils import (
     remove_path,
     generate_tmp_path,
@@ -29,27 +28,6 @@ class ReportHandler(FileSystemEventHandler):
         self.preparation = preparation_obj
         self.submission_approved = submission_approved
 
-    def write_full_report(self, partial_report, stages, report_path):
-        report = deepcopy(partial_report)
-        if "comment" not in report:
-            report["comment"] = {}
-        if "status_name" not in report:
-            report["status_name"] = {}
-        if "docs_url" not in report:
-            report["docs_url"] = {}
-        for case, status in partial_report["status"].items():
-            stage = stages[status]
-            for key, val in stage.items():
-                # First make sure to populate the stage key for missing cases
-                if case not in report[key]:
-                    report[key][case] = ""
-                # Then, if the stage contains information for that key, add it
-                if val is not None:
-                    report[key][case] = val
-
-        with open(report_path, "w") as f:
-            yaml.dump(report, f)
-
     def on_created(self, event):
         self.on_modified(event)
 
@@ -64,17 +42,7 @@ class ReportHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         preparation = self.preparation
-        if event.src_path == preparation.partial_report_path:
-            stages = preparation.stages
-            report_path = preparation.report_path
-            partial_report = self.get_partial_report(preparation.partial_report_path)
-
-            self.write_full_report(partial_report, stages, report_path)
-
-            if not self.submission_approved:
-                # Don't send data to server if not approved
-                return
-
+        if event.src_path == preparation.report_path:
             in_data_hash = preparation.in_uid
             name = preparation.name
             desc = preparation.description
@@ -93,7 +61,6 @@ class ReportHandler(FileSystemEventHandler):
                 benchmark_uid,
                 metadata=metadata,
             )
-            SummaryGenerator.run(name, prep_cube_uid, summary_path, benchmark_uid)
 
 
 class DataPreparation:
@@ -197,7 +164,6 @@ class DataPreparation:
         staging_path = storage_path(config.staging_data_storage)
         out_path = os.path.join(staging_path, f"{self.name}_{self.cube.id}")
         self.out_path = out_path
-        self.partial_report_path = os.path.join(out_path, config.partial_report_file)
         self.report_path = os.path.join(out_path, config.report_file)
         self.out_datapath = os.path.join(out_path, "data")
         self.out_labelspath = os.path.join(out_path, "labels")
@@ -216,10 +182,6 @@ class DataPreparation:
             self.cube.get_default_output("prepare", "metadata_path") is not None
         )
 
-        if self.report_specified and self.cube.stages_path:
-            with open(self.cube.stages_path, "r") as f:
-                self.stages = yaml.safe_load(f)
-
         logging.debug(f"tmp data preparation output: {out_path}")
         logging.debug(f"tmp data statistics output: {self.out_statistics_path}")
 
@@ -229,7 +191,7 @@ class DataPreparation:
         labels_path = self.labels_path
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
-        out_partial_report = self.partial_report_path
+        out_report = self.report_path
         in_data_hash = self.in_uid
         name = self.name
         desc = self.description
@@ -268,7 +230,7 @@ class DataPreparation:
             prepare_params["metadata_path"] = self.metadata_path
 
         if self.report_specified:
-            prepare_params["report_file"] = out_partial_report
+            prepare_params["report_file"] = out_report
             metadata = {"execution_status": "started"}
 
             approved = ReportRegistration.run(
