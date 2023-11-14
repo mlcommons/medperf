@@ -13,7 +13,7 @@ from pathlib import Path
 import typer
 import pyperclip
 from tabulate import tabulate
-from typer import Argument
+from typer import Argument, Option
 from medperf.utils import storage_path, read_config, set_custom_config
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -42,9 +42,33 @@ from textual.widgets import (
 
 NAME_HELP = "The name of the dataset to monitor"
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
+STAGES_HELP = "Path to stages YAML file containing documentation about the Data Preparation stages"
 DEFAULT_SEGMENTATION = "tumorMask_fused-staple.nii.gz"
+DEFAULT_STAGES_PATH = os.path.join(os.path.dirname(__file__), "assets/stages.yaml")
 REVIEW_COMMAND = "itksnap"
 LISTITEM_MAX_LEN = 30
+
+
+def generate_full_report(report_dict: dict, stages_path: str):
+    with open(stages_path, "r") as f:
+        stages = yaml.safe_load(f)
+
+    report_keys = ["comment", "status_name", "docs_url", "status"]
+    for key in report_keys:
+        if key not in report_dict:
+            report_dict[key] = {}
+
+    for case, status in report_dict["status"].items():
+        stage = stages[status]
+        for key, val in stage.items():
+            # First make sure to populate the stage key for missing cases
+            if case not in report_dict[key]:
+                report_dict[key][case] = ""
+            # Then, if the stage contains information for that key, add it
+            if val is not None:
+                report_dict[key][case] = val
+
+    return report_dict
 
 
 def delete(filepath: str, dset_path: str):
@@ -123,6 +147,7 @@ class ReportState:
     def update(self):
         with open(self.report_path, "r") as f:
             report_dict = yaml.safe_load(f)
+
         if report_dict is not None and len(report_dict):
             self.report = report_dict
             self.__update_app()
@@ -522,6 +547,9 @@ class Subjectbrowser(App):
     def set_dset_data_path(self, dset_data_path: str):
         self.dset_data_path = dset_data_path
 
+    def set_stages_path(self, stages_path: str):
+        self.stages_path = stages_path
+
     def compose(self) -> ComposeResult:
         """Compose our UI."""
         yield Header()
@@ -608,6 +636,8 @@ class Subjectbrowser(App):
     def watch_report(self, old_report: dict, report: dict) -> None:
         highlight_subjects = set()
 
+        report = generate_full_report(report, self.stages_path)
+
         # There was an old report, check the differences
         report_df = pd.DataFrame(report)
         old_report_df = pd.DataFrame(old_report)
@@ -651,6 +681,7 @@ class Subjectbrowser(App):
 def main(
     name: str = Argument(..., help=NAME_HELP),
     mlcube_uid: int = Argument(..., help=MLCUBE_HELP),
+    stages_path: str = Option(DEFAULT_STAGES_PATH, help=STAGES_HELP),
 ):
     config_p = read_config()
     set_custom_config(config_p.active_profile)
@@ -678,6 +709,7 @@ def main(
 
     app = Subjectbrowser()
     app.set_dset_data_path(dset_data_path)
+    app.set_stages_path(stages_path)
 
     report_state = ReportState(report_path, app)
     # report_state.update()
