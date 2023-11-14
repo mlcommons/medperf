@@ -53,8 +53,26 @@
 -5:
   status_name: MANUAL_REVIEW_REQUIRED
   comment: >
-    Please inspect the baseline segmentations at the indicated labels path.
-    If using the monitoring tool, you may package cases for review by pressing the 'Package cases for review' button under SUMMARY.
+    Baseline tumor segmentations have been generated. Manual corrections are required to proceed.
+    Here are the following recommended methods.
+
+
+    ### Local Manual Corrections
+
+    If you're doing manual corrections on this machine, and you're running the manual Data Preparation pipeline locally, 
+    you may find buttons at the bottom of this page to aid you in the process of manual correction. 
+    These buttons automatically start the review process with ITK-Snap using the staple fusion segmentation mask by default. 
+    Please ensure ITK-Snap has been installed with client-line tools to use this method.
+    You may edit the file as many times as needed. Once you're done with this subject, press the "Mark as finalized" button to let the pipeline know the subject is done.
+
+
+    In some cases, local manual correction is not possible, or the default baseline segmentation is not sufficiently good to work with. 
+    In those cases, it is recommended to do manual correction through the **Packaging method**.
+
+
+    ### Packaging Method
+
+    If using the monitoring tool, you may package cases for review by pressing the 'Package cases for review' button under **SUMMARY**.
     This will create a tarball file on the working directory (displayed on the monitoring tool header), containing all the cases for review.
     You may untar the segmentation with the following command
 
@@ -64,7 +82,8 @@
     ```
 
 
-    If working remotely, move the tarball file to your local machine. Untar the tarball file, select the best baseline segmentation and make any necessary corrections. Once you're done, move the finalized file to the `finalized` folder, retaining the original name.
+    If working remotely, move the tarball file to your local machine. Untar the tarball file, select the best baseline segmentation and make any necessary corrections. 
+    Once you're done, move the finalized file to the `finalized` folder, retaining the original name.
 
 
     If using the monitoring tool, create a new tarball with the previously untarred files, as well as finalized cases. You can do so with the following command
@@ -76,6 +95,7 @@
 
 
     Place this new tarball file on the directory the monitoring tool is running (displayed on the monitoring tool header). The tool will automatically detect the finalized cases and place them in the expected locations.
+
   docs_url: ""
 -5.1:
   status_name: MULTIPLE_ANNOTATIONS_ERROR
