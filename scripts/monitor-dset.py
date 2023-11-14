@@ -46,6 +46,8 @@ STAGES_HELP = "Path to stages YAML file containing documentation about the Data 
 DEFAULT_SEGMENTATION = "tumorMask_fused-staple.nii.gz"
 DEFAULT_STAGES_PATH = os.path.join(os.path.dirname(__file__), "assets/stages.yaml")
 REVIEW_COMMAND = "itksnap"
+MANUAL_REVIEW_STAGE = 5
+DONE_STAGE = 8
 LISTITEM_MAX_LEN = 30
 
 
@@ -444,7 +446,8 @@ class SubjectDetails(Static):
         wlabels.update(to_local_path(subject["labels_path"], labels_path))
         # Hardcoding manual review behavior. This SHOULD NOT be here for general data prep monitoring.
         # Additional configuration must be set to make this kind of features generic
-        buttons_container.display = subject["status_name"] == "MANUAL_REVIEW_REQUIRED"
+        can_review = MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
+        buttons_container.display = "block" if can_review else "none"
         self.__update_buttons()
 
     def __update_buttons(self):
