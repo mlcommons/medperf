@@ -107,7 +107,7 @@
   docs_url: ""
 6.1:
   status_name: EXACT_MATCH_IDENTIFIED
-  comment: The annotation seems to be a copy of a baseline segmentation, please ensure this is intended. Waiting on all cases to be reviewed in order to proceed.
+  comment: The automated and manually corrected segmentation files are identical. Was this intentional? If so, are you certain that no manual corrections were required? If not, please redo manual correction for this exam.
   docs_url: ""
 -6:
   status_name: ANNOTATION_COMPARISON_FAILED
