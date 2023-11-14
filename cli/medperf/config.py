@@ -67,7 +67,6 @@ cleanup = True
 test_report_file = "test_report.yaml"
 cube_filename = "mlcube.yaml"
 params_filename = "parameters.yaml"
-stages_filename = "stages.yaml"
 additional_path = "workspace/additional_files"
 tarball_filename = "tmp.tar.gz"
 image_path = "workspace/.image"
