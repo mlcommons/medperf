@@ -101,6 +101,22 @@ class TestGetFiles:
         spy.assert_has_calls(expected_cmds)
 
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
+    def test_get_cube_stops_execution_if_configure_fails(self, mocker, setup, fs):
+        # Arrange
+        tmp_path = "tmp_path"
+        mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
+        # This is the side effect of mlcube inspect
+        fs.create_file(
+            "tmp_path", contents=yaml.dump({"hash": NO_IMG_CUBE["image_hash"]})
+        )
+        mpexpect = MockPexpect(1, "expected_hash")
+        mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+
+        # Act & Assert
+        with pytest.raises(ExecutionError):
+            Cube.get(self.id)
+
+    @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
     def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup, fs):
         # Arrange
         tmp_path = "tmp_path"
