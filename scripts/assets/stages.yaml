@@ -99,7 +99,7 @@
   docs_url: ""
 -5.1:
   status_name: MULTIPLE_ANNOTATIONS_ERROR
-  comment: More than one reviewed segmentation was identified. Please ensure there's only one NIfTI file present.
+  comment: More than one segmentation file was identified in the manually corrected output folder. Please ensure that there is only one manually corrected segmentation inside the labels path.
   docs_url: ""
 6:
   status_name: COMPARISON_COMPLETE
