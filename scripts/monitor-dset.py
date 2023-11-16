@@ -482,7 +482,8 @@ class SubjectDetails(Static):
         data_path = to_local_path(self.subject["data_path"], self.dset_path)
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
         id, tp = self.subject.name.split("|")
-        seg_file = os.path.join(labels_path, f"{id}_{tp}_{DEFAULT_SEGMENTATION}")
+        seg_filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
+        seg_file = os.path.join(labels_path, seg_filename)
         t1c_file = os.path.join(data_path, f"{id}_{tp}_brain_t1c.nii.gz")
         t1n_file = os.path.join(data_path, f"{id}_{tp}_brain_t1n.nii.gz")
         t2f_file = os.path.join(data_path, f"{id}_{tp}_brain_t2f.nii.gz")
@@ -491,7 +492,7 @@ class SubjectDetails(Static):
         under_review_file = os.path.join(
             labels_path,
             "under_review",
-            seg_file,
+            seg_filename,
         )
         if not os.path.exists(under_review_file):
             shutil.copyfile(seg_file, under_review_file)
