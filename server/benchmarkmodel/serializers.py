@@ -101,10 +101,7 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             )
         initiated_user = self.instance.initiated_by
         current_user = self.context["request"].user
-        if (
-            last_approval_status != cur_approval_status
-            and cur_approval_status == "APPROVED"
-        ):
+        if cur_approval_status == "APPROVED":
             if current_user.id == initiated_user.id:
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"

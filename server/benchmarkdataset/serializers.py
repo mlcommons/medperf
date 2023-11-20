@@ -89,23 +89,22 @@ class DatasetApprovalSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if not self.instance:
             raise serializers.ValidationError("No dataset association found")
+        return data
+
+    def validate_approval_status(self, cur_approval_status):
         last_approval_status = self.instance.approval_status
-        cur_approval_status = data["approval_status"]
         if last_approval_status != "PENDING":
             raise serializers.ValidationError(
                 "User can approve or reject only a pending request"
             )
         initiated_user = self.instance.initiated_by
         current_user = self.context["request"].user
-        if (
-            last_approval_status != cur_approval_status
-            and cur_approval_status == "APPROVED"
-        ):
+        if cur_approval_status == "APPROVED":
             if current_user.id == initiated_user.id:
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"
                 )
-        return data
+        return cur_approval_status
 
     def update(self, instance, validated_data):
         instance.approval_status = validated_data["approval_status"]
