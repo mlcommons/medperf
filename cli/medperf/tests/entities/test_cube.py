@@ -39,7 +39,7 @@ def setup(request, mocker, comms, fs):
     request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
-    mpexpect = MockPexpect(0, "image_hash")
+    mpexpect = MockPexpect(0)
     mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
 
@@ -78,15 +78,21 @@ class TestGetFiles:
             assert os.path.exists(file) and os.path.isfile(file)
 
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
-    def test_get_cube_without_image_configures_mlcube(self, mocker, setup):
+    def test_get_cube_without_image_configures_mlcube(self, mocker, setup, fs):
         # Arrange
+        tmp_path = "tmp_path"
+        mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
+        # This is the side effect of mlcube inspect
+        fs.create_file(
+            "tmp_path", contents=yaml.dump({"hash": NO_IMG_CUBE["image_hash"]})
+        )
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
-        mocker.patch(PATCH_CUBE.format("verify_hash"), return_value=True)
         expected_cmds = [
             f"mlcube configure --mlcube={self.manifest_path}",
-            f"mlcube inspect --mlcube={self.manifest_path} --format=yaml",
+            f"mlcube inspect --mlcube={self.manifest_path}"
+            f" --format=yaml --output-file {tmp_path}",
         ]
-        expected_cmds = [call(cmd) for cmd in expected_cmds]
+        expected_cmds = [call(cmd, timeout=None) for cmd in expected_cmds]
 
         # Act
         Cube.get(self.id)
@@ -95,10 +101,28 @@ class TestGetFiles:
         spy.assert_has_calls(expected_cmds)
 
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
-    def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup):
-        # By default, the mocked object will not return a hash
-        # This means we would be comparing wrong hashes
-        mocker.spy(medperf.entities.cube.pexpect, "spawn")
+    def test_get_cube_stops_execution_if_configure_fails(self, mocker, setup, fs):
+        # Arrange
+        tmp_path = "tmp_path"
+        mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
+        # This is the side effect of mlcube inspect
+        fs.create_file(
+            "tmp_path", contents=yaml.dump({"hash": NO_IMG_CUBE["image_hash"]})
+        )
+        mpexpect = MockPexpect(1, "expected_hash")
+        mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+
+        # Act & Assert
+        with pytest.raises(ExecutionError):
+            Cube.get(self.id)
+
+    @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
+    def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup, fs):
+        # Arrange
+        tmp_path = "tmp_path"
+        mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
+        # This is the side effect of mlcube inspect
+        fs.create_file("tmp_path", contents=yaml.dump({"hash": "invalid hash"}))
 
         # Act & Assert
         with pytest.raises(InvalidEntityError):

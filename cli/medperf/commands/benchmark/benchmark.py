@@ -43,7 +43,7 @@ def submit(
         See `medperf mlcube submit --help` for more information""",
     ),
     demo_hash: str = typer.Option(
-        "", "--demo-hash", help="SHA1 of demonstration dataset tarball file"
+        "", "--demo-hash", help="Hash of demonstration dataset tarball file"
     ),
     data_preparation_mlcube: int = typer.Option(
         ..., "--data-preparation-mlcube", "-p", help="Data Preparation MLCube UID"
@@ -84,11 +84,12 @@ def associate(
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute the test even if results already exist",
     ),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time.
-    """
+    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
     AssociateBenchmark.run(
         benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
@@ -118,11 +119,12 @@ def run(
         help="Ignore failing model cubes, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute even if results already exist",
     ),
 ):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model
-    """
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
@@ -163,6 +165,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more benchmarks
-    """
+    """Displays the information of one or more benchmarks"""
     EntityView.run(entity_id, Benchmark, format, local, mine, output)

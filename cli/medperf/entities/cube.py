@@ -6,7 +6,14 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
-from medperf.utils import combine_proc_sp_text, list_files, storage_path, verify_hash
+from medperf.utils import (
+    combine_proc_sp_text,
+    list_files,
+    remove_path,
+    storage_path,
+    verify_hash,
+    generate_tmp_path,
+)
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -214,16 +221,29 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            with pexpect.spawn(cmd) as proc:
-                proc_out = combine_proc_sp_text(proc)
+            with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
+                proc_out = proc.read()
+            if proc.exitstatus != 0:
+                raise ExecutionError(
+                    "There was an error while retrieving the MLCube image"
+                )
             logging.debug(proc_out)
 
             # Retrieve image hash from MLCube
-            logging.debug("Retriving {self.id} image hash")
+            logging.debug(f"Retrieving {self.id} image hash")
+            tmp_out_yaml = generate_tmp_path()
             cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
-            with pexpect.spawn(cmd) as proc:
+            cmd += f" --output-file {tmp_out_yaml}"
+            with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
                 proc_stdout = proc.read()
-            mlcube_details = yaml.safe_load(proc_stdout)
+            logging.debug(proc_stdout)
+            if proc.exitstatus != 0:
+                raise ExecutionError(
+                    "There was an error while inspecting the image hash"
+                )
+            with open(tmp_out_yaml) as f:
+                mlcube_details = yaml.safe_load(f)
+            remove_path(tmp_out_yaml)
             local_hash = mlcube_details["hash"]
             verify_hash(local_hash, img_hash)
             self.image_hash = local_hash
@@ -254,6 +274,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def run(
         self,
         task: str,
+        output_logs: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
         **kwargs,
@@ -268,7 +289,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube run --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
+        # TODO: re-use `loglevel=critical` or figure out a clean MLCube logging
+        cmd = "mlcube run"
+        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         for k, v in kwargs.items():
@@ -278,7 +301,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc)
         proc.close()
-        logging.debug(proc_out)
+        if output_logs is None:
+            logging.debug(proc_out)
+        else:
+            with open(output_logs, "w") as f:
+                f.write(proc_out)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")
 

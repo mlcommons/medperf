@@ -1,0 +1,2 @@
+task: segmentation
+segmentation_modalities: ["t1c", "t1n", "t2f", "t2w"]
