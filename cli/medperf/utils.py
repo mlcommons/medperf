@@ -393,6 +393,8 @@ def get_folders_hash(paths: List[str]) -> str:
         str: sha256 hash of the whole folder
     """
     hashes = []
+
+    # The hash doesn't depend on the order of paths or folders, as the hashes get sorted after the fact
     for path in paths:
         for root, _, files in os.walk(path, topdown=False):
             for file in files:
