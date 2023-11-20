@@ -13,6 +13,8 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate(self, data):
+        # TODO: define what should happen to existing assets when an association
+        #       is rejected after being approved (results)
         bid = self.context["request"].data.get("benchmark")
         mlcube = self.context["request"].data.get("model_mlcube")
         approval_status = self.context["request"].data.get("approval_status", "PENDING")

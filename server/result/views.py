@@ -45,6 +45,7 @@ class ModelResultDetail(GenericAPIView):
     serializer_class = ModelResultDetailSerializer
     queryset = ""
 
+    # TODO: fix delete permissions?
     def get_permissions(self):
         if self.request.method == "PUT" or self.request.method == "DELETE":
             self.permission_classes = [IsAdmin | IsResultOwner]
