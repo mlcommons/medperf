@@ -5,7 +5,7 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 from .models import ModelResult
-from .serializers import ModelResultSerializer
+from .serializers import ModelResultSerializer, ModelResultDetailSerializer
 from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner, IsResultOwner
 
 
@@ -42,7 +42,7 @@ class ModelResultList(GenericAPIView):
 
 
 class ModelResultDetail(GenericAPIView):
-    serializer_class = ModelResultSerializer
+    serializer_class = ModelResultDetailSerializer
     queryset = ""
 
     def get_permissions(self):
@@ -63,7 +63,7 @@ class ModelResultDetail(GenericAPIView):
         Retrieve a result instance.
         """
         modelresult = self.get_object(pk)
-        serializer = ModelResultSerializer(modelresult)
+        serializer = ModelResultDetailSerializer(modelresult)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
@@ -71,7 +71,7 @@ class ModelResultDetail(GenericAPIView):
         Update a result instance.
         """
         modelresult = self.get_object(pk)
-        serializer = ModelResultSerializer(modelresult, data=request.data)
+        serializer = ModelResultDetailSerializer(modelresult, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

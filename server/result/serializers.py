@@ -51,3 +51,19 @@ class ModelResultSerializer(serializers.ModelSerializer):
                     "Dataset-Benchmark association must be approved"
                 )
         return data
+
+
+# TODO: define what should be editable, and WHO can do that
+class ModelResultDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelResult
+        fields = "__all__"
+        read_only_fields = [
+            "owner",
+            "approved_at",
+            "approval_status",
+            "benchmark",
+            "model",
+            "dataset",
+            "results",
+        ]
