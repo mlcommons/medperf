@@ -117,3 +117,9 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             instance.priority = validated_data["priority"]
         instance.save()
         return instance
+
+
+class BenchmarkListofModelsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BenchmarkModel
+        fields = ["model_mlcube", "approval_status", "created_at"]

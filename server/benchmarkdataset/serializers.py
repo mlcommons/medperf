@@ -112,3 +112,9 @@ class DatasetApprovalSerializer(serializers.ModelSerializer):
             instance.approved_at = timezone.now()
         instance.save()
         return instance
+
+
+class BenchmarkListofDatasetsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BenchmarkDataset
+        fields = ["dataset", "approval_status", "created_at"]

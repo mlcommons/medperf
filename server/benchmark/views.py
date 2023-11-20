@@ -1,5 +1,5 @@
-from mlcube.serializers import MlCubeSerializer
-from dataset.serializers import DatasetSerializer
+from benchmarkmodel.serializers import BenchmarkListofModelsSerializer
+from benchmarkdataset.serializers import BenchmarkListofDatasetsSerializer
 from result.serializers import ModelResultSerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
@@ -40,7 +40,8 @@ class BenchmarkList(GenericAPIView):
 
 
 class BenchmarkModelList(GenericAPIView):
-    serializer_class = MlCubeSerializer
+    # TODO: fix permissions?
+    serializer_class = BenchmarkListofModelsSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -54,15 +55,15 @@ class BenchmarkModelList(GenericAPIView):
         Retrieve models associated with a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        modelgroups = benchmark.benchmarkmodel_set.all()
-        models = [gp.model_mlcube for gp in modelgroups]
+        models = benchmark.benchmarkmodel_set.all()
         models = self.paginate_queryset(models)
-        serializer = MlCubeSerializer(models, many=True)
+        serializer = BenchmarkListofModelsSerializer(models, many=True)
         return self.get_paginated_response(serializer.data)
 
 
 class BenchmarkDatasetList(GenericAPIView):
-    serializer_class = DatasetSerializer
+    permission_classes = [IsAdmin | IsBenchmarkOwner]
+    serializer_class = BenchmarkListofDatasetsSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -76,10 +77,9 @@ class BenchmarkDatasetList(GenericAPIView):
         Retrieve datasets associated with a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        datasetgroups = benchmark.benchmarkdataset_set.all()
-        datasets = [gp.dataset for gp in datasetgroups]
+        datasets = benchmark.benchmarkdataset_set.all()
         datasets = self.paginate_queryset(datasets)
-        serializer = DatasetSerializer(datasets, many=True)
+        serializer = BenchmarkListofDatasetsSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
 
 
