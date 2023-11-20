@@ -291,7 +291,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
 @pytest.mark.parametrize("exp_uids", [[142, 437, 196], [303, 27, 24], [40, 19, 399]])
 def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
     # Arrange
-    body = [{"id": uid} for uid in exp_uids]
+    body = [{"model_mlcube": uid} for uid in exp_uids]
     mocker.patch(patch_server.format("REST._REST__get_list"), return_value=body)
 
     # Act

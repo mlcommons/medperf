@@ -183,8 +183,10 @@ class REST(Comms):
         Returns:
             list[int]: List of model UIDS
         """
-        models = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
-        model_uids = [model["id"] for model in models]
+        # TODO: filter to find approved ones only if we decide to have
+        #       this logic client side
+        assocs = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
+        model_uids = [assoc["model_mlcube"] for assoc in assocs]
         return model_uids
 
     def get_user_benchmarks(self) -> List[dict]:
