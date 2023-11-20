@@ -3,7 +3,6 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema
 
 from .permissions import IsAdmin, IsDatasetOwner, IsBenchmarkOwner
 from .serializers import (
@@ -28,27 +27,6 @@ class BenchmarkDatasetList(GenericAPIView):
             serializer.save(initiated_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class BenchmarkDatasetApproval(GenericAPIView):
-    serializer_class = BenchmarkDatasetListSerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            return BenchmarkDataset.objects.filter(dataset__id=pk)
-        except BenchmarkDataset.DoesNotExist:
-            raise Http404
-
-    @extend_schema(operation_id="datasets_benchmarks_retrieve_all")
-    def get(self, request, pk, format=None):
-        """
-        Retrieve all benchmarks associated with a dataset
-        """
-        benchmarkdataset = self.get_object(pk)
-        benchmarkdataset = self.paginate_queryset(benchmarkdataset)
-        serializer = BenchmarkDatasetListSerializer(benchmarkdataset, many=True)
-        return self.get_paginated_response(serializer.data)
 
 
 class DatasetApproval(GenericAPIView):
