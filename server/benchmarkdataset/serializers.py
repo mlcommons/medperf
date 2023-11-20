@@ -107,9 +107,11 @@ class DatasetApprovalSerializer(serializers.ModelSerializer):
         return cur_approval_status
 
     def update(self, instance, validated_data):
-        instance.approval_status = validated_data["approval_status"]
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
+        if "approval_status" in validated_data:
+            if validated_data["approval_status"] != instance.approval_status:
+                instance.approval_status = validated_data["approval_status"]
+                if instance.approval_status != "PENDING":
+                    instance.approved_at = timezone.now()
         instance.save()
         return instance
 

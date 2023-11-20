@@ -110,9 +110,10 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if "approval_status" in validated_data:
-            instance.approval_status = validated_data["approval_status"]
-            if instance.approval_status != "PENDING":
-                instance.approved_at = timezone.now()
+            if validated_data["approval_status"] != instance.approval_status:
+                instance.approval_status = validated_data["approval_status"]
+                if instance.approval_status != "PENDING":
+                    instance.approved_at = timezone.now()
         if "priority" in validated_data:
             instance.priority = validated_data["priority"]
         instance.save()
