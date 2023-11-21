@@ -21,6 +21,7 @@ from medperf import config
 import yaml
 import pandas as pd
 import tarfile
+import contextlib
 from subprocess import Popen, DEVNULL
 
 from textual.app import App, ComposeResult
@@ -199,11 +200,28 @@ class ReviewedHandler(FileSystemEventHandler):
             if file.endswith(self.ext):
                 self.move_assets(file)
 
+    # Taken from https://stackoverflow.com/questions/18781239/python-watchdog-is-there-a-way-to-pause-the-observer
+    def pause(self):
+        self._is_paused = True
+
+    def resume(self):
+        self._is_paused = False
+
+    @contextlib.contextmanager
+    def ignore_events(self):
+        self.pause()
+        yield
+        self.resume()
+
     def on_created(self, event):
+        if self._is_paused:
+            return
         if event.src_path.endswith(self.ext):
             self.move_assets(event.src_path)
 
     def on_modified(self, event):
+        if self._is_paused:
+            return
         self.on_created(event)
 
     def move_assets(self, file):
@@ -291,6 +309,9 @@ class Summary(Static):
         with Center():
             yield Button("package cases for review", id="package-btn")
 
+    def set_reviewed_watchdog(self, reviewed_watchdog: ReviewedHandler):
+        self.reviewed_watchdog = reviewed_watchdog
+
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
         self.dset_path = message.dset_path
@@ -325,9 +346,10 @@ class Summary(Static):
         content.mount(*widgets)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        event.stop()
-        package_review_cases(self.report, self.dset_path)
-        self.notify("review_cases.tar.gz was created on the working directory")
+        with self.reviewed_watchdog.ignore_events():
+            event.stop()
+            package_review_cases(self.report, self.dset_path)
+            self.notify("review_cases.tar.gz was created on the working directory")
 
 
 class SubjectListView(ListView):
@@ -554,6 +576,9 @@ class Subjectbrowser(App):
     def set_stages_path(self, stages_path: str):
         self.stages_path = stages_path
 
+    def set_reviewed_watchdog(self, reviewed_watchdog: ReviewedHandler):
+        self.reviewed_watchdog = reviewed_watchdog
+
     def compose(self) -> ComposeResult:
         """Compose our UI."""
         yield Header()
@@ -592,6 +617,10 @@ class Subjectbrowser(App):
         if os.path.exists(report_path):
             with open(report_path, "r") as f:
                 self.report = yaml.safe_load(f)
+
+        # Set reviewed watchdog for summary view
+        summary = self.query_one("#summary", Summary)
+        summary.set_reviewed_watchdog(self.reviewed_watchdog)
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         """Called when the user click a subject in the list."""
@@ -716,13 +745,16 @@ def main(
     app.set_stages_path(stages_path)
 
     report_state = ReportState(report_path, app)
-    # report_state.update()
+    report_watchdog = ReportHandler(report_state)
+    prompt_watchdog = PromptHandler(dset_data_path, app)
+    reviewed_watchdog = ReviewedHandler(dset_data_path, app)
+
+    app.set_reviewed_watchdog(reviewed_watchdog)
+
     observer = Observer()
-    observer.schedule(ReportHandler(report_state), dset_path)
-    observer.schedule(
-        PromptHandler(dset_data_path, app), os.path.join(dset_path, "data")
-    )
-    observer.schedule(ReviewedHandler(dset_data_path, app), ".")
+    observer.schedule(report_watchdog, dset_path)
+    observer.schedule(prompt_watchdog, os.path.join(dset_path, "data"))
+    observer.schedule(reviewed_watchdog, ".")
     observer.start()
     app.run()
 
