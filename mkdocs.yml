@@ -3,7 +3,7 @@ site_url: https://medperf.com/
 repo_url: https://github.com/mlcommons/medperf
 repo_name: mlcommons/medperf
 nav:
-- What's Medperf?: index.md
+- What's Medperf?: what_is_medperf.md
 - Benchmark Roles: roles.md
 - Benchmark Workflow: workflow.md
 - MedPerf Components: medperf_components.md
@@ -35,7 +35,8 @@ nav:
   - Running Specific Models: concepts/single_run.md
 - CLI Reference: cli_reference.md
 # - Code Reference: reference/
-theme: 
+theme:
+  custom_dir: docs/overrides
   features:
     - search.suggest
     - search.highlight

@@ -1,0 +1,40 @@
+:root, [data-md-color-scheme=default] {
+  --md-card-bg-color: rgb(255, 255, 255);
+  --md-card-box-shadow: 0 10px 20px #282a3017;
+  --md-card-border-color: rgba(0, 0, 0, 0.147);
+  --md-white-color: rgb(255, 255, 255);
+}
+
+:root, [data-md-color-scheme=slate] {
+  --md-card-bg-color: rgba(90, 90, 90, 0.512);
+  --md-card-box-shadow: 0 10px 20px rgba(210, 210, 210, 0.315);
+  --md-card-border-color: rgba(83, 83, 83, 0.581);
+  --md-white-color: rgb(255, 255, 255);
+}
+
+.side-container {
+  width: 720px;
+  height: fit-content;
+  position: fixed;
+  right: -45px;
+  top: 100px;
+  background-color: transparent;
+}
+
+#side-container img {
+  width: 100%;
+  height: 100%;
+}
+
+.md-grid {
+  margin-left: 175px !important;
+}
+
+.md-content__inner {
+  margin-right: 240px;
+  margin-bottom: 610px;
+}
+
+.md-header__inner {
+  max-width: 70rem !important;
+}
