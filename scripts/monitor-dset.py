@@ -579,6 +579,9 @@ class Subjectbrowser(App):
     def set_reviewed_watchdog(self, reviewed_watchdog: ReviewedHandler):
         self.reviewed_watchdog = reviewed_watchdog
 
+    def set_output_path(self, output_path: str):
+        self.output_path = output_path
+
     def compose(self) -> ComposeResult:
         """Compose our UI."""
         yield Header()
@@ -696,6 +699,10 @@ class Subjectbrowser(App):
         summary.post_message(msg)
         subjectlist.post_message(msg)
 
+        # Write the report into a csv
+        if self.output_path is not None:
+            report_df.to_csv(self.output_path, index=None)
+
     def action_respond(self, answer: str):
         if len(self.prompt) == 0:
             # Only act when there's a prompt
@@ -715,6 +722,7 @@ def main(
     name: str = Argument(..., help=NAME_HELP),
     mlcube_uid: int = Argument(..., help=MLCUBE_HELP),
     stages_path: str = Option(DEFAULT_STAGES_PATH, help=STAGES_HELP),
+    output_path: str = Option(None, "-o", "--out", help="CSV file to store report in"),
 ):
     config_p = read_config()
     set_custom_config(config_p.active_profile)
@@ -743,6 +751,7 @@ def main(
     app = Subjectbrowser()
     app.set_dset_data_path(dset_data_path)
     app.set_stages_path(stages_path)
+    app.set_output_path(output_path)
 
     report_state = ReportState(report_path, app)
     report_watchdog = ReportHandler(report_state)
