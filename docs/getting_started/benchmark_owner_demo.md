@@ -27,6 +27,7 @@ In this guide, you will learn how a user can use MedPerf to create a benchmark. 
 
 It's assumed that you have already set up the general testing environment as explained in the [setup guide](setup.md).
 
+
 {% include "getting_started/shared/before_we_start.md" %}
 
 ## 1. Implement a Valid Workflow

@@ -125,3 +125,9 @@ markdown_extensions:
   - toc:
       permalink: True
   - attr_list
+
+extra_css:
+  - styles/styles.css
+
+extra_javascript:
+  - scripts/script.js
