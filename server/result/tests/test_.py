@@ -122,6 +122,8 @@ class GenericResultsPostTest(ResultsTest):
             "approval_status": "PENDING",
             "name": "",
             "metadata": {},
+            "user_metadata": {},
+            "is_valid": True,
         }
         testresult = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}

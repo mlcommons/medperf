@@ -122,7 +122,7 @@ class ResultGetTest(ResultsTest):
 
 @parameterized_class(
     [
-        {"actor": "data_owner"},
+        {"actor": "api_admin"},
     ]
 )
 class ResultPutTest(ResultsTest):
@@ -151,7 +151,6 @@ class ResultPutTest(ResultsTest):
             "model": 444,
             "dataset": 55,
             "results": {"new": 111},
-            "approval_status": "APPROVED",
         }
         url = self.url.format(result["id"])
 
@@ -169,7 +168,6 @@ class ResultPutTest(ResultsTest):
 @parameterized_class(
     [
         {"actor": "api_admin"},
-        {"actor": "data_owner"},
     ]
 )
 class ResultDeleteTest(ResultsTest):
@@ -213,8 +211,8 @@ class PermissionTest(ResultsTest):
     """Test module for permissions of /results/{pk} endpoint
     Non-permitted actions:
         GET: for all users except bmk_owner, data_owner, and admin
-        DELETE: for all users except data_owner and admin
-        PUT: for all users except data_owner and admin
+        DELETE: for all users except admin
+        PUT: for all users except admin
     """
 
     def setUp(self):
@@ -254,6 +252,7 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("data_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
@@ -287,7 +286,9 @@ class PermissionTest(ResultsTest):
             "dataset": newdataset["id"],
             "results": {"new": "t"},
             "metadata": {"new": "t"},
+            "user_metadata": {"new": "t"},
             "approval_status": "APPROVED",
+            "is_valid": False,
             "approved_at": "time",
             "created_at": "time",
             "modified_at": "time",
@@ -310,6 +311,7 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("data_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),

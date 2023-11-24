@@ -53,7 +53,7 @@ class ModelResultSerializer(serializers.ModelSerializer):
         return data
 
 
-# TODO: define what should be editable, and WHO can do that
+# TODO: define what should be editable, how, and WHO can do that
 class ModelResultDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelResult
@@ -61,7 +61,6 @@ class ModelResultDetailSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "owner",
             "approved_at",
-            "approval_status",
             "benchmark",
             "model",
             "dataset",
