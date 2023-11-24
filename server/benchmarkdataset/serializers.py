@@ -13,8 +13,6 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate(self, data):
-        # TODO: there is no check if the dataset was prepared with the data
-        #       prep mlcube of the benchmark
         # TODO: define what should happen to existing assets when an association
         #       is rejected after being approved (results)
 
@@ -32,10 +30,16 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Association requests can be made only on an approved benchmark"
             )
-        dataset_state = Dataset.objects.get(pk=dataset).state
+        dataset_obj = Dataset.objects.get(pk=dataset)
+        dataset_state = dataset_obj.state
         if dataset_state != "OPERATION":
             raise serializers.ValidationError(
                 "Association requests can be made only on an operational dataset"
+            )
+        if dataset_obj.data_preparation_mlcube != benchmark.data_preparation_mlcube:
+            raise serializers.ValidationError(
+                "Dataset association request can be made only if the dataset"
+                " was prepared with benchmark's data preparation MLCube"
             )
         last_benchmarkdataset = (
             BenchmarkDataset.objects.filter(benchmark__id=bid, dataset__id=dataset)

@@ -152,10 +152,6 @@ class SerializersDatasetBenchmarksPostTest(DatasetBenchmarksTest):
 
     @parameterized.expand([("DEVELOPMENT",), ("OPERATION",)])
     def test_association_with_unapproved_benchmark(self, state):
-        # TODO: the serializer checks also if benchmark is operation
-        #       however, an approved benchmark cannot be in development
-        #       (i.e. there is a redundant check that we can't test)
-
         # Arrange
         prep, _, _, benchmark = self.shortcut_create_benchmark(
             self.bmk_prep_mlcube_owner,
@@ -191,6 +187,36 @@ class SerializersDatasetBenchmarksPostTest(DatasetBenchmarksTest):
         )
         dataset = self.mock_dataset(
             data_preparation_mlcube=prep["id"], state="DEVELOPMENT"
+        )
+
+        self.set_credentials(self.data_owner)
+        dataset = self.create_dataset(dataset).data
+        self.set_credentials(self.actor)
+
+        testassoc = self.mock_dataset_association(benchmark["id"], dataset["id"])
+
+        # Act
+        response = self.client.post(self.url, testassoc, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_association_failure_with_dataset_not_prepared_with_benchmark_prep_cube(
+        self,
+    ):
+        # Arrange
+        _, _, _, benchmark = self.shortcut_create_benchmark(
+            self.bmk_prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+        )
+        prep = self.mock_mlcube(
+            name="someprep", mlcube_hash="someprep", state="OPERATION"
+        )
+        prep = self.create_mlcube(prep).data
+        dataset = self.mock_dataset(
+            data_preparation_mlcube=prep["id"], state="OPERATION"
         )
 
         self.set_credentials(self.data_owner)
