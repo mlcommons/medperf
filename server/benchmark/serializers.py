@@ -38,30 +38,25 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
-        # TODO: remove the ability to update to PENDING (it just adds complexity?)
         # TODO: define what should happen to existing assets when a benchmark
         #       is rejected after being approved (associations? results? note also
         #       that results submission doesn't check benchmark's approval status)
-        owner = self.instance.owner
         if "approval_status" in data:
-            if (
-                data["approval_status"] == "PENDING"
-                and self.instance.approval_status != "PENDING"
-            ):
-                pending_benchmarks = Benchmark.objects.filter(
-                    owner=owner, approval_status="PENDING"
+            if data["approval_status"] == "PENDING":
+                raise serializers.ValidationError(
+                    "User can only approve or reject a benchmark"
                 )
-                if len(pending_benchmarks) > 0:
-                    raise serializers.ValidationError(
-                        "User can own at most one pending benchmark"
-                    )
-            if (
-                data["approval_status"] != "PENDING"
-                and self.instance.state == "DEVELOPMENT"
-            ):
+            if self.instance.state == "DEVELOPMENT":
                 raise serializers.ValidationError(
                     "User cannot approve or reject when benchmark is in development stage"
                 )
+
+            if data["approval_status"] == "APPROVED":
+                if self.instance.approval_status == "REJECTED":
+                    raise serializers.ValidationError(
+                        "User can approve only a pending request"
+                    )
+
         if self.instance.state == "OPERATION":
             editable_fields = [
                 "is_valid",
