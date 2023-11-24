@@ -464,11 +464,10 @@ class PermissionTest(MlCubeTest):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    # TODO: fix deletion permissions
     @parameterized.expand(
         [
-            ("mlcube_owner", status.HTTP_204_NO_CONTENT),
-            ("bmk_owner", status.HTTP_204_NO_CONTENT),
+            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),

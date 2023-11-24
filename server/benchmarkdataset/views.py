@@ -52,9 +52,14 @@ class DatasetBenchmarksList(GenericAPIView):
 
 
 class DatasetApproval(GenericAPIView):
-    permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
     serializer_class = DatasetApprovalSerializer
     queryset = ""
+
+    def get_permissions(self):
+        self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
+        if self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, dataset_id, benchmark_id):
         try:
