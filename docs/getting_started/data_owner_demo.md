@@ -1,7 +1,10 @@
 ---
 prepared_hash: 9d56e799a9e63a6c3ced056ebd67eb6381483381
 tutorial_id: data
+hide:
+  - toc
 ---
+
 # Hands-on Tutorial for Data Owners
 
 ## Overview

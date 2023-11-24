@@ -7,7 +7,7 @@ nav:
 - Benchmark Roles: roles.md
 - Benchmark Workflow: workflow.md
 - MedPerf Components: medperf_components.md
-- Getting Started:
+- GETTING STARTED:
   - Roles Capabilities: getting_started/overview.md
   - First Steps:
     - Create an Account: getting_started/signup.md
@@ -19,7 +19,7 @@ nav:
     - Model Owners: getting_started/model_owner_demo.md
     - Data Owners: getting_started/data_owner_demo.md
 
-- Concepts:
+- ADVANCED CONCEPTS:
   - MedPerf MLCubes: 
     - Introduction: mlcubes/mlcubes.md
     - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md

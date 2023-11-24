@@ -38,3 +38,7 @@
 .md-header__inner {
   max-width: 70rem !important;
 }
+
+.md-nav__title {
+  text-transform: uppercase;
+}
