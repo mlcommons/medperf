@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema
 
 from .models import Benchmark
 from .serializers import BenchmarkSerializer, BenchmarkApprovalSerializer
-from .permissions import IsAdmin, IsBenchmarkOwner
+from .permissions import IsAdmin, IsBenchmarkOwner, IsAssociatedDatasetOwner
 
 
 class BenchmarkList(GenericAPIView):
@@ -40,7 +40,7 @@ class BenchmarkList(GenericAPIView):
 
 
 class BenchmarkModelList(GenericAPIView):
-    # TODO: fix permissions?
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsAssociatedDatasetOwner]
     serializer_class = BenchmarkListofModelsSerializer
     queryset = ""
 

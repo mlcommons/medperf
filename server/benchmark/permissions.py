@@ -29,11 +29,16 @@ class IsBenchmarkOwner(BasePermission):
             return False
 
 
-# TODO: check if we need to use such permission
+# TODO: check effciency / database costs
 class IsAssociatedDatasetOwner(BasePermission):
     def has_permission(self, request, view):
         pk = view.kwargs.get("pk", None)
         if not pk:
+            return False
+
+        if not request.user.is_authenticated:
+            # This check is to prevent internal server error
+            # since user.dataset_set is used below
             return False
 
         latest_datasets_assocs_status = (
