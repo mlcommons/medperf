@@ -142,21 +142,29 @@ class MlCubePostTest(MlCubeTest):
 
     def test_default_values_are_as_expected(self):
         """Testing the model fields rules"""
-        # TODO?: when fixing the unique_together constraint,
-        # add default values of URLs here
-
         # Arrange
         default_values = {
             "state": "DEVELOPMENT",
             "is_valid": True,
             "metadata": {},
             "user_metadata": {},
+            "git_parameters_url": "",
+            "image_tarball_url": "",
+            "additional_files_tarball_url": "",
         }
         testmlcube = self.mock_mlcube()
         for key in default_values:
             if key in testmlcube:
                 del testmlcube[key]
 
+        # in order to allow empty urls
+        testmlcube.update(
+            {
+                "parameters_hash": "",
+                "image_tarball_hash": "",
+                "additional_files_tarball_hash": "",
+            }
+        )
         # Act
         response = self.client.post(self.url, testmlcube, format="json")
 

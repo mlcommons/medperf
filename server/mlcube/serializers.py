@@ -3,16 +3,16 @@ from .models import MlCube
 
 
 def validate_optional_mlcube_components(data):
-    git_parameters_url = data["git_parameters_url"]
-    parameters_hash = data["parameters_hash"]
+    git_parameters_url = data.get("git_parameters_url", "")
+    parameters_hash = data.get("parameters_hash", "")
 
-    additional_files_tarball_url = data["additional_files_tarball_url"]
-    additional_files_tarball_hash = data["additional_files_tarball_hash"]
+    additional_files_tarball_url = data.get("additional_files_tarball_url", "")
+    additional_files_tarball_hash = data.get("additional_files_tarball_hash", "")
 
-    image_hash = data["image_hash"]
+    image_hash = data.get("image_hash", "")
 
-    image_tarball_url = data["image_tarball_url"]
-    image_tarball_hash = data["image_tarball_hash"]
+    image_tarball_url = data.get("image_tarball_url", "")
+    image_tarball_hash = data.get("image_tarball_hash", "")
 
     # validate nonblank parameters file hash
     if git_parameters_url and not parameters_hash:

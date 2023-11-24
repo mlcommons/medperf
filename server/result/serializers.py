@@ -53,7 +53,6 @@ class ModelResultSerializer(serializers.ModelSerializer):
         return data
 
 
-# TODO: define what should be editable, how, and WHO can do that
 class ModelResultDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelResult

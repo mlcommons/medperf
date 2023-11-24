@@ -473,9 +473,6 @@ class MlCubePutTest(MlCubeTest):
     ]
 )
 class MlCubeDeleteTest(MlCubeTest):
-    # TODO: for all DELETE tests, we should revisit when we allow users
-    # to delete. We should test the effects of model.CASCADE and model.PROTECT
-
     def setUp(self):
         super(MlCubeDeleteTest, self).setUp()
         self.generic_setup()

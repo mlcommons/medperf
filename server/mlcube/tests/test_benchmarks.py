@@ -152,7 +152,7 @@ class SerializersMlCubeBenchmarksPostTest(MlCubeBenchmarksTest):
 
     @parameterized.expand([("DEVELOPMENT",), ("OPERATION",)])
     def test_association_with_unapproved_benchmark(self, state):
-        # TODO: the serializer checks also if benchmark is operation
+        # NOTE: the serializer checks also if benchmark is operation
         #       however, an approved benchmark cannot be in development
         #       (i.e. there is a redundant check that we can't test)
 

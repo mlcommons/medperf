@@ -446,9 +446,6 @@ class BenchmarkApproveTest(BenchmarkTest):
 class BenchmarkDeleteTest(BenchmarkTest):
     """Test module for DELETE /benchmarks/<pk>"""
 
-    # TODO: for all DELETE tests, we should revisit when we allow users
-    # to delete. We should test the effects of model.CASCADE and model.PROTECT
-
     def setUp(self):
         super(BenchmarkDeleteTest, self).setUp()
         self.generic_setup()

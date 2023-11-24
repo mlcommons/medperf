@@ -173,9 +173,6 @@ class ResultPutTest(ResultsTest):
 class ResultDeleteTest(ResultsTest):
     """Test module for DELETE /results/<pk>"""
 
-    # TODO: for all DELETE tests, we should revisit when we allow users
-    # to delete. We should test the effects of model.CASCADE and model.PROTECT
-
     def setUp(self):
         super(ResultDeleteTest, self).setUp()
         self.generic_setup()

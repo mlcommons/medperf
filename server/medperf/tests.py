@@ -19,6 +19,8 @@ from .testing_utils import (
 class MedPerfTest(TestCase):
     """Common settings module for MedPerf APIs"""
 
+    # TODO: for all DELETE tests, we should revisit when we allow users
+    # to delete. We should test the effects of model.CASCADE and model.PROTECT
     def setUp(self):
         SIMPLE_JWT = {
             "ALGORITHM": "RS256",

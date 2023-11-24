@@ -41,19 +41,18 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def update(self, instance, validated_data):
+        if "approval_status" in validated_data:
+            if validated_data["approval_status"] != instance.approval_status:
+                instance.approval_status = validated_data["approval_status"]
+                if instance.approval_status != "PENDING":
+                    instance.approved_at = timezone.now()
+        validated_data.pop("approval_status", None)
         for k, v in validated_data.items():
             setattr(instance, k, v)
-        # TODO: the condition below will run even
-        #       if a user edits the benchmark after it gets approved
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
         instance.save()
         return instance
 
     def validate(self, data):
-        # TODO: define what should happen to existing assets when a benchmark
-        #       is rejected after being approved (associations? results? note also
-        #       that results submission doesn't check benchmark's approval status)
         if "approval_status" in data:
             if data["approval_status"] == "PENDING":
                 raise serializers.ValidationError(
