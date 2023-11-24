@@ -512,7 +512,7 @@ class PermissionTest(BenchmarkTest):
 
     @parameterized.expand(
         [
-            # ("bmk_owner", status.HTTP_403_FORBIDDEN),  # TODO: uncomment me
+            ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),

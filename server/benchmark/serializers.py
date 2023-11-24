@@ -38,7 +38,6 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
-        # TODO: fix permissions of approving the benchmark
         # TODO: remove the ability to update to PENDING (it just adds complexity?)
         # TODO: define what should happen to existing assets when a benchmark
         #       is rejected after being approved (associations? results? note also
