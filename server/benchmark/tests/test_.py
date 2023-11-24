@@ -110,13 +110,11 @@ class BenchmarkPostTest(BenchmarkTest):
 
     def test_default_values_are_as_expected(self):
         """Testing the model fields rules"""
-        # TODO: demo dataset url should be required again
 
         # Arrange
         default_values = {
             "description": "",
             "docs_url": "",
-            "demo_dataset_tarball_url": "",
             "metadata": {},
             "state": "DEVELOPMENT",
             "is_valid": True,
