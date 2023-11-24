@@ -303,6 +303,66 @@ class BenchmarkPutTest(BenchmarkTest):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_marking_as_operation_requires_prep_to_be_operation(self):
+        # Arrange
+        _, _, _, testbenchmark = self.shortcut_create_benchmark(
+            self.prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            target_approval_status="PENDING",
+            state="DEVELOPMENT",
+            prep_mlcube_kwargs={"state": "DEVELOPMENT"},
+        )
+
+        url = self.url.format(testbenchmark["id"])
+
+        # Act
+        response = self.client.put(url, {"state": "OPERATION"}, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_marking_as_operation_requires_refmodel_to_be_operation(self):
+        # Arrange
+        _, _, _, testbenchmark = self.shortcut_create_benchmark(
+            self.prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            target_approval_status="PENDING",
+            state="DEVELOPMENT",
+            ref_mlcube_kwargs={"state": "DEVELOPMENT"},
+        )
+
+        url = self.url.format(testbenchmark["id"])
+
+        # Act
+        response = self.client.put(url, {"state": "OPERATION"}, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_marking_as_operation_requires_evaluator_to_be_operation(self):
+        # Arrange
+        _, _, _, testbenchmark = self.shortcut_create_benchmark(
+            self.prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            target_approval_status="PENDING",
+            state="DEVELOPMENT",
+            eval_mlcube_kwargs={"state": "DEVELOPMENT"},
+        )
+
+        url = self.url.format(testbenchmark["id"])
+
+        # Act
+        response = self.client.put(url, {"state": "OPERATION"}, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 @parameterized_class(
     [

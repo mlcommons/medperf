@@ -18,6 +18,19 @@ class BenchmarkSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "User can own at most one pending benchmark"
             )
+
+        if "state" in data and data["state"] == "OPERATION":
+            dev_mlcubes = [
+                data["data_preparation_mlcube"].state == "DEVELOPMENT",
+                data["reference_model_mlcube"].state == "DEVELOPMENT",
+                data["data_evaluator_mlcube"].state == "DEVELOPMENT",
+            ]
+            if any(dev_mlcubes):
+                raise serializers.ValidationError(
+                    "User cannot mark a benchmark as operational"
+                    " if its MLCubes are not operational"
+                )
+
         return data
 
 
@@ -71,4 +84,18 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
                         raise serializers.ValidationError(
                             "User cannot update non editable fields in Operation mode"
                         )
+
+        if "state" in data and data["state"] == "OPERATION":
+            if self.instance.state != "OPERATION":
+                dev_mlcubes = [
+                    self.instance.data_preparation_mlcube.state == "DEVELOPMENT",
+                    self.instance.reference_model_mlcube.state == "DEVELOPMENT",
+                    self.instance.data_evaluator_mlcube.state == "DEVELOPMENT",
+                ]
+                if any(dev_mlcubes):
+                    raise serializers.ValidationError(
+                        "User cannot mark a benchmark as operational"
+                        " if its MLCubes are not operational"
+                    )
+
         return data

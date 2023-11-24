@@ -58,10 +58,6 @@ class BenchmarkTest(MedPerfTest):
 class BenchmarkPostTest(BenchmarkTest):
     """Test module for POST /benchmarks"""
 
-    # TODO: there is no conditions on creating benchmarks
-    #       or approving benchmarks whose mlcubes are not
-    #       OPERATIONAL. Heads-up that this should also
-    #       be respected when editing
     def setUp(self):
         super(BenchmarkPostTest, self).setUp()
         self.generic_setup()
@@ -194,6 +190,65 @@ class BenchmarkPostTest(BenchmarkTest):
             self.assertNotEqual(
                 val, response.data[key], f"readonly field {key} was modified"
             )
+
+    def test_creating_operational_benchmark_with_prep_in_development(self):
+        # Arrange
+
+        self.set_credentials(self.prep_mlcube_owner)
+        devprep = self.mock_mlcube(
+            name="devprep", mlcube_hash="devprep", state="DEVELOPMENT"
+        )
+        devprep = self.create_mlcube(devprep).data
+        self.set_credentials(self.actor)
+
+        benchmark = self.mock_benchmark(
+            devprep["id"], self.ref_model["id"], self.eval["id"], state="OPERATION"
+        )
+
+        # Act
+        response = self.client.post(self.url, benchmark, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_creating_operational_benchmark_with_refmodel_in_development(self):
+        # Arrange
+
+        self.set_credentials(self.ref_mlcube_owner)
+        devrefmodel = self.mock_mlcube(
+            name="devrefmodel", mlcube_hash="devrefmodel", state="DEVELOPMENT"
+        )
+        devrefmodel = self.create_mlcube(devrefmodel).data
+        self.set_credentials(self.actor)
+
+        benchmark = self.mock_benchmark(
+            self.prep["id"], devrefmodel["id"], self.eval["id"], state="OPERATION"
+        )
+
+        # Act
+        response = self.client.post(self.url, benchmark, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_creating_operational_benchmark_with_eval_in_development(self):
+        # Arrange
+        self.set_credentials(self.eval_mlcube_owner)
+        deveval = self.mock_mlcube(
+            name="deveval", mlcube_hash="deveval", state="DEVELOPMENT"
+        )
+        deveval = self.create_mlcube(deveval).data
+        self.set_credentials(self.actor)
+
+        benchmark = self.mock_benchmark(
+            self.prep["id"], self.ref_model["id"], deveval["id"], state="OPERATION"
+        )
+
+        # Act
+        response = self.client.post(self.url, benchmark, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 @parameterized_class(
