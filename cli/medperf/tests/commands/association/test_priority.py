@@ -21,9 +21,9 @@ def set_priority_behavior(associations):
     return func
 
 
-def get_benchmark_models_behavior(associations):
+def get_benchmark_model_associations_behavior(associations):
     def func(benchmark_uid):
-        return [assoc["model_mlcube"] for assoc in associations]
+        return associations
 
     return func
 
@@ -31,8 +31,8 @@ def get_benchmark_models_behavior(associations):
 def setup_comms(mocker, comms, associations):
     mocker.patch.object(
         comms,
-        "get_benchmark_models",
-        side_effect=get_benchmark_models_behavior(associations),
+        "get_benchmark_model_associations",
+        side_effect=get_benchmark_model_associations_behavior(associations),
     )
     mocker.patch.object(
         comms,
@@ -49,7 +49,9 @@ def setup(request, mocker, comms):
 
 
 @pytest.mark.parametrize(
-    "setup", [{"associations": TEST_ASSOCIATIONS}], indirect=True,
+    "setup",
+    [{"associations": TEST_ASSOCIATIONS}],
+    indirect=True,
 )
 class TestRun:
     @pytest.fixture(autouse=True)

@@ -230,7 +230,13 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         Returns:
             List[int]: List of mlcube uids
         """
-        return config.comms.get_benchmark_models(benchmark_uid)
+        associations = config.comms.get_benchmark_model_associations(benchmark_uid)
+        models_uids = [
+            assoc["model_mlcube"]
+            for assoc in associations
+            if assoc["approval_status"] == "APPROVED"
+        ]
+        return models_uids
 
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance

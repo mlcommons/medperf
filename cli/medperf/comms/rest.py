@@ -5,7 +5,12 @@ import logging
 from medperf.enums import Status
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.utils import sanitize_json, log_response_error, format_errors_dict
+from medperf.utils import (
+    sanitize_json,
+    log_response_error,
+    format_errors_dict,
+    filter_latest_associations,
+)
 from medperf.exceptions import (
     CommunicationError,
     CommunicationRetrievalError,
@@ -174,20 +179,17 @@ class REST(Comms):
             )
         return res.json()
 
-    def get_benchmark_models(self, benchmark_uid: int) -> List[int]:
-        """Retrieves all the models associated with a benchmark. reference model not included
+    def get_benchmark_model_associations(self, benchmark_uid: int) -> List[int]:
+        """Retrieves all the model associations of a benchmark.
 
         Args:
             benchmark_uid (int): UID of the desired benchmark
 
         Returns:
-            list[int]: List of model UIDS
+            list[int]: List of benchmark model associations
         """
-        # TODO: filter to find approved ones only if we decide to have
-        #       this logic client side
         assocs = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
-        model_uids = [assoc["model_mlcube"] for assoc in assocs]
-        return model_uids
+        return filter_latest_associations(assocs, "model_mlcube")
 
     def get_user_benchmarks(self) -> List[dict]:
         """Retrieves all benchmarks created by the user
@@ -477,7 +479,7 @@ class REST(Comms):
             List[dict]: List containing all associations information
         """
         assocs = self.__get_list(f"{self.server_url}/me/datasets/associations/")
-        return assocs
+        return filter_latest_associations(assocs, "dataset")
 
     def get_cubes_associations(self) -> List[dict]:
         """Get all cube associations related to the current user
@@ -486,7 +488,7 @@ class REST(Comms):
             List[dict]: List containing all associations information
         """
         assocs = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
-        return assocs
+        return filter_latest_associations(assocs, "model_mlcube")
 
     def set_mlcube_association_priority(
         self, benchmark_uid: int, mlcube_uid: int, priority: int

@@ -44,7 +44,7 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_benchmark",
         "upload_instance": "upload_benchmark",
     }
-    mocker.patch.object(comms, "get_benchmark_models", return_value=[])
+    mocker.patch.object(comms, "get_benchmark_model_associations", return_value=[])
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )

@@ -501,3 +501,27 @@ def verify_hash(obtained_hash: str, expected_hash: str):
         raise InvalidEntityError(
             f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
         )
+
+
+def filter_latest_associations(associations, entity_key):
+    """Given a list of entity-benchmark associations, this function
+    retrieves a list containing the latest association of each
+    entity instance.
+
+    Args:
+        associations (list[dict]): the list of associations
+        entity_key (str): either "dataset" or "model_mlcube"
+
+    Returns:
+        list[dict]: the list containing the latest association of each
+                    entity instance.
+    """
+
+    associations.sort(key=lambda assoc: datetime.fromisoformat(assoc["created_at"]))
+    latest_associations = {}
+    for assoc in associations:
+        entity_id = assoc[entity_key]
+        latest_associations[entity_id] = assoc
+
+    latest_associations = list(latest_associations.values())
+    return latest_associations
