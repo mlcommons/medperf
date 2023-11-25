@@ -24,7 +24,7 @@ def setup_benchmark_fs(ents, fs):
         id = ent["id"]
         bmk_filepath = os.path.join(bmks_path, str(id), config.benchmarks_filename)
         bmk_contents = TestBenchmark(**ent)
-        cubes_ids = bmk_contents.models
+        cubes_ids = []
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
         cubes_ids.append(bmk_contents.reference_model_mlcube)
         cubes_ids.append(bmk_contents.data_evaluator_mlcube)

@@ -32,36 +32,29 @@ def setup(request, mocker, comms, fs):
 
 
 @pytest.mark.parametrize(
-    "setup",
+    "setup,expected_models",
     [
-        {
-            "remote": [721],
-            "models": [
-                {"model_mlcube": 37, "approval_status": "APPROVED"},
-                {"model_mlcube": 23, "approval_status": "APPROVED"},
-                {"model_mlcube": 495, "approval_status": "APPROVED"},
-            ],
-        }
+        (
+            {
+                "remote": [721],
+                "models": [
+                    {"model_mlcube": 37, "approval_status": "APPROVED"},
+                    {"model_mlcube": 23, "approval_status": "APPROVED"},
+                    {"model_mlcube": 495, "approval_status": "PENDING"},
+                ],
+            },
+            [37, 23],
+        )
     ],
-    indirect=True,
+    indirect=["setup"],
 )
 class TestModels:
-    def test_benchmark_includes_reference_model_in_models(self, setup):
-        # Act
-        id = setup["remote"][0]
-        benchmark = Benchmark.get(id)
-
-        # Assert
-        assert benchmark.reference_model_mlcube in benchmark.models
-
-    def test_benchmark_includes_additional_models_in_models(self, setup):
+    def test_benchmark_get_models_works_as_expected(self, setup, expected_models):
         # Arrange
         id = setup["remote"][0]
-        models = setup["models"]
-        models = [model["model_mlcube"] for model in models]
 
         # Act
-        benchmark = Benchmark.get(id)
+        assciated_models = Benchmark.get_models_uids(id)
 
         # Assert
-        assert set(models).issubset(set(benchmark.models))
+        assert set(assciated_models) == set(expected_models)

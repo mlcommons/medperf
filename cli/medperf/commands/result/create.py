@@ -50,7 +50,6 @@ class BenchmarkExecution:
         execution.prepare()
         execution.validate()
         execution.prepare_models()
-        execution.validate_models()
         if not no_cache:
             execution.load_cached_results()
         with execution.ui.interactive():
@@ -101,8 +100,19 @@ class BenchmarkExecution:
     def prepare_models(self):
         if self.models_input_file:
             self.models_uids = self.__get_models_from_file()
-        elif self.models_uids is None:
-            self.models_uids = self.benchmark.models
+
+        if self.models_uids == [self.benchmark.reference_model_mlcube]:
+            # avoid the need of sending a request to the server for
+            # finding the benchmark's associated models
+            return
+
+        benchmark_models = Benchmark.get_models_uids(self.benchmark_uid)
+        benchmark_models.append(self.benchmark.reference_model_mlcube)
+
+        if self.models_uids is None:
+            self.models_uids = benchmark_models
+        else:
+            self.__validate_models(benchmark_models)
 
     def __get_models_from_file(self):
         if not os.path.exists(self.models_input_file):
@@ -117,9 +127,9 @@ class BenchmarkExecution:
             msg += "The file should contain a list of comma-separated integers"
             raise InvalidArgumentError(msg)
 
-    def validate_models(self):
+    def __validate_models(self, benchmark_models):
         models_set = set(self.models_uids)
-        benchmark_models_set = set(self.benchmark.models)
+        benchmark_models_set = set(benchmark_models)
         non_assoc_cubes = models_set.difference(benchmark_models_set)
         if non_assoc_cubes:
             if len(non_assoc_cubes) > 1:

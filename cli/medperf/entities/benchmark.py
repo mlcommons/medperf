@@ -3,7 +3,7 @@ from medperf.exceptions import MedperfException
 import yaml
 import logging
 from typing import List, Optional, Union
-from pydantic import HttpUrl, Field, validator
+from pydantic import HttpUrl, Field
 
 import medperf.config as config
 from medperf.entities.interface import Entity, Uploadable
@@ -32,17 +32,9 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
     data_preparation_mlcube: int
     reference_model_mlcube: int
     data_evaluator_mlcube: int
-    models: List[int] = None
     metadata: dict = {}
     user_metadata: dict = {}
     is_active: bool = True
-
-    @validator("models", pre=True, always=True)
-    def set_default_models_value(cls, value, values, **kwargs):
-        if not value:
-            # Empty or None value assigned
-            return [values["reference_model_mlcube"]]
-        return value
 
     def __init__(self, *args, **kwargs):
         """Creates a new benchmark instance
@@ -91,11 +83,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         try:
             comms_fn = cls.__remote_prefilter(filters)
             bmks_meta = comms_fn()
-            for bmk_meta in bmks_meta:
-                # Loading all related models for all benchmarks could be expensive.
-                # Most probably not necessary when getting all benchmarks.
-                # If associated models for a benchmark are needed then use Benchmark.get()
-                bmk_meta["models"] = [bmk_meta["reference_model_mlcube"]]
             benchmarks = [cls(**meta) for meta in bmks_meta]
         except CommunicationRetrievalError:
             msg = "Couldn't retrieve all benchmarks from the server"
@@ -175,9 +162,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         """
         logging.debug(f"Retrieving benchmark {benchmark_uid} remotely")
         benchmark_dict = config.comms.get_benchmark(benchmark_uid)
-        ref_model = benchmark_dict["reference_model_mlcube"]
-        add_models = cls.get_models_uids(benchmark_uid)
-        benchmark_dict["models"] = [ref_model] + add_models
         benchmark = cls(**benchmark_dict)
         benchmark.write()
         return benchmark
@@ -273,7 +257,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             raise InvalidArgumentError("Cannot upload test benchmarks.")
         body = self.todict()
         updated_body = config.comms.upload_benchmark(body)
-        updated_body["models"] = body["models"]
         return updated_body
 
     def display_dict(self):
@@ -285,7 +268,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             "Created At": self.created_at,
             "Data Preparation MLCube": int(self.data_preparation_mlcube),
             "Reference Model MLCube": int(self.reference_model_mlcube),
-            "Associated Models": ",".join(map(str, self.models)),
             "Data Evaluator MLCube": int(self.data_evaluator_mlcube),
             "State": self.state,
             "Approval Status": self.approval_status,
