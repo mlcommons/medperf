@@ -16,10 +16,10 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
+from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
-
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
@@ -517,7 +517,7 @@ def filter_latest_associations(associations, entity_key):
                     entity instance.
     """
 
-    associations.sort(key=lambda assoc: datetime.fromisoformat(assoc["created_at"]))
+    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
     latest_associations = {}
     for assoc in associations:
         entity_id = assoc[entity_key]
