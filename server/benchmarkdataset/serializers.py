@@ -12,6 +12,29 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         read_only_fields = ["initiated_by", "approved_at"]
         fields = "__all__"
 
+    def __validate_approval_status(self, last_benchmarkdataset, approval_status):
+        if not last_benchmarkdataset:
+            if approval_status != "PENDING":
+                raise serializers.ValidationError(
+                    "User can approve or reject association request only if there are prior requests"
+                )
+        else:
+            if approval_status == "PENDING":
+                if last_benchmarkdataset.approval_status != "REJECTED":
+                    raise serializers.ValidationError(
+                        "User can create a new request only if prior request is rejected"
+                    )
+            elif approval_status == "APPROVED":
+                raise serializers.ValidationError(
+                    "User cannot create an approved association request"
+                )
+            # approval_status == "REJECTED":
+            else:
+                if last_benchmarkdataset.approval_status != "APPROVED":
+                    raise serializers.ValidationError(
+                        "User can reject request only if prior request is approved"
+                    )
+
     def validate(self, data):
         bid = self.context["request"].data.get("benchmark")
         dataset = self.context["request"].data.get("dataset")
@@ -43,27 +66,8 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
             .order_by("-created_at")
             .first()
         )
-        if not last_benchmarkdataset:
-            if approval_status != "PENDING":
-                raise serializers.ValidationError(
-                    "User can approve or reject association request only if there are prior requests"
-                )
-        else:
-            if approval_status == "PENDING":
-                if last_benchmarkdataset.approval_status != "REJECTED":
-                    raise serializers.ValidationError(
-                        "User can create a new request only if prior request is rejected"
-                    )
-            elif approval_status == "APPROVED":
-                raise serializers.ValidationError(
-                    "User cannot create an approved association request"
-                )
-            # approval_status == "REJECTED":
-            else:
-                if last_benchmarkdataset.approval_status != "APPROVED":
-                    raise serializers.ValidationError(
-                        "User can reject request only if prior request is approved"
-                    )
+        self.__validate_approval_status(last_benchmarkdataset, approval_status)
+
         return data
 
     def create(self, validated_data):
