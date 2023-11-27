@@ -18,6 +18,7 @@ app = typer.Typer()
 def list(
     local: bool = typer.Option(False, "--local", help="Get local datasets"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
+    valid: bool = typer.Option(False, "--valid", help="List only valid datasets"),
 ):
     """List datasets stored locally and remotely from the user"""
     EntityList.run(
@@ -25,6 +26,7 @@ def list(
         fields=["UID", "Name", "Data Preparation Cube UID", "Registered"],
         local_only=local,
         mine_only=mine,
+        valid_only=valid
     )
 
 

@@ -73,11 +73,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             self.params_path = os.path.join(path, config.params_filename)
 
     @classmethod
-    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Cube"]:
+    def all(cls, local_only: bool = False, filters: dict = None) -> List["Cube"]:
         """Class method for retrieving all retrievable MLCubes
 
         Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            local_only (bool, optional): Whether to retrieve only local entities. Defaults to False.
             filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
@@ -85,6 +85,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         logging.info("Retrieving all cubes")
         cubes = []
+        filters = filters or {}
+
         if not local_only:
             cubes = cls.__remote_all(filters=filters)
 

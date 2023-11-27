@@ -61,11 +61,11 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         self.path = path
 
     @classmethod
-    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Benchmark"]:
+    def all(cls, local_only: bool = False, filters: dict = None) -> List["Benchmark"]:
         """Gets and creates instances of all retrievable benchmarks
 
         Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            local_only (bool, optional): Whether to retrieve only local entities. Defaults to False.
             filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
@@ -73,6 +73,7 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         """
         logging.info("Retrieving all benchmarks")
         benchmarks = []
+        filters = filters or {}
 
         if not local_only:
             benchmarks = cls.__remote_all(filters=filters)

@@ -71,11 +71,11 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         return self.extended_dict()
 
     @classmethod
-    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Dataset"]:
+    def all(cls, local_only: bool = False, filters: dict = None) -> List["Dataset"]:
         """Gets and creates instances of all the locally prepared datasets
 
         Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
+            local_only (bool, optional): Whether to retrieve only local entities. Defaults to False.
             filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
         Returns:
@@ -83,6 +83,8 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         logging.info("Retrieving all datasets")
         dsets = []
+        filters = filters or {}
+
         if not local_only:
             dsets = cls.__remote_all(filters=filters)
 

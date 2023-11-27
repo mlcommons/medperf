@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, validator, HttpUrl, ValidationError
 from typing import Optional
 from collections import defaultdict
 
+from medperf.entities.interface import Entity
 from medperf.enums import Status
 from medperf.exceptions import MedperfException
 from medperf.utils import format_errors_dict
@@ -105,3 +106,6 @@ class ApprovableSchema(BaseModel):
         if v is not None:
             status = Status(v)
         return status
+
+class DeployableEntity(DeployableSchema, Entity):
+    pass
