@@ -223,6 +223,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd = f"mlcube configure --mlcube={self.cube_path}"
             with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
                 proc_out = proc.read()
+            if proc.exitstatus != 0:
+                raise ExecutionError(
+                    "There was an error while retrieving the MLCube image"
+                )
             logging.debug(proc_out)
 
             # Retrieve image hash from MLCube
