@@ -7,7 +7,7 @@ from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.plumbing import build_bearer_security_scheme_object
 
 
-def __get_email_from_token(validated_token):
+def get_email_from_token(validated_token):
     try:
         return validated_token[settings.TOKEN_USER_EMAIL_CLAIM]
     except KeyError:
@@ -24,7 +24,7 @@ class JWTAuthenticateOrCreateUser(JWTAuthentication):
         try:
             user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except self.user_model.DoesNotExist:
-            user_email = __get_email_from_token(validated_token)
+            user_email = get_email_from_token(validated_token)
             user = self.user_model.objects.create_user(
                 **{api_settings.USER_ID_FIELD: user_id}, email=user_email
             )
