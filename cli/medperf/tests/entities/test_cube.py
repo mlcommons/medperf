@@ -160,9 +160,12 @@ class TestRun:
         spy = mocker.patch(
             PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
         )
+        mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
             + f"--platform={self.platform} --network=none"
+            + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
+            + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
         )
 
         # Act
@@ -176,9 +179,12 @@ class TestRun:
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
             + f'--platform={self.platform} --network=none test="test"'
+            + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
+            + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
         )
 
         # Act
@@ -188,10 +194,33 @@ class TestRun:
         # Assert
         spy.assert_any_call(expected_cmd, timeout=None)
 
+    def test_cube_runs_command_and_preserves_runtime_args(self, mocker, setup, task):
+        # Arrange
+        mpexpect = MockPexpect(0, "expected_hash")
+        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch(
+            PATCH_CUBE.format("Cube.get_config"),
+            side_effect=["cpuarg cpuval", "gpuarg gpuval"],
+        )
+        expected_cmd = (
+            f"mlcube run --mlcube={self.manifest_path} --task={task} "
+            + f"--platform={self.platform} --network=none"
+            + ' -Pdocker.cpu_args="cpuarg cpuval -u $(id -u):$(id -g)"'
+            + ' -Pdocker.gpu_args="gpuarg gpuval -u $(id -u):$(id -g)"'
+        )
+
+        # Act
+        cube = Cube.get(self.id)
+        cube.run(task)
+
+        # Assert
+        spy.assert_any_call(expected_cmd, timeout=None)
+
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(1, "expected_hash")
         mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
 
         # Act & Assert
         cube = Cube.get(self.id)
