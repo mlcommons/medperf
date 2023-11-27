@@ -6,7 +6,7 @@ Before proceeding to the tutorials, make sure you have the general tutorial envi
 
 To ensure users have the best experience in learning the fundamentals of MedPerf and utilizing the MedPerf client, the following set of tutorials are provided:
 
-<div class="tutorial_card_container">
+<!-- <div class="tutorial_card_container">
   <a href="../benchmark_owner_demo" class="tutorial_card">
     <h2>Benchmark <br>Committee</h2>
     <p>Learn how a Benchmark Committee creates and submits a benchmark.</p>
@@ -21,7 +21,35 @@ To ensure users have the best experience in learning the fundamentals of MedPerf
     <h2>Data <br>Owner</h2>
     <p>Learn how to prepare their data and execute a benchmark.</p>
   </a>
-</div>
+</div> -->
+
+
+<div class="tutorial_card_container">
+        <a class="card" href="getting_started/benchmark_owner_demo/">
+            <div class="card_image image1">
+            </div>
+            <div class="card_text">
+                <h2 class='cardTitle'>Benchmark <br>Committee</h2>
+                <p>Click here to see the documentation specifically for benchmark owners.</p>
+            </div>
+        </a>
+        <a class="card" href="getting_started/model_owner_demo/">
+            <div class="card_image image2">
+            </div>
+            <div class="card_text">
+                <h2 class='cardTitle'>Model <br>Owner</h2>
+                <p>Click here to see the documentation specifically for model owners.</p>
+            </div>
+        </a>
+        <a class="card" href="getting_started/data_owner_demo/">
+            <div class="card_image image3">
+            </div>
+            <div class="card_text">
+                <h2 class='cardTitle'>Data <br>Owner</h2>
+                <p>Click here to see the documentation specifically for data owners.</p>
+            </div>
+        </a>
+    </div>
 
 For a detailed reference on the commands used throughout the tutorials, you can always refer to the [command line interface documentation](../cli_reference.md).
 

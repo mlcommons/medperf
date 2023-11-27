@@ -52,39 +52,8 @@
   margin-left: 0 !important;
 }
 
-.tutorial_card_container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.tutorial_card {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  width: fit-content;
-  text-decoration: none;
-  color: #333;
-  display: block;
-  background-color: var(--md-card-bg-color);
-  border: 1px solid var(--md-card-border-color);
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 0;
-  flex-shrink: 0;
-  padding: 16px;
-  transition: all 0.3s ease, border 0.1s ease;
-  flex: 1;
-  align-self: stretch;
-}
-
-.tutorial_card:hover {
-  border: 1px solid transparent;
-  box-shadow: var(--md-card-box-shadow);
-  text-decoration: none;
-  transform: translateY(-2px);
-  /* color: var(--md-primary-fg-color) !important; */
+.md-nav__item--section {/* md-nav__item--nested */
+  margin-top: 40px;
 }
 
 .tutorial_card h2 {
@@ -111,4 +80,94 @@
 
 .md-header__topic {
   font-weight: 700;
+}
+
+.tutorial_card_container {
+  display: flex;
+  justify-content: center;
+  justify-content: center;
+  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.tutorial_card_container .card {
+  background-color: var(--md-card-bg-color);
+  border: 1px solid var(--md-card-border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  transition: all 0.3s ease, border 0.1s ease;
+  flex: 1;
+  align-self: stretch;
+}
+
+.tutorial_card_container .card:hover {
+  border: 1px solid transparent;
+  box-shadow: var(--md-card-box-shadow);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.tutorial_card_container .card .card_image {
+  background-position: center;
+  background-size: cover;
+  border-radius: 6px;
+  height: 80px;
+  padding: 10px;
+}
+
+.tutorial_card_container .card .image1 {
+  background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card1_img.png');
+}
+
+.tutorial_card_container .card .image2 {
+  background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card2_img.png');
+}
+
+.tutorial_card_container .card .image3 {
+  background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card3_img.png');
+}
+
+.tutorial_card_container .card_text {
+  padding-top: 12px;
+  margin-left: 1px;
+}
+
+.tutorial_card_container .card_text h2 {
+  margin: 0;
+  margin-top: 5px;
+  font-weight: 500;
+  font-size: larger;
+}
+
+.tutorial_card_container .card_text p {
+  margin: 8px 0 0 0;
+  min-height: 40px;
+  height: fit-content;
+}
+
+.tutorial_card_container .card a {
+  border-radius: 15px;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 3px 0;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  width: fit-content;
+}
+
+.tutorial_card_container .card:hover a {
+  text-decoration: underline !important;
+  color: var(--transpara-highlights-color2) !important;
+}
+
+.tutorial_card_container .card p {
+  font-size: 14px;
+  line-height: 1.8em;
+  -webkit-font-smoothing: antialiased;
+  margin: 0 0 10px;
+  display: block;
 }
