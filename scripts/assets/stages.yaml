@@ -96,6 +96,15 @@
 
     Place this new tarball file on the directory the monitoring tool is running (displayed on the monitoring tool header). The tool will automatically detect the finalized cases and place them in the expected locations.
 
+
+    ### Brain Mask Correction
+
+    There might be situations where the brain mask is not correct. If working locally you may use the `Review Brain Mask` button to automatically make brain mask corrections with ITK-Snap.
+    If instead you're using the previously menitoned tarball, you may find the brain mask segmentation as `brainMask_fused.nii.gz`. Please make the necessary corrections under that file, overwriting the contents.
+    Once the new tarball is created and placed within the directory the monitoring tool is running, it will be automatically identified and placed in the correct location.
+    
+    **NOTE** Modifying the brain mask invalidates the tumor segmentations, and re-runs the tumor segmentation procedure using this new mask.
+
   docs_url: ""
 -5.1:
   status_name: MULTIPLE_ANNOTATIONS_ERROR
