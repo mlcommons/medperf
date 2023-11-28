@@ -102,12 +102,14 @@
   transition: all 0.3s ease, border 0.1s ease;
   flex: 1;
   align-self: stretch;
+  color: black;
 }
 
 .tutorial_card_container .card:hover {
   border: 1px solid transparent;
   box-shadow: var(--md-card-box-shadow);
   text-decoration: none;
+  color: inherit !important;
   transform: translateY(-2px);
 }
 
@@ -136,11 +138,11 @@
   margin-left: 1px;
 }
 
-.tutorial_card_container .card_text h2 {
+.tutorial_card_container .card_title {
   margin: 0;
-  margin-top: 5px;
-  font-weight: 500;
-  font-size: larger;
+  margin: 5px 0;
+  font-weight: bold;
+  font-size: 16.5px;
 }
 
 .tutorial_card_container .card_text p {
@@ -161,7 +163,7 @@
 
 .tutorial_card_container .card:hover a {
   text-decoration: underline !important;
-  color: var(--transpara-highlights-color2) !important;
+  color: inherit !important;
 }
 
 .tutorial_card_container .card p {

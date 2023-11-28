@@ -25,27 +25,27 @@ To ensure users have the best experience in learning the fundamentals of MedPerf
 
 
 <div class="tutorial_card_container">
-        <a class="card" href="getting_started/benchmark_owner_demo/">
+        <a class="card" href="../benchmark_owner_demo/">
             <div class="card_image image1">
             </div>
             <div class="card_text">
-                <h2 class='cardTitle'>Benchmark <br>Committee</h2>
+                <h2 class='card_title'>Benchmark Committee</h2>
                 <p>Click here to see the documentation specifically for benchmark owners.</p>
             </div>
         </a>
-        <a class="card" href="getting_started/model_owner_demo/">
+        <a class="card" href="../model_owner_demo/">
             <div class="card_image image2">
             </div>
             <div class="card_text">
-                <h2 class='cardTitle'>Model <br>Owner</h2>
+                <h2 class='card_title'>Model Owner</h2>
                 <p>Click here to see the documentation specifically for model owners.</p>
             </div>
         </a>
-        <a class="card" href="getting_started/data_owner_demo/">
+        <a class="card" href="../data_owner_demo/">
             <div class="card_image image3">
             </div>
             <div class="card_text">
-                <h2 class='cardTitle'>Data <br>Owner</h2>
+                <h2 class='card_title'>Data Owner</h2>
                 <p>Click here to see the documentation specifically for data owners.</p>
             </div>
         </a>
