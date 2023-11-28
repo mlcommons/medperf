@@ -6,23 +6,6 @@ Before proceeding to the tutorials, make sure you have the general tutorial envi
 
 To ensure users have the best experience in learning the fundamentals of MedPerf and utilizing the MedPerf client, the following set of tutorials are provided:
 
-<!-- <div class="tutorial_card_container">
-  <a href="../benchmark_owner_demo" class="tutorial_card">
-    <h2>Benchmark <br>Committee</h2>
-    <p>Learn how a Benchmark Committee creates and submits a benchmark.</p>
-  </a>
-
-  <a href="../model_owner_demo" class="tutorial_card">
-    <h2>Model <br>Owner</h2>
-    <p>Learn how a Model Owner can submit a model.</p>
-  </a>
-
-  <a href="../data_owner_demo" class="tutorial_card">
-    <h2>Data <br>Owner</h2>
-    <p>Learn how to prepare their data and execute a benchmark.</p>
-  </a>
-</div> -->
-
 
 <div class="tutorial_card_container">
         <a class="card" href="../benchmark_owner_demo/">
