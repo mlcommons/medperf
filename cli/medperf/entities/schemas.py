@@ -107,5 +107,6 @@ class ApprovableSchema(BaseModel):
             status = Status(v)
         return status
 
+
 class DeployableEntity(DeployableSchema, Entity):
     pass
