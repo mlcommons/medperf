@@ -21,7 +21,6 @@ from medperf import config
 import yaml
 import pandas as pd
 import tarfile
-import contextlib
 from subprocess import Popen, DEVNULL
 
 from textual.app import App, ComposeResult
@@ -46,6 +45,8 @@ MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
 STAGES_HELP = "Path to stages YAML file containing documentation about the Data Preparation stages"
 DEFAULT_SEGMENTATION = "tumorMask_fused-staple.nii.gz"
 DEFAULT_STAGES_PATH = os.path.join(os.path.dirname(__file__), "assets/stages.yaml")
+BRAINMASK = "brainMask_fused.nii.gz"
+REVIEW_FILENAME = "review_cases.tar.gz"
 REVIEW_COMMAND = "itksnap"
 MANUAL_REVIEW_STAGE = 5
 DONE_STAGE = 8
@@ -111,7 +112,7 @@ def to_local_path(mlcube_path: str, local_parent_path: str):
 
 def package_review_cases(report: pd.DataFrame, dset_path: str):
     review_cases = report[report["status_name"] == "MANUAL_REVIEW_REQUIRED"]
-    with tarfile.open("review_cases.tar.gz", "w:gz") as tar:
+    with tarfile.open(REVIEW_FILENAME, "w:gz") as tar:
         for i, row in review_cases.iterrows():
             labels_path = to_local_path(row["labels_path"], dset_path)
             base_path = os.path.join(labels_path, "..")
@@ -200,29 +201,11 @@ class ReviewedHandler(FileSystemEventHandler):
             if file.endswith(self.ext):
                 self.move_assets(file)
 
-    # Taken from https://stackoverflow.com/questions/18781239/python-watchdog-is-there-a-way-to-pause-the-observer
-    def pause(self):
-        self._is_paused = True
-
-    def resume(self):
-        self._is_paused = False
-
-    @contextlib.contextmanager
-    def ignore_events(self):
-        self.pause()
-        yield
-        self.resume()
-
-    def on_created(self, event):
-        if self._is_paused:
+    def on_modified(self, event):
+        if os.path.basename(event.src_path) == REVIEW_FILENAME:
             return
         if event.src_path.endswith(self.ext):
             self.move_assets(event.src_path)
-
-    def on_modified(self, event):
-        if self._is_paused:
-            return
-        self.on_created(event)
 
     def move_assets(self, file):
         reviewed_pattern = r".*\/(.*)\/(.*)\/finalized\/(.*\.nii\.gz)"
@@ -265,6 +248,9 @@ class ReviewedHandler(FileSystemEventHandler):
 
             # dest_path = os.path.join(dest_path, filename)
             extracts.append((src_path, dest_path))
+
+        if len(identified_brainmasks):
+            self.app.notify("Brain masks identified")
 
         for mask in identified_brainmasks:
             id, tp = mask.groups()
@@ -346,10 +332,9 @@ class Summary(Static):
         content.mount(*widgets)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        with self.reviewed_watchdog.ignore_events():
-            event.stop()
-            package_review_cases(self.report, self.dset_path)
-            self.notify("review_cases.tar.gz was created on the working directory")
+        event.stop()
+        package_review_cases(self.report, self.dset_path)
+        self.notify(f"{REVIEW_FILENAME} was created on the working directory")
 
 
 class SubjectListView(ListView):
@@ -433,8 +418,13 @@ class SubjectDetails(Static):
         yield CopyableItem("Data path", "", id="subject-data-container")
         yield CopyableItem("Labels path", "", id="subject-labels-container")
         with Center(id="review-buttons"):
+            yield Static(
+                "ITK-Snap command-line-tools were not found in your system",
+                id="review-msg",
+                classes="warning",
+            )
             yield Button(
-                "Review with ITK-SNAP (ITK-SNAP must be installed)",
+                "Review Tumor Segmentation",
                 variant="primary",
                 disabled=True,
                 id="review-button",
@@ -443,6 +433,16 @@ class SubjectDetails(Static):
                 "Mark as finalized (must review first)",
                 id="reviewed-button",
                 disabled=True,
+            )
+            yield Static("If brain mask is not correct")
+            yield Button(
+                "Review Brain Mask",
+                disabled=True,
+                id="brainmask-review-button",
+            )
+            yield Static(
+                "IMPORTANT: Changes to the brain mask will invalidate tumor segmentations and cause a re-run of tumor segmentation models",
+                classes="warning",
             )
 
     def update_subject(self, subject: pd.Series, dset_path: str):
@@ -473,11 +473,14 @@ class SubjectDetails(Static):
         self.__update_buttons()
 
     def __update_buttons(self):
+        review_msg = self.query_one("#review-msg", Static)
+        review_brainmask_button = self.query_one("#brainmask-review-button", Button)
         review_button = self.query_one("#review-button", Button)
         reviewed_button = self.query_one("#reviewed-button", Button)
 
         if self.__can_review():
-            review_button.label = "Review with ITK-SNAP"
+            review_msg.display = "none"
+            review_brainmask_button.disabled = False
             review_button.disabled = False
         if self.__can_finalize():
             reviewed_button.label = "Mark as finalized"
@@ -499,8 +502,8 @@ class SubjectDetails(Static):
 
         return os.path.exists(under_review_filepath)
 
-    def __review(self):
-        review_cmd = "itksnap -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
+    def __review_tumor(self):
+        review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
         data_path = to_local_path(self.subject["data_path"], self.dset_path)
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
         id, tp = self.subject.name.split("|")
@@ -520,6 +523,7 @@ class SubjectDetails(Static):
             shutil.copyfile(seg_file, under_review_file)
 
         review_cmd = review_cmd.format(
+            cmd=REVIEW_COMMAND,
             t1c=t1c_file,
             flair=t2f_file,
             t2=t2w_file,
@@ -531,6 +535,33 @@ class SubjectDetails(Static):
 
         self.__update_buttons()
         self.notify("This subject can be finalized now")
+
+    def __review_brainmask(self):
+        review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
+        labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        labels_path = os.path.join(labels_path, "..")
+        data_path = os.path.join(labels_path, "reoriented")
+        id, tp = self.subject.name.split("|")
+        seg_filename = BRAINMASK
+        seg_file = os.path.join(labels_path, seg_filename)
+        t1c_file = os.path.join(data_path, f"{id}_{tp}_t1c.nii.gz")
+        t1n_file = os.path.join(data_path, f"{id}_{tp}_t1.nii.gz")
+        t2f_file = os.path.join(data_path, f"{id}_{tp}_t2f.nii.gz")
+        t2w_file = os.path.join(data_path, f"{id}_{tp}_t2w.nii.gz")
+        label_file = os.path.join(os.path.dirname(__file__), "assets/brainmask.label")
+
+        review_cmd = review_cmd.format(
+            cmd=REVIEW_COMMAND,
+            t1c=t1c_file,
+            flair=t2f_file,
+            t2=t2w_file,
+            t1=t1n_file,
+            seg=seg_file,
+            label=label_file,
+        )
+        Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+
+        self.__update_buttons()
 
     def __finalize(self):
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
@@ -546,11 +577,14 @@ class SubjectDetails(Static):
         self.notify("Subject finalized")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        review_brainmask_button = self.query_one("#brainmask-review-button", Button)
         review_button = self.query_one("#review-button", Button)
         reviewed_button = self.query_one("#reviewed-button", Button)
 
-        if event.control == review_button:
-            self.__review()
+        if event.control == review_brainmask_button:
+            self.__review_brainmask()
+        elif event.control == review_button:
+            self.__review_tumor()
         elif event.control == reviewed_button:
             self.__finalize()
 

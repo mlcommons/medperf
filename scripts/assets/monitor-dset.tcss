@@ -42,6 +42,14 @@ SubjectDetails #review-buttons {
     margin: 0 5;
 }
 
+SubjectDetails #review-buttons Static {
+    text-align: center;
+}
+
+.warning {
+    border: tall $warning;
+}
+
 SubjectDetails Button {
     text-align: center;
     width: 100%;
