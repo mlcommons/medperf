@@ -102,7 +102,7 @@
   transition: all 0.3s ease, border 0.1s ease;
   flex: 1;
   align-self: stretch;
-  color: black;
+  color: var(--md-typeset-color);
 }
 
 .tutorial_card_container .card:hover {
