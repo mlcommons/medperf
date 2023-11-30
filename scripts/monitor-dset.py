@@ -95,6 +95,8 @@ def delete(filepath: str, dset_path: str):
 
 
 def to_local_path(mlcube_path: str, local_parent_path: str):
+    if not isinstance(mlcube_path, str):
+        return mlcube_path
     mlcube_prefix = "mlcube_io"
     if len(mlcube_path) == 0:
         return ""
@@ -388,7 +390,7 @@ class CopyableItem(Static):
         self.content = content
 
     def watch_content(self, content):
-        if len(content) == 0:
+        if not isinstance(content, str) or len(content) == 0:
             self.display = False
             return
         subject = self.query_one(".subject-item-content", Static)
@@ -470,6 +472,12 @@ class SubjectDetails(Static):
         # Additional configuration must be set to make this kind of features generic
         can_review = MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
         buttons_container.display = "block" if can_review else "none"
+
+        # Only display finalize button for the manual review
+        can_finalize = abs(subject["status"]) == MANUAL_REVIEW_STAGE
+        reviewed_button = self.query_one("#reviewed-button", Button)
+        reviewed_button.display = "block" if can_finalize else "none"
+
         self.__update_buttons()
 
     def __update_buttons(self):
@@ -506,21 +514,28 @@ class SubjectDetails(Static):
         review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
         data_path = to_local_path(self.subject["data_path"], self.dset_path)
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+
         id, tp = self.subject.name.split("|")
-        seg_filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
-        seg_file = os.path.join(labels_path, seg_filename)
         t1c_file = os.path.join(data_path, f"{id}_{tp}_brain_t1c.nii.gz")
         t1n_file = os.path.join(data_path, f"{id}_{tp}_brain_t1n.nii.gz")
         t2f_file = os.path.join(data_path, f"{id}_{tp}_brain_t2f.nii.gz")
         t2w_file = os.path.join(data_path, f"{id}_{tp}_brain_t2w.nii.gz")
         label_file = os.path.join(os.path.dirname(__file__), "assets/postop_gbm.label")
-        under_review_file = os.path.join(
-            labels_path,
-            "under_review",
-            seg_filename,
-        )
-        if not os.path.exists(under_review_file):
-            shutil.copyfile(seg_file, under_review_file)
+
+        if labels_path.endswith(".nii.gz"):
+            seg_filename = os.path.basename(labels_path)
+            seg_file = labels_path
+            under_review_file = labels_path
+        else:
+            seg_filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
+            seg_file = os.path.join(labels_path, seg_filename)
+            under_review_file = os.path.join(
+                labels_path,
+                "under_review",
+                seg_filename,
+            )
+            if not os.path.exists(under_review_file):
+                shutil.copyfile(seg_file, under_review_file)
 
         review_cmd = review_cmd.format(
             cmd=REVIEW_COMMAND,
@@ -539,6 +554,10 @@ class SubjectDetails(Static):
     def __review_brainmask(self):
         review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        if labels_path.endswith(".nii.gz"):
+            # We are past manual review, transform the path as necessary
+            labels_path = os.path.dirname(labels_path)
+            labels_path = os.path.join(labels_path, "..")
         labels_path = os.path.join(labels_path, "..")
         data_path = os.path.join(labels_path, "reoriented")
         id, tp = self.subject.name.split("|")
