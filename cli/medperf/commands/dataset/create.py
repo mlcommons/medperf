@@ -9,7 +9,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     remove_path,
     generate_tmp_path,
-    get_folder_hash,
+    get_folders_hash,
     storage_path,
 )
 from medperf.exceptions import InvalidArgumentError
@@ -163,8 +163,8 @@ class DataPreparation:
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths"""
-        self.in_uid = get_folder_hash(self.data_path)
-        self.generated_uid = get_folder_hash(self.out_datapath)
+        self.in_uid = get_folders_hash([self.data_path, self.labels_path])
+        self.generated_uid = get_folders_hash([self.out_datapath, self.out_labelspath])
 
     def to_permanent_path(self) -> str:
         """Renames the temporary data folder to permanent one using the hash of

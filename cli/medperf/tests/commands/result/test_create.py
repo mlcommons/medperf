@@ -29,10 +29,13 @@ def mock_benchmark(mocker, state_variables):
             data_evaluator_mlcube=evaluator["uid"],
             data_preparation_mlcube=benchmark_prep_cube,
             reference_model_mlcube=benchmark_models[0],
-            models=benchmark_models,
         )
 
     mocker.patch(PATCH_EXECUTION.format("Benchmark.get"), side_effect=__get_side_effect)
+    mocker.patch(
+        PATCH_EXECUTION.format("Benchmark.get_models_uids"),
+        return_value=benchmark_models[1:],
+    )
 
 
 def mock_dataset(mocker, state_variables):
@@ -126,12 +129,16 @@ def setup(request, mocker, ui, fs):
     ui_error_spy = mocker.patch.object(ui, "print_error")
     ui_print_spy = mocker.patch.object(ui, "print")
     tabulate_spy = mocker.spy(create_module, "tabulate")
+    validate_models_spy = mocker.spy(
+        create_module.BenchmarkExecution, "_BenchmarkExecution__validate_models"
+    )
 
     spies = {
         "ui_error": ui_error_spy,
         "ui_print": ui_print_spy,
         "tabulate": tabulate_spy,
         "exec": exec_spy,
+        "validate_models": validate_models_spy,
     }
     return state_variables, spies
 
@@ -326,3 +333,15 @@ class TestDefaultSetup:
             yaml.safe_load(open(expected_file))["results"]
             == self.state_variables["models_props"][model_uid]["results"]
         )
+
+    def test_execution_of_reference_model_does_not_call_validate(self, mocker, setup):
+        # Arrange
+        model_uid = self.state_variables["benchmark_models"][0]
+        dset_uid = 2
+        bmk_uid = 1
+
+        # Act
+        BenchmarkExecution.run(bmk_uid, dset_uid, models_uids=[model_uid])
+
+        # Assert
+        self.spies["validate_models"].assert_not_called()

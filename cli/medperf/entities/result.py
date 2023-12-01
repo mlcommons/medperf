@@ -27,6 +27,7 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
     dataset: int
     results: dict
     metadata: dict = {}
+    user_metadata: dict = {}
 
     def __init__(self, *args, **kwargs):
         """Creates a new result instance"""

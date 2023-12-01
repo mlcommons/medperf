@@ -18,6 +18,19 @@ class BenchmarkSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "User can own at most one pending benchmark"
             )
+
+        if "state" in data and data["state"] == "OPERATION":
+            dev_mlcubes = [
+                data["data_preparation_mlcube"].state == "DEVELOPMENT",
+                data["reference_model_mlcube"].state == "DEVELOPMENT",
+                data["data_evaluator_mlcube"].state == "DEVELOPMENT",
+            ]
+            if any(dev_mlcubes):
+                raise serializers.ValidationError(
+                    "User cannot mark a benchmark as operational"
+                    " if its MLCubes are not operational"
+                )
+
         return data
 
 
@@ -28,34 +41,49 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def update(self, instance, validated_data):
+        if "approval_status" in validated_data:
+            if validated_data["approval_status"] != instance.approval_status:
+                instance.approval_status = validated_data["approval_status"]
+                if instance.approval_status != "PENDING":
+                    instance.approved_at = timezone.now()
+        validated_data.pop("approval_status", None)
         for k, v in validated_data.items():
             setattr(instance, k, v)
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
         instance.save()
         return instance
 
-    def validate(self, data):
-        owner = self.instance.owner
-        if "approval_status" in data:
-            if (
-                data["approval_status"] == "PENDING"
-                and self.instance.approval_status != "PENDING"
-            ):
-                pending_benchmarks = Benchmark.objects.filter(
-                    owner=owner, approval_status="PENDING"
-                )
-                if len(pending_benchmarks) > 0:
-                    raise serializers.ValidationError(
-                        "User can own at most one pending benchmark"
-                    )
-            if (
-                data["approval_status"] != "PENDING"
-                and self.instance.state == "DEVELOPMENT"
-            ):
+    def validate_approval_status(self, approval_status):
+        if approval_status == "PENDING":
+            raise serializers.ValidationError(
+                "User can only approve or reject a benchmark"
+            )
+        if self.instance.state == "DEVELOPMENT":
+            raise serializers.ValidationError(
+                "User cannot approve or reject when benchmark is in development stage"
+            )
+
+        if approval_status == "APPROVED":
+            if self.instance.approval_status == "REJECTED":
                 raise serializers.ValidationError(
-                    "User cannot approve or reject when benchmark is in development stage"
+                    "User can approve only a pending request"
                 )
+        return approval_status
+
+    def validate_state(self, state):
+        if state == "OPERATION" and self.instance.state != "OPERATION":
+            dev_mlcubes = [
+                self.instance.data_preparation_mlcube.state == "DEVELOPMENT",
+                self.instance.reference_model_mlcube.state == "DEVELOPMENT",
+                self.instance.data_evaluator_mlcube.state == "DEVELOPMENT",
+            ]
+            if any(dev_mlcubes):
+                raise serializers.ValidationError(
+                    "User cannot mark a benchmark as operational"
+                    " if its MLCubes are not operational"
+                )
+        return state
+
+    def validate(self, data):
         if self.instance.state == "OPERATION":
             editable_fields = [
                 "is_valid",
