@@ -382,9 +382,9 @@ def combine_proc_sp_text(proc: spawn) -> str:
     return proc_out
 
 
-def get_folder_hash(path: str) -> str:
-    """Generates a hash for all the contents of the folder. This procedure
-    hashes all of the files in the folder, sorts them and then hashes that list.
+def get_folders_hash(paths: List[str]) -> str:
+    """Generates a hash for all the contents of the fiven folders. This procedure
+    hashes all of the files in all passed folders, sorts them and then hashes that list.
 
     Args:
         path (str): Folder to hash
@@ -393,11 +393,14 @@ def get_folder_hash(path: str) -> str:
         str: sha256 hash of the whole folder
     """
     hashes = []
-    for root, _, files in os.walk(path, topdown=False):
-        for file in files:
-            logging.debug(f"Hashing file {file}")
-            filepath = os.path.join(root, file)
-            hashes.append(get_file_hash(filepath))
+
+    # The hash doesn't depend on the order of paths or folders, as the hashes get sorted after the fact
+    for path in paths:
+        for root, _, files in os.walk(path, topdown=False):
+            for file in files:
+                logging.debug(f"Hashing file {file}")
+                filepath = os.path.join(root, file)
+                hashes.append(get_file_hash(filepath))
 
     hashes = sorted(hashes)
     sha = hashlib.sha256()

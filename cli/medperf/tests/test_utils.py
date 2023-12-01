@@ -344,7 +344,7 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     spy.assert_called_once_with(exp_dict)
 
 
-def test_get_folder_hash_hashes_all_files_in_folder(mocker, filesystem):
+def test_get_folders_hash_hashes_all_files_in_folder(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
@@ -353,13 +353,13 @@ def test_get_folder_hash_hashes_all_files_in_folder(mocker, filesystem):
     spy = mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
 
     # Act
-    utils.get_folder_hash("test")
+    utils.get_folders_hash(["test"])
 
     # Assert
     spy.assert_has_calls(exp_calls)
 
 
-def test_get_folder_hash_sorts_individual_hashes(mocker, filesystem):
+def test_get_folders_hash_sorts_individual_hashes(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
@@ -368,13 +368,13 @@ def test_get_folder_hash_sorts_individual_hashes(mocker, filesystem):
     spy = mocker.patch("builtins.sorted", side_effect=sorted)
 
     # Act
-    utils.get_folder_hash("test")
+    utils.get_folders_hash(["test"])
 
     # Assert
     spy.assert_called_once_with(files)
 
 
-def test_get_folder_hash_returns_expected_hash(mocker, filesystem):
+def test_get_folders_hash_returns_expected_hash(mocker, filesystem):
     # Arrange
     fs = filesystem[0]
     files = filesystem[1]
@@ -382,7 +382,7 @@ def test_get_folder_hash_returns_expected_hash(mocker, filesystem):
     mocker.patch(patch_utils.format("get_file_hash"), side_effect=files)
 
     # Act
-    hash = utils.get_folder_hash("test")
+    hash = utils.get_folders_hash(["test"])
 
     # Assert
     assert hash == "b7e9365f1e796ba29e9e6b1b94b5f4cc7238530601fad8ec96ece9fee68c3d7f"
