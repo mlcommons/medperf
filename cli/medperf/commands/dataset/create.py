@@ -114,7 +114,7 @@ class DataPreparation:
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         self.summary_path = str(Path(summary_path).resolve())
-        self.in_uid = get_folder_hash(self.data_path)
+        self.in_uid = get_folders_hash([self.data_path, self.labels_path])
         self.out_statistics_path = generate_tmp_path()
         self.name = name
         self.description = description
