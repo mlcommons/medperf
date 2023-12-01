@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import pytest
 import logging
@@ -458,3 +459,44 @@ def test_get_cube_image_name_fails_if_cube_not_configured(mocker, fs):
     # Act & Assert
     with pytest.raises(MedperfException):
         utils.get_cube_image_name(cube_path)
+
+
+@pytest.mark.parametrize(
+    "associations,expected_result",
+    [
+        (
+            [
+                {"dataset": 1, "created_at": datetime.fromtimestamp(5).isoformat()},
+                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
+                {"dataset": 1, "created_at": datetime.fromtimestamp(7).isoformat()},
+            ],
+            [
+                {"dataset": 1, "created_at": datetime.fromtimestamp(7).isoformat()},
+                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
+            ],
+        ),
+        (
+            [
+                {"dataset": 1, "created_at": datetime.fromtimestamp(5).isoformat()},
+                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
+                {"dataset": 3, "created_at": datetime.fromtimestamp(7).isoformat()},
+                {"dataset": 2, "created_at": datetime.fromtimestamp(4).isoformat()},
+            ],
+            [
+                {"dataset": 1, "created_at": datetime.fromtimestamp(5).isoformat()},
+                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
+                {"dataset": 3, "created_at": datetime.fromtimestamp(7).isoformat()},
+            ],
+        ),
+    ],
+)
+def test_filter_latest_associations_works_as_expected(
+    mocker, associations, expected_result
+):
+    # Act
+    filtered = utils.filter_latest_associations(associations, "dataset")
+
+    # Assert
+    assert sorted(filtered, key=lambda x: x["dataset"]) == sorted(
+        expected_result, key=lambda x: x["dataset"]
+    )

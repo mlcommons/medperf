@@ -2,6 +2,54 @@ from rest_framework import serializers
 from .models import MlCube
 
 
+def validate_optional_mlcube_components(data):
+    git_parameters_url = data.get("git_parameters_url", "")
+    parameters_hash = data.get("parameters_hash", "")
+
+    additional_files_tarball_url = data.get("additional_files_tarball_url", "")
+    additional_files_tarball_hash = data.get("additional_files_tarball_hash", "")
+
+    image_hash = data.get("image_hash", "")
+
+    image_tarball_url = data.get("image_tarball_url", "")
+    image_tarball_hash = data.get("image_tarball_hash", "")
+
+    # validate nonblank parameters file hash
+    if git_parameters_url and not parameters_hash:
+        raise serializers.ValidationError("Parameters require file hash")
+
+    if not git_parameters_url and parameters_hash:
+        raise serializers.ValidationError("Paramters hash was provided without URL")
+
+    # validate nonblank additional files hash
+    if additional_files_tarball_url and not additional_files_tarball_hash:
+        raise serializers.ValidationError("Additional files require file hash")
+
+    if not additional_files_tarball_url and additional_files_tarball_hash:
+        raise serializers.ValidationError(
+            "Additional files hash was provided without URL"
+        )
+
+    # validate images attributes.
+    if not image_hash and not image_tarball_hash:
+        raise serializers.ValidationError(
+            "Image hash or Image tarball hash must be provided"
+        )
+    if image_hash and image_tarball_hash:
+        raise serializers.ValidationError(
+            "Image hash and Image tarball hash can't be provided at the same time"
+        )
+    if image_tarball_url and not image_tarball_hash:
+        raise serializers.ValidationError(
+            "Providing Image tarball requires providing image tarball hash"
+        )
+
+    if not image_tarball_url and image_tarball_hash:
+        raise serializers.ValidationError(
+            "image tarball hash should not be provided if no image tarball url is provided"
+        )
+
+
 class MlCubeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MlCube
@@ -9,44 +57,7 @@ class MlCubeSerializer(serializers.ModelSerializer):
         read_only_fields = ["owner"]
 
     def validate(self, data):
-        git_parameters_url = data["git_parameters_url"]
-        parameters_hash = data["parameters_hash"]
-
-        additional_files_tarball_url = data["additional_files_tarball_url"]
-        additional_files_tarball_hash = data["additional_files_tarball_hash"]
-
-        image_hash = data["image_hash"]
-
-        image_tarball_url = data["image_tarball_url"]
-        image_tarball_hash = data["image_tarball_hash"]
-
-        # validate nonblank parameters file hash
-        if git_parameters_url and not parameters_hash:
-            raise serializers.ValidationError("Parameters require file hash")
-
-        # validate nonblank additional files hash
-        if additional_files_tarball_url and not additional_files_tarball_hash:
-            raise serializers.ValidationError("Additional files require file hash")
-
-        # validate images attributes.
-        if not image_hash and not image_tarball_hash:
-            raise serializers.ValidationError(
-                "Image hash or Image tarball hash must be provided"
-            )
-        if image_hash and image_tarball_hash:
-            raise serializers.ValidationError(
-                "Image hash and Image tarball hash can't be provided at the same time"
-            )
-        if image_tarball_url and not image_tarball_hash:
-            raise serializers.ValidationError(
-                "Providing Image tarball requires providing image tarball hash"
-            )
-
-        if not image_tarball_url and image_tarball_hash:
-            raise serializers.ValidationError(
-                "image tarball hash should not be provided if no image tarball url is provided"
-            )
-
+        validate_optional_mlcube_components(data)
         return data
 
 
@@ -72,4 +83,19 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
                         raise serializers.ValidationError(
                             "User cannot update non editable fields in Operation mode"
                         )
+
+        updated_dict = {}
+        for key in [
+            "git_parameters_url",
+            "parameters_hash",
+            "additional_files_tarball_url",
+            "additional_files_tarball_hash",
+            "image_hash",
+            "image_tarball_url",
+            "image_tarball_hash",
+        ]:
+            updated_dict[key] = data.get(key, getattr(self.instance, key))
+
+        validate_optional_mlcube_components(updated_dict)
+
         return data
