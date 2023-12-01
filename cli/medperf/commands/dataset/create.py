@@ -119,17 +119,10 @@ class DataPreparation:
             "output_path": out_datapath,
             "output_labels_path": out_labelspath,
         }
-        prepare_str_params = {
-            "Ptasks.prepare.parameters.input.data_path.opts": "ro",
-            "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
-        }
 
         sanity_params = {
             "data_path": out_datapath,
             "labels_path": out_labelspath,
-        }
-        sanity_str_params = {
-            "Ptasks.sanity_check.parameters.input.data_path.opts": "ro"
         }
 
         statistics_params = {
@@ -137,15 +130,11 @@ class DataPreparation:
             "output_path": self.out_statistics_path,
             "labels_path": out_labelspath,
         }
-        statistics_str_params = {
-            "Ptasks.statistics.parameters.input.data_path.opts": "ro"
-        }
 
         # Run the tasks
         self.ui.text = "Running preparation step..."
         self.cube.run(
             task="prepare",
-            string_params=prepare_str_params,
             timeout=prepare_timeout,
             **prepare_params,
         )
@@ -154,7 +143,6 @@ class DataPreparation:
         self.ui.text = "Running sanity check..."
         self.cube.run(
             task="sanity_check",
-            string_params=sanity_str_params,
             timeout=sanity_check_timeout,
             **sanity_params,
         )
@@ -163,7 +151,6 @@ class DataPreparation:
         self.ui.text = "Generating statistics..."
         self.cube.run(
             task="statistics",
-            string_params=statistics_str_params,
             timeout=statistics_timeout,
             **statistics_params,
         )
