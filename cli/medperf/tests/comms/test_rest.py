@@ -24,7 +24,7 @@ def server(mocker, ui):
     [
         ("get_benchmark", "get", 200, [1], {}, (f"{full_url}/benchmarks/1",), {}),
         (
-            "get_benchmark_models",
+            "get_benchmark_model_associations",
             "get_list",
             200,
             [1],
@@ -288,17 +288,21 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     assert bmarks == [body]
 
 
-@pytest.mark.parametrize("exp_uids", [[142, 437, 196], [303, 27, 24], [40, 19, 399]])
-def test_get_benchmark_models_return_uids(mocker, server, exp_uids):
+def test_get_benchmark_model_associations_calls_expected_functions(mocker, server):
     # Arrange
-    body = [{"id": uid} for uid in exp_uids]
-    mocker.patch(patch_server.format("REST._REST__get_list"), return_value=body)
-
+    assocs = [{"model_mlcube": uid} for uid in [1, 2, 3]]
+    spy_list = mocker.patch(
+        patch_server.format("REST._REST__get_list"), return_value=assocs
+    )
+    spy_filter = mocker.patch(
+        patch_server.format("filter_latest_associations"), side_effect=lambda x, y: x
+    )
     # Act
-    uids = server.get_benchmark_models(1)
+    server.get_benchmark_model_associations(1)
 
     # Assert
-    assert set(uids) == set(exp_uids)
+    spy_list.assert_called_once()
+    spy_filter.assert_called_once()
 
 
 def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):

@@ -13,7 +13,7 @@ from medperf.commands.report.submit import ReportRegistration
 from medperf.utils import (
     remove_path,
     generate_tmp_path,
-    get_folder_hash,
+    get_folders_hash,
     storage_path,
 )
 from medperf.exceptions import InvalidArgumentError, ExecutionError
@@ -195,10 +195,6 @@ class DataPreparation:
             "output_path": out_datapath,
             "output_labels_path": out_labelspath,
         }
-        prepare_str_params = {
-            "Ptasks.prepare.parameters.input.data_path.opts": "ro",
-            "Ptasks.prepare.parameters.input.labels_path.opts": "ro",
-        }
 
         def sigint_handler(sig, frame):
             metadata = {"execution_status": "interrupted"}
@@ -242,7 +238,6 @@ class DataPreparation:
             with self.ui.interactive():
                 self.cube.run(
                     task="prepare",
-                    string_params=prepare_str_params,
                     timeout=prepare_timeout,
                     **prepare_params,
                 )
@@ -291,32 +286,19 @@ class DataPreparation:
         # Specify parameters for the tasks
         sanity_params = {
             "data_path": out_datapath,
+            "labels_path": out_labelspath,
         }
-        sanity_str_params = {
-            "Ptasks.sanity_check.parameters.input.data_path.opts": "ro",
-        }
-
-        if self.labels_specified:
-            # Add the labels parameter
-            sanity_params["labels_path"] = out_labelspath
 
         if self.metadata_specified:
             sanity_params["metadata_path"] = self.metadata_path
-            sanity_params[
-                "Ptasks.sanity_check.parameters.input.metadata_paths.opts"
-            ] = "ro"
 
         if self.report_specified:
             sanity_params["report_file"] = out_report
-            sanity_str_params[
-                "Ptasks.sanity_check.parameters.input.report_file.opts"
-            ] = "ro"
 
         self.ui.text = "Running sanity check..."
         try:
             self.cube.run(
                 task="sanity_check",
-                string_params=sanity_str_params,
                 timeout=sanity_check_timeout,
                 **sanity_params,
             )
@@ -339,21 +321,14 @@ class DataPreparation:
             "labels_path": out_labelspath,
             "output_path": self.out_statistics_path,
         }
-        statistics_str_params = {
-            "Ptasks.statistics.parameters.input.data_path.opts": "ro"
-        }
 
         if self.metadata_specified:
             statistics_params["metadata_path"] = self.metadata_path
-            statistics_params[
-                "Ptasks.statistics.parameters.input.metadata_path.opts"
-            ] = "ro"
 
         self.ui.text = "Generating statistics..."
 
         self.cube.run(
             task="statistics",
-            string_params=statistics_str_params,
             timeout=statistics_timeout,
             **statistics_params,
         )
@@ -366,8 +341,8 @@ class DataPreparation:
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths"""
-        self.in_uid = get_folder_hash(self.data_path)
-        self.generated_uid = get_folder_hash(self.out_datapath)
+        self.in_uid = get_folders_hash([self.data_path, self.labels_path])
+        self.generated_uid = get_folders_hash([self.out_datapath, self.out_labelspath])
 
     def to_permanent_path(self) -> str:
         """Renames the temporary data folder to permanent one using the hash of
