@@ -26,6 +26,7 @@ tasks:
         output_path: data/,
         output_labels_path: labels/,
         report_file: {type: file, default: report.yaml},
+        metadata_path: metadata/,
       }
   sanity_check:
     parameters:
@@ -34,13 +35,15 @@ tasks:
         labels_path: labels/, 
         parameters_file: parameters.yaml,
         report_file: report.yaml,
+        metadata_path: metadata/,
       }
   statistics:
     parameters:
       inputs: {
         data_path: data/,
         labels_path: labels/,
-        parameters_file: parameters.yaml
+        parameters_file: parameters.yaml,
+        metadata_path: metadata/,
       }
       outputs: {
         output_path: {type: file, default: statistics.yaml}

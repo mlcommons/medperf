@@ -57,6 +57,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--out_file", dest="out_file", type=str, help="file to store statistics"
     )
+    parser.add_argument(
+        "--metadata_path", dest="metadata", type=str, help="path to the metadata"
+    )
 
     args = parser.parse_args()
 
@@ -64,6 +67,9 @@ if __name__ == "__main__":
     names_df = pd.read_csv(namesfile)
 
     stats = get_statistics(names_df)
+    stats["useful_metadata"] = int(
+        open(os.path.join(args.metadata, "meta.txt")).read().strip().split("\n")[0][-2:]
+    )
 
     with open(args.out_file, "w") as f:
         yaml.dump(stats, f)

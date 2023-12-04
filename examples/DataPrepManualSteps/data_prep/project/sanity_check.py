@@ -12,7 +12,7 @@ def sanity_check(data_df, labels_df, report_df):
     """
     # Here you must add all the checks you consider important regarding the
     # state of the data
-    assert all(report_df["status"] == 8), "Data has not been fully prepared"
+    assert all(report_df["status"] == 9), "Data has not been fully prepared"
     assert all(data_df["verified"]), "Data has not been fully verified"
 
     assert data_df.columns.tolist() == [
@@ -56,6 +56,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--report", dest="report", type=str, help="path to the report file"
+    )
+    parser.add_argument(
+        "--metadata_path", dest="metadata", type=str, help="path to the metadata"
     )
 
     args = parser.parse_args()
