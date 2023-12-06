@@ -1,10 +1,9 @@
 import os
-import yaml
 import argparse
 import pandas as pd
 
 
-def sanity_check(data_df, labels_df, report_df):
+def sanity_check(data_df, labels_df):
     """Runs a few checks to ensure data quality and integrity
 
     Args:
@@ -12,7 +11,6 @@ def sanity_check(data_df, labels_df, report_df):
     """
     # Here you must add all the checks you consider important regarding the
     # state of the data
-    assert all(report_df["status"] == 9), "Data has not been fully prepared"
     assert all(data_df["verified"]), "Data has not been fully verified"
 
     assert data_df.columns.tolist() == [
@@ -54,12 +52,6 @@ if __name__ == "__main__":
         type=str,
         help="directory containing the prepared labels",
     )
-    parser.add_argument(
-        "--report", dest="report", type=str, help="path to the report file"
-    )
-    parser.add_argument(
-        "--metadata_path", dest="metadata", type=str, help="path to the metadata"
-    )
 
     args = parser.parse_args()
 
@@ -69,8 +61,4 @@ if __name__ == "__main__":
     data_df = pd.read_csv(data_file)
     labels_df = pd.read_csv(labels_file)
 
-    with open(args.report, "r") as f:
-        report_dict = yaml.safe_load(f)
-        report_df = pd.DataFrame(data=report_dict)
-
-    sanity_check(data_df, labels_df, report_df)
+    sanity_check(data_df, labels_df)

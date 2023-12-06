@@ -37,11 +37,9 @@ def sanity_check(
     data_path: str = typer.Option(..., "--data_path"),
     labels_path: str = typer.Option(..., "--labels_path"),
     parameters_file: str = typer.Option(..., "--parameters_file"),
-    report_file: str = typer.Option(..., "--report_file"),
-    metadata_path: str = typer.Option(..., "--metadata_path"),
 ):
     # Modify the sanity_check command as needed
-    cmd = f"python3 mlcube_project/sanity_check.py --metadata_path={metadata_path} --data_path={data_path} --labels_path={labels_path} --report={report_file}"
+    cmd = f"python3 mlcube_project/sanity_check.py --data_path={data_path} --labels_path={labels_path}"
     exec_python(cmd)
 
 

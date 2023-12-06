@@ -33,9 +33,7 @@ tasks:
       inputs: {
         data_path: data/,
         labels_path: labels/, 
-        parameters_file: parameters.yaml,
-        report_file: report.yaml,
-        metadata_path: metadata/,
+        parameters_file: parameters.yaml
       }
   statistics:
     parameters:

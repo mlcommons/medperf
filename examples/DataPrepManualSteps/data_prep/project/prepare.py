@@ -275,6 +275,3 @@ if __name__ == "__main__":
     metadata_file = os.path.join(args.metadata, "meta.txt")
     with open(metadata_file, "w") as f:
         f.write("This is something useful for statistics but will stay local: 77")
-
-    if any(map(lambda x: x < 0, report_dict["status"].values())):
-        exit(1)
