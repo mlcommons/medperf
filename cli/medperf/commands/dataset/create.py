@@ -3,7 +3,6 @@ import os
 import sys
 import signal
 from pathlib import Path
-from copy import deepcopy
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 import medperf.config as config
@@ -23,8 +22,9 @@ from watchdog.events import FileSystemEventHandler
 
 
 class ReportHandler(FileSystemEventHandler):
-    def __init__(self, preparation_obj: "DataPreparation"):
+    def __init__(self, preparation_obj: "DataPreparation", submission_approved):
         self.preparation = preparation_obj
+        self.submission_approved = submission_approved
 
     def on_created(self, event):
         self.on_modified(event)
@@ -230,8 +230,8 @@ class DataPreparation:
 
             if approved:
                 signal.signal(signal.SIGINT, sigint_handler)
-                observer.schedule(ReportHandler(self), self.out_path)
-                observer.start()
+            observer.schedule(ReportHandler(self, approved), self.out_path)
+            observer.start()
 
         self.ui.text = "Running preparation step..."
         try:
@@ -261,7 +261,7 @@ class DataPreparation:
         self.ui.print("> Cube execution complete")
 
         # If any observer or signal was set, stop them
-        signal.pause()
+        signal.signal(signal.SIGINT, signal.default_int_handler)
         observer.stop()
 
         # Send a last update to indicate preparation process finished
