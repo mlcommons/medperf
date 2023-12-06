@@ -22,7 +22,8 @@ jobs:
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f cli/requirements.txt ]; then pip install -e cli; fi
-        if [ -f server/requirements.txt ]; then pip install -r server/requirements.txt; fi
+        pip install -r server/requirements.txt
+        pip install -r server/test-requirements.txt
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -35,6 +36,7 @@ jobs:
         # Ignore E231, as it is raising warnings with auto-generated code.
         flake8 . --count --max-complexity=10 --max-line-length=127 --ignore F821,W503,E231 --statistics --exclude=examples/,"*/migrations/*",cli/medperf/templates/
     - name: Test with pytest
+      working-directory: ./cli
       run: |
         pytest
     - name: Set server environment vars
@@ -45,4 +47,4 @@ jobs:
       run: python manage.py migrate
     - name: Run server unit tests
       working-directory: ./server
-      run: python manage.py test
+      run: python manage.py test --parallel

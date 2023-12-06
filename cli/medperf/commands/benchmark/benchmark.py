@@ -37,7 +37,7 @@ def submit(
     ),
     docs_url: str = typer.Option("", "--docs-url", "-u", help="URL to documentation"),
     demo_url: str = typer.Option(
-        "",
+        ...,
         "--demo-url",
         help="""Identifier to download the demonstration dataset tarball file.\n
         See `medperf mlcube submit --help` for more information""",
