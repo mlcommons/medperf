@@ -2,9 +2,7 @@ import logging
 import os
 import sys
 import signal
-from time import sleep
 from pathlib import Path
-from copy import deepcopy
 from medperf.entities.dataset import Dataset
 from medperf.enums import Status
 import medperf.config as config
@@ -30,15 +28,6 @@ class ReportHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         self.on_modified(event)
-
-    def get_partial_report(self, filepath, attempts=10, sleep_time=1):
-        for _ in range(attempts):
-            with open(filepath, "r") as f:
-                partial_report = yaml.safe_load(f)
-            if partial_report is not None:
-                return partial_report
-
-            sleep(sleep_time)
 
     def on_modified(self, event):
         preparation = self.preparation
