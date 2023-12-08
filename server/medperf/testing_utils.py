@@ -47,8 +47,141 @@ def set_user_as_admin(user_id):
     user_obj.save()
 
 
-def setup_api_admin():
-    token, user_info = create_user("apiadmin")
+def setup_api_admin(username):
+    token, user_info = create_user(username)
     user_id = user_info["id"]
     set_user_as_admin(user_id)
     return token
+
+
+def mock_mlcube(**kwargs):
+    data = {
+        "name": "testmlcube",
+        "git_mlcube_url": "string",
+        "mlcube_hash": "string",
+        "git_parameters_url": "string",
+        "parameters_hash": "string",
+        "image_tarball_url": "",
+        "image_tarball_hash": "",
+        "image_hash": "string",
+        "additional_files_tarball_url": "string",
+        "additional_files_tarball_hash": "string",
+        "state": "DEVELOPMENT",
+        "is_valid": True,
+        "metadata": {"key": "value"},
+        "user_metadata": {"key2": "value2"},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_dataset(data_preparation_mlcube, **kwargs):
+    data = {
+        "name": "dataset",
+        "description": "dataset-sample",
+        "location": "string",
+        "input_data_hash": "string",
+        "generated_uid": "string",
+        "split_seed": 0,
+        "data_preparation_mlcube": data_preparation_mlcube,
+        "is_valid": True,
+        "state": "DEVELOPMENT",
+        "generated_metadata": {"key": "value"},
+        "user_metadata": {"key2": "value2"},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_benchmark(
+    data_preparation_mlcube,
+    reference_model_mlcube,
+    data_evaluator_mlcube,
+    **kwargs,
+):
+    data = {
+        "name": "string",
+        "description": "string",
+        "docs_url": "string",
+        "demo_dataset_tarball_url": "string",
+        "demo_dataset_tarball_hash": "string",
+        "demo_dataset_generated_uid": "string",
+        "data_preparation_mlcube": data_preparation_mlcube,
+        "reference_model_mlcube": reference_model_mlcube,
+        "data_evaluator_mlcube": data_evaluator_mlcube,
+        "metadata": {"key": "value"},
+        "state": "DEVELOPMENT",
+        "is_valid": True,
+        "is_active": True,
+        "user_metadata": {"key2": "value2"},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_result(benchmark, model, dataset, **kwargs):
+    data = {
+        "name": "string",
+        "benchmark": benchmark,
+        "model": model,
+        "dataset": dataset,
+        "results": {"key": "value"},
+        "metadata": {"key2": "value2"},
+        "user_metadata": {"key3": "value3"},
+        "approval_status": "PENDING",
+        "is_valid": True,
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_dataset_association(benchmark, dataset, **kwargs):
+    data = {
+        "dataset": dataset,
+        "benchmark": benchmark,
+        "metadata": {"key": "value"},
+        "approval_status": "PENDING",
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_mlcube_association(benchmark, mlcube, **kwargs):
+    data = {
+        "model_mlcube": mlcube,
+        "benchmark": benchmark,
+        "metadata": {"key": "value"},
+        "approval_status": "PENDING",
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data

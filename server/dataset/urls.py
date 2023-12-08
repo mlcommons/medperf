@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.DatasetList.as_view()),
     path("<int:pk>/", views.DatasetDetail.as_view()),
     path("benchmarks/", bviews.BenchmarkDatasetList.as_view()),
-    path("<int:pk>/benchmarks/", bviews.BenchmarkDatasetApproval.as_view()),
     path("<int:pk>/benchmarks/<int:bid>/", bviews.DatasetApproval.as_view()),
+    # path("<int:pk>/benchmarks/", bviews.DatasetBenchmarksList.as_view()),
+    # NOTE: when activating this endpoint later, check permissions and write tests
 ]

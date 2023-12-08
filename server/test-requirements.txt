@@ -1,2 +1,4 @@
 requests
 curlify
+parameterized==0.9.0
+tblib==3.0.0  # to display tracebacks during parallel testing in Django
