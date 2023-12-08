@@ -109,7 +109,7 @@ echo "\n"
 echo "====================================="
 echo "Running data creation step"
 echo "====================================="
-medperf dataset submit -p $PREP_UID -d $DATA_PATH -l $LABELS_PATH --name="manual_a" --description="mock manual a" --location="mock location a"
+medperf dataset submit -p $PREP_UID -d $DATA_PATH -l $LABELS_PATH --name="manual_a" --description="mock manual a" --location="mock location a" -y
 checkFailed "Data submission step failed"
 DSET_A_UID=$(medperf dataset ls | grep manual_a | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
