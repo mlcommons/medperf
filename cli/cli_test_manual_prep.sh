@@ -87,7 +87,7 @@ echo "====================================="
 
 PREP_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/0303379b00148d02e9e426076c877680bfed458f/examples/DataPrepManualSteps/data_prep/mlcube/mlcube.yaml"
 PREP_PARAMS="https://raw.githubusercontent.com/hasan7n/medperf/0303379b00148d02e9e426076c877680bfed458f/examples/DataPrepManualSteps/data_prep/mlcube/workspace/parameters.yaml"
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
+medperf mlcube submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
