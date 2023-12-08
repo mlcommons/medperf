@@ -5,10 +5,9 @@ from medperf.commands.execution import Execution
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
-from medperf.commands.dataset.create import DataPreparation
 from medperf.exceptions import InvalidArgumentError
 from .validate_params import CompatibilityTestParamsValidator
-from .utils import download_demo_data, prepare_cube, get_cube
+from .utils import download_demo_data, prepare_cube, get_cube, create_test_dataset
 
 
 class CompatibilityTestExecution:
@@ -26,6 +25,7 @@ class CompatibilityTestExecution:
         data_uid: str = None,
         no_cache: bool = False,
         offline: bool = False,
+        skip_data_preparation_step: bool = False,
     ) -> List:
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
@@ -81,6 +81,7 @@ class CompatibilityTestExecution:
             data_uid,
             no_cache,
             offline,
+            skip_data_preparation_step,
         )
         test_exec.validate()
         test_exec.set_data_source()
@@ -107,6 +108,7 @@ class CompatibilityTestExecution:
         data_uid: str = None,
         no_cache: bool = False,
         offline: bool = False,
+        skip_data_preparation_step: bool = False,
     ):
         self.benchmark_uid = benchmark
         self.data_prep = data_prep
@@ -119,6 +121,7 @@ class CompatibilityTestExecution:
         self.data_uid = data_uid
         self.no_cache = no_cache
         self.offline = offline
+        self.skip_data_preparation_step = skip_data_preparation_step
 
         # This property will be set to either "path", "demo", "prepared", or "benchmark"
         self.data_source = None
@@ -159,6 +162,9 @@ class CompatibilityTestExecution:
         if self.data_source == "benchmark":
             self.demo_dataset_url = benchmark.demo_dataset_tarball_url
             self.demo_dataset_hash = benchmark.demo_dataset_tarball_hash
+            self.skip_data_preparation_step = benchmark.metadata.get(
+                "demo_dataset_already_prepared", False
+            )
 
     def prepare_cubes(self):
         """Prepares the mlcubes. If the provided mlcube is a path, it will create
@@ -187,19 +193,21 @@ class CompatibilityTestExecution:
         if self.data_source != "prepared":
             if self.data_source == "path":
                 data_path, labels_path = self.data_path, self.labels_path
+                # TODO: this has to be redesigned. Compatibility tests command
+                #       is starting to have a lot of input arguments. For now
+                #       let's not support accepting a metadata path
+                metadata_path = None
             else:
-                data_path, labels_path = download_demo_data(
+                data_path, labels_path, metadata_path = download_demo_data(
                     self.demo_dataset_url, self.demo_dataset_hash
                 )
 
-            self.data_uid = DataPreparation.run(
-                None,
-                self.data_prep,
+            self.data_uid = create_test_dataset(
                 data_path,
                 labels_path,
-                run_test=True,
-                name="demo_data",
-                location="local",
+                metadata_path,
+                self.data_prep,
+                self.skip_data_preparation_step,
             )
 
         self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
