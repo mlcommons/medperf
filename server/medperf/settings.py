@@ -54,6 +54,7 @@ else:
 SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("DEBUG", default=False)
+RUNSERVERPLUS_POLLER_RELOADER_TYPE = "stat"
 
 SUPERUSER_USERNAME = env("SUPERUSER_USERNAME")
 
@@ -85,7 +86,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "benchmark",
     "dataset",
-    "report",
     "benchmarkdataset",
     "mlcube",
     "benchmarkmodel",

@@ -8,7 +8,7 @@ from unittest.mock import call
 from medperf.tests.mocks import MockCube
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.commands.dataset.create import DataPreparation
+from medperf.commands.dataset.prepare import DataPreparation
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
 OUT_PATH = "out_path"

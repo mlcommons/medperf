@@ -28,6 +28,7 @@ class Dataset(models.Model):
     )
     generated_metadata = models.JSONField(default=dict, blank=True, null=True)
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
+    report = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 

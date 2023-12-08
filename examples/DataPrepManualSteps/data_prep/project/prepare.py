@@ -225,6 +225,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--report", dest="report", type=str, help="path to the report csv file to store"
     )
+    parser.add_argument(
+        "--metadata_path", dest="metadata", type=str, help="path to the metadata"
+    )
 
     args = parser.parse_args()
 
@@ -268,3 +271,7 @@ if __name__ == "__main__":
     report_dict = report.to_dict()
     with open(args.report, "w") as f:
         yaml.dump(report_dict, f)
+
+    metadata_file = os.path.join(args.metadata, "meta.txt")
+    with open(metadata_file, "w") as f:
+        f.write("This is something useful for statistics but will stay local: 77")

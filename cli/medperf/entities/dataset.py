@@ -4,7 +4,7 @@ import logging
 from pydantic import Field, validator
 from typing import List, Optional, Union
 
-from medperf.utils import storage_path
+from medperf.utils import storage_path, remove_path
 from medperf.enums import Status
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
@@ -36,6 +36,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     generated_metadata: dict = Field(..., alias="metadata")
     status: Status = None
     user_metadata: dict = {}
+    report: dict = {}
 
     @validator("status", pre=True, always=True)
     def default_status(cls, v, *, values, **kwargs):
@@ -66,6 +67,43 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         self.path = path
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = os.path.join(self.path, "labels")
+        self.report_path = os.path.join(self.path, config.report_file)
+        self.metadata_path = os.path.join(self.path, config.metadata_folder)
+        self.statistics_path = os.path.join(self.path, config.statistics_filename)
+
+    def set_raw_paths(self, raw_data_path: str, raw_labels_path: str):
+        raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
+        data = {"data_path": raw_data_path, "labels_path": raw_labels_path}
+        with open(raw_paths_file, "w") as f:
+            yaml.dump(data, f)
+
+    def get_raw_paths(self):
+        raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
+        with open(raw_paths_file) as f:
+            data = yaml.safe_load(f)
+        return data["data_path"], data["labels_path"]
+
+    def mark_as_ready(self):
+        flag_file = os.path.join(self.path, config.ready_flag_file)
+        with open(flag_file, "w"):
+            pass
+
+    def unmark_as_ready(self):
+        flag_file = os.path.join(self.path, config.ready_flag_file)
+        remove_path(flag_file)
+
+    def is_ready(self):
+        flag_file = os.path.join(self.path, config.ready_flag_file)
+        return os.path.exists(flag_file)
+
+    def mark_as_submitted_as_prepared(self):
+        flag_file = os.path.join(self.path, config.submitted_as_prepared_flag_file)
+        with open(flag_file, "w"):
+            pass
+
+    def is_submitted_as_prepared(self):
+        flag_file = os.path.join(self.path, config.submitted_as_prepared_flag_file)
+        return os.path.exists(flag_file)
 
     def todict(self):
         return self.extended_dict()
@@ -236,8 +274,8 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             "Location": self.location,
             "Data Preparation Cube UID": self.data_preparation_mlcube,
             "Generated Hash": self.generated_uid,
-            "Status": self.status,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,
+            "Status": "\n".join([f"{k}: {v}" for k, v in self.report.items()]),
         }

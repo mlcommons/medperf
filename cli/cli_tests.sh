@@ -161,22 +161,32 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data preparation step"
+echo "Running data submission step"
 echo "====================================="
-medperf dataset create -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a"
-checkFailed "Data preparation step failed"
-DSET_A_GENUID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
+medperf dataset submit -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a" -y
+checkFailed "Data submission step failed"
+DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data submission step"
+echo "Running data preparation step"
 echo "====================================="
-medperf dataset submit -d $DSET_A_GENUID -y
-checkFailed "Data submission step failed"
-DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
+medperf dataset prepare -d $DSET_A_UID
+checkFailed "Data preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data preparation step"
+echo "====================================="
+medperf dataset activate -d $DSET_A_UID -y
+checkFailed "Data activation step failed"
+DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d " " -f 2)
 ##########################################################
 
 echo "\n"
@@ -323,10 +333,7 @@ echo "==========================================================================
 echo "Run failing cube with ignore errors (This SHOULD fail since predictions folder exists)"
 echo "======================================================================================"
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
-if [ "$?" -eq 0 ]; then
-  i_am_a_command_that_does_not_exist_and_hence_changes_the_last_exit_status_to_nonzero
-fi
-checkFailed "MLCube ran successfuly but should fail since predictions folder exists"
+checkSucceeded "MLCube ran successfuly but should fail since predictions folder exists"
 ##########################################################
 
 echo "\n"
