@@ -179,9 +179,15 @@ class TestRun:
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch(
+            PATCH_CUBE.format("Cube.get_config"),
+            side_effect=["", ""],
+        )
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
             + f"--platform={self.platform} --network=none"
+            + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
+            + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
         )
 
         # Act
@@ -220,7 +226,7 @@ class TestRun:
         )
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f"--platform={self.platform} --network=none"
+            + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="cpuarg cpuval -u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="gpuarg gpuval -u $(id -u):$(id -g)"'
         )
