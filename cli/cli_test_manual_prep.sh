@@ -41,6 +41,8 @@ echo "====================================="
 DATA_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/mlcube/workspace/input_data"
 LABELS_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/mlcube/workspace/input_labels"
 
+PREPARED_DATA_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/mlcube/workspace/prepared_data_example/data"
+PREPARED_LABELS_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/mlcube/workspace/prepared_data_example/labels"
 ##########################################################
 
 echo "\n"
@@ -161,6 +163,37 @@ echo "====================================="
 echo "Running data preparation step again (this will succeed)"
 echo "====================================="
 medperf dataset prepare -d $DSET_A_UID -y
+checkFailed "Data preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data activation step"
+echo "====================================="
+medperf dataset activate -d $DSET_A_UID -y
+checkFailed "Data activattion step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data creation step"
+echo "====================================="
+medperf dataset submit -p $PREP_UID -d $PREPARED_DATA_PATH -l $PREPARED_LABELS_PATH --name="already_a" --description="mock already a" --location="mock location a" -y --submit-as-prepared
+checkFailed "Data submission step failed"
+DSET_A_UID=$(medperf dataset ls | grep already_a | tr -s ' ' | cut -d ' ' -f 2)
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data preparation step"
+echo "====================================="
+medperf dataset prepare -d $DSET_A_UID
 checkFailed "Data preparation step failed"
 ##########################################################
 
