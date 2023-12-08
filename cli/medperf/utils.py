@@ -16,10 +16,10 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
+from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
-
 import medperf.config as config
 from medperf.logging.filters.redacting_filter import RedactingFilter
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
@@ -382,9 +382,9 @@ def combine_proc_sp_text(proc: spawn) -> str:
     return proc_out
 
 
-def get_folder_hash(path: str) -> str:
-    """Generates a hash for all the contents of the folder. This procedure
-    hashes all of the files in the folder, sorts them and then hashes that list.
+def get_folders_hash(paths: List[str]) -> str:
+    """Generates a hash for all the contents of the fiven folders. This procedure
+    hashes all of the files in all passed folders, sorts them and then hashes that list.
 
     Args:
         path (str): Folder to hash
@@ -393,11 +393,14 @@ def get_folder_hash(path: str) -> str:
         str: sha256 hash of the whole folder
     """
     hashes = []
-    for root, _, files in os.walk(path, topdown=False):
-        for file in files:
-            logging.debug(f"Hashing file {file}")
-            filepath = os.path.join(root, file)
-            hashes.append(get_file_hash(filepath))
+
+    # The hash doesn't depend on the order of paths or folders, as the hashes get sorted after the fact
+    for path in paths:
+        for root, _, files in os.walk(path, topdown=False):
+            for file in files:
+                logging.debug(f"Hashing file {file}")
+                filepath = os.path.join(root, file)
+                hashes.append(get_file_hash(filepath))
 
     hashes = sorted(hashes)
     sha = hashlib.sha256()
@@ -501,3 +504,27 @@ def verify_hash(obtained_hash: str, expected_hash: str):
         raise InvalidEntityError(
             f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
         )
+
+
+def filter_latest_associations(associations, entity_key):
+    """Given a list of entity-benchmark associations, this function
+    retrieves a list containing the latest association of each
+    entity instance.
+
+    Args:
+        associations (list[dict]): the list of associations
+        entity_key (str): either "dataset" or "model_mlcube"
+
+    Returns:
+        list[dict]: the list containing the latest association of each
+                    entity instance.
+    """
+
+    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
+    latest_associations = {}
+    for assoc in associations:
+        entity_id = assoc[entity_key]
+        latest_associations[entity_id] = assoc
+
+    latest_associations = list(latest_associations.values())
+    return latest_associations

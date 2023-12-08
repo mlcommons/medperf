@@ -24,7 +24,7 @@ def setup_benchmark_fs(ents, fs):
         id = ent["id"]
         bmk_filepath = os.path.join(bmks_path, str(id), config.benchmarks_filename)
         bmk_contents = TestBenchmark(**ent)
-        cubes_ids = bmk_contents.models
+        cubes_ids = []
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
         cubes_ids.append(bmk_contents.reference_model_mlcube)
         cubes_ids.append(bmk_contents.data_evaluator_mlcube)
@@ -44,7 +44,7 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_benchmark",
         "upload_instance": "upload_benchmark",
     }
-    mocker.patch.object(comms, "get_benchmark_models", return_value=[])
+    mocker.patch.object(comms, "get_benchmark_model_associations", return_value=[])
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )

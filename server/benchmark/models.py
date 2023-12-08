@@ -20,7 +20,7 @@ class Benchmark(models.Model):
     description = models.CharField(max_length=100, blank=True)
     docs_url = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    demo_dataset_tarball_url = models.CharField(max_length=256, blank=True)
+    demo_dataset_tarball_url = models.CharField(max_length=256)
     demo_dataset_tarball_hash = models.CharField(max_length=100)
     demo_dataset_generated_uid = models.CharField(max_length=128)
     data_preparation_mlcube = models.ForeignKey(
@@ -34,7 +34,9 @@ class Benchmark(models.Model):
         related_name="reference_model_mlcube",
     )
     data_evaluator_mlcube = models.ForeignKey(
-        "mlcube.MlCube", on_delete=models.PROTECT, related_name="data_evaluator_mlcube",
+        "mlcube.MlCube",
+        on_delete=models.PROTECT,
+        related_name="data_evaluator_mlcube",
     )
     metadata = models.JSONField(default=dict, blank=True, null=True)
     state = models.CharField(

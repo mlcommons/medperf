@@ -86,7 +86,6 @@ class Execution:
                 timeout=infer_timeout,
                 data_path=data_path,
                 output_path=preds_path,
-                string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
             )
             self.ui.print("> Model execution complete")
 
@@ -113,10 +112,6 @@ class Execution:
                 predictions=preds_path,
                 labels=labels_path,
                 output_path=results_path,
-                string_params={
-                    "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-                    "Ptasks.evaluate.parameters.input.labels.opts": "ro",
-                },
             )
         except ExecutionError as e:
             logging.error(f"Metrics MLCube Execution failed: {e}")

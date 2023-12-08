@@ -178,7 +178,6 @@ def test_cube_run_are_called_properly(mocker, setup):
         timeout=config.infer_timeout,
         data_path=INPUT_DATASET.data_path,
         output_path=exp_preds_path,
-        string_params={"Ptasks.infer.parameters.input.data_path.opts": "ro"},
     )
     exp_eval_call = call(
         task="evaluate",
@@ -187,10 +186,6 @@ def test_cube_run_are_called_properly(mocker, setup):
         predictions=exp_preds_path,
         labels=INPUT_DATASET.labels_path,
         output_path=ANY,
-        string_params={
-            "Ptasks.evaluate.parameters.input.predictions.opts": "ro",
-            "Ptasks.evaluate.parameters.input.labels.opts": "ro",
-        },
     )
     # Act
     Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)

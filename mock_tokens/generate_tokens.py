@@ -14,7 +14,7 @@ private_key = serialization.load_pem_private_key(
 
 def token_payload(user):
     return {
-        "custom_claims/email": f"{user}@example.com",
+        "https://medperf.org/email": f"{user}@example.com",
         "iss": "https://localhost:8000/",
         "sub": user,
         "aud": "https://localhost-localdev/",

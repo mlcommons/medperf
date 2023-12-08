@@ -286,3 +286,4 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
     "JTI_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
 }
+TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
