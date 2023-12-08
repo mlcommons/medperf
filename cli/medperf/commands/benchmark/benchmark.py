@@ -18,6 +18,7 @@ app = typer.Typer()
 def list(
     local: bool = typer.Option(False, "--local", help="Get local benchmarks"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
+    valid: bool = typer.Option(False, "--valid", help="List only valid benchmarks"),
 ):
     """List benchmarks stored locally and remotely from the user"""
     EntityList.run(
@@ -25,6 +26,7 @@ def list(
         fields=["UID", "Name", "Description", "State", "Approval Status", "Registered"],
         local_only=local,
         mine_only=mine,
+        valid_only=valid
     )
 
 

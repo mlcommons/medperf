@@ -54,7 +54,8 @@ class TestReport(Entity, MedperfBaseSchema):
 
     @classmethod
     def all(
-        cls, local_only: bool = False, mine_only: bool = False
+        # TODO: `mine_only` is never used. In other entities filtering by `mine_only` is implemented with `filter` field
+        cls, local_only: bool = False, mine_only: bool = False, filters: dict = None
     ) -> List["TestReport"]:
         """Gets and creates instances of test reports.
         Arguments are only specified for compatibility with
@@ -66,6 +67,7 @@ class TestReport(Entity, MedperfBaseSchema):
         """
         logging.info("Retrieving all reports")
         reports = []
+        filters = filters or {}
         test_storage = storage_path(config.test_storage)
         try:
             uids = next(os.walk(test_storage))[1]

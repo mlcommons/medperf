@@ -63,6 +63,7 @@ def submit(
 def list(
     local: bool = typer.Option(False, "--local", help="Get local results"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    valid: bool = typer.Option(False, "--valid", help="Get only valid results"),
     benchmark: int = typer.Option(
         None, "--benchmark", "-b", help="Get results for a given benchmark"
     ),
@@ -73,6 +74,7 @@ def list(
         fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
         local_only=local,
         mine_only=mine,
+        valid_only=valid,
         benchmark=benchmark,
     )
 
