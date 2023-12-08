@@ -20,7 +20,7 @@ PRIVATE_KEY, PUBLIC_KEY = generate_key_pair()
 
 def generate_test_jwt(username):
     payload = {
-        "custom_claims/email": f"{username}@example.com",
+        "https://medperf.org/email": f"{username}@example.com",
         "iss": "https://localhost:8000/",
         "sub": username,
         "aud": "https://localhost-unittests/",
