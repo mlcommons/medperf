@@ -163,7 +163,7 @@ class TestRun:
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f"--platform={self.platform} --network=none"
+            + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
         )
@@ -175,6 +175,22 @@ class TestRun:
         # Assert
         spy.assert_any_call(expected_cmd, timeout=timeout)
 
+    def test_cube_runs_command_with_rw_access(self, mocker, setup, task):
+        # Arrange
+        mpexpect = MockPexpect(0, "expected_hash")
+        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        expected_cmd = (
+            f"mlcube run --mlcube={self.manifest_path} --task={task} "
+            + f"--platform={self.platform} --network=none"
+        )
+
+        # Act
+        cube = Cube.get(self.id)
+        cube.run(task, read_protected_input=False)
+
+        # Assert
+        spy.assert_any_call(expected_cmd, timeout=None)
+
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
@@ -182,7 +198,7 @@ class TestRun:
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
             f"mlcube run --mlcube={self.manifest_path} --task={task} "
-            + f'--platform={self.platform} --network=none test="test"'
+            + f'--platform={self.platform} --network=none --mount=ro test="test"'
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
         )

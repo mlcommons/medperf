@@ -246,16 +246,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Changing priority of model2"
-echo "====================================="
-medperf association set_priority -b $BMK_UID -m $MODEL2_UID -p 77
-checkFailed "Priority set of model2 failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Activate modelowner profile"
 echo "====================================="
 medperf profile activate testmodel
@@ -274,6 +264,26 @@ medperf association approve -b $BMK_UID -m $MODEL3_UID
 checkFailed "Model3 association approval failed"
 medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
 checkFailed "failing model association approval failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate benchmarkowner profile"
+echo "====================================="
+medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Changing priority of model2"
+echo "====================================="
+medperf association set_priority -b $BMK_UID -m $MODEL2_UID -p 77
+checkFailed "Priority set of model2 failed"
 ##########################################################
 
 echo "\n"

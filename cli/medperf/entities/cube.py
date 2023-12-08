@@ -277,6 +277,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         output_logs: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
+        read_protected_input: bool = True,
         **kwargs,
     ):
         """Executes a given task on the cube instance
@@ -286,6 +287,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
                                                  Defaults to {}.
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
+            read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
@@ -294,6 +296,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
+        if read_protected_input:
+            cmd += " --mount=ro"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])

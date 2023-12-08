@@ -5,8 +5,8 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 from .models import ModelResult
-from .serializers import ModelResultSerializer
-from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner, IsResultOwner
+from .serializers import ModelResultSerializer, ModelResultDetailSerializer
+from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner
 
 
 class ModelResultList(GenericAPIView):
@@ -42,12 +42,12 @@ class ModelResultList(GenericAPIView):
 
 
 class ModelResultDetail(GenericAPIView):
-    serializer_class = ModelResultSerializer
+    serializer_class = ModelResultDetailSerializer
     queryset = ""
 
     def get_permissions(self):
         if self.request.method == "PUT" or self.request.method == "DELETE":
-            self.permission_classes = [IsAdmin | IsResultOwner]
+            self.permission_classes = [IsAdmin]
         elif self.request.method == "GET":
             self.permission_classes = [IsAdmin | IsDatasetOwner | IsBenchmarkOwner]
         return super(self.__class__, self).get_permissions()
@@ -63,7 +63,7 @@ class ModelResultDetail(GenericAPIView):
         Retrieve a result instance.
         """
         modelresult = self.get_object(pk)
-        serializer = ModelResultSerializer(modelresult)
+        serializer = ModelResultDetailSerializer(modelresult)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
@@ -71,7 +71,7 @@ class ModelResultDetail(GenericAPIView):
         Update a result instance.
         """
         modelresult = self.get_object(pk)
-        serializer = ModelResultSerializer(modelresult, data=request.data)
+        serializer = ModelResultDetailSerializer(modelresult, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

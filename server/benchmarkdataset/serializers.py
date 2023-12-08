@@ -12,31 +12,7 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         read_only_fields = ["initiated_by", "approved_at"]
         fields = "__all__"
 
-    def validate(self, data):
-        bid = self.context["request"].data.get("benchmark")
-        dataset = self.context["request"].data.get("dataset")
-        approval_status = self.context["request"].data.get("approval_status")
-        benchmark = Benchmark.objects.get(pk=bid)
-        benchmark_state = benchmark.state
-        if benchmark_state != "OPERATION":
-            raise serializers.ValidationError(
-                "Association requests can be made only on an operational benchmark"
-            )
-        benchmark_approval_status = benchmark.approval_status
-        if benchmark_approval_status != "APPROVED":
-            raise serializers.ValidationError(
-                "Association requests can be made only on an approved benchmark"
-            )
-        dataset_state = Dataset.objects.get(pk=dataset).state
-        if dataset_state != "OPERATION":
-            raise serializers.ValidationError(
-                "Association requests can be made only on an operational dataset"
-            )
-        last_benchmarkdataset = (
-            BenchmarkDataset.objects.filter(benchmark__id=bid, dataset__id=dataset)
-            .order_by("-created_at")
-            .first()
-        )
+    def __validate_approval_status(self, last_benchmarkdataset, approval_status):
         if not last_benchmarkdataset:
             if approval_status != "PENDING":
                 raise serializers.ValidationError(
@@ -58,6 +34,40 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         "User can reject request only if prior request is approved"
                     )
+
+    def validate(self, data):
+        bid = self.context["request"].data.get("benchmark")
+        dataset = self.context["request"].data.get("dataset")
+        approval_status = self.context["request"].data.get("approval_status", "PENDING")
+        benchmark = Benchmark.objects.get(pk=bid)
+        benchmark_state = benchmark.state
+        if benchmark_state != "OPERATION":
+            raise serializers.ValidationError(
+                "Association requests can be made only on an operational benchmark"
+            )
+        benchmark_approval_status = benchmark.approval_status
+        if benchmark_approval_status != "APPROVED":
+            raise serializers.ValidationError(
+                "Association requests can be made only on an approved benchmark"
+            )
+        dataset_obj = Dataset.objects.get(pk=dataset)
+        dataset_state = dataset_obj.state
+        if dataset_state != "OPERATION":
+            raise serializers.ValidationError(
+                "Association requests can be made only on an operational dataset"
+            )
+        if dataset_obj.data_preparation_mlcube != benchmark.data_preparation_mlcube:
+            raise serializers.ValidationError(
+                "Dataset association request can be made only if the dataset"
+                " was prepared with benchmark's data preparation MLCube"
+            )
+        last_benchmarkdataset = (
+            BenchmarkDataset.objects.filter(benchmark__id=bid, dataset__id=dataset)
+            .order_by("-created_at")
+            .first()
+        )
+        self.__validate_approval_status(last_benchmarkdataset, approval_status)
+
         return data
 
     def create(self, validated_data):
@@ -89,27 +99,34 @@ class DatasetApprovalSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if not self.instance:
             raise serializers.ValidationError("No dataset association found")
+        return data
+
+    def validate_approval_status(self, cur_approval_status):
         last_approval_status = self.instance.approval_status
-        cur_approval_status = data["approval_status"]
         if last_approval_status != "PENDING":
             raise serializers.ValidationError(
                 "User can approve or reject only a pending request"
             )
         initiated_user = self.instance.initiated_by
         current_user = self.context["request"].user
-        if (
-            last_approval_status != cur_approval_status
-            and cur_approval_status == "APPROVED"
-        ):
+        if cur_approval_status == "APPROVED":
             if current_user.id == initiated_user.id:
                 raise serializers.ValidationError(
                     "Same user cannot approve the association request"
                 )
-        return data
+        return cur_approval_status
 
     def update(self, instance, validated_data):
-        instance.approval_status = validated_data["approval_status"]
-        if instance.approval_status != "PENDING":
-            instance.approved_at = timezone.now()
+        if "approval_status" in validated_data:
+            if validated_data["approval_status"] != instance.approval_status:
+                instance.approval_status = validated_data["approval_status"]
+                if instance.approval_status != "PENDING":
+                    instance.approved_at = timezone.now()
         instance.save()
         return instance
+
+
+class BenchmarkListofDatasetsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BenchmarkDataset
+        fields = ["dataset", "approval_status", "created_at"]

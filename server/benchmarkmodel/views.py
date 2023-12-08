@@ -30,7 +30,7 @@ class BenchmarkModelList(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class BenchmarkModelApproval(GenericAPIView):
+class ModelBenchmarksList(GenericAPIView):
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
 
@@ -59,6 +59,8 @@ class ModelApproval(GenericAPIView):
         self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
         if self.request.method == "PUT" and "priority" in self.request.data:
             self.permission_classes = [IsAdmin | IsBenchmarkOwner]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()
 
     def get_object(self, model_id, benchmark_id):
