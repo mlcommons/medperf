@@ -110,15 +110,15 @@
   status_name: MULTIPLE_ANNOTATIONS_ERROR
   comment: More than one segmentation file was identified in the manually corrected output folder. Please ensure that there is only one manually corrected segmentation inside the labels path.
   docs_url: ""
-6:
+-6:
   status_name: COMPARISON_COMPLETE
   comment: ""
   docs_url: ""
-6.1:
+-6.1:
   status_name: EXACT_MATCH_IDENTIFIED
   comment: The automated and manually corrected segmentation files are identical. Was this intentional? If so, are you certain that no manual corrections were required? If not, please redo manual correction for this exam.
   docs_url: ""
--6:
+-6.2:
   status_name: ANNOTATION_COMPARISON_FAILED
   comment: The original segmentation for the reviewed file was not identified. This most probably means the annotation file was renamed. Please ensure the reviewed file retains its original name.
   docs_url: ""
