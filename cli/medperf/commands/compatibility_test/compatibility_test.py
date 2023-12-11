@@ -15,10 +15,7 @@ app = typer.Typer()
 @clean_except
 def run(
     benchmark_uid: int = typer.Option(
-        None,
-        "--benchmark",
-        "-b",
-        help="UID of the benchmark to test. Optional",
+        None, "--benchmark", "-b", help="UID of the benchmark to test. Optional"
     ),
     data_uid: str = typer.Option(
         None,
@@ -33,15 +30,9 @@ def run(
             See `medperf mlcube submit --help` for more information""",
     ),
     demo_dataset_hash: str = typer.Option(
-        None,
-        "--demo_dataset_hash",
-        help="Hash of the demo dataset, if provided.",
+        None, "--demo_dataset_hash", help="Hash of the demo dataset, if provided."
     ),
-    data_path: str = typer.Option(
-        None,
-        "--data_path",
-        help="Path to raw input data.",
-    ),
+    data_path: str = typer.Option(None, "--data_path", help="Path to raw input data."),
     labels_path: str = typer.Option(
         None,
         "--labels_path",
@@ -66,9 +57,7 @@ def run(
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
     no_cache: bool = typer.Option(
-        False,
-        "--no-cache",
-        help="Execute the test even if results already exist",
+        False, "--no-cache", help="Execute the test even if results already exist"
     ),
     offline: bool = typer.Option(
         False,
