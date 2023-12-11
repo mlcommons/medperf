@@ -140,7 +140,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_datasets
 
-        if "mlcube" in filters:
+        if "mlcube" in filters and filters["mlcube"] is not None:
 
             def func():
                 return config.comms.get_mlcube_datasets(filters["mlcube"])
