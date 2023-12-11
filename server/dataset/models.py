@@ -15,7 +15,7 @@ class Dataset(models.Model):
     location = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     input_data_hash = models.CharField(max_length=128)
-    generated_uid = models.CharField(max_length=128, unique=True)
+    generated_uid = models.CharField(max_length=128)
     split_seed = models.IntegerField()
     data_preparation_mlcube = models.ForeignKey(
         "mlcube.MlCube",
@@ -38,3 +38,10 @@ class Dataset(models.Model):
 
     class Meta:
         ordering = ["modified_at"]
+        constraints = [
+            models.constraints.UniqueConstraint(
+                fields=["generated_uid"],
+                condition=models.Q(state="OPERATION"),
+                name="unique_operational_dataset_output_hash",
+            )
+        ]
