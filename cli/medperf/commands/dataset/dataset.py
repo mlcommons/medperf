@@ -19,13 +19,17 @@ app = typer.Typer()
 def list(
     local: bool = typer.Option(False, "--local", help="Get local datasets"),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
+    mlcube: int = typer.Option(
+        None, "--mlcube", "-m", help="Get datasets for a given data prep mlcube"
+    ),
 ):
     """List datasets stored locally and remotely from the user"""
     EntityList.run(
         Dataset,
-        fields=["UID", "Name", "Data Preparation Cube UID", "Registered"],
+        fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status"],
         local_only=local,
         mine_only=mine,
+        mlcube=mlcube,
     )
 
 

@@ -64,6 +64,7 @@ class BenchmarkModelList(GenericAPIView):
 
 
 class BenchmarkDatasetList(GenericAPIView):
+    # TODO: should we have an endpoint that returns datasets instead of associations?
     permission_classes = [IsAdmin | IsBenchmarkOwner]
     serializer_class = BenchmarkListofDatasetsSerializer
     queryset = ""
