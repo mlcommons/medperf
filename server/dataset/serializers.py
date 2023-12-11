@@ -6,7 +6,7 @@ class DatasetFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = "__all__"
-        read_only_fields = ["owner"]
+        read_only_fields = ["owner", "state"]
 
 
 class DatasetPublicSerializer(serializers.ModelSerializer):
