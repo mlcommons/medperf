@@ -1,0 +1,152 @@
+Screen {
+    background: $surface-darken-3;
+    align: center middle;
+    layers: base dialog;
+}
+
+#list-container {
+    width: 25%;
+    height: 100%;
+    dock: left;
+    background: $primary-background-darken-1
+}
+
+ListItem {
+    padding: 1;
+}
+
+#subjects-list {
+    height: 100%;
+}
+
+SubjectDetails {
+    display: none;
+    padding: 1 3 1 3;
+    align: center middle;
+    content-align: center middle;
+    align: center middle;
+}
+
+#subject-title {
+    margin: 1;
+    text-style: bold;
+    # background: $primary-background-darken-1;
+}
+
+#subject-title Static {
+    text-align: center;
+    padding: 1;
+}
+
+SubjectDetails #review-buttons {
+    margin: 0 5;
+}
+
+SubjectDetails #review-buttons Static {
+    text-align: center;
+}
+
+.warning {
+    border: tall $warning;
+}
+
+SubjectDetails Button {
+    text-align: center;
+    width: 100%;
+    margin: 1;
+}
+
+#subject-status {
+    color: $accent-lighten-3;
+}
+
+.subject-item-label {
+    text-style: bold;
+    width: auto;
+    color: $panel-lighten-2;
+    column-span: 2;
+}
+
+.subject-item-content {
+    column-span: 8;
+    overflow: scroll;
+}
+
+.subject-item-copy {
+    column-span: 2;
+}
+
+SubjectDetails {
+    overflow-y: scroll;
+    height: 100%;
+}
+
+SubjectDetails CopyableItem {
+    layout: grid;
+    grid-size: 12 1;
+    grid-columns: 1fr;
+    grid-gutter: 1;
+    margin: 1;
+    height: auto;
+}
+
+Button.prompt-btn {
+    margin: 1;
+}
+
+#confirm-prompt {
+    layer: dialog;
+    align: center middle;
+    width: 30%;
+    height: auto;
+    background: $primary-background-lighten-1;
+    content-align: center middle;
+}
+
+#confirm-details {
+    content-align: center middle;
+    padding: 1 0 1 0;
+    height: auto;
+}
+
+#confirm-buttons {
+    padding: 0 1 0 0;
+    height: auto;
+}
+
+#confirm-approve {
+    width: 50%;
+}
+
+#confirm-deny {
+    width: 50%;
+}
+
+Summary {
+    padding: 3;
+    align: center middle;
+    content-align: center middle;
+    overflow-y: scroll;
+}
+
+Summary Static {
+    text-align: center;
+    text-style: bold;
+}
+
+#summary-content {
+    margin: 3 0 1 0;
+}
+
+Center.pbar {
+    height: auto;
+}
+
+ListItem.highlight {
+    background: $secondary-lighten-3;
+}
+
+MarkdownViewer {
+    height: auto;
+    min-height: 2;
+}
