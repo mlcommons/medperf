@@ -7,7 +7,8 @@ from drf_spectacular.utils import extend_schema
 from .models import MlCube
 from .serializers import MlCubeSerializer, MlCubeDetailSerializer
 from .permissions import IsAdmin, IsMlCubeOwner
-from report.serializers import ReportSerializer
+from dataset.serializers import DatasetFullSerializer, DatasetPublicSerializer
+from dataset.models import Dataset
 
 
 class MlCubeList(GenericAPIView):
@@ -80,9 +81,9 @@ class MlCubeDetail(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class MlCubeReportList(GenericAPIView):
+class MlCubeDatasetList(GenericAPIView):
     permission_classes = [IsAdmin | IsMlCubeOwner]
-    serializer_class = ReportSerializer
+    serializer_class = DatasetFullSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -93,10 +94,18 @@ class MlCubeReportList(GenericAPIView):
 
     def get(self, request, pk, format=None):
         """
-        Retrieve reports associated with an MlCube instance.
+        Retrieve datasets associated with an MlCube instance.
         """
         mlcube = self.get_object(pk)
-        reports = mlcube.report_set.all()
-        reports = self.paginate_queryset(reports)
-        serializer = ReportSerializer(reports, many=True)
-        return self.get_paginated_response(serializer.data)
+        if mlcube.state == "DEVELOPMENT":
+            serializer_class = DatasetFullSerializer
+        else:
+            serializer_class = DatasetPublicSerializer
+
+            datasets = Dataset.objects.all().filter(data_preparation_mlcube__pk=pk)
+            datasets = self.paginate_queryset(datasets)
+            serializer = serializer_class(datasets, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        errors = {"error": "The mlcube is not in DEVELOPMENT"}
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)

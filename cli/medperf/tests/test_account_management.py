@@ -4,7 +4,7 @@ import medperf.config as config
 from medperf.exceptions import MedperfException
 from medperf import account_management
 
-PATCH_ACC = "medperf.account_management.{}"
+PATCH_ACC = "medperf.account_management.account_management.{}"
 
 
 class MockConfig:

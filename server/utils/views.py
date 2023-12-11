@@ -1,18 +1,16 @@
 from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
-from dataset.serializers import DatasetSerializer
+from dataset.serializers import DatasetFullSerializer
 from result.serializers import ModelResultSerializer
 from benchmark.serializers import BenchmarkSerializer
 from benchmarkdataset.serializers import BenchmarkDatasetListSerializer
 from benchmarkmodel.serializers import BenchmarkModelListSerializer
-from report.serializers import ReportSerializer
 from benchmark.models import Benchmark
 from dataset.models import Dataset
 from mlcube.models import MlCube
 from result.models import ModelResult
 from benchmarkmodel.models import BenchmarkModel
 from benchmarkdataset.models import BenchmarkDataset
-from report.models import Report
 from django.http import Http404
 from django.conf import settings
 from django.db.models import Q
@@ -77,7 +75,7 @@ class MlCubeList(GenericAPIView):
 
 
 class DatasetList(GenericAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetFullSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -92,7 +90,7 @@ class DatasetList(GenericAPIView):
         """
         datasets = self.get_object(request.user.id)
         datasets = self.paginate_queryset(datasets)
-        serializer = DatasetSerializer(datasets, many=True)
+        serializer = DatasetFullSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
 
 
@@ -113,26 +111,6 @@ class ModelResultList(GenericAPIView):
         results = self.get_object(request.user.id)
         results = self.paginate_queryset(results)
         serializer = ModelResultSerializer(results, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class ReportList(GenericAPIView):
-    serializer_class = ReportSerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            return Report.objects.filter(owner__id=pk)
-        except Report.DoesNotExist:
-            raise Http404
-
-    def get(self, request, format=None):
-        """
-        Retrieve all reports associated with the current user
-        """
-        reports = self.get_object(request.user.id)
-        reports = self.paginate_queryset(reports)
-        serializer = ReportSerializer(reports, many=True)
         return self.get_paginated_response(serializer.data)
 
 

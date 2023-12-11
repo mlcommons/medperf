@@ -16,6 +16,7 @@ class DatasetAdmin(admin.ModelAdmin):
         "is_valid",
         "generated_metadata",
         "user_metadata",
+        "report",
         "created_at",
         "modified_at",
     )

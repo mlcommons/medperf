@@ -85,6 +85,11 @@ def submit(
         help="Identifier to download the image file. See the description above",
     ),
     image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
+    operational: bool = typer.Option(
+        False,
+        "--operational",
+        help="Submit the MLCube as OPERATIONAL",
+    ),
 ):
     """Submits a new cube to the platform.\n
     The following assets:\n
@@ -110,6 +115,7 @@ def submit(
         "image_tarball_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
+        "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitCube.run(mlcube_info)
     config.ui.print("✅ Done!")

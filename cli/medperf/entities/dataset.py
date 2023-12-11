@@ -4,8 +4,7 @@ import logging
 from pydantic import Field, validator
 from typing import List, Optional, Union
 
-from medperf.utils import storage_path
-from medperf.enums import Status
+from medperf.utils import storage_path, remove_path
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -34,17 +33,9 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     data_preparation_mlcube: Union[int, str]
     split_seed: Optional[int]
     generated_metadata: dict = Field(..., alias="metadata")
-    status: Status = None
     user_metadata: dict = {}
-
-    @validator("status", pre=True, always=True)
-    def default_status(cls, v, *, values, **kwargs):
-        default = Status.PENDING
-        if values["id"] is not None:
-            default = Status.APPROVED
-        if v is None:
-            return default
-        return Status(v)
+    report: dict = {}
+    submitted_as_prepared: bool
 
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
@@ -66,6 +57,34 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         self.path = path
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = os.path.join(self.path, "labels")
+        self.report_path = os.path.join(self.path, config.report_file)
+        self.metadata_path = os.path.join(self.path, config.metadata_folder)
+        self.statistics_path = os.path.join(self.path, config.statistics_filename)
+
+    def set_raw_paths(self, raw_data_path: str, raw_labels_path: str):
+        raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
+        data = {"data_path": raw_data_path, "labels_path": raw_labels_path}
+        with open(raw_paths_file, "w") as f:
+            yaml.dump(data, f)
+
+    def get_raw_paths(self):
+        raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
+        with open(raw_paths_file) as f:
+            data = yaml.safe_load(f)
+        return data["data_path"], data["labels_path"]
+
+    def mark_as_ready(self):
+        flag_file = os.path.join(self.path, config.ready_flag_file)
+        with open(flag_file, "w"):
+            pass
+
+    def unmark_as_ready(self):
+        flag_file = os.path.join(self.path, config.ready_flag_file)
+        remove_path(flag_file)
+
+    def is_ready(self):
+        flag_file = os.path.join(self.path, config.ready_flag_file)
+        return os.path.exists(flag_file)
 
     def todict(self):
         return self.extended_dict()
@@ -120,6 +139,14 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         comms_fn = config.comms.get_datasets
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_datasets
+
+        if "mlcube" in filters and filters["mlcube"] is not None:
+
+            def func():
+                return config.comms.get_mlcube_datasets(filters["mlcube"])
+
+            comms_fn = func
+
         return comms_fn
 
     @classmethod
@@ -213,7 +240,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             raise InvalidArgumentError("Cannot upload test datasets.")
         dataset_dict = self.todict()
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
-        updated_dataset_dict["status"] = dataset_dict["status"]
         return updated_dataset_dict
 
     @classmethod
@@ -236,8 +262,9 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             "Location": self.location,
             "Data Preparation Cube UID": self.data_preparation_mlcube,
             "Generated Hash": self.generated_uid,
-            "Status": self.status,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,
+            "Submitted as Prepared": self.submitted_as_prepared,
+            "Status": "\n".join([f"{k}: {v}" for k, v in self.report.items()]),
         }

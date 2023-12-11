@@ -95,27 +95,27 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
+medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS --operational
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
+medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE --operational
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
+medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
+medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
@@ -136,7 +136,7 @@ echo "\n"
 echo "====================================="
 echo "Submit benchmark"
 echo "====================================="
-medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID
+medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
@@ -161,22 +161,32 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data preparation step"
+echo "Running data submission step"
 echo "====================================="
-medperf dataset create -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a"
-checkFailed "Data preparation step failed"
-DSET_A_GENUID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
+medperf dataset submit -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name="dataset_a" --description="mock dataset a" --location="mock location a" -y
+checkFailed "Data submission step failed"
+DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data submission step"
+echo "Running data preparation step"
 echo "====================================="
-medperf dataset submit -d $DSET_A_GENUID -y
-checkFailed "Data submission step failed"
-DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
+medperf dataset prepare -d $DSET_A_UID
+checkFailed "Data preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data preparation step"
+echo "====================================="
+medperf dataset activate -d $DSET_A_UID -y
+checkFailed "Data activation step failed"
+DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d " " -f 2)
 ##########################################################
 
 echo "\n"
@@ -323,10 +333,7 @@ echo "==========================================================================
 echo "Run failing cube with ignore errors (This SHOULD fail since predictions folder exists)"
 echo "======================================================================================"
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
-if [ "$?" -eq 0 ]; then
-  i_am_a_command_that_does_not_exist_and_hence_changes_the_last_exit_status_to_nonzero
-fi
-checkFailed "MLCube ran successfuly but should fail since predictions folder exists"
+checkSucceeded "MLCube ran successfuly but should fail since predictions folder exists"
 ##########################################################
 
 echo "\n"

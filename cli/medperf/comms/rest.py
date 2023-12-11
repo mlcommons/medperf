@@ -510,67 +510,24 @@ class REST(Comms):
                 f"Could not set the priority of mlcube {mlcube_uid} within the benchmark {benchmark_uid}: {details}"
             )
 
-    def get_reports(self) -> List[dict]:
-        """Retrieves all reports
-
-        Returns:
-            List[dict]: List of reports
-        """
-        reports = self.__get_list(f"{self.server_url}/reports/")
-        return reports
-
-    def get_user_reports(self) -> List[dict]:
-        """Retrieve all reports from the current user
-
-        Returns:
-            List[dict]: List of reports
-        """
-        reports = self.__get_list(f"{self.server_url}/me/reports/")
-        return reports
-
-    def get_benchmark_reports(self, benchmark_uid: int) -> List[dict]:
-        """Retrieve all reports from a given benchmark
-
-        Returns:
-            List[dict]: List of reports
-        """
-        reports = self.__get_list(f"{self.server_url}/mlcubes/{benchmark_uid}/reports/")
-        return reports
-
-    def get_mlcube_reports(self, mlcube_uid: int) -> List[dict]:
-        """Retrieve all reports from a given mlcube
-
-        Returns:
-            List[dict]: List of reports
-        """
-        reports = self.__get_list(f"{self.server_url}/mlcubes/{mlcube_uid}/reports/")
-        return reports
-
-    def get_report(self, report_uid: int):
-        url = f"{self.server_url}/reports/{report_uid}/"
-        res = self.__auth_get(url)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(
-                f"Could not get the requested report: {details}"
-            )
-        return res.json()
-
-    def upload_report(self, data: dict):
-        url = f"{self.server_url}/reports/"
-        res = self.__auth_post(url, json=data)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not submit report: {details}")
-        return res.json()
-
-    def update_report(self, report_uid: int, data: dict):
-        url = f"{self.server_url}/reports/{report_uid}/"
+    def update_dataset(self, dataset_id: int, data: dict):
+        url = f"{self.server_url}/datasets/{dataset_id}/"
         res = self.__auth_put(url, json=data)
         if res.status_code != 200:
             log_response_error(res)
             details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not update report: {details}")
+            raise CommunicationRequestError(f"Could not update dataset: {details}")
         return res.json()
+
+    def get_mlcube_datasets(self, mlcube_id: int) -> dict:
+        """Retrieves all datasets that have the specified mlcube as the prep mlcube
+
+        Args:
+            mlcube_id (int): mlcube ID to retrieve datasets from
+
+        Returns:
+            dict: dictionary with the contents of each dataset
+        """
+
+        datasets = self.__get_list(f"{self.server_url}/mlcubes/{mlcube_id}/datasets/")
+        return datasets

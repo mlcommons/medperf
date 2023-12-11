@@ -38,17 +38,18 @@ auth_jwks_cache_ttl = 600  # fetch jwks every 10 mins. Default value in auth0 py
 local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 
 token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
-keyring_access_token_service_name = "medperf_access_token"
-keyring_refresh_token_service_name = "medperf_refresh_token"
+access_token_storage_id = "medperf_access_token"
+refresh_token_storage_id = "medperf_refresh_token"
 
 storage = str(Path.home().resolve() / ".medperf")
 logs_storage = "logs"
 tmp_storage = "tmp"
 data_storage = "data"
-staging_data_storage = "staging/data"
-partial_report_file = "report-partial.yaml"
 report_file = "report.yaml"
-report_metadata_file = "report-metadata.yaml"
+metadata_folder = "metadata"
+statistics_filename = "statistics.yaml"
+dataset_raw_paths_file = "raw.yaml"
+ready_flag_file = ".ready"
 demo_data_storage = "demo"
 cubes_storage = "cubes"
 images_storage = ".images"
@@ -63,6 +64,7 @@ test_storage = "tests"
 trash_folder = ".trash"
 experiments_logs_storage = "experiments_logs"
 cleanup = True
+creds_folder = ".tokens"
 
 test_report_file = "test_report.yaml"
 cube_filename = "mlcube.yaml"

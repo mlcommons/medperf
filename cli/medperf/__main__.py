@@ -17,7 +17,6 @@ import medperf.commands.dataset.dataset as dataset
 import medperf.commands.auth.auth as auth
 import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
-import medperf.commands.report.report as report
 from medperf.utils import (
     set_custom_config,
     set_unique_tmp_config,
@@ -39,7 +38,6 @@ app.add_typer(association.app, name="association", help="Manage associations")
 app.add_typer(profile.app, name="profile", help="Manage profiles")
 app.add_typer(compatibility_test.app, name="test", help="Manage compatibility tests")
 app.add_typer(auth.app, name="auth", help="Authentication")
-app.add_typer(report.app, name="report", help="Manage Data Preparation Reports")
 
 
 @app.command("run")
