@@ -5,7 +5,6 @@ from pydantic import Field, validator
 from typing import List, Optional, Union
 
 from medperf.utils import storage_path, remove_path
-from medperf.enums import Status
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
 from medperf.exceptions import (
@@ -34,18 +33,8 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     data_preparation_mlcube: Union[int, str]
     split_seed: Optional[int]
     generated_metadata: dict = Field(..., alias="metadata")
-    status: Status = None
     user_metadata: dict = {}
     report: dict = {}
-
-    @validator("status", pre=True, always=True)
-    def default_status(cls, v, *, values, **kwargs):
-        default = Status.PENDING
-        if values["id"] is not None:
-            default = Status.APPROVED
-        if v is None:
-            return default
-        return Status(v)
 
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
@@ -251,7 +240,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             raise InvalidArgumentError("Cannot upload test datasets.")
         dataset_dict = self.todict()
         updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
-        updated_dataset_dict["status"] = dataset_dict["status"]
         return updated_dataset_dict
 
     @classmethod
