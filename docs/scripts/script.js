@@ -1,28 +1,34 @@
-const imageSources = [
-  { start: 0, image: 1 },
-  { start: 500, image: 2 },
-  { start: 1000, image: 3 },
-  { start: 1500, image: 4 },
-  { start: 2000, image: 1 },
-  { start: 2500, image: 5 },
-  { start: 3000, image: 6 },
-  { start: 3500, image: 1 },
-  { start: 4000, image: 7 },
-  { start: 4500, image: 8 },
-  { start: 5995, image: 9 },
-  { start: 6136, image: 10 },
-  { start: 6290, image: 11 },
-  { start: 6440, image: 12 },
-  { start: 6719, image: 13 },
-  { start: 6880, image: 14 },
-];
+const tutorials = {
+  benchmark: [
+    { image: 1, content:'overview' },
+    { image: 2, content:'Before You Start' },
+    { image: 3, content:'1. Implement a Valid Workflow' },
+    // { image: 4, content:'' },
+    // { image: 1, content:'' },
+    // { image: 5, content:'' },
+    // { image: 6, content:'' },
+  ],
+  model: [
+    { image: 1, content:'overview' },
+    { image: 2, content:'Before You Start' },
+    { image: 3, content:'1. Test your MLCube Compatibility' },
+    // { image: 4, content:'' },
+    // { image: 1, content:'' },
+    // { image: 5, content:'' },
+    // { image: 6, content:'' },
+  ],
+  data: [
+    { image: 1, content:'overview' },
+    { image: 2, content:'Before You Start' },
+    { image: 3, content:'1. Prepare your Data' },
+    // { image: 4, content:'' },
+    // { image: 1, content:'' },
+    // { image: 5, content:'' },
+    // { image: 6, content:'' },
+  ],
+};
 
-// ADDS IMAGING SCROLL TO TUTORIALS
-window.addEventListener('scroll', function() {
-  const benchmarkElement = document.querySelector('#hands-on-tutorial-for-bechmark-committee');
-  const dataElement = document.querySelector('#hands-on-tutorial-for-data-owners');
-  const modelElement = document.querySelector('#hands-on-tutorial-for-model-owners');
-
+function createSideImageContainer() {
   const containerElement = document.createElement('div');
   containerElement.classList.add('side-container');
 
@@ -35,26 +41,58 @@ window.addEventListener('scroll', function() {
 
   containerElement.appendChild(imageElement);
 
+  return containerElement;
+}
+
+function imagesAppending(elements, imageElement, tutorial) {
+  let imageSrc = '';
+
+  tutorials[tutorial].forEach(({ image, content }) => {
+    let targetElement;
+
+    for (const element of elements) {
+      if (element.innerHTML.includes(content)) {
+        targetElement = element;
+        break;
+      }
+    }
+
+    const rect = targetElement.getBoundingClientRect();
+    if (120 > rect.top) {
+      imageSrc = `https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial${image}.png`;
+      if (imageElement) {
+        imageElement.src = imageSrc;
+      }
+    }
+    else if (rect.top > 120 && content === 'overview') {
+      imageElement.src = '';
+    }
+  })
+}
+
+// ADDS IMAGING SCROLL TO TUTORIALS
+window.addEventListener('scroll', function() {
+  const containerElement = createSideImageContainer();
+
+  const benchmarkElement = document.querySelector('#hands-on-tutorial-for-bechmark-committee');
+  const dataElement = document.querySelector('#hands-on-tutorial-for-data-owners');
+  const modelElement = document.querySelector('#hands-on-tutorial-for-model-owners');
+
   if (benchmarkElement) benchmarkElement.appendChild(containerElement);
   else if (dataElement) dataElement.appendChild(containerElement);
   else if (modelElement) modelElement.appendChild(containerElement);
 
   const sideContainer = document.querySelector('.side-container');
-  let image
+  let imageElement
 
-  if (sideContainer) image = sideContainer.querySelector('img');
+  if (sideContainer) imageElement = sideContainer.querySelector('img');
 
-  const scrollPosition = window.scrollY;
-  let imageSrc = '';
-  imageSources.forEach(({ start, image }) => {
-    if (scrollPosition > start) {
-      imageSrc = `https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial${image}.png`;
-    }
-  })
-  if (image) {
-    image.src = imageSrc;
-  }
-});
+  const elements = document.querySelectorAll('h2');
+
+  const currentTutorial = window.location.href.includes('benchmark') ? 'benchmark' : window.location.href.includes('model') ? 'model' : 'data';
+  
+  imagesAppending(elements, imageElement, currentTutorial);
+})
 
 // ADDS HOME BUTTON TO HEADER
 document.addEventListener('DOMContentLoaded', function() {

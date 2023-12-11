@@ -13,17 +13,19 @@
 }
 
 .side-container {
-  width: 720px;
+  width: 380px;
   height: fit-content;
   position: fixed;
-  right: -45px;
+  right: 0;
   top: 100px;
   background-color: transparent;
+  z-index: 0 !important;
 }
 
 #side-container img {
   width: 100%;
   height: 100%;
+  z-index: 0 !important;
 }
 
 .md-grid {
@@ -33,6 +35,7 @@
 .md-content__inner {
   margin-right: 240px;
   margin-bottom: 610px;
+  z-index: 9999 !important;
 }
 
 .md-header__inner {
