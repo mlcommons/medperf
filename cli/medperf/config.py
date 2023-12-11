@@ -45,7 +45,6 @@ storage = str(Path.home().resolve() / ".medperf")
 logs_storage = "logs"
 tmp_storage = "tmp"
 data_storage = "data"
-staging_data_storage = "staging/data"
 report_file = "report.yaml"
 metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"
