@@ -23,6 +23,7 @@ class Dataset(models.Model):
         related_name="benchmark_preprocessor_mlcube",
     )
     is_valid = models.BooleanField(default=True)
+    submitted_as_prepared = models.BooleanField()
     state = models.CharField(
         choices=DATASET_STATE, max_length=100, default="DEVELOPMENT"
     )

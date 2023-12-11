@@ -35,6 +35,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     generated_metadata: dict = Field(..., alias="metadata")
     user_metadata: dict = {}
     report: dict = {}
+    submitted_as_prepared: bool
 
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
@@ -83,15 +84,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
     def is_ready(self):
         flag_file = os.path.join(self.path, config.ready_flag_file)
-        return os.path.exists(flag_file)
-
-    def mark_as_submitted_as_prepared(self):
-        flag_file = os.path.join(self.path, config.submitted_as_prepared_flag_file)
-        with open(flag_file, "w"):
-            pass
-
-    def is_submitted_as_prepared(self):
-        flag_file = os.path.join(self.path, config.submitted_as_prepared_flag_file)
         return os.path.exists(flag_file)
 
     def todict(self):
@@ -273,5 +265,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,
+            "Submitted as Prepared": self.submitted_as_prepared,
             "Status": "\n".join([f"{k}: {v}" for k, v in self.report.items()]),
         }

@@ -38,7 +38,7 @@ class DataPreparation:
 
         # TODO: make these more readable
         should_run_prepare = (
-            not preparation.dataset.is_submitted_as_prepared()
+            not preparation.dataset.submitted_as_prepared
             and not preparation.dataset.is_ready()
         )
         should_prompt_for_report_sending_approval = (

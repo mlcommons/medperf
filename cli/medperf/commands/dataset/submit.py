@@ -121,6 +121,7 @@ class DataCreation:
             split_seed=0,
             generated_metadata={},
             state="DEVELOPMENT",
+            submitted_as_prepared=self.submit_as_prepared,
         )
         dataset.write()
         config.tmp_paths.append(dataset.path)
@@ -140,7 +141,6 @@ class DataCreation:
             # also expect an empty folder to accommodate for users who
             # have prepared datasets with no the metadata information
             os.makedirs(self.dataset.metadata_path, exist_ok=True)
-        self.dataset.mark_as_submitted_as_prepared()
 
     def upload(self):
         submission_dict = self.dataset.todict()
