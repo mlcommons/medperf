@@ -36,6 +36,11 @@
   z-index: 0 !important;
 }
 
+.tutorial-sticky-image-content {
+  width: 0;
+  height: 0;
+}
+
 .md-main__inner.md-grid {
     max-width: 75rem;
 }

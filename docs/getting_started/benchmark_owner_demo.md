@@ -9,6 +9,7 @@ hide:
 
 # Hands-on Tutorial for Bechmark Committee
 
+<img class="tutorial-sticky-image-content" src="https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial1.png">
 {% set prep_mlcube = assets_url+"data_preparator/mlcube/mlcube.yaml" %}
 {% set prep_params = assets_url+"data_preparator/mlcube/workspace/parameters.yaml" %}
 {% set model_mlcube = assets_url+"model_custom_cnn/mlcube/mlcube.yaml" %}
@@ -18,6 +19,7 @@ hide:
 
 ## Overview
 
+<img class="tutorial-sticky-image-content" src="https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial2.png">
 In this guide, you will learn how a user can use MedPerf to create a benchmark. The key tasks can be summarized as follows:
 
 1. Implement a valid workflow.
@@ -34,6 +36,7 @@ It's assumed that you have already set up the general testing environment as exp
 
 ## 1. Implement a Valid Workflow
 
+<img class="tutorial-sticky-image-content" src="https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial3.png">
 The implementation of a valid workflow is accomplished by implementing three [MLCubes](../mlcubes/mlcubes.md):
 
 1. **Data Preparator MLCube:** This MLCube will transform raw data into a dataset ready for the AI model execution. All data owners willing to participate in this benchmark will have their data prepared using this MLCube. A guide on how to implement data preparation MLCubes can be found [here](../mlcubes/mlcube_data.md).
@@ -46,6 +49,7 @@ For this tutorial, you are provided with following three already implemented mlc
 
 ## 2. Develop a Demo Dataset
 
+<img class="tutorial-sticky-image-content" src="https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial4.png">
 A demo dataset is a small reference dataset. It contains a few data records and their labels, which will be used to test the benchmark's workflow in two scenarios:
 
 1. It is used for testing the benchmark's default workflow. The MedPerf client automatically runs a compatibility test of the benchmark's three mlcubes prior to its submission. The test is run using the benchmark's demo dataset as input.

@@ -1,32 +1,3 @@
-const tutorials = {
-  benchmark: [
-    { image: 1, content:'overview' },
-    { image: 2, content:'Before You Start' },
-    { image: 3, content:'1. Implement a Valid Workflow' },
-    // { image: 4, content:'' },
-    // { image: 1, content:'' },
-    // { image: 5, content:'' },
-    // { image: 6, content:'' },
-  ],
-  model: [
-    { image: 1, content:'overview' },
-    { image: 2, content:'Before You Start' },
-    { image: 3, content:'1. Test your MLCube Compatibility' },
-    // { image: 4, content:'' },
-    // { image: 1, content:'' },
-    // { image: 5, content:'' },
-    // { image: 6, content:'' },
-  ],
-  data: [
-    { image: 1, content:'overview' },
-    { image: 2, content:'Before You Start' },
-    { image: 3, content:'1. Prepare your Data' },
-    // { image: 4, content:'' },
-    // { image: 1, content:'' },
-    // { image: 5, content:'' },
-    // { image: 6, content:'' },
-  ],
-};
 
 function createSideImageContainer() {
   const containerElement = document.createElement('div');
@@ -44,31 +15,22 @@ function createSideImageContainer() {
   return containerElement;
 }
 
-function imagesAppending(elements, imageElement, tutorial) {
+function imagesAppending(elements, imageElement) {
   let imageSrc = '';
 
-  tutorials[tutorial].forEach(({ image, content }) => {
-    let targetElement;
+  const contentImages = document.getElementsByClassName("tutorial-sticky-image-content")
+  for (let contentImageElement of contentImages) {
 
-    for (const element of elements) {
-      if (element.innerHTML.includes(content)) {
-        targetElement = element;
-        break;
-      }
-    }
-
-    const rect = targetElement.getBoundingClientRect();
+    // TODO: at the very first page load, no src is shown => broken image
+    const rect = contentImageElement.getBoundingClientRect();
     if (120 > rect.top) {
-      imageSrc = `https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial${image}.png`;
+      imageSrc = contentImageElement.src;
+      console.log(rect.top, "changing image to", imageSrc)
       if (imageElement) {
         imageElement.src = imageSrc;
       }
     }
-    // TODO: add a default image instead (or hide the whole image elem if possible)
-    else if (rect.top > 120 && content === 'overview') {
-      imageElement.src = '';
-    }
-  })
+  }
 }
 
 // ADDS IMAGING SCROLL TO TUTORIALS
@@ -97,10 +59,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(document.querySelector(".header_home_btn"))
   }
 
-    const tutorialStickyImageElement = createSideImageContainer();
-
-    // TODO: here is bug, I add element on all the pages, not only on the tutorials
-    const contentElement = document.getElementsByClassName('md-main__inner')[0];
-    contentElement.appendChild(tutorialStickyImageElement);
+    const contentImages = document.getElementsByClassName("tutorial-sticky-image-content");
+    if (contentImages.length) {
+      console.log('content images found: ', contentImages)
+      // we add an element only if there are content images on this page to be shown
+      const tutorialStickyImageElement = createSideImageContainer();
+      const contentElement = document.getElementsByClassName('md-content')[0];
+      contentElement.parentNode.insertBefore(tutorialStickyImageElement, contentElement.nextSibling);
+    }
 
 });
