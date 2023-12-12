@@ -401,7 +401,7 @@ class Summary(Static):
 
         widgets = []
         for name, val in status_percents.items():
-            wname = Label(name)
+            wname = Label(name.capitalize().replace("_", " "))
             wpbar = ProgressBar(total=1, show_eta=False)
             wpbar.advance(val)
             widget = Center(wname, wpbar, classes="pbar")
@@ -440,7 +440,14 @@ class SubjectListView(ListView):
 
         widgets = []
         for subject in subjects:
-            widget = ListItem(Label(subject))
+            if subject == "SUMMARY":
+                widget = ListItem(Label(f"{subject}"))
+            else:
+                status = report_df.loc[subject]["status_name"]
+                widget = ListItem(
+                    Label(subject),
+                    Label(status.capitalize().replace("_", " "), classes="subtitle")
+                )
             if subject in self.highlight:
                 widget.set_class(True, "highlight")
             widgets.append(widget)
@@ -838,16 +845,15 @@ class Subjectbrowser(App):
 
 
 def main(
-    name: str = Argument(..., help=NAME_HELP),
-    mlcube_uid: int = Argument(..., help=MLCUBE_HELP),
+    dataset_uid: str = Argument(..., help=NAME_HELP),
     stages_path: str = Option(DEFAULT_STAGES_PATH, help=STAGES_HELP),
     output_path: str = Option(None, "-o", "--out", help="CSV file to store report in"),
 ):
     config_p = read_config()
     set_custom_config(config_p.active_profile)
 
-    staging_path = storage_path(config.staging_data_storage)
-    dset_path = os.path.join(staging_path, f"{name}_{mlcube_uid}")
+    dsets_path = storage_path(config.data_storage)
+    dset_path = os.path.join(dsets_path, dataset_uid)
 
     if not os.path.exists(dset_path):
         print(
