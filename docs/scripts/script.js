@@ -15,21 +15,27 @@ function createSideImageContainer() {
   return containerElement;
 }
 
-function imagesAppending(elements, imageElement) {
+function imagesAppending(imageElement) {
   let imageSrc = '';
+  let smthWasSet = false;
 
   const contentImages = document.getElementsByClassName("tutorial-sticky-image-content")
   for (let contentImageElement of contentImages) {
 
-    // TODO: at the very first page load, no src is shown => broken image
     const rect = contentImageElement.getBoundingClientRect();
-    if (120 > rect.top) {
+    if (300 > rect.top) {
       imageSrc = contentImageElement.src;
+      smthWasSet = true;
       console.log(rect.top, "changing image to", imageSrc)
       if (imageElement) {
         imageElement.src = imageSrc;
+        imageElement.style.display="block";
       }
     }
+  }
+  if (!smthWasSet) {
+    console.log("no image was chosen. Hid the image");
+    imageElement.style.display="none";
   }
 }
 
@@ -39,9 +45,7 @@ window.addEventListener('scroll', function() {
 
   if (containerElement) {
     const imageElement = containerElement.querySelector('img');
-    const elements = document.querySelectorAll('h2');
-    const currentTutorial = window.location.href.includes('benchmark') ? 'benchmark' : window.location.href.includes('model') ? 'model' : 'data';
-    imagesAppending(elements, imageElement, currentTutorial);
+    imagesAppending(imageElement);
   }
 })
 
@@ -66,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const tutorialStickyImageElement = createSideImageContainer();
       const contentElement = document.getElementsByClassName('md-content')[0];
       contentElement.parentNode.insertBefore(tutorialStickyImageElement, contentElement.nextSibling);
+      imagesAppending(tutorialStickyImageElement.querySelector('img'));
     }
 
 });
