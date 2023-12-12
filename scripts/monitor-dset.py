@@ -12,8 +12,7 @@ import shutil
 from pathlib import Path
 import typer
 import pyperclip
-from tabulate import tabulate
-from typer import Argument, Option
+from typer import Option
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import yaml
