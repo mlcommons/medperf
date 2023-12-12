@@ -36,8 +36,8 @@ function createSideImageContainer() {
   imageElement.src = '';
   imageElement.alt = '';
 
-  imageElement.setAttribute('class', 'tutorial-image');
-  imageElement.setAttribute('id', 'tutorial-image-1');
+  imageElement.setAttribute('class', 'tutorial-sticky-image');
+  imageElement.setAttribute('id', 'tutorial-sticky-image');
 
   containerElement.appendChild(imageElement);
 
@@ -64,6 +64,7 @@ function imagesAppending(elements, imageElement, tutorial) {
         imageElement.src = imageSrc;
       }
     }
+    // TODO: add a default image instead (or hide the whole image elem if possible)
     else if (rect.top > 120 && content === 'overview') {
       imageElement.src = '';
     }
@@ -72,26 +73,14 @@ function imagesAppending(elements, imageElement, tutorial) {
 
 // ADDS IMAGING SCROLL TO TUTORIALS
 window.addEventListener('scroll', function() {
-  const containerElement = createSideImageContainer();
+  let containerElement = document.querySelector('.side-container');
 
-  const benchmarkElement = document.querySelector('#hands-on-tutorial-for-bechmark-committee');
-  const dataElement = document.querySelector('#hands-on-tutorial-for-data-owners');
-  const modelElement = document.querySelector('#hands-on-tutorial-for-model-owners');
-
-  if (benchmarkElement) benchmarkElement.appendChild(containerElement);
-  else if (dataElement) dataElement.appendChild(containerElement);
-  else if (modelElement) modelElement.appendChild(containerElement);
-
-  const sideContainer = document.querySelector('.side-container');
-  let imageElement
-
-  if (sideContainer) imageElement = sideContainer.querySelector('img');
-
-  const elements = document.querySelectorAll('h2');
-
-  const currentTutorial = window.location.href.includes('benchmark') ? 'benchmark' : window.location.href.includes('model') ? 'model' : 'data';
-  
-  imagesAppending(elements, imageElement, currentTutorial);
+  if (containerElement) {
+    const imageElement = containerElement.querySelector('img');
+    const elements = document.querySelectorAll('h2');
+    const currentTutorial = window.location.href.includes('benchmark') ? 'benchmark' : window.location.href.includes('model') ? 'model' : 'data';
+    imagesAppending(elements, imageElement, currentTutorial);
+  }
 })
 
 // ADDS HOME BUTTON TO HEADER
@@ -106,6 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     headerTitle.appendChild(newElement);
     console.log(document.querySelector(".header_home_btn"))
-    
   }
+
+    const tutorialStickyImageElement = createSideImageContainer();
+
+    // TODO: here is bug, I add element on all the pages, not only on the tutorials
+    const contentElement = document.getElementsByClassName('md-main__inner')[0];
+    contentElement.appendChild(tutorialStickyImageElement);
+
 });
