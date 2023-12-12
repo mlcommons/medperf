@@ -14,10 +14,8 @@ import typer
 import pyperclip
 from tabulate import tabulate
 from typer import Argument, Option
-from medperf.utils import storage_path, read_config, set_custom_config
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from medperf import config
 import yaml
 import pandas as pd
 import tarfile
@@ -40,7 +38,7 @@ from textual.widgets import (
     Markdown,
 )
 
-NAME_HELP = "The name of the dataset to monitor"
+DSET_HELP = "The Dataset to monitor. If and ID is passed, medperf will be used to identify the dataset. If a path is passed, it will look at that path instead"
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
 STAGES_HELP = "Path to stages YAML file containing documentation about the Data Preparation stages"
 DEFAULT_SEGMENTATION = "tumorMask_fused-staple.nii.gz"
@@ -845,23 +843,28 @@ class Subjectbrowser(App):
 
 
 def main(
-    dataset_uid: str = Argument(..., help=NAME_HELP),
-    stages_path: str = Option(DEFAULT_STAGES_PATH, help=STAGES_HELP),
+    dataset_uid: str = Option(None, "-d", "--dataset", help=DSET_HELP),
+    stages_path: str = Option(DEFAULT_STAGES_PATH, "-s", "--stages", help=STAGES_HELP),
+    dset_path: str = Option(None, "-p", "--path", help="Location of the dataset. If not provided defaults to Medperf storage search"),
     output_path: str = Option(None, "-o", "--out", help="CSV file to store report in"),
 ):
-    config_p = read_config()
-    set_custom_config(config_p.active_profile)
+    if dataset_uid.isdigit():
+        # Only import medperf dependencies if the user intends to use medperf
+        from medperf import config
+        from medperf.utils import storage_path, read_config, set_custom_config
 
-    dsets_path = storage_path(config.data_storage)
-    dset_path = os.path.join(dsets_path, dataset_uid)
+        config_p = read_config()
+        set_custom_config(config_p.active_profile)
+
+        dsets_path = storage_path(config.data_storage)
+        dset_path = os.path.join(dsets_path, dataset_uid)
+    else:
+        dset_path = dataset_uid
 
     if not os.path.exists(dset_path):
         print(
-            "The provided dataset could not be found. Please ensure the name and ID are correct"
+            "The provided dataset could not be found. Please ensure the passed dataset UID/path is correct"
         )
-        print()
-        print("AVAILABLE DATASETS")
-        display_available_dsets()
 
     report_path = os.path.join(dset_path, "report.yaml")
     dset_data_path = os.path.join(dset_path, "data")
@@ -893,14 +896,6 @@ def main(
     app.run()
 
     observer.stop()
-
-
-def display_available_dsets():
-    staging_path = storage_path(config.staging_data_storage)
-    available_staging_dsets = os.listdir(staging_path)
-    staging_dsets_params = [dset.split("_") for dset in available_staging_dsets]
-    headers = ["Dataset Name", "MLCube ID"]
-    print(tabulate(staging_dsets_params, headers=headers))
 
 
 if __name__ == "__main__":
