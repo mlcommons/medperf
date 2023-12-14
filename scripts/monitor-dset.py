@@ -19,6 +19,7 @@ import yaml
 import pandas as pd
 import tarfile
 from subprocess import Popen, DEVNULL
+import webbrowser
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -501,6 +502,7 @@ class SubjectDetails(Static):
         with Center(id="subject-title"):
             yield Static(id="subject-name")
             yield Static(id="subject-status")
+            yield Static(id="docs-url")
         yield Markdown(id="subject-comment-md")
         yield CopyableItem("Data path", "", id="subject-data-container")
         yield CopyableItem("Labels path", "", id="subject-labels-container")
@@ -537,6 +539,7 @@ class SubjectDetails(Static):
         self.dset_path = dset_path
         wname = self.query_one("#subject-name", Static)
         wstatus = self.query_one("#subject-status", Static)
+        wdocs = self.query_one("#docs-url", Static)
         wmsg = self.query_one("#subject-comment-md", Markdown)
         wdata = self.query_one("#subject-data-container", CopyableItem)
         wlabels = self.query_one("#subject-labels-container", CopyableItem)
@@ -553,6 +556,12 @@ class SubjectDetails(Static):
         wmsg.update(subject["comment"])
         wdata.update(to_local_path(subject["data_path"], dset_path))
         wlabels.update(to_local_path(subject["labels_path"], labels_path))
+        if subject["docs_url"]:
+            url = subject["docs_url"]
+            wdocs.update(f"Full documentation: [@click=app.open_url(\'{url}\')]{url}[/]")
+        else:
+            wdocs.display = "none"
+
         # Hardcoding manual review behavior. This SHOULD NOT be here for general data prep monitoring.
         # Additional configuration must be set to make this kind of features generic
         can_review = MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
@@ -839,6 +848,9 @@ class Subjectbrowser(App):
             container.display = False
         except:
             return
+
+    def action_open_url(self, url):
+        webbrowser.open(url, new=0, autoraise=True)
 
 
 def main(
