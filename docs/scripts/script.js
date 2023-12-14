@@ -1,32 +1,3 @@
-const tutorials = {
-  benchmark: [
-    { image: 1, content:'overview' },
-    { image: 2, content:'Before You Start' },
-    { image: 3, content:'1. Implement a Valid Workflow' },
-    // { image: 4, content:'' },
-    // { image: 1, content:'' },
-    // { image: 5, content:'' },
-    // { image: 6, content:'' },
-  ],
-  model: [
-    { image: 1, content:'overview' },
-    { image: 2, content:'Before You Start' },
-    { image: 3, content:'1. Test your MLCube Compatibility' },
-    // { image: 4, content:'' },
-    // { image: 1, content:'' },
-    // { image: 5, content:'' },
-    // { image: 6, content:'' },
-  ],
-  data: [
-    { image: 1, content:'overview' },
-    { image: 2, content:'Before You Start' },
-    { image: 3, content:'1. Prepare your Data' },
-    // { image: 4, content:'' },
-    // { image: 1, content:'' },
-    // { image: 5, content:'' },
-    // { image: 6, content:'' },
-  ],
-};
 
 function createSideImageContainer() {
   const containerElement = document.createElement('div');
@@ -36,62 +7,46 @@ function createSideImageContainer() {
   imageElement.src = '';
   imageElement.alt = '';
 
-  imageElement.setAttribute('class', 'tutorial-image');
-  imageElement.setAttribute('id', 'tutorial-image-1');
+  imageElement.setAttribute('class', 'tutorial-sticky-image');
+  imageElement.setAttribute('id', 'tutorial-sticky-image');
 
   containerElement.appendChild(imageElement);
 
   return containerElement;
 }
 
-function imagesAppending(elements, imageElement, tutorial) {
+function imagesAppending(imageElement) {
   let imageSrc = '';
+  let smthWasSet = false;
 
-  tutorials[tutorial].forEach(({ image, content }) => {
-    let targetElement;
+  const contentImages = document.getElementsByClassName("tutorial-sticky-image-content")
+  for (let contentImageElement of contentImages) {
 
-    for (const element of elements) {
-      if (element.innerHTML.includes(content)) {
-        targetElement = element;
-        break;
-      }
-    }
-
-    const rect = targetElement.getBoundingClientRect();
-    if (120 > rect.top) {
-      imageSrc = `https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/workflow/miccai-tutorial${image}.png`;
+    const rect = contentImageElement.getBoundingClientRect();
+    if (300 > rect.top) {
+      imageSrc = contentImageElement.src;
+      smthWasSet = true;
+      console.log(rect.top, "changing image to", imageSrc)
       if (imageElement) {
         imageElement.src = imageSrc;
+        imageElement.style.display="block";
       }
     }
-    else if (rect.top > 120 && content === 'overview') {
-      imageElement.src = '';
-    }
-  })
+  }
+  if (!smthWasSet) {
+    console.log("no image was chosen. Hid the image");
+    imageElement.style.display="none";
+  }
 }
 
 // ADDS IMAGING SCROLL TO TUTORIALS
 window.addEventListener('scroll', function() {
-  const containerElement = createSideImageContainer();
+  let containerElement = document.querySelector('.side-container');
 
-  const benchmarkElement = document.querySelector('#hands-on-tutorial-for-bechmark-committee');
-  const dataElement = document.querySelector('#hands-on-tutorial-for-data-owners');
-  const modelElement = document.querySelector('#hands-on-tutorial-for-model-owners');
-
-  if (benchmarkElement) benchmarkElement.appendChild(containerElement);
-  else if (dataElement) dataElement.appendChild(containerElement);
-  else if (modelElement) modelElement.appendChild(containerElement);
-
-  const sideContainer = document.querySelector('.side-container');
-  let imageElement
-
-  if (sideContainer) imageElement = sideContainer.querySelector('img');
-
-  const elements = document.querySelectorAll('h2');
-
-  const currentTutorial = window.location.href.includes('benchmark') ? 'benchmark' : window.location.href.includes('model') ? 'model' : 'data';
-  
-  imagesAppending(elements, imageElement, currentTutorial);
+  if (containerElement) {
+    const imageElement = containerElement.querySelector('img');
+    imagesAppending(imageElement);
+  }
 })
 
 // ADDS HOME BUTTON TO HEADER
@@ -106,6 +61,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     headerTitle.appendChild(newElement);
     console.log(document.querySelector(".header_home_btn"))
-    
   }
+
+    const contentImages = document.getElementsByClassName("tutorial-sticky-image-content");
+    if (contentImages.length) {
+      console.log('content images found: ', contentImages)
+      // we add an element only if there are content images on this page to be shown
+      const tutorialStickyImageElement = createSideImageContainer();
+      const contentElement = document.getElementsByClassName('md-content')[0];
+      contentElement.parentNode.insertBefore(tutorialStickyImageElement, contentElement.nextSibling);
+      imagesAppending(tutorialStickyImageElement.querySelector('img'));
+    }
+
 });

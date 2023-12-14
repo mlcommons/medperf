@@ -13,30 +13,38 @@
 }
 
 .side-container {
-  width: 380px;
-  height: fit-content;
-  position: fixed;
-  right: 0;
+  min-width: 10rem;
+  max-width: 40rem;
+  align-self: flex-start;
+  flex-shrink: 0;
+  width: 35%;
+  position: sticky;
   top: 100px;
   background-color: transparent;
   z-index: 0 !important;
 }
 
-#side-container img {
+@media screen and (max-width: 70em) {
+  .side-container {
+    display: none;
+  }
+}
+
+.tutorial-sticky-image {
   width: 100%;
   height: 100%;
   z-index: 0 !important;
 }
 
-.md-grid {
-  margin-left: 175px !important;
+.tutorial-sticky-image-content {
+  width: 0;
+  height: 0;
 }
 
-.md-content__inner {
-  margin-right: 240px;
-  margin-bottom: 610px;
-  z-index: 9999 !important;
+.md-main__inner.md-grid {
+    max-width: 75rem;
 }
+
 
 .md-header__inner {
   max-width: 70rem !important;
@@ -86,8 +94,6 @@
 }
 
 .tutorial_card_container {
-  display: flex;
-  justify-content: center;
   justify-content: center;
   align-items: center;
   display: grid;
@@ -142,7 +148,6 @@
 }
 
 .tutorial_card_container .card_title {
-  margin: 0;
   margin: 5px 0;
   font-weight: bold;
   font-size: 16.5px;
