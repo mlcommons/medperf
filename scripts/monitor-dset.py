@@ -41,7 +41,7 @@ from textual.widgets import (
 DSET_HELP = "The Dataset to monitor. If and ID is passed, medperf will be used to identify the dataset. If a path is passed, it will look at that path instead"
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
 STAGES_HELP = "Path to stages YAML file containing documentation about the Data Preparation stages"
-DEFAULT_SEGMENTATION = "tumorMask_fused-staple.nii.gz"
+DEFAULT_SEGMENTATION = "AAAC_00_2008.12.17_duplicate_tumorMask_model_0.nii.gz"
 DEFAULT_STAGES_PATH = os.path.join(os.path.dirname(__file__), "assets/stages.yaml")
 BRAINMASK = "brainMask_fused.nii.gz"
 REVIEW_FILENAME = "review_cases.tar.gz"
@@ -203,7 +203,8 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             brain_mask_filename = "brainMask_fused.nii.gz"
             brain_mask_path = os.path.join(base_path, brain_mask_filename)
             brain_mask_tar_path = os.path.join(tar_path, brain_mask_filename)
-            tar.add(brain_mask_path, brain_mask_tar_path)
+            if os.path.exists(brain_mask_path):
+                tar.add(brain_mask_path, brain_mask_tar_path)
 
             # Add raw scans
             rawscan_path = os.path.join("review_cases", id, tp, "raw_scans")
@@ -523,14 +524,15 @@ class SubjectDetails(Static):
                 id="reviewed-button",
                 disabled=True,
             )
-            yield Static("If brain mask is not correct")
+            yield Static("If brain mask is not correct", id="brianmask-review-header")
             yield Button(
-                "Review Brain Mask",
+                "Brain mask not available",
                 disabled=True,
                 id="brainmask-review-button",
             )
             yield Static(
                 "IMPORTANT: Changes to the brain mask will invalidate tumor segmentations and cause a re-run of tumor segmentation models",
+                id="brainmask-review-warning",
                 classes="warning",
             )
 
@@ -576,17 +578,19 @@ class SubjectDetails(Static):
 
     def __update_buttons(self):
         review_msg = self.query_one("#review-msg", Static)
-        review_brainmask_button = self.query_one("#brainmask-review-button", Button)
         review_button = self.query_one("#review-button", Button)
         reviewed_button = self.query_one("#reviewed-button", Button)
+        brainmask_button = self.query_one("#brainmask-review-button", Button)
 
         if self.__can_review():
             review_msg.display = "none"
-            review_brainmask_button.disabled = False
             review_button.disabled = False
         if self.__can_finalize():
             reviewed_button.label = "Mark as finalized"
             reviewed_button.disabled = False
+        if self.__can_review_brain():
+            brainmask_button.label = "Review brain mask"
+            brainmask_button.disabled = False
 
     def __can_review(self):
         review_command_path = shutil.which(REVIEW_COMMAND)
@@ -603,6 +607,11 @@ class SubjectDetails(Static):
         )
 
         return os.path.exists(under_review_filepath)
+
+    def __can_review_brain(self):
+        labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        brainmask_file = get_brain_path(labels_path)
+        return os.path.exists(brainmask_file)
 
     def __review_tumor(self):
         review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
