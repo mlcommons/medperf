@@ -277,6 +277,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         output_logs: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
+        read_protected_input: bool = True,
         **kwargs,
     ):
         """Executes a given task on the cube instance
@@ -286,6 +287,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
                                                  Defaults to {}.
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
+            read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
@@ -294,9 +296,19 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
+        if read_protected_input:
+            cmd += " --mount=ro"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
+
+        cpu_args = self.get_config("docker.cpu_args") or ""
+        gpu_args = self.get_config("docker.gpu_args") or ""
+        cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
+        gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
+        cmd += f' -Pdocker.cpu_args="{cpu_args}"'
+        cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc)
@@ -324,14 +336,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             str: the path as specified in the mlcube.yaml file for the desired
                 output for the desired task. Defaults to None if out_key not found
         """
-        with open(self.cube_path, "r") as f:
-            cube = yaml.safe_load(f)
+        out_path = self.get_config(f"tasks.{task}.parameters.outputs.{out_key}")
+        if out_path is None:
+            return
 
-        out_params = cube["tasks"][task]["parameters"]["outputs"]
-        if out_key not in out_params:
-            return None
-
-        out_path = cube["tasks"][task]["parameters"]["outputs"][out_key]
         if isinstance(out_path, dict):
             # output is specified as a dict with type and default values
             out_path = out_path["default"]
@@ -345,6 +353,26 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             out_path = os.path.join(out_path, params[param_key])
 
         return out_path
+
+    def get_config(self, identifier):
+        """
+        Returns the output parameter specified in the mlcube.yaml file
+
+        Args:
+            identifier (str): `.` separated keys to traverse the mlcube dict
+        Returns:
+            str: the parameter value, None if not found
+        """
+        with open(self.cube_path, "r") as f:
+            cube = yaml.safe_load(f)
+
+        keys = identifier.split(".")
+        for key in keys:
+            if key not in cube:
+                return
+            cube = cube[key]
+
+        return cube
 
     def todict(self) -> Dict:
         return self.extended_dict()

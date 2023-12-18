@@ -79,6 +79,7 @@ class MedperfSchema(MedperfBaseSchema):
     id: Optional[int]
     name: str = Field(..., max_length=64)
     owner: Optional[int]
+    is_valid: bool = True
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
 
@@ -92,7 +93,6 @@ class MedperfSchema(MedperfBaseSchema):
 class DeployableSchema(BaseModel):
     # TODO: This must change after allowing edits
     state: str = "OPERATION"
-    is_valid: bool = True
 
 
 class ApprovableSchema(BaseModel):
