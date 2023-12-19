@@ -228,8 +228,8 @@ class DataPreparation:
                 report_dict = yaml.safe_load(f)
 
             report = pd.DataFrame(report_dict)
-            if "status_name" in report.keys():
-                report_status = report.status_name.value_counts() / len(report)
+            if "status" in report.keys():
+                report_status = report.status.value_counts() / len(report)
                 report_status_dict = report_status.round(3).to_dict()
 
         return report_status_dict
