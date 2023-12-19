@@ -1,44 +1,22 @@
 import pytest
-from copy import deepcopy
 from unittest.mock import call
 from typer.testing import CliRunner
 
-from medperf.config_management import ConfigManager
-from medperf.utils import default_profile
+from medperf.config_management import read_config
 from medperf.commands.profile import app
 
 runner = CliRunner()
 PATCH_PROFILE = "medperf.commands.profile.{}"
 
 
-@pytest.fixture
-def config_p(mocker):
-    config_p = ConfigManager()
-    config_p.active_profile_name = "default"
-    config_p.profiles = {
-        "default": default_profile(),
-        "test": {
-            **default_profile(),
-            "certificate": "~/.medperf_test.crt",
-            "server": "https://localhost:8000",
-        },
-    }
-    mocker.patch(PATCH_PROFILE.format("read_config"), return_value=config_p)
-    mocker.patch(PATCH_PROFILE.format("write_config"))
-    return config_p
-
-
-@pytest.mark.parametrize("profile", ["test", "default"])
-def test_activate_updates_active_profile(mocker, config_p, profile):
-    # Arrange
-    write_spy = mocker.patch(PATCH_PROFILE.format("write_config"))
-
+@pytest.mark.parametrize("profile", ["local", "testauth"])
+def test_activate_updates_active_profile(mocker, profile):
     # Act
     runner.invoke(app, ["activate", profile])
 
     # Assert
+    config_p = read_config()
     assert config_p.is_profile_active(profile)
-    write_spy.assert_called_once_with(config_p)
 
 
 @pytest.mark.parametrize("name", ["new_profile", "fets"])
@@ -53,59 +31,49 @@ def test_activate_updates_active_profile(mocker, config_p, profile):
         ([], {}),
     ],
 )
-def test_create_adds_new_profile(mocker, config_p, name, args):
+def test_create_adds_new_profile(mocker, name, args):
     # Arrange
     in_args, out_cfg = args
-    write_spy = mocker.patch(PATCH_PROFILE.format("write_config"))
 
     # Act
     runner.invoke(app, ["create", "-n", name] + in_args)
 
     # Assert
-    config_p[name] == out_cfg
-    write_spy.assert_called_once_with(config_p)
+    config_p = read_config()
+    assert config_p[name] == {**config_p.profiles["default"], **out_cfg}
 
 
-def test_create_fails_if_name_exists(mocker, config_p):
+def test_create_fails_if_name_exists(mocker):
     # Arrange
-    name = "test"
-    write_spy = mocker.patch(PATCH_PROFILE.format("write_config"))
+    name = "local"
 
     # Act
-    runner.invoke(app, ["create", "-n", name])
+    res = runner.invoke(app, ["create", "-n", name])
 
     # Assert
-    write_spy.assert_not_called()
+    assert res.exit_code != 0
 
 
 @pytest.mark.parametrize(
     "args", [(["--platform", "not_docker"], {"platform": "not_docker"})]
 )
-def test_set_updates_profile_parameters(mocker, config_p, args):
+def test_set_updates_profile_parameters(mocker, args):
     # Arrange
     in_args, out_cfg = args
-    write_spy = mocker.patch(PATCH_PROFILE.format("write_config"))
-    # conftest is setting config.ui = mocked ui.
-    # config_p fixture is calling default_profile.
-    # default profile uses config.ui
-    # deepcopy-ing mocked ui is causing an error
-    # This is a temp fix to figure out what should be done
-    config_p.active_profile["ui"] = "CLI"
-    config_p.active_profile["comms"] = "REST"
-    exp_cfg = deepcopy(config_p.active_profile)
-    exp_cfg.update(out_cfg)
+
     # Act
     runner.invoke(app, ["set"] + in_args)
 
     # Assert
-    assert config_p.active_profile == exp_cfg
-    write_spy.assert_called_once()
+    config_p = read_config()
+    assert config_p.active_profile == {**config_p.profiles["default"], **out_cfg}
 
 
-def test_ls_prints_profile_names(mocker, config_p, ui):
+def test_ls_prints_profile_names(mocker, ui):
     # Arrange
     spy = mocker.patch.object(ui, "print")
     green_spy = mocker.patch.object(ui, "print_highlight")
+    config_p = read_config()
 
     calls = [
         call("  " + profile)
@@ -121,10 +89,11 @@ def test_ls_prints_profile_names(mocker, config_p, ui):
     green_spy.assert_called_once_with("* " + config_p.active_profile_name)
 
 
-@pytest.mark.parametrize("profile", ["default", "test"])
-def test_view_prints_profile_contents(mocker, config_p, profile):
+@pytest.mark.parametrize("profile", ["default", "local"])
+def test_view_prints_profile_contents(mocker, profile):
     # Arrange
     spy = mocker.patch(PATCH_PROFILE.format("dict_pretty_print"))
+    config_p = read_config()
     cfg = config_p[profile]
 
     # Act

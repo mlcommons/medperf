@@ -2,7 +2,6 @@ from medperf.exceptions import InvalidArgumentError
 import pytest
 
 import medperf.commands.compatibility_test.utils as utils
-from medperf.utils import init_storage
 import os
 import medperf.config as config
 
@@ -13,7 +12,6 @@ PATCH_UTILS = "medperf.commands.compatibility_test.utils.{}"
 class TestPrepareCube:
     @pytest.fixture(autouse=True)
     def setup(self, fs):
-        init_storage()
         cube_path = "/path/to/cube"
         cube_path_config = os.path.join(cube_path, config.cube_filename)
         fs.create_file(cube_path_config, contents="cube mlcube.yaml contents")
