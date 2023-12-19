@@ -182,7 +182,7 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data preparation step"
+echo "Running data set operational step"
 echo "====================================="
 medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data set operational step failed"
