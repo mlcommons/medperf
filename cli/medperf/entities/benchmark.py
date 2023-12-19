@@ -7,7 +7,6 @@ from pydantic import HttpUrl, Field
 
 import medperf.config as config
 from medperf.entities.interface import Entity, Uploadable
-from medperf.utils import storage_path
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
@@ -45,7 +44,7 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         super().__init__(*args, **kwargs)
 
         self.generated_uid = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
-        path = storage_path(config.benchmarks_storage)
+        path = config.benchmarks_folder
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
@@ -108,7 +107,7 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
     @classmethod
     def __local_all(cls) -> List["Benchmark"]:
         benchmarks = []
-        bmks_storage = storage_path(config.benchmarks_storage)
+        bmks_storage = config.benchmarks_folder
         try:
             uids = next(os.walk(bmks_storage))[1]
         except StopIteration:
@@ -193,7 +192,7 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             dict: information of the benchmark
         """
         logging.info(f"Retrieving benchmark {benchmark_uid} from local storage")
-        storage = storage_path(config.benchmarks_storage)
+        storage = config.benchmarks_folder
         bmk_storage = os.path.join(storage, str(benchmark_uid))
         bmk_file = os.path.join(bmk_storage, config.benchmarks_filename)
         if not os.path.exists(bmk_file):

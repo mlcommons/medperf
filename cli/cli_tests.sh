@@ -191,6 +191,18 @@ DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d "
 
 echo "\n"
 
+
+##########################################################
+echo "====================================="
+echo "Moving storage to some other location"
+echo "====================================="
+medperf storage move -t /tmp/some_folder
+checkFailed "moving storage failed"
+MEDPERF_STORAGE="/tmp/some_folder/.medperf"
+##########################################################
+
+echo "\n"
+
 ##########################################################
 echo "====================================="
 echo "Running data association step"
@@ -342,7 +354,7 @@ echo "\n"
 echo "====================================================================="
 echo "Run failing cube with ignore errors after deleting predictions folder"
 echo "====================================================================="
-rm -rf $MEDPERF_SUBSTORAGE/predictions/model-fail/$DSET_A_GENUID
+rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
 checkFailed "Failing mlcube run with ignore errors failed"
 ##########################################################

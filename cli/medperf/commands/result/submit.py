@@ -1,7 +1,7 @@
 import os
 
 from medperf.exceptions import CleanExit
-from medperf.utils import remove_path, dict_pretty_print, approval_prompt, storage_path
+from medperf.utils import remove_path, dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
 from medperf.enums import Status
 from medperf import config
@@ -51,7 +51,7 @@ class ResultSubmission:
             result_dict (dict): updated results dictionary
         """
         result = Result(**result_dict)
-        result_storage = storage_path(config.results_storage)
+        result_storage = config.results_folder
         old_res_loc = os.path.join(result_storage, result.generated_uid)
         new_res_loc = result.path
         remove_path(new_res_loc)

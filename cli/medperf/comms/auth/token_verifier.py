@@ -17,10 +17,10 @@ from auth0.authentication.token_verifier import (
 class JwksFetcherWithDiskCache(JwksFetcher):
     def _init_cache(self, cache_ttl: int) -> None:
         super()._init_cache(cache_ttl)
-        jwk_storage = os.path.join(config.storage, config.auth_jwks_storage)
-        if not os.path.exists(jwk_storage):
+        jwks_file = config.auth_jwks_file
+        if not os.path.exists(jwks_file):
             return
-        with open(jwk_storage) as f:
+        with open(jwks_file) as f:
             data = json.load(f)
         self._cache_value = self._parse_jwks(data["jwks"])
         self._cache_date = data["cache_date"]
@@ -28,8 +28,8 @@ class JwksFetcherWithDiskCache(JwksFetcher):
     def _cache_jwks(self, jwks: dict[str, Any]) -> None:
         super()._cache_jwks(jwks)
         data = {"cache_date": self._cache_date, "jwks": jwks}
-        jwk_storage = os.path.join(config.storage, config.auth_jwks_storage)
-        with open(jwk_storage, "w") as f:
+        jwks_file = config.auth_jwks_file
+        with open(jwks_file, "w") as f:
             json.dump(data, f)
 
 

@@ -1,6 +1,6 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
-from medperf.utils import storage_path, get_folders_hash, remove_path
+from medperf.utils import get_folders_hash, remove_path
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -41,8 +41,8 @@ def download_demo_data(dset_url, dset_hash):
 
 def prepare_local_cube(path):
     temp_uid = get_folders_hash([path])
-    cubes_storage = storage_path(config.cubes_storage)
-    dst = os.path.join(cubes_storage, temp_uid)
+    cubes_folder = config.cubes_folder
+    dst = os.path.join(cubes_folder, temp_uid)
     os.symlink(path, dst)
     logging.info(f"local cube will be linked to path: {dst}")
     config.tmp_paths.append(dst)

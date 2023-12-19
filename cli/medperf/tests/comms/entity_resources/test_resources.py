@@ -1,5 +1,5 @@
 import os
-from medperf.utils import base_storage_path, get_file_hash
+from medperf.utils import get_file_hash
 import pytest
 import medperf.config as config
 from medperf.comms.entity_resources import resources
@@ -33,7 +33,7 @@ class TestGetCubeImage:
             cube_yaml_path, contents=yaml.dump({"singularity": {"image": image_name}})
         )
         exp_file = os.path.join(cube_path, config.image_path, image_name)
-        os.makedirs(base_storage_path(config.images_storage), exist_ok=True)
+        os.makedirs(config.images_folder, exist_ok=True)
 
         # Act
         resources.get_cube_image(url, cube_path)
@@ -54,7 +54,7 @@ class TestGetCubeImage:
         fs.create_file(
             cube_yaml_path, contents=yaml.dump({"singularity": {"image": image_name}})
         )
-        img_path = os.path.join(base_storage_path(config.images_storage), "hash")
+        img_path = os.path.join(config.images_folder, "hash")
         fs.create_file(img_path, contents="img")
 
         # Act

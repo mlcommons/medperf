@@ -6,7 +6,6 @@ from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.result import TestResult
-from medperf.utils import storage_path
 import pytest
 
 from medperf.commands.result.create import BenchmarkExecution
@@ -321,7 +320,7 @@ class TestDefaultSetup:
         dset_uid = 2
         bmk_uid = 1
         expected_file = os.path.join(
-            storage_path(config.results_storage),
+            config.results_folder,
             f"b{bmk_uid}m{model_uid}d{dset_uid}",
             config.results_info_file,
         )

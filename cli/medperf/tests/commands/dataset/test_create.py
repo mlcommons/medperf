@@ -1,7 +1,6 @@
 import os
 import medperf.config as config
 from medperf.exceptions import InvalidArgumentError
-from medperf.utils import storage_path
 import pytest
 from unittest.mock import call
 
@@ -262,7 +261,7 @@ class TestWithDefaultUID:
         mocker.patch("os.path.exists", return_value=False)
         preparation.generated_uid = str(uid)
         preparation.out_path = out_path
-        expected_path = os.path.join(storage_path(config.data_storage), str(uid))
+        expected_path = os.path.join(config.datasets_folder, str(uid))
 
         # Act
         preparation.to_permanent_path()

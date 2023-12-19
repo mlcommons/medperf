@@ -15,8 +15,8 @@ DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
 MEDPERF_STORAGE=~/.medperf
-MEDPERF_SUBSTORAGE="$MEDPERF_STORAGE/$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
-MEDPERF_LOG_STORAGE="$MEDPERF_SUBSTORAGE/logs/medperf.log"
+SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
+MEDPERF_LOG_STORAGE="$MEDPERF_STORAGE/logs/medperf.log"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
 LOGIN_SCRIPT="$(dirname $(realpath "$0"))/auto_login.sh"
@@ -31,8 +31,9 @@ clean(){
   echo "====================================="
   echo "Cleaning up medperf tmp files"
   echo "====================================="
+  # move back storage
   rm -fr $DIRECTORY
-  rm -fr $MEDPERF_SUBSTORAGE
+  rm -fr $MEDPERF_STORAGE/**/$SERVER_STORAGE_ID
   # errors of the commands below are ignored
   medperf profile activate default
   medperf profile delete testbenchmark
