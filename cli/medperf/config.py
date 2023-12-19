@@ -42,87 +42,92 @@ refresh_token_storage_id = "medperf_refresh_token"
 local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 
 # Storage config
-home_storage = str(Path.home().resolve() / ".medperf")
-config_path = str(Path(home_storage) / "config.yaml")
-auth_jwks_file = str(Path(home_storage) / ".jwks")
-creds_folder = str(Path(home_storage) / ".tokens")
+config_storage = Path.home().resolve() / ".medperf_config"
+config_path = str(config_storage / "config.yaml")
+auth_jwks_file = str(config_storage / ".jwks")
+creds_folder = str(config_storage / ".tokens")
 
 images_folder = ".images"
 trash_folder = ".trash"
+logs_folder = "logs"
+tmp_folder = ".tmp"
+demo_datasets_folder = "demo"
 
 benchmarks_folder = "benchmarks"
 cubes_folder = "cubes"
 datasets_folder = "data"
-demo_datasets_folder = "demo"
 experiments_logs_folder = "experiments_logs"
-logs_folder = "logs"
 results_folder = "results"
 predictions_folder = "predictions"
-tmp_folder = "tmp"
 tests_folder = "tests"
+
+default_base_storage = str(Path.home().resolve() / ".medperf")
 
 storage = {
     "images_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": images_folder,
     },
     "trash_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": trash_folder,
     },
+    "logs_folder": {
+        "base": default_base_storage,
+        "name": logs_folder,
+    },
+    "tmp_folder": {
+        "base": default_base_storage,
+        "name": tmp_folder,
+    },
+    "demo_datasets_folder": {
+        "base": default_base_storage,
+        "name": demo_datasets_folder,
+    },
     "benchmarks_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": benchmarks_folder,
     },
     "cubes_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": cubes_folder,
     },
     "datasets_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": datasets_folder,
     },
-    "demo_datasets_folder": {
-        "base": home_storage,
-        "name": demo_datasets_folder,
-    },
     "experiments_logs_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": experiments_logs_folder,
     },
-    "logs_folder": {
-        "base": home_storage,
-        "name": logs_folder,
-    },
     "results_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": results_folder,
     },
     "predictions_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": predictions_folder,
     },
-    "tmp_folder": {
-        "base": home_storage,
-        "name": tmp_folder,
-    },
     "tests_folder": {
-        "base": home_storage,
+        "base": default_base_storage,
         "name": tests_folder,
     },
 }
 
-root_folders = ["images_folder", "trash_folder"]
+root_folders = [
+    "images_folder",
+    "trash_folder",
+    "logs_folder",
+    "tmp_folder",
+    "demo_datasets_folder",
+]
 server_folders = [
     "benchmarks_folder",
     "cubes_folder",
     "datasets_folder",
-    "demo_datasets_folder",
     "experiments_logs_folder",
-    "logs_folder",
     "results_folder",
     "predictions_folder",
-    "tmp_folder",
     "tests_folder",
 ]
 

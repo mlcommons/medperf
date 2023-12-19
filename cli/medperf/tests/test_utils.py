@@ -14,18 +14,6 @@ import yaml
 patch_utils = "medperf.utils.{}"
 
 
-@pytest.fixture
-def config_dirs(request):
-    parent = config.home_storage
-    data = config.datasets_folder
-    cubes = config.cubes_folder
-    results = config.results_folder
-    tmp = config.tmp_folder
-    i = request.param
-    dirs = [parent, data, cubes, results, tmp]
-    return dirs, dirs[:i] + dirs[i + 1 :]  # noqa
-
-
 def init_mock_isdir(existing_dirs):
     def isdir(dir):
         return dir in existing_dirs

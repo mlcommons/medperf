@@ -181,6 +181,17 @@ DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
 
 echo "\n"
 
+
+##########################################################
+echo "====================================="
+echo "Moving storage to some other location"
+echo "====================================="
+medperf storage move -t /tmp/some_folder
+checkFailed "moving storage failed"
+##########################################################
+
+echo "\n"
+
 ##########################################################
 echo "====================================="
 echo "Running data association step"

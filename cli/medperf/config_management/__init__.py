@@ -45,7 +45,9 @@ def _init_config():
     }
 
     config_p.activate(config.default_profile_name)
-    config_p.write(config.config_path)
+
+    os.makedirs(config.config_storage, exist_ok=True)
+    write_config(config_p)
 
 
 def setup_config():

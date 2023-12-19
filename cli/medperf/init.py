@@ -8,9 +8,6 @@ from medperf import config
 
 
 def initialize():
-    # Initialize base storage
-    os.makedirs(config.home_storage, exist_ok=True)
-
     # setup config
     setup_config()
 

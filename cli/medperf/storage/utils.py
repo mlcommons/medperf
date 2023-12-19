@@ -18,7 +18,7 @@ def full_folder_path(folder, new_base=None):
     elif folder in config.server_folders:
         info = config.storage[folder]
         base = new_base or info["base"]
-        full_path = os.path.join(base, server_path, info["name"])
+        full_path = os.path.join(base, info["name"], server_path)
 
     return full_path
 
@@ -31,10 +31,18 @@ def move_storage(target_base_path: str):
     if os.path.basename(target_base_path) != ".medperf":
         target_base_path = os.path.join(target_base_path, ".medperf")
 
-    to_move = {}
+    # TODO: We currently rely on the permissions of the base folder
+    # It might be a better practice to recursively change permissions of its contents
+    if os.path.exists(target_base_path):
+        os.chmod(target_base_path, 0o700)
+    else:
+        os.makedirs(target_base_path, 0o700)
+
     for folder in config.storage:
-        folder_path = getattr(config, folder)
-        target_path = full_folder_path(folder, new_base=target_base_path)
+        folder_path = os.path.join(
+            config.storage[folder]["base"], config.storage[folder]["name"]
+        )
+        target_path = os.path.join(target_base_path, config.storage[folder]["name"])
 
         folder_path = os.path.normpath(folder_path)
         target_path = os.path.normpath(target_path)
@@ -48,16 +56,6 @@ def move_storage(target_base_path: str):
                 f"This folder already exists: {target_path}"
             )
 
-        to_move[folder] = {"current": folder_path, "target": target_path}
-
-    # TODO: We currently rely on the permissions of the base folder
-    # It might be a better practice to recursively change permissions of its contents
-    if os.path.exists(target_base_path):
-        os.chmod(target_base_path, 0o700)
-    else:
-        os.makedirs(target_base_path, 0o700)
-
-    for folder in to_move:
-        shutil.move(folder["current"], folder["target"])
+        shutil.move(folder_path, target_path)
         config_p.storage[folder] = target_base_path
         write_config(config_p)
