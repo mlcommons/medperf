@@ -403,6 +403,17 @@ medperf profile delete testdata
 checkFailed "Profile deletion failed"
 ##########################################################
 
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Moving storage back to not break subsequent tests"
+echo "====================================="
+medperf storage move -t $HOME
+checkFailed "moving storage failed"
+MEDPERF_STORAGE="$HOME/.medperf"
+##########################################################
+
 if ${CLEANUP}; then
   clean
 fi
