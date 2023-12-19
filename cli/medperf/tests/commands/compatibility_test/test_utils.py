@@ -2,7 +2,7 @@ from medperf.exceptions import InvalidArgumentError
 import pytest
 
 import medperf.commands.compatibility_test.utils as utils
-from medperf.utils import init_storage, storage_path
+from medperf.utils import init_storage
 import os
 import medperf.config as config
 
@@ -35,9 +35,9 @@ class TestPrepareCube:
         new_uid = utils.prepare_cube(getattr(self, path_attr))
 
         # Assert
-        cube_storage_path = os.path.join(storage_path(config.cubes_storage), new_uid)
-        assert os.path.islink(cube_storage_path)
-        assert os.path.realpath(cube_storage_path) == os.path.realpath(self.cube_path)
+        cube_path = os.path.join(config.cubes_folder, new_uid)
+        assert os.path.islink(cube_path)
+        assert os.path.realpath(cube_path) == os.path.realpath(self.cube_path)
 
     def test_local_cube_metadata_is_created(self):
         # Act
@@ -45,7 +45,7 @@ class TestPrepareCube:
 
         # Assert
         metadata_file = os.path.join(
-            storage_path(config.cubes_storage),
+            config.cubes_folder,
             new_uid,
             config.cube_metadata_filename,
         )
@@ -65,7 +65,7 @@ class TestPrepareCube:
 
         # Assert
         metadata_file = os.path.join(
-            storage_path(config.cubes_storage),
+            config.cubes_folder,
             new_uid,
             config.cube_metadata_filename,
         )
@@ -79,7 +79,7 @@ class TestPrepareCube:
     def test_cleanup_is_set_up_correctly(self):
         # Act
         uid = utils.prepare_cube(self.cube_path)
-        symlinked_path = storage_path(os.path.join(config.cubes_storage, uid))
+        symlinked_path = os.path.join(config.cubes_folder, uid)
         metadata_file = os.path.join(
             self.cube_path,
             config.cube_metadata_filename,

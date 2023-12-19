@@ -1,13 +1,13 @@
 import os
 import base64
-from medperf.utils import base_storage_path, remove_path
+from medperf.utils import remove_path
 from medperf import config
 
 
 class FilesystemTokenStore:
     def __init__(self):
-        self.creds_folder = base_storage_path(config.creds_folder)
-        os.makedirs(self.creds_folder, exist_ok=True)
+        self.creds_folder = config.creds_folder
+        os.makedirs(self.creds_folder, mode=0o700, exist_ok=True)
 
     def __get_paths(self, account_id):
         # Base64 encoding is used just to avoid facing a filesystem that doesn't support
@@ -16,7 +16,7 @@ class FilesystemTokenStore:
             "utf-8"
         )
         account_folder = os.path.join(self.creds_folder, account_id_encoded)
-        os.makedirs(account_folder, exist_ok=True)
+        os.makedirs(account_folder, mode=0o700, exist_ok=True)
 
         access_token_file = os.path.join(account_folder, config.access_token_storage_id)
         refresh_token_file = os.path.join(

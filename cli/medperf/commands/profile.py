@@ -2,7 +2,8 @@ import typer
 
 from medperf import config
 from medperf.decorators import configurable, clean_except
-from medperf.utils import dict_pretty_print, read_config, write_config
+from medperf.utils import dict_pretty_print
+from medperf.config_management import read_config, write_config
 from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
@@ -27,7 +28,6 @@ def activate(profile: str):
 
 @app.command("create")
 @clean_except
-@configurable
 def create(
     ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),

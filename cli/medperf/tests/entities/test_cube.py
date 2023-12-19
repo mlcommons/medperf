@@ -6,7 +6,6 @@ from unittest.mock import call
 import medperf
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import storage_path
 from medperf.tests.entities.utils import (
     setup_cube_fs,
     setup_cube_comms,
@@ -52,7 +51,7 @@ class TestGetFiles:
         self.id = setup["remote"][0]["id"]
 
         # Specify expected path for all downloaded files
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
+        self.cube_path = os.path.join(config.cubes_folder, str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
         self.params_path = os.path.join(
             self.cube_path, config.workspace_path, config.params_filename
@@ -150,7 +149,7 @@ class TestRun:
         self.gpus = config.gpus
 
         # Specify expected path for the manifest files
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
+        self.cube_path = os.path.join(config.cubes_folder, str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
 
     @pytest.mark.parametrize("timeout", [847, None])
@@ -265,7 +264,7 @@ class TestDefaultOutput:
         self.cube_contents = {
             "tasks": {task: {"parameters": {"outputs": {out_key: out_value}}}}
         }
-        self.cube_path = os.path.join(storage_path(config.cubes_storage), str(self.id))
+        self.cube_path = os.path.join(config.cubes_folder, str(self.id))
         self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
         fs.create_file(self.manifest_path, contents=yaml.dump(self.cube_contents))
 

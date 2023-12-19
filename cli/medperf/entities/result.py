@@ -3,7 +3,6 @@ import yaml
 import logging
 from typing import List, Union
 
-from medperf.utils import storage_path
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema
 import medperf.config as config
@@ -34,7 +33,7 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
         super().__init__(*args, **kwargs)
 
         self.generated_uid = f"b{self.benchmark}m{self.model}d{self.dataset}"
-        path = storage_path(config.results_storage)
+        path = config.results_folder
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
@@ -108,9 +107,9 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
     @classmethod
     def __local_all(cls) -> List["Result"]:
         results = []
-        results_storage = storage_path(config.results_storage)
+        results_folder = config.results_folder
         try:
-            uids = next(os.walk(results_storage))[1]
+            uids = next(os.walk(results_folder))[1]
         except StopIteration:
             msg = "Couldn't iterate over the dataset directory"
             logging.warning(msg)
@@ -202,7 +201,7 @@ class Result(Entity, Uploadable, MedperfSchema, ApprovableSchema):
 
     @classmethod
     def __get_local_dict(cls, local_uid):
-        result_path = os.path.join(storage_path(config.results_storage), str(local_uid))
+        result_path = os.path.join(config.results_folder, str(local_uid))
         result_file = os.path.join(result_path, config.results_info_file)
         if not os.path.exists(result_file):
             raise InvalidArgumentError(

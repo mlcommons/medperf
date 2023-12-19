@@ -3,7 +3,7 @@ from copy import deepcopy
 from unittest.mock import call
 from typer.testing import CliRunner
 
-from medperf.config_managment import ConfigManager
+from medperf.config_management import ConfigManager
 from medperf.utils import default_profile
 from medperf.commands.profile import app
 

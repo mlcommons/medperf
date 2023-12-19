@@ -11,13 +11,19 @@ from medperf.tests.mocks import MockTar
 from medperf.exceptions import MedperfException
 import yaml
 
-parent = config.storage
-data = utils.storage_path(config.data_storage)
-cubes = utils.storage_path(config.cubes_storage)
-results = utils.storage_path(config.results_storage)
-tmp = utils.storage_path(config.tmp_storage)
-config_dirs = [parent, data, cubes, results, tmp]
 patch_utils = "medperf.utils.{}"
+
+
+@pytest.fixture
+def config_dirs(request):
+    parent = config.home_storage
+    data = config.datasets_folder
+    cubes = config.cubes_folder
+    results = config.results_folder
+    tmp = config.tmp_folder
+    i = request.param
+    dirs = [parent, data, cubes, results, tmp]
+    return dirs, dirs[:i] + dirs[i + 1 :]  # noqa
 
 
 def init_mock_isdir(existing_dirs):
@@ -53,30 +59,6 @@ def filesystem():
     return [fs, files]
 
 
-@pytest.fixture
-def prepare_logs(fs):
-    log_file = utils.storage_path(config.log_file)
-    fs.create_file(log_file)
-    utils.setup_logging("DEBUG")
-
-
-@pytest.mark.parametrize("param", ["server", "platform", "prepare_timeout"])
-def test_set_custom_config_modifies_config_params(param):
-    # Arrange
-    args = {param: param}
-    backup_args = {param: getattr(config, param)}
-
-    # Act
-    utils.set_custom_config(args)
-    mod_args = {param: getattr(config, param)}
-    utils.set_custom_config(backup_args)
-    recovered_args = {param: getattr(config, param)}
-
-    # Assert
-    assert mod_args == args
-    assert recovered_args == backup_args
-
-
 @pytest.mark.parametrize(
     "text,exp_output",
     [
@@ -86,9 +68,10 @@ def test_set_custom_config_modifies_config_params(param):
         ("{'token': '279438'}", "{'token': [redacted]}"),
     ],
 )
-def test_setup_logging_filters_sensitive_data(text, exp_output, prepare_logs):
+def test_setup_logging_filters_sensitive_data(text, exp_output):
     # Arrange
-    log_file = utils.storage_path(config.log_file)
+    logging.getLogger().setLevel("DEBUG")
+    log_file = os.path.join(config.logs_folder, config.log_file)
 
     # Act
     logging.debug(text)
@@ -137,48 +120,8 @@ def test_get_file_hash_calculates_hash(mocker, file_io):
     assert hash == expected_hash
 
 
-@pytest.mark.parametrize(
-    "existing_dirs",
-    [config_dirs[0:i] + config_dirs[i + 1:] for i in range(len(config_dirs))],
-)
-def test_init_storage_creates_nonexisting_paths(mocker, existing_dirs):
-    # Arrange
-    mock_isdir = init_mock_isdir(existing_dirs)
-    mocker.patch("os.path.isdir", side_effect=mock_isdir)
-    spy = mocker.patch("os.makedirs")
-    exp_mkdirs = list(set(config_dirs) - set(existing_dirs))
-    exp_calls = [call(exp_mkdir, exist_ok=True) for exp_mkdir in exp_mkdirs]
-
-    # Act
-    utils.init_storage()
-
-    # Assert
-    spy.assert_has_calls(exp_calls, any_order=True)
-
-
-@pytest.mark.parametrize("pid", [37, 864, 2890])
-def test_set_unique_tmp_config_adds_pid_to_tmp_vars(mocker, pid):
-    # Arrange
-    mocker.patch("os.getpid", return_value=pid)
-    tmp_storage = utils.config.tmp_storage
-    trash_folder = utils.config.trash_folder
-    pid = str(pid)
-
-    # Act
-    utils.set_unique_tmp_config()
-
-    # Assert
-    assert utils.config.tmp_storage.endswith(pid)
-    assert utils.config.trash_folder.endswith(pid)
-
-    # Cleanup
-    utils.config.tmp_storage = tmp_storage
-    utils.config.trash_folder = trash_folder
-
-
 def test_cleanup_removes_files(mocker, ui, fs):
     # Arrange
-    utils.init_storage()
     path = "/path/to/garbage.html"
     fs.create_file(path, contents="garbage")
     config.tmp_paths = [path]
@@ -188,26 +131,26 @@ def test_cleanup_removes_files(mocker, ui, fs):
 
     # Assert
     assert not os.path.exists(path)
-    assert not os.path.exists(utils.storage_path(config.tmp_storage))
 
 
 def test_cleanup_moves_files_to_trash_on_failure(mocker, ui, fs):
     # Arrange
-    utils.init_storage()
+    path = "/path/to/garbage.html"
+    fs.create_file(path, contents="garbage")
+    config.tmp_paths = [path]
 
     def side_effect(*args, **kwargs):
         raise PermissionError
 
-    mocker.patch("shutil.rmtree", side_effect=side_effect)
-    trash_folder = utils.base_storage_path(config.trash_folder)
+    mocker.patch("os.remove", side_effect=side_effect)
+    trash_folder = config.trash_folder
 
     # Act
     utils.cleanup()
 
     # Assert
-    assert not os.path.exists(utils.storage_path(config.tmp_storage))
     trash_id = os.listdir(trash_folder)[0]
-    exp_path = os.path.join(trash_folder, trash_id, config.tmp_storage)
+    exp_path = os.path.join(trash_folder, trash_id, os.path.basename(path))
     assert os.path.exists(exp_path)
 
 
@@ -215,7 +158,7 @@ def test_cleanup_moves_files_to_trash_on_failure(mocker, ui, fs):
 @pytest.mark.parametrize("datasets", [4, 287], indirect=True)
 def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
-    mock_walk_return = iter([(data, datasets, ())])
+    mock_walk_return = iter([(config.datasets_folder, datasets, ())])
     spy = mocker.patch("os.walk", return_value=mock_walk_return)
 
     # Act
