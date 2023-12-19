@@ -188,7 +188,7 @@ echo "Moving storage to some other location"
 echo "====================================="
 medperf storage move -t /tmp/some_folder
 checkFailed "moving storage failed"
-$MEDPERF_STORAGE="/tmp/some_folder"
+$MEDPERF_STORAGE="/tmp/some_folder/.medperf"
 ##########################################################
 
 echo "\n"
