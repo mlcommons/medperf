@@ -61,7 +61,7 @@
 
     If you're doing manual corrections on this machine, and you're running the manual Data Preparation pipeline locally, 
     you may find buttons at the bottom of this page to aid you in the process of manual correction. 
-    These buttons automatically start the review process with ITK-Snap using the staple fusion segmentation mask by default. 
+    These buttons automatically start the review process with ITK-Snap using the generated tumor segmentation mask. 
     Please ensure ITK-Snap has been installed with client-line tools to use this method.
     You may edit the file as many times as needed. Once you're done with this subject, press the "Mark as finalized" button to let the pipeline know the subject is done.
 
@@ -105,7 +105,7 @@
     
     **NOTE** Modifying the brain mask invalidates the tumor segmentations, and re-runs the tumor segmentation procedure using this new mask.
 
-  docs_url: ""
+  docs_url: "https://google.com"
 -5.1:
   status_name: MULTIPLE_ANNOTATIONS_ERROR
   comment: More than one segmentation file was identified in the manually corrected output folder. Please ensure that there is only one manually corrected segmentation inside the labels path.
