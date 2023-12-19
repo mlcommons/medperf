@@ -65,7 +65,7 @@ echo "\n"
 echo "====================================="
 echo "Running data activation step"
 echo "====================================="
-medperf dataset activate -d $DSET_UID -y
+medperf dataset set_operational -d $DSET_UID -y
 checkFailed "Data activation step failed"
 
 echo "====================================="

@@ -184,7 +184,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset activate -d $DSET_A_UID -y
+medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data activation step failed"
 DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d " " -f 2)
 ##########################################################

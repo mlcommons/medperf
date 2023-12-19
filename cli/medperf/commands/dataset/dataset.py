@@ -8,7 +8,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
-from medperf.commands.dataset.activate import DataActivate
+from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
 
 app = typer.Typer()
@@ -94,9 +94,9 @@ def prepare(
     ui.print("✅ Done!")
 
 
-@app.command("activate")
+@app.command("set_operational")
 @clean_except
-def activate(
+def set_operational(
     data_uid: str = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
     approval: bool = typer.Option(
         False, "-y", help="Skip report submission approval step"
@@ -104,7 +104,7 @@ def activate(
 ):
     """Runs the Data preparation step for a raw dataset"""
     ui = config.ui
-    DataActivate.run(data_uid, approved=approval)
+    DatasetSetOperational.run(data_uid, approved=approval)
     ui.print("✅ Done!")
 
 
