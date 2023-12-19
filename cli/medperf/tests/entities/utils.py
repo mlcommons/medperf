@@ -1,5 +1,4 @@
 import os
-from medperf.utils import storage_path
 from medperf import config
 import yaml
 
@@ -16,7 +15,7 @@ PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
 
 # Setup Benchmark
 def setup_benchmark_fs(ents, fs):
-    bmks_path = storage_path(config.benchmarks_storage)
+    bmks_path = config.benchmarks_folder
     for ent in ents:
         if not isinstance(ent, dict):
             # Assume we're passing ids
@@ -52,7 +51,7 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
 
 # Setup Cube
 def setup_cube_fs(ents, fs):
-    cubes_path = storage_path(config.cubes_storage)
+    cubes_path = config.cubes_folder
     for ent in ents:
         if not isinstance(ent, dict):
             # Assume we're passing ids
@@ -125,7 +124,7 @@ def setup_cube_comms_downloads(mocker, fs):
 
 # Setup Dataset
 def setup_dset_fs(ents, fs):
-    dsets_path = storage_path(config.data_storage)
+    dsets_path = config.datasets_folder
     for ent in ents:
         if not isinstance(ent, dict):
             # Assume passing ids
@@ -156,7 +155,7 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
 
 # Setup Result
 def setup_result_fs(ents, fs):
-    results_path = storage_path(config.results_storage)
+    results_path = config.results_folder
     for ent in ents:
         if not isinstance(ent, dict):
             # Assume passing ids

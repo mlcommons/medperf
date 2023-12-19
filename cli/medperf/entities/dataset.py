@@ -4,7 +4,6 @@ import logging
 from pydantic import Field, validator
 from typing import List, Optional, Union
 
-from medperf.utils import storage_path
 from medperf.enums import Status
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
@@ -57,7 +56,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        path = storage_path(config.data_storage)
+        path = config.datasets_folder
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
@@ -125,9 +124,9 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     @classmethod
     def __local_all(cls) -> List["Dataset"]:
         dsets = []
-        data_storage = storage_path(config.data_storage)
+        datasets_folder = config.datasets_folder
         try:
-            uids = next(os.walk(data_storage))[1]
+            uids = next(os.walk(datasets_folder))[1]
         except StopIteration:
             msg = "Couldn't iterate over the dataset directory"
             logging.warning(msg)
@@ -218,7 +217,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
     @classmethod
     def __get_local_dict(cls, data_uid):
-        dataset_path = os.path.join(storage_path(config.data_storage), str(data_uid))
+        dataset_path = os.path.join(config.datasets_folder, str(data_uid))
         regfile = os.path.join(dataset_path, config.reg_file)
         if not os.path.exists(regfile):
             raise InvalidArgumentError(

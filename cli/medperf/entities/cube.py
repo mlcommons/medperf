@@ -8,9 +8,8 @@ from pathlib import Path
 
 from medperf.utils import (
     combine_proc_sp_text,
-    list_files,
+    log_storage,
     remove_path,
-    storage_path,
     verify_hash,
     generate_tmp_path,
 )
@@ -59,7 +58,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         super().__init__(*args, **kwargs)
 
         self.generated_uid = self.name
-        path = storage_path(config.cubes_storage)
+        path = config.cubes_folder
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
@@ -129,9 +128,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     @classmethod
     def __local_all(cls) -> List["Cube"]:
         cubes = []
-        cubes_storage = storage_path(config.cubes_storage)
+        cubes_folder = config.cubes_folder
         try:
-            uids = next(os.walk(cubes_storage))[1]
+            uids = next(os.walk(cubes_folder))[1]
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
@@ -321,7 +320,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")
 
-        logging.debug(list_files(config.storage))
+        log_storage()
         return proc
 
     def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
@@ -394,8 +393,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
     @classmethod
     def __get_local_dict(cls, uid):
-        cubes_storage = storage_path(config.cubes_storage)
-        meta_file = os.path.join(cubes_storage, str(uid), config.cube_metadata_filename)
+        cubes_folder = config.cubes_folder
+        meta_file = os.path.join(cubes_folder, str(uid), config.cube_metadata_filename)
         if not os.path.exists(meta_file):
             raise InvalidArgumentError(
                 "The requested mlcube information could not be found locally"

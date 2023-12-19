@@ -6,12 +6,7 @@ from medperf.enums import Status
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
-from medperf.utils import (
-    remove_path,
-    generate_tmp_path,
-    get_folders_hash,
-    storage_path,
-)
+from medperf.utils import remove_path, generate_tmp_path, get_folders_hash
 from medperf.exceptions import InvalidArgumentError
 import yaml
 
@@ -170,7 +165,7 @@ class DataPreparation:
         """Renames the temporary data folder to permanent one using the hash of
         the registration file
         """
-        new_path = os.path.join(storage_path(config.data_storage), self.generated_uid)
+        new_path = os.path.join(config.datasets_folder, self.generated_uid)
         remove_path(new_path)
         os.rename(self.out_path, new_path)
         self.out_path = new_path
