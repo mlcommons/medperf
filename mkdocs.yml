@@ -3,28 +3,29 @@ site_url: https://medperf.com/
 repo_url: https://github.com/mlcommons/medperf
 repo_name: mlcommons/medperf
 nav:
-- Introduction: index.md
+- What's Medperf?: what_is_medperf.md
 - Benchmark Roles: roles.md
 - Benchmark Workflow: workflow.md
 - MedPerf Components: medperf_components.md
-- Getting Started:
-  - Overview: getting_started/overview.md
-  - Create an Account: getting_started/signup.md
-  - Installation: getting_started/installation.md
-  - Tutorials - User Guide:
-    - Introduction: getting_started/tutorials_overview.md
+- GETTING STARTED:
+  - Roles Capabilities: getting_started/overview.md
+  - First Steps:
+    - Create an Account: getting_started/signup.md
+    - Installation: getting_started/installation.md
     - Setup: getting_started/setup.md
-    - Hands-on Tutorial for Bechmark Committee: getting_started/benchmark_owner_demo.md
-    - Hands-on Tutorial for Model Owners: getting_started/model_owner_demo.md
-    - Hands-on Tutorial for Data Owners: getting_started/data_owner_demo.md
+  - Tutorials:
+    - Introduction: getting_started/tutorials_overview.md
+    - Bechmark Committee: getting_started/benchmark_owner_demo.md
+    - Model Owners: getting_started/model_owner_demo.md
+    - Data Owners: getting_started/data_owner_demo.md
+
+- ADVANCED CONCEPTS:
   - MedPerf MLCubes: 
     - Introduction: mlcubes/mlcubes.md
     - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md
     - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
     - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
     - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
-
-- Concepts:
   - Authentication: concepts/auth.md
   - Client Configuration: concepts/profiles.md
   - MLCube Components: concepts/mlcube_files.md
@@ -34,13 +35,15 @@ nav:
   - Running Specific Models: concepts/single_run.md
 - CLI Reference: cli_reference.md
 # - Code Reference: reference/
-theme: 
+theme:
+  custom_dir: docs/overrides
   features:
     - search.suggest
     - search.highlight
     - search.share
     - content.code.annotate
     - content.code.copy
+    - navigation.sections
   icon:
     admonition:
       note: octicons/tag-16
@@ -123,3 +126,9 @@ markdown_extensions:
   - toc:
       permalink: True
   - attr_list
+
+extra_css:
+  - styles/styles.css
+
+extra_javascript:
+  - scripts/script.js
