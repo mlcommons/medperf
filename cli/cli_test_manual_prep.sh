@@ -152,7 +152,7 @@ echo "\n"
 echo "====================================="
 echo "Do manual step of the preparation"
 echo "====================================="
-sed -i 's/0$/1/' $MEDPERF_SUBSTORAGE/data/$DSET_A_UID/data/data.csv
+sed -i 's/0$/1/' $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID/data/data.csv
 checkFailed "manual step failed"
 ##########################################################
 
@@ -170,7 +170,7 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data activation step"
+echo "Running data set operational step"
 echo "====================================="
 medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data activattion step failed"
@@ -201,7 +201,7 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data activation step"
+echo "Running data set operational step"
 echo "====================================="
 medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data activattion step failed"

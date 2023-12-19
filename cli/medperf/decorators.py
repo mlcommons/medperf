@@ -1,3 +1,4 @@
+import os
 import sys
 import typer
 import logging
@@ -30,7 +31,7 @@ def clean_except(func: Callable) -> Callable:
             config.ui.print(str(e))
         except MedperfException as e:
             logging.exception(e)
-            log_filepath = config.log_file
+            log_filepath = os.path.join(config.logs_folder, config.log_file)
             additional_msg = f"For more information, check the logs at: {log_filepath}"
             msg = ". ".join([str(e), additional_msg])
             pretty_error(msg)
