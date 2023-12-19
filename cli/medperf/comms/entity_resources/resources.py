@@ -78,7 +78,7 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
     image_cube_path = os.path.join(cube_path, image_path)
     os.makedirs(image_cube_path, exist_ok=True)
     image_cube_file = os.path.join(image_cube_path, image_name)
-    if os.path.exists(image_cube_file):
+    if os.path.islink(image_cube_file):  # could be a broken link
         # Remove existing links
         os.unlink(image_cube_file)
 
