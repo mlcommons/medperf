@@ -28,6 +28,7 @@ def activate(profile: str):
 
 @app.command("create")
 @clean_except
+@configurable
 def create(
     ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
