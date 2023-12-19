@@ -1,5 +1,5 @@
 from .token_storage import TokenStore
-from medperf.utils import read_config, write_config
+from medperf.config_management import read_config, write_config
 from medperf import config
 from medperf.exceptions import MedperfException
 

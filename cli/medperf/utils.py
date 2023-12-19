@@ -6,10 +6,8 @@ import yaml
 import random
 import hashlib
 import logging
-from logging import handlers
 import tarfile
 import requests
-from medperf.config_managment import ConfigManager
 from glob import glob
 import json
 from pathlib import Path
@@ -21,77 +19,7 @@ from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 import medperf.config as config
-from medperf.logging.filters.redacting_filter import RedactingFilter
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
-
-
-def setup_logging(log_lvl):
-    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
-    log_file = storage_path(config.log_file)
-    handler = handlers.RotatingFileHandler(log_file, backupCount=20)
-    handler.setFormatter(logging.Formatter(log_fmt))
-    logging.basicConfig(
-        level=log_lvl,
-        handlers=[handler],
-        format=log_fmt,
-        datefmt="%Y-%m-%d %H:%M:%S",
-        force=True,
-    )
-
-    sensitive_pattern = re.compile(
-        r"""(["']?(password|pwd|token)["']?[:=] ?)["'][^\n\[\]{}"']*["']"""
-    )
-
-    redacting_filter = RedactingFilter(patterns=[sensitive_pattern])
-    requests_logger = logging.getLogger("requests")
-    requests_logger.addHandler(handler)
-    requests_logger.setLevel(log_lvl)
-    logger = logging.getLogger()
-    logger.addFilter(redacting_filter)
-
-    # Force the creation of a new log file for each execution
-    handler.doRollover()
-
-
-def default_profile():
-    # NOTE: this function is only usable before config is actually initialized.
-    # using this function when another profile is activated will not load the defaults
-    return {param: getattr(config, param) for param in config.configurable_parameters}
-
-
-def read_config():
-    config_p = ConfigManager()
-    config_path = base_storage_path(config.config_path)
-    config_p.read(config_path)
-    return config_p
-
-
-def write_config(config_p: ConfigManager):
-    config_path = base_storage_path(config.config_path)
-    config_p.write(config_path)
-
-
-def set_custom_config(args: dict):
-    """Function to set parameters defined by the user
-
-    Args:
-        args (dict): custom config params
-    """
-    for param in args:
-        val = args[param]
-        setattr(config, param, val)
-
-
-def storage_path(subpath: str):
-    """Helper function that converts a path to deployment storage-related path"""
-    server_path = config.server.split("//")[1]
-    server_path = re.sub(r"[.:]", "_", server_path)
-    return os.path.join(config.storage, server_path, subpath)
-
-
-def base_storage_path(subpath: str):
-    """Helper function that converts a path to base storage-related path"""
-    return os.path.join(config.storage, subpath)
 
 
 def get_file_hash(path: str) -> str:
@@ -116,70 +44,6 @@ def get_file_hash(path: str) -> str:
     sha_val = sha.hexdigest()
     logging.debug(f"Hash for file {path}: {sha_val}")
     return sha_val
-
-
-def init_storage():
-    """Builds the general medperf folder structure."""
-    logging.info("Initializing storage")
-    parent = config.storage
-    data = storage_path(config.data_storage)
-    cubes = storage_path(config.cubes_storage)
-    results = storage_path(config.results_storage)
-    tmp = storage_path(config.tmp_storage)
-    bmks = storage_path(config.benchmarks_storage)
-    demo = storage_path(config.demo_data_storage)
-    log = storage_path(config.logs_storage)
-    imgs = base_storage_path(config.images_storage)
-    tests = storage_path(config.test_storage)
-    exp_log = storage_path(config.experiments_logs_storage)
-
-    dirs = [parent, bmks, data, cubes, results, tmp, demo, log, imgs, tests, exp_log]
-    for dir in dirs:
-        logging.info(f"Creating {dir} directory")
-        try:
-            os.makedirs(dir, exist_ok=True)
-        except FileExistsError:
-            logging.warning(f"Tried to create existing folder {dir}")
-
-
-def init_config():
-    """builds the initial configuration file"""
-    os.makedirs(config.storage, exist_ok=True)
-    config_file = base_storage_path(config.config_path)
-    if os.path.exists(config_file):
-        return
-
-    config_p = ConfigManager()
-    # default profile
-    config_p[config.default_profile_name] = default_profile()
-    # testauth profile
-    config_p[config.testauth_profile_name] = default_profile()
-    config_p[config.testauth_profile_name]["server"] = config.local_server
-    config_p[config.testauth_profile_name]["certificate"] = config.local_certificate
-    config_p[config.testauth_profile_name]["auth_audience"] = config.auth_dev_audience
-    config_p[config.testauth_profile_name]["auth_domain"] = config.auth_dev_domain
-    config_p[config.testauth_profile_name]["auth_jwks_url"] = config.auth_dev_jwks_url
-    config_p[config.testauth_profile_name][
-        "auth_idtoken_issuer"
-    ] = config.auth_dev_idtoken_issuer
-    config_p[config.testauth_profile_name]["auth_client_id"] = config.auth_dev_client_id
-    # local profile
-    config_p[config.test_profile_name] = default_profile()
-    config_p[config.test_profile_name]["server"] = config.local_server
-    config_p[config.test_profile_name]["certificate"] = config.local_certificate
-    config_p[config.test_profile_name]["auth_class"] = "Local"
-
-    config_p.activate(config.default_profile_name)
-    config_p.write(config_file)
-
-
-def set_unique_tmp_config():
-    """Set current process' temporary unique storage
-    Enables simultaneous execution without cleanup collision
-    """
-    pid = str(os.getpid())
-    config.tmp_storage += pid
-    config.trash_folder = os.path.join(config.trash_folder, pid)
 
 
 def remove_path(path):
@@ -209,7 +73,7 @@ def remove_path(path):
 
 
 def move_to_trash(path):
-    trash_folder = base_storage_path(config.trash_folder)
+    trash_folder = config.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
     os.makedirs(unique_path)
     shutil.move(path, unique_path)
@@ -221,12 +85,11 @@ def cleanup():
         logging.info("Cleanup disabled")
         return
 
-    tmp_storage = storage_path(config.tmp_storage)
-    for path in config.tmp_paths + [tmp_storage]:
+    for path in config.tmp_paths:
         remove_path(path)
 
-    trash_folder = base_storage_path(config.trash_folder)
-    if os.path.exists(trash_folder):
+    trash_folder = config.trash_folder
+    if os.path.exists(trash_folder) and os.listdir(trash_folder):
         msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
         config.ui.print_warning(msg)
@@ -281,9 +144,9 @@ def generate_tmp_path() -> str:
     Returns:
         str: generated temporary path
     """
-    tmp_path = os.path.join(config.tmp_storage, generate_tmp_uid())
-    tmp_path = storage_path(tmp_path)
-    return os.path.abspath(tmp_path)
+    tmp_path = os.path.join(config.tmp_folder, generate_tmp_uid())
+    config.tmp_paths.append(tmp_path)
+    return tmp_path
 
 
 def untar(filepath: str, remove: bool = True) -> str:
@@ -423,6 +286,12 @@ def list_files(startpath):
             tree_str += "{}{}\n".format(subindent, f)
 
     return tree_str
+
+
+def log_storage():
+    for folder in config.storage:
+        folder = getattr(config, folder)
+        logging.debug(list_files(folder))
 
 
 def sanitize_json(data: dict) -> dict:

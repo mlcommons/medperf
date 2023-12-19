@@ -3,7 +3,7 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.utils import generate_tmp_path, storage_path
+from medperf.utils import generate_tmp_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
@@ -52,9 +52,8 @@ class Execution:
         data_hash = self.dataset.generated_uid
 
         logs_path = os.path.join(
-            config.experiments_logs_storage, str(model_uid), str(data_hash)
+            config.experiments_logs_folder, str(model_uid), str(data_hash)
         )
-        logs_path = storage_path(logs_path)
         os.makedirs(logs_path, exist_ok=True)
         model_logs_path = os.path.join(logs_path, "model.log")
         metrics_logs_path = os.path.join(logs_path, f"metrics_{eval_uid}.log")
@@ -64,9 +63,8 @@ class Execution:
         model_uid = self.model.generated_uid
         data_hash = self.dataset.generated_uid
         preds_path = os.path.join(
-            config.predictions_storage, str(model_uid), str(data_hash)
+            config.predictions_folder, str(model_uid), str(data_hash)
         )
-        preds_path = storage_path(preds_path)
         if os.path.exists(preds_path):
             msg = f"Found existing predictions for model {self.model.id} on dataset "
             msg += f"{self.dataset.id} at {preds_path}. Consider deleting this "

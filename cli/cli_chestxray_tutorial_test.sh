@@ -63,10 +63,10 @@ checkFailed "Data preparation step failed"
 echo "\n"
 
 echo "====================================="
-echo "Running data activation step"
+echo "Running data set operational step"
 echo "====================================="
-medperf dataset activate -d $DSET_UID -y
-checkFailed "Data activation step failed"
+medperf dataset set_operational -d $DSET_UID -y
+checkFailed "Data set operational step failed"
 
 echo "====================================="
 echo "Creating dataset benchmark association"

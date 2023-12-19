@@ -1,5 +1,4 @@
 import os
-from medperf.utils import storage_path
 import pytest
 
 import medperf.config as config
@@ -57,8 +56,8 @@ def test_to_permanent_path_renames_correctly(mocker, comms, ui, cube, uid):
     submission.cube = cube
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.exists", return_value=False)
-    old_path = os.path.join(storage_path(config.cubes_storage), cube.generated_uid)
-    new_path = os.path.join(storage_path(config.cubes_storage), str(uid))
+    old_path = os.path.join(config.cubes_folder, cube.generated_uid)
+    new_path = os.path.join(config.cubes_folder, str(uid))
     # Act
     submission.to_permanent_path({**cube.todict(), "id": uid})
 

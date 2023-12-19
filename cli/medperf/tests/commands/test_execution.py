@@ -4,7 +4,6 @@ from medperf.commands.execution import Execution
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.utils import storage_path
 import pytest
 from medperf import config
 import yaml
@@ -101,13 +100,12 @@ class TestFailures:
     @pytest.mark.parametrize("ignore_model_errors", [True, False])
     def test_failure_with_existing_predictions(mocker, setup, ignore_model_errors, fs):
         # Arrange
-        preds_path = storage_path(
-            os.path.join(
-                config.predictions_storage,
-                INPUT_MODEL.generated_uid,
-                INPUT_DATASET.generated_uid,
-            )
+        preds_path = os.path.join(
+            config.predictions_folder,
+            INPUT_MODEL.generated_uid,
+            INPUT_DATASET.generated_uid,
         )
+
         fs.create_dir(preds_path)
         # Act & Assert
         with pytest.raises(ExecutionError):
@@ -149,29 +147,26 @@ def test_results_are_returned(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
-    exp_preds_path = storage_path(
-        os.path.join(
-            config.predictions_storage,
-            INPUT_MODEL.generated_uid,
-            INPUT_DATASET.generated_uid,
-        )
+    exp_preds_path = os.path.join(
+        config.predictions_folder,
+        INPUT_MODEL.generated_uid,
+        INPUT_DATASET.generated_uid,
     )
-    exp_model_logs_path = storage_path(
-        os.path.join(
-            config.experiments_logs_storage,
-            INPUT_MODEL.generated_uid,
-            INPUT_DATASET.generated_uid,
-            "model.log",
-        )
+
+    exp_model_logs_path = os.path.join(
+        config.experiments_logs_folder,
+        INPUT_MODEL.generated_uid,
+        INPUT_DATASET.generated_uid,
+        "model.log",
     )
-    exp_metrics_logs_path = storage_path(
-        os.path.join(
-            config.experiments_logs_storage,
-            INPUT_MODEL.generated_uid,
-            INPUT_DATASET.generated_uid,
-            f"metrics_{INPUT_EVALUATOR.generated_uid}.log",
-        )
+
+    exp_metrics_logs_path = os.path.join(
+        config.experiments_logs_folder,
+        INPUT_MODEL.generated_uid,
+        INPUT_DATASET.generated_uid,
+        f"metrics_{INPUT_EVALUATOR.generated_uid}.log",
     )
+
     exp_model_call = call(
         task="infer",
         output_logs=exp_model_logs_path,

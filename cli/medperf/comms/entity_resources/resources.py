@@ -15,14 +15,7 @@ will not be re-downloaded.
 import shutil
 import os
 import medperf.config as config
-from medperf.utils import (
-    base_storage_path,
-    generate_tmp_path,
-    get_cube_image_name,
-    remove_path,
-    storage_path,
-    untar,
-)
+from medperf.utils import generate_tmp_path, get_cube_image_name, remove_path, untar
 from .utils import download_resource
 
 
@@ -85,11 +78,11 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
     image_cube_path = os.path.join(cube_path, image_path)
     os.makedirs(image_cube_path, exist_ok=True)
     image_cube_file = os.path.join(image_cube_path, image_name)
-    if os.path.exists(image_cube_file):
+    if os.path.islink(image_cube_file):  # could be a broken link
         # Remove existing links
         os.unlink(image_cube_file)
 
-    imgs_storage = base_storage_path(config.images_storage)
+    imgs_storage = config.images_folder
     if not hash_value:
         # No hash provided, we need to download the file first
         tmp_output_path = generate_tmp_path()
@@ -160,7 +153,7 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
     # the compatibility test command and remove the option of directly passing
     # demo datasets. This would look cleaner.
     # Possible cons: if multiple benchmarks use the same demo dataset.
-    demo_storage = storage_path(config.demo_data_storage)
+    demo_storage = config.demo_datasets_folder
     if expected_hash:
         # If the folder exists, return
         demo_dataset_folder = os.path.join(demo_storage, expected_hash)

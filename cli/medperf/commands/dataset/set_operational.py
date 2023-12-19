@@ -5,7 +5,7 @@ from medperf.exceptions import CleanExit, InvalidArgumentError
 import yaml
 
 
-class DataActivate:
+class DatasetSetOperational:
     # TODO: this will be refactored when merging entity edit PR
     @classmethod
     def run(cls, dataset_id: int, approved: bool = False):

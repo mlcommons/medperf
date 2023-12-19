@@ -871,13 +871,10 @@ def main(
     if dataset_uid.isdigit():
         # Only import medperf dependencies if the user intends to use medperf
         from medperf import config
-        from medperf.utils import storage_path, read_config, set_custom_config
+        from medperf.init import initialize
 
-        config_p = read_config()
-        set_custom_config(config_p.active_profile)
-
-        dsets_path = storage_path(config.data_storage)
-        dset_path = os.path.join(dsets_path, dataset_uid)
+        initialize()
+        dset_path = os.path.join(config.datasets_folder, dataset_uid)
     else:
         dset_path = dataset_uid
 

@@ -3,8 +3,10 @@ demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz
 assets_url: https://raw.githubusercontent.com/hasan7n/medperf/99b0d84bc107415d9fc6f69c4ea3fcdfbf22315d/examples/chestxray_tutorial/
 tutorial_id: model
+hide:
+  - toc
 ---
-
+![Overview](../tutorial_images/overview.png){class="tutorial-sticky-image-content"}
 # Hands-on Tutorial for Model Owners
 
 {% set model_mlcube = assets_url+"model_mobilenetv2/mlcube/mlcube.yaml" %}
@@ -26,6 +28,7 @@ It's assumed that you have already set up the general testing environment as exp
 
 ## 1. Test your MLCube Compatibility
 
+![Model Owner implements & tests MLCube](../tutorial_images/mo-1-mo-implements-cube.png){class="tutorial-sticky-image-content"}
 Before submitting your MLCube, it is highly recommended that you test your MLCube compatibility with the benchmarks of interest to avoid later edits and multiple submissions. Your MLCube should be compatible with the benchmark workflow in two main ways:
 
 1. It should expect a specific data input structure
@@ -50,6 +53,7 @@ Assuming the test passes successfuly, you are ready to submit the MLCube to the 
 
 ## 2. Submit the MLCube
 
+![Model Owner submits Model MLCube](../tutorial_images/mo-2-mo-submits-model.png){class="tutorial-sticky-image-content"}
 ### How does MedPerf Recognize an MLCube?
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
@@ -104,6 +108,7 @@ medperf mlcube ls --mine
 
 ## 3. Request Participation
 
+![Model Owner requests to participate in the benchmark](../tutorial_images/mo-3-mo-requests-participation.png){class="tutorial-sticky-image-content"}
 Benchmark workflows are run by Data Owners, who will get notified when a new model is added to a benchmark. You must request the association for your model to be part of the benchmark.
 
 To initiate an association request, you need to collect the following information:
@@ -120,7 +125,8 @@ medperf mlcube associate --benchmark 1 --model_uid 4
 This command will first run the benchmark's workflow on your model to ensure your model is compatible with the benchmark workflow. Then, the association request information is printed on the screen, which includes an executive summary of the test mentioned. You will be prompted to confirm sending this information and initiating this association request.
 
 #### What Happens After Requesting the Association?
-
+![Benchmark Committee accepts / rejects models](../tutorial_images/mo-4-bc-accepts-rejects-models.png){class="tutorial-sticky-image-content"}
 When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your MLCube and the benchmark with which you are requesting association.
 
+![The end](../tutorial_images/the-end.png){class="tutorial-sticky-image-content"}
 {% include "getting_started/shared/cleanup.md" %}

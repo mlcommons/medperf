@@ -4,7 +4,6 @@ import yaml
 import logging
 from typing import List, Union, Optional
 
-from medperf.utils import storage_path
 from medperf.entities.schemas import MedperfBaseSchema
 import medperf.config as config
 from medperf.exceptions import InvalidArgumentError
@@ -39,7 +38,7 @@ class TestReport(Entity, MedperfBaseSchema):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.generated_uid = self.__generate_uid()
-        path = storage_path(config.test_storage)
+        path = config.tests_folder
         self.path = os.path.join(path, self.generated_uid)
 
     def __generate_uid(self):
@@ -66,9 +65,9 @@ class TestReport(Entity, MedperfBaseSchema):
         """
         logging.info("Retrieving all reports")
         reports = []
-        test_storage = storage_path(config.test_storage)
+        tests_folder = config.tests_folder
         try:
-            uids = next(os.walk(test_storage))[1]
+            uids = next(os.walk(tests_folder))[1]
         except StopIteration:
             msg = "Couldn't iterate over the tests directory"
             logging.warning(msg)
@@ -109,7 +108,7 @@ class TestReport(Entity, MedperfBaseSchema):
 
     @classmethod
     def __get_local_dict(cls, local_uid):
-        report_path = os.path.join(storage_path(config.test_storage), str(local_uid))
+        report_path = os.path.join(config.tests_folder, str(local_uid))
         report_file = os.path.join(report_path, config.test_report_file)
         if not os.path.exists(report_file):
             raise InvalidArgumentError(
