@@ -42,25 +42,30 @@ def submit(
     data_prep_uid: int = typer.Option(
         None, "--data_prep", "-p", help="UID of the desired preparation cube"
     ),
-    data_path: str = typer.Option(
-        ..., "--data_path", "-d", help="Location of the data to be prepared"
-    ),
+    data_path: str = typer.Option(..., "--data_path", "-d", help="Path to the data"),
     labels_path: str = typer.Option(
-        ..., "--labels_path", "-l", help="Labels folder location"
+        ..., "--labels_path", "-l", help="Path to the labels"
     ),
     metadata_path: str = typer.Option(
-        None, "--metadata_path", "-m", help="Metadata folder location"
+        None,
+        "--metadata_path",
+        "-m",
+        help="Metadata folder location (Might be required if the dataset is already prepared)",
     ),
-    name: str = typer.Option(..., "--name", help="Name of the dataset"),
+    name: str = typer.Option(
+        ..., "--name", help="A human-readable name of the dataset"
+    ),
     description: str = typer.Option(
-        ..., "--description", help="Description of the dataset"
+        None, "--description", help="A description of the dataset"
     ),
     location: str = typer.Option(
-        ..., "--location", help="Location or Institution the data belongs to"
+        None, "--location", help="Location or Institution the data belongs to"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     submit_as_prepared: bool = typer.Option(
-        False, "--submit-as-prepared", help="Assume the dataset is already prepared"
+        False,
+        "--submit-as-prepared",
+        help="Use this flag if the dataset is already prepared",
     ),
 ):
     """Submits a Dataset instance to the backend"""
@@ -85,7 +90,9 @@ def submit(
 def prepare(
     data_uid: str = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
     approval: bool = typer.Option(
-        False, "-y", help="Skip report submission approval step"
+        False,
+        "-y",
+        help="Skip report submission approval step (In this case, it is assumed to be approved)",
     ),
 ):
     """Runs the Data preparation step for a raw dataset"""
@@ -99,10 +106,10 @@ def prepare(
 def set_operational(
     data_uid: str = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
     approval: bool = typer.Option(
-        False, "-y", help="Skip report submission approval step"
+        False, "-y", help="Skip confirmation and statistics submission approval step"
     ),
 ):
-    """Runs the Data preparation step for a raw dataset"""
+    """Marks a dataset as Operational"""
     ui = config.ui
     DatasetSetOperational.run(data_uid, approved=approval)
     ui.print("✅ Done!")
