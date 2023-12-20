@@ -231,47 +231,46 @@ class DataPreparation:
             if "status" in report.keys():
                 report_status = report.status.value_counts() / len(report)
                 report_status_dict = report_status.round(3).to_dict()
+                report_status_dict = {
+                    f"Stage {key}": str(val * 100) + "%"
+                    for key, val in report_status_dict.items()
+                }
 
         return report_status_dict
 
-    def __generate_report_example(self):
-        example_dict = {}
-        if self.cube.params_path:
-            with open(self.cube.params_path, "r") as f:
-                parameters = yaml.safe_load(f) or {}
-
-            if "medperf_report_stages" in parameters:
-                # Generate example percentages
-                stages = parameters["medperf_report_stages"]
-                example_dict = {stage: 1 / len(stages) for stage in stages}
-
-        if not example_dict:
-            example_dict = {"<Stage1 Name>": 0.4, "<Stage2 Name>": 0.6}
-
-        example = {
-            "stats": example_dict,
-            "execution_status": "[started][interrupted][running][failed][finished]",
-        }
-
-        return example
-
     def prompt_for_report_sending_approval(self):
-        example = self.__generate_report_example()
-
-        body = {
-            "report_example": example,
+        example = {
+            "execution_status": "running",
+            "progress": {
+                "Stage 1": "40%",
+                "Stage 3": "60%",
+            },
         }
+
+        # config.ui.print("\x1b[6;30;42m")
+        msg = (
+            "\n=================================================\n"
+            + "During preparation, each subject of your dataset will undergo multiple"
+            + " stages (For example, DICOM to NIFTI conversion stage, brain extraction stage)."
+            + " MedPerf will generate a summary of the progress of the data preparation and"
+            + " will send this summary to the MedPerf server.\nThis will happen multiple times"
+            + " during the preparation process in order to facilitate the supervision of the"
+            + " experiment. The summary will be only visible to the data preparation MLCube owner."
+            + "\nBelow is an example of this summary, which conveys that the current execution"
+            + " status of your dataset preparation is actively running, and that 40% of your"
+            + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"
+            + " have reached Stage 3:"
+        )
+        config.ui.print(msg)
+        dict_pretty_print(example)
 
         msg = (
-            "Do you approve the submission of the status report to the MedPerf Server?"
-            + " This report will be visible by the benchmark owner and updated"
-            + " with the latest status change throughout the preparation process."
-            + " An example of the contents has been provided"
-            + " [Y/n]"
+            " \nDo you approve the automatic submission of summaries similar to the one above"
+            + " to the MedPerf Server throughout the preparation process?[Y/n]"
         )
 
-        dict_pretty_print(body)
         self.allow_sending_reports = approval_prompt(msg)
+        # config.ui.print("\x1b[0m")
 
     def send_report(self, report_metadata):
         # if self.latest_report_sent_at is not None:
