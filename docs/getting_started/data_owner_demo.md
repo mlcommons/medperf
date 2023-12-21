@@ -70,12 +70,10 @@ medperf dataset ls --local
 !!! note
     You will be submitting general information about the data, not the data itself. The data never leaves your machine.
 
-The unique identifier for your generated data is `{{ page.meta.prepared_hash }}`.
-
 Run the following command to submit your dataset information to the MedPerf server:
 
 ```bash
-medperf dataset submit --data_uid {{ page.meta.prepared_hash }}
+medperf dataset submit --data_uid YOUR_DATASET_ID_HERE
 ```
 
 Once you run this command, the information to be submitted will be displayed on the screen and you will be asked to confirm your submission.
