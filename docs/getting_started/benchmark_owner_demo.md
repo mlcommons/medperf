@@ -121,10 +121,12 @@ After that, the workspace should look like the following:
     ...
 ```
 
-Finally, compress the required assets (`demo_data` and `paths.yaml`) into a tarball file by running the following command in your workspace directory:
+Finally, compress the required assets (`demo_data` and `paths.yaml`) into a tarball file by running the following command:
 
 ```bash
+cd medperf_tutorial
 tar -czf demo_data.tar.gz demo_data paths.yaml
+cd ..
 ```
 
 And that's it! Now you have to host the tarball file (`demo_data.tar.gz`) on the internet.
