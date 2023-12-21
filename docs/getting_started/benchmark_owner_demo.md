@@ -265,10 +265,16 @@ You need to keep at hand the following information:
 {{ demo_url }}
 ```
 
-- The server UIDs of the three MLCubes:
-    - Data preparator UID: `1`
-    - Reference model UID: `2`
-    - Evaluator UID: `3`
+- The server UIDs of the three MLCubes can be found there:
+
+```bash
+ medperf mlcube ls
+```
+
+- For sake of this tutorial predefined UIDs are used: 
+  - Data preparator UID: `1` by default
+  - Reference model UID: `2` by default
+  - Evaluator UID: `3` by default
 
 You can create and submit your benchmark using the following command:
 
