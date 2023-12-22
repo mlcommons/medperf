@@ -250,11 +250,32 @@ class ReportHandler(FileSystemEventHandler):
             self.report_state.update()
 
 
+class InvalidHandler(FileSystemEventHandler):
+    def __init__(self, invalid_path: str, textual_app):
+        self.invalid_path = invalid_path
+        self.app = textual_app
+
+    def manual_execute(self):
+        if os.path.exists(self.invalid_path):
+            self.update()
+
+    def on_modified(self, event):
+        if event.src_path == self.invalid_path:
+            self.update()
+
+    def update(self):
+        with open(self.invalid_path, "r") as f:
+            invalid_subjects = set([id.strip() for id in f.readlines()])
+        self.app.update_invalid(invalid_subjects)
+
+
 class PromptHandler(FileSystemEventHandler):
     def __init__(self, dset_data_path: str, textual_app):
         self.dset_data_path = dset_data_path
         self.prompt_path = os.path.join(dset_data_path, ".prompt.txt")
         self.app = textual_app
+
+    def manual_execute(self):
         if os.path.exists(self.prompt_path):
             self.display_prompt()
 
@@ -364,12 +385,18 @@ class ReportUpdated(Message):
         self.dset_path = dset_path
         super().__init__()
 
+class InvalidSubjectsUpdated(Message):
+    def __init__(self, invalid_subjects):
+        self.invalid_subjects = invalid_subjects
+        super().__init__()
+
 
 class Summary(Static):
     """Displays a summary of the report"""
 
-    report = None
+    report = pd.DataFrame()
     dset_path = ""
+    invalid_subjects = set()
 
     def compose(self) -> ComposeResult:
         yield Static("Report Status")
@@ -384,14 +411,23 @@ class Summary(Static):
         report = message.report
         self.dset_path = message.dset_path
         if len(report) > 0:
-            self.update_summary(message.report)
+            report_df = pd.DataFrame(report)
+            self.report = report_df
+            self.update_summary()
 
-    def update_summary(self, report: dict):
-        report_df = pd.DataFrame(report)
-        self.report = report_df
+    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
+        self.invalid_subjects = message.invalid_subjects
+        self.update_summary()
+
+    def update_summary(self):
+        report_df = self.report
+        if report_df.empty:
+            return
         package_btn = self.query_one("#package-btn", Button)
         # Generate progress bars for all states
-        status_percents = report_df["status_name"].value_counts() / len(report_df)
+        display_report_df = report_df.copy(deep=True)
+        display_report_df.loc[list(self.invalid_subjects), "status_name"] = "INVALIDATED"
+        status_percents = display_report_df["status_name"].value_counts() / len(report_df)
         if "DONE" not in status_percents:
             # Attach
             status_percents["DONE"] = 0.0
@@ -422,17 +458,23 @@ class Summary(Static):
 class SubjectListView(ListView):
     report = {}
     highlight = set()
+    invalid_subjects = set()
 
     def on_report_updated(self, message: ReportUpdated) -> None:
-        report = message.report
+        self.report = message.report
         highlight = message.highlight
         self.highlight = self.highlight.union(highlight)
-        if len(report) > 0:
-            self.update_list(report)
+        if len(self.report) > 0:
+            self.update_list()
 
-    def update_list(self, report: dict):
+    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
+        self.invalid_subjects = message.invalid_subjects
+        self.update_list()
+
+    def update_list(self):
         # Check for content differences with old report
         # apply alert class to listitem
+        report = self.report
         report_df = pd.DataFrame(report)
 
         subjects = ["SUMMARY"] + list(report_df.index)
@@ -443,6 +485,8 @@ class SubjectListView(ListView):
                 widget = ListItem(Label(f"{subject}"))
             else:
                 status = report_df.loc[subject]["status_name"]
+                if subject in self.invalid_subjects:
+                    status = "Invalid"
                 widget = ListItem(
                     Label(subject),
                     Label(status.capitalize().replace("_", " "), classes="subtitle")
@@ -457,7 +501,6 @@ class SubjectListView(ListView):
 
         self.mount(*widgets)
         self.index = current_idx
-        self.report = report
 
 
 class CopyableItem(Static):
@@ -499,6 +542,10 @@ class CopyableItem(Static):
 
 
 class SubjectDetails(Static):
+    invalid_subjects = set()
+    subject = pd.Series()
+    dset_path = ''
+
     def compose(self) -> ComposeResult:
         with Center(id="subject-title"):
             yield Static(id="subject-name")
@@ -535,10 +582,20 @@ class SubjectDetails(Static):
                 id="brainmask-review-warning",
                 classes="warning",
             )
+        yield Button("Invalidate", id="valid-btn")
 
-    def update_subject(self, subject: pd.Series, dset_path: str):
-        self.subject = subject
-        self.dset_path = dset_path
+    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
+        self.invalid_subjects = message.invalid_subjects
+        self.update_subject()
+
+    def set_invalid_path(self, invalid_path):
+        self.invalid_path = invalid_path
+
+    def update_subject(self):
+        subject = self.subject
+        dset_path = self.dset_path
+        if subject.empty:
+            return
         wname = self.query_one("#subject-name", Static)
         wstatus = self.query_one("#subject-status", Static)
         wdocs = self.query_one("#docs-url", Static)
@@ -556,6 +613,10 @@ class SubjectDetails(Static):
         wname.update(subject.name)
         wstatus.update(subject["status_name"])
         wmsg.update(subject["comment"])
+        if subject.name in self.invalid_subjects:
+            msg = "Subject has been invalidated and will be skipped from the preparation procedure. If you want to include the subject again, revalidate it"
+            wstatus.update("INVALIDATED")
+            wmsg.update(msg)
         wdata.update(to_local_path(subject["data_path"], dset_path))
         wlabels.update(to_local_path(subject["labels_path"], labels_path))
         if subject["docs_url"]:
@@ -581,6 +642,7 @@ class SubjectDetails(Static):
         review_button = self.query_one("#review-button", Button)
         reviewed_button = self.query_one("#reviewed-button", Button)
         brainmask_button = self.query_one("#brainmask-review-button", Button)
+        valid_btn = self.query_one("#valid-btn", Button)
 
         if self.__can_review():
             review_msg.display = "none"
@@ -591,6 +653,10 @@ class SubjectDetails(Static):
         if self.__can_review_brain():
             brainmask_button.label = "Review brain mask"
             brainmask_button.disabled = False
+        if self.subject.name in self.invalid_subjects:
+            valid_btn.label = "Validate"
+        else:
+            valid_btn.label = "Invalidate"
 
     def __can_review(self):
         review_command_path = shutil.which(REVIEW_COMMAND)
@@ -683,10 +749,31 @@ class SubjectDetails(Static):
         shutil.copyfile(under_review_filepath, finalized_filepath)
         self.notify("Subject finalized")
 
+    def __validate(self):
+        with open(self.invalid_path, "r") as f:
+            invalid_subjects = set([id.strip() for id in f.readlines()])
+        if self.subject.name not in invalid_subjects:
+            return
+
+        invalid_subjects.remove(self.subject.name)        
+        with open(self.invalid_path, "w") as f:
+            f.write("\n".join(invalid_subjects))
+
+    def __invalidate(self):
+        with open(self.invalid_path, "r") as f:
+            invalid_subjects = set([id.strip() for id in f.readlines()])
+        if self.subject.name in invalid_subjects:
+            return
+
+        invalid_subjects.add(self.subject.name)        
+        with open(self.invalid_path, "w") as f:
+            f.write("\n".join(invalid_subjects))
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         review_brainmask_button = self.query_one("#brainmask-review-button", Button)
         review_button = self.query_one("#review-button", Button)
         reviewed_button = self.query_one("#reviewed-button", Button)
+        validate_button = self.query_one("#valid-btn", Button)
 
         if event.control == review_brainmask_button:
             self.__review_brainmask()
@@ -694,6 +781,13 @@ class SubjectDetails(Static):
             self.__review_tumor()
         elif event.control == reviewed_button:
             self.__finalize()
+        elif event.control == validate_button:
+            if self.subject.name in self.invalid_subjects:
+                self.__validate()
+            else:
+                self.__invalidate()
+
+        self.__update_buttons()
 
 
 class Subjectbrowser(App):
@@ -709,19 +803,20 @@ class Subjectbrowser(App):
     subjects = var([])
     report = reactive({})
     pbars = var([])
+    invalid_subjects = reactive(set())
     prompt = ""
 
-    def set_dset_data_path(self, dset_data_path: str):
+    def set_vars(self, dset_data_path, stages_path, reviewed_watchdog, output_path, invalid_path, invalid_watchdog, prompt_watchdog):
         self.dset_data_path = dset_data_path
-
-    def set_stages_path(self, stages_path: str):
         self.stages_path = stages_path
-
-    def set_reviewed_watchdog(self, reviewed_watchdog: ReviewedHandler):
         self.reviewed_watchdog = reviewed_watchdog
-
-    def set_output_path(self, output_path: str):
         self.output_path = output_path
+        self.invalid_path = invalid_path
+        self.invalid_watchdog = invalid_watchdog
+        self.prompt_watchdog = prompt_watchdog
+
+    def update_invalid(self, invalid_subjects):
+        self.invalid_subjects = invalid_subjects
 
     def compose(self) -> ComposeResult:
         """Compose our UI."""
@@ -762,9 +857,13 @@ class Subjectbrowser(App):
             with open(report_path, "r") as f:
                 self.report = yaml.safe_load(f)
 
-        # Set reviewed watchdog for summary view
-        summary = self.query_one("#summary", Summary)
-        summary.set_reviewed_watchdog(self.reviewed_watchdog)
+        # Set invalid path for subject view
+        subject_details = self.query_one("#details", SubjectDetails)
+        subject_details.set_invalid_path(self.invalid_path)
+
+        # Execute handlers
+        self.prompt_watchdog.manual_execute()
+        self.invalid_watchdog.manual_execute()
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         """Called when the user click a subject in the list."""
@@ -787,7 +886,10 @@ class Subjectbrowser(App):
         report = pd.DataFrame(self.report)
         subject = report.loc[subject_idx]
         subject_view = self.query_one("#details", SubjectDetails)
-        subject_view.update_subject(subject, self.dset_data_path)
+        subject_view.subject = subject
+        subject_view.dset_path = self.dset_data_path
+
+        subject_view.update_subject()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         y_button = self.query_one("#confirm-approve", Button)
@@ -801,14 +903,21 @@ class Subjectbrowser(App):
     def update_prompt(self, prompt: str):
         self.prompt = prompt
         show_prompt = bool(len(prompt))
-        try:
-            prompt_details = self.query_one("#confirm-details", Static)
-            prompt_details.update(prompt)
-            container = self.query_one("#confirm-prompt", Container)
-            container.display = show_prompt
-            container.focus()
-        except:
-            return
+        prompt_details = self.query_one("#confirm-details", Static)
+        prompt_details.update(prompt)
+        container = self.query_one("#confirm-prompt", Container)
+        container.display = show_prompt
+        container.focus()
+
+    def watch_invalid_subjects(self, invalid_subjects: set) -> None:
+        subject_list = self.query_one("#subjects-list", SubjectListView)
+        summary = self.query_one("#summary", Summary)
+        subject_details = self.query_one("#details", SubjectDetails)
+
+        msg = InvalidSubjectsUpdated(invalid_subjects)
+        subject_list.post_message(msg)
+        summary.post_message(msg)
+        subject_details.post_message(msg)
 
     def watch_report(self, old_report: dict, report: dict) -> None:
         highlight_subjects = set()
@@ -885,6 +994,7 @@ def main(
 
     report_path = os.path.join(dset_path, "report.yaml")
     dset_data_path = os.path.join(dset_path, "data")
+    invalid_path = os.path.join(dset_path, "metadata/.invalid.txt")
 
     if not os.path.exists(report_path):
         print(
@@ -894,21 +1004,20 @@ def main(
         exit()
 
     app = Subjectbrowser()
-    app.set_dset_data_path(dset_data_path)
-    app.set_stages_path(stages_path)
-    app.set_output_path(output_path)
 
     report_state = ReportState(report_path, app)
     report_watchdog = ReportHandler(report_state)
     prompt_watchdog = PromptHandler(dset_data_path, app)
     reviewed_watchdog = ReviewedHandler(dset_data_path, app)
+    invalid_watchdog = InvalidHandler(invalid_path, app)
 
-    app.set_reviewed_watchdog(reviewed_watchdog)
+    app.set_vars(dset_data_path, stages_path, reviewed_watchdog, output_path, invalid_path, invalid_watchdog, prompt_watchdog)
 
     observer = Observer()
     observer.schedule(report_watchdog, dset_path)
     observer.schedule(prompt_watchdog, os.path.join(dset_path, "data"))
     observer.schedule(reviewed_watchdog, ".")
+    observer.schedule(invalid_watchdog, os.path.dirname(invalid_path))
     observer.start()
     app.run()
 
