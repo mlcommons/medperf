@@ -2,6 +2,10 @@
 
 This setup is only for running the tutorials. If you are using MedPerf with a real benchmark and real experiments, skip to [this section](#choose-the-container-runner) to optionally change your container runner. Then, follow the tutorials as a general guidance for your real experiments.
 
+## Setup MedPerf Client
+
+If you are new user and that are your first steps, install MedPerf environment and client library firstly as described [there](installation.md).  
+
 ## Run a Local MedPerf Server
 
 For this tutorial, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not on the internet.

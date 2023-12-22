@@ -28,7 +28,7 @@ In this guide, you will learn how a user can use MedPerf to create a benchmark. 
 5. Host the demo dataset.
 6. Submit the benchmark to the MedPerf server.
 
-It's assumed that you have already set up the general testing environment as explained in the [setup guide](setup.md).
+It's assumed that you have already set up the general testing environment as explained in the [installation](installation.md) and [setup guide](setup.md).
 
 
 {% include "getting_started/shared/before_we_start.md" %}
