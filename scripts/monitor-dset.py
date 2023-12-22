@@ -486,7 +486,7 @@ class SubjectListView(ListView):
             else:
                 status = report_df.loc[subject]["status_name"]
                 if subject in self.invalid_subjects:
-                    status = "Invalid"
+                    status = "Invalidated"
                 widget = ListItem(
                     Label(subject),
                     Label(status.capitalize().replace("_", " "), classes="subtitle")
