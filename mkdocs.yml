@@ -126,6 +126,7 @@ markdown_extensions:
   - toc:
       permalink: True
   - attr_list
+  - md_in_html
 
 extra_css:
   - styles/styles.css

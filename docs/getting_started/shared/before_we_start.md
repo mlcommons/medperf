@@ -27,7 +27,14 @@ A script is provided to download all the necessary files so that you follow the 
 sh tutorials_scripts/setup_{{page.meta.tutorial_id}}_tutorial.sh
 ```
 
-This will create a workspace folder `medperf_tutorial` where all necessary files are downloaded.
+This will create a workspace folder `medperf_tutorial` where all necessary files are downloaded. The folder contains the following content:
+
+<details markdown>
+<summary>Toy content description</summary>
+{% include "getting_started/shared/tutorials_content_overview/"+page.meta.tutorial_id+".md" %}
+</details>
+
+In real life all the listed artifacts and files have to be created on your own. However, for tutorial's sake you may use this toy data.   
 
 #### Login to the Local MedPerf Server
 
