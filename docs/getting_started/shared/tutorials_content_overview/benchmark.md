@@ -1,26 +1,31 @@
-### Demo data
+In this tutorial we would create a benchmark that classifies chest X-Ray images.
 
-`medperf_tutorial/demo_data/` folder contains demo dataset content.
-  - `images/` folder contains sample images
-  - `labels/labels.csv` contains a simple ground truth markup: which image belongs to which class
+### Demo Data
 
-  The demo dataset would be publicly shared among all benchmark users. It's required for two purposes:
-  1. External Data Owners can see what exactly format their data should be transformed to in order to be attached to participate in benchmark.
-  2. External Model Owners can check their models on this sample. After model owner implements their model MLCube, they can test it without access to a real data (hosted by Data Owners). NB: Model MLCubes consume not the raw data but prepared one; see [DataPreparator MLCube folder](#data-preparator-mlcube).
+TODO: remove info that's duplicated in main tutorial's content
+
+The `medperf_tutorial/demo_data/` folder contains the demo dataset content.
   
-  So, once more: demo dataset is necessary to show __expected data format__ that your benchmark consumes, not to share a real data.
+  - `images/` folder includes sample images.
+  - `labels/labels.csv` provides a basic ground truth markup, indicating the class each image belongs to.
+
+This demo dataset will be publicly shared with all benchmark users and serves two key purposes:
+  1. External Data Owners can understand the exact format required for their data to participate in the benchmark.
+  2. External Model Owners can test their models using this sample. After implementing their model as an MLCube, they can conduct tests without needing access to real data (hosted by Data Owners). Note: Model MLCubes do not consume raw data but rather prepared data; see [DataPreparator MLCube folder](#data-preparator-mlcube).
+  
+  To reiterate: The purpose of the demo dataset in every benchmark is to demonstrate users the __expected data format__ your benchmark requires, not to distribute real data.
 
 ### Data Preparator MLCube
 
-`medperf_tutorial/data_preparator/` is a [DataPreparator MLCube](../../../mlcubes/mlcube_data.md) that you have to implement. This MLCube 
-  - Converts [raw demo data](#demo-data) to some convenient form, usable to be consumed by models: converts DICOM images to numpy tensors, or crop patches, or normalize columns, or... It's up to you to decide which format is handy for future models.
-  - Guarantees its output has the fixed format, so Model Owners / Model Developers can rely on that.
-  - The real Dataset Owners that will join your benchmark later would ought to prepare their data in the form your Data Preparator can consume it.
+The `medperf_tutorial/data_preparator/` contains a [DataPreparator MLCube](../../../mlcubes/mlcube_data.md) that you must implement. This MLCube:
+  - Transforms [raw demo data](#demo-data) into a format convenient for model consumption, such as converting DICOM images into numpy tensors, cropping patches, normalizing columns, etc. It's up to you to define the format that is handy for future models.
+  - Ensures its output is in a standardized format, allowing Model Owners/Developers to rely on its consistency.
+  - Requires that real Dataset Owners joining your benchmark later prepare their data in a form compatible with your Data Preparator.
 
 ### Model MLCube
 
-`medperf_tutorial/model_custom_cnn/` is an example of [Model MLCube](../../../mlcubes/mlcube_models.md). Your need to implement a simple mockup model to ensure the whole pipeline is working. Model developers who would join your benchmark would replace this MLCube with their own implementation.
+The `medperf_tutorial/model_custom_cnn/` is an example of a [Model MLCube](../../../mlcubes/mlcube_models.md). You need to implement a basic mock-up model for users to verify the entire pipeline is working. Model Developers joining your benchmark will replace this MLCube with their own implementations.
 
 ### Metrics MLCube
 
-`medperf_tutorial/metrics/` is a [Metrics MLCube](../../../mlcubes/mlcube_metrics.md) that consumes ground truth, model predictions and evaluates some basic stats - classification accuracy, loss,  etc. After Dataset Owner runs models over his data, these final metrics values would be shared to you as Benchmark Owner. Please, ensure your metrics are not too specific and do not leak any PII or other confidential information (including dataset statistics) - in other case no Dataset Owners would agree to participate in your benchmark!
+The `medperf_tutorial/metrics/` houses a [Metrics MLCube](../../../mlcubes/mlcube_metrics.md) that processes ground truth data, model predictions, and computes basic statistics - such as classification accuracy, loss, etc. After a Dataset Owner runs models on their data, these final metric values will be shared with you as the Benchmark Owner. Please ensure that your metrics are not too specific and do not reveal any Personally Identifiable Information (PII) or other confidential data (including dataset statistics) - otherwise, Dataset Owners no Dataset Owners would agree to participate in your benchmark!
