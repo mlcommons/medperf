@@ -4,5 +4,5 @@
     "description": "Data Preparator MLCube Template. Provided by MLCommons",
     "author_name": "John Smith",
     "accelerator_count": "0",
-    "docker_image_name": "docker/image:latest",
+    "docker_image_name": "docker/image:latest"
 }
