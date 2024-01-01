@@ -7,81 +7,84 @@ data_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/samp
 
 ## Introduction
 
-This is one of the three guides that help the user build MedPerf-compatible MLCubes. The other two guides are for building a [Model MLCube](mlcube_models.md) and a [Metrics MLCube](mlcube_metrics.md). Together, the three MLCubes examples constitute a complete benchmark workflow for the task of thoracic disease detection from Chest X-rays. 
+This guide is one of three designed to assist users in building MedPerf-compatible MLCubes. The other two guides focus on creating a [Model MLCube](mlcube_models.md) and a [Metrics MLCube](mlcube_metrics.md). Together, these three MLCubes form a complete benchmark workflow for the task of thoracic disease detection from Chest X-rays.
 
-To recap, a final working MedPerf pipeline consists of the following steps:
+In summary, a functional MedPerf pipeline includes these steps:
 
-1. Data Owner exports a raw dataset from one's databases (manually or with scripts) - this step is made outside the pipeline itself. The result is some `my_raw_data/` folder. If pipeline is run by some other person (Model Owner / Benchmark Owner), predefined `my_benchmark_demo_raw_data/` is used (created by Benchmark Owner and distributed with the specific benchmark).
-2. Data Preparator MLCube takes this folder path as input and transforms it to some unified format, outputting some `my_prepared_dataset/` folder (MLCube is implemented by Benchmark Owner)
-3. Model MLCube takes this prepared data and infers some model over it, saving results into some `my_model_predictions/` folder. (MLCube is implemented by Model Owner; Benchmark Owner has to implement a sample baseline model cube to be used as mock-up)
-4. Metrics MLCube processes predictions and evaluate some metrics, outputting them to some `my_metrics.json` file (MLCube is implemented by Benchmark Owner)
-5. Data Owner receives metrics results and can submit them to MedPerf server.
+1. The Data Owner exports a raw dataset from their databases (manually or via scripts) - this step occurs outside the pipeline itself. Lets name the output folder as `my_raw_data/`. If the pipeline is run by another person (Model Owner/Benchmark Owner), a predefined `my_benchmark_demo_raw_data/` would be used instead (created and distributed by the Benchmark Owner).
+2. The Data Preparator MLCube takes this folder's path as input and converts data into a standardized format, resulting in some `my_prepared_dataset/` folder (MLCube is implemented by the Benchmark Owner).
+3. The Model MLCube processes the prepared data, running a model and saving the results in some `my_model_predictions/` folder (MLCube is implemented by the Model Owner; the Benchmark Owner must implement a baseline model MLCube to be used as a mock-up).
+4. The Metrics MLCube processes predictions and evaluates metrics, saving them in some `my_metrics.json` file (MLCube implemented by the Benchmark Owner).
+5. The Data Owner reviews the metric results and may submit them to the MedPerf server.
 
-These three guides describe 2-4 steps. As all steps are demonstrating how to build a specific MLCube, it's highly recommended to explore a [Model MLCube guide](mlcube_models.md) firstly that explains not only Model part, but the sense and detailed structure of MLCubes itself. Another option is to explore [MLCube basic docs](https://mlcommons.github.io/mlcube/). In this guide the shortened version is described.
+Aformentioned guides detail steps 2-4. As all steps demonstrate building specific MLCubes, we recommend starting with the [Model MLCube guide](mlcube_models.md), which offers a more detailed explanation of the MLCube's concept and structure. Another option is to explore [MLCube basic docs](https://mlcommons.github.io/mlcube/). In this guide provides the shortened concepts description, focusing on nuances and input/output parameters.
 
 ## About this Guide
 
-This guide will help users familiarize themselves with the expected interface of the Data Preparator MLCube and gain a comprehensive understanding of its components. By following this walkthrough, users will gain insights into the structure and organization of a Model MLCube, allowing them at the end to be able to implement their own MedPerf-compatible Model MLCube.
+This guide describes the tasks, structure and input/output parameters of Data Preparator MLCube, allowing users at the end to be able to implement their own MedPerf-compatible MLCube for Benchmark purposes.
 
-The guide will start by providing general advice, steps, and required API on building these MLCubes. Then, you will be guided to create your own MLCube from template - using the Chest X-ray Data Preprocessor MLCube as a working example.
+The guide starts with general advices, steps, and the required API for building these MLCubes. Subsequently, it will lead you through creating your MLCube using the Chest X-ray Data Preprocessor MLCube as a practical example.
 
-It is considered a good practice to be able to handle data in different formats: say, if the benchmark processes images, it's worth to support JPEGs, PNGS, BMPs and well as other expected images formats; support big images as well as small ones; etc. Therefor you simplify the work for your users (Dataset Owners) as they can export the data in a most handy format for them. It's Data Preparator responsibility to  convert all reasonable input data to some unified format. 
+It's considered best practice to handle data in various formats. For instance, if the benchmark involves image processing, it's beneficial to support JPEGs, PNGs, BMPs, and other expected image formats; accommodate large and small images, etc. Such flexibility simplifies the process for Dataset Owners, allowing them to export data in their preferred format. The Data Preparator's role is to convert all reasonable input data into a unified format.
 
 ## Before Building the MLCube
 
-You would have to implement three tasks that your MLCube should handle:
-- `prepare`: your main task that converts raw input data into unified format
-- `sanity_check`: checks that `prepare` outputs are clean and consistent (say, there is no records without ground truth labels, labels do have only expected values only, the data fields have reasonable values without outliers and NaNs, etc.)
-- `statistics`: Allows you to calculate some aggregated statistics over the transformed dataset. That statistics would be uploaded to you as Benchmark Owner once Dataset Owner submits their dataset.
+Your MLCube must implement three command tasks:
 
-It is assumed that you do already have 
+- `prepare`: your main task that transforms raw input data into a unified format.
+- `sanity_check`: verifies the cleanliness and consistency of `prepare` outputs (e.g., ensuring no records lack ground truth labels, labels contain only expected values, data fields are reasonable without outliers or NaNs, etc.)
+- `statistics`: Calculates some aggregated statistics on the transformed dataset. Once the Dataset Owner submits their dataset, these statistics will be uploaded to you as the Benchmark Owner.
 
-- Some raw data
-- Expected unified format that data should be converted to
-- A working implementation of all these three parts.
+It's assumed that you already have:
 
-What you want to accomplish through this guide is to wrap your preparation code within an MLCube. Make sure you extract each part of your logic, so it can be run independently of each other.
+- Some raw data.
+- The expected unified format for data conversion.
+- A working implementation of all three tasks.
+
+This guide will help you encapsulate your preparation code within an MLCube. Make sure you extracted each part of your logic, so it can be run independently.
+
 
 ## Required API
 
-During execution of every command, the specific params are passed. Despite your code can be implemented in any way that you want, keep in mind that you should support the folowing API:
+Each command execution receives specific parameters. While you are flexible in code implementation, keep in mind that your implementation will receive the following input arguments:
 
-### Data preparation API (`prepare` command)
+### Data Preparation API (`prepare` Command)
 
-The following values are passed while 
-- `data_path`: path to r/o folder that contains raw data
-- `labels_path`: path to r/o folder that contains raw ground truth labels
-- any other optional extra params that you attach to the MLCube. Say, a `.txt` file with a list of acceptable labels. NB: while first two params contain user data, these extra params would contain values defined by you as MLCube owner. So, no, you cannot require your users to pass additional data.
-- `output_path`: r/w folder to store transformed dataset objects
-- `output_labels_path`: r/w folder to store transformed labels
+The parameters include:
+- `data_path`: the path to the raw data folder (read-only).
+- `labels_path`: the path to the ground truth labels folder (read-only).
+- Any other optional extra params that you attach to the MLCube, such as path to `.txt` file with acceptable labels. Note: these extra parameters contain values defined by you, the MLCube owner, not the users' data.
+- `output_path`: an r/w folder for storing transformed dataset objects.
+- `output_labels_path`: an r/w folder for storing transformed labels.
 
-### Sanity check API (`sanity_check` command)
+### Sanity Check API (`sanity_check` Command)
 
-- `data_path`: path to r/o folder that contains **transformed** data
-- `labels_path`: path to r/o folder that contains **transformed** ground truth labels
-- any other optional extra params that you attach to the MLCube - same as for `prepare` command.
+The parameters include:
+- `data_path`: the path to the transformed data folder (read-only).
+- `labels_path`: the path to the transformed ground truth labels folder (read-only).
+- Any other optional extra params that you attach to the MLCube - same as for the `prepare` command.
 
-Sanity check is not expected to return any outputs: it either runs successfully, or fails.
+The sanity check does not produce outputs; it either completes successfully or fails.
 
-### Statistics API (`statistics` command)
+### Statistics API (`statistics` Command)
 
-- `data_path`: path to r/o folder that contains **transformed** data
-- `labels_path`: path to r/o folder that contains **transformed** ground truth labels
-- any other optional extra params that you attach to the MLCube - same as for `prepare` command.
+- `data_path`: the path to the transformed data folder (read-only).
+- `labels_path`: the path to the transformed ground truth labels folder (read-only).
+- Any other optional extra params that you attach to the MLCube - same as for `prepare` command.
 - `output_path`: path to `.yaml` file where your code should write down calculated statistics.
 
-## Build your own MLCube
+## Build Your Own MLCube
 
-While that guide leads you through creating your own MLCube, you can always check a prebuilt example to understand better how it works in a already implemented MLCube. The example is stored [here](https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/data_preparator):
+While this guide leads you through creating your own MLCube, you can always check a prebuilt example for a better understanding of how it works in an already implemented MLCube. The example is stored [here](https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/data_preparator):
 ```bash
 cd examples/chestxray_tutorial/data_preparator/
 ```
 
-The guide shows this implementation to describe concepts.
+The guide uses this implementation to describe concepts.
 
 ### Use an MLCube Template
 
-First, make sure you have [MedPerf installed](../getting_started/installation.md). You can create a Data Preparator MLCube template by running the following command:
+First, ensure you have [MedPerf installed](../getting_started/installation.md). Create a Data Preparator MLCube template by running the following command:
 
 ```bash
 medperf mlcube create data_preparator
@@ -102,8 +105,8 @@ docker_image_name [docker/image:latest]: # (6)!
 2. Determines how the MLCube root folder will be named.
 3. Gives a Human-readable description to the MLCube Project.
 4. Documents the MLCube implementation by specifying the author.
-5. Indicates how many GPUs should be visible by the MLCube.
-6. MLCubes use Docker containers under the hood. Here, you can provide an image tag to the image that will be created by this MLCube. **You should use a valid name that allows you to upload it to a Docker registry.**
+5. Specifies how many GPUs should be visible by the MLCube.
+6. MLCubes use Docker containers under the hood. Here, you can provide an image tag for the image created created by this MLCube. **You should use a valid name that allows you to upload it to a Docker registry.**
 
 After filling the configuration options, the following directory structure will be generated:
 
@@ -120,23 +123,23 @@ After filling the configuration options, the following directory structure will 
         └── requirements.txt
 ```
 
-### The `project` folder
+### The `project` Folder
 
-This is where your inference logic will live. It contains a standard Docker image project with a specific entrypoint's API. `mlcube.py` contains an entrypoint and handles all the tasks we've described. You need to update this template with your code and bind your logic to specified functions for all three commands.
-You may check the [Chest X-ray tutorial example](https://github.com/mlcommons/medperf/blob/main/examples/chestxray_tutorial/data_preparator/project/mlcube.py) to see how it should look like:
+This is where your inference logic will live. It contains a standard Docker image project with a specific API for the entrypoint. `mlcube.py` contains the entrypoint and handles all the tasks we've described. Update this template with your code and bind your logic to specified functions for all three commands.
+Refer to the [Chest X-ray tutorial example](https://github.com/mlcommons/medperf/blob/main/examples/chestxray_tutorial/data_preparator/project/mlcube.py) for an example of how it should look:
 
 ```python title="mlcube.py"
 --8<-- "examples/chestxray_tutorial/data_preparator/project/mlcube.py"
 ```
 
-### The `mlcube` folder
+### The `mlcube` Folder
 
-This folder is mainly for configuring your MLCube and providing additional files the MLCube may interact with, such as parameters or model weights.
+This folder is primarily for configuring your MLCube and providing additional files the MLCube may interact with, such as parameters or model weights.
 
-#### `mlcube.yaml` MLCube configuration
+#### `mlcube.yaml` MLCube Configuration
 
 
-The `mlcube.yaml` file contains metadata and configuration of your mlcube. This file was already populated with the configuration you provided during the step of creating the template. There is no need to edit anything in this file except if you are specifying extra parameters to the commands (e.g., sklearn's `StardardScaler` weights or any other parameters required for data transformation).
+The `mlcube/mlcube.yaml` file contains metadata and configuration of your mlcube. This file is already populated with the configuration you provided during the template creation step. There is no need to edit anything in this file except if you are specifying extra parameters to the commands (e.g., you want to pass a sklearn's `StardardScaler` weights or any other parameters required for data transformation).
 
 ```python title="mlcube.py"
 --8<-- "examples/chestxray_tutorial/data_preparator/mlcube/mlcube.yaml"
@@ -144,7 +147,7 @@ The `mlcube.yaml` file contains metadata and configuration of your mlcube. This 
 
 All paths are relative to `mlcube/workspace/` folder.
 
-To set up additional inputs you should add a key-value pair in the task's `inputs` dictionary: 
+To set up additional inputs, add a key-value pair in the task's `inputs` dictionary: 
 
 ```yaml title="mlcube.yaml" hl_lines="9"
 ...
@@ -161,41 +164,41 @@ To set up additional inputs you should add a key-value pair in the task's `input
 ...
 ```
 
-Taking into account a note about paths location, this new file should be stored at `mlcube/workspace/additional_files/standardscaler.pkl`
+Considering the note about path locations, this new file should be stored at `mlcube/workspace/additional_files/standardscaler.pkl`
 
 #### Parameters
 
-Your preprocessing logic may depend on some parameters (e.g. which labels are accepted). It is usually a more favorable design to not hardcode such parameters, but instead pass them when running the MLCube. This can be done by having a `parameters.yaml` file as an input to the MLCube. This file will be available to the commands described before (if you declare it in `inputs` dict of specific command). You can parse this file in the `mlcube.py` file and pass its contents to your code.
+Your preprocessing logic might depend on certain parameters (e.g., which labels are accepted). It is generally better to pass such parameters when running the MLCube, rather than hardcoding them. This can be done by having a `parameters.yaml` file as input to the MLCube. This file will be available to the previously described commands (if you declare it in the `inputs` dicti of a specific command). You can parse this file in the `mlcube.py` file and pass its contents to your code.
 
 This file should be placed in the `mlcube/workspace` folder.
 
-## Build your MLCube
+## Build Your MLCube
 
-After you follow the previous sections and fulfill the image with your logics, the MLCube is ready to be built and run. Run the command below to build the MLCube. Make sure you are in the `mlcube/` subfolder of your Data Preparator.
+After you follow the previous sections and fulfill the image with your logic, the MLCube is ready to be built and run. Run the command below to build the MLCube. Ensure you are in the `mlcube/` subfolder of your Data Preparator.
 
 ```bash
 mlcube configure -Pdocker.build_strategy=always
 ```
 
-This command will build your docker image and make the MLCube ready to use.
+This command will build your Docker image and prepare the MLCube for use.
 
 ## Run your MLCube
 
 MedPerf will take care of running your MLCube. However, it's recommended to test the MLCube alone before using it with MedPerf for better debugging.
 
-Use the command below to run the MLCube. Make sure you are in the `mlcube/` subfolder of your Data Preparator.
+To run the MLCube, use the command below. Ensure you are located in the `mlcube/` subfolder of your Data Preparator.
 
 ```bash
 mlcube run --task prepare data_path=<path_to_raw_data> labels_path=<path_to_raw_labels> output_path=<path_to_save_transformed_data> output_labels_path=<path_to_save_transformed_labels>
 ```
 
 !!! note "Relative paths"
-    Keep in mind that though we are running tasks from `mlcube/`, all the paths should be absolute or relative to `mlcube/workspace/`
+    Keep in mind that though we are running tasks from `mlcube/`, all the paths should be absolute or relative to `mlcube/workspace/`.
 
 !!! note "Default values"
-    We have declared a default values for every path parameter. It means that we can skip this params in our command.
+    We have declared a default values for every path parameter. This allows for omitting these parameters in our commands.
 
-    Say you have the following structure: 
+    Consider the following structure: 
     ```bash
     .
     └── data_preparator_mlcube
@@ -212,24 +215,24 @@ mlcube run --task prepare data_path=<path_to_raw_data> labels_path=<path_to_raw_
             └── ...
     ```
     
-    Now you can run the following commands, being located at `data_preparator_mlcube/mlcube`:
+    Now, you can execute the commands below, being located at `data_preparator_mlcube/mlcube/`:
     ```
     mlcube run --task prepare data_path=../../my_data/data/ labels_path=../../my_data/labels/
     mlcube run --task sanity_check
     mlcube run --task statistics output_path=../../my_data/statistics.yaml
     ```
     
-    Note how
+    Note that:
 
-    1. Passed paths are relative to `mlcube/workspace` rather then to current working directory,
+    1. The passed paths are relative to `mlcube/workspace` rather then to the current working directory,
     2. We used default values for transformed data so new folders would appear: `mlcube/workspace/data/` and others. 
 
 ## Using the Example with GPUs
 
-The provided example codebase runs only on CPU. You can modify it to have `pytorch` run inference on a GPU.
+The provided example codebase runs only on CPU. You can modify it to pass a GPU inside Docker image if your code utilizes it.
 
 The general instructions for building an MLCube to work with a GPU are the same as the provided instructions, but with the following slight modifications:
 
-- Use a number different than `0` for the `accelerator_count` that you will be prompted with when creating the MLCube template.
-- Inside the `docker` section of the `mlcube.yaml`, add a key value pair: `gpu_args: --gpus=all`. These `gpu_args` will be passed to `docker run` under the hood by MLCube. You may add more than just `--gpus=all`.
+- Enter a number different than `0` for the `accelerator_count` that you will be prompted with when creating the MLCube template or modify `platform.accelerator_count` value of `mlcube.yaml` configuration.
+- Inside the `docker` section of the `mlcube.yaml`, add a key value pair: `gpu_args: --gpus=all`. These `gpu_args` will be passed to `docker run` command by MLCube. You may add more than just `--gpus=all`.
 - Make sure you install the required GPU dependencies in the docker image. For instance, this may be done by simply modifying the `pip` dependencies in the `requirements.txt` file to download `pytorch` with cuda, or by changing the base image of the dockerfile.
