@@ -2,14 +2,12 @@ In this tutorial we would create a benchmark that classifies chest X-Ray images.
 
 ### Demo Data
 
-TODO: remove info that's duplicated in main tutorial's content
-
 The `medperf_tutorial/demo_data/` folder contains the demo dataset content.
   
   - `images/` folder includes sample images.
   - `labels/labels.csv` provides a basic ground truth markup, indicating the class each image belongs to.
 
-This demo dataset will be publicly shared with all benchmark users and serves two key purposes:
+You should share your demo dataset publicly with all benchmark users for two key purposes:
   1. External Data Owners can understand the exact format required for their data to participate in the benchmark.
   2. External Model Owners can test their models using this sample. After implementing their model as an MLCube, they can conduct tests without needing access to real data (hosted by Data Owners). Note: Model MLCubes do not consume raw data but rather prepared data; see [DataPreparator MLCube folder](#data-preparator-mlcube).
   
