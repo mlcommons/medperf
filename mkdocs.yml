@@ -27,13 +27,13 @@ nav:
     - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
     - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
   - Authentication: concepts/auth.md
-  - Client Configuration: concepts/profiles.md
+#  - Client Configuration: concepts/profiles.md
   - MLCube Components: concepts/mlcube_files.md
   - Hosting Files: concepts/hosting_files.md
-  - Benchmark Associations: concepts/associations.md
-  - Model Priority: concepts/priorities.md
-  - Running Specific Models: concepts/single_run.md
-- CLI Reference: cli_reference.md
+#  - Benchmark Associations: concepts/associations.md
+#  - Model Priority: concepts/priorities.md
+#  - Running Specific Models: concepts/single_run.md
+#- CLI Reference: cli_reference.md
 # - Code Reference: reference/
 theme:
   custom_dir: docs/overrides

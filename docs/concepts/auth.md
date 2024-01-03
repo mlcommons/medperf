@@ -51,7 +51,8 @@ medperf auth logout
 
 ## Checking the authentication status
 
-Note that when you log in, the MedPerf client will remember you as long as you are using the same `profile`. If you switch to another profile by running `medperf profile activate <other-profile>`, you may have to log in again. If you switch back again to a profile where you previously logged in, your login state will be restored. Read more about profiles [here](profiles.md).
+Note that when you log in, the MedPerf client will remember you as long as you are using the same `profile`. If you switch to another profile by running `medperf profile activate <other-profile>`, you may have to log in again. If you switch back again to a profile where you previously logged in, your login state will be restored.
+<!-- TODO: uncomment once profiles.md are filled. Read more about profiles [here](profiles.md). -->
 
 You can always check the current login status by the running the following command:
 
