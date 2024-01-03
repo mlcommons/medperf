@@ -267,7 +267,7 @@ You need to keep at hand the following information:
 {{ demo_url }}
 ```
 
-- The server UIDs of the three MLCubes can be found there:
+- The server UIDs of the three MLCubes can be found by running:
 
 ```bash
  medperf mlcube ls
