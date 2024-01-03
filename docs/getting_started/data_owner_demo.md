@@ -9,7 +9,7 @@ hide:
 
 ## Overview
 
-The Benchmark owner provides only a small data sample for development purposes. However, the real model evaluations would be held on your side as a Data Owner. You have to prepare your own dataset that alignes with the benchmark's expected input format and submit information about it to the MedPerf server.
+As a data owner, you plan to run a benchmark on your own dataset. Using MedPerf, you will prepare your (raw) dataset and submit information about it to the MedPerf server. You may have to consult the benchmark committee to make sure that your raw dataset aligns with the benchmark's expected input format.
 
 !!!Note
     A key concept of MedPerf is the stringent confidentiality of your data. It remains exclusively on your machine. Only minimal information about your dataset, such as the hash of its contents, is submitted. Once your Dataset is submitted and associated with a benchmark, you can run all benchmark models on your data within your own infrastructure and see the results / predictions.
