@@ -1,0 +1,33 @@
+#main-container {
+    margin: 0 5;
+}
+
+.subject-item {
+    background: $panel-lighten-3;
+    padding: 1;
+}
+
+Button {
+    margin: 0 1;
+}
+
+.tumor-btn {
+    background: $accent;
+}
+
+#explanation {
+    align: center middle;
+    max-height: 4;
+    text-align: center;
+}
+
+#subjects-container {
+    margin: 1 2;
+    background: $primary-background;
+}
+
+TarballSubjectView {
+    align: center middle;
+    height: 5;
+    margin: 1;
+}
