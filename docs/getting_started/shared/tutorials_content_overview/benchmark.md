@@ -12,9 +12,8 @@ The demo dataset is a sample dataset used for the development of your benchmark 
 ### Data Preparator MLCube
 
 The `medperf_tutorial/data_preparator/` contains a [DataPreparator MLCube](../../../mlcubes/mlcube_data.md) that you must implement. This MLCube:
-  - Transforms [raw demo data](#demo-data) into a format convenient for model consumption, such as converting DICOM images into numpy tensors, cropping patches, normalizing columns, etc. It's up to you to define the format that is handy for future models.
+  - Transforms raw data into a format convenient for model consumption, such as converting DICOM images into numpy tensors, cropping patches, normalizing columns, etc. It's up to you to define the format that is handy for future models.
   - Ensures its output is in a standardized format, allowing Model Owners/Developers to rely on its consistency.
-  - Requires that real Dataset Owners joining your benchmark later prepare their data in a form compatible with your Data Preparator.
 
 ### Model MLCube
 
