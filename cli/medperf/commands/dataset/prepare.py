@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 import signal
 import pandas as pd
 from medperf.entities.dataset import Dataset
@@ -11,11 +10,13 @@ from medperf.exceptions import CommunicationError, ExecutionError, InvalidArgume
 import yaml
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from threading import Timer
 
 
 class ReportHandler(FileSystemEventHandler):
     def __init__(self, preparation_obj: "DataPreparation"):
         self.preparation = preparation_obj
+        self.timer = None
 
     def on_created(self, event):
         self.on_modified(event)
@@ -24,7 +25,48 @@ class ReportHandler(FileSystemEventHandler):
         preparation = self.preparation
         if event.src_path == preparation.report_path:
             report_metadata = {"execution_status": "running"}
-            preparation.send_report(report_metadata)
+            if self.timer is None or self.timer.finished.is_set():
+                wait = config.wait_before_sending_reports
+                self.timer = Timer(
+                    wait, preparation.send_report, args=(report_metadata,)
+                )
+                self.timer.start()
+
+
+class ReportSender:
+    def __init__(self, preparation_obj: "DataPreparation"):
+        self.preparation = preparation_obj
+
+    def start(self):
+        report_metadata = {"execution_status": "started"}
+        self.preparation.send_report(report_metadata)
+
+        self.observer = Observer()
+        self.report_handler = ReportHandler(self.preparation)
+        self.observer.schedule(self.report_handler, self.preparation.dataset.path)
+
+        def sigint_handler(sig, frame):
+            self.stop("interrupted")
+            signal.default_int_handler(sig, frame)
+
+        signal.signal(signal.SIGINT, sigint_handler)
+        self.observer.start()
+
+    def stop(self, execution_status):
+        if self.observer.is_alive():
+            self.observer.stop()
+            self.observer.join()
+        if self.report_handler.timer is not None:
+            if self.report_handler.timer.is_alive():
+                self.report_handler.timer.cancel()
+                self.report_handler.timer.join()
+
+        # Send a last update to indicate preparation process finished
+        # If the user didn't approve before, here we will ask again
+        report_metadata = {"execution_status": execution_status}
+        self.preparation.send_report(report_metadata)
+
+        signal.signal(signal.SIGINT, signal.default_int_handler)
 
 
 class DataPreparation:
@@ -101,7 +143,9 @@ class DataPreparation:
             self.allow_sending_reports = False
 
     def run_prepare(self):
-        prepare_timeout = config.prepare_timeout
+        report_sender = ReportSender(self)
+        if self.allow_sending_reports:
+            report_sender.start()
 
         prepare_params = {
             "data_path": self.raw_data_path,
@@ -109,57 +153,29 @@ class DataPreparation:
             "output_path": self.out_datapath,
             "output_labels_path": self.out_labelspath,
         }
-
-        observer = Observer()
-
         if self.metadata_specified:
             prepare_params["metadata_path"] = self.metadata_path
 
         if self.report_specified:
             prepare_params["report_file"] = self.report_path
-            if self.allow_sending_reports:
-                report_metadata = {"execution_status": "started"}
-                self.send_report(report_metadata)
-
-                def sigint_handler(sig, frame):
-                    report_metadata = {"execution_status": "interrupted"}
-                    self.send_report(report_metadata)
-                    sys.exit(0)  # TODO: raise CleanExit instead?
-
-                signal.signal(signal.SIGINT, sigint_handler)
-                observer.schedule(ReportHandler(self), self.dataset.path)
-                observer.start()
 
         self.ui.text = "Running preparation step..."
         try:
             with self.ui.interactive():
                 self.cube.run(
                     task="prepare",
-                    timeout=prepare_timeout,
+                    timeout=config.prepare_timeout,
                     **prepare_params,
                 )
         except Exception as e:
             # Inform the server that a failure occured
             if self.allow_sending_reports:
-                report_metadata = {"execution_status": "failed"}
-                self.send_report(report_metadata)
-
-            # Let the rest of the code handle the exception
+                report_sender.stop("failed")
             raise e
 
         self.ui.print("> Cube execution complete")
-
-        # If any observer or signal was set, stop them
-        signal.signal(signal.SIGINT, signal.default_int_handler)
-        # TODO: perhaps should be .join() instead of stop?
-        # maybe a report sending is in progress. Also, use this in sigint handling above
-        observer.stop()
-
-        # Send a last update to indicate preparation process finished
-        # If the user didn't approve before, here we will ask again
         if self.allow_sending_reports:
-            report_metadata = {"execution_status": "finished"}
-            self.send_report(report_metadata)
+            report_sender.stop("finished")
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
@@ -247,7 +263,6 @@ class DataPreparation:
             },
         }
 
-        # config.ui.print("\x1b[6;30;42m")
         msg = (
             "\n=================================================\n"
             + "During preparation, each subject of your dataset will undergo multiple"
@@ -270,16 +285,13 @@ class DataPreparation:
         )
 
         self.allow_sending_reports = approval_prompt(msg)
-        # config.ui.print("\x1b[0m")
 
     def send_report(self, report_metadata):
-        # if self.latest_report_sent_at is not None:
-        #     if time() - self.latest_report_sent_at < 0.5:
-        #         return
-        # self.latest_report_sent_at = time()
-
         report_status_dict = self.__generate_report_dict()
         report = {"progress": report_status_dict, **report_metadata}
+        if report == self.dataset.report:
+            # Watchdog may trigger an event even if contents didn't change
+            return
 
         body = {
             "report": report,

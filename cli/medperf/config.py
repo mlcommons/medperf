@@ -157,6 +157,7 @@ image_path = "workspace/.image"
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
 ddl_max_redownload_attempts = 3
+wait_before_sending_reports = 30  # In seconds
 
 # Container config
 gpus = None
