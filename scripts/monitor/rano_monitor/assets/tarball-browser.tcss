@@ -1,0 +1,46 @@
+#main-container {
+    margin: 1 5;
+    align: center middle;
+}
+
+.subject-item {
+    background: $panel-lighten-3;
+    padding: 1;
+}
+
+Button {
+    margin: 0 1;
+}
+
+.tumor-btn {
+    background: $accent;
+}
+
+.tumor-status {
+    color: $success;
+}
+
+.brain-status {
+    color: $warning;
+}
+
+#package-btn {
+    min-width: 50%;
+}
+
+#content {
+    align: center middle;
+    content-align: center middle;
+    text-align: center;
+}
+
+#subjects-container {
+    margin: 1 2;
+    background: $primary-background;
+    height: auto;
+}
+
+TarballSubjectView {
+    height: 5;
+    margin: 1;
+}

@@ -1,0 +1,4 @@
+pandas
+textual
+pyperclip
+PyYAML
