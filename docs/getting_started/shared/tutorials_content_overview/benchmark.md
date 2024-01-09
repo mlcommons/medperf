@@ -1,4 +1,4 @@
-In this tutorial we would create a benchmark that classifies chest X-Ray images.
+In this tutorial we will create a benchmark that classifies chest X-Ray images.
 
 ### Demo Data
 
