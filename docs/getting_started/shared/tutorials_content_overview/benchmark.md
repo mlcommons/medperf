@@ -7,11 +7,7 @@ The `medperf_tutorial/demo_data/` folder contains the demo dataset content.
   - `images/` folder includes sample images.
   - `labels/labels.csv` provides a basic ground truth markup, indicating the class each image belongs to.
 
-You should share your demo dataset publicly with all benchmark users for two key purposes:
-  1. External Data Owners can understand the exact format required for their data to participate in the benchmark.
-  2. External Model Owners can test their models using this sample. After implementing their model as an MLCube, they can conduct tests without needing access to real data (hosted by Data Owners). Note: Model MLCubes do not consume raw data but rather prepared data; see [DataPreparator MLCube folder](#data-preparator-mlcube).
-  
-  To reiterate: The purpose of the demo dataset in every benchmark is to demonstrate users the __expected data format__ your benchmark requires, not to distribute real data.
+The demo dataset is a sample dataset used for the development of your benchmark and used by Model Owners for the development of their models. More details are available in the [section below](#2-develop-a-demo-dataset)
 
 ### Data Preparator MLCube
 
