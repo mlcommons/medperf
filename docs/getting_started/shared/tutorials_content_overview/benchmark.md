@@ -17,7 +17,7 @@ The `medperf_tutorial/data_preparator/` contains a [DataPreparator MLCube](../..
 
 ### Model MLCube
 
-The `medperf_tutorial/model_custom_cnn/` is an example of a [Model MLCube](../../../mlcubes/mlcube_models.md). You need to implement a basic mock-up model for users to verify the entire pipeline is working. Model Developers joining your benchmark will replace this MLCube with their own implementations.
+The `medperf_tutorial/model_custom_cnn/` is an example of a [Model MLCube](../../../mlcubes/mlcube_models.md). You need to implement a reference model which will be used by data owners to test the compatibility of their data with your pipeline. Also, Model Developers joining your benchmark will follow the input/output specifications of this model when building their own models.
 
 ### Metrics MLCube
 
