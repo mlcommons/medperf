@@ -297,7 +297,7 @@ class DataPreparation:
             "report": report,
         }
 
-        # TODO: it should have retries, perhaps?
+        # TODO: it should have retries, perhaps?  NO, later
         # TODO: modify this piece of code after merging the `entity edit` PR
         try:
             config.comms.update_dataset(self.dataset.id, body)
