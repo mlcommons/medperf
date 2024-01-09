@@ -4,7 +4,7 @@ MLCube is a set of common conventions for creating Machine Learning (ML) softwar
 
 You can read more about MLCubes [here](https://mlcommons.org/en/mlcube/).
 
-In MedPerf, MLCubes are required for creating the three technical components of a benchmarking experiment: the data preparation flow, the model inference flow, and the evaluation flow. A [Benchmark Committee](../roles.md#benchmark-committee) will be required to create three MLCubes that these components. A [Model Owner](../roles.md#model-owners) will be required to wrap their model code within an MLCube in order to submit it to the MedPerf server and participate in a benchmark.
+In MedPerf, MLCubes are required for creating the three technical components of a benchmarking experiment: the data preparation flow, the model inference flow, and the evaluation flow. A [Benchmark Committee](../roles.md#benchmark-committee) will be required to create three MLCubes that implement these components. A [Model Owner](../roles.md#model-owners) will be required to wrap their model code within an MLCube in order to submit it to the MedPerf server and participate in a benchmark.
 
 MLCubes are general-purpose. MedPerf defines three specific design types of MLCubes according to their purpose: The **Data Preparator MLCube**, **the Model MLCube**, and the **Metrics MLCube**. Each type has a specific [MLCube task configuration](https://mlcommons.github.io/mlcube/getting-started/concepts/#task) that defines the MLCube's interface. Users need to follow these design specs when building their MLCubes to be conforming with MedPerf. We provide below a high-level description of each MLCube type and a link to a guide for building an example for each type.
 

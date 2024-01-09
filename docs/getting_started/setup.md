@@ -2,6 +2,10 @@
 
 This setup is only for running the tutorials. If you are using MedPerf with a real benchmark and real experiments, skip to [this section](#choose-the-container-runner) to optionally change your container runner. Then, follow the tutorials as a general guidance for your real experiments.
 
+## Install the MedPerf Client
+
+If this is your first time using MedPerf, install the MedPerf client library as described [here](installation.md).  
+
 ## Run a Local MedPerf Server
 
 For this tutorial, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not on the internet.
@@ -27,7 +31,8 @@ After that, you will be configuring the MedPerf client to communicate with the l
 
 ## Configure the MedPerf Client
 
-The MedPerf client can be configured by creating or modifying ["`profiles`"](../concepts/profiles.md). A profile is a set of configuration parameters used by the client during runtime. By default, the profile named `default` will be active.
+<!-- TODO: set links to ["`profiles`"](../concepts/profiles.md) once profiles are filled -->
+The MedPerf client can be configured by creating or modifying "`profiles`". A profile is a set of configuration parameters used by the client during runtime. By default, the profile named `default` will be active.
 
 The `default` profile is preconfigured so that the client communicates with the main MedPerf server ([api.medperf.org](https://api.medperf.org){target="\_blank"}). For the purposes of the tutorial, you will be using the `local` profile as it is preconfigured so that the client communicates with the local MedPerf server.
 

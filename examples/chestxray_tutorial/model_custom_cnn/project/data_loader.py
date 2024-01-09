@@ -17,7 +17,7 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.data_path, self.files[idx])
-        image = np.load(img_path)
+        image = np.load(img_path, allow_pickle=True)
         image = self.transform(image)
         file_id = self.files[idx].strip(".npy")
         return image, file_id
