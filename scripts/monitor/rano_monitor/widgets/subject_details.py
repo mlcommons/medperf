@@ -4,11 +4,10 @@ import os
 from textual.app import ComposeResult
 from textual.containers import Center
 from textual.widgets import Static, Markdown, Button
-from subprocess import Popen, DEVNULL
 
 from rano_monitor.widgets.copyable_item import CopyableItem
 from rano_monitor.messages.invalid_subject_updated import InvalidSubjectsUpdated
-from rano_monitor.utils import to_local_path, get_brain_path, get_tumor_review_paths, get_brain_review_paths
+from rano_monitor.utils import to_local_path, get_brain_path, review_tumor, review_brain, finalize, is_editor_installed
 from rano_monitor.constants import *
 
 class SubjectDetails(Static):
@@ -114,7 +113,7 @@ class SubjectDetails(Static):
         brainmask_button = self.query_one("#brainmask-review-button", Button)
         valid_btn = self.query_one("#valid-btn", Button)
 
-        if self.__can_review():
+        if is_editor_installed():
             review_msg.display = "none"
             review_button.disabled = False
         if self.__can_finalize():
@@ -127,10 +126,6 @@ class SubjectDetails(Static):
             valid_btn.label = "Validate"
         else:
             valid_btn.label = "Invalidate"
-
-    def __can_review(self):
-        review_command_path = shutil.which(REVIEW_COMMAND)
-        return review_command_path is not None
 
     def __can_finalize(self):
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
@@ -150,73 +145,23 @@ class SubjectDetails(Static):
         return os.path.exists(brainmask_file)
 
     def __review_tumor(self):
-        review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
-
-        (
-            t1c_file,
-            t1n_file,
-            t2f_file,
-            t2w_file,
-            label_file,
-            seg_file,
-            under_review_file,
-        ) = get_tumor_review_paths(self.subject, self.dset_path)
-
+        subject = self.subject.name
+        data_path = to_local_path(self.subject["data_path"], self.dset_path)
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
-        if not labels_path.endswith(".nii.gz") and not os.path.exists(
-            under_review_file
-        ):
-            shutil.copyfile(seg_file, under_review_file)
-
-        review_cmd = review_cmd.format(
-            cmd=REVIEW_COMMAND,
-            t1c=t1c_file,
-            flair=t2f_file,
-            t2=t2w_file,
-            t1=t1n_file,
-            seg=under_review_file,
-            label=label_file,
-        )
-        Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
-
+        review_tumor(subject, data_path, labels_path)
         self.__update_buttons()
         self.notify("This subject can be finalized now")
 
     def __review_brainmask(self):
-        review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
-        (
-            t1c_file,
-            t1n_file,
-            t2f_file,
-            t2w_file,
-            label_file,
-            seg_file,
-        ) = get_brain_review_paths(self.subject, self.dset_path)
-
-        review_cmd = review_cmd.format(
-            cmd=REVIEW_COMMAND,
-            t1c=t1c_file,
-            flair=t2f_file,
-            t2=t2w_file,
-            t1=t1n_file,
-            seg=seg_file,
-            label=label_file,
-        )
-        Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
-
+        subject = self.subject.name
+        labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
+        review_brain(subject, labels_path)
         self.__update_buttons()
 
     def __finalize(self):
+        subject = self.subject.name
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
-        id, tp = self.subject.name.split("|")
-        filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
-        under_review_filepath = os.path.join(
-            labels_path,
-            "under_review",
-            filename,
-        )
-        finalized_filepath = os.path.join(labels_path, "finalized", filename)
-        shutil.copyfile(under_review_filepath, finalized_filepath)
+        finalize(subject, labels_path)
         self.notify("Subject finalized")
 
     def __validate(self):

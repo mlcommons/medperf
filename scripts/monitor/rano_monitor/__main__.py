@@ -20,6 +20,7 @@ from rano_monitor.handlers.report_handler import ReportHandler, ReportState
 from rano_monitor.handlers.prompt_handler import PromptHandler
 from rano_monitor.handlers.reviewed_handler import ReviewedHandler
 from rano_monitor.handlers.invalid_handler import InvalidHandler
+from rano_monitor.handlers.tarball_reviewed_watchdog import TarballReviewedHandler
 
 app = typer.Typer()
 
@@ -56,14 +57,27 @@ def run_dset_app(dset_path, stages_path, output_path):
     observer.stop()
 
 def run_tarball_app(tarball_path):
-    contents_path = os.path.join(os.path.dirname(tarball_path), ".review_cases")
+    folder_name = f".{os.path.basename(tarball_path).split('.')[0]}"
+    contents_path = os.path.join(os.path.dirname(tarball_path), folder_name)
     if not os.path.exists(contents_path):
         with tarfile.open(tarball_path) as tar:
             tar.extractall(path=contents_path)
 
+
     t_app = TarballBrowser()
+
+    contents_path = os.path.join(contents_path, f"review_cases")
+    reviewed_watchdog = TarballReviewedHandler(contents_path, t_app)
+
     t_app.set_vars(contents_path)
+
+    observer = Observer()
+    observer.schedule(reviewed_watchdog, path=contents_path, recursive=True)
+    observer.start()
+
     t_app.run()
+
+    observer.stop()
 
 @app.command()
 def main(

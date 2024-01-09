@@ -24,7 +24,7 @@ from rano_monitor.messages.report_updated import ReportUpdated
 class DatasetBrowser(App):
     """Textual dataset browser app."""
 
-    CSS_PATH = "assets/subject-browser.tcss"
+    CSS_PATH = ["assets/subject-browser.tcss", "assets/shared.tcss"]
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("y", "respond('y')", "Yes", show=False),

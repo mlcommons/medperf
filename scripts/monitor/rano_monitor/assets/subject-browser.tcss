@@ -24,7 +24,6 @@ SubjectDetails {
     padding: 1 3 1 3;
     align: center middle;
     content-align: center middle;
-    align: center middle;
 }
 
 #subject-title {
@@ -44,10 +43,6 @@ SubjectDetails #review-buttons {
 
 SubjectDetails #review-buttons Static {
     text-align: center;
-}
-
-.warning {
-    border: tall $warning;
 }
 
 SubjectDetails Button {

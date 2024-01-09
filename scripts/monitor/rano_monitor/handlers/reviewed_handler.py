@@ -22,18 +22,16 @@ class ReviewedHandler(FileSystemEventHandler):
             self.move_assets(event.src_path)
 
     def move_assets(self, file):
-        reviewed_pattern = r".*\/(.*)\/(.*)\/finalized\/(.*\.nii\.gz)"
-        brainmask_pattern = r".*\/(.*)\/(.*)\/brainMask_fused.nii.gz"
         identified_reviewed = []
         identified_brainmasks = []
         try:
             with tarfile.open(file, "r") as tar:
                 for member in tar.getmembers():
-                    review_match = re.match(reviewed_pattern, member.name)
+                    review_match = re.match(REVIEWED_PATTERN, member.name)
                     if review_match:
                         identified_reviewed.append(review_match)
 
-                    brainmask_match = re.match(brainmask_pattern, member.name)
+                    brainmask_match = re.match(BRAINMASK_PATTERN, member.name)
                     if brainmask_match:
                         identified_brainmasks.append(brainmask_match)
         except:

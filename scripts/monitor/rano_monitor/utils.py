@@ -5,12 +5,85 @@ import shutil
 import tarfile
 from pathlib import Path
 from rano_monitor.constants import *
+from subprocess import Popen, DEVNULL
+import hashlib
 
-def get_tumor_review_paths(subject: pd.Series, dset_path: str):
-    data_path = to_local_path(subject["data_path"], dset_path)
-    labels_path = to_local_path(subject["labels_path"], dset_path)
+def is_editor_installed():
+    review_command_path = shutil.which(REVIEW_COMMAND)
+    return review_command_path is not None
 
-    id, tp = subject.name.split("|")
+
+def get_hash(filepath: str):
+    with open(filepath, "rb") as f:
+        contents = f.read()
+        file_hash = hashlib.md5(contents).hexdigest()
+    return file_hash
+
+
+def run_editor(t1c, flair, t2, t1, seg, label, cmd=REVIEW_COMMAND):
+    review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
+    review_cmd = review_cmd.format(
+        cmd=REVIEW_COMMAND,
+        t1c=t1c,
+        flair=flair,
+        t2=t2,
+        t1=t1,
+        seg=seg,
+        label=label,
+    )
+    Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+
+
+def review_tumor(subject: str, data_path: str, labels_path: str):
+    (
+        t1c_file,
+        t1n_file,
+        t2f_file,
+        t2w_file,
+        label_file,
+        seg_file,
+        under_review_file,
+    ) = get_tumor_review_paths(subject, data_path, labels_path)
+
+    if not labels_path.endswith(".nii.gz") and not os.path.exists(
+        under_review_file
+    ):
+        shutil.copyfile(seg_file, under_review_file)
+
+    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
+
+
+def review_brain(subject, labels_path, data_path=None):
+    (
+        t1c_file,
+        t1n_file,
+        t2f_file,
+        t2w_file,
+        label_file,
+        seg_file,
+    ) = get_brain_review_paths(subject, labels_path, data_path=data_path)
+
+    backup_path = os.path.join(os.path.dirname(seg_file), BRAINMASK_BAK)
+    if not os.path.exists(backup_path):
+        shutil.copyfile(seg_file, backup_path)
+
+    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
+
+
+def finalize(subject: str, labels_path: str):
+    id, tp = subject.split("|")
+    filename = f"{id}_{tp}_{DEFAULT_SEGMENTATION}"
+    under_review_filepath = os.path.join(
+        labels_path,
+        "under_review",
+        filename,
+    )
+    finalized_filepath = os.path.join(labels_path, "finalized", filename)
+    shutil.copyfile(under_review_filepath, finalized_filepath)
+
+
+def get_tumor_review_paths(subject: str, data_path: str, labels_path: str):
+    id, tp = subject.split("|")
     t1c_file = os.path.join(data_path, f"{id}_{tp}_brain_t1c.nii.gz")
     t1n_file = os.path.join(data_path, f"{id}_{tp}_brain_t1n.nii.gz")
     t2f_file = os.path.join(data_path, f"{id}_{tp}_brain_t2f.nii.gz")
@@ -45,18 +118,19 @@ def get_brain_path(labels_path: str):
         # We are past manual review, transform the path as necessary
         labels_path = os.path.dirname(labels_path)
         labels_path = os.path.join(labels_path, "..")
-    labels_path = os.path.join(labels_path, "..")
+    if BRAINMASK not in os.listdir(labels_path):
+        labels_path = os.path.join(labels_path, "..")
     seg_filename = BRAINMASK
     seg_file = os.path.join(labels_path, seg_filename)
 
     return seg_file
 
 
-def get_brain_review_paths(subject: pd.Series, dset_path: str):
-    labels_path = to_local_path(subject["labels_path"], dset_path)
+def get_brain_review_paths(subject: str, labels_path, data_path: str = None):
     seg_file = get_brain_path(labels_path)
-    data_path = os.path.join(os.path.dirname(seg_file), "reoriented")
-    id, tp = subject.name.split("|")
+    if data_path is None:
+        data_path = os.path.join(os.path.dirname(seg_file), "reoriented")
+    id, tp = subject.split("|")
     t1c_file = os.path.join(data_path, f"{id}_{tp}_t1c.nii.gz")
     t1n_file = os.path.join(data_path, f"{id}_{tp}_t1.nii.gz")
     t2f_file = os.path.join(data_path, f"{id}_{tp}_t2f.nii.gz")
