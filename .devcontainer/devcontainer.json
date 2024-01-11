@@ -2,7 +2,8 @@
   "image": "mcr.microsoft.com/devcontainers/universal:2",
     "features": {
         "ghcr.io/wxw-matt/devcontainer-features/command_runner:latest": {
-			      "command1": "pip install -e ./cli && pip install -r server/requirements.txt && pip install -r server/test-requirements.txt"
+		"command1": "ls -lAGghrt /workspaces/",
+		"command2": "cd /workspaces/medperf/ && pip install -e ./cli && pip install -r server/requirements.txt && pip install -r server/test-requirements.txt"
         }
       }
 }
