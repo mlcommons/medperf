@@ -1,5 +1,5 @@
 {
-  "image": "hub.docker.com/vukw/medperf-codespaces:latest",
+  "image": "docker.io/vukw/medperf-codespaces:latest",
     "features": {
       }
 }
