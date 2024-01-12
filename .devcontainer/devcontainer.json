@@ -10,5 +10,5 @@
 		"command3": "echo working_dir_$(pwd) && cd /medperf/server && cp .env.local.local-auth .env"
         }
 	},
-	"postStartCommand": "medperf profile activate local && sh /medperf/server/setup-dev-server.sh &> /medperf/server/server.log &"
+	"postStartCommand": "medperf profile activate local && sh /medperf/server/setup-dev-server.sh &>/medperf/server/server.log &"
 }
