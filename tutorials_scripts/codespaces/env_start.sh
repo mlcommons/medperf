@@ -7,11 +7,8 @@ pip install -r server/requirements.txt
 pip install -r server/test-requirements.txt
 medperf profile activate local
 
-echo "working dir: $(pwd)"
-
 cd server
 cp .env.local.local-auth .env
-bash ./setup-dev-server.sh &>server.log &
 medperf auth login -e testmo@example.com
 echo "Medperf is ready for local usage"
 cd ..
