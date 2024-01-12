@@ -5,5 +5,5 @@
 			"moby": false
 		}
 	},
-	"postStartCommand": "tutorials_scripts/codespaces/env_start.sh"
+	"postStartCommand": "bash /workspaces/medperf/tutorials_scripts/codespaces/env_start.sh"
 }
