@@ -6,5 +6,5 @@
 		}
 	},
 	"postStartCommand": "bash /workspaces/medperf/tutorials_scripts/codespaces/env_start.sh",
-	"postAttachCommand": "cd /workspaces/medperf/server && bash ./setup-dev-server.sh &>server.log &"
+	"postAttachCommand": "cd /workspaces/medperf/server && bash ./setup-dev-server.sh < /dev/null &>server.log &"
 }
