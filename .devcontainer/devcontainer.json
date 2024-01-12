@@ -5,10 +5,7 @@
 			"moby": false
 		},
 	"ghcr.io/wxw-matt/devcontainer-features/command_runner:latest": {
-		"command1": "mkdir /medperf/ && chmod -R a+rwx /medperf && git clone --branch codespaces https://github.com/VukW/medperf.git /medperf/",
-		"command2": "echo \"working dir: $(pwd)\" && cd /medperf/ && pip install -e ./cli && pip install -r server/requirements.txt && pip install -r server/test-requirements.txt",
-		"command3": "echo \"working dir: $(pwd)\" && medperf profile activate local",
-		"command4": "echo \"working dir: $(pwd)\" && cd /medperf/server && cp .env.local.local-auth .env && medperf auth login -e testmo@example.com"
+		"command1": "mkdir /medperf/ && chmod -R a+rwx /medperf && git clone --branch codespaces https://github.com/VukW/medperf.git /medperf/"
         }
 	},
 	"postStartCommand": "touch ~/poststart.txt"
