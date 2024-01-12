@@ -1,13 +1,4 @@
 {
-  "image": "docker.io/vukw/medperf-codespaces:latest",
-    "features": {
-      "ghcr.io/devcontainers/features/docker-in-docker:2": {
-        "moby": false
-      }
-      }
-}
-
-{
   "image": "mcr.microsoft.com/devcontainers/python:3.10-bookworm",
     "features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
