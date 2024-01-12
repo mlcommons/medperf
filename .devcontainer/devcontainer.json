@@ -6,3 +6,19 @@
       }
       }
 }
+
+{
+  "image": "mcr.microsoft.com/devcontainers/python:3.10-bookworm",
+    "features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": false
+		},
+	"ghcr.io/wxw-matt/devcontainer-features/command_runner:latest": {
+		"command1": "pwd && git clone --branch codespaces https://github.com/VukW/medperf.git",
+		"command2": "pwd && cd medperf && pip install -e ./cli && pip install -r server/requirements.txt && pip install -r server/test-requirements.txt",
+		"command3": "pwd && medperf profile activate local",
+		"command4": "pwd && cd server && cp .env.local.local-auth .env && medperf auth login -e testmo@example.com && cd .."
+        }
+	},
+	"postStartCommand": "touch ~/poststart.txt"
+}
