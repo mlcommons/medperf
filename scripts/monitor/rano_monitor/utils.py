@@ -206,9 +206,10 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
     ]
     with tarfile.open(REVIEW_FILENAME, "w:gz") as tar:
         for i, row in review_cases.iterrows():
-            brainscans = get_tumor_review_paths(row, dset_path)[:-2]
-            rawscans = get_brain_review_paths(row, dset_path)[:-1]
+            data_path = to_local_path(row["data_path"], dset_path)
             labels_path = to_local_path(row["labels_path"], dset_path)
+            brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
+            rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
             base_path = os.path.join(labels_path, "..")
 
             # Add tumor segmentations
