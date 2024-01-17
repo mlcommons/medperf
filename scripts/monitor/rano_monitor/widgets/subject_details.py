@@ -141,8 +141,10 @@ class SubjectDetails(Static):
 
     def __can_review_brain(self):
         labels_path = to_local_path(self.subject["labels_path"], self.dset_path)
-        brainmask_file = get_brain_path(labels_path)
-        return os.path.exists(brainmask_file)
+        if self.subject["labels_path"]:
+            brainmask_file = get_brain_path(labels_path)
+            return os.path.exists(brainmask_file)
+        return False
 
     def __review_tumor(self):
         subject = self.subject.name
