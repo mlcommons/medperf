@@ -58,6 +58,8 @@ docker_image_name [docker/image:latest]: # (6)!
 5. Indicates how many GPUs should be visible by the MLCube.
 6. MLCubes use Docker containers under the hood. Here, you can provide an image tag to the image that will be created by this MLCube. **You should use a valid name that allows you to upload it to a Docker registry.**
 
+!!!Note If you are creating a MLCube to submit on the [Synapse.org platform](https://www.synapse.org/#), you must prefix the Docker image name with: `docker.synapse.org/<project synID>/`, where `<project synID>` is the ID of your Synapse project. For example, if your Synapse project ID is syn12345, then a potential `docker_image_name` could be: `docker.synapse.org/syn12345/my-model` or `docker.synapse.org/syn12345/brats2023`
+
 After filling the configuration options, the following directory structure will be generated:
 
 ```bash
