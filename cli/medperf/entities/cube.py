@@ -8,6 +8,7 @@ from pathlib import Path
 
 from medperf.utils import (
     combine_proc_sp_text,
+    DebugAndOutputLogger,
     log_storage,
     remove_path,
     verify_hash,
@@ -220,13 +221,16 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             # Retrieve image from image registry
             logging.debug(f"Retrieving {self.id} image")
             cmd = f"mlcube configure --mlcube={self.cube_path}"
-            with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
-                proc_out = proc.read()
+            cmd_env = {**os.environ, 'DOCKER_CLI_HINTS': 'false'}
+            with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout, env=cmd_env) as proc:
+                proc.logfile_read = DebugAndOutputLogger()  # Redirect cmd output to medperf stdout
+
+                proc.expect(pexpect.EOF)  # Wait for the end of the output
+
             if proc.exitstatus != 0:
                 raise ExecutionError(
                     "There was an error while retrieving the MLCube image"
                 )
-            logging.debug(proc_out)
 
             # Retrieve image hash from MLCube
             logging.debug(f"Retrieving {self.id} image hash")

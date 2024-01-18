@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import os
+import sys
 import yaml
 import random
 import hashlib
@@ -243,6 +244,21 @@ def combine_proc_sp_text(proc: spawn) -> str:
             ui.text = static_text
 
     return proc_out
+
+
+class DebugAndOutputLogger(object):
+    """
+    Prints the output both to stderr (directly) and to debug log
+    """
+    def write(self, byte):
+        s = byte.decode("utf-8")
+        sys.stdout.write(s)
+        sys.stdout.flush()
+
+        logging.debug(s.rstrip('\n'))
+
+    def flush(self):
+        sys.stdout.flush()
 
 
 def get_folders_hash(paths: List[str]) -> str:
