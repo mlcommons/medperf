@@ -4,7 +4,7 @@
 
 ##### Running in cloud via Github Codespaces
 
-As the most easy way to play with the tuorials you can launch a preinstalled [Codespace](https://github.com/features/codespaces) cloud environment for MedPerf by clicking this link: 
+As the most easy way to play with the tutorials you can launch a preinstalled [Codespace](https://github.com/features/codespaces) cloud environment for MedPerf by clicking this link: 
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=416800365)
 
@@ -12,9 +12,8 @@ As the most easy way to play with the tuorials you can launch a preinstalled [Co
 
 To start experimenting with MedPerf through this tutorial on your local machine, you need to start by following these quick steps:
 
-  1. **[Create an Account](../signup)**
-  2. **[Install Medperf](../installation)**
-  3. **[Set up Medperf](../setup)**
+  1. **[Install Medperf](../installation)**
+  2. **[Set up Medperf](../setup)**
 
 #### Prepare the Local MedPerf Server
 
