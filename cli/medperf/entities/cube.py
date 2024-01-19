@@ -1,5 +1,6 @@
 import os
 import yaml
+from signal import signal, SIGINT
 import pexpect
 import logging
 from typing import List, Dict, Optional, Union
@@ -310,6 +311,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
+        signal(SIGINT, lambda signum, frame: proc.close())
         proc_out = combine_proc_sp_text(proc)
         proc.close()
         if output_logs is None:
