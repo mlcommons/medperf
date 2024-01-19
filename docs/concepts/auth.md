@@ -23,7 +23,7 @@ After entering your email address, you will be provided with a verification URL 
 
 - **Step2** Open the verification URL and confirm the code:
 
-Open the printed URL in your browser. You will be presented with a code and you will be asked to confirm if that code is the same one printed in your terminal.
+Open the printed URL in your browser. You will be presented with a code, and you will be asked to confirm if that code is the same one printed in your terminal.
 
 ![Code Confirmation](../assets/auth/code_confirmation.png)
 
@@ -31,13 +31,13 @@ Open the printed URL in your browser. You will be presented with a code and you 
 
 ![Login code](../assets/auth/login_code.png)
 
-- **Step4** Check your inbox. You should recieve an email similar to the following:
+- **Step4** Check your inbox. You should receive an email similar to the following:
 
 ![Login email](../assets/auth/login_email.png)
 
-Enter the recieved code in the previous screen.
+Enter the received code in the previous screen.
 
-- **Step5** If there is no problem with your account, the login will be successful and you will see a screen similar to the following:
+- **Step5** If there is no problem with your account, the login will be successful, and you will see a screen similar to the following:
 
 ![Login success](../assets/auth/login_success.png)
 
@@ -51,7 +51,8 @@ medperf auth logout
 
 ## Checking the authentication status
 
-Note that when you login, the MedPerf client will remember you as long as you are using the same `profile`. If you switch to another profile by running `medperf profile activate <other-profile>`, you may have to login again. If you switch back again to a profile where you previously logged in, your login state will be restored. Read more about profiles [here](profiles.md).
+Note that when you log in, the MedPerf client will remember you as long as you are using the same `profile`. If you switch to another profile by running `medperf profile activate <other-profile>`, you may have to log in again. If you switch back again to a profile where you previously logged in, your login state will be restored.
+<!-- TODO: uncomment once profiles.md are filled. Read more about profiles [here](profiles.md). -->
 
 You can always check the current login status by the running the following command:
 

@@ -1,7 +1,7 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
-assets_url: https://raw.githubusercontent.com/hasan7n/medperf/99b0d84bc107415d9fc6f69c4ea3fcdfbf22315d/examples/chestxray_tutorial/
+assets_url: https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/
 tutorial_id: benchmark
 hide:
   - toc
@@ -28,7 +28,7 @@ In this guide, you will learn how a user can use MedPerf to create a benchmark. 
 5. Host the demo dataset.
 6. Submit the benchmark to the MedPerf server.
 
-It's assumed that you have already set up the general testing environment as explained in the [setup guide](setup.md).
+It's assumed that you have already set up the general testing environment as explained in the [installation](installation.md) and [setup guide](setup.md).
 
 
 {% include "getting_started/shared/before_we_start.md" %}
@@ -121,10 +121,12 @@ After that, the workspace should look like the following:
     ...
 ```
 
-Finally, compress the required assets (`demo_data` and `paths.yaml`) into a tarball file by running the following command in your workspace directory:
+Finally, compress the required assets (`demo_data` and `paths.yaml`) into a tarball file by running the following command:
 
 ```bash
+cd medperf_tutorial
 tar -czf demo_data.tar.gz demo_data paths.yaml
+cd ..
 ```
 
 And that's it! Now you have to host the tarball file (`demo_data.tar.gz`) on the internet.
@@ -265,10 +267,16 @@ You need to keep at hand the following information:
 {{ demo_url }}
 ```
 
-- The server UIDs of the three MLCubes:
-    - Data preparator UID: `1`
-    - Reference model UID: `2`
-    - Evaluator UID: `3`
+- The server UIDs of the three MLCubes can be found by running:
+
+```bash
+ medperf mlcube ls
+```
+
+- For this tutorial, the UIDs are as follows: 
+  - Data preparator UID: `1`
+  - Reference model UID: `2`
+  - Evaluator UID: `3`
 
 You can create and submit your benchmark using the following command:
 
@@ -296,7 +304,10 @@ medperf benchmark ls --mine
 ![The end of the tutorial](../tutorial_images/the-end.png){class="tutorial-sticky-image-content"}
 {% include "getting_started/shared/cleanup.md" %}
 
+<!--
+TODO: uncomment once pages are filled
 ## See Also
 
 - [Benchmark Associations.](../concepts/associations.md)
 - [Models Priorities](../concepts/priorities.md)
+-->

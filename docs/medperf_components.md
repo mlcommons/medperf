@@ -14,7 +14,7 @@ The MedPerf client contains all the necessary tools to interact with the server,
 
 The client communicates to the server through the API to, for example, authenticate a user, retrieve benchmarks/MLcubes and send results.
 
-The client is currently available to the user through a command-line interface (CLI). See the [CLI reference](cli_reference.md).
+The client is currently available to the user through a command-line interface (CLI). <!--TODO: uncomment once cli_reference is filled. See the [CLI reference](cli_reference.md).-->
 
 ## Auth Provider
 

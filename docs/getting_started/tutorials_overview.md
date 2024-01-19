@@ -34,5 +34,6 @@ To ensure users have the best experience in learning the fundamentals of MedPerf
         </a>
     </div>
 
-For a detailed reference on the commands used throughout the tutorials, you can always refer to the [command line interface documentation](../cli_reference.md).
+<!--TODO: uncomment once cli_reference is filled.
+For a detailed reference on the commands used throughout the tutorials, you can always refer to the [command line interface documentation](../cli_reference.md).-->
 

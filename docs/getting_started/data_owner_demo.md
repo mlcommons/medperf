@@ -9,6 +9,12 @@ hide:
 
 ## Overview
 
+As a data owner, you plan to run a benchmark on your own dataset. Using MedPerf, you will prepare your (raw) dataset and submit information about it to the MedPerf server. You may have to consult the benchmark committee to make sure that your raw dataset aligns with the benchmark's expected input format.
+
+!!!Note
+    A key concept of MedPerf is the stringent confidentiality of your data. It remains exclusively on your machine. Only minimal information about your dataset, such as the hash of its contents, is submitted. Once your Dataset is submitted and associated with a benchmark, you can run all benchmark models on your data within your own infrastructure and see the results / predictions.
+
+
 This guide provides you with the necessary steps to use MedPerf as a Data Owner. The key tasks can be summarized as follows:
 
 1. Prepare your data.
@@ -70,12 +76,10 @@ medperf dataset ls --local
 !!! note
     You will be submitting general information about the data, not the data itself. The data never leaves your machine.
 
-The unique identifier for your generated data is `{{ page.meta.prepared_hash }}`.
-
 Run the following command to submit your dataset information to the MedPerf server:
 
 ```bash
-medperf dataset submit --data_uid {{ page.meta.prepared_hash }}
+medperf dataset submit --data_uid YOUR_DATASET_ID_HERE
 ```
 
 Once you run this command, the information to be submitted will be displayed on the screen and you will be asked to confirm your submission.
@@ -168,6 +172,9 @@ The information that is going to be submitted will be printed to the screen and 
 ![The end](../tutorial_images/the-end.png){class="tutorial-sticky-image-content"}
 {% include "getting_started/shared/cleanup.md" %}
 
+<!--
+TODO: uncomment once single_run is filled.
 ## See Also
 
 - [Running a Single Model.](../concepts/single_run.md)
+-->
