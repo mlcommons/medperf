@@ -96,6 +96,12 @@ class TestGetFiles:
         # Act
         Cube.get(self.id)
 
+        # During cube downloading, we pass `env` variable that contains all ENVs from medperf process.
+        # as this is dynamic variable, we don't bother about what is passed there; so we do not want to test it.
+        # Thus, we just remove passed `env` from executed calls, for it not to intersect assertion
+        for executed_call in spy.mock_calls:
+            if 'env' in executed_call.kwargs:
+                executed_call.kwargs.pop('env')
         # Assert
         spy.assert_has_calls(expected_cmds)
 

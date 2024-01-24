@@ -18,11 +18,13 @@ class MockChild:
     def close(self):
         pass
 
+    def expect(self, ch):
+        pass
 
 class MockPexpect:
     def __init__(self, exitstatus, stdout=""):
         self.exitstatus = exitstatus
         self.stdout = stdout
 
-    def spawn(self, command: str, timeout: int = 30) -> MockChild:
+    def spawn(self, command: str, timeout: int = 30, env: dict = None) -> MockChild:
         return MockChild(self.exitstatus, self.stdout)
