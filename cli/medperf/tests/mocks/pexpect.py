@@ -21,6 +21,7 @@ class MockChild:
     def expect(self, ch):
         pass
 
+
 class MockPexpect:
     def __init__(self, exitstatus, stdout=""):
         self.exitstatus = exitstatus
