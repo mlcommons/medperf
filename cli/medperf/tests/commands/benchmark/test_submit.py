@@ -79,7 +79,7 @@ def test_get_extra_information_retrieves_expected_info(
     assert submission.bmk.metadata["results"] == results
 
 
-def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
+def test_run_compatibility_test_uses_expected_default_parameters(mocker, comms, ui):
     # Arrange
     bmk = TestBenchmark()
     submission = SubmitBenchmark(BENCHMARK_INFO)
@@ -93,7 +93,25 @@ def test_run_compatibility_test_executes_test_with_force(mocker, comms, ui):
     submission.run_compatibility_test()
 
     # Assert
-    comp_spy.assert_called_once_with(benchmark=bmk.generated_uid, no_cache=True)
+    comp_spy.assert_called_once_with(benchmark=bmk.generated_uid, no_cache=True, skip_data_preparation_step=False)
+
+@pytest.mark.parametrize("force", [False, True])
+@pytest.mark.parametrize("skip", [False, True])
+def test_run_compatibility_test_with_passed_parameters(mocker, force, skip, comms, ui):
+    # Arrange
+    bmk = TestBenchmark()
+    submission = SubmitBenchmark(BENCHMARK_INFO, no_cache=force, skip_data_preparation_step=skip)
+    submission.bmk = bmk
+    comp_spy = mocker.patch(
+        PATCH_BENCHMARK.format("CompatibilityTestExecution.run"),
+        return_value=("data_uid", {}),
+    )
+
+    # Act
+    submission.run_compatibility_test()
+
+    # Assert
+    comp_spy.assert_called_once_with(benchmark=bmk.generated_uid, no_cache=force, skip_data_preparation_step=skip)
 
 
 def test_write_writes_using_entity(mocker, result, comms, ui):
