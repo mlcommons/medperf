@@ -161,6 +161,7 @@ sanity_check_timeout = None
 statistics_timeout = None
 infer_timeout = None
 evaluate_timeout = None
+container_loglevel = None
 mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
 
@@ -184,6 +185,7 @@ inline_parameters = [
     "platform",
     "gpus",
     "cleanup",
+    "container_loglevel"
 ]
 configurable_parameters = inline_parameters + [
     "server",

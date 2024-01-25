@@ -290,7 +290,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        # TODO: re-use `loglevel=critical` or figure out a clean MLCube logging
         cmd = "mlcube run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
@@ -307,6 +306,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
         cmd += f' -Pdocker.cpu_args="{cpu_args}"'
         cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+
+        container_loglevel = config.container_loglevel
+        if container_loglevel:
+            cmd += f' -Pdocker.env_args="-e LOGLEVEL={container_loglevel}"'
 
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
