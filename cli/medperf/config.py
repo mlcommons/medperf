@@ -166,7 +166,7 @@ mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
 
 # Other
-loglevel = "info"
+loglevel = "debug"
 cleanup = True
 ui = "CLI"
 
