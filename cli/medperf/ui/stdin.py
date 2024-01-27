@@ -40,3 +40,6 @@ class StdIn(UI):
 
     def hidden_prompt(self, msg: str) -> str:
         return self.prompt(msg)
+
+    def print_highlight(self, msg: str = ""):
+        self.print(msg)

@@ -250,9 +250,15 @@ class DebugAndOutputLogger(object):
     """
     Prints the output both to stderr (directly) and to debug log
     """
+    def __init__(self):
+        self._just_started_flag = True
+
     def write(self, byte):
+        if self._just_started_flag:
+            sys.stdout.write("\r\033[K")  # clean the current spinner line
+            self._just_started_flag = False
         s = byte.decode("utf-8")
-        sys.stdout.write(s)
+        sys.stdout.write(f'{Fore.WHITE}{Style.DIM}{s}{Style.RESET_ALL}')
         sys.stdout.flush()
 
         logging.debug(s.rstrip('\n'))
