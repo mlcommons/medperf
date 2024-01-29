@@ -1,45 +1,41 @@
-# Introduction
 
-Medical Artificial Intelligence (AI) has the potential to revolutionize healthcare by advancing evidence-based medicine, personalizing patient care, and reducing costs. Unlocking this potential requires reliable methods for evaluating the efficacy of medical machine learning (ML) models on large-scale heterogeneous data while maintaining patient privacy.
+<style>
+td, th {
+   border: none!important;
+}
+</style>
+MedPerf is an open-source framework for benchmarking medical ML models prioritizing patient privacy to mitigate legal and regulatory risks. It uses *Federated Evaluation* in which medical ML models are securely distributed to multiple global facilities for evaluation. The goal of *Federated Evaluation* is to make it simple and reliable to share ML models with many data providers, evaluate those ML models against their data in controlled settings, then aggregate and analyze the findings.
 
-## What is MedPerf?
+The MedPerf approach empowers healthcare stakeholders through neutral governance to assess and verify the performance of ML models in an efficient and human-supervised process without sharing any patient data across facilities during the process.
 
-MedPerf is an open-source framework for benchmarking ML models to deliver clinical efficacy while prioritizing patient privacy and mitigating legal and regulatory risks. It enables federated evaluation in which models are securely distributed to different facilities for evaluation. The goal of federated evaluation is to make it simple and reliable to share models with many data providers, evaluate those models against their data in controlled settings, then aggregate and analyze the findings.
 
-The MedPerf approach empowers healthcare organizations to assess and verify the performance of ML models in an efficient and human-supervised process without sharing any patient data across facilities during the process.
+
+| ![federated_evaluation.gif](images/fed_eva_example.gif) | 
+|:--:| 
+| *Federated evaluation of medical AI model using MedPerf on a hypothetical example* |
+
 
 ## Why MedPerf?
 
-MedPerf reduces the risks and costs associated with data sharing, maximizing medical and patient outcomes. The platform leads to an effective, broader, and cost-effective adoption of medical ML and improves patient outcomes.
+MedPerf aims to identify bias and generalizability issues of medical ML models by evaluating them on diverse medical data across the world. On one hand this process can allow ML developers to quickly identify performance and reliability problems with their models and on the other hand healthcare stakeholders can validate such models for clinical efficacy.
+
+Importantly, MedPerf supports technology for **neutral governance** in order to enable **full trust** and **transparency** among participating parties (e.g., ML vendor, data provider, regulatory authority)
+
+| ![benchmark_committee.gif](images/benchmark_committee.gif) | 
+|:--:| 
+| *Benchmark committee in MedPerf* |
+
+## Benefits to healthcare stakeholders
 
 Anyone who joins our platform can get several benefits, regardless of the role they will assume.
 
-**Benefits if you are a [Data Provider](roles.md#data-providers):**
+| ![benefits.png](images/benefits.png) | 
+|:--:| 
+| *Benefits to healthacare stakeholders using MedPerf* |
 
-* Evaluate how well machine learning models perform on your population’s data.
-* Connect to Model Owners to help them improve medical ML in a specific domain.
-* Help define impactful medical ML benchmarks.
 
-**Benefits if you are a [Model Owner](roles.md#model-owners):**
 
-* Measure model performance on private datasets that you would never have access to.
-* Connect to specific Data Providers that can help you increase the performance of your model.
-
-**Benefits if you own a benchmark ([Benchmark Committee](roles.md#benchmark-committee)):**
-
-* Hold a leading role in the MedPerf ecosystem by defining specifications of a benchmark for a particular medical ML task.
-* Get help to create a strong community around a specific area.
-* Rule point on creating the guidelines to generate impactful ML for a specific area.
-* Help improve best practices in your area of interest.
-* Ensure the choice of the metrics as well as the proper reference implementations.
-
-**Benefits to the Broad Community:**
-
-* Provide consistent and rigorous approaches for evaluating the accuracy of ML models for real-world use in a standardized manner.
-* Enable model usability measurement across institutions while maintaining data privacy and model reliability.
-* Connect with a community of expert groups to employ scientific evaluation methodologies and technical approaches to operate benchmarks that not only have well-defined clinical aspects, such as clinical impact, clinical workflow integration and patient outcome, but also support robust technical aspects, including proper metrics, data preprocessing and reference implementation.
-
-## What is a benchmark in the MedPerf perspective?
+<!-- ## What is a benchmark in the MedPerf perspective?
 
 A benchmark is a collection of assets used by the platform to test the performance of ML models for a specific clinical problem. The primary components of a benchmark are:
 
@@ -49,4 +45,4 @@ A benchmark is a collection of assets used by the platform to test the performan
 4. **Evaluation**: a consistent implementation of the testing pipelines and evaluation metrics.
 5. **Reference Implementation**: a detailed example of a benchmark submission consisting of example model code, the evaluation component, and de-identified or synthetic publicly available sample data.
 6. **Registered Models**: a list of registered models to run in this benchmark.
-7. **Documentation**: documents for understanding and using the benchmark.
+7. **Documentation**: documents for understanding and using the benchmark. -->
