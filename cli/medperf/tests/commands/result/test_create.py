@@ -74,6 +74,7 @@ def mock_cube(mocker, state_variables):
         return cube
 
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), side_effect=__get_side_effect)
+    mocker.patch(PATCH_EXECUTION.format("Cube.download_run_files"))
 
 
 def mock_execution(mocker, state_variables):
