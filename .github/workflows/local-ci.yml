@@ -26,9 +26,6 @@ jobs:
         wget https://github.com/sylabs/singularity/releases/download/v3.10.1/singularity-ce-3.10.1.tar.gz
         tar -xzvf singularity-ce-3.10.1.tar.gz
         cd singularity-ce-3.10.1
-        echo "FOR DEBUGGING"
-        sh scripts/get-version
-        echo "END FOR DEBUGGING"
         ./mconfig
         cd builddir
         make
