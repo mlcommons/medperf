@@ -4,6 +4,10 @@
 ##########################################################
 ################### Start Testing ########################
 ##########################################################
+# debugging tmp. TODO: remove me
+singularity --version
+singularity version
+which singularity
 
 echo "====================================="
 echo "Retrieving mock dataset"
