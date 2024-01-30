@@ -243,7 +243,6 @@ echo "====================================="
 #   1) an already built singularity image (model 3)
 #   2) a docker image to be converted (metrics)
 medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
-medperf mlcube associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
