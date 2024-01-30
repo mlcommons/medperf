@@ -314,10 +314,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model2"
+echo "Running model3 (with singularity)"
 echo "====================================="
-medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID -y
-checkFailed "Model2 run failed"
+medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+checkFailed "Model3 run failed"
 ##########################################################
 
 echo "\n"
