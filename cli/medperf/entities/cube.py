@@ -225,10 +225,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 self._set_image_hash_from_registry()
 
                 image_folder = os.path.join(config.cubes_folder, config.image_path)
-                for file in os.listdir(image_folder):
-                    if file == self._converted_singularity_image_name:
-                        return
-                    remove_path(os.path.join(image_folder, file))
+                if os.path.exists(image_folder):
+                    for file in os.listdir(image_folder):
+                        if file == self._converted_singularity_image_name:
+                            return
+                        remove_path(os.path.join(image_folder, file))
 
                 self._get_image_from_registry()
             else:
