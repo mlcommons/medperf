@@ -16,7 +16,6 @@ CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
 MEDPERF_STORAGE=~/.medperf
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
-MEDPERF_LOG_STORAGE="$MEDPERF_STORAGE/logs/medperf.log"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
 LOGIN_SCRIPT="$(dirname $(realpath "$0"))/auto_login.sh"
@@ -47,7 +46,7 @@ checkFailed(){
     fi
     echo $1
     echo "medperf log:"
-    tail "$MEDPERF_LOG_STORAGE"
+    tail "$MEDPERF_STORAGE/logs/medperf.log"
     if ${CLEANUP}; then
       clean
     fi
