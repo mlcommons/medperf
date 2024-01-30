@@ -349,6 +349,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         else:
             raise InvalidArgumentError("Unsupported platform")
 
+        # set accelerator count to zero to avoid unexpected behaviours and
+        # force mlcube to only use --gpus to figure out GPU config
+        cmd += " -Pplatform.accelerator_count=0"
+
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)
         proc_out = combine_proc_sp_text(proc)
