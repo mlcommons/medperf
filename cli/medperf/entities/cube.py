@@ -249,6 +249,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
             proc_stdout = proc.read()
         logging.debug(proc_stdout)
+        print(proc_stdout)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while inspecting the image hash")
         with open(tmp_out_yaml) as f:
