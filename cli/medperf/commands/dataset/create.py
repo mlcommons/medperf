@@ -96,6 +96,7 @@ class DataPreparation:
             self.ui.print(f"Benchmark Data Preparation: {benchmark.name}")
         self.ui.text = "Retrieving data preparation cube"
         self.cube = Cube.get(cube_uid)
+        self.cube.download_run_files()
         self.ui.print("> Preparation cube download complete")
 
     def run_cube_tasks(self):

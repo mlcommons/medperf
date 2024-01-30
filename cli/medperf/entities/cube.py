@@ -167,7 +167,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         if not cube.is_valid:
             raise InvalidEntityError("The requested MLCube is marked as INVALID.")
-        cube.download()
+        cube.download_config_files()
         return cube
 
     @classmethod
@@ -247,9 +247,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             verify_hash(local_hash, img_hash)
             self.image_hash = local_hash
 
-    def download(self):
-        """Downloads the required elements for an mlcube to run locally."""
-
+    def download_config_files(self):
         try:
             self.download_mlcube()
         except InvalidEntityError as e:
@@ -260,6 +258,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
+    def download_run_files(self):
         try:
             self.download_additional()
         except InvalidEntityError as e:
