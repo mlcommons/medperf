@@ -23,9 +23,9 @@ jobs:
         wget https://go.dev/dl/go1.17.11.linux-amd64.tar.gz
         sudo tar --directory=/usr/local -xzvf go1.17.11.linux-amd64.tar.gz
         export PATH=/usr/local/go/bin:$PATH
-        wget https://github.com/sylabs/singularity/releases/download/v3.10.1/singularity-ce-3.10.1.tar.gz
-        tar -xzvf singularity-ce-3.10.1.tar.gz
-        cd singularity-ce-3.10.1
+        wget https://github.com/sylabs/singularity/releases/download/v3.10.0/singularity-ce-3.10.0.tar.gz
+        tar -xzvf singularity-ce-3.10.0.tar.gz
+        cd singularity-ce-3.10.0
         ./mconfig
         cd builddir
         make
