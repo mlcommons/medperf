@@ -312,9 +312,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = "mlcube --log-level critical run"
-        if config.loglevel.lower() == "debug":
-            cmd = "mlcube run"
+        cmd = "mlcube run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
