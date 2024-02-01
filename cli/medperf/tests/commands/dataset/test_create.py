@@ -4,7 +4,7 @@ from medperf.exceptions import InvalidArgumentError
 import pytest
 from unittest.mock import call
 
-from medperf.tests.mocks import MockCube
+from medperf.tests.mocks import TestCube
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.dataset.prepare import DataPreparation
@@ -41,7 +41,8 @@ def preparation(mocker, comms, ui):
         LOCATION,
         SUMMARY_PATH,
     )
-    mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True))
+    mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=TestCube())
+    mocker.patch(PATCH_DATAPREP.format("Cube.download_run_files"))
     preparation.get_prep_cube()
     preparation.data_path = DATA_PATH
     preparation.labels_path = LABELS_PATH
@@ -82,9 +83,8 @@ class TestWithDefaultUID:
         self, mocker, cube_uid, comms, ui, fs
     ):
         # Arrange
-        spy = mocker.patch(
-            PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
-        )
+        spy = mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=TestCube())
+        down_spy = mocker.patch(PATCH_DATAPREP.format("Cube.download_run_files"))
 
         # Act
         preparation = DataPreparation(None, cube_uid, *[""] * 6)
@@ -92,6 +92,7 @@ class TestWithDefaultUID:
 
         # Assert
         spy.assert_called_once_with(cube_uid)
+        down_spy.assert_called_once()
 
     @pytest.mark.parametrize("cube_uid", [998, 68, 109])
     def test_get_prep_cube_gets_benchmark_cube_if_provided(
@@ -100,9 +101,8 @@ class TestWithDefaultUID:
         # Arrange
         benchmark = TestBenchmark(data_preparation_mlcube=cube_uid)
         mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=benchmark)
-        spy = mocker.patch(
-            PATCH_DATAPREP.format("Cube.get"), return_value=MockCube(True)
-        )
+        spy = mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=TestCube())
+        down_spy = mocker.patch(PATCH_DATAPREP.format("Cube.download_run_files"))
 
         # Act
         preparation = DataPreparation(cube_uid, None, *[""] * 6)
@@ -110,6 +110,7 @@ class TestWithDefaultUID:
 
         # Assert
         spy.assert_called_once_with(cube_uid)
+        down_spy.assert_called_once()
 
     def test_run_cube_tasks_runs_required_tasks(self, mocker, preparation):
         # Arrange

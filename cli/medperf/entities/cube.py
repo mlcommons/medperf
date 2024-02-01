@@ -167,7 +167,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         if not cube.is_valid:
             raise InvalidEntityError("The requested MLCube is marked as INVALID.")
-        cube.download()
+        cube.download_config_files()
         return cube
 
     @classmethod
@@ -211,45 +211,66 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def download_image(self):
         url = self.image_tarball_url
         tarball_hash = self.image_tarball_hash
-        img_hash = self.image_hash
 
         if url:
             _, local_hash = resources.get_cube_image(url, self.path, tarball_hash)
             self.image_tarball_hash = local_hash
         else:
-            # Retrieve image from image registry
-            logging.debug(f"Retrieving {self.id} image")
-            cmd = f"mlcube configure --mlcube={self.cube_path}"
-            with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
-                proc_out = proc.read()
-            if proc.exitstatus != 0:
-                raise ExecutionError(
-                    "There was an error while retrieving the MLCube image"
-                )
-            logging.debug(proc_out)
+            if config.platform == "docker":
+                # For docker, image should be pulled before calculating its hash
+                self._get_image_from_registry()
+                self._set_image_hash_from_registry()
+            elif config.platform == "singularity":
+                # For singularity, we need the hash first before trying to convert
+                self._set_image_hash_from_registry()
 
-            # Retrieve image hash from MLCube
-            logging.debug(f"Retrieving {self.id} image hash")
-            tmp_out_yaml = generate_tmp_path()
-            cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
-            cmd += f" --output-file {tmp_out_yaml}"
-            with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
-                proc_stdout = proc.read()
-            logging.debug(proc_stdout)
-            if proc.exitstatus != 0:
-                raise ExecutionError(
-                    "There was an error while inspecting the image hash"
-                )
-            with open(tmp_out_yaml) as f:
-                mlcube_details = yaml.safe_load(f)
-            remove_path(tmp_out_yaml)
-            local_hash = mlcube_details["hash"]
-            verify_hash(local_hash, img_hash)
-            self.image_hash = local_hash
+                image_folder = os.path.join(config.cubes_folder, config.image_path)
+                if os.path.exists(image_folder):
+                    for file in os.listdir(image_folder):
+                        if file == self._converted_singularity_image_name:
+                            return
+                        remove_path(os.path.join(image_folder, file))
 
-    def download(self):
-        """Downloads the required elements for an mlcube to run locally."""
+                self._get_image_from_registry()
+            else:
+                # TODO: such a check should happen on commands entrypoints, not here
+                raise InvalidArgumentError("Unsupported platform")
 
+    @property
+    def _converted_singularity_image_name(self):
+        return f"{self.image_hash}.sif"
+
+    def _set_image_hash_from_registry(self):
+        # Retrieve image hash from MLCube
+        logging.debug(f"Retrieving {self.id} image hash")
+        tmp_out_yaml = generate_tmp_path()
+        cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
+        cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
+        with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
+            proc_stdout = proc.read()
+        logging.debug(proc_stdout)
+        if proc.exitstatus != 0:
+            raise ExecutionError("There was an error while inspecting the image hash")
+        with open(tmp_out_yaml) as f:
+            mlcube_details = yaml.safe_load(f)
+        remove_path(tmp_out_yaml)
+        local_hash = mlcube_details["hash"]
+        verify_hash(local_hash, self.image_hash)
+        self.image_hash = local_hash
+
+    def _get_image_from_registry(self):
+        # Retrieve image from image registry
+        logging.debug(f"Retrieving {self.id} image")
+        cmd = f"mlcube configure --mlcube={self.cube_path} --platform={config.platform}"
+        if config.platform == "singularity":
+            cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
+        with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
+            proc_out = proc.read()
+        if proc.exitstatus != 0:
+            raise ExecutionError("There was an error while retrieving the MLCube image")
+        logging.debug(proc_out)
+
+    def download_config_files(self):
         try:
             self.download_mlcube()
         except InvalidEntityError as e:
@@ -260,6 +281,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
+    def download_run_files(self):
         try:
             self.download_additional()
         except InvalidEntityError as e:
@@ -302,12 +324,36 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
 
-        cpu_args = self.get_config("docker.cpu_args") or ""
-        gpu_args = self.get_config("docker.gpu_args") or ""
-        cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
-        gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
-        cmd += f' -Pdocker.cpu_args="{cpu_args}"'
-        cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+        # TODO: we should override run args instead of what we are doing below
+        #       we shouldn't allow arbitrary run args unless our client allows it
+        if config.platform == "docker":
+            # use current user
+            cpu_args = self.get_config("docker.cpu_args") or ""
+            gpu_args = self.get_config("docker.gpu_args") or ""
+            cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
+            gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
+            cmd += f' -Pdocker.cpu_args="{cpu_args}"'
+            cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+        elif config.platform == "singularity":
+            # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
+            run_args = self.get_config("singularity.run_args") or ""
+            run_args = " ".join([run_args, "-eC"]).strip()
+            cmd += f' -Psingularity.run_args="{run_args}"'
+
+            # set image name in case of running docker image with singularity
+            # Assuming we only accept mlcube.yamls with either singularity or docker sections
+            # TODO: make checks on submitted mlcubes
+            singularity_config = self.get_config("singularity")
+            if singularity_config is None:
+                cmd += (
+                    f' -Psingularity.image="{self._converted_singularity_image_name}"'
+                )
+        else:
+            raise InvalidArgumentError("Unsupported platform")
+
+        # set accelerator count to zero to avoid unexpected behaviours and
+        # force mlcube to only use --gpus to figure out GPU config
+        cmd += " -Pplatform.accelerator_count=0"
 
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)

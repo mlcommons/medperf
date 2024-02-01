@@ -22,10 +22,7 @@ We will assume the commands' names are `pip` and `python`. Use `pip3` and `pytho
 
 #### Docker or Singularity
 
-!!! warning
-    Singularity is temporarily not supported.
-
-Make sure you have the latest version of [Docker](https://docs.docker.com/get-docker/){target="\_blank"} or [Singularity 3.10](https://docs.sylabs.io/guides/3.0/user-guide/installation.html){target="\_blank"} installed.
+Make sure you have the latest version of [Docker](https://docs.docker.com/get-docker/){target="\_blank"} or [Singularity 3.10](https://docs.sylabs.io/guides/3.10/admin-guide/installation.html){target="\_blank"} installed.
 
 To verify docker is installed, run:
 
