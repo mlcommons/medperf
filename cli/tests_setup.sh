@@ -16,7 +16,6 @@ CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
 MEDPERF_STORAGE=~/.medperf
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
-MEDPERF_LOG_STORAGE="$MEDPERF_STORAGE/logs/medperf.log"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
 LOGIN_SCRIPT="$(dirname $(realpath "$0"))/auto_login.sh"
@@ -47,7 +46,7 @@ checkFailed(){
     fi
     echo $1
     echo "medperf log:"
-    tail "$MEDPERF_LOG_STORAGE"
+    tail "$MEDPERF_STORAGE/logs/medperf.log"
     if ${CLEANUP}; then
       clean
     fi
@@ -62,7 +61,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/036aaa0c156e1ce9b7952f3b4d5275caec30a0a9"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/32294ec0babbcb7773e40075e605ed6f18f6b125"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"

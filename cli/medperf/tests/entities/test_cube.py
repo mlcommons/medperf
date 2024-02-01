@@ -60,12 +60,8 @@ class TestGetFiles:
             self.cube_path, config.additional_path, config.tarball_filename
         )
         self.img_path = os.path.join(self.cube_path, config.image_path, "img.tar.gz")
-        self.file_paths = [
-            self.manifest_path,
-            self.params_path,
-            self.add_path,
-            self.img_path,
-        ]
+        self.config_files_paths = [self.manifest_path, self.params_path]
+        self.run_files_paths = [self.add_path, self.img_path]
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_get_cube_retrieves_files(self, setup):
@@ -73,11 +69,25 @@ class TestGetFiles:
         Cube.get(self.id)
 
         # Assert
-        for file in self.file_paths:
+        for file in self.config_files_paths:
+            assert os.path.exists(file) and os.path.isfile(file)
+        for file in self.run_files_paths:
+            assert not os.path.exists(file)
+
+    @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
+    def test_download_run_files_retrieves_files(self, setup):
+        # Act
+        cube = Cube.get(self.id)
+        cube.download_run_files()
+
+        # Assert
+        for file in self.config_files_paths + self.run_files_paths:
             assert os.path.exists(file) and os.path.isfile(file)
 
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
-    def test_get_cube_without_image_configures_mlcube(self, mocker, setup, fs):
+    def test_download_run_files_without_image_configures_mlcube(
+        self, mocker, setup, fs
+    ):
         # Arrange
         tmp_path = "tmp_path"
         mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
@@ -87,20 +97,23 @@ class TestGetFiles:
         )
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
         expected_cmds = [
-            f"mlcube configure --mlcube={self.manifest_path}",
+            f"mlcube configure --mlcube={self.manifest_path} --platform={config.platform}",
             f"mlcube inspect --mlcube={self.manifest_path}"
-            f" --format=yaml --output-file {tmp_path}",
+            f" --format=yaml --platform={config.platform} --output-file {tmp_path}",
         ]
         expected_cmds = [call(cmd, timeout=None) for cmd in expected_cmds]
 
         # Act
-        Cube.get(self.id)
+        cube = Cube.get(self.id)
+        cube.download_run_files()
 
         # Assert
         spy.assert_has_calls(expected_cmds)
 
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
-    def test_get_cube_stops_execution_if_configure_fails(self, mocker, setup, fs):
+    def test_download_run_files_stops_execution_if_configure_fails(
+        self, mocker, setup, fs
+    ):
         # Arrange
         tmp_path = "tmp_path"
         mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
@@ -112,11 +125,14 @@ class TestGetFiles:
         mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
 
         # Act & Assert
+        cube = Cube.get(self.id)
         with pytest.raises(ExecutionError):
-            Cube.get(self.id)
+            cube.download_run_files()
 
     @pytest.mark.parametrize("setup", [{"remote": [NO_IMG_CUBE]}], indirect=True)
-    def test_get_cube_without_image_fails_with_wrong_hash(self, mocker, setup, fs):
+    def test_download_run_files_without_image_fails_with_wrong_hash(
+        self, mocker, setup, fs
+    ):
         # Arrange
         tmp_path = "tmp_path"
         mocker.patch(PATCH_CUBE.format("generate_tmp_path"), return_value=tmp_path)
@@ -124,16 +140,18 @@ class TestGetFiles:
         fs.create_file("tmp_path", contents=yaml.dump({"hash": "invalid hash"}))
 
         # Act & Assert
+        cube = Cube.get(self.id)
         with pytest.raises(InvalidEntityError):
-            Cube.get(self.id)
+            cube.download_run_files()
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
-    def test_get_cube_with_image_isnt_configured(self, mocker, setup):
+    def test_download_run_files_with_image_isnt_configured(self, mocker, setup):
         # Arrange
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
 
         # Act
-        Cube.get(self.id)
+        cube = Cube.get(self.id)
+        cube.download_run_files()
 
         # Assert
         spy.assert_not_called()
@@ -165,6 +183,7 @@ class TestRun:
             + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
+            + " -Pplatform.accelerator_count=0"
         )
 
         # Act
@@ -187,6 +206,7 @@ class TestRun:
             + f"--platform={self.platform} --network=none"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
+            + " -Pplatform.accelerator_count=0"
         )
 
         # Act
@@ -206,6 +226,7 @@ class TestRun:
             + f'--platform={self.platform} --network=none --mount=ro test="test"'
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
+            + " -Pplatform.accelerator_count=0"
         )
 
         # Act
@@ -228,6 +249,7 @@ class TestRun:
             + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="cpuarg cpuval -u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="gpuarg gpuval -u $(id -u):$(id -g)"'
+            + " -Pplatform.accelerator_count=0"
         )
 
         # Act
