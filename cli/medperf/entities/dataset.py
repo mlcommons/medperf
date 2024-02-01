@@ -267,4 +267,5 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             "Registered": self.is_registered,
             "Submitted as Prepared": self.submitted_as_prepared,
             "Status": "\n".join([f"{k}: {v}" for k, v in self.report.items()]),
+            "Owner": self.owner,
         }

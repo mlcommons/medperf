@@ -26,7 +26,7 @@ def list(
     """List datasets stored locally and remotely from the user"""
     EntityList.run(
         Dataset,
-        fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status"],
+        fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status", "Owner"],
         local_only=local,
         mine_only=mine,
         mlcube=mlcube,
