@@ -121,6 +121,7 @@ class DataPreparation:
     def get_prep_cube(self):
         self.ui.text = "Retrieving data preparation cube"
         self.cube = Cube.get(self.dataset.data_preparation_mlcube)
+        self.cube.download_run_files()
         self.ui.print("> Preparation cube download complete")
 
     def setup_parameters(self):
