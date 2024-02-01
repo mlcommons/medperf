@@ -101,6 +101,7 @@ def prepare_cube(cube_uid: str):
 def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
     config.ui.text = f"Retrieving {name} cube"
     cube = Cube.get(uid, local_only=local_only)
+    cube.download_run_files()
     config.ui.print(f"> {name} cube download complete")
     return cube
 

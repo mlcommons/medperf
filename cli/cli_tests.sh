@@ -107,6 +107,7 @@ medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
+# MLCube with singularity section
 medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE --operational
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
@@ -246,11 +247,12 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model3 association"
+echo "Running model3 association (with singularity)"
 echo "====================================="
-# medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
-# TMP: revert to singularity when MLCube issue is fixed
-medperf mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+# this will run two types of singularity mlcubes:
+#   1) an already built singularity image (model 3)
+#   2) a docker image to be converted (metrics)
+medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
@@ -322,10 +324,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model2"
+echo "Running model3 (with singularity)"
 echo "====================================="
-medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID -y
-checkFailed "Model2 run failed"
+medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+checkFailed "Model3 run failed"
 ##########################################################
 
 echo "\n"
