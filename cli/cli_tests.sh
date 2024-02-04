@@ -116,11 +116,11 @@ medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARA
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-log-none -m MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS
+medperf mlcube submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS
 checkFailed "Model with logging None submission failed"
 MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-log-debug -m MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS
+medperf mlcube submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS
 checkFailed "Model with logging debug submission failed"
 MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
