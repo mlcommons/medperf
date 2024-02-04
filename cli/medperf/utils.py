@@ -199,6 +199,7 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
 
     Args:
         in_dict (dict): dictionary to print
+        skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
     ui = config.ui
@@ -219,7 +220,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
 
     Args:
         proc (spawn): a pexpect spawned child
-        ui (UI): An instance of an UI implementation
 
     Returns:
         str: all non-carriage-return-ending string captured from proc
@@ -247,13 +247,13 @@ def combine_proc_sp_text(proc: spawn) -> str:
 
 def get_folders_hash(paths: List[str]) -> str:
     """Generates a hash for all the contents of the fiven folders. This procedure
-    hashes all of the files in all passed folders, sorts them and then hashes that list.
+    hashes all the files in all passed folders, sorts them and then hashes that list.
 
     Args:
-        path (str): Folder to hash
+        paths List(str): Folders to hash.
 
     Returns:
-        str: sha256 hash of the whole folder
+        str: sha256 hash that represents all the folders altogether
     """
     hashes = []
 
@@ -278,7 +278,7 @@ def list_files(startpath):
     tree_str = ""
     for root, dirs, files in os.walk(startpath):
         level = root.replace(startpath, "").count(os.sep)
-        indent = " " * 4 * (level)
+        indent = " " * 4 * level
 
         tree_str += "{}{}/\n".format(indent, os.path.basename(root))
         subindent = " " * 4 * (level + 1)
@@ -353,6 +353,7 @@ def get_cube_image_name(cube_path: str) -> str:
         cube_config = yaml.safe_load(f)
 
     try:
+        # TODO: Why do we check singularity only there? Why not docker?
         return cube_config["singularity"]["image"]
     except KeyError:
         msg = "The provided mlcube doesn't seem to be configured for singularity"

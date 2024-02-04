@@ -131,6 +131,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cubes_folder = config.cubes_folder
         try:
             uids = next(os.walk(cubes_folder))[1]
+            logging.debug(f'Local cubes found: {uids}')
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
@@ -322,6 +323,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
 
+        container_loglevel = config.container_loglevel
+
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
         if config.platform == "docker":
@@ -332,6 +335,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
             cmd += f' -Pdocker.cpu_args="{cpu_args}"'
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+
+            if container_loglevel:
+                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel}"'
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
@@ -346,16 +352,13 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 cmd += (
                     f' -Psingularity.image="{self._converted_singularity_image_name}"'
                 )
+            # TODO: pass logging env for singularity also there
         else:
             raise InvalidArgumentError("Unsupported platform")
 
         # set accelerator count to zero to avoid unexpected behaviours and
         # force mlcube to only use --gpus to figure out GPU config
         cmd += " -Pplatform.accelerator_count=0"
-
-        container_loglevel = config.container_loglevel
-        if container_loglevel:
-            cmd += f' -Pdocker.env_args="-e LOGLEVEL={container_loglevel}"'
 
         logging.info(f"Running MLCube command: {cmd}")
         proc = pexpect.spawn(cmd, timeout=timeout)

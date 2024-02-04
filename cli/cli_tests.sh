@@ -97,28 +97,36 @@ echo "====================================="
 
 medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
-PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf mlcube ls | grep prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
 checkFailed "Model1 submission failed"
-MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL1_UID=$(medperf mlcube ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD
 checkFailed "Model2 submission failed"
-MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL2_UID=$(medperf mlcube ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # MLCube with singularity section
 medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE
 checkFailed "Model3 submission failed"
-MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL3_UID=$(medperf mlcube ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD
 checkFailed "failing model submission failed"
-FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+FAILING_MODEL_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
+medperf mlcube submit --name model-log-none -m MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS
+checkFailed "Model with logging None submission failed"
+MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
+medperf mlcube submit --name model-log-debug -m MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS
+checkFailed "Model with logging debug submission failed"
+MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
-METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+METRICS_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -352,6 +360,27 @@ echo "====================================================================="
 rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
 checkFailed "Failing mlcube run with ignore errors failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running logging model without logging env"
+echo "====================================="
+medperf benchmark run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_NONE_UID
+checkFailed "run logging model without logging env failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running logging model with debug logging env"
+echo "====================================="
+# TODO: this MUST fail for now
+medperf benchmark run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID
+checkFailed "run logging model with debug logging env failed"
 ##########################################################
 
 echo "\n"
