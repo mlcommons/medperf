@@ -377,7 +377,7 @@ echo "\n"
 echo "====================================="
 echo "Running logging model without logging env"
 echo "====================================="
-medperf benchmark run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_NONE_UID
+medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_NONE_UID
 checkFailed "run logging model without logging env failed"
 ##########################################################
 
@@ -388,7 +388,7 @@ echo "====================================="
 echo "Running logging model with debug logging env"
 echo "====================================="
 # TODO: this MUST fail for now
-medperf benchmark run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID
+medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID
 checkFailed "run logging model with debug logging env failed"
 ##########################################################
 
