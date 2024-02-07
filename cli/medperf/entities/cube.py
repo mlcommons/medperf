@@ -324,7 +324,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd = " ".join([cmd, cmd_arg])
 
         container_loglevel = config.container_loglevel
-        logging.info(f'TESTS DEBUG: container loglevel {container_loglevel}')
+        config.ui.text(f'TESTS DEBUG: container loglevel {container_loglevel}')
 
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
