@@ -289,7 +289,7 @@ echo "\n"
 echo "======================================================"
 echo "Running logging-model-with-debug association association"
 echo "======================================================"
-medperf mlcube --container-loglevel debug associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
+medperf --container-loglevel debug mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
 checkFailed "Logging-model-with-debug association failed"
 ##########################################################
 
