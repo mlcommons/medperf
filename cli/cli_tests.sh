@@ -92,7 +92,7 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "existing cubes":
+echo "Existing cubes":
 echo "====================================="
 medperf mlcube ls
 ##########################################################
@@ -104,9 +104,9 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS
+medperf mlcube submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
-PREP_UID=$(medperf mlcube ls | grep prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf mlcube ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD
 checkFailed "Model1 submission failed"
@@ -127,15 +127,15 @@ FAILING_MODEL_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' 
 
 medperf mlcube submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS
 checkFailed "Model with logging None submission failed"
-MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-log-none | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS
 checkFailed "Model with logging debug submission failed"
-MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-log-debug | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
+medperf mlcube submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
-METRICS_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+METRICS_UID=$(medperf mlcube ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
