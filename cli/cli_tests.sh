@@ -276,6 +276,26 @@ checkFailed "Failing model association failed"
 echo "\n"
 
 ##########################################################
+echo "======================================================"
+echo "Running logging-model-without-env association"
+echo "======================================================"
+medperf mlcube associate -m $MODEL_LOG_NONE_UID -b $BMK_UID -y
+checkFailed "Logging-model-without-env association association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "======================================================"
+echo "Running logging-model-with-debug association association"
+echo "======================================================"
+medperf mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
+checkFailed "Logging-model-with-debug association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
 echo "====================================="
 echo "Activate modelowner profile"
 echo "====================================="
