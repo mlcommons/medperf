@@ -289,7 +289,7 @@ echo "\n"
 echo "======================================================"
 echo "Running logging-model-with-debug association association"
 echo "======================================================"
-medperf --container-loglevel debug mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
+medperf mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
 checkFailed "Logging-model-with-debug association failed"
 ##########################################################
 
@@ -407,8 +407,7 @@ echo "\n"
 echo "====================================="
 echo "Running logging model with debug logging env"
 echo "====================================="
-# TODO: this MUST fail for now
-medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID
+medperf --container-loglevel debug run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID
 checkFailed "run logging model with debug logging env failed"
 ##########################################################
 
