@@ -105,7 +105,7 @@
     
     **NOTE** Modifying the brain mask invalidates the tumor segmentations, and re-runs the tumor segmentation procedure using this new mask.
 
-  docs_url: "https://google.com"
+  docs_url: ""
 -5.1:
   status_name: MULTIPLE_ANNOTATIONS_ERROR
   comment: More than one segmentation file was identified in the manually corrected output folder. Please ensure that there is only one manually corrected segmentation inside the labels path.
