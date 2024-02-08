@@ -325,6 +325,10 @@ medperf association approve -b $BMK_UID -m $MODEL3_UID
 checkFailed "Model3 association approval failed"
 medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
 checkFailed "failing model association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL_LOG_NONE_UID
+checkFailed "Logging-model-without-env association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL_LOG_DEBUG_UID
+checkFailed "Logging-model-with-debug association approval failed"
 ##########################################################
 
 echo "\n"
