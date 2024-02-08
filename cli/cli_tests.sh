@@ -411,6 +411,7 @@ echo "\n"
 echo "====================================="
 echo "Running logging model without logging env"
 echo "====================================="
+rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-log-none/$DSET_A_GENUID
 medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_NONE_UID -y
 checkFailed "run logging model without logging env failed"
 ##########################################################
@@ -421,6 +422,7 @@ echo "\n"
 echo "====================================="
 echo "Running logging model with debug logging env"
 echo "====================================="
+rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-log-debug/$DSET_A_GENUID
 medperf --container-loglevel debug run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID -y
 checkFailed "run logging model with debug logging env failed"
 ##########################################################
