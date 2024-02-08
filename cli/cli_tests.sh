@@ -287,10 +287,20 @@ echo "\n"
 
 ##########################################################
 echo "======================================================"
-echo "Running logging-model-with-debug association association"
+echo "Running logging-model-with-debug association"
 echo "======================================================"
 medperf --container-loglevel debug mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
 checkFailed "Logging-model-with-debug association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "======================================================"
+echo "Submitted associations:"
+echo "======================================================"
+medperf association ls
+checkFailed "Listing associations failed"
 ##########################################################
 
 echo "\n"
