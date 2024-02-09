@@ -62,7 +62,7 @@ fi
 ########################## Setup #########################
 ##########################################################
 # TODO: return back to hasan7n's repo after logging model is merged there
-ASSETS_URL="https://raw.githubusercontent.com/VukW/mockcube/07de6f0ef8cc422344ee3496cd6131e7b010294b"
+ASSETS_URL="https://raw.githubusercontent.com/VukW/mockcube/d3185a043f19f4e381c405e70cfdbc4d93ba17f3"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
