@@ -88,11 +88,12 @@ class CompatibilityTestExecution:
         test_exec.prepare_dataset()
         test_exec.initialize_report()
         results = test_exec.cached_results()
-        logging.info('Existing results are found. Test would not be re-executed.')
-        logging.debug(f'Existing results: {results}')
         if results is None:
             results = test_exec.execute()
             test_exec.write(results)
+        else:
+            logging.info('Existing results are found. Test would not be re-executed.')
+            logging.debug(f'Existing results: {results}')
         return test_exec.data_uid, results
 
     def __init__(

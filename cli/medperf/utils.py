@@ -228,6 +228,12 @@ def combine_proc_sp_text(proc: spawn) -> str:
     static_text = ui.text
     proc_out = ""
     break_ = False
+    log_pattern = re.compile(
+        r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (DEBUG|INFO) (.*)$"
+    )
+
+    # Clear log lines from color / style symbols before matching with regexp
+    ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
     while not break_:
         if not proc.isalive():
             break_ = True
@@ -237,11 +243,29 @@ def combine_proc_sp_text(proc: spawn) -> str:
             logging.error("Process timed out")
             raise ExecutionError("Process timed out")
         line = line.decode("utf-8", "ignore")
-        if line:
+
+        if not line:
+            continue
+
+        match = log_pattern.match(ansi_escape_pattern.sub('', line))
+        line_should_be_filtered = False
+        if match:
+            line_pid, matched_log_level_str, content = match.groups()
+            matched_log_level = logging.getLevelName(matched_log_level_str)
+
+            # if line matches conditions, it is just logged to debug; else, shown to user
+            line_should_be_filtered = (line_pid == str(proc.pid)  # hide only `mlcube` framework logs
+                                       and isinstance(matched_log_level, int)
+                                       and matched_log_level < logging.WARNING)  # hide only debug and info logs
+            # ui.print(
+            #     f"{Fore.WHITE}{Style.DIM}line matched: {line_pid}, {matched_log_level_str}, {matched_log_level}, {line_should_be_filtered}{Style.RESET_ALL}")
+
+        if line_should_be_filtered:
+            logging.debug(line)
+        else:
             proc_out += line
             ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
             ui.text = static_text
-
     return proc_out
 
 

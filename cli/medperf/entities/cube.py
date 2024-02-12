@@ -245,8 +245,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         # Retrieve image hash from MLCube
         logging.debug(f"Retrieving {self.id} image hash")
         tmp_out_yaml = generate_tmp_path()
-        cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
+        cmd = f"mlcube --log-level {config.loglevel} inspect --mlcube={self.cube_path} --format=yaml"
         cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
+        logging.info(f"Running MLCube command: {cmd}")
         with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
             proc_stdout = proc.read()
         logging.debug(proc_stdout)
@@ -262,9 +263,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def _get_image_from_registry(self):
         # Retrieve image from image registry
         logging.debug(f"Retrieving {self.id} image")
-        cmd = f"mlcube configure --mlcube={self.cube_path} --platform={config.platform}"
+        cmd = f"mlcube --log-level {config.loglevel} configure --mlcube={self.cube_path} --platform={config.platform}"
         if config.platform == "singularity":
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
+        logging.info(f"Running MLCube command: {cmd}")
         with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
             proc_out = proc.read()
         if proc.exitstatus != 0:
@@ -313,7 +315,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = "mlcube run"
+        cmd = f"mlcube --log-level {config.loglevel} run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
@@ -361,9 +363,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += " -Pplatform.accelerator_count=0"
 
         logging.info(f"Running MLCube command: {cmd}")
-        proc = pexpect.spawn(cmd, timeout=timeout)
-        proc_out = combine_proc_sp_text(proc)
-        proc.close()
+        with pexpect.spawn(cmd, timeout=timeout) as proc:
+            proc_out = combine_proc_sp_text(proc)
+
         if output_logs is None:
             logging.debug(proc_out)
         else:

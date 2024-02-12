@@ -5,7 +5,7 @@ from .filters.redacting_filter import RedactingFilter
 
 
 def setup_logging(log_file: str, loglevel: str):
-    log_fmt = "%(asctime)s | %(levelname)s: %(message)s"
+    log_fmt = "%(asctime)s | %(module)s.%(funcName)s | %(levelname)s: %(message)s"
     handler = handlers.RotatingFileHandler(log_file, backupCount=20)
     handler.setFormatter(logging.Formatter(log_fmt))
     logging.basicConfig(
