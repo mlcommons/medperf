@@ -257,8 +257,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
             line_should_be_filtered = (line_pid == str(proc.pid)  # hide only `mlcube` framework logs
                                        and isinstance(matched_log_level, int)
                                        and matched_log_level < logging.WARNING)  # hide only debug and info logs
-            # ui.print(
-            #     f"{Fore.WHITE}{Style.DIM}line matched: {line_pid}, {matched_log_level_str}, {matched_log_level}, {line_should_be_filtered}{Style.RESET_ALL}")
 
         if line_should_be_filtered:
             logging.debug(line)
