@@ -97,8 +97,8 @@ class TestGetFiles:
         )
         spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
         expected_cmds = [
-            f"mlcube configure --mlcube={self.manifest_path} --platform={config.platform}",
-            f"mlcube inspect --mlcube={self.manifest_path}"
+            f"mlcube --log-level debug configure --mlcube={self.manifest_path} --platform={config.platform}",
+            f"mlcube --log-level debug inspect --mlcube={self.manifest_path}"
             f" --format=yaml --platform={config.platform} --output-file {tmp_path}",
         ]
         expected_cmds = [call(cmd, timeout=None) for cmd in expected_cmds]
