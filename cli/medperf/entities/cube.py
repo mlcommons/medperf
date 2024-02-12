@@ -339,7 +339,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
 
             if container_loglevel:
-                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel}"'
+                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
