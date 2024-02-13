@@ -28,13 +28,17 @@ class FilesystemTokenStore:
     def set_tokens(self, account_id, access_token, refresh_token):
         access_token_file, refresh_token_file = self.__get_paths(account_id)
 
-        fd = os.open(access_token_file, os.O_CREAT | os.O_WRONLY, 0o600)
-        os.write(fd, access_token.encode("utf-8"))
-        os.close(fd)
+        with open(access_token_file, "w") as f:
+            pass
+        os.chmod(access_token_file, 0o600)
+        with open(access_token_file, "a") as f:
+            f.write(access_token)
 
-        fd = os.open(refresh_token_file, os.O_CREAT | os.O_WRONLY, 0o600)
-        os.write(fd, refresh_token.encode("utf-8"))
-        os.close(fd)
+        with open(refresh_token_file, "w") as f:
+            pass
+        os.chmod(refresh_token_file, 0o600)
+        with open(refresh_token_file, "a") as f:
+            f.write(refresh_token)
 
     def read_tokens(self, account_id):
         access_token_file, refresh_token_file = self.__get_paths(account_id)
