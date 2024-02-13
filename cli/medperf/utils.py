@@ -212,6 +212,35 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     ui.print("=" * 20)
 
 
+class _MLCubeOutputFilter:
+    def __init__(self, proc_pid: int):
+        self.log_pattern = re.compile(
+            r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
+        )
+        # Clear log lines from color / style symbols before matching with regexp
+        self.ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
+        self.proc_pid = str(proc_pid)
+
+    def check_line(self, line: str) -> bool:
+        """
+        Args:
+            line: line from mlcube output
+        Returns:
+            true if line should be filtered out (==saved to debug file only),
+            false if line should be printed to user also
+        """
+        match = self.log_pattern.match(self.ansi_escape_pattern.sub('', line))
+        if match:
+            line_pid, matched_log_level_str, content = match.groups()
+            matched_log_level = logging.getLevelName(matched_log_level_str)
+
+            # if line matches conditions, it is just logged to debug; else, shown to user
+            return (line_pid == self.proc_pid  # hide only `mlcube` framework logs
+                    and isinstance(matched_log_level, int)
+                    and matched_log_level < logging.WARNING)  # hide only debug and info logs
+        return False
+
+
 def combine_proc_sp_text(proc: spawn) -> str:
     """Combines the output of a process and the spinner.
     Joins any string captured from the process with the
@@ -224,16 +253,13 @@ def combine_proc_sp_text(proc: spawn) -> str:
     Returns:
         str: all non-carriage-return-ending string captured from proc
     """
+
     ui = config.ui
     static_text = ui.text
     proc_out = ""
     break_ = False
-    log_pattern = re.compile(
-        r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (DEBUG|INFO) (.*)$"
-    )
+    log_filter = _MLCubeOutputFilter(proc.pid)
 
-    # Clear log lines from color / style symbols before matching with regexp
-    ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
     while not break_:
         if not proc.isalive():
             break_ = True
@@ -247,18 +273,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
         if not line:
             continue
 
-        match = log_pattern.match(ansi_escape_pattern.sub('', line))
-        line_should_be_filtered = False
-        if match:
-            line_pid, matched_log_level_str, content = match.groups()
-            matched_log_level = logging.getLevelName(matched_log_level_str)
-
-            # if line matches conditions, it is just logged to debug; else, shown to user
-            line_should_be_filtered = (line_pid == str(proc.pid)  # hide only `mlcube` framework logs
-                                       and isinstance(matched_log_level, int)
-                                       and matched_log_level < logging.WARNING)  # hide only debug and info logs
-
-        if line_should_be_filtered:
+        if log_filter.check_line(line):
             logging.debug(line)
         else:
             proc_out += line
