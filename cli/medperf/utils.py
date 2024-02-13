@@ -237,7 +237,7 @@ class _MLCubeOutputFilter:
             # if line matches conditions, it is just logged to debug; else, shown to user
             return (line_pid == self.proc_pid  # hide only `mlcube` framework logs
                     and isinstance(matched_log_level, int)
-                    and matched_log_level < logging.WARNING)  # hide only debug and info logs
+                    and matched_log_level < logging.INFO)  # hide only debug logs
         return False
 
 
