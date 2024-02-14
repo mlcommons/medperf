@@ -41,7 +41,6 @@ class CLI(UI):
         self.__print(msg)
 
     def __print(self, msg: str = ""):
-        logging.info(msg)
         if self.is_interactive:
             self.spinner.write(msg)
         else:
