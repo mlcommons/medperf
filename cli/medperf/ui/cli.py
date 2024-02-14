@@ -1,5 +1,3 @@
-import logging
-
 import typer
 from getpass import getpass
 from yaspin import yaspin
