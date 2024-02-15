@@ -1,4 +1,5 @@
 import time
+import logging
 import threading
 from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
@@ -201,6 +202,7 @@ class Auth0(Auth):
             "refresh_token": refresh_token,
         }
         token_issued_at = time.time()
+        logging.debug("Refreshing access token.")
         res = requests.post(url=url, headers=headers, data=body)
 
         if res.status_code != 200:
