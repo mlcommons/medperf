@@ -1,4 +1,5 @@
 import time
+import threading
 from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError
@@ -17,6 +18,7 @@ class Auth0(Auth):
         self.domain = config.auth_domain
         self.client_id = config.auth_client_id
         self.audience = config.auth_audience
+        self._lock = threading.Lock()
 
     def login(self, email):
         """Retrieves and stores an access token/refresh token pair from the auth0
@@ -149,6 +151,18 @@ class Auth0(Auth):
 
     @property
     def access_token(self):
+        """Thread-safe access token retrieval"""
+        # TODO: lock the credentials file to have this process-safe
+        #       If someone is preparing their dataset, and configured
+        #       the preparation to send reports async, there might be a
+        #       risk if they tried to run other commands separately (e.g., dataset ls)
+        #       (i.e., two processes may try to refresh an expired access token, which
+        #       may trigger refresh token reuse since we use refresh token rotation.)
+        with self._lock:
+            return self._access_token
+
+    @property
+    def _access_token(self):
         """Reads and returns an access token of the currently logged
         in user to be used for authorizing requests to the MedPerf server.
         Refresh the token if necessary.
