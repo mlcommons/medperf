@@ -403,25 +403,30 @@ def filter_latest_associations(associations, entity_key):
 def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
     repo = Repo(config.BASE_DIR)
-    assert not repo.bare
+    if repo.bare:
+        logging.debug('Repo is bare')
+        return
 
-    # Fetch changes from all remotes
     try:
         for remote in repo.remotes:
             remote.fetch()
-        current_branch = repo.active_branch
+
+        current_branch = repo.active_branch  # ??
+
         logging.debug(f'current git commit: {current_branch.commit.hexsha}')
-        tracking_branch = current_branch.tracking_branch()
+        tracking_branch = current_branch.tracking_branch()  # ??
 
         if tracking_branch is None:
             logging.debug("Current branch does not track a remote branch.")
-
+            return
         if current_branch.commit.hexsha == tracking_branch.commit.hexsha:
             logging.debug('No git branch updates.')
-        else:
-            logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
-            config.ui.print_warning('MedPerf client updates found. Please, reinstall client with '
-                                    '`cd your/medperf/folder && git pull && pip install --upgrade -e ./cli`')
-    except GitCommandError as e:
-        logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key?')
+            return
+
+        logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
+        config.ui.print_warning('MedPerf client updates found. Please, reinstall client with '
+                                '`cd your/medperf/folder && git pull && pip install --upgrade -e ./cli`')
+    except (GitCommandError, TypeError) as e:
+        logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key'
+                      'or repo is in detached / non-tracked state?')
         logging.debug(e)
