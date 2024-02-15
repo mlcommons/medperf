@@ -220,8 +220,8 @@ class Auth0(Auth):
             access_token,
             refresh_token,
             id_token_payload,
-            token_expires_in,
             token_issued_at,
+            token_expires_in,
         )
 
         return access_token
