@@ -418,7 +418,6 @@ def check_for_updates() -> None:
             return
 
         current_branch = repo.active_branch
-
         tracking_branch = current_branch.tracking_branch()
 
         if tracking_branch is None:
