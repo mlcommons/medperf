@@ -407,14 +407,19 @@ def check_for_updates() -> None:
         logging.debug('Repo is bare')
         return
 
+    logging.debug(f'Current git commit: {repo.head.commit.hexsha}')
+
     try:
         for remote in repo.remotes:
             remote.fetch()
 
-        current_branch = repo.active_branch  # ??
+        if repo.head.is_detached:
+            logging.debug('Repo is in detached state')
+            return
 
-        logging.debug(f'current git commit: {current_branch.commit.hexsha}')
-        tracking_branch = current_branch.tracking_branch()  # ??
+        current_branch = repo.active_branch
+
+        tracking_branch = current_branch.tracking_branch()
 
         if tracking_branch is None:
             logging.debug("Current branch does not track a remote branch.")
@@ -426,7 +431,7 @@ def check_for_updates() -> None:
         logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
         config.ui.print_warning('MedPerf client updates found. Please, reinstall client with '
                                 '`cd your/medperf/folder && git pull && pip install --upgrade -e ./cli`')
-    except (GitCommandError, TypeError) as e:
+    except GitCommandError as e:
         logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key'
                       'or repo is in detached / non-tracked state?')
         logging.debug(e)
