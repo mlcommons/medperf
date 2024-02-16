@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import os
+import signal
 import yaml
 import random
 import hashlib
@@ -397,3 +398,32 @@ def filter_latest_associations(associations, entity_key):
 
     latest_associations = list(latest_associations.values())
     return latest_associations
+
+
+class spawn_and_kill:
+    def __init__(self, cmd, timeout=None, *args, **kwargs):
+        self.cmd = cmd
+        self.timeout = timeout
+        self._args = args
+        self._kwargs = kwargs
+        self.proc: spawn
+        self.exception_occurred = False
+
+    def __enter__(self):
+        self.proc = spawn(self.cmd, timeout=self.timeout, *self._args, **self._kwargs)
+        self.pid = self.proc.pid
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            self.exception_occurred = True
+            # Forcefully kill the process group if any exception occurred, in particular,
+            # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
+            # - any other medperf exception like OOM or bug
+            # - pexpect.TIMEOUT
+            os.killpg(self.pid, signal.SIGINT)
+
+        self.proc.close()
+        self.proc.wait()
+        # Return False to propagate exceptions, if any
+        return False
