@@ -414,7 +414,6 @@ class spawn_and_kill:
         return spawn(*args, **kwargs)
 
     def killpg(self):
-        print("OS KILLING PG CALLED")
         os.killpg(self.pid, signal.SIGINT)
 
     def __enter__(self):
@@ -429,6 +428,7 @@ class spawn_and_kill:
             # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
             # - any other medperf exception like OOM or bug
             # - pexpect.TIMEOUT
+            logging.info(f'Killing ancestor processes because of exception: {exc_val=}')
             self.killpg()
 
         self.proc.close()
