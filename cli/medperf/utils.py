@@ -409,8 +409,16 @@ class spawn_and_kill:
         self.proc: spawn
         self.exception_occurred = False
 
+    @staticmethod
+    def spawn(*args, **kwargs):
+        return spawn(*args, **kwargs)
+
+    def killpg(self):
+        print("OS KILLING PG CALLED")
+        os.killpg(self.pid, signal.SIGINT)
+
     def __enter__(self):
-        self.proc = spawn(self.cmd, timeout=self.timeout, *self._args, **self._kwargs)
+        self.proc = self.spawn(self.cmd, timeout=self.timeout, *self._args, **self._kwargs)
         self.pid = self.proc.pid
         return self
 
@@ -421,7 +429,7 @@ class spawn_and_kill:
             # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
             # - any other medperf exception like OOM or bug
             # - pexpect.TIMEOUT
-            os.killpg(self.pid, signal.SIGINT)
+            self.killpg()
 
         self.proc.close()
         self.proc.wait()
