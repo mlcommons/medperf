@@ -255,7 +255,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
     """
 
     ui = config.ui
-    static_text = ui.text
     proc_out = ""
     break_ = False
     log_filter = _MLCubeOutputFilter(proc.pid)
@@ -278,7 +277,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
         else:
             proc_out += line
             ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
-            ui.text = static_text
     return proc_out
 
 

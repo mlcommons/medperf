@@ -249,7 +249,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
         logging.info(f"Running MLCube command: {cmd}")
         with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
-            proc_stdout = proc.read()
+            proc_stdout = combine_proc_sp_text(proc)
         logging.debug(proc_stdout)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while inspecting the image hash")
@@ -268,7 +268,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
         logging.info(f"Running MLCube command: {cmd}")
         with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
-            proc_out = proc.read()
+            proc_out = combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while retrieving the MLCube image")
         logging.debug(proc_out)
