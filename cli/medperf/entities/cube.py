@@ -131,6 +131,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cubes_folder = config.cubes_folder
         try:
             uids = next(os.walk(cubes_folder))[1]
+            logging.debug(f'Local cubes found: {uids}')
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
@@ -244,8 +245,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         # Retrieve image hash from MLCube
         logging.debug(f"Retrieving {self.id} image hash")
         tmp_out_yaml = generate_tmp_path()
-        cmd = f"mlcube inspect --mlcube={self.cube_path} --format=yaml"
+        cmd = f"mlcube --log-level {config.loglevel} inspect --mlcube={self.cube_path} --format=yaml"
         cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
+        logging.info(f"Running MLCube command: {cmd}")
         with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
             proc_stdout = proc.read()
         logging.debug(proc_stdout)
@@ -261,9 +263,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def _get_image_from_registry(self):
         # Retrieve image from image registry
         logging.debug(f"Retrieving {self.id} image")
-        cmd = f"mlcube configure --mlcube={self.cube_path} --platform={config.platform}"
+        cmd = f"mlcube --log-level {config.loglevel} configure --mlcube={self.cube_path} --platform={config.platform}"
         if config.platform == "singularity":
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
+        logging.info(f"Running MLCube command: {cmd}")
         with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
             proc_out = proc.read()
         if proc.exitstatus != 0:
@@ -312,8 +315,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        # TODO: re-use `loglevel=critical` or figure out a clean MLCube logging
-        cmd = "mlcube run"
+        cmd = f"mlcube --log-level {config.loglevel} run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
@@ -322,6 +324,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
+
+        container_loglevel = config.container_loglevel
 
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
@@ -333,6 +337,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
             cmd += f' -Pdocker.cpu_args="{cpu_args}"'
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+
+            if container_loglevel:
+                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
@@ -347,6 +354,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 cmd += (
                     f' -Psingularity.image="{self._converted_singularity_image_name}"'
                 )
+            # TODO: pass logging env for singularity also there
         else:
             raise InvalidArgumentError("Unsupported platform")
 
@@ -355,9 +363,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += " -Pplatform.accelerator_count=0"
 
         logging.info(f"Running MLCube command: {cmd}")
-        proc = pexpect.spawn(cmd, timeout=timeout)
-        proc_out = combine_proc_sp_text(proc)
-        proc.close()
+        with pexpect.spawn(cmd, timeout=timeout) as proc:
+            proc_out = combine_proc_sp_text(proc)
+
         if output_logs is None:
             logging.debug(proc_out)
         else:
