@@ -1,6 +1,5 @@
 import logging
 import os
-import signal
 import pandas as pd
 from medperf.entities.dataset import Dataset
 import medperf.config as config
@@ -10,7 +9,7 @@ from medperf.exceptions import CommunicationError, ExecutionError, InvalidArgume
 import yaml
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from threading import Timer
+from threading import Timer, Lock
 
 
 class ReportHandler(FileSystemEventHandler):
@@ -25,7 +24,17 @@ class ReportHandler(FileSystemEventHandler):
         preparation = self.preparation
         if event.src_path == preparation.report_path:
             report_metadata = {"execution_status": "running"}
-            if self.timer is None or self.timer.finished.is_set():
+            if self.timer is None or not self.timer.is_alive():
+                # NOTE: there is a very slight chance to miss a latest update
+                #       if the calls of send_report in the main thread were
+                #       interrupted. is_alive may return True while the send_report
+                #       of the previous thread is being executed, which means the
+                #       previous report contents are already being used.
+                #       However, since we have the main thread's calls in case of
+                #       failure, finishing, and keyboardinterrupt, we can assume
+                #       the latest report contents will be sent anyway, unless
+                #       one of those three finalizing actions were interrupted.
+                #       (Note that this slight chance is not blocking/buggy).
                 wait = config.wait_before_sending_reports
                 self.timer = Timer(
                     wait, preparation.send_report, args=(report_metadata,)
@@ -44,12 +53,6 @@ class ReportSender:
         self.observer = Observer()
         self.report_handler = ReportHandler(self.preparation)
         self.observer.schedule(self.report_handler, self.preparation.dataset.path)
-
-        def sigint_handler(sig, frame):
-            self.stop("interrupted")
-            signal.default_int_handler(sig, frame)
-
-        signal.signal(signal.SIGINT, sigint_handler)
         self.observer.start()
 
     def stop(self, execution_status):
@@ -61,12 +64,9 @@ class ReportSender:
                 self.report_handler.timer.cancel()
                 self.report_handler.timer.join()
 
-        # Send a last update to indicate preparation process finished
-        # If the user didn't approve before, here we will ask again
+        # Send an update to indicate preparation process finished/stopped
         report_metadata = {"execution_status": execution_status}
         self.preparation.send_report(report_metadata)
-
-        signal.signal(signal.SIGINT, signal.default_int_handler)
 
 
 class DataPreparation:
@@ -110,6 +110,7 @@ class DataPreparation:
         self.dataset = None
         self.allow_sending_reports = approve_sending_reports
         self.latest_report_sent_at = None
+        self._lock = Lock()
 
     def get_dataset(self):
         self.dataset = Dataset.get(self.dataset_id)
@@ -173,6 +174,11 @@ class DataPreparation:
             if self.allow_sending_reports:
                 report_sender.stop("failed")
             raise e
+        except KeyboardInterrupt:
+            # Inform the server that the process is interrupted
+            if self.allow_sending_reports:
+                report_sender.stop("interrupted")
+            raise
 
         self.ui.print("> Cube execution complete")
         if self.allow_sending_reports:
@@ -288,6 +294,13 @@ class DataPreparation:
         self.allow_sending_reports = approval_prompt(msg)
 
     def send_report(self, report_metadata):
+        # Since we don't actually need concurrency, let's have
+        # this logic under a lock (and prevent any possibly unforseen
+        # problem, such as async dataset.write)
+        with self._lock:
+            return self._send_report(report_metadata)
+
+    def _send_report(self, report_metadata):
         report_status_dict = self.__generate_report_dict()
         report = {"progress": report_status_dict, **report_metadata}
         if report == self.dataset.report:
