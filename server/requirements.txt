@@ -1,4 +1,4 @@
-Django==3.2.20
+Django==3.2.24
 djangorestframework==3.14.0
 drf-spectacular==0.25.1
 drf-spectacular-sidecar==2022.12.1
