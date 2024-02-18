@@ -266,17 +266,22 @@ def combine_proc_sp_text(proc: spawn) -> str:
             line = proc.readline()
         except TIMEOUT:
             logging.error("Process timed out")
+            logging.debug(proc_out)
             raise ExecutionError("Process timed out")
         line = line.decode("utf-8", "ignore")
 
         if not line:
             continue
 
-        if log_filter.check_line(line):
-            logging.debug(line)
-        else:
-            proc_out += line
+        # Always log each line just in case the final proc_out
+        # wasn't logged for some reason
+        logging.debug(line)
+        proc_out += line
+        if not log_filter.check_line(line):
             ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+
+    logging.debug("MLCube process finished")
+    logging.debug(proc_out)
     return proc_out
 
 
