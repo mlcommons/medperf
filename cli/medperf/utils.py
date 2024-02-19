@@ -428,8 +428,7 @@ def check_for_updates() -> None:
             return
 
         logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
-        config.ui.print_warning('MedPerf client updates found. Please, reinstall client with '
-                                '`cd your/medperf/folder && git pull && pip install --upgrade -e ./cli`')
+        config.ui.print_warning('MedPerf client updates found. Please, update your MedPerf installation.')
     except GitCommandError as e:
         logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key'
                       'or repo is in detached / non-tracked state?')
