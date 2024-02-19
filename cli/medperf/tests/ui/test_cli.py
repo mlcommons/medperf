@@ -21,7 +21,18 @@ class TestDisplayingMessages:
         cli.print(msg)
 
         # Assert
-        spy.assert_called_once_with(msg)
+        spy.assert_called_once_with(msg, nl=True)
+
+    @pytest.mark.parametrize("nl", [True, False])
+    def test_print_typer_new_line(self, mocker, cli, msg, nl):
+        # Arrange
+        spy = mocker.patch("typer.echo")
+
+        # Act
+        cli.print(msg, nl=nl)
+
+        # Assert
+        spy.assert_called_once_with(msg, nl=nl)
 
     def test_print_displays_message_through_yaspin_when_interactive(
         self, mocker, cli, msg
