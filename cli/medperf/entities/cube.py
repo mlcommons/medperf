@@ -248,7 +248,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd = f"mlcube --log-level {config.loglevel} inspect --mlcube={self.cube_path} --format=yaml"
         cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
         logging.info(f"Running MLCube command: {cmd}")
-        with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout) as proc:
+        cmd_env = {**os.environ}
+        if config.platform == "docker":
+            cmd_env["DOCKER_CLI_HINTS"] = "false"
+        with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout, env=cmd_env) as proc:
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while inspecting the image hash")
@@ -266,7 +269,11 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         if config.platform == "singularity":
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
         logging.info(f"Running MLCube command: {cmd}")
-        with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout) as proc:
+
+        cmd_env = {**os.environ}
+        if config.platform == "docker":
+            cmd_env["DOCKER_CLI_HINTS"] = "false"
+        with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout, env=cmd_env) as proc:
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while retrieving the MLCube image")
@@ -325,6 +332,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
         container_loglevel = config.container_loglevel
 
+        cmd_env = {**os.environ}
+
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
         if config.platform == "docker":
@@ -338,6 +347,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
             if container_loglevel:
                 cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
+
+            cmd_env['DOCKER_CLI_HINTS'] = 'false'
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
@@ -361,7 +372,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += " -Pplatform.accelerator_count=0"
 
         logging.info(f"Running MLCube command: {cmd}")
-        with pexpect.spawn(cmd, timeout=timeout) as proc:
+        with pexpect.spawn(cmd, timeout=timeout, env=cmd_env) as proc:
             proc_out = combine_proc_sp_text(proc)
 
         if output_logs is not None:
