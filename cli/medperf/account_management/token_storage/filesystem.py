@@ -1,5 +1,6 @@
 import os
 import base64
+import logging
 from medperf.utils import remove_path
 from medperf import config
 
@@ -42,6 +43,7 @@ class FilesystemTokenStore:
 
     def read_tokens(self, account_id):
         access_token_file, refresh_token_file = self.__get_paths(account_id)
+        logging.debug("Reading tokens to disk.")
         with open(access_token_file) as f:
             access_token = f.read()
         with open(refresh_token_file) as f:
