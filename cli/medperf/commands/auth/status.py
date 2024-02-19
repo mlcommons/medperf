@@ -1,17 +1,14 @@
 import medperf.config as config
 from medperf.account_management import read_user_account
-from medperf.exceptions import MedperfException
 
 
 class Status:
     @staticmethod
     def run():
         """Shows the currently logged in user."""
-        try:
-            account_info = read_user_account()
-        except MedperfException as e:
-            # TODO: create a specific exception about unauthenticated client
-            config.ui.print(str(e))
+        account_info = read_user_account()
+        if account_info is None:
+            config.ui.print("You are not logged in")
             return
 
         email = account_info["email"]

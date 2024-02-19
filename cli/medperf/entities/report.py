@@ -14,7 +14,7 @@ class TestReport(Entity, MedperfBaseSchema):
     """
     Class representing a compatibility test report entry
 
-    A test report is comprised of the components of a test execution:
+    A test report consists of the components of a test execution:
     - data used, which can be:
         - a demo dataset url and its hash, or
         - a raw data path and its labels path, or

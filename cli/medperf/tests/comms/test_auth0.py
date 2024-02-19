@@ -87,5 +87,5 @@ def test_refresh_token_sets_new_tokens(mocker):
 
     # Assert
     spy.assert_called_once_with(
-        access_token, refresh_token, id_token_payload, expires_in, ANY
+        access_token, refresh_token, id_token_payload, ANY, expires_in
     )
