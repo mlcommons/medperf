@@ -67,7 +67,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/32294ec0babbcb7773e40075e605ed6f18f6b125"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/ab813a8142e1d9f2f215cb10cc59842dfc9b701c"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -83,13 +83,17 @@ PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
 MODEL_WITH_SINGULARITY="$ASSETS_URL/model-cpu/mlcube/mlcube_docker+singularity.yaml"
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
+MODEL_LOG_MLCUBE="$ASSETS_URL/model-debug-logging/mlcube/mlcube.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
-MODEL_SING_IMAGE="$ASSETS_URL/model-cpu/mlcube/workspace/.image/mock-model-cpu.simg"
+MODEL_SING_IMAGE="https://storage.googleapis.com/medperf-storage/mock-model-cpu.simg"
 
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
 MODEL2_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters2.yaml"
 MODEL3_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters3.yaml"
 MODEL4_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters4.yaml"
+
+MODEL_LOG_NONE_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_none.yaml"
+MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_debug.yaml"
 
 # metrics cubes
 METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"

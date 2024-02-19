@@ -92,33 +92,50 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Existing cubes":
+echo "====================================="
+medperf mlcube ls
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS --operational
+medperf mlcube submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
-PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf mlcube ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
-MODEL1_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL1_UID=$(medperf mlcube ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
-MODEL2_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL2_UID=$(medperf mlcube ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # MLCube with singularity section
 medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE --operational
 checkFailed "Model3 submission failed"
-MODEL3_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL3_UID=$(medperf mlcube ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
-FAILING_MODEL_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+FAILING_MODEL_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
+medperf mlcube submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS
+checkFailed "Model with logging None submission failed"
+MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-log-none | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
+medperf mlcube submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS
+checkFailed "Model with logging debug submission failed"
+MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-log-debug | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
+medperf mlcube submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
 checkFailed "Metrics submission failed"
-METRICS_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+METRICS_UID=$(medperf mlcube ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -139,7 +156,7 @@ echo "Submit benchmark"
 echo "====================================="
 medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
-BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # Approve benchmark
 ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
@@ -269,6 +286,36 @@ checkFailed "Failing model association failed"
 echo "\n"
 
 ##########################################################
+echo "======================================================"
+echo "Running logging-model-without-env association"
+echo "======================================================"
+medperf mlcube associate -m $MODEL_LOG_NONE_UID -b $BMK_UID -y
+checkFailed "Logging-model-without-env association association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "======================================================"
+echo "Running logging-model-with-debug association"
+echo "======================================================"
+medperf --container-loglevel debug mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
+checkFailed "Logging-model-with-debug association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "======================================================"
+echo "Submitted associations:"
+echo "======================================================"
+medperf association ls
+checkFailed "Listing associations failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
 echo "====================================="
 echo "Activate modelowner profile"
 echo "====================================="
@@ -288,6 +335,10 @@ medperf association approve -b $BMK_UID -m $MODEL3_UID
 checkFailed "Model3 association approval failed"
 medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
 checkFailed "failing model association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL_LOG_NONE_UID
+checkFailed "Logging-model-without-env association approval failed"
+medperf association approve -b $BMK_UID -m $MODEL_LOG_DEBUG_UID
+checkFailed "Logging-model-with-debug association approval failed"
 ##########################################################
 
 echo "\n"
@@ -359,6 +410,28 @@ echo "====================================================================="
 rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
 medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
 checkFailed "Failing mlcube run with ignore errors failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running logging model without logging env"
+echo "====================================="
+rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-log-none/$DSET_A_GENUID
+medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_NONE_UID -y
+checkFailed "run logging model without logging env failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running logging model with debug logging env"
+echo "====================================="
+rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-log-debug/$DSET_A_GENUID
+medperf --container-loglevel debug run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID -y
+checkFailed "run logging model with debug logging env failed"
 ##########################################################
 
 echo "\n"

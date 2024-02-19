@@ -121,6 +121,11 @@ def configurable(func: Callable) -> Callable:
             "--evaluate_timeout",
             help="Maximum time in seconds before interrupting evaluate task",
         ),
+        container_loglevel: str = typer.Option(
+            config.container_loglevel,
+            "--container-loglevel",
+            help="Logging level for containers to be run [debug | info | warning | error]",
+        ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
@@ -192,6 +197,11 @@ def add_inline_parameters(func: Callable) -> Callable:
             "--evaluate_timeout",
             help="Maximum time in seconds before interrupting evaluate task",
         ),
+        container_loglevel: str = typer.Option(
+            config.container_loglevel,
+            "--container-loglevel",
+            help="Logging level for containers to be run [debug | info | warning | error]",
+        ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
@@ -213,7 +223,7 @@ def add_inline_parameters(func: Callable) -> Callable:
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
-            help="Wether to clean up temporary medperf storage after execution",
+            help="Whether to clean up temporary medperf storage after execution",
         ),
         **kwargs,
     ):
