@@ -11,8 +11,8 @@ class StdIn(UI):
     hidden prompts and interactive prints will not work as expected.
     """
 
-    def print(self, msg: str = ""):
-        return print(msg)
+    def print(self, msg: str = "", nl: bool = True):
+        return print(msg, end='\n' if nl else '')
 
     def print_error(self, msg: str):
         return self.print(msg)
@@ -40,3 +40,6 @@ class StdIn(UI):
 
     def hidden_prompt(self, msg: str) -> str:
         return self.prompt(msg)
+
+    def print_highlight(self, msg: str = ""):
+        self.print(msg)
