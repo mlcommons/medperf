@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from medperf.commands.execution import Execution
 from medperf.entities.dataset import Dataset
@@ -26,7 +25,7 @@ class CompatibilityTestExecution:
         data_uid: str = None,
         no_cache: bool = False,
         offline: bool = False,
-    ) -> List:
+    ) -> (str, dict):
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
         - the benchmark's demo dataset is used as the raw data
@@ -92,6 +91,9 @@ class CompatibilityTestExecution:
         if results is None:
             results = test_exec.execute()
             test_exec.write(results)
+        else:
+            logging.info('Existing results are found. Test would not be re-executed.')
+            logging.debug(f'Existing results: {results}')
         return test_exec.data_uid, results
 
     def __init__(
