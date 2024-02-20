@@ -1,4 +1,4 @@
-![Screen Shot 2022-10-20 at 11 16 02 AM](https://user-images.githubusercontent.com/25375373/196989090-5ad850ea-9109-4e4d-b884-9e57a6abdde6.png)
+![image](https://user-images.githubusercontent.com/25375373/163279746-14d7902b-98ed-4fcf-a4e3-f27d4bcbd339.png)
 
 # MedPerf
 
@@ -39,7 +39,6 @@ MedPerf was also further utilized to support academic medical research on both p
 
 - University of Pennsylvania, Philadelphia, USA
 - Perelman School of Medicine, Philadelphia, USA
-- University of San Francisco, San Francisco, CA, USA
 
 **Task**
 
