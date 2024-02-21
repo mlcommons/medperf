@@ -1,7 +1,5 @@
 # import setup
-SETUP_FILE="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/tests_setup.sh"
-echo "importing setup at $SETUP_FILE"
-. $SETUP_FILE
+. "$(dirname $(realpath "$0"))/tests_setup.sh"
 
 ##########################################################
 ################### Start Testing ########################
