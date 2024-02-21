@@ -7,7 +7,7 @@ from medperf.exceptions import MedperfException
 def read_user_account():
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
+        return
 
     account_info = config_p.active_profile[config.credentials_keyword]
     return account_info
@@ -35,6 +35,8 @@ def set_credentials(
 
 def read_credentials():
     account_info = read_user_account()
+    if account_info is None:
+        raise MedperfException("You are not logged in")
     email = account_info["email"]
     access_token, refresh_token = TokenStore().read_tokens(email)
 
