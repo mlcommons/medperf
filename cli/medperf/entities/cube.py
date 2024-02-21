@@ -250,8 +250,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         logging.info(f"Running MLCube command: {cmd}")
         with spawn_and_kill(cmd, timeout=config.mlcube_inspect_timeout) as proc_wrapper:
             proc = proc_wrapper.proc
-            proc_stdout = proc.read()
-        logging.debug(proc_stdout)
+            combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while inspecting the image hash")
         with open(tmp_out_yaml) as f:
@@ -270,10 +269,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         logging.info(f"Running MLCube command: {cmd}")
         with spawn_and_kill(cmd, timeout=config.mlcube_configure_timeout) as proc_wrapper:
             proc = proc_wrapper.proc
-            proc_out = proc.read()
+            combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while retrieving the MLCube image")
-        logging.debug(proc_out)
 
     def download_config_files(self):
         try:
@@ -369,9 +367,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             proc = proc_wrapper.proc
             proc_out = combine_proc_sp_text(proc)
 
-        if output_logs is None:
-            logging.debug(proc_out)
-        else:
+        if output_logs is not None:
             with open(output_logs, "w") as f:
                 f.write(proc_out)
         if proc.exitstatus != 0:
