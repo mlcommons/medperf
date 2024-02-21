@@ -1,5 +1,7 @@
 # import setup
-. "$(dirname $(realpath "$0"))/tests_setup.sh"
+SETUP_FILE="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/tests_setup.sh"
+echo "importing setup at $SETUP_FILE"
+. $SETUP_FILE
 
 ##########################################################
 ################### Start Testing ########################
@@ -104,7 +106,7 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS
+medperf mlcube submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS --operational
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
@@ -125,15 +127,15 @@ medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARA
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS
+medperf mlcube submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS --operational
 checkFailed "Model with logging None submission failed"
 MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-log-none | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS
+medperf mlcube submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS --operational
 checkFailed "Model with logging debug submission failed"
 MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-log-debug | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS
+medperf mlcube submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf mlcube ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
@@ -159,7 +161,10 @@ checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # Approve benchmark
+echo $ADMIN
+echo $MOCK_TOKENS_FILE
 ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
+echo $ADMIN_TOKEN
 checkFailed "Retrieving admin token failed"
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
 checkFailed "Benchmark approval failed"
