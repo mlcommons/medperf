@@ -39,8 +39,9 @@ def setup(request, mocker, comms, fs):
 
     # Mock additional third party elements
     mpexpect = MockPexpect(0)
-    mocker.patch(PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn)
+    mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
     mocker.patch(PATCH_CUBE.format("combine_proc_sp_text"), return_value="")
+    mocker.patch(PATCH_CUBE.format("spawn_and_kill.killpg"), return_value="")
 
     return request.param
 
@@ -104,7 +105,7 @@ class TestGetFiles:
         fs.create_file(
             "tmp_path", contents=yaml.dump({"hash": NO_IMG_CUBE["image_hash"]})
         )
-        spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+        spy = mocker.spy(medperf.entities.cube.spawn_and_kill, "spawn")
         expected_cmds = [
             f"mlcube --log-level debug configure --mlcube={self.manifest_path} --platform={config.platform}",
             f"mlcube --log-level debug inspect --mlcube={self.manifest_path}"
@@ -132,7 +133,7 @@ class TestGetFiles:
             "tmp_path", contents=yaml.dump({"hash": NO_IMG_CUBE["image_hash"]})
         )
         mpexpect = MockPexpect(1, "expected_hash")
-        mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
 
         # Act & Assert
         cube = Cube.get(self.id)
@@ -157,7 +158,7 @@ class TestGetFiles:
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_download_run_files_with_image_isnt_configured(self, mocker, setup):
         # Arrange
-        spy = mocker.spy(medperf.entities.cube.pexpect, "spawn")
+        spy = mocker.spy(medperf.entities.cube.spawn_and_kill, "spawn")
 
         # Act
         cube = Cube.get(self.id)
@@ -185,7 +186,7 @@ class TestRun:
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
         spy = mocker.patch(
-            PATCH_CUBE.format("pexpect.spawn"), side_effect=mpexpect.spawn
+            PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
         )
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
@@ -207,7 +208,7 @@ class TestRun:
     def test_cube_runs_command_with_rw_access(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
-        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        spy = mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
         mocker.patch(
             PATCH_CUBE.format("Cube.get_config"),
             side_effect=["", ""],
@@ -231,7 +232,7 @@ class TestRun:
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
-        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        spy = mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
             f"mlcube --log-level debug run --mlcube={self.manifest_path} --task={task} "
@@ -252,7 +253,7 @@ class TestRun:
     def test_cube_runs_command_and_preserves_runtime_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
-        spy = mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        spy = mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
         mocker.patch(
             PATCH_CUBE.format("Cube.get_config"),
             side_effect=["cpuarg cpuval", "gpuarg gpuval"],
@@ -276,7 +277,7 @@ class TestRun:
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(1, "expected_hash")
-        mocker.patch("pexpect.spawn", side_effect=mpexpect.spawn)
+        mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
 
         # Act & Assert

@@ -1,6 +1,5 @@
 import os
 import yaml
-import pexpect
 import logging
 from typing import List, Dict, Optional, Union
 from pydantic import Field
@@ -12,6 +11,7 @@ from medperf.utils import (
     remove_path,
     verify_hash,
     generate_tmp_path,
+    spawn_and_kill,
 )
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
@@ -251,7 +251,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd_env = {**os.environ}
         if config.platform == "docker":
             cmd_env["DOCKER_CLI_HINTS"] = "false"
-        with pexpect.spawn(cmd, timeout=config.mlcube_inspect_timeout, env=cmd_env) as proc:
+        with spawn_and_kill(cmd, timeout=config.mlcube_inspect_timeout, env=cmd_env) as proc_wrapper:
+            proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while inspecting the image hash")
@@ -273,7 +274,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd_env = {**os.environ}
         if config.platform == "docker":
             cmd_env["DOCKER_CLI_HINTS"] = "false"
-        with pexpect.spawn(cmd, timeout=config.mlcube_configure_timeout, env=cmd_env) as proc:
+        with spawn_and_kill(cmd, timeout=config.mlcube_configure_timeout, env=cmd_env) as proc_wrapper:
+            proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while retrieving the MLCube image")
@@ -372,7 +374,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cmd += " -Pplatform.accelerator_count=0"
 
         logging.info(f"Running MLCube command: {cmd}")
-        with pexpect.spawn(cmd, timeout=timeout, env=cmd_env) as proc:
+        with spawn_and_kill(cmd, timeout=timeout, env=cmd_env) as proc_wrapper:
+            proc = proc_wrapper.proc
             proc_out = combine_proc_sp_text(proc)
 
         if output_logs is not None:
