@@ -16,13 +16,12 @@ import shutil
 from pexpect import spawn
 from datetime import datetime
 from pydantic.datetime_parse import parse_datetime
-from typing import List
+from typing import List, Generator
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT, EOF
 from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
-from medperf.ui.cli import CLI
 from medperf.ui.interface import UI
 
 
@@ -247,6 +246,21 @@ class _MLCubeOutputFilter:
         return False
 
 
+def _read_new_line_from_proc(proc: spawn) -> Generator[str]:
+    buffer: list[bytes] = []
+    new_lines = {'\r', '\n'}
+    try:
+        while ch := proc.read(1):
+
+            if ch.decode('utf-8', 'ignore') in new_lines:
+                res = b''.join(buffer).decode('utf-8')
+                buffer = []
+                yield res
+            buffer.append(ch)
+    except EOF:
+        yield b''.join(buffer).decode('utf-8')
+
+
 def combine_proc_sp_text(proc: spawn) -> str:
     """Combines the output of a process and the spinner.
     Joins any string captured from the process with the
@@ -259,20 +273,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
     Returns:
         str: all non-carriage-return-ending string captured from proc
     """
-
-    def _read_new_line_from_proc(proc):
-        buffer: list[bytes] = []
-        new_lines = {'\r', '\n'}
-        try:
-            while ch := proc.read(1):
-
-                if ch.decode('utf-8', 'ignore') in new_lines:
-                    res = b''.join(buffer).decode('utf-8')
-                    buffer = []
-                    yield res
-                buffer.append(ch)
-        except EOF:
-            yield b''.join(buffer).decode('utf-8')
 
     ui: UI = config.ui
     ui_was_interactive = ui.is_interactive
@@ -293,7 +293,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
                 ui.print(f"{Fore.WHITE}{Style.DIM}{line}{Style.RESET_ALL}", nl=False)
 
         logging.debug("MLCube process finished")
-        return proc_out
     except TIMEOUT:
         logging.error("Process timed out")
         raise ExecutionError("Process timed out")
@@ -301,6 +300,8 @@ def combine_proc_sp_text(proc: spawn) -> str:
         logging.debug(proc_out)
         if ui_was_interactive:
             ui.start_interactive()
+
+    return proc_out
 
 
 def get_folders_hash(paths: List[str]) -> str:
