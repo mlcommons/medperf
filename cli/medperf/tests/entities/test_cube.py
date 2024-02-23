@@ -45,6 +45,7 @@ def setup(request, mocker, comms, fs):
 
     return request.param
 
+
 def remove_env_from_mock_calls(spy) -> None:
     """
     During cube downloading, we pass `env` variable that contains all ENVs from medperf process.
@@ -54,6 +55,7 @@ def remove_env_from_mock_calls(spy) -> None:
     for executed_call in spy.mock_calls:
         if 'env' in executed_call.kwargs:
             executed_call.kwargs.pop('env')
+
 
 class TestGetFiles:
     @pytest.fixture(autouse=True)
