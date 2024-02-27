@@ -13,7 +13,7 @@ from auth_provider_token import auth_provider_token
 from pathlib import Path
 import json
 
-REPO_BASE_DIR = Path(__file__).resolve().parent.parent
+CONFIG_DIR = Path("~/.medperf_config/.local_server/")
 
 
 def seed(args):
@@ -46,8 +46,8 @@ def seed(args):
 
 
 if __name__ == "__main__":
-    default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
-    default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
+    default_cert_file = str(CONFIG_DIR / "cert.crt")
+    default_tokens_file = str(CONFIG_DIR / "tokens.json")
 
     parser = argparse.ArgumentParser(description="Seed the db with demo entries")
     parser.add_argument(
