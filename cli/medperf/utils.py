@@ -19,7 +19,6 @@ from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
-from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
 
@@ -440,41 +439,6 @@ def filter_latest_associations(associations, entity_key):
 
     latest_associations = list(latest_associations.values())
     return latest_associations
-
-
-def check_for_updates() -> None:
-    """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
-    repo = Repo(config.BASE_DIR)
-    if repo.bare:
-        logging.debug('Repo is bare')
-        return
-
-    logging.debug(f'Current git commit: {repo.head.commit.hexsha}')
-
-    try:
-        for remote in repo.remotes:
-            remote.fetch()
-
-        if repo.head.is_detached:
-            logging.debug('Repo is in detached state')
-            return
-
-        current_branch = repo.active_branch
-        tracking_branch = current_branch.tracking_branch()
-
-        if tracking_branch is None:
-            logging.debug("Current branch does not track a remote branch.")
-            return
-        if current_branch.commit.hexsha == tracking_branch.commit.hexsha:
-            logging.debug('No git branch updates.')
-            return
-
-        logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
-        config.ui.print_warning('MedPerf client updates found. Please, update your MedPerf installation.')
-    except GitCommandError as e:
-        logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key'
-                      'or repo is in detached / non-tracked state?')
-        logging.debug(e)
 
 
 class spawn_and_kill:
