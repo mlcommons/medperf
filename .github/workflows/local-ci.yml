@@ -55,6 +55,7 @@ jobs:
       working-directory: ./server
       run: |
         ls | grep cert
+        ls ~/.medperf_config/.local_server/
         python seed.py --cert cert.crt
 
     - name: Run chestxray demo
