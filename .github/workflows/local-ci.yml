@@ -53,7 +53,9 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: python seed.py --cert cert.crt
+      run: |
+        ls | grep cert
+        python seed.py --cert cert.crt
 
     - name: Run chestxray demo
       working-directory: .

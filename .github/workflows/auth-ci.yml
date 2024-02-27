@@ -52,7 +52,9 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: python seed.py --cert cert.crt --auth online
+      run: |
+        ls | grep cert
+        python seed.py --cert cert.crt --auth online
 
     - name: Run client integration tests
       working-directory: .
