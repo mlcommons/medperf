@@ -3,22 +3,21 @@ site_url: https://medperf.com/
 repo_url: https://github.com/mlcommons/medperf
 repo_name: mlcommons/medperf
 nav:
-- What's Medperf?: what_is_medperf.md
+- What is Medperf?: what_is_medperf.md
 - Benchmark Roles: roles.md
 - Benchmark Workflow: workflow.md
-- MedPerf Components: medperf_components.md
-- GETTING STARTED:
-  - Roles Capabilities: getting_started/overview.md
-  - First Steps:
-    - Create an Account: getting_started/signup.md
-    - Installation: getting_started/installation.md
-    - Setup: getting_started/setup.md
-  - Tutorials:
-    - Introduction: getting_started/tutorials_overview.md
-    - Bechmark Committee: getting_started/benchmark_owner_demo.md
-    - Model Owners: getting_started/model_owner_demo.md
-    - Data Owners: getting_started/data_owner_demo.md
+- Components: medperf_components.md
 
+- GETTING STARTED:
+  # - Roles: getting_started/overview.md
+  - Create an Account: getting_started/signup.md
+  - Installation: getting_started/installation.md
+  - Setup: getting_started/setup.md
+- TUTORIAL:
+  - Introduction: getting_started/tutorials_overview.md
+  - Bechmark Committee: getting_started/benchmark_owner_demo.md
+  - Model Owners: getting_started/model_owner_demo.md
+  - Data Owners: getting_started/data_owner_demo.md
 - ADVANCED CONCEPTS:
   - MedPerf MLCubes: 
     - Introduction: mlcubes/mlcubes.md
@@ -27,14 +26,14 @@ nav:
     - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
     - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
   - Authentication: concepts/auth.md
-#  - Client Configuration: concepts/profiles.md
+  #  - Client Configuration: concepts/profiles.md
   - MLCube Components: concepts/mlcube_files.md
   - Hosting Files: concepts/hosting_files.md
-#  - Benchmark Associations: concepts/associations.md
-#  - Model Priority: concepts/priorities.md
-#  - Running Specific Models: concepts/single_run.md
-#- CLI Reference: cli_reference.md
-# - Code Reference: reference/
+  #  - Benchmark Associations: concepts/associations.md
+  #  - Model Priority: concepts/priorities.md
+  #  - Running Specific Models: concepts/single_run.md
+  #- CLI Reference: cli_reference.md
+  # - Code Reference: reference/
 theme:
   custom_dir: docs/overrides
   features:

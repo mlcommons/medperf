@@ -4,7 +4,7 @@ td, th {
    border: none!important;
 }
 </style>
-MedPerf is an open-source framework for benchmarking medical ML models prioritizing patient privacy to mitigate legal and regulatory risks. It uses *Federated Evaluation* in which medical ML models are securely distributed to multiple global facilities for evaluation. The goal of *Federated Evaluation* is to make it simple and reliable to share ML models with many data providers, evaluate those ML models against their data in controlled settings, then aggregate and analyze the findings.
+MedPerf is an open-source framework for benchmarking medical ML models. It uses *Federated Evaluation* a method in which medical ML models are securely distributed to multiple global facilities for evaluation prioritizing patient privacy to mitigate legal and regulatory risks. The goal of *Federated Evaluation* is to make it simple and reliable to share ML models with many data providers, evaluate those ML models against their data in controlled settings, then aggregate and analyze the findings. 
 
 The MedPerf approach empowers healthcare stakeholders through neutral governance to assess and verify the performance of ML models in an efficient and human-supervised process without sharing any patient data across facilities during the process.
 
@@ -17,9 +17,9 @@ The MedPerf approach empowers healthcare stakeholders through neutral governance
 
 ## Why MedPerf?
 
-MedPerf aims to identify bias and generalizability issues of medical ML models by evaluating them on diverse medical data across the world. On one hand this process can allow ML developers to quickly identify performance and reliability problems with their models and on the other hand healthcare stakeholders can validate such models for clinical efficacy.
+MedPerf aims to identify bias and generalizability issues of medical ML models by evaluating them on diverse medical data across the world. This process allows developers of medical ML to efficiently identify performance and reliability issues on their models while healthcare stakeholders (e.g., hospitals, practices, etc.) can validate such models against clinical efficacy.
 
-Importantly, MedPerf supports technology for **neutral governance** in order to enable **full trust** and **transparency** among participating parties (e.g., ML vendor, data provider, regulatory authority)
+Importantly, MedPerf supports technology for **neutral governance** in order to enable **full trust** and **transparency** among participating parties (e.g., AI vendor, data provider, regulatory body, etc.). This is all encapsulated in the benchmark committee which is the overseeing body on a benchmark.
 
 | ![benchmark_committee.gif](images/benchmark_committee.gif) | 
 |:--:| 
@@ -33,7 +33,7 @@ Anyone who joins our platform can get several benefits, regardless of the role t
 |:--:| 
 | *Benefits to healthacare stakeholders using MedPerf* |
 
-
+[Our paper](https://www.nature.com/articles/s42256-023-00652-2){target="_blank"} describes the design philosophy in detail.
 
 <!-- ## What is a benchmark in the MedPerf perspective?
 
