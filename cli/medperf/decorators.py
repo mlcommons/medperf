@@ -117,6 +117,11 @@ def configurable(func: Callable) -> Callable:
             "--evaluate_timeout",
             help="Maximum time in seconds before interrupting evaluate task",
         ),
+        container_loglevel: str = typer.Option(
+            config.container_loglevel,
+            "--container-loglevel",
+            help="Logging level for containers to be run [debug | info | warning | error]",
+        ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
@@ -188,6 +193,11 @@ def add_inline_parameters(func: Callable) -> Callable:
             "--evaluate_timeout",
             help="Maximum time in seconds before interrupting evaluate task",
         ),
+        container_loglevel: str = typer.Option(
+            config.container_loglevel,
+            "--container-loglevel",
+            help="Logging level for containers to be run [debug | info | warning | error]",
+        ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
@@ -198,14 +208,18 @@ def add_inline_parameters(func: Callable) -> Callable:
             "--gpus",
             help="""
             What GPUs to expose to MLCube.
-            Accepted Values are comma separated GPU IDs (e.g "1,2"), or \"all\".
-            MLCubes that aren't configured to use GPUs won't be affected by this.
-            Defaults to all available GPUs""",
+            Accepted Values are:\n
+            - "" or 0: to expose no GPUs (e.g.: --gpus="")\n
+            - "all": to expose all GPUs. (e.g.: --gpus=all)\n
+            - an integer: to expose a certain number of GPUs. ONLY AVAILABLE FOR DOCKER
+            (e.g., --gpus=2 to expose 2 GPUs)\n
+            - Form "device=<id1>,<id2>": to expose specific GPUs.
+            (e.g., --gpus="device=0,2")\n""",
         ),
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
-            help="Wether to clean up temporary medperf storage after execution",
+            help="Whether to clean up temporary medperf storage after execution",
         ),
         **kwargs,
     ):
