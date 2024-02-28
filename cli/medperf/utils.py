@@ -21,6 +21,9 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
+from medperf.cryptography.participant import generate_csr
+from medperf.cryptography.io import get_csr_hash, write_key
+from medperf.cryptography.utils import cert_to_str
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
 
 
@@ -512,3 +515,48 @@ class spawn_and_kill:
         self.proc.wait()
         # Return False to propagate exceptions, if any
         return False
+def get_dataset_common_name(email, dataset_id, exp_id):
+    return f"{email}_d{dataset_id}_e{exp_id}".lower()
+
+
+def generate_data_csr(email, data_uid, training_exp_id):
+    common_name = get_dataset_common_name(email, data_uid, training_exp_id)
+    private_key, csr = generate_csr(common_name, server=False)
+
+    # store private key
+    target_folder = os.path.join(
+        config.training_exps_storage,
+        str(training_exp_id),
+        config.data_cert_folder,
+        str(data_uid),
+    )
+    target_folder = storage_path(target_folder)
+    os.makedirs(target_folder, exist_ok=True)
+    target_path = os.path.join(target_folder, "key.key")
+    write_key(private_key, target_path)
+
+    csr_hash = get_csr_hash(csr)
+    csr_str = cert_to_str(csr)
+    return csr_str, csr_hash
+
+
+def generate_agg_csr(training_exp_id, agg_address, agg_id):
+    common_name = f"{agg_address}".lower()
+    private_key, csr = generate_csr(common_name, server=True)
+
+    # store private key
+    target_folder = os.path.join(
+        config.training_exps_storage,
+        str(training_exp_id),
+        config.agg_cert_folder,
+        str(agg_id),
+    )
+    target_folder = storage_path(target_folder)
+    os.makedirs(target_folder, exist_ok=True)
+    target_path = os.path.join(target_folder, "key.key")
+    write_key(private_key, target_path)
+
+    csr_hash = get_csr_hash(csr)
+    csr_str = cert_to_str(csr)
+
+    return csr_str, csr_hash

@@ -23,7 +23,15 @@ def token_payload(user):
     }
 
 
-users = ["testadmin", "testbo", "testmo", "testdo"]
+users = [
+    "testadmin",
+    "benchmarkowner",
+    "modelowner",
+    "aggowner",
+    "traincol1",
+    "traincol2",
+    "testcol",
+]
 tokens = {}
 
 # Use headers when verifying tokens using json web keys
@@ -34,4 +42,4 @@ for user in users:
         token_payload(user), private_key, algorithm="RS256"
     )
 
-json.dump(tokens, open("tokens.json", "w"))
+json.dump(tokens, open("tokens2.json", "w"))

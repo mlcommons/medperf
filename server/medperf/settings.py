@@ -16,6 +16,8 @@ import io
 import environ
 import google.auth
 from google.cloud import secretmanager
+from key_storage.gcloud_secret_manager import GcloudSecretStorage
+from key_storage.local import LocalSecretStorage
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -90,6 +92,10 @@ INSTALLED_APPS = [
     "benchmarkmodel",
     "user",
     "result",
+    "training",
+    "aggregator",
+    "traindataset_association",
+    "aggregator_association",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
@@ -287,3 +293,9 @@ SIMPLE_JWT = {
     "JTI_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
 }
 TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
+
+if DEPLOY_ENV == "gcp-prod":
+    # TODO
+    KEY_STORAGE = GcloudSecretStorage("")
+else:
+    KEY_STORAGE = LocalSecretStorage(os.path.join(BASE_DIR, "keys"))

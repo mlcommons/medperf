@@ -147,6 +147,20 @@ class REST(Comms):
         res = self.__auth_put(url, json=data)
         return res
 
+    def __set_state(self, url: str, state: str) -> requests.Response:
+        """Sets the approval status of a resource
+
+        Args:
+            url (str): URL to the resource to update
+            status (str): approval status to set
+
+        Returns:
+            requests.Response: Response object returned by the update
+        """
+        data = {"state": state}
+        res = self.__auth_put(url, json=data)
+        return res
+
     def get_current_user(self):
         """Retrieve the currently-authenticated user information"""
         res = self.__auth_get(f"{self.server_url}/me/")
@@ -509,3 +523,315 @@ class REST(Comms):
             raise CommunicationRequestError(
                 f"Could not set the priority of mlcube {mlcube_uid} within the benchmark {benchmark_uid}: {details}"
             )
+
+    def upload_training_exp(self, training_exp_dict: dict) -> int:
+        """Uploads a new training_exp to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        res = self.__auth_post(f"{self.server_url}/training/", json=training_exp_dict)
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"Could not upload training exp: {details}"
+            )
+        return res.json()
+
+    def get_training_exp(self, training_exp_id: int) -> dict:
+        """Retrieves the training_exp specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        res = self.__auth_get(f"{self.server_url}/training/{training_exp_id}")
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"the specified training_exp doesn't exist: {details}"
+            )
+        return res.json()
+
+    def get_experiment_datasets(self, training_exp_id: int) -> dict:
+        """Retrieves all approved datasets for a given training_exp
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve results from
+
+        Returns:
+            dict: dictionary with the contents of each result in the specified benchmark
+        """
+        results = self.__get_list(
+            f"{self.server_url}/training/{training_exp_id}/datasets"
+        )
+        results = [dataset["id"] for dataset in results]
+
+        return results
+
+    def get_experiment_aggregator(self, training_exp_id: int) -> dict:
+        """Retrieves the experiment aggregator
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve results from
+
+        Returns:
+            dict: dictionary with the contents of each result in the specified benchmark
+        """
+
+        res = self.__auth_get(
+            f"{self.server_url}/training/{training_exp_id}/aggregator"
+        )
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"There was a problem when retrieving the aggregator: {details}"
+            )
+        return res.json()
+
+    def set_experiment_as_operational(self, training_exp_id: int) -> dict:
+        """lock experiment (set as operational)
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve results from
+
+        Returns:
+            dict: dictionary with the contents of each result in the specified benchmark
+        """
+
+        url = f"{self.server_url}/training/{training_exp_id}/"
+        res = self.__set_state(url, "OPERATION")
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(
+                f"Could not set operational state for experiment {training_exp_id}: {details}"
+            )
+
+    def upload_aggregator(self, aggregator_dict: dict) -> int:
+        """Uploads a new aggregator to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        res = self.__auth_post(f"{self.server_url}/aggregators/", json=aggregator_dict)
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(f"Could not upload aggregator: {details}")
+        return res.json()
+
+    def get_aggregator(self, aggregator_id: int) -> dict:
+        """Retrieves the aggregator specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        res = self.__auth_get(f"{self.server_url}/aggregators/{aggregator_id}")
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"the specified aggregator doesn't exist: {details}"
+            )
+        return res.json()
+
+    def associate_aggregator(self, aggregator_id: int, training_exp_id: int, csr: str):
+        """Create a aggregator experiment association
+
+        Args:
+            data_uid (int): Registered dataset UID
+            benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+        data = {
+            "aggregator": aggregator_id,
+            "training_exp": training_exp_id,
+            "approval_status": Status.PENDING.value,
+            "signing_request": csr,
+        }
+        res = self.__auth_post(
+            f"{self.server_url}/aggregators/training_experiments/", json=data
+        )
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(
+                f"Could not associate aggregator to training_exp: {details}"
+            )
+
+    def set_aggregator_association_approval(
+        self, training_exp_id: int, aggregator_id: int, status: str
+    ):
+        """Approves a aggregator association
+
+        Args:
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/aggregators/{aggregator_id}/training_experiments/{training_exp_id}/"
+        res = self.__set_approval_status(url, status)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(
+                "Could not approve association between aggregator"
+                f"{aggregator_id} and training_exp {training_exp_id}: {details}"
+            )
+
+    def get_aggregator_association(
+        self, training_exp_id: int, aggregator_id: int
+    ) -> dict:
+        """Retrieves the aggregator association specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        url = f"{self.server_url}/aggregators/{aggregator_id}/training_experiments/{training_exp_id}/"
+        res = self.__auth_get(url)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"There was a problem when retrieving the association: {details}"
+            )
+        return res.json()
+
+    def associate_training_dset(self, data_uid: int, training_exp_id: int, csr: str):
+        """Create a Dataset experiment association
+
+        Args:
+            data_uid (int): Registered dataset UID
+            benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+        data = {
+            "dataset": data_uid,
+            "training_exp": training_exp_id,
+            "approval_status": Status.PENDING.value,
+            "signing_request": csr,
+        }
+        res = self.__auth_post(
+            f"{self.server_url}/datasets/training_experiments/", json=data
+        )
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(
+                f"Could not associate dataset to training_exp: {details}"
+            )
+
+    def set_training_dataset_association_approval(
+        self, training_exp_id: int, dataset_uid: int, status: str
+    ):
+        """Approves a trainining dataset association
+
+        Args:
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/training_experiments/{training_exp_id}/"
+        res = self.__set_approval_status(url, status)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(
+                "Could not approve association between dataset"
+                f"{dataset_uid} and training_exp {training_exp_id}: {details}"
+            )
+
+    def get_training_dataset_association(
+        self, training_exp_id: int, dataset_uid: int
+    ) -> dict:
+        """Retrieves the training dataset association specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/training_experiments/{training_exp_id}/"
+        res = self.__auth_get(url)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"There was a problem when retrieving the association: {details}"
+            )
+        return res.json()
+
+    def get_aggregators(self) -> List[dict]:
+        """Retrieves all aggregators
+
+        Returns:
+            List[dict]: List of aggregators
+        """
+        aggregators = self.__get_list(f"{self.server_url}/aggregators")
+        return aggregators
+
+    def get_user_aggregators(self) -> dict:
+        """Retrieves all aggregators registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        aggregators = self.__get_list(f"{self.server_url}/me/aggregators/")
+        return aggregators
+
+    def get_training_exps(self) -> List[dict]:
+        """Retrieves all training_exps
+
+        Returns:
+            List[dict]: List of training_exps
+        """
+        training_exps = self.__get_list(f"{self.server_url}/training")
+        return training_exps
+
+    def get_user_training_exps(self) -> dict:
+        """Retrieves all training_exps registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        training_exps = self.__get_list(f"{self.server_url}/me/training/")
+        return training_exps
+
+    def get_training_datasets_associations(self) -> List[dict]:
+        """Get all training dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        assocs = self.__get_list(
+            f"{self.server_url}/me/datasets/training_associations/"
+        )
+        return assocs
+
+    def get_aggregators_associations(self) -> List[dict]:
+        """Get all aggregator associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        assocs = self.__get_list(f"{self.server_url}/me/aggregators/associations/")
+        return assocs

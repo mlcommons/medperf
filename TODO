@@ -1,0 +1,47 @@
+# TODO: remove me from the repo
+
+FOR TUTORIAL
+
+- stream logs
+- check benchmark execution mlcube training exp ID
+- if association request failed for some reason, delete private key (or at least check if rerunning the request will simply overwrite the key)
+- define output folders in medperf storage (logs for both, weights for agg)
+- adding email to CN currently could be challenging. THINK
+  - ASSUMPTION: emails are not changed after signup
+
+- We now have demo data url and hash in training exp (dummy) that we don't use.
+  - what to say about this in miccai (I think no worries; it's hidden now)
+- rethink/review about the following serializers and if necessary use atomic transactions
+  - association creation (dataset-training, agg-training)
+  - association approval (dataset-training, agg-training)
+  - training experiment creation (creating keypair); this could move to approval
+- public/private keys uniqueness constraint while blank; check django docs on how
+- fix bug about association list; /home/hasan/work/openfl_ws/medperf-private/server/utils/views.py
+- pull latest medperf main
+- test agg and training exp owner being same user
+  - basically, test the tutorial steps EXACTLY
+
+AFTER TUTORIAL
+
+- FOLLOWUP: collaborators doesn't use tensorboard logs.
+- FOLLOWUP: show csr hash on approval is not necessary since now CSRs are transported securely
+- test remote aggregator
+- make network config better structured (URL to file? no, could be annoying.)
+- move key generation after admin approval of training experiments.
+- when the training experiment owner wants to "lock" the experiment
+  - ask for confirmation? it's an easy command and after execution there is no going back; a mess if unintended.
+- secretstorage gcloud
+
+NOT SURE
+
+- consider if we want to enable restarts and epochs/"fresh restarts" for training exps (it's hard)
+- mlcube for agg alone
+
+LATER / FUTURE INVESTIGATIONS
+
+- root key thing.
+- limit network access (for now we can rely on the review of the experiment owner)
+- compatibility tests
+- rethink if keys are always needed (just for exps where they on't need a custom cert)
+- server side verification of CSRs (check common names)
+  - later: the whole design might be changed

@@ -1,0 +1,137 @@
+plan:
+  aggregator:
+    settings:
+      best_state_path: save/fets_seg_test_best.pbuf
+      db_store_rounds: 2
+      init_state_path: save/fets_seg_test_init.pbuf
+      last_state_path: save/fets_seg_test_last.pbuf
+      rounds_to_train: 2
+      write_logs: true
+    template: openfl.component.Aggregator
+  assigner:
+    settings:
+      task_groups:
+      - name: train_and_validate
+        percentage: 1.0
+        tasks:
+        - aggregated_model_validation
+        - train
+        - locally_tuned_model_validation
+    template: openfl.component.RandomGroupedAssigner
+  collaborator:
+    settings:
+      db_store_rounds: 1
+      delta_updates: false
+      opt_treatment: RESET
+    template: openfl.component.Collaborator
+  compression_pipeline:
+    settings: {}
+    template: openfl.pipelines.NoCompressionPipeline
+  data_loader:
+    settings:
+      feature_shape:
+      - 32
+      - 32
+      - 32
+    template: openfl.federated.data.loader_gandlf.GaNDLFDataLoaderWrapper
+  network:
+    settings:
+      agg_addr: any
+      agg_port: any
+      cert_folder: cert
+      client_reconnect_interval: 5
+      disable_client_auth: false
+      hash_salt: auto
+      tls: true
+    template: openfl.federation.Network
+  task_runner:
+    settings:
+      device: cuda
+      gandlf_config:
+        batch_size: 1
+        clip_grad: null
+        clip_mode: null
+        data_augmentation: {}
+        data_postprocessing: {}
+        data_preprocessing:
+          normalize: null
+        enable_padding: false
+        in_memory: true
+        inference_mechanism:
+          grid_aggregator_overlap: crop
+          patch_overlap: 0
+        learning_rate: 0.001
+        loss_function: dc
+        medcam_enabled: false
+        metrics:
+        - dice
+        model:
+          amp: true
+          architecture: unet
+          base_filters: 32
+          batch_norm: false
+          class_list:
+          - 0
+          - 1
+          dimension: 3
+          final_layer: sigmoid
+          ignore_label_validation: null
+          norm_type: instance
+          num_channels: 1
+        nested_training:
+          testing: -5
+          validation: -5
+        num_epochs: 1
+        optimizer:
+          type: adam
+        output_dir: .
+        parallel_compute_command: ''
+        patch_sampler: uniform
+        patch_size:
+        - 32
+        - 32
+        - 32
+        patience: 1
+        pin_memory_dataloader: false
+        print_rgb_label_warning: true
+        q_max_length: 1
+        q_num_workers: 0
+        q_samples_per_volume: 1
+        q_verbose: false
+        save_output: false
+        save_training: false
+        scaling_factor: 1
+        scheduler:
+          type: triangle
+        track_memory_usage: false
+        verbose: false
+        version:
+          maximum: 0.0.14
+          minimum: 0.0.13
+        weighted_loss: true
+      train_csv: seg_test_train.csv
+      val_csv: seg_test_val.csv
+    template: openfl.federated.task.runner_gandlf.GaNDLFTaskRunner
+  tasks:
+    aggregated_model_validation:
+      function: validate
+      kwargs:
+        apply: global
+        metrics:
+        - valid_loss
+        - valid_dice
+    locally_tuned_model_validation:
+      function: validate
+      kwargs:
+        apply: local
+        metrics:
+        - valid_loss
+        - valid_dice
+    settings: {}
+    train:
+      function: train
+      kwargs:
+        epochs: 1
+        metrics:
+        - loss
+        - train_dice

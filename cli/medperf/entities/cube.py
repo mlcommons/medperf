@@ -298,7 +298,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def run(
         self,
         task: str,
-        output_logs: str = None,
+        output_logs_file: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
         read_protected_input: bool = True,
@@ -316,7 +316,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         """
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
+        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform}"
+        if task not in ["train", "start_aggregator"]:
+            cmd += " --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         if read_protected_input:
@@ -367,8 +369,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             proc = proc_wrapper.proc
             proc_out = combine_proc_sp_text(proc)
 
-        if output_logs is not None:
-            with open(output_logs, "w") as f:
+        if output_logs_file is not None:
+            with open(output_logs_file, "w") as f:
                 f.write(proc_out)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")

@@ -147,3 +147,4 @@ cython_debug/
 # Dev Environment Specific
 .vscode
 .venv
+server/keys
