@@ -25,8 +25,9 @@ def token_payload(user):
 
 users = [
     "testadmin",
-    "benchmarkowner",
-    "modelowner",
+    "testbo",
+    "testmo",
+    "testdo",
     "aggowner",
     "traincol1",
     "traincol2",
@@ -42,4 +43,4 @@ for user in users:
         token_payload(user), private_key, algorithm="RS256"
     )
 
-json.dump(tokens, open("tokens2.json", "w"))
+json.dump(tokens, open("tokens.json", "w"))
