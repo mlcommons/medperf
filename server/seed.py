@@ -86,5 +86,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.cert.lower() == "none":
         args.cert = None
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     shutil.copy(args.tokens, dest_tokens_file)  # for usage by medperf client
     seed(args)
