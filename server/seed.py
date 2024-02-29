@@ -14,7 +14,7 @@ from pathlib import Path
 import shutil
 import json
 
-CONFIG_DIR = Path("~/.medperf_config/.local_server/")
+CONFIG_DIR = Path.home() / ".medperf_config" / ".local_server"
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
