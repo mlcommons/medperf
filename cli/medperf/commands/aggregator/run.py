@@ -85,13 +85,6 @@ class StartAggregator:
 
     def run_experiment(self):
         task = "start_aggregator"
-        port = self.aggregator.port
-        # TODO: this overwrites existing cpu and gpu args
-        string_params = {
-            "-Pdocker.cpu_args": f"-p {port}:{port}",
-            "-Pdocker.gpu_args": f"-p {port}:{port}",
-        }
-
         # just for now create some output folders (TODO)
         out_logs = os.path.join(self.training_exp.path, "logs")
         out_weights = os.path.join(self.training_exp.path, "weights")
@@ -108,4 +101,4 @@ class StartAggregator:
         }
 
         self.ui.text = "Running Aggregator"
-        self.cube.run(task=task, string_params=string_params, **params)
+        self.cube.run(task=task, port=self.aggregator.port, **params)

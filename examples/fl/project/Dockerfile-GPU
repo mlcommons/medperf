@@ -3,6 +3,9 @@ FROM local/openfl:local
 ENV GANDLF_VERSION 60c9d28aa5e1b951e75ed5646ac20d5790fe4317
 ENV FL_WORKSPACE /mlcube_project/fl_workspace
 ENV LANG C.UTF-8
+ENV CUDA_VISIBLE_DEVICES="0"
+# TODO: combine docker images (cpu and gpu)
+# TODO: make necessary changes since now user is not root
 
 # install software requirements needed by GaNDLF
 RUN apt-get update && apt-get upgrade -y && apt-get install -y git zlib1g-dev libffi-dev libgl1 libgtk2.0-dev gcc g++

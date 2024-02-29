@@ -89,11 +89,7 @@ class TrainingExecution:
     def run_experiment(self):
         task = "train"
         dataset_cn = get_dataset_common_name("", self.dataset.id, self.training_exp.id)
-        # TODO: this overwrites existing env args
-        # TODO: CUDA_VISIBLE_DEVICES should be in dockerfile maybe
-        string_params = {
-            "-Pdocker.env_args": f'-e COLLABORATOR_CN={dataset_cn} -e CUDA_VISIBLE_DEVICES="0"',
-        }
+        env_dict = {"COLLABORATOR_CN": dataset_cn}
 
         # just for now create some output folders (TODO)
         out_logs = os.path.join(self.training_exp.path, "data_logs")
@@ -108,4 +104,4 @@ class TrainingExecution:
             "output_logs": out_logs,
         }
         self.ui.text = "Training"
-        self.cube.run(task=task, string_params=string_params, **params)
+        self.cube.run(task=task, env_dict=env_dict, **params)
