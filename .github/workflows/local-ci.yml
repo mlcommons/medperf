@@ -53,11 +53,7 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: |
-        ls | grep cert
-        python seed.py
-        echo "local_server config folder:"
-        ls ~/.medperf_config/.local_server/
+      run: python seed.py
 
     - name: Run chestxray demo
       working-directory: .
