@@ -49,15 +49,15 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh -c cert.crt -k cert.key & sleep 6
+      run: sh setup-dev-server.sh & sleep 6
 
     - name: Run server integration tests
       working-directory: ./server
       run: |
         ls | grep cert
-        python seed.py --cert cert.crt
+        python seed.py
         echo "local_server config folder:"
-        ls ~/.medperf_config/.local_server/
+        ls $HOME/.medperf_config/.local_server/
 
     - name: Run chestxray demo
       working-directory: .
