@@ -57,7 +57,7 @@ jobs:
         ls | grep cert
         python seed.py
         echo "local_server config folder:"
-        ls $HOME/.medperf_config/.local_server/
+        ls ~/.medperf_config/.local_server/
 
     - name: Run chestxray demo
       working-directory: .
