@@ -17,6 +17,7 @@ import json
 CONFIG_DIR = Path("~/.medperf_config/.local_server/")
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 def seed(args):
     api_server = Server(host=args.server, cert=args.cert)
     if args.version:
