@@ -41,7 +41,9 @@ class SubmitTrainingExp:
 
     def get_mlcube(self):
         mlcube_id = self.training_exp.fl_mlcube
-        Cube.get(mlcube_id)
+        cube = Cube.get(mlcube_id)
+        # TODO: do we want to download run files?
+        cube.download_run_files()
 
     def submit(self):
         updated_body = self.training_exp.upload()

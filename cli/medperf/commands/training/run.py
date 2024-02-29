@@ -83,6 +83,7 @@ class TrainingExecution:
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
         cube = Cube.get(uid)
+        cube.download_run_files()
         self.ui.print(f"> {name} cube download complete")
         return cube
 
