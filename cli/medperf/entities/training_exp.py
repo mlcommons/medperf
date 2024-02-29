@@ -7,7 +7,7 @@ from pydantic import HttpUrl, Field, validator
 
 import medperf.config as config
 from medperf.entities.interface import Entity, Uploadable
-from medperf.utils import get_dataset_common_name, storage_path
+from medperf.utils import get_dataset_common_name
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data, read_user_account
@@ -55,7 +55,7 @@ class TrainingExp(
         super().__init__(*args, **kwargs)
 
         self.generated_uid = self.name
-        path = storage_path(config.training_exps_storage)
+        path = config.training_folder
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
@@ -129,7 +129,7 @@ class TrainingExp(
     @classmethod
     def __local_all(cls) -> List["TrainingExp"]:
         training_exps = []
-        training_exps_storage = storage_path(config.training_exps_storage)
+        training_exps_storage = config.training_folder
         try:
             uids = next(os.walk(training_exps_storage))[1]
         except StopIteration:
@@ -216,8 +216,7 @@ class TrainingExp(
             dict: information of the training_exp
         """
         logging.info(f"Retrieving training_exp {training_exp_uid} from local storage")
-        storage = storage_path(config.training_exps_storage)
-        training_exp_storage = os.path.join(storage, str(training_exp_uid))
+        training_exp_storage = os.path.join(config.training_folder, str(training_exp_uid))
         training_exp_file = os.path.join(
             training_exp_storage, config.training_exps_filename
         )

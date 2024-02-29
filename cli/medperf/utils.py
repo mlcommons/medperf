@@ -515,6 +515,8 @@ class spawn_and_kill:
         self.proc.wait()
         # Return False to propagate exceptions, if any
         return False
+
+
 def get_dataset_common_name(email, dataset_id, exp_id):
     return f"{email}_d{dataset_id}_e{exp_id}".lower()
 
@@ -525,12 +527,11 @@ def generate_data_csr(email, data_uid, training_exp_id):
 
     # store private key
     target_folder = os.path.join(
-        config.training_exps_storage,
+        config.training_folder,
         str(training_exp_id),
         config.data_cert_folder,
         str(data_uid),
     )
-    target_folder = storage_path(target_folder)
     os.makedirs(target_folder, exist_ok=True)
     target_path = os.path.join(target_folder, "key.key")
     write_key(private_key, target_path)
@@ -546,12 +547,11 @@ def generate_agg_csr(training_exp_id, agg_address, agg_id):
 
     # store private key
     target_folder = os.path.join(
-        config.training_exps_storage,
+        config.training_folder,
         str(training_exp_id),
         config.agg_cert_folder,
         str(agg_id),
     )
-    target_folder = storage_path(target_folder)
     os.makedirs(target_folder, exist_ok=True)
     target_path = os.path.join(target_folder, "key.key")
     write_key(private_key, target_path)

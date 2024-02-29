@@ -4,7 +4,6 @@ import logging
 import hashlib
 from typing import List, Optional, Union
 
-from medperf.utils import storage_path
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema
 from medperf.exceptions import (
@@ -40,7 +39,7 @@ class Aggregator(Entity, MedperfSchema, Uploadable):
         self.port = self.server_config["port"]
         self.generated_uid = self.__generate_uid()
 
-        path = storage_path(config.aggregator_storage)
+        path = config.aggregators_folder
         if self.id:
             path = os.path.join(path, str(self.id))
         else:
@@ -113,7 +112,7 @@ class Aggregator(Entity, MedperfSchema, Uploadable):
     @classmethod
     def __local_all(cls) -> List["Aggregator"]:
         aggs = []
-        aggregator_storage = storage_path(config.aggregator_storage)
+        aggregator_storage = config.aggregators_folder
         try:
             uids = next(os.walk(aggregator_storage))[1]
         except StopIteration:
@@ -211,7 +210,7 @@ class Aggregator(Entity, MedperfSchema, Uploadable):
     @classmethod
     def __get_local_dict(cls, aggregator_uid):
         aggregator_path = os.path.join(
-            storage_path(config.aggregator_storage), str(aggregator_uid)
+            config.aggregators_folder, str(aggregator_uid)
         )
         regfile = os.path.join(aggregator_path, config.reg_file)
         if not os.path.exists(regfile):

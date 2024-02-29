@@ -4,7 +4,6 @@ from medperf.exceptions import InvalidArgumentError
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.aggregator import Aggregator
 from medperf.entities.cube import Cube
-from medperf.utils import storage_path
 
 
 class StartAggregator:
@@ -61,12 +60,11 @@ class StartAggregator:
         )
         cert = association["certificate"]
         cert_folder = os.path.join(
-            config.training_exps_storage,
+            config.training_folder,
             str(self.training_exp.id),
             config.agg_cert_folder,
             str(self.aggregator.id),
         )
-        cert_folder = storage_path(cert_folder)
         os.makedirs(cert_folder, exist_ok=True)
         cert_file = os.path.join(cert_folder, "cert.crt")
         with open(cert_file, "w") as f:
