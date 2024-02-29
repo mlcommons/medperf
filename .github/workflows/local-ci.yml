@@ -56,6 +56,7 @@ jobs:
       run: |
         ls | grep cert
         python seed.py --cert cert.crt
+        echo "local_server config folder:"
         ls ~/.medperf_config/.local_server/
 
     - name: Run chestxray demo
