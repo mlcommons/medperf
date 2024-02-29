@@ -89,4 +89,5 @@ if __name__ == "__main__":
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     print('config folder:', CONFIG_DIR, CONFIG_DIR.exists())
     shutil.copy(args.tokens, dest_tokens_file)  # for usage by medperf client
+    print('token file:', dest_tokens_file, Path(dest_tokens_file).exists())
     seed(args)
