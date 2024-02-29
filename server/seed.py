@@ -11,10 +11,11 @@ import argparse
 from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
 from auth_provider_token import auth_provider_token
 from pathlib import Path
+import shutil
 import json
 
 CONFIG_DIR = Path("~/.medperf_config/.local_server/")
-
+REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
 def seed(args):
     api_server = Server(host=args.server, cert=args.cert)
@@ -47,7 +48,8 @@ def seed(args):
 
 if __name__ == "__main__":
     default_cert_file = str(CONFIG_DIR / "cert.crt")
-    default_tokens_file = str(CONFIG_DIR / "tokens.json")
+    local_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
+    dest_tokens_file = str(CONFIG_DIR / "tokens.json")
 
     parser = argparse.ArgumentParser(description="Seed the db with demo entries")
     parser.add_argument(
@@ -78,9 +80,10 @@ if __name__ == "__main__":
         "--tokens",
         type=str,
         help="Path to local tokens file",
-        default=default_tokens_file,
+        default=local_tokens_file,
     )
     args = parser.parse_args()
     if args.cert.lower() == "none":
         args.cert = None
+    shutil.copy(args.tokens, dest_tokens_file)  # for usage by medperf client
     seed(args)

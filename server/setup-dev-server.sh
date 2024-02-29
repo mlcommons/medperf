@@ -24,7 +24,6 @@ echo $RESET_DB
 echo $CONFIG_PATH
 
 mkdir -p $CONFIG_PATH
-cp ../mock_tokens/tokens.json $CONFIG_PATH/tokens.json
 
 if [ -z "$CERT_FILE" ]
 then

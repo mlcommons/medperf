@@ -51,10 +51,6 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
 
-    - name: [DEBUG] list certs
-      working-directory: ./server
-      run: ls | grep cert
-
     - name: Build container image
       working-directory: ./server
       run: |
@@ -63,9 +59,7 @@ jobs:
 
     - name: Run server in background
       working-directory: ./server
-      run: |
-        ls | grep cert
-        PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
+      run: PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Run server integration tests
       working-directory: ./server
