@@ -38,7 +38,7 @@ jobs:
       working-directory: .
       run: |
         python -m pip install --upgrade pip
-        pip install -e cli/
+        pip install cli/
         pip install -r cli/test-requirements.txt
         pip install -r server/requirements.txt
         pip install -r server/test-requirements.txt
@@ -56,6 +56,12 @@ jobs:
       run: |
         cp ../mock_tokens/tokens.json tokens.json
         docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
+
+    - name: Copy configurations for MedPerf client
+      working-directory: ./server
+      run: |
+        cp tokens.json ~/.medperf_config/.local_server/tokens.json
+        cp cert.crt ~/.medperf_config/.local_server/cert.crt
 
     - name: Run server in background
       working-directory: ./server
