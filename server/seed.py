@@ -87,5 +87,6 @@ if __name__ == "__main__":
     if args.cert.lower() == "none":
         args.cert = None
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    print('config folder:', CONFIG_DIR, CONFIG_DIR.exists())
     shutil.copy(args.tokens, dest_tokens_file)  # for usage by medperf client
     seed(args)
