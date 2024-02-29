@@ -1,8 +1,9 @@
 import os
+import logging
 from typing import Optional
-from medperf.utils import generate_tmp_path, get_file_hash, verify_hash
+from medperf.utils import generate_tmp_path, get_file_hash
 from .sources import supported_sources
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 
 def __parse_resource(resource: str):
@@ -60,10 +61,14 @@ def verify_or_get_hash(tmp_output_path: str, expected_hash: str) -> str:
         expected_hash (str): expected hash of the asset
 
     Returns:
-        str: Calculated hash of the asset. Only returns if the hashes match
+        str: Calculated hash of the asset. Returns None if hashes mismatch
     """
     calculated_hash = get_file_hash(tmp_output_path)
-    verify_hash(calculated_hash, expected_hash)
+    if expected_hash and calculated_hash != expected_hash:
+        logging.debug(
+            f"{tmp_output_path}: Expected {expected_hash}, found {calculated_hash}."
+        )
+        return
     return calculated_hash
 
 
@@ -96,6 +101,9 @@ def download_resource(
     tmp_output_path = tmp_download_resource(resource)
 
     calculated_hash = verify_or_get_hash(tmp_output_path, expected_hash)
+
+    if calculated_hash is None:
+        raise InvalidEntityError(f"Hash mismatch: {resource}")
 
     to_permanent_path(tmp_output_path, output_path)
 
