@@ -17,13 +17,23 @@ import os
 import logging
 import yaml
 import medperf.config as config
-from medperf.utils import generate_tmp_path, get_cube_image_name, remove_path, untar
-from .utils import download_resource, verify_or_get_hash
+from medperf.utils import (
+    generate_tmp_path,
+    get_cube_image_name,
+    remove_path,
+    untar,
+    get_file_hash,
+)
+from .utils import download_resource
 
 
 def _should_get_regular_file(output_path, expected_hash):
     if os.path.exists(output_path) and expected_hash:
-        if verify_or_get_hash(output_path, expected_hash):
+        calculated_hash = get_file_hash(output_path)
+        logging.debug(
+            f"{output_path}: Expected {expected_hash}, found {calculated_hash}."
+        )
+        if expected_hash == calculated_hash:
             logging.debug(f"{output_path} exists and is up to date")
             return False
         logging.debug(f"{output_path} exists but is out of date")

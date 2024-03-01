@@ -52,26 +52,6 @@ def tmp_download_resource(resource):
     return tmp_output_path
 
 
-def verify_or_get_hash(tmp_output_path: str, expected_hash: str) -> str:
-    """Checks if the downloaded file matches the passed expected hash
-    if provided. The function returns the calculated hash.
-
-    Args:
-        tmp_output_path (str): path to the asset that will be checked
-        expected_hash (str): expected hash of the asset
-
-    Returns:
-        str: Calculated hash of the asset. Returns None if hashes mismatch
-    """
-    calculated_hash = get_file_hash(tmp_output_path)
-    if expected_hash and calculated_hash != expected_hash:
-        logging.debug(
-            f"{tmp_output_path}: Expected {expected_hash}, found {calculated_hash}."
-        )
-        return
-    return calculated_hash
-
-
 def to_permanent_path(tmp_output_path, output_path):
     """Writes a file from the temporary storage to the desired output path."""
     output_folder = os.path.dirname(os.path.abspath(output_path))
@@ -100,9 +80,10 @@ def download_resource(
     """
     tmp_output_path = tmp_download_resource(resource)
 
-    calculated_hash = verify_or_get_hash(tmp_output_path, expected_hash)
+    calculated_hash = get_file_hash(tmp_output_path)
 
-    if calculated_hash is None:
+    if expected_hash and calculated_hash != expected_hash:
+        logging.debug(f"{resource}: Expected {expected_hash}, found {calculated_hash}.")
         raise InvalidEntityError(f"Hash mismatch: {resource}")
 
     to_permanent_path(tmp_output_path, output_path)
