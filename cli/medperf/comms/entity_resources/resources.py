@@ -21,18 +21,13 @@ from medperf.utils import generate_tmp_path, get_cube_image_name, remove_path, u
 from .utils import download_resource, verify_or_get_hash
 
 
-def _should_get_cube(output_path, expected_hash):
+def _should_get_regular_file(output_path, expected_hash):
     if os.path.exists(output_path) and expected_hash:
         if verify_or_get_hash(output_path, expected_hash):
             logging.debug(f"{output_path} exists and is up to date")
             return False
         logging.debug(f"{output_path} exists but is out of date")
     return True
-
-
-def _should_get_cube_params(output_path, expected_hash):
-    # Happens to be the same logic
-    return _should_get_cube(output_path, expected_hash)
 
 
 def _should_get_cube_additional(
@@ -56,48 +51,38 @@ def _should_get_cube_additional(
     return True
 
 
-def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Downloads and writes an mlcube.yaml file. If the hash is provided,
+def _get_regular_file(url: str, output_path: str, expected_hash: str = None) -> str:
+    """Downloads and writes a regular file. If the hash is provided,
     the file's integrity will be checked upon download.
+    Used for parameters.yaml and mlcube.yaml
 
     Args:
         url (str): URL where the mlcube.yaml file can be downloaded.
-        cube_path (str): Cube location.
+        output_path (str): Path to store the downloaded file at.
         expected_hash (str, optional): expected hash of the downloaded file
 
     Returns:
-        output_path (str): location where the mlcube.yaml file is stored locally.
+        output_path (str): location where the regular file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
+    if not _should_get_regular_file(output_path, expected_hash):
+        return output_path, expected_hash
+    if os.path.exists(output_path):
+        remove_path(output_path)
+    hash_value = download_resource(url, output_path, expected_hash)
+    return output_path, hash_value
+
+
+def get_cube(url: str, cube_path: str, expected_hash: str = None):
+    """Downloads and writes a cube mlcube.yaml file"""
     output_path = os.path.join(cube_path, config.cube_filename)
-    if not _should_get_cube(output_path, expected_hash):
-        return output_path, expected_hash
-    if os.path.exists(output_path):
-        remove_path(output_path)
-    hash_value = download_resource(url, output_path, expected_hash)
-    return output_path, hash_value
+    return _get_regular_file(url, output_path, expected_hash)
 
 
-def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Downloads and writes a cube parameters file. If the hash is provided,
-    the file's integrity will be checked upon download.
-
-    Args:
-        url (str): URL where the parameters.yaml file can be downloaded.
-        cube_path (str): Cube location.
-        expected_hash (str, optional): expected hash of the downloaded file
-
-    Returns:
-        output_path (str): location where the parameters file is stored locally.
-        hash_value (str): The hash of the downloaded file
-    """
+def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
+    """Downloads and writes a cube parameters.yaml file"""
     output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
-    if not _should_get_cube_params(output_path, expected_hash):
-        return output_path, expected_hash
-    if os.path.exists(output_path):
-        remove_path(output_path)
-    hash_value = download_resource(url, output_path, expected_hash)
-    return output_path, hash_value
+    return _get_regular_file(url, output_path, expected_hash)
 
 
 def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
