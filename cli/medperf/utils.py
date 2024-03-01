@@ -16,12 +16,13 @@ import shutil
 from pexpect import spawn
 from datetime import datetime
 from pydantic.datetime_parse import parse_datetime
-from typing import List
+from typing import List, Generator
 from colorama import Fore, Style
-from pexpect.exceptions import TIMEOUT
+from pexpect.exceptions import TIMEOUT, EOF
 from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
+from medperf.ui.interface import UI
 
 
 def get_file_hash(path: str) -> str:
@@ -217,7 +218,7 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
 class _MLCubeOutputFilter:
     def __init__(self, proc_pid: int):
         self.log_pattern = re.compile(
-            r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
+            r"^\s*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
         )
         # Clear log lines from color / style symbols before matching with regexp
         self.ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
@@ -231,16 +232,33 @@ class _MLCubeOutputFilter:
             true if line should be filtered out (==saved to debug file only),
             false if line should be printed to user also
         """
-        match = self.log_pattern.match(self.ansi_escape_pattern.sub('', line))
+        clean_line = self.ansi_escape_pattern.sub('', line)
+        match = self.log_pattern.match(clean_line)
         if match:
             line_pid, matched_log_level_str, content = match.groups()
             matched_log_level = logging.getLevelName(matched_log_level_str)
 
             # if line matches conditions, it is just logged to debug; else, shown to user
-            return (line_pid == self.proc_pid  # hide only `mlcube` framework logs
-                    and isinstance(matched_log_level, int)
-                    and matched_log_level < logging.INFO)  # hide only debug logs
+            result = (line_pid == self.proc_pid  # hide only `mlcube` framework logs
+                      and isinstance(matched_log_level, int)
+                      and matched_log_level < logging.INFO)  # hide only debug logs
+            return result
         return False
+
+
+def _read_new_line_from_proc(proc: spawn) -> Generator[str]:
+    buffer: list[bytes] = []
+    new_lines = {'\r', '\n'}
+    try:
+        while ch := proc.read(1):
+
+            if ch.decode('utf-8', 'ignore') in new_lines:
+                res = b''.join(buffer).decode('utf-8')
+                buffer = []
+                yield res
+            buffer.append(ch)
+    except EOF:
+        yield b''.join(buffer).decode('utf-8')
 
 
 def combine_proc_sp_text(proc: spawn) -> str:
@@ -256,34 +274,33 @@ def combine_proc_sp_text(proc: spawn) -> str:
         str: all non-carriage-return-ending string captured from proc
     """
 
-    ui = config.ui
+    ui: UI = config.ui
+    ui_was_interactive = ui.is_interactive
+    ui.stop_interactive()
     proc_out = ""
-    break_ = False
     log_filter = _MLCubeOutputFilter(proc.pid)
 
-    while not break_:
-        if not proc.isalive():
-            break_ = True
-        try:
-            line = proc.readline()
-        except TIMEOUT:
-            logging.error("Process timed out")
-            logging.debug(proc_out)
-            raise ExecutionError("Process timed out")
-        line = line.decode("utf-8", "ignore")
+    try:
+        for line in _read_new_line_from_proc(proc):
+            if not line:
+                break
 
-        if not line:
-            continue
+            # Always log each line just in case the final proc_out
+            # wasn't logged for some reason
+            logging.debug(line)
+            proc_out += line
+            if not log_filter.check_line(line):
+                ui.print(f"{Fore.WHITE}{Style.DIM}{line}{Style.RESET_ALL}", nl=False)
 
-        # Always log each line just in case the final proc_out
-        # wasn't logged for some reason
-        logging.debug(line)
-        proc_out += line
-        if not log_filter.check_line(line):
-            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+        logging.debug("MLCube process finished")
+    except TIMEOUT:
+        logging.error("Process timed out")
+        raise ExecutionError("Process timed out")
+    finally:
+        logging.debug(proc_out)
+        if ui_was_interactive:
+            ui.start_interactive()
 
-    logging.debug("MLCube process finished")
-    logging.debug(proc_out)
     return proc_out
 
 

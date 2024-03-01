@@ -3,8 +3,10 @@ from contextlib import contextmanager
 
 
 class UI(ABC):
+    is_interactive: bool = False
+
     @abstractmethod
-    def print(self, msg: str = ""):
+    def print(self, msg: str = "", nl: bool = True):
         """Display a message to the interface. If on interactive session overrides
         previous message
         """
@@ -33,19 +35,17 @@ class UI(ABC):
     def interactive(self):
         """Context managed interactive session. Expected to yield the same instance"""
 
+    @property
     @abstractmethod
-    def text(self, msg: str):
+    def text(self):
         """Displays a messages that overwrites previous messages if they were created
         during an interactive session.
         If not supported or not on an interactive session, it is expected to fallback
         to the UI print function.
-
-        Args:
-            msg (str): message to display
         """
 
     @abstractmethod
-    def prompt(msg: str) -> str:
+    def prompt(self, msg: str) -> str:
         """Displays a prompt to the user and waits for an answer"""
 
     @abstractmethod

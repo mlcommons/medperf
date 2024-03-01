@@ -11,13 +11,14 @@ class CLI(UI):
         self.spinner = yaspin(color="green")
         self.is_interactive = False
 
-    def print(self, msg: str = ""):
+    def print(self, msg: str = "", nl: bool = True):
         """Display a message on the command line
 
         Args:
             msg (str): message to print
+            nl: if print a new line after message
         """
-        self.__print(msg)
+        self.__print(msg, nl=nl)
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -38,11 +39,14 @@ class CLI(UI):
         msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
         self.__print(msg)
 
-    def __print(self, msg: str = ""):
+    def __print(self, msg: str = "", nl: bool = True):
         if self.is_interactive:
+            # TODO: nl does not work for yaspin as new-line character
+            #  is explicitly hardcoded in spinner.write()
             self.spinner.write(msg)
         else:
-            typer.echo(msg)
+            # pass
+            typer.echo(msg, nl=nl)
 
     def start_interactive(self):
         """Start an interactive session where messages can be overwritten
