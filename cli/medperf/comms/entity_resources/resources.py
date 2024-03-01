@@ -165,7 +165,7 @@ def get_cube_additional(
     ):
         return expected_tarball_hash
 
-    # Download the additional files.Make sure files are extracted in tmp storage
+    # Download the additional files. Make sure files are extracted in tmp storage
     # to avoid any clutter objects if uncompression fails for some reason.
     tmp_output_folder = generate_tmp_path()
     output_tarball_path = os.path.join(tmp_output_folder, config.tarball_filename)
