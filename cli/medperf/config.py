@@ -120,7 +120,7 @@ storage = {
     },
     "aggregators_folder": {
         "base": default_base_storage,
-        "name": aggregators_folder
+        "name": aggregators_folder,
     },
 }
 
@@ -130,6 +130,8 @@ root_folders = [
     "logs_folder",
     "tmp_folder",
     "demo_datasets_folder",
+    "training_folder",
+    "aggregators_folder",
 ]
 server_folders = [
     "benchmarks_folder",
@@ -201,7 +203,7 @@ inline_parameters = [
     "platform",
     "gpus",
     "cleanup",
-    "container_loglevel"
+    "container_loglevel",
 ]
 configurable_parameters = inline_parameters + [
     "server",
