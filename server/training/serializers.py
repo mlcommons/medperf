@@ -46,6 +46,7 @@ class ReadTrainingExperimentSerializer(serializers.ModelSerializer):
         exclude = ["private_key"]
 
     def update(self, instance, validated_data):
+        # TODO: seems buggy
         if (
             instance.approval_status != "PENDING"
             and "approval_status" in validated_data

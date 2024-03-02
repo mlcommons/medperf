@@ -50,6 +50,8 @@ class TrainingExperimentDetail(GenericAPIView):
     def get_permissions(self):
         if self.request.method == "PUT":
             self.permission_classes = [IsAdmin | IsExpOwner]
+            if "approval_status" in self.request.data:
+                self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
