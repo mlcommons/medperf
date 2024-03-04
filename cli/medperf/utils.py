@@ -21,7 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
+from medperf.exceptions import ExecutionError, MedperfException
 
 
 def get_file_hash(path: str) -> str:
@@ -400,22 +400,6 @@ def get_cube_image_name(cube_path: str) -> str:
     except KeyError:
         msg = "The provided mlcube doesn't seem to be configured for singularity"
         raise MedperfException(msg)
-
-
-def verify_hash(obtained_hash: str, expected_hash: str):
-    """Checks hash exact match, and throws an error if not a match
-
-    Args:
-        obtained_hash (str): local hash computed from asset
-        expected_hash (str): expected hash obtained externally
-
-    Raises:
-        InvalidEntityError: Thrown if hashes don't match
-    """
-    if expected_hash and expected_hash != obtained_hash:
-        raise InvalidEntityError(
-            f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
-        )
 
 
 def filter_latest_associations(associations, entity_key):
