@@ -54,6 +54,16 @@ def submit(
     evaluator_mlcube: int = typer.Option(
         ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
     ),
+    skip_data_preparation_step: bool = typer.Option(
+        False,
+        "--skip-demo-data-preparation",
+        help="Use this flag if the demo dataset is already prepared",
+    ),
+    operational: bool = typer.Option(
+        False,
+        "--operational",
+        help="Submit the Benchmark as OPERATIONAL",
+    ),
 ):
     """Submits a new benchmark to the platform"""
     benchmark_info = {
@@ -65,8 +75,12 @@ def submit(
         "data_preparation_mlcube": data_preparation_mlcube,
         "reference_model_mlcube": reference_model_mlcube,
         "data_evaluator_mlcube": evaluator_mlcube,
+        "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitBenchmark.run(benchmark_info)
+    SubmitBenchmark.run(
+        benchmark_info,
+        skip_data_preparation_step=skip_data_preparation_step,
+    )
     config.ui.print("✅ Done!")
 
 

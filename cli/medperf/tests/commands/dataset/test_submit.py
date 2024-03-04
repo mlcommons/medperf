@@ -2,7 +2,7 @@ from medperf.exceptions import InvalidArgumentError
 import pytest
 
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.commands.dataset.submit import DatasetRegistration
+from medperf.commands.dataset.submit import DataCreation
 
 PATCH_REGISTER = "medperf.commands.dataset.submit.{}"
 
@@ -33,7 +33,7 @@ def test_run_retrieves_specified_dataset(
     mocker.patch("os.rename")
 
     # Act
-    DatasetRegistration.run(data_uid)
+    DataCreation.run(data_uid)
 
     # Assert
     spy.assert_called_once_with(data_uid)
@@ -48,7 +48,7 @@ def test_run_fails_if_dataset_already_registered(
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
-        DatasetRegistration.run("hash1")
+        DataCreation.run("hash1")
 
 
 def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote):
@@ -60,7 +60,7 @@ def test_run_passes_if_dataset_has_no_uid(mocker, comms, ui, dataset, no_remote)
     mocker.patch("os.rename")
 
     # Act & Assert
-    DatasetRegistration.run("hash1")
+    DataCreation.run("hash1")
 
 
 @pytest.mark.parametrize("dset_dict", [{"test": "test"}, {}])
@@ -75,7 +75,7 @@ def test_run_prints_dset_dict(mocker, comms, ui, dataset, no_remote, dset_dict):
     mocker.patch("os.rename")
 
     # Act
-    DatasetRegistration.run("hash1")
+    DataCreation.run("hash1")
 
     # Assert
     spy_dict.assert_called_once()
@@ -89,7 +89,7 @@ def test_run_requests_approval(mocker, comms, ui, dataset, no_remote):
     mocker.patch("os.rename")
 
     # Act
-    DatasetRegistration.run("hash1")
+    DataCreation.run("hash1")
 
     # Assert
     spy.assert_called_once()
@@ -110,7 +110,7 @@ def test_updates_local_dset_if_remote_exists(mocker, comms, ui, dataset, data_ha
     )
 
     # Act
-    DatasetRegistration.run(data_hash)
+    DataCreation.run(data_hash)
 
     # Assert
     upload_spy.assert_not_called()
@@ -131,7 +131,7 @@ class TestWithApproval:
         mocker.patch("os.rename")
 
         # Act
-        DatasetRegistration.run("hash1")
+        DataCreation.run("hash1")
 
         # Assert
         if approved:
@@ -148,7 +148,7 @@ class TestWithApproval:
         mocker.patch("os.rename")
 
         # Act
-        DatasetRegistration.run("hash1", approved=approved)
+        DataCreation.run("hash1", approved=approved)
 
         # Assert
         if approved:
@@ -168,7 +168,7 @@ class TestWithApproval:
         mocker.patch("os.rename")
 
         # Act
-        DatasetRegistration.run("hash1")
+        DataCreation.run("hash1")
 
         # Assert
         if approved:

@@ -1,4 +1,6 @@
-from medperf.utils import get_folders_hash
+from medperf.commands.dataset.prepare import DataPreparation
+from medperf.commands.dataset.submit import DataCreation
+from medperf.utils import get_folders_hash, remove_path
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -30,7 +32,11 @@ def download_demo_data(dset_url, dset_hash):
 
     data_path = os.path.join(demo_dset_path, paths["data_path"])
     labels_path = os.path.join(demo_dset_path, paths["labels_path"])
-    return data_path, labels_path
+    metadata_path = None
+    if "metadata_path" in paths:
+        metadata_path = os.path.join(demo_dset_path, paths["metadata_path"])
+
+    return data_path, labels_path, metadata_path
 
 
 def prepare_local_cube(path):
@@ -98,3 +104,53 @@ def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
     cube.download_run_files()
     config.ui.print(f"> {name} cube download complete")
     return cube
+
+
+def create_test_dataset(
+    data_path,
+    labels_path,
+    metadata_path,
+    data_prep_mlcube,
+    skip_data_preparation_step: bool,
+):
+    # TODO: make this function better?
+
+    # create dataset object
+    data_creation = DataCreation(
+        benchmark_uid=None,
+        prep_cube_uid=data_prep_mlcube,
+        data_path=data_path,
+        labels_path=labels_path,
+        metadata_path=metadata_path,
+        name="demo_data",
+        description="demo_data",
+        location="local",
+        approved=False,
+        submit_as_prepared=skip_data_preparation_step,
+    )
+    data_creation.validate()
+    data_creation.create_dataset_object()
+    # TODO: existing dataset could make problems
+    # make some changes since this is a test dataset
+    data_creation.dataset.for_test = True
+    config.tmp_paths.remove(data_creation.dataset.path)
+    data_creation.dataset.write()
+    if skip_data_preparation_step:
+        data_creation.make_dataset_prepared()
+    dataset = data_creation.dataset
+
+    # prepare/check dataset
+    DataPreparation.run(dataset.generated_uid)
+
+    # update dataset generated_uid
+    old_path = dataset.path
+    generated_uid = get_folders_hash([dataset.data_path, dataset.labels_path])
+    dataset.generated_uid = generated_uid
+    dataset.write()
+    if dataset.input_data_hash != dataset.generated_uid:
+        # move to a correct location if it underwent preparation
+        new_path = old_path.replace(dataset.input_data_hash, generated_uid)
+        remove_path(new_path)
+        os.rename(old_path, new_path)
+
+    return generated_uid

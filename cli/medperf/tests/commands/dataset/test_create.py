@@ -7,7 +7,7 @@ from unittest.mock import call
 from medperf.tests.mocks import TestCube
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.commands.dataset.create import DataPreparation
+from medperf.commands.dataset.prepare import DataPreparation
 
 PATCH_DATAPREP = "medperf.commands.dataset.create.{}"
 OUT_PATH = "out_path"
@@ -20,14 +20,15 @@ LABELS_PATH = "labels_path"
 NAME = "name"
 DESCRIPTION = "description"
 LOCATION = "location"
+SUMMARY_PATH = "summary"
+REPORT_PATH = "report"
 
 
 @pytest.fixture
 def preparation(mocker, comms, ui):
     mocker.patch("os.path.abspath", side_effect=lambda x: x)
     mocker.patch(
-        PATCH_DATAPREP.format("generate_tmp_path"),
-        side_effect=[OUT_PATH, STATISTICS_PATH],
+        PATCH_DATAPREP.format("generate_tmp_path"), return_value=STATISTICS_PATH
     )
     mocker.patch(PATCH_DATAPREP.format("Benchmark.get"), return_value=TestBenchmark())
     preparation = DataPreparation(
@@ -38,12 +39,18 @@ def preparation(mocker, comms, ui):
         NAME,
         DESCRIPTION,
         LOCATION,
+        SUMMARY_PATH,
     )
     mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=TestCube())
     mocker.patch(PATCH_DATAPREP.format("Cube.download_run_files"))
     preparation.get_prep_cube()
     preparation.data_path = DATA_PATH
     preparation.labels_path = LABELS_PATH
+    preparation.out_datapath = OUT_DATAPATH
+    preparation.out_labelspath = OUT_LABELSPATH
+    preparation.report_path = REPORT_PATH
+    preparation.report_specified = False
+    preparation.labels_specified = True
     return preparation
 
 
@@ -73,14 +80,14 @@ class TestWithDefaultUID:
 
     @pytest.mark.parametrize("cube_uid", [1776, 4342, 573])
     def test_get_prep_cube_gets_prep_cube_if_provided(
-        self, mocker, cube_uid, comms, ui
+        self, mocker, cube_uid, comms, ui, fs
     ):
         # Arrange
         spy = mocker.patch(PATCH_DATAPREP.format("Cube.get"), return_value=TestCube())
         down_spy = mocker.patch(PATCH_DATAPREP.format("Cube.download_run_files"))
 
         # Act
-        preparation = DataPreparation(None, cube_uid, *[""] * 5)
+        preparation = DataPreparation(None, cube_uid, *[""] * 6)
         preparation.get_prep_cube()
 
         # Assert
@@ -89,7 +96,7 @@ class TestWithDefaultUID:
 
     @pytest.mark.parametrize("cube_uid", [998, 68, 109])
     def test_get_prep_cube_gets_benchmark_cube_if_provided(
-        self, mocker, cube_uid, comms, ui
+        self, mocker, cube_uid, comms, ui, fs
     ):
         # Arrange
         benchmark = TestBenchmark(data_preparation_mlcube=cube_uid)
@@ -98,7 +105,7 @@ class TestWithDefaultUID:
         down_spy = mocker.patch(PATCH_DATAPREP.format("Cube.download_run_files"))
 
         # Act
-        preparation = DataPreparation(cube_uid, None, *[""] * 5)
+        preparation = DataPreparation(cube_uid, None, *[""] * 6)
         preparation.get_prep_cube()
 
         # Assert
@@ -133,19 +140,29 @@ class TestWithDefaultUID:
         calls = [prepare, check, stats]
 
         # Act
-        preparation.run_cube_tasks()
+        preparation.run_prepare()
+        preparation.run_sanity_check()
+        preparation.run_statistics()
 
         # Assert
         spy.assert_has_calls(calls)
 
-    def test_run_executes_expected_flow(self, mocker, comms, ui):
+    def test_run_executes_expected_flow(self, mocker, comms, ui, fs):
         # Arrange
         validate_spy = mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
-        get_cube_spy = mocker.patch(
-            PATCH_DATAPREP.format("DataPreparation.get_prep_cube")
+        get_cube_spy = mocker.spy(DataPreparation, "get_prep_cube")
+        mocker.patch(
+            PATCH_DATAPREP.format("Cube.get"),
+            side_effect=lambda id: MockCube(True, id),
         )
-        run_cube_spy = mocker.patch(
-            PATCH_DATAPREP.format("DataPreparation.run_cube_tasks")
+        run_prepare_spy = mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.run_prepare")
+        )
+        run_sanity_check_spy = mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.run_sanity_check")
+        )
+        run_statistics_spy = mocker.patch(
+            PATCH_DATAPREP.format("DataPreparation.run_statistics")
         )
         get_stat_spy = mocker.patch(
             PATCH_DATAPREP.format("DataPreparation.get_statistics"),
@@ -166,7 +183,9 @@ class TestWithDefaultUID:
         # Assert
         validate_spy.assert_called_once()
         get_cube_spy.assert_called_once()
-        run_cube_spy.assert_called_once()
+        run_prepare_spy.assert_called_once()
+        run_sanity_check_spy.assert_called_once()
+        run_statistics_spy.assert_called_once()
         get_stat_spy.assert_called_once()
         generate_uids_spy.assert_called_once()
         to_permanent_path_spy.assert_called_once()
@@ -179,7 +198,7 @@ class TestWithDefaultUID:
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
         # Act
-        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 5)
+        preparation = DataPreparation(benchmark_uid, cube_uid, *[""] * 6)
         # Assert
 
         if num_arguments != 1:
@@ -297,8 +316,9 @@ def test_run_returns_generated_uid(mocker, comms, ui, uid):
         cls.generated_uid = uid
 
     mocker.patch(PATCH_DATAPREP.format("DataPreparation.validate"))
-    mocker.patch(PATCH_DATAPREP.format("DataPreparation.get_prep_cube"))
-    mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_cube_tasks"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_prepare"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_sanity_check"))
+    mocker.patch(PATCH_DATAPREP.format("DataPreparation.run_statistics"))
     mocker.patch(
         PATCH_DATAPREP.format("DataPreparation.get_statistics"),
     )
@@ -313,9 +333,13 @@ def test_run_returns_generated_uid(mocker, comms, ui, uid):
     mocker.patch(
         PATCH_DATAPREP.format("DataPreparation.write"),
     )
+    mocker.patch(
+        PATCH_DATAPREP.format("Cube.get"),
+        side_effect=lambda id: MockCube(True, id),
+    )
 
     # Act
-    returned_uid = DataPreparation.run("", "", "", "")
+    returned_uid = DataPreparation.run("", 1, "", "")
 
     # Assert
     assert returned_uid == uid

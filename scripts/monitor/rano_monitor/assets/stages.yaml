@@ -1,0 +1,164 @@
+0:
+  status_name: IDENTIFIED
+  comment: ""
+  docs_url: ""
+1:
+  status_name: VALIDATED
+  comment: ""
+  docs_url: ""
+-1.1:
+  status_name: MISSING_MODALITIES
+  comment: There are missing modalities. Please check the data
+  docs_url: ""
+-1.2:
+  status_name: EXTRA MODALITIES
+  comment: There are extra modalities. Please check the data
+  docs_url: ""
+-1.3:
+  # Obtained when a section of this stage raises an unhandled error
+  status_name: VALIDATION_FAILED
+  comment: # Left empty so the mlcube can overwrite it with the traceback
+  docs_url: ""
+2:
+  status_name: CONVERTED_TO_NIfTI
+  comment: ""
+  docs_url: ""
+-2:
+  # Obtained when a section of this stage raises an unhandled error
+  status_name: NIfTI_CONVERSION_FAILED
+  comment: # Left empty so the mlcube can overwrite it with the traceback
+  docs_url: ""
+3:
+  status_name: BRAIN_EXTRACT_FINISHED
+  comment: ""
+  docs_url: ""
+-3:
+  # Obtained when a section of this stage raises an unhandled error
+  status_name: BRAIN_EXTRACT_FAILED
+  comment: # Left empty so the mlcube can overwrite it with the traceback
+  docs_url: ""
+4:
+  status_name: TUMOR_EXTRACT_FINISHED
+  comment: ""
+  docs_url: ""
+-4:
+  # Obtained when a section of this stage raises an unhandled error
+  status_name: TUMOR_EXTRACT_FAILED
+  comment: # Left empty so the mlcube can overwrite it with the traceback
+  docs_url: ""
+5:
+  status_name: MANUAL_REVIEW_COMPLETED
+  comment: ""
+  docs_url: ""
+-5:
+  status_name: MANUAL_REVIEW_REQUIRED
+  comment: >
+    Baseline tumor segmentations have been generated. Manual corrections are required to proceed.
+    Here are the following recommended methods.
+
+
+    ### Local Manual Corrections
+
+    If you're doing manual corrections on this machine, and you're running the manual Data Preparation pipeline locally, 
+    you may find buttons at the bottom of this page to aid you in the process of manual correction. 
+    These buttons automatically start the review process with ITK-Snap using the generated tumor segmentation mask. 
+    Please ensure ITK-Snap has been installed with client-line tools to use this method.
+    You may edit the file as many times as needed. Once you're done with this subject, press the "Mark as finalized" button to let the pipeline know the subject is done.
+
+
+    In some cases, local manual correction is not possible, or the default baseline segmentation is not sufficiently good to work with. 
+    In those cases, it is recommended to do manual correction through the **Packaging method**.
+
+
+    ### Packaging Method
+
+    If using the monitoring tool, you may package cases for review by pressing the 'Package cases for review' button under **SUMMARY**.
+    This will create a tarball file on the working directory (displayed on the monitoring tool header), containing all the cases for review.
+    You may untar the segmentation with the following command
+
+
+    ```
+    tar -xzf review_cases.tar.gz
+    ```
+
+
+    If working remotely, move the tarball file to your local machine. Untar the tarball file, select the best baseline segmentation and make any necessary corrections. 
+    Once you're done, move the finalized file to the `finalized` folder, retaining the original name.
+
+
+    If using the monitoring tool, create a new tarball with the previously untarred files, as well as finalized cases. You can do so with the following command
+
+
+    ```
+    tar -czf reviewed_cases.tar.gz -C review_cases .
+    ```
+
+
+    Place this new tarball file on the directory the monitoring tool is running (displayed on the monitoring tool header). The tool will automatically detect the finalized cases and place them in the expected locations.
+
+
+    ### Brain Mask Correction
+
+    There might be situations where the brain mask is not correct. If working locally you may use the `Review Brain Mask` button to automatically make brain mask corrections with ITK-Snap.
+    If instead you're using the previously menitoned tarball, you may find the brain mask segmentation as `brainMask_fused.nii.gz`. Please make the necessary corrections under that file, overwriting the contents.
+    Once the new tarball is created and placed within the directory the monitoring tool is running, it will be automatically identified and placed in the correct location.
+    
+    **NOTE** Modifying the brain mask invalidates the tumor segmentations, and re-runs the tumor segmentation procedure using this new mask.
+
+  docs_url: ""
+-5.1:
+  status_name: MULTIPLE_ANNOTATIONS_ERROR
+  comment: More than one segmentation file was identified in the manually corrected output folder. Please ensure that there is only one manually corrected segmentation inside the labels path.
+  docs_url: ""
+-6:
+  status_name: COMPARISON_COMPLETE
+  comment: ""
+  docs_url: ""
+-6.1:
+  status_name: EXACT_MATCH_IDENTIFIED
+  comment: The automated and manually corrected segmentation files are identical. Was this intentional? If so, are you certain that no manual corrections were required? If not, please redo manual correction for this exam.
+  docs_url: ""
+-6.2:
+  status_name: ANNOTATION_COMPARISON_FAILED
+  comment: The original segmentation for the reviewed file was not identified. This most probably means the annotation file was renamed. Please ensure the reviewed file retains its original name.
+  docs_url: ""
+7:
+  status_name: ANNOTATION_CONFIRMED
+  comment: ""
+  docs_url: ""
+8:
+  status_name: DONE
+  comment: ""
+  docs_url: ""
+-0.101:
+  status_name:
+  comment:
+  docs_url: ""
+-1.101:
+  status_name:
+  comment:
+  docs_url: ""
+-2.101:
+  status_name:
+  comment:
+  docs_url: ""
+-3.101:
+  status_name:
+  comment:
+  docs_url: ""
+-4.101:
+  status_name:
+  comment:
+  docs_url: ""
+-5.101:
+  status_name:
+  comment:
+  docs_url: ""
+-6.101:
+  status_name:
+  comment:
+  docs_url: ""
+-7.101:
+  status_name:
+  comment:
+  docs_url: ""

@@ -13,3 +13,4 @@ class TestDataset(Dataset):
     generated_metadata: dict = {}
     status: Status = Status.APPROVED.value
     state: str = "PRODUCTION"
+    submitted_as_prepared: bool = False

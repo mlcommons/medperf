@@ -2,11 +2,17 @@ from rest_framework import serializers
 from .models import Dataset
 
 
-class DatasetSerializer(serializers.ModelSerializer):
+class DatasetFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = "__all__"
-        read_only_fields = ["owner"]
+        read_only_fields = ["owner", "state"]
+
+
+class DatasetPublicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        exclude = ["owner", "report"]
 
 
 class DatasetDetailSerializer(serializers.ModelSerializer):
