@@ -141,6 +141,11 @@ log_file = "medperf.log"
 tarball_filename = "tmp.tar.gz"
 demo_dset_paths_file = "paths.yaml"
 mlcube_cache_file = ".cache_metadata.yaml"
+report_file = "report.yaml"
+metadata_folder = "metadata"
+statistics_filename = "statistics.yaml"
+dataset_raw_paths_file = "raw.yaml"
+ready_flag_file = ".ready"
 
 # MLCube assets conventions
 cube_filename = "mlcube.yaml"
