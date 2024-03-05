@@ -353,13 +353,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd += f' -Pdocker.cpu_args="{cpu_args}"'
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
 
-            cmd += f' -Pdocker.env_args="-e "'
             env_args = self.get_config("docker.env_args") or ""
             env_args = " ".join([env_args, env_args_string]).strip()
             cmd += f' -Pdocker.env_args="{env_args}"'
 
-            
-            
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
