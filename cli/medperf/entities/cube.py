@@ -354,10 +354,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 gpu_args += f" -p {port}:{port}"
             cmd += f' -Pdocker.cpu_args="{cpu_args}"'
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
-
-            env_args = self.get_config("docker.env_args") or ""
-            env_args = " ".join([env_args, env_args_string]).strip()
-            cmd += f' -Pdocker.env_args="{env_args}"'
+            if env_args_string:  # TODO: why MLCube UI is so brittle?
+                env_args = self.get_config("docker.env_args") or ""
+                env_args = " ".join([env_args, env_args_string]).strip()
+                cmd += f' -Pdocker.env_args="{env_args}"'
 
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
