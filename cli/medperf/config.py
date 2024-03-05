@@ -140,6 +140,7 @@ cube_metadata_filename = "mlcube-meta.yaml"
 log_file = "medperf.log"
 tarball_filename = "tmp.tar.gz"
 demo_dset_paths_file = "paths.yaml"
+mlcube_cache_file = ".cache_metadata.yaml"
 report_file = "report.yaml"
 metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"
@@ -191,7 +192,7 @@ inline_parameters = [
     "platform",
     "gpus",
     "cleanup",
-    "container_loglevel"
+    "container_loglevel",
 ]
 configurable_parameters = inline_parameters + [
     "server",
