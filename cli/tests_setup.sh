@@ -40,8 +40,12 @@ clean(){
   medperf profile delete testdata
 }
 checkFailed(){
-  if [ "$?" -ne "0" ]; then
-    if [ "$?" -eq 124 ]; then
+  EXITSTATUS="$?"
+  if [ -n "$2" ]; then
+    EXITSTATUS="1"
+  fi
+  if [ $EXITSTATUS -ne "0" ]; then
+    if [ $EXITSTATUS -eq 124 ]; then
       echo "Process timed out"
     fi
     echo $1
@@ -72,6 +76,7 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 # prep cubes
 PREP_MLCUBE="$ASSETS_URL/prep-sep/mlcube/mlcube.yaml"
 PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
+PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube_prep.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
@@ -93,8 +98,15 @@ MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/paramet
 METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 
+# FL cubes
+TRAIN_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube-cpu.yaml?v=2"
+TRAIN_PARAMS="https://storage.googleapis.com/medperf-storage/testfl/parameters-miccai.yaml"
+TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
+
 # test users credentials
 MODELOWNER="testmo@example.com"
 DATAOWNER="testdo@example.com"
 BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
+DATAOWNER2="testdo2@example.com"
+AGGOWNER="testao@example.com"
