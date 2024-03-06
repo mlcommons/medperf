@@ -136,6 +136,8 @@ echo "====================================="
 HOSTNAME=$(hostname -A | cut -d " " -f 1)
 medperf aggregator submit -n aggreg -a $HOSTNAME -p 50273
 checkFailed "aggregator submission step failed"
+medperf aggregator ls
+medperf aggregator ls | grep aggreg | tr -s ' ' | cut -d ' ' -f 1
 AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | cut -d ' ' -f 1)
 ##########################################################
 
