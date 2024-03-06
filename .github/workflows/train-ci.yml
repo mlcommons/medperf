@@ -18,7 +18,6 @@ jobs:
     - name: debug
       run: |
         docker run hasan7/testhostname:1.0.0 $(hostname --fqdn)
-        docker run hasan7/testhostname:1.0.0 $(hostname -A | cut -d " " -f 1)
 
     - name: Install dependencies
       working-directory: .
