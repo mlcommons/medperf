@@ -1,13 +1,12 @@
 #! /bin/bash
-while getopts s:d:c:ft: flag
-do
-    case "${flag}" in
-        s) SERVER_URL=${OPTARG};;
-        d) DIRECTORY=${OPTARG};;
-        c) CLEANUP="true";;
-        f) FRESH="true";;
-        t) TIMEOUT=${OPTARG};;
-    esac
+while getopts s:d:c:ft: flag; do
+  case "${flag}" in
+  s) SERVER_URL=${OPTARG} ;;
+  d) DIRECTORY=${OPTARG} ;;
+  c) CLEANUP="true" ;;
+  f) FRESH="true" ;;
+  t) TIMEOUT=${OPTARG} ;;
+  esac
 done
 
 SERVER_URL="${SERVER_URL:-https://localhost:8000}"
@@ -26,7 +25,7 @@ echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
 
 # frequently used
-clean(){
+clean() {
   echo "====================================="
   echo "Cleaning up medperf tmp files"
   echo "====================================="
@@ -38,8 +37,11 @@ clean(){
   medperf profile delete testbenchmark
   medperf profile delete testmodel
   medperf profile delete testdata
+  medperf profile delete testagg
+  medperf profile delete testdata1
+  medperf profile delete testdata2
 }
-checkFailed(){
+checkFailed() {
   EXITSTATUS="$?"
   if [ -n "$2" ]; then
     EXITSTATUS="1"
@@ -58,7 +60,6 @@ checkFailed(){
   fi
 }
 
-
 if ${FRESH}; then
   clean
 fi
@@ -76,7 +77,7 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 # prep cubes
 PREP_MLCUBE="$ASSETS_URL/prep-sep/mlcube/mlcube.yaml"
 PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
-PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube_prep.yaml"
+PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
@@ -99,8 +100,8 @@ METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 
 # FL cubes
-TRAIN_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube-cpu.yaml?v=2"
-TRAIN_PARAMS="https://storage.googleapis.com/medperf-storage/testfl/parameters-miccai.yaml"
+TRAIN_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube1.0.0.yaml"
+TRAIN_PARAMS="https://storage.googleapis.com/medperf-storage/testfl/parameters1.0.0.yaml"
 TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
 
 # test users credentials

@@ -5,7 +5,6 @@
 ################### Start Testing ########################
 ##########################################################
 
-
 ##########################################################
 echo "=========================================="
 echo "Creating test profiles for each user"
@@ -133,12 +132,10 @@ echo "\n"
 echo "====================================="
 echo "Running aggregator submission step"
 echo "====================================="
-HOSTNAME=$(hostname -A | cut -d " " -f 1)
-medperf aggregator submit -n aggreg -a $HOSTNAME -p 50273
+HOSTNAME_=$(hostname -A | cut -d " " -f 1)
+medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273
 checkFailed "aggregator submission step failed"
-medperf aggregator ls
-medperf aggregator ls | grep aggreg | tr -s ' ' | cut -d ' ' -f 1
-AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | cut -d ' ' -f 1)
+AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -169,7 +166,7 @@ echo "Running data1 preparation step"
 echo "====================================="
 medperf dataset create -p $PREP_UID -d $DIRECTORY/col1 -l $DIRECTORY/col1 --name="col1" --description="col1data" --location="col1location"
 checkFailed "Data1 preparation step failed"
-DSET_1_GENUID=$(medperf dataset ls | grep col1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_1_GENUID=$(medperf dataset ls | grep col1 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -180,7 +177,7 @@ echo "Running data1 submission step"
 echo "====================================="
 medperf dataset submit -d $DSET_1_GENUID -y
 checkFailed "Data1 submission step failed"
-DSET_1_UID=$(medperf dataset ls | grep col1 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_1_UID=$(medperf dataset ls | grep col1 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -189,7 +186,7 @@ echo "\n"
 echo "====================================="
 echo "Running data1 association step"
 echo "====================================="
-medperf dataset associate -d $DSET_1_UID -t $TRAINING_UID -y
+medperf training associate_dataset -d $DSET_1_UID -t $TRAINING_UID -y
 checkFailed "Data1 association step failed"
 ##########################################################
 
@@ -211,7 +208,7 @@ echo "Running data2 preparation step"
 echo "====================================="
 medperf dataset create -p $PREP_UID -d $DIRECTORY/col2 -l $DIRECTORY/col2 --name="col2" --description="col2data" --location="col2location"
 checkFailed "Data2 preparation step failed"
-DSET_2_GENUID=$(medperf dataset ls | grep col2 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_2_GENUID=$(medperf dataset ls | grep col2 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -222,7 +219,7 @@ echo "Running data2 submission step"
 echo "====================================="
 medperf dataset submit -d $DSET_2_GENUID -y
 checkFailed "Data2 submission step failed"
-DSET_2_UID=$(medperf dataset ls | grep col2 | tr -s ' ' | cut -d ' ' -f 1)
+DSET_2_UID=$(medperf dataset ls | grep col2 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
@@ -231,7 +228,7 @@ echo "\n"
 echo "====================================="
 echo "Running data2 association step"
 echo "====================================="
-medperf dataset associate -d $DSET_2_UID -t $TRAINING_UID -y
+medperf training associate_dataset -d $DSET_2_UID -t $TRAINING_UID -y
 checkFailed "Data2 association step failed"
 ##########################################################
 
@@ -251,7 +248,7 @@ echo "\n"
 echo "====================================="
 echo "Approve aggregator association"
 echo "====================================="
-medperf association approve -t $TRAINING_UID -a $AGG_UID
+medperf training approve_association -t $TRAINING_UID -a $AGG_UID
 checkFailed "agg association approval failed"
 ##########################################################
 
@@ -261,7 +258,7 @@ echo "\n"
 echo "====================================="
 echo "Approve data1 association"
 echo "====================================="
-medperf association approve -t $TRAINING_UID -d $DSET_1_UID
+medperf training approve_association -t $TRAINING_UID -d $DSET_1_UID
 checkFailed "data1 association approval failed"
 ##########################################################
 
@@ -271,7 +268,7 @@ echo "\n"
 echo "====================================="
 echo "Approve data2 association"
 echo "====================================="
-medperf association approve -t $TRAINING_UID -d $DSET_2_UID
+medperf training approve_association -t $TRAINING_UID -d $DSET_2_UID
 checkFailed "data2 association approval failed"
 ##########################################################
 
@@ -302,15 +299,14 @@ echo "====================================="
 echo "Starting aggregator"
 echo "====================================="
 RUNCOMMAND="medperf aggregator start -a $AGG_UID -t $TRAINING_UID"
-nohup $RUNCOMMAND < /dev/null &>agg.log &
+nohup $RUNCOMMAND </dev/null &>agg.log &
 
 # sleep so that the mlcube is run before we change profiles
 sleep 7
 
-AGG_PID=$(ps -ef | grep $RUNCOMMAND | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+AGG_PID=$(ps -ef | grep "$RUNCOMMAND" | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 # Check if the command is still running.
-if ! kill -0 "$AGG_PID" &> /dev/null;
-then
+if ! kill -0 "$AGG_PID" &>/dev/null; then
   checkFailed "agg doesn't seem to be running" 1
 fi
 ##########################################################
@@ -332,15 +328,14 @@ echo "====================================="
 echo "Starting training with data1"
 echo "====================================="
 RUNCOMMAND="medperf training run -d $DSET_1_UID -t $TRAINING_UID"
-nohup $RUNCOMMAND < /dev/null &>col1.log &
+nohup $RUNCOMMAND </dev/null &>col1.log &
 
 # sleep so that the mlcube is run before we change profiles
 sleep 7
 
-DATA1_PID=$(ps -ef | grep $RUNCOMMAND | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+DATA1_PID=$(ps -ef | grep "$RUNCOMMAND" | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 # Check if the command is still running.
-if ! kill -0 "$DATA1_PID" &> /dev/null;
-then
+if ! kill -0 "$DATA1_PID" &>/dev/null; then
   checkFailed "data1 training doesn't seem to be running" 1
 fi
 ##########################################################
@@ -372,10 +367,10 @@ echo "====================================="
 echo "Waiting for other prcocesses to exit successfully"
 echo "====================================="
 # NOTE: on systems with small process ID table or very short-lived processes,
-#       there is a probability that PIDs are reused and hence the 
+#       there is a probability that PIDs are reused and hence the
 #       code below may be inaccurate. Perhaps grep processes according to command
 #       string is the most efficient way to reduce that probability further.
-# Followup NOTE: not sure, but the "wait" command may fail if it is waiting for 
+# Followup NOTE: not sure, but the "wait" command may fail if it is waiting for
 #                a process that is not a child of the current shell
 wait $DATA1_PID
 checkFailed "data1 training didn't exit successfully"
