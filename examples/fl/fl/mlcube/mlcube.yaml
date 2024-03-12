@@ -4,16 +4,15 @@ authors:
   - { name: MLCommons Medical Working Group }
 
 platform:
-  accelerator_count: 1
+  accelerator_count: 0
 
 docker:
   # Image name
-  image: hasan7/fltest:0.0.0-gpu
+  image: mlcommons/medperf-fl:1.0.0
   # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
   build_context: "../project"
   # Docker file name within docker build context, default is `Dockerfile`.
-  build_file: "Dockerfile-GPU"
-  gpu_args: --gpus all
+  build_file: "Dockerfile"
 
 tasks:
   train:
