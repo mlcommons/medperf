@@ -92,7 +92,7 @@ class TrainingExecution:
         env_dict = {"COLLABORATOR_CN": dataset_cn}
 
         # just for now create some output folders (TODO)
-        out_logs = os.path.join(self.training_exp.path, "data_logs")
+        out_logs = os.path.join(self.training_exp.path, "data_logs", dataset_cn)
         os.makedirs(out_logs, exist_ok=True)
 
         params = {

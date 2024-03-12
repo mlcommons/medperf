@@ -130,8 +130,6 @@ root_folders = [
     "logs_folder",
     "tmp_folder",
     "demo_datasets_folder",
-    "training_folder",
-    "aggregators_folder",
 ]
 server_folders = [
     "benchmarks_folder",
@@ -141,6 +139,8 @@ server_folders = [
     "results_folder",
     "predictions_folder",
     "tests_folder",
+    "training_folder",
+    "aggregators_folder",
 ]
 
 # MedPerf filenames conventions
