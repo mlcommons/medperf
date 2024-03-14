@@ -168,6 +168,7 @@ mlcube_inspect_timeout = None
 
 # Other
 loglevel = "debug"
+logs_backup_count = 100
 cleanup = True
 ui = "CLI"
 
