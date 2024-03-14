@@ -229,7 +229,7 @@ class _MLCubeOutputFilter:
             r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
         )
         # Clear log lines from color / style symbols before matching with regexp
-        self.ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
+        self.ansi_escape_pattern = re.compile(r"\x1b\[[0-9;]*[mGK]")
         self.proc_pid = str(proc_pid)
 
     def check_line(self, line: str) -> bool:
@@ -240,15 +240,17 @@ class _MLCubeOutputFilter:
             true if line should be filtered out (==saved to debug file only),
             false if line should be printed to user also
         """
-        match = self.log_pattern.match(self.ansi_escape_pattern.sub('', line))
+        match = self.log_pattern.match(self.ansi_escape_pattern.sub("", line))
         if match:
             line_pid, matched_log_level_str, content = match.groups()
             matched_log_level = logging.getLevelName(matched_log_level_str)
 
             # if line matches conditions, it is just logged to debug; else, shown to user
-            return (line_pid == self.proc_pid  # hide only `mlcube` framework logs
-                    and isinstance(matched_log_level, int)
-                    and matched_log_level < logging.INFO)  # hide only debug logs
+            return (
+                line_pid == self.proc_pid  # hide only `mlcube` framework logs
+                and isinstance(matched_log_level, int)
+                and matched_log_level < logging.INFO
+            )  # hide only debug logs
         return False
 
 
@@ -344,6 +346,7 @@ def log_storage():
         folder = getattr(config, folder)
         logging.debug(list_files(folder))
 
+
 def get_system_information():
     # Get basic system information
     system_info = {
@@ -351,9 +354,10 @@ def get_system_information():
         "Hostname": socket.gethostname(),
         "Processor": platform.processor(),
         "System Version": platform.version(),
-        "Python Version": platform.python_version()
+        "Python Version": platform.python_version(),
     }
     return system_info
+
 
 def get_memory_usage():
     # Get memory usage
@@ -362,29 +366,34 @@ def get_memory_usage():
         "Total Memory": memory.total,
         "Available Memory": memory.available,
         "Used Memory": memory.used,
-        "Memory Usage Percentage": memory.percent
+        "Memory Usage Percentage": memory.percent,
     }
+
 
 def get_disk_usage():
     # Get disk usage
-    disk_usage = psutil.disk_usage('/')
+    disk_usage = psutil.disk_usage("/")
     return {
         "Total Disk Space": disk_usage.total,
         "Used Disk Space": disk_usage.used,
         "Free Disk Space": disk_usage.free,
-        "Disk Usage Percentage": disk_usage.percent
+        "Disk Usage Percentage": disk_usage.percent,
     }
+
 
 def get_user_information():
     # Get user information
     username = getpass.getuser()
     is_sudoers = "sudo" in [g.gr_name for g in grp.getgrall() if username in g.gr_mem]
-    is_docker_group = "docker" in [g.gr_name for g in grp.getgrall() if username in g.gr_mem]
+    is_docker_group = "docker" in [
+        g.gr_name for g in grp.getgrall() if username in g.gr_mem
+    ]
     return {
         "Username": username,
         "Is in Sudoers Group": is_sudoers,
-        "Is in Docker Group": is_docker_group
+        "Is in Docker Group": is_docker_group,
     }
+
 
 def get_docker_information():
     try:
@@ -396,13 +405,11 @@ def get_docker_information():
             "Docker Installed": True,
             "Executable path": exec_path,
             "information": info,
-            "Version": version
+            "Version": version,
         }
     except Exception as e:
-        return {
-            "Docker Installed": False,
-            "Error": str(e)
-        }
+        return {"Docker Installed": False, "Error": str(e)}
+
 
 def get_singularity_information():
     try:
@@ -412,9 +419,13 @@ def get_singularity_information():
         conf_path = "/usr/local/etc/singularity/singularity.conf"
         with open(conf_path, "r") as f:
             conf = f.readlines()
-        conf = [line.strip() for line in conf if not line.startswith("#") and len(line.strip())]
-        config_dict = {}
+        conf_content = []
         for line in conf:
+            if line.startswith("#") or len(line.strip()):
+                continue
+            conf_content.append(line.strip)
+        config_dict = {}
+        for line in conf_content:
             key, value = line.split("=")
             key = key.strip().lower()
             value = value.strip()
@@ -424,13 +435,11 @@ def get_singularity_information():
         return {
             "Singularity installed": True,
             "Executable path": exec_path,
-            "Configuration": config_dict
+            "Configuration": config_dict,
         }
     except Exception as e:
-        return {
-            "Singularity installed": False,
-            "Error": str(e)
-        }
+        return {"Singularity installed": False, "Error": str(e)}
+
 
 def get_configuration_variables():
     config_vars = vars(config)
@@ -441,6 +450,7 @@ def get_configuration_variables():
         config_dict[item] = config_vars[item]
     config_dict = filter_var_dict_for_yaml(config_dict)
     return config_dict
+
 
 def filter_var_dict_for_yaml(unfiltered_dict):
     valid_types = (str, dict, list, int, float)
@@ -454,14 +464,15 @@ def filter_var_dict_for_yaml(unfiltered_dict):
         if isinstance(value, dict):
             value = filter_var_dict_for_yaml(value)
         filtered_dict[key] = value
-    
+
     return filtered_dict
+
 
 def get_storage_contents():
     storage_paths = config.storage
     storage_paths["credentials_folder"] = {
         "base": os.path.dirname(config.creds_folder),
-        "name": os.path.basename(config.creds_folder)
+        "name": os.path.basename(config.creds_folder),
     }
     ignore_paths = {"datasets_folder", "predictions_folder", "results_folder"}
     contents = {}
@@ -472,11 +483,7 @@ def get_storage_contents():
             continue
         full_path = os.path.join(path["base"], path["name"])
         p = subprocess.Popen(
-            [
-                "ls",
-                "-lR",
-                full_path
-            ],
+            ["ls", "-lR", full_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -495,6 +502,7 @@ def get_installed_packages():
         installed_packages[package.key] = package.version
     return installed_packages
 
+
 def get_python_environment_information():
     environment_info = {
         "Operating System": platform.system(),
@@ -510,6 +518,7 @@ def get_python_environment_information():
         "Installed Modules": get_installed_packages(),
     }
     return environment_info
+
 
 def get_gpu_information():
     try:
@@ -530,7 +539,7 @@ def get_gpu_information():
             raise ExecutionError("nvidia-smi not installed/available")
         gpus_data = [row for row in csv.DictReader(output.split("\n"))]
         gpu_info["GPU(s)"] = gpus_data
-        
+
         # Get CUDA version
         p = subprocess.Popen(
             ["nvidia-smi", "--version"],
@@ -545,10 +554,11 @@ def get_gpu_information():
         versions = [out.split(":") for out in output if len(out)]
         for key, value in versions:
             gpu_info[key.strip()] = value.strip()
-        
+
         return gpu_info
     except (subprocess.CalledProcessError, ExecutionError, FileNotFoundError) as e:
         return {"Error": str(e)}
+
 
 def log_machine_details():
     system_info = {}
@@ -566,6 +576,7 @@ def log_machine_details():
     debug_dict = {"Machine Details": system_info}
 
     logging.info(yaml.dump(debug_dict, default_flow_style=False))
+
 
 def sanitize_json(data: dict) -> dict:
     """Makes sure the input data is JSON compliant.
@@ -661,17 +672,17 @@ def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
     repo = Repo(config.BASE_DIR)
     if repo.bare:
-        logging.debug('Repo is bare')
+        logging.debug("Repo is bare")
         return
 
-    logging.debug(f'Current git commit: {repo.head.commit.hexsha}')
+    logging.debug(f"Current git commit: {repo.head.commit.hexsha}")
 
     try:
         for remote in repo.remotes:
             remote.fetch()
 
         if repo.head.is_detached:
-            logging.debug('Repo is in detached state')
+            logging.debug("Repo is in detached state")
             return
 
         current_branch = repo.active_branch
@@ -681,14 +692,20 @@ def check_for_updates() -> None:
             logging.debug("Current branch does not track a remote branch.")
             return
         if current_branch.commit.hexsha == tracking_branch.commit.hexsha:
-            logging.debug('No git branch updates.')
+            logging.debug("No git branch updates.")
             return
 
-        logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
-        config.ui.print_warning('MedPerf client updates found. Please, update your MedPerf installation.')
+        logging.debug(
+            f"Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}"
+        )
+        config.ui.print_warning(
+            "MedPerf client updates found. Please, update your MedPerf installation."
+        )
     except GitCommandError as e:
-        logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key'
-                      'or repo is in detached / non-tracked state?')
+        logging.debug(
+            "Exception raised during updates check. Maybe user checked out repo with git@ and private key"
+            " or repo is in detached / non-tracked state?"
+        )
         logging.debug(e)
 
 
@@ -709,7 +726,9 @@ class spawn_and_kill:
         os.killpg(self.pid, signal.SIGINT)
 
     def __enter__(self):
-        self.proc = self.spawn(self.cmd, timeout=self.timeout, *self._args, **self._kwargs)
+        self.proc = self.spawn(
+            self.cmd, timeout=self.timeout, *self._args, **self._kwargs
+        )
         self.pid = self.proc.pid
         return self
 
@@ -720,7 +739,7 @@ class spawn_and_kill:
             # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
             # - any other medperf exception like OOM or bug
             # - pexpect.TIMEOUT
-            logging.info(f'Killing ancestor processes because of exception: {exc_val=}')
+            logging.info(f"Killing ancestor processes because of exception: {exc_val=}")
             self.killpg()
 
         self.proc.close()
