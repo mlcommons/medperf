@@ -469,7 +469,7 @@ def filter_var_dict_for_yaml(unfiltered_dict):
 
 
 def get_storage_contents():
-    storage_paths = config.storage
+    storage_paths = config.storage.copy()
     storage_paths["credentials_folder"] = {
         "base": os.path.dirname(config.creds_folder),
         "name": os.path.basename(config.creds_folder),
