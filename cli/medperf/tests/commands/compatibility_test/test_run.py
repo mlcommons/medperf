@@ -1,6 +1,7 @@
 from unittest.mock import ANY, call
 from medperf.exceptions import InvalidArgumentError
 from medperf.tests.mocks.report import TestTestReport
+from medperf.tests.mocks.cube import TestCube
 import pytest
 
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
@@ -181,7 +182,8 @@ class TestPrepareCubes:
 
         overriding_uids = [self.new_prep_uid, self.new_model_uid, self.new_eval_uid]
         self.prepare_spy = mocker.patch(
-            PATCH_RUN.format("prepare_cube"), side_effect=overriding_uids,
+            PATCH_RUN.format("prepare_cube"),
+            side_effect=overriding_uids,
         )
 
         self.exec_instance = CompatibilityTestExecution(
@@ -249,10 +251,12 @@ class TestPrepareDataset:
     @pytest.fixture(autouse=True)
     def setup(self, mocker):
         self.exec_instance = CompatibilityTestExecution()
+        mock_cube = TestCube(is_valid=True)
         mocker.patch(PATCH_RUN.format("Dataset.get"))
+        mocker.patch("medperf.entities.cube.Cube.get", return_value=mock_cube)
         self.new_data_uid = "new prepared data uid"
         self.prepare_spy = mocker.patch(
-            PATCH_RUN.format("DataPreparation.run"), return_value=self.new_data_uid
+            PATCH_RUN.format("create_test_dataset"), return_value=self.new_data_uid
         )
 
     def test_data_preparation_is_not_run_when_prepared_data_is_provided(self):
@@ -283,26 +287,21 @@ class TestPrepareDataset:
         # Assert
         get_spy.assert_called_once_with(data_uid, local_only=offline)
 
-    def test_data_is_prepared_using_provided_datapath_and_labels(self):
+    def test_data_is_prepared_using_provided_datapath_and_labels(self, fs):
         # Arrange
         data_path = "path/to/data"
         labels_path = "path/to/labels"
         self.exec_instance.data_path = data_path
         self.exec_instance.labels_path = labels_path
         self.exec_instance.data_source = "path"
+        self.exec_instance.data_prep = 1
 
         # Act
         self.exec_instance.prepare_dataset()
 
         # Assert
         self.prepare_spy.assert_called_once_with(
-            None,
-            ANY,
-            data_path,
-            labels_path,
-            run_test=True,
-            name="demo_data",
-            location="local",
+            data_path, labels_path, None, ANY, False
         )
         assert self.exec_instance.data_uid == self.new_data_uid
 
@@ -313,12 +312,13 @@ class TestPrepareDataset:
         demo_hash = "demo_hash"
         data_path = "path/to/prepared demo data"
         labels_path = "path/to/prepared demo labels"
+        metadata_path = "path/to/metadata"
         self.exec_instance.demo_dataset_url = demo_url
         self.exec_instance.demo_dataset_hash = demo_hash
         self.exec_instance.data_source = data_source
         download_demo_spy = mocker.patch(
             PATCH_RUN.format("download_demo_data"),
-            return_value=[data_path, labels_path],
+            return_value=[data_path, labels_path, metadata_path],
         )
 
         # Act
@@ -326,13 +326,7 @@ class TestPrepareDataset:
 
         # Assert
         self.prepare_spy.assert_called_once_with(
-            None,
-            ANY,
-            data_path,
-            labels_path,
-            run_test=True,
-            name="demo_data",
-            location="local",
+            data_path, labels_path, metadata_path, ANY, False
         )
         download_demo_spy.assert_called_once_with(demo_url, demo_hash)
         assert self.exec_instance.data_uid == self.new_data_uid

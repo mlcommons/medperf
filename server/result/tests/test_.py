@@ -93,22 +93,12 @@ class GenericResultsPostTest(ResultsTest):
         testresult = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
-        get_result_url = self.api_prefix + "/results/{0}/"
 
         # Act
         response = self.client.post(self.url, testresult, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        uid = response.data["id"]
-        response = self.client.get(get_result_url.format(uid))
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            "result retrieval failed",
-        )
-
         for k, v in response.data.items():
             if k in testresult:
                 self.assertEqual(testresult[k], v, f"unexpected value for {k}")

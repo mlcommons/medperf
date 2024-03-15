@@ -93,6 +93,10 @@ class BenchmarkExecution:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
 
+        if self.dataset.state != "OPERATION":
+            msg = "The provided dataset is not operational."
+            raise InvalidArgumentError(msg)
+
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             raise InvalidArgumentError(msg)

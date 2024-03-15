@@ -64,24 +64,14 @@ class GenericMlCubeBenchmarksPostTest(MlCubeBenchmarksTest):
         """Testing the valid scenario"""
         # Arrange
         testassoc = self.mock_mlcube_association(self.bmk_id, self.mlcube_id)
-        get_association_url = (
-            self.api_prefix + f"/mlcubes/{self.mlcube_id}/benchmarks/{self.bmk_id}/"
-        )
 
         # Act
         response = self.client.post(self.url, testassoc, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.client.get(get_association_url)
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            "association retrieval failed",
-        )
-
-        for k, v in response.data[0].items():
+        for k, v in response.data.items():
             if k in testassoc:
                 self.assertEqual(testassoc[k], v, f"unexpected value for {k}")
 

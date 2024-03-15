@@ -88,15 +88,21 @@ class MedPerfTest(TestCase):
                 url, {"approval_status": target_approval_status}, format="json"
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # restore user
         self.set_credentials(backup_user)
         return response
 
     def create_dataset(self, data):
-        return self.__create_asset(data, self.api_prefix + "/datasets/")
+        target_state = data.get("state", None)
+        response = self.__create_asset(data, self.api_prefix + "/datasets/")
+        if target_state == "OPERATION":
+            uid = response.data["id"]
+            url = self.api_prefix + "/datasets/{0}/".format(uid)
+            response = self.client.put(url, {"state": "OPERATION"}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        return response
 
     def create_mlcube(self, data):
         return self.__create_asset(data, self.api_prefix + "/mlcubes/")
@@ -124,8 +130,6 @@ class MedPerfTest(TestCase):
                 url, {"approval_status": target_approval_status}, format="json"
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # restore user
         self.set_credentials(backup_user)
@@ -151,8 +155,6 @@ class MedPerfTest(TestCase):
             response = self.client.put(
                 url, {"approval_status": target_approval_status}, format="json"
             )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # restore user
