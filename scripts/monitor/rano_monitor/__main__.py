@@ -1,28 +1,26 @@
-"""
-Code browser example.
-
-Run with:
-
-    python code_browser.py PATH
-"""
-
 import os
-import typer
 import tarfile
+
+import typer
+from rano_monitor.constants import (
+    DSET_HELP,
+    DEFAULT_STAGES_PATH,
+    STAGES_HELP,
+    DSET_LOC_HELP,
+    OUT_HELP
+)
+from rano_monitor.dataset_browser import DatasetBrowser
+from rano_monitor.handlers import InvalidHandler
+from rano_monitor.handlers import PromptHandler
+from rano_monitor.handlers import ReportHandler, ReportState
+from rano_monitor.handlers import ReviewedHandler
+from rano_monitor.handlers import TarballReviewedHandler
+from rano_monitor.tarball_browser import TarballBrowser
 from typer import Option
 from watchdog.observers import Observer
 
-
-from rano_monitor.constants import *
-from rano_monitor.dataset_browser import DatasetBrowser
-from rano_monitor.tarball_browser import TarballBrowser
-from rano_monitor.handlers.report_handler import ReportHandler, ReportState
-from rano_monitor.handlers.prompt_handler import PromptHandler
-from rano_monitor.handlers.reviewed_handler import ReviewedHandler
-from rano_monitor.handlers.invalid_handler import InvalidHandler
-from rano_monitor.handlers.tarball_reviewed_watchdog import TarballReviewedHandler
-
 app = typer.Typer()
+
 
 def run_dset_app(dset_path, stages_path, output_path):
     report_path = os.path.join(dset_path, "report.yaml")
@@ -31,7 +29,8 @@ def run_dset_app(dset_path, stages_path, output_path):
 
     if not os.path.exists(report_path):
         print(
-            "The report file was not found. This probably means it has not yet been created."
+            "The report file was not found. "
+            "This probably means it has not yet been created."
         )
         print("Please wait a while before running this tool again")
         exit()
@@ -44,7 +43,15 @@ def run_dset_app(dset_path, stages_path, output_path):
     reviewed_watchdog = ReviewedHandler(dset_data_path, t_app)
     invalid_watchdog = InvalidHandler(invalid_path, t_app)
 
-    t_app.set_vars(dset_data_path, stages_path, reviewed_watchdog, output_path, invalid_path, invalid_watchdog, prompt_watchdog)
+    t_app.set_vars(
+        dset_data_path,
+        stages_path,
+        reviewed_watchdog,
+        output_path,
+        invalid_path,
+        invalid_watchdog,
+        prompt_watchdog,
+    )
 
     observer = Observer()
     observer.schedule(report_watchdog, dset_path)
@@ -56,6 +63,7 @@ def run_dset_app(dset_path, stages_path, output_path):
 
     observer.stop()
 
+
 def run_tarball_app(tarball_path):
     folder_name = f".{os.path.basename(tarball_path).split('.')[0]}"
     contents_path = os.path.join(os.path.dirname(tarball_path), folder_name)
@@ -63,10 +71,9 @@ def run_tarball_app(tarball_path):
         with tarfile.open(tarball_path) as tar:
             tar.extractall(path=contents_path)
 
-
     t_app = TarballBrowser()
 
-    contents_path = os.path.join(contents_path, f"review_cases")
+    contents_path = os.path.join(contents_path, "review_cases")
     reviewed_watchdog = TarballReviewedHandler(contents_path, t_app)
 
     t_app.set_vars(contents_path)
@@ -79,12 +86,23 @@ def run_tarball_app(tarball_path):
 
     observer.stop()
 
+
 @app.command()
 def main(
     dataset_uid: str = Option(None, "-d", "--dataset", help=DSET_HELP),
-    stages_path: str = Option(DEFAULT_STAGES_PATH, "-s", "--stages", help=STAGES_HELP),
-    dset_path: str = Option(None, "-p", "--path", help="Location of the dataset. If not provided defaults to Medperf storage search"),
-    output_path: str = Option(None, "-o", "--out", help="CSV file to store report in"),
+    stages_path: str = Option(
+        DEFAULT_STAGES_PATH,
+        "-s",
+        "--stages",
+        help=STAGES_HELP
+    ),
+    dset_path: str = Option(
+        None,
+        "-p",
+        "--path",
+        help=DSET_LOC_HELP,
+    ),
+    output_path: str = Option(None, "-o", "--out", help=OUT_HELP),
 ):
     if dataset_uid.endswith(".tar.gz"):
         # TODO: implement tarball_app
@@ -102,11 +120,11 @@ def main(
 
     if not os.path.exists(dset_path):
         print(
-            "The provided dataset could not be found. Please ensure the passed dataset UID/path is correct"
+            "The provided dataset could not be found. "
+            "Please ensure the passed dataset UID/path is correct"
         )
 
     run_dset_app(dset_path, stages_path, output_path)
-
 
 
 if __name__ == "__main__":

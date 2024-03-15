@@ -1,6 +1,7 @@
 import os
 from watchdog.events import FileSystemEventHandler
 
+
 class InvalidHandler(FileSystemEventHandler):
     def __init__(self, invalid_path: str, textual_app):
         self.invalid_path = invalid_path
@@ -18,4 +19,3 @@ class InvalidHandler(FileSystemEventHandler):
         with open(self.invalid_path, "r") as f:
             invalid_subjects = set([id.strip() for id in f.readlines()])
         self.app.update_invalid(invalid_subjects)
-

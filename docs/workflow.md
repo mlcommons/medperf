@@ -32,7 +32,7 @@ The benchmark committee recruits Data Providers and Model Owners either by invit
 
 ## Step 3. Register Dataset
 
-Data Providers that want to be part of the benchmark can [prepare their own datasets, register them, and associate them](getting_started/data_owner_demo.md) with the benchmark. A dataset will be prepared using the benchmark's Data Preparator MLCube. Then, the prepared dataset's **metadata** is registered within the MedPerf server.
+Data Providers that want to be part of the benchmark can [register their own datasets, prepare them, and associate them](getting_started/data_owner_demo.md) with the benchmark. A dataset will be prepared using the benchmark's Data Preparator MLCube and the dataset's **metadata** is registered within the MedPerf server.
 
 | ![flow_preparation.gif](images/flow_preparation_association_folders.PNG) | 
 |:--:| 
@@ -51,9 +51,9 @@ Once a benchmark is submitted by the Benchmark Committee, any user can [submit t
 
 ## Step 5. Execute Benchmark
 
-The Benchmark Committee may notify Data Providers that models are available for benchmarking. Data Providers can then [run the benchmark models](getting_started/data_owner_demo.md#4-execute-the-benchmark) locally on their data.
+The Benchmark Committee may notify Data Providers that models are available for benchmarking. Data Providers can then [run the benchmark models](getting_started/data_owner_demo.md#5-execute-the-benchmark) locally on their data.
 
-This procedure retrieves the model MLCubes associated with the benchmark and runs them on the indicated prepared dataset to generate predictions. The Metrics MLCube of the benchmark is then retrieved to evaluate the predictions. Once the evaluation results are generated, the data provider can [submit them](getting_started/data_owner_demo.md#5-submit-a-result) to the platform.
+This procedure retrieves the model MLCubes associated with the benchmark and runs them on the indicated prepared dataset to generate predictions. The Metrics MLCube of the benchmark is then retrieved to evaluate the predictions. Once the evaluation results are generated, the data provider can [submit them](getting_started/data_owner_demo.md#6-submit-a-result) to the platform.
 
 ![](./images/execution_flow_folders.PNG)
 

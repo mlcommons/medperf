@@ -1,8 +1,8 @@
-from textual.widgets import ListView, ListItem, Label
 import pandas as pd
-
+from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages.report_updated import ReportUpdated
-from rano_monitor.messages.invalid_subject_updated import InvalidSubjectsUpdated
+from textual.widgets import Label, ListItem, ListView
+
 
 class SubjectListView(ListView):
     report = {}
@@ -16,7 +16,10 @@ class SubjectListView(ListView):
         if len(self.report) > 0:
             self.update_list()
 
-    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
+    def on_invalid_subjects_updated(
+            self,
+            message: InvalidSubjectsUpdated
+    ) -> None:
         self.invalid_subjects = message.invalid_subjects
         self.update_list()
 
@@ -34,11 +37,12 @@ class SubjectListView(ListView):
                 widget = ListItem(Label(f"{subject}"))
             else:
                 status = report_df.loc[subject]["status_name"]
+                status = status.capitalize().replace("_", " ")
                 if subject in self.invalid_subjects:
                     status = "Invalidated"
                 widget = ListItem(
                     Label(subject),
-                    Label(status.capitalize().replace("_", " "), classes="subtitle")
+                    Label(status, classes="subtitle"),
                 )
             if subject in self.highlight:
                 widget.set_class(True, "highlight")

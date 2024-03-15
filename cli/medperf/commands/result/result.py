@@ -30,11 +30,12 @@ def create(
         help="Ignore failing model cubes, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute even if results already exist",
+        False,
+        "--no-cache",
+        help="Execute even if results already exist",
     ),
 ):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model
-    """
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
@@ -105,6 +106,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more results
-    """
+    """Displays the information of one or more results"""
     EntityView.run(entity_id, Result, format, local, mine, output, benchmark=benchmark)

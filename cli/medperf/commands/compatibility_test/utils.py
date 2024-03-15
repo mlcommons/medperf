@@ -113,7 +113,7 @@ def create_test_dataset(
     data_prep_mlcube,
     skip_data_preparation_step: bool,
 ):
-    # TODO: make this function better?
+    # TODO: refactor this and write tests
 
     # create dataset object
     data_creation = DataCreation(

@@ -1,25 +1,26 @@
 import os
-import yaml
-import pandas as pd
 import webbrowser
+
+import pandas as pd
+import yaml
+from rano_monitor.messages import InvalidSubjectsUpdated
+from rano_monitor.messages import ReportUpdated
+from rano_monitor.utils import generate_full_report
+from rano_monitor.widgets.subject_details import SubjectDetails
+from rano_monitor.widgets.subject_list_view import SubjectListView
+from rano_monitor.widgets.summary import Summary
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal
-from textual.reactive import var, reactive
+from textual.reactive import reactive, var
 from textual.widgets import (
-    ListView,
+    Button,
     Footer,
     Header,
+    ListView,
     Static,
-    Button,
 )
 
-from rano_monitor.widgets.summary import Summary
-from rano_monitor.widgets.subject_list_view import SubjectListView
-from rano_monitor.widgets.subject_details import SubjectDetails
-from rano_monitor.messages.invalid_subject_updated import InvalidSubjectsUpdated
-from rano_monitor.utils import generate_full_report
-from rano_monitor.messages.report_updated import ReportUpdated
 
 class DatasetBrowser(App):
     """Textual dataset browser app."""
@@ -37,7 +38,16 @@ class DatasetBrowser(App):
     invalid_subjects = reactive(set())
     prompt = ""
 
-    def set_vars(self, dset_data_path, stages_path, reviewed_watchdog, output_path, invalid_path, invalid_watchdog, prompt_watchdog):
+    def set_vars(
+        self,
+        dset_data_path,
+        stages_path,
+        reviewed_watchdog,
+        output_path,
+        invalid_path,
+        invalid_watchdog,
+        prompt_watchdog,
+    ):
         self.dset_data_path = dset_data_path
         self.stages_path = stages_path
         self.reviewed_watchdog = reviewed_watchdog
@@ -67,7 +77,10 @@ class DatasetBrowser(App):
                     classes="prompt-btn",
                 ),
                 Button(
-                    "[N] No", id="confirm-deny", variant="error", classes="prompt-btn"
+                    "[N] No",
+                    id="confirm-deny",
+                    variant="error",
+                    classes="prompt-btn",
                 ),
                 id="confirm-buttons",
             )
@@ -195,7 +208,7 @@ class DatasetBrowser(App):
         try:
             container = self.query_one("#confirm-prompt", Container)
             container.display = False
-        except:
+        except Exception:
             return
 
     def action_open_url(self, url):

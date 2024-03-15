@@ -1,10 +1,24 @@
 import os
 
-DSET_HELP = "The Dataset to monitor. If and ID is passed, medperf will be used to identify the dataset. If a path is passed, it will look at that path instead"
+filepath = os.path.dirname(__file__)
+
+DSET_HELP = (
+    "The Dataset to monitor. If and ID is passed, "
+    + "medperf will be used to identify the dataset. "
+    + "If a path is passed, it will look at that path instead"
+)
+DSET_LOC_HELP = (
+    "Location of the dataset. "
+    + "If not provided defaults to Medperf storage search"
+)
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
-STAGES_HELP = "Path to stages YAML file containing documentation about the Data Preparation stages"
+STAGES_HELP = (
+    "Path to stages YAML file containing "
+    + "documentation about the Data Preparation stages"
+)
+OUT_HELP = "CSV file to store report in"
 DEFAULT_SEGMENTATION = "tumorMask_model_0.nii.gz"
-DEFAULT_STAGES_PATH = os.path.join(os.path.dirname(__file__), "assets/stages.yaml")
+DEFAULT_STAGES_PATH = os.path.join(filepath, "assets/stages.yaml")
 BRAINMASK = "brainMask_fused.nii.gz"
 BRAINMASK_BAK = ".brainMask_fused.nii.gz"
 REVIEW_FILENAME = "review_cases.tar.gz"

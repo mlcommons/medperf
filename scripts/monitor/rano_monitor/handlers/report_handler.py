@@ -1,6 +1,7 @@
 import yaml
 from watchdog.events import FileSystemEventHandler
 
+
 class ReportState:
     def __init__(self, report_path: str, app):
         self.report_path = report_path
@@ -26,4 +27,3 @@ class ReportHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.src_path == self.report_state.report_path:
             self.report_state.update()
-

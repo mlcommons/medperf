@@ -1,18 +1,18 @@
 import pandas as pd
+from rano_monitor.constants import REVIEW_FILENAME
+from rano_monitor.handlers.reviewed_handler import ReviewedHandler
+from rano_monitor.messages import InvalidSubjectsUpdated
+from rano_monitor.messages import ReportUpdated
+from rano_monitor.utils import package_review_cases
 from textual.app import ComposeResult
 from textual.containers import Center
 from textual.widgets import (
-    Static,
     Button,
     Label,
     ProgressBar,
+    Static,
 )
 
-from rano_monitor.constants import REVIEW_FILENAME
-from rano_monitor.utils import package_review_cases
-from rano_monitor.handlers.reviewed_handler import ReviewedHandler
-from rano_monitor.messages.report_updated import ReportUpdated
-from rano_monitor.messages.invalid_subject_updated import InvalidSubjectsUpdated
 
 class Summary(Static):
     """Displays a summary of the report"""
@@ -38,7 +38,10 @@ class Summary(Static):
             self.report = report_df
             self.update_summary()
 
-    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
+    def on_invalid_subjects_updated(
+            self,
+            message: InvalidSubjectsUpdated
+    ) -> None:
         self.invalid_subjects = message.invalid_subjects
         self.update_summary()
 
@@ -49,8 +52,11 @@ class Summary(Static):
         package_btn = self.query_one("#package-btn", Button)
         # Generate progress bars for all states
         display_report_df = report_df.copy(deep=True)
-        display_report_df.loc[list(self.invalid_subjects), "status_name"] = "INVALIDATED"
-        status_percents = display_report_df["status_name"].value_counts() / len(report_df)
+        display_report_df.loc[list(self.invalid_subjects), "status_name"] = (
+            "INVALIDATED"
+        )
+        status_counts = display_report_df["status_name"].value_counts()
+        status_percents = status_counts / len(report_df)
         if "DONE" not in status_percents:
             # Attach
             status_percents["DONE"] = 0.0
@@ -76,4 +82,3 @@ class Summary(Static):
         event.stop()
         package_review_cases(self.report, self.dset_path)
         self.notify(f"{REVIEW_FILENAME} was created on the working directory")
-

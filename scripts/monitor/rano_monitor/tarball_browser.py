@@ -1,35 +1,38 @@
 import os
 import tarfile
 
+from rano_monitor.constants import REVIEWED_FILENAME
+from rano_monitor.utils import is_editor_installed
+from rano_monitor.widgets.tarball_subject_view import TarballSubjectView
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.reactive import var
 from textual.containers import Center, VerticalScroll
-from textual.widgets import Header, Markdown, Button, Static
-
-from rano_monitor.widgets.tarball_subject_view import TarballSubjectView
-from rano_monitor.utils import is_editor_installed
-from rano_monitor.constants import REVIEWED_FILENAME
+from textual.reactive import var
+from textual.widgets import Button, Header, Markdown, Static
 
 CONTENTS = """
 ## Tarball RANO Subject Browser
 
 Below you may find the subjects identified within the passed tarball file.
-You can review and annotate each case by using the `Review Tumor Segmentation` button.
-This button will open ITK SNAP with the provided segmentation file. You can make changes
-and save them as necessary. Once you're done with a subject review, press the `Finalize`
-button.
+You can review and annotate each case by using the `Review Tumor Segmentation`
+button. This button will open ITK SNAP with the provided segmentation file.
+You can make changes and save them as necessary. Once you're done with a
+subject review, press the `Finalize`button.
 
-In the case where skull stripping was not done correctly you can instead modify the brain
-mask by pressing `Review Brain Mask`. This will open the brain mask with ITK SNAP. Once
-you're done modifying the brain mask you can save your progress and close the editor.
+In the case where skull stripping was not done correctly you can instead
+modify the brain mask by pressing `Review Brain Mask`. This will open the
+brain mask with ITK SNAP. Once you're done modifying the brain mask you
+can save your progress and close the editor.
 
-**NOTE**: Modifying the brain mask invalidates the tumor segmentation for that subject.
+**NOTE**: Modifying the brain mask invalidates the tumor segmentation
+for that subject.
 
-Once you're done reviewing all cases, you can package them again into a tarball file by
-pressing the `Package cases` button. You can then move this new tarball file to the remote
-location where you're running the rano-monitor tool.
+Once you're done reviewing all cases, you can package them again into a
+tarball file by pressing the `Package cases` button. You can then move
+this new tarball file to the remote location where you're running the
+rano-monitor tool.
 """
+
 
 class TarballBrowser(App):
     """Textual tarball browser app."""
@@ -51,8 +54,8 @@ class TarballBrowser(App):
         for subject in subjects:
             subject_path = os.path.join(self.contents_path, subject)
             timepoints = os.listdir(subject_path)
-            subject_timepoint_list += [(subject, timepoint) for timepoint in timepoints]
-        
+            subject_timepoint_list += [(subject, tp) for tp in timepoints]
+
         return subject_timepoint_list
 
     def compose(self) -> ComposeResult:
@@ -92,5 +95,6 @@ class TarballBrowser(App):
 
     def package_contents(self):
         with tarfile.open(REVIEWED_FILENAME, "w:gz") as tar:
-            tar.add(self.contents_path, arcname=os.path.basename(self.contents_path))
+            path = self.contents_path
+            tar.add(path, arcname=os.path.basename(path))
         self.notify(f"Cases packaged under {REVIEWED_FILENAME}")

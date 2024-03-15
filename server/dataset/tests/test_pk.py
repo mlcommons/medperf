@@ -49,6 +49,7 @@ class DatasetGetTest(DatasetTest):
         )
         testdataset = self.create_dataset(testdataset).data
         self.testdataset = testdataset
+        self.private_fields = ["owner", "report"]
         self.set_credentials(self.actor)
 
     def test_generic_get_dataset(self):
@@ -64,6 +65,19 @@ class DatasetGetTest(DatasetTest):
         for k, v in response.data.items():
             if k in self.testdataset:
                 self.assertEqual(self.testdataset[k], v, f"Unexpected value for {k}")
+
+    def test_get_dataset_list_private_fields(self):
+        # Arrange
+        dataset_id = self.testdataset["id"]
+        url = self.url.format(dataset_id)
+
+        # Act
+        response = self.client.get(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for key in response.data:
+            self.assertNotIn(key, self.private_fields, f"{key} shouldn't be visible")
 
     def test_dataset_not_found(self):
         # Arrange
@@ -110,9 +124,11 @@ class DatasetPutTest(DatasetTest):
             "split_seed": 1,
             "data_preparation_mlcube": new_prep_id,
             "is_valid": False,
+            "submitted_as_prepared": True,
             "state": "OPERATION",
             "generated_metadata": {"newkey": "newvalue"},
             "user_metadata": {"newkey2": "newvalue2"},
+            "report": {"newkey": "newval"},
         }
         url = self.url.format(testdataset["id"])
 
@@ -121,9 +137,6 @@ class DatasetPutTest(DatasetTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         for k, v in response.data.items():
             if k in newtestdataset:
                 self.assertEqual(newtestdataset[k], v, f"{k} was not modified")
@@ -143,9 +156,6 @@ class DatasetPutTest(DatasetTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         for k, v in response.data.items():
             if k in newtestdataset:
                 self.assertEqual(newtestdataset[k], v, f"{k} was not modified")
@@ -169,8 +179,10 @@ class DatasetPutTest(DatasetTest):
             "generated_uid": "newstring",
             "split_seed": 6,
             "data_preparation_mlcube": new_prep_id,
+            "submitted_as_prepared": True,
             "state": "DEVELOPMENT",
             "generated_metadata": {"newkey": "value"},
+            "report": {"newkey": "newval"},
         }
 
         url = self.url.format(testdataset["id"])
@@ -201,26 +213,26 @@ class DatasetPutTest(DatasetTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in newtestdataset.items():
             self.assertNotEqual(v, response.data[k], f"{k} was modified")
 
-    def test_put_respects_unique_generated_uid(self):
+    def test_put_respects_unique_generated_uid_when_state_is_updated_to_operation(
+        self,
+    ):
         # Arrange
         testdataset = self.mock_dataset(
-            data_preparation_mlcube=self.data_preproc_mlcube_id
+            data_preparation_mlcube=self.data_preproc_mlcube_id, state="OPERATION"
         )
         testdataset = self.create_dataset(testdataset).data
 
         newtestdataset = self.mock_dataset(
             data_preparation_mlcube=self.data_preproc_mlcube_id,
             state="DEVELOPMENT",
-            generated_uid="new",
+            generated_uid=testdataset["generated_uid"],
         )
         newtestdataset = self.create_dataset(newtestdataset).data
 
-        put_body = {"generated_uid": testdataset["generated_uid"]}
+        put_body = {"state": "OPERATION"}
         url = self.url.format(newtestdataset["id"])
 
         # Act
@@ -321,8 +333,10 @@ class PermissionTest(DatasetTest):
             "data_preparation_mlcube": new_prep_id,
             "is_valid": False,
             "state": "OPERATION",
+            "submitted_as_prepared": True,
             "generated_metadata": {"newkey": "newvalue"},
             "user_metadata": {"newkey2": "newvalue2"},
+            "report": {"newkey": "newval"},
             "owner": 5,
             "created_at": "time",
             "modified_at": "time",

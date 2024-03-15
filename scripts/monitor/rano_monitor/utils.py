@@ -1,12 +1,22 @@
-import pandas as pd
+import hashlib
 import os
-import yaml
 import shutil
 import tarfile
 from pathlib import Path
-from rano_monitor.constants import *
-from subprocess import Popen, DEVNULL
-import hashlib
+from subprocess import DEVNULL, Popen
+
+import pandas as pd
+import yaml
+from rano_monitor.constants import (
+    REVIEW_COMMAND,
+    BRAINMASK_BAK,
+    DEFAULT_SEGMENTATION,
+    BRAINMASK,
+    MANUAL_REVIEW_STAGE,
+    DONE_STAGE,
+    REVIEW_FILENAME
+)
+
 
 def is_editor_installed():
     review_command_path = shutil.which(REVIEW_COMMAND)
@@ -45,9 +55,10 @@ def review_tumor(subject: str, data_path: str, labels_path: str):
         under_review_file,
     ) = get_tumor_review_paths(subject, data_path, labels_path)
 
-    if not labels_path.endswith(".nii.gz") and not os.path.exists(
-        under_review_file
-    ):
+    is_nifti = labels_path.endswith(".nii.gz")
+    is_under_review = os.path.exists(under_review_file)
+
+    if not is_nifti and not is_under_review:
         shutil.copyfile(seg_file, under_review_file)
 
     run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
@@ -84,11 +95,12 @@ def finalize(subject: str, labels_path: str):
 
 def get_tumor_review_paths(subject: str, data_path: str, labels_path: str):
     id, tp = subject.split("|")
+    filepath = os.path.dirname(__file__)
     t1c_file = os.path.join(data_path, f"{id}_{tp}_brain_t1c.nii.gz")
     t1n_file = os.path.join(data_path, f"{id}_{tp}_brain_t1n.nii.gz")
     t2f_file = os.path.join(data_path, f"{id}_{tp}_brain_t2f.nii.gz")
     t2w_file = os.path.join(data_path, f"{id}_{tp}_brain_t2w.nii.gz")
-    label_file = os.path.join(os.path.dirname(__file__), "assets/postop_gbm.label")
+    label_file = os.path.join(filepath, "assets/postop_gbm.label")
 
     if labels_path.endswith(".nii.gz"):
         seg_filename = os.path.basename(labels_path)
@@ -131,11 +143,12 @@ def get_brain_review_paths(subject: str, labels_path, data_path: str = None):
     if data_path is None:
         data_path = os.path.join(os.path.dirname(seg_file), "reoriented")
     id, tp = subject.split("|")
+    filepath = os.path.dirname(__file__)
     t1c_file = os.path.join(data_path, f"{id}_{tp}_t1c.nii.gz")
     t1n_file = os.path.join(data_path, f"{id}_{tp}_t1.nii.gz")
     t2f_file = os.path.join(data_path, f"{id}_{tp}_t2f.nii.gz")
     t2w_file = os.path.join(data_path, f"{id}_{tp}_t2w.nii.gz")
-    label_file = os.path.join(os.path.dirname(__file__), "assets/brainmask.label")
+    label_file = os.path.join(filepath, "assets/brainmask.label")
 
     return t1c_file, t1n_file, t2f_file, t2w_file, label_file, seg_file
 
@@ -208,7 +221,11 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
         for i, row in review_cases.iterrows():
             data_path = to_local_path(row["data_path"], dset_path)
             labels_path = to_local_path(row["labels_path"], dset_path)
-            brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
+            brainscans = get_tumor_review_paths(
+                row.name,
+                data_path,
+                labels_path
+            )[:-2]
             rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
             base_path = os.path.join(labels_path, "..")
 
@@ -222,7 +239,12 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             tar.addfile(reviewed_dir)
             tar.add(labels_path, tar_path)
 
-            brainscan_path = os.path.join("review_cases", id, tp, "brain_scans")
+            brainscan_path = os.path.join(
+                "review_cases",
+                id,
+                tp,
+                "brain_scans"
+            )
             for brainscan in brainscans:
                 brainscan_target_path = os.path.join(
                     brainscan_path, os.path.basename(brainscan)
@@ -251,4 +273,3 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
                 img_path = os.path.join(base_path, file)
                 img_tar_path = os.path.join(tar_path, file)
                 tar.add(img_path, img_tar_path)
-

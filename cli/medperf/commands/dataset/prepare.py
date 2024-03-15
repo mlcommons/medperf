@@ -5,7 +5,12 @@ from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.utils import approval_prompt, dict_pretty_print
-from medperf.exceptions import CommunicationError, ExecutionError, InvalidArgumentError
+from medperf.exceptions import (
+    CommunicationError,
+    ExecutionError,
+    InvalidArgumentError,
+    CleanExit,
+)
 import yaml
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -79,20 +84,10 @@ class DataPreparation:
         preparation.setup_parameters()
 
         # TODO: make these more readable
-        should_run_prepare = (
-            not preparation.dataset.submitted_as_prepared
-            and not preparation.dataset.is_ready()
-        )
-        should_prompt_for_report_sending_approval = (
-            should_run_prepare
-            and not approve_sending_reports
-            and not preparation.dataset.for_test
-            and preparation.report_specified
-        )
-        if should_prompt_for_report_sending_approval:
+        if preparation.should_prompt_for_report_sending_approval():
             preparation.prompt_for_report_sending_approval()
 
-        if should_run_prepare:
+        if preparation.should_run_prepare():
             preparation.run_prepare()
 
         with preparation.ui.interactive():
@@ -107,10 +102,30 @@ class DataPreparation:
         self.comms = config.comms
         self.ui = config.ui
         self.dataset_id = dataset_id
-        self.dataset = None
         self.allow_sending_reports = approve_sending_reports
-        self.latest_report_sent_at = None
+        self.dataset = None
+        self.cube = None
+        self.out_statistics_path = None
+        self.out_datapath = None
+        self.out_labelspath = None
+        self.report_path = None
+        self.metadata_path = None
+        self.raw_data_path = None
+        self.raw_labels_path = None
+        self.report_specified = None
+        self.metadata_specified = None
         self._lock = Lock()
+
+    def should_run_prepare(self):
+        return not self.dataset.submitted_as_prepared and not self.dataset.is_ready()
+
+    def should_prompt_for_report_sending_approval(self):
+        return (
+            self.should_run_prepare()
+            and not self.allow_sending_reports
+            and not self.dataset.for_test
+            and self.report_specified
+        )
 
     def get_dataset(self):
         self.dataset = Dataset.get(self.dataset_id)
@@ -203,12 +218,19 @@ class DataPreparation:
                 **sanity_params,
             )
         except ExecutionError:
-            msg = "The sanity check process failed. This most probably means the data could not be completely prepared. "
-            if self.report_specified:
-                msg += (
-                    f"You may want to check the status report at: {self.report_path} "
-                )
             self.dataset.unmark_as_ready()
+            if self.report_specified:
+                msg = (
+                    "The preprocessing stage finished executing, "
+                    "but the data doesn't appear to be ready. "
+                    "This most probably means you have outstanding tasks. "
+                    "Please verify the status of your data by using the "
+                    "monitoring tool."
+                )
+                self.ui.print_warning(msg)
+                raise CleanExit(medperf_status_code=1)
+
+            msg = "The sanity check process failed"
             raise ExecutionError(msg)
         self.ui.print("> Sanity checks complete")
 

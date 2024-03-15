@@ -1,7 +1,8 @@
 import pyperclip
 from textual.app import ComposeResult
-from textual.widgets import Static, Button
 from textual.reactive import reactive
+from textual.widgets import Button, Static
+
 
 class CopyableItem(Static):
     content = reactive("")
@@ -36,6 +37,7 @@ class CopyableItem(Static):
             with open("clipboard.txt", "w") as f:
                 f.write(self.content)
             self.notify(
-                "Clipboard not supported on your machine. Contents copied to clipboard.txt",
+                "Clipboard not supported on your machine. "
+                "Contents copied to clipboard.txt",
                 severity="warning",
             )

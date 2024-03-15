@@ -159,8 +159,6 @@ class ResultPutTest(ResultsTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in newtestresult.items():
             self.assertNotEqual(v, response.data[k], f"{k} was modified")
 

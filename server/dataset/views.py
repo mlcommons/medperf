@@ -14,6 +14,7 @@ from .serializers import (
 
 
 class DatasetList(GenericAPIView):
+    serializer_class = DatasetPublicSerializer
     queryset = ""
 
     @extend_schema(operation_id="datasets_retrieve_all")
@@ -38,6 +39,7 @@ class DatasetList(GenericAPIView):
 
 
 class DatasetDetail(GenericAPIView):
+    serializer_class = DatasetPublicSerializer
     queryset = ""
 
     def get_permissions(self):

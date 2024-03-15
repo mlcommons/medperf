@@ -1,6 +1,7 @@
 import os
 from watchdog.events import FileSystemEventHandler
 
+
 class PromptHandler(FileSystemEventHandler):
     def __init__(self, dset_data_path: str, textual_app):
         self.dset_data_path = dset_data_path
@@ -24,4 +25,3 @@ class PromptHandler(FileSystemEventHandler):
             prompt = f.read()
         self.app.update_prompt(prompt)
         # _confirm_dset(self.manager, prompt, self.dset_data_path)
-
