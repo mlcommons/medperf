@@ -4,9 +4,11 @@ import grp
 import logging
 import os
 import platform
+import re
 import shutil
 import socket
 import subprocess
+import tarfile
 
 import docker
 import pkg_resources
@@ -245,4 +247,19 @@ def log_machine_details():
 
     debug_dict = {"Machine Details": system_info}
 
-    logging.info(yaml.dump(debug_dict, default_flow_style=False))
+    logging.debug(yaml.dump(debug_dict, default_flow_style=False))
+
+def package_logs():
+    files = os.listdir(config.logs_folder)
+    logfiles = []
+    for file in files:
+        is_logfile = re.match(r"medperf\.log(?:\.\d+)?$", file) is not None
+        if is_logfile:
+            logfiles.append(file)
+
+    package_file = os.path.join(config.logs_folder, "medperf_logs.tar.gz")
+
+    with tarfile.open(package_file, "w:gz") as tar:
+        for file in logfiles:
+            filepath = os.path.join(config.logs_folder, file)
+            tar.add(filepath, arcname=os.path.basename(filepath))
