@@ -257,7 +257,7 @@ def package_logs():
         if is_logfile:
             logfiles.append(file)
 
-    package_file = os.path.join(config.logs_folder, "medperf_logs.tar.gz")
+    package_file = os.path.join(config.logs_folder, config.log_package_file)
 
     with tarfile.open(package_file, "w:gz") as tar:
         for file in logfiles:
