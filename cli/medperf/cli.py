@@ -17,7 +17,8 @@ import medperf.commands.profile as profile
 import medperf.commands.association.association as association
 import medperf.commands.compatibility_test.compatibility_test as compatibility_test
 import medperf.commands.storage as storage
-from medperf.utils import check_for_updates, log_machine_details
+from medperf.utils import check_for_updates
+from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
