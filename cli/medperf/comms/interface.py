@@ -275,3 +275,13 @@ class Comms(ABC):
             benchmark_uid (str): Benchmark UID
             priority (int): priority value to set for the association
         """
+
+    @abstractmethod
+    def update_dataset(self, dataset_id: int, data: dict):
+        """Updates the contents of a datasets identified by dataset_id to the new data dictionary.
+        Updates may be partial.
+
+        Args:
+            dataset_id (int): ID of the dataset to update
+            data (dict): Updated information of the dataset.
+        """

@@ -40,6 +40,8 @@ class BenchmarkList(GenericAPIView):
 
 
 class BenchmarkModelList(GenericAPIView):
+    # TODO: instead of using IsAssociatedDatasetOwner, add a new endpoint?
+    #       at /datasets/<data_id>/benchmarks/<benchmark_id>/models
     permission_classes = [IsAdmin | IsBenchmarkOwner | IsAssociatedDatasetOwner]
     serializer_class = BenchmarkListofModelsSerializer
     queryset = ""
@@ -62,6 +64,7 @@ class BenchmarkModelList(GenericAPIView):
 
 
 class BenchmarkDatasetList(GenericAPIView):
+    # TODO: should we have an endpoint that returns datasets instead of associations?
     permission_classes = [IsAdmin | IsBenchmarkOwner]
     serializer_class = BenchmarkListofDatasetsSerializer
     queryset = ""

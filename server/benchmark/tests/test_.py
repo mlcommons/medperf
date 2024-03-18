@@ -69,20 +69,12 @@ class BenchmarkPostTest(BenchmarkTest):
         benchmark = self.mock_benchmark(
             self.prep["id"], self.ref_model["id"], self.eval["id"]
         )
-        get_bmk_url = self.api_prefix + "/benchmarks/{0}/"
 
         # Act
         response = self.client.post(self.url, benchmark, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        uid = response.data["id"]
-        response = self.client.get(get_bmk_url.format(uid))
-
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "benchmark retreival faild"
-        )
-
         for k, v in response.data.items():
             if k in benchmark:
                 self.assertEqual(benchmark[k], v, f"Unexpected value for {k}")

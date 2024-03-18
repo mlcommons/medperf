@@ -1,6 +1,6 @@
 from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
-from dataset.serializers import DatasetSerializer
+from dataset.serializers import DatasetFullSerializer
 from result.serializers import ModelResultSerializer
 from benchmark.serializers import BenchmarkSerializer
 from benchmarkdataset.serializers import BenchmarkDatasetListSerializer
@@ -75,7 +75,7 @@ class MlCubeList(GenericAPIView):
 
 
 class DatasetList(GenericAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetFullSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -90,7 +90,7 @@ class DatasetList(GenericAPIView):
         """
         datasets = self.get_object(request.user.id)
         datasets = self.paginate_queryset(datasets)
-        serializer = DatasetSerializer(datasets, many=True)
+        serializer = DatasetFullSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
 
 
