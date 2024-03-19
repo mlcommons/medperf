@@ -164,10 +164,8 @@ class MlCubePutTest(MlCubeTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in put_body.items():
-            self.assertNotEqual(v, response.data[0][k], f"{k} was modified")
+            self.assertNotEqual(v, response.data[k], f"{k} was modified")
 
     @parameterized.expand([("APPROVED",), ("REJECTED",)])
     def test_modifying_approval_status_to_pending_is_not_allowed(

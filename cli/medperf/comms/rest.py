@@ -509,3 +509,25 @@ class REST(Comms):
             raise CommunicationRequestError(
                 f"Could not set the priority of mlcube {mlcube_uid} within the benchmark {benchmark_uid}: {details}"
             )
+
+    def update_dataset(self, dataset_id: int, data: dict):
+        url = f"{self.server_url}/datasets/{dataset_id}/"
+        res = self.__auth_put(url, json=data)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"Could not update dataset: {details}")
+        return res.json()
+
+    def get_mlcube_datasets(self, mlcube_id: int) -> dict:
+        """Retrieves all datasets that have the specified mlcube as the prep mlcube
+
+        Args:
+            mlcube_id (int): mlcube ID to retrieve datasets from
+
+        Returns:
+            dict: dictionary with the contents of each dataset
+        """
+
+        datasets = self.__get_list(f"{self.server_url}/mlcubes/{mlcube_id}/datasets/")
+        return datasets

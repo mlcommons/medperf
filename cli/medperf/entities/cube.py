@@ -9,7 +9,6 @@ from medperf.utils import (
     combine_proc_sp_text,
     log_storage,
     remove_path,
-    verify_hash,
     generate_tmp_path,
     spawn_and_kill,
 )
@@ -131,7 +130,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cubes_folder = config.cubes_folder
         try:
             uids = next(os.walk(cubes_folder))[1]
-            logging.debug(f'Local cubes found: {uids}')
+            logging.debug(f"Local cubes found: {uids}")
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
@@ -257,7 +256,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             mlcube_details = yaml.safe_load(f)
         remove_path(tmp_out_yaml)
         local_hash = mlcube_details["hash"]
-        verify_hash(local_hash, self.image_hash)
+        if self.image_hash and local_hash != self.image_hash:
+            raise InvalidEntityError(
+                f"Hash mismatch. Expected {self.image_hash}, found {local_hash}."
+            )
         self.image_hash = local_hash
 
     def _get_image_from_registry(self):
@@ -267,7 +269,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         if config.platform == "singularity":
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
         logging.info(f"Running MLCube command: {cmd}")
-        with spawn_and_kill(cmd, timeout=config.mlcube_configure_timeout) as proc_wrapper:
+        with spawn_and_kill(
+            cmd, timeout=config.mlcube_configure_timeout
+        ) as proc_wrapper:
             proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:

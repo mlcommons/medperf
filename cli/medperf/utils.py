@@ -20,7 +20,7 @@ from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
+from medperf.exceptions import ExecutionError, MedperfException
 
 
 def get_file_hash(path: str) -> str:
@@ -219,7 +219,7 @@ class _MLCubeOutputFilter:
             r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
         )
         # Clear log lines from color / style symbols before matching with regexp
-        self.ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
+        self.ansi_escape_pattern = re.compile(r"\x1b\[[0-9;]*[mGK]")
         self.proc_pid = str(proc_pid)
 
     def check_line(self, line: str) -> bool:
@@ -230,15 +230,17 @@ class _MLCubeOutputFilter:
             true if line should be filtered out (==saved to debug file only),
             false if line should be printed to user also
         """
-        match = self.log_pattern.match(self.ansi_escape_pattern.sub('', line))
+        match = self.log_pattern.match(self.ansi_escape_pattern.sub("", line))
         if match:
             line_pid, matched_log_level_str, content = match.groups()
             matched_log_level = logging.getLevelName(matched_log_level_str)
 
             # if line matches conditions, it is just logged to debug; else, shown to user
-            return (line_pid == self.proc_pid  # hide only `mlcube` framework logs
-                    and isinstance(matched_log_level, int)
-                    and matched_log_level < logging.INFO)  # hide only debug logs
+            return (
+                line_pid == self.proc_pid  # hide only `mlcube` framework logs
+                and isinstance(matched_log_level, int)
+                and matched_log_level < logging.INFO
+            )  # hide only debug logs
         return False
 
 
@@ -401,22 +403,6 @@ def get_cube_image_name(cube_path: str) -> str:
         raise MedperfException(msg)
 
 
-def verify_hash(obtained_hash: str, expected_hash: str):
-    """Checks hash exact match, and throws an error if not a match
-
-    Args:
-        obtained_hash (str): local hash computed from asset
-        expected_hash (str): expected hash obtained externally
-
-    Raises:
-        InvalidEntityError: Thrown if hashes don't match
-    """
-    if expected_hash and expected_hash != obtained_hash:
-        raise InvalidEntityError(
-            f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
-        )
-
-
 def filter_latest_associations(associations, entity_key):
     """Given a list of entity-benchmark associations, this function
     retrieves a list containing the latest association of each
@@ -458,7 +444,9 @@ class spawn_and_kill:
         os.killpg(self.pid, signal.SIGINT)
 
     def __enter__(self):
-        self.proc = self.spawn(self.cmd, timeout=self.timeout, *self._args, **self._kwargs)
+        self.proc = self.spawn(
+            self.cmd, timeout=self.timeout, *self._args, **self._kwargs
+        )
         self.pid = self.proc.pid
         return self
 
@@ -469,7 +457,7 @@ class spawn_and_kill:
             # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
             # - any other medperf exception like OOM or bug
             # - pexpect.TIMEOUT
-            logging.info(f'Killing ancestor processes because of exception: {exc_val=}')
+            logging.info(f"Killing ancestor processes because of exception: {exc_val=}")
             self.killpg()
 
         self.proc.close()

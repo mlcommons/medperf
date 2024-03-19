@@ -7,6 +7,7 @@ hide:
   - toc
 ---
 ![Overview](../tutorial_images/overview.png){class="tutorial-sticky-image-content"}
+
 # Hands-on Tutorial for Model Owners
 
 {% set model_mlcube = assets_url+"model_mobilenetv2/mlcube/mlcube.yaml" %}
@@ -54,6 +55,7 @@ Assuming the test passes successfuly, you are ready to submit the MLCube to the 
 ## 2. Submit the MLCube
 
 ![Model Owner submits Model MLCube](../tutorial_images/mo-2-mo-submits-model.png){class="tutorial-sticky-image-content"}
+
 ### How does MedPerf Recognize an MLCube?
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
@@ -97,7 +99,8 @@ medperf mlcube submit \
    --name my-model-cube \
    --mlcube-file "{{ model_mlcube }}" \
    --parameters-file "{{ model_params }}" \
-   --additional-file "{{ page.meta.model_add }}"
+   --additional-file "{{ page.meta.model_add }}" \
+   --operational
 ```
 
 The MLCube will be assigned by a server UID. You can check it by running:
@@ -125,6 +128,7 @@ medperf mlcube associate --benchmark 1 --model_uid 4
 This command will first run the benchmark's workflow on your model to ensure your model is compatible with the benchmark workflow. Then, the association request information is printed on the screen, which includes an executive summary of the test mentioned. You will be prompted to confirm sending this information and initiating this association request.
 
 #### What Happens After Requesting the Association?
+
 ![Benchmark Committee accepts / rejects models](../tutorial_images/mo-4-bc-accepts-rejects-models.png){class="tutorial-sticky-image-content"}
 When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your MLCube and the benchmark with which you are requesting association.
 

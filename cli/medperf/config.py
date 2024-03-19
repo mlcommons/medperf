@@ -139,6 +139,12 @@ cube_metadata_filename = "mlcube-meta.yaml"
 log_file = "medperf.log"
 tarball_filename = "tmp.tar.gz"
 demo_dset_paths_file = "paths.yaml"
+mlcube_cache_file = ".cache_metadata.yaml"
+report_file = "report.yaml"
+metadata_folder = "metadata"
+statistics_filename = "statistics.yaml"
+dataset_raw_paths_file = "raw.yaml"
+ready_flag_file = ".ready"
 
 # MLCube assets conventions
 cube_filename = "mlcube.yaml"
@@ -151,6 +157,7 @@ image_path = "workspace/.image"
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
 ddl_max_redownload_attempts = 3
+wait_before_sending_reports = 30  # In seconds
 
 # Container config
 gpus = None
@@ -184,7 +191,7 @@ inline_parameters = [
     "platform",
     "gpus",
     "cleanup",
-    "container_loglevel"
+    "container_loglevel",
 ]
 configurable_parameters = inline_parameters + [
     "server",

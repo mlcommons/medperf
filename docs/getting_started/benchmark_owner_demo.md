@@ -30,7 +30,6 @@ In this guide, you will learn how a user can use MedPerf to create a benchmark. 
 
 It's assumed that you have already set up the general testing environment as explained in the [installation](installation.md) and [setup guide](setup.md).
 
-
 {% include "getting_started/shared/before_we_start.md" %}
 
 ## 1. Implement a Valid Workflow
@@ -144,6 +143,7 @@ Finally, now after having the MLCubes submitted and the demo dataset hosted, you
 ## 5. Submitting the MLCubes
 
 ![Benchmark Committee submits MLCubes](../tutorial_images/bc-3-bc-submits-mlcubes.png){class="tutorial-sticky-image-content"}
+
 ### How does MedPerf Recognize an MLCube?
 
 {% include "getting_started/shared/mlcube_submission_overview.md" %}
@@ -187,6 +187,7 @@ medperf mlcube submit \
     --name my-prep-cube \
     --mlcube-file "{{ prep_mlcube }}" \
     --parameters-file "{{ prep_params }}" \
+    --operational
 ```
 
 #### Reference Model MLCube
@@ -219,7 +220,8 @@ medperf mlcube submit \
 --name my-modelref-cube \
 --mlcube-file "{{ model_mlcube }}" \
 --parameters-file "{{ model_params }}" \
---additional-file "{{ model_add }}"
+--additional-file "{{ model_add }}" \
+--operational
 ```
 
 #### Metrics MLCube
@@ -246,6 +248,7 @@ medperf mlcube submit \
 --name my-metrics-cube \
 --mlcube-file "{{ metrics_mlcube }}" \
 --parameters-file "{{ metrics_params }}" \
+--operational
 ```
 
 Each of the three MLCubes will be assigned by a server UID. You can check the server UID for each MLCube by running:
@@ -273,7 +276,7 @@ You need to keep at hand the following information:
  medperf mlcube ls
 ```
 
-- For this tutorial, the UIDs are as follows: 
+- For this tutorial, the UIDs are as follows:
   - Data preparator UID: `1`
   - Reference model UID: `2`
   - Evaluator UID: `3`
@@ -287,7 +290,8 @@ medperf benchmark submit \
    --demo-url "{{ demo_url }}" \
    --data-preparation-mlcube 1 \
    --reference-model-mlcube 2 \
-   --evaluator-mlcube 3
+   --evaluator-mlcube 3 \
+   --operational
 ```
 
 The MedPerf client will first automatically run a compatibility test between the MLCubes using the demo dataset. If the test is successful, the benchmark will be submitted along with the compatibility test results.

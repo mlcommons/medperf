@@ -14,49 +14,85 @@ will not be re-downloaded.
 
 import shutil
 import os
+import logging
+import yaml
 import medperf.config as config
-from medperf.utils import generate_tmp_path, get_cube_image_name, remove_path, untar
+from medperf.utils import (
+    generate_tmp_path,
+    get_cube_image_name,
+    remove_path,
+    untar,
+    get_file_hash,
+)
 from .utils import download_resource
 
 
-def get_cube(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Downloads and writes an mlcube.yaml file. If the hash is provided,
+def _should_get_regular_file(output_path, expected_hash):
+    if os.path.exists(output_path) and expected_hash:
+        calculated_hash = get_file_hash(output_path)
+        logging.debug(
+            f"{output_path}: Expected {expected_hash}, found {calculated_hash}."
+        )
+        if expected_hash == calculated_hash:
+            logging.debug(f"{output_path} exists and is up to date")
+            return False
+        logging.debug(f"{output_path} exists but is out of date")
+    return True
+
+
+def _should_get_cube_additional(
+    additional_files_folder, expected_tarball_hash, mlcube_local_cache_metadata
+):
+    # Read the hash of the tarball file whose extracted contents may already exist
+    additional_files_cached_hash = None
+    if os.path.exists(mlcube_local_cache_metadata):
+        with open(mlcube_local_cache_metadata) as f:
+            contents = yaml.safe_load(f)
+        additional_files_cached_hash = contents.get(
+            "additional_files_cached_hash", None
+        )
+
+    # Return if the additional files already exist and seem to originate from a valid tarball
+    if os.path.exists(additional_files_folder) and expected_tarball_hash:
+        if additional_files_cached_hash == expected_tarball_hash:
+            logging.debug(f"{additional_files_folder} exists and is up to date")
+            return False
+        logging.debug(f"{additional_files_folder} exists but is out of date")
+    return True
+
+
+def _get_regular_file(url: str, output_path: str, expected_hash: str = None) -> str:
+    """Downloads and writes a regular file. If the hash is provided,
     the file's integrity will be checked upon download.
+    Used for parameters.yaml and mlcube.yaml
 
     Args:
         url (str): URL where the mlcube.yaml file can be downloaded.
-        cube_path (str): Cube location.
+        output_path (str): Path to store the downloaded file at.
         expected_hash (str, optional): expected hash of the downloaded file
 
     Returns:
-        output_path (str): location where the mlcube.yaml file is stored locally.
+        output_path (str): location where the regular file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
+    if not _should_get_regular_file(output_path, expected_hash):
+        return output_path, expected_hash
+    if os.path.exists(output_path):
+        remove_path(output_path)
+    hash_value = download_resource(url, output_path, expected_hash)
+    return output_path, hash_value
+
+
+def get_cube(url: str, cube_path: str, expected_hash: str = None):
+    """Downloads and writes a cube mlcube.yaml file"""
     output_path = os.path.join(cube_path, config.cube_filename)
-    if os.path.exists(output_path):
-        return output_path, expected_hash
-    hash_value = download_resource(url, output_path, expected_hash)
-    return output_path, hash_value
+    return _get_regular_file(url, output_path, expected_hash)
 
 
-def get_cube_params(url: str, cube_path: str, expected_hash: str = None) -> str:
-    """Downloads and writes a cube parameters file. If the hash is provided,
-    the file's integrity will be checked upon download.
-
-    Args:
-        url (str): URL where the parameters.yaml file can be downloaded.
-        cube_path (str): Cube location.
-        expected_hash (str, optional): expected hash of the downloaded file
-
-    Returns:
-        output_path (str): location where the parameters file is stored locally.
-        hash_value (str): The hash of the downloaded file
-    """
+def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
+    """Downloads and writes a cube parameters.yaml file"""
     output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
-    if os.path.exists(output_path):
-        return output_path, expected_hash
-    hash_value = download_resource(url, output_path, expected_hash)
-    return output_path, hash_value
+    return _get_regular_file(url, output_path, expected_hash)
 
 
 def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
@@ -118,12 +154,14 @@ def get_cube_additional(
         tarball_hash (str): The hash of the downloaded tarball file
     """
     additional_files_folder = os.path.join(cube_path, config.additional_path)
-
-    if os.path.exists(additional_files_folder):
+    mlcube_cache_file = os.path.join(cube_path, config.mlcube_cache_file)
+    if not _should_get_cube_additional(
+        additional_files_folder, expected_tarball_hash, mlcube_cache_file
+    ):
         return expected_tarball_hash
 
-    # make sure files are uncompressed while in tmp storage, to avoid any clutter
-    # objects if uncompression fails for some reason.
+    # Download the additional files. Make sure files are extracted in tmp storage
+    # to avoid any clutter objects if uncompression fails for some reason.
     tmp_output_folder = generate_tmp_path()
     output_tarball_path = os.path.join(tmp_output_folder, config.tarball_filename)
     tarball_hash = download_resource(url, output_tarball_path, expected_tarball_hash)
@@ -131,7 +169,16 @@ def get_cube_additional(
     untar(output_tarball_path)
     parent_folder = os.path.dirname(os.path.normpath(additional_files_folder))
     os.makedirs(parent_folder, exist_ok=True)
+    if os.path.exists(additional_files_folder):
+        # handle the possibility of having clutter uncompressed files
+        remove_path(additional_files_folder)
     os.rename(tmp_output_folder, additional_files_folder)
+
+    # Store the downloaded tarball hash to be used later for verifying that the
+    # local cache is up to date
+    with open(mlcube_cache_file, "w") as f:  # assumes parent folder already exists
+        contents = {"additional_files_cached_hash": tarball_hash}
+        yaml.dump(contents, f)
 
     return tarball_hash
 

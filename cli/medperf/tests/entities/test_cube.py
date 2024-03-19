@@ -123,7 +123,9 @@ class TestGetFiles:
             "tmp_path", contents=yaml.dump({"hash": NO_IMG_CUBE["image_hash"]})
         )
         mpexpect = MockPexpect(1, "expected_hash")
-        mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
+        mocker.patch(
+            PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
+        )
 
         # Act & Assert
         cube = Cube.get(self.id)
@@ -197,7 +199,9 @@ class TestRun:
     def test_cube_runs_command_with_rw_access(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
-        spy = mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
+        spy = mocker.patch(
+            PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
+        )
         mocker.patch(
             PATCH_CUBE.format("Cube.get_config"),
             side_effect=["", ""],
@@ -220,7 +224,9 @@ class TestRun:
     def test_cube_runs_command_with_extra_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
-        spy = mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
+        spy = mocker.patch(
+            PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
+        )
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
             f"mlcube --log-level debug run --mlcube={self.manifest_path} --task={task} "
@@ -240,7 +246,9 @@ class TestRun:
     def test_cube_runs_command_and_preserves_runtime_args(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(0, "expected_hash")
-        spy = mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
+        spy = mocker.patch(
+            PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
+        )
         mocker.patch(
             PATCH_CUBE.format("Cube.get_config"),
             side_effect=["cpuarg cpuval", "gpuarg gpuval"],
@@ -263,7 +271,9 @@ class TestRun:
     def test_run_stops_execution_if_child_fails(self, mocker, setup, task):
         # Arrange
         mpexpect = MockPexpect(1, "expected_hash")
-        mocker.patch(PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn)
+        mocker.patch(
+            PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
+        )
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
 
         # Act & Assert

@@ -589,3 +589,37 @@ def test_set_mlcube_association_priority_sets_priority(
 
     # Assert
     spy.assert_called_once_with(exp_url, json={"priority": priority})
+
+
+@pytest.mark.parametrize("data_id", [4596, 3530])
+def test_update_dataset_updates_dataset(mocker, server, data_id):
+    # Arrange
+    res = MockResponse({}, 200)
+    data = {"data": "data"}
+    spy = mocker.patch(patch_server.format("REST._REST__auth_put"), return_value=res)
+    exp_url = f"{full_url}/datasets/{data_id}/"
+
+    # Act
+    server.update_dataset(data_id, data)
+
+    # Assert
+    spy.assert_called_once_with(exp_url, json=data)
+
+
+def test_get_mlcube_datasets_calls_auth_get_for_expected_path(mocker, server):
+    # Arrange
+    datasets = [
+        {"id": 1, "name": "name1", "state": "OPERATION"},
+        {"id": 2, "name": "name2", "state": "DEVELOPMENT"},
+    ]
+    cube_id = 1
+    spy = mocker.patch(
+        patch_server.format("REST._REST__get_list"), return_value=datasets
+    )
+
+    # Act
+    exp_datasets = server.get_mlcube_datasets(cube_id)
+
+    # Assert
+    spy.assert_called_once_with(f"{full_url}/mlcubes/{cube_id}/datasets/")
+    assert exp_datasets == datasets

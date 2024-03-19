@@ -62,3 +62,7 @@ jobs:
     - name: Run client integration tests
       working-directory: .
       run: sh cli/cli_tests.sh -f
+
+    - name: Run manual preparation integration tests
+      working-directory: .
+      run: sh cli/cli_test_manual_prep.sh -f

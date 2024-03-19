@@ -90,9 +90,11 @@ def mock_dataset(data_preparation_mlcube, **kwargs):
         "split_seed": 0,
         "data_preparation_mlcube": data_preparation_mlcube,
         "is_valid": True,
+        "submitted_as_prepared": False,
         "state": "DEVELOPMENT",
         "generated_metadata": {"key": "value"},
         "user_metadata": {"key2": "value2"},
+        "report": {"key3": "value3"},
     }
 
     for key, val in kwargs.items():

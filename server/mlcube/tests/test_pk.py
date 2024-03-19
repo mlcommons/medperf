@@ -106,9 +106,6 @@ class MlCubePutTest(MlCubeTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         for k, v in response.data.items():
             if k in newtestmlcube:
                 self.assertEqual(newtestmlcube[k], v, f"{k} was not modified")
@@ -132,9 +129,6 @@ class MlCubePutTest(MlCubeTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         for k, v in response.data.items():
             if k in newtestmlcube:
                 self.assertEqual(newtestmlcube[k], v, f"{k} was not modified")
@@ -159,9 +153,6 @@ class MlCubePutTest(MlCubeTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         for k, v in response.data.items():
             if k in newtestmlcube:
                 self.assertEqual(newtestmlcube[k], v, f"{k} was not modified")
@@ -233,8 +224,6 @@ class MlCubePutTest(MlCubeTest):
         response = self.client.put(url, newtestmlcube, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in newtestmlcube.items():
             self.assertNotEqual(v, response.data[k], f"{k} was modified")
