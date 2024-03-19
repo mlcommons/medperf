@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from medperf._version import __version__
 
 with open("requirements.txt", "r") as f:
@@ -15,10 +15,10 @@ setup(
     name="medperf",
     version=__version__,
     description="CLI Tool for federated benchmarking on medical private data",
-    url="https://github.com/aristizabal95/medperf",
+    url="https://github.com/mlcommons/medperf",
     author="MLCommons",
     license="Apache 2.0",
-    packages=["medperf"],
+    packages=find_packages(where="."),
     install_requires=requires,
     python_requires=">=3.6",
     entry_points="""
