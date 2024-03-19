@@ -250,6 +250,8 @@ def log_machine_details():
     logging.debug(yaml.dump(debug_dict, default_flow_style=False))
 
 def package_logs():
+    if not os.path.exists(config.logs_folder):
+        return
     files = os.listdir(config.logs_folder)
     logfiles = []
     for file in files:
