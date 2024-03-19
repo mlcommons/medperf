@@ -14,7 +14,7 @@ from pathlib import Path
 import shutil
 import json
 
-CONFIG_DIR = Path.home() / ".medperf_config" / ".local_server"
+DEV_CONFIG_DIR = Path.home() / ".medperf_dev"
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -48,9 +48,9 @@ def seed(args):
 
 
 if __name__ == "__main__":
-    default_cert_file = str(CONFIG_DIR / "cert.crt")
+    default_cert_file = str(DEV_CONFIG_DIR / "cert.crt")
     local_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
-    dest_tokens_file = str(CONFIG_DIR / "tokens.json")
+    dest_tokens_file = str(DEV_CONFIG_DIR / "tokens.json")
 
     parser = argparse.ArgumentParser(description="Seed the db with demo entries")
     parser.add_argument(
@@ -86,8 +86,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.cert.lower() == "none":
         args.cert = None
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    print('config folder:', CONFIG_DIR, CONFIG_DIR.exists())
+    DEV_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    print('config folder:', DEV_CONFIG_DIR, DEV_CONFIG_DIR.exists())
     shutil.copy(args.tokens, dest_tokens_file)  # for usage by medperf client
     print('token file:', dest_tokens_file, Path(dest_tokens_file).exists())
     seed(args)

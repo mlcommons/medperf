@@ -9,7 +9,7 @@ do
     esac
 done
 
-CONFIG_PATH=$HOME/.medperf_config/.local_server
+CONFIG_PATH=$HOME/.medperf_dev
 DEPLOY="${DEPLOY:-1}"
 CERT_GENERATE="${CERT_GENERATE:-1}"
 CERT_FILE="${CERT_FILE:-$CONFIG_PATH/cert.crt}"

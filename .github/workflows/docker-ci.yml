@@ -60,8 +60,8 @@ jobs:
     - name: Copy configurations for MedPerf client
       working-directory: ./server
       run: |
-        cp tokens.json ~/.medperf_config/.local_server/tokens.json
-        cp cert.crt ~/.medperf_config/.local_server/cert.crt
+        cp tokens.json ~/.medperf_dev/tokens.json
+        cp cert.crt ~/.medperf_dev/cert.crt
 
     - name: Run server in background
       working-directory: ./server

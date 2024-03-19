@@ -42,7 +42,7 @@ config_path = str(config_storage / "config.yaml")
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 
-local_server_config_storage = config_storage / ".local_server"
+local_server_config_storage = Path.home().resolve() / ".medperf_dev"
 local_tokens_path = local_server_config_storage / "tokens.json"
 local_certificate = str(local_server_config_storage / "cert.crt")
 
