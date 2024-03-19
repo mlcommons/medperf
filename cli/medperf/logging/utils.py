@@ -251,9 +251,15 @@ def log_machine_details():
 
 
 def package_logs():
+    # Handle cases where the folder doesn't exist
     if not os.path.exists(config.logs_folder):
         return
+
+    # Don't create a tarball if there's no logs to be packaged
     files = os.listdir(config.logs_folder)
+    if len(files) == 0:
+        return
+
     logfiles = []
     for file in files:
         is_logfile = re.match(r"medperf\.log(?:\.\d+)?$", file) is not None
