@@ -171,6 +171,7 @@ evaluate_timeout = None
 container_loglevel = None
 mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
+run_container_as_user = False  # TODO: make it configurable. Write config.yaml migrations.
 
 # Other
 loglevel = "debug"

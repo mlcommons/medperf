@@ -334,13 +334,19 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
         if config.platform == "docker":
-            # use current user
-            cpu_args = self.get_config("docker.cpu_args") or ""
-            gpu_args = self.get_config("docker.gpu_args") or ""
-            cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
-            gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
-            cmd += f' -Pdocker.cpu_args="{cpu_args}"'
-            cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+            if config.run_container_as_user:
+                # use current user
+                cpu_args = self.get_config("docker.cpu_args") or ""
+                gpu_args = self.get_config("docker.gpu_args") or ""
+                cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
+                gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
+                cmd += f' -Pdocker.cpu_args="{cpu_args}"'
+                cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+            else:
+                config.ui.print_warning(
+                    "The docker container will run as root. "
+                    "This is not recommended and should be avoided when possible."
+                )
 
             if container_loglevel:
                 cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
