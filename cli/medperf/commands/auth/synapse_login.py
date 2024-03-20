@@ -30,17 +30,7 @@ class SynapseLogin:
             else:
                 cls.login_with_password(username, password)
 
-    @classmethod
-    def login_with_password(cls, username: str = None, password: str = None):
-        """Login to the Synapse server. Must be done only once."""
-        username = username if username else config.ui.prompt("username: ")
-        password = password if password else config.ui.hidden_prompt("password: ")
 
-        syn = synapseclient.Synapse()
-        try:
-            syn.login(username, password, rememberMe=True)
-        except SynapseAuthenticationError:
-            raise CommunicationAuthenticationError("Invalid Synapse credentials")
 
     @classmethod
     def login_with_token(cls, access_token=None):
