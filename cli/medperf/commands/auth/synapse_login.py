@@ -1,7 +1,7 @@
 from medperf import config
 import synapseclient
 from synapseclient.core.exceptions import SynapseAuthenticationError
-from medperf.exceptions import CommunicationAuthenticationError, InvalidArgumentError
+from medperf.exceptions import CommunicationAuthenticationError
 
 
 class SynapseLogin:
