@@ -127,6 +127,11 @@ def configurable(func: Callable) -> Callable:
             "--container-loglevel",
             help="Logging level for containers to be run [debug | info | warning | error]",
         ),
+        run_container_as_user: bool = typer.Option(
+            config.run_container_as_user,
+            "--run_container_as_user/--run_container_as_root",
+            help="Wether to run containe as root or current user",
+        ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
@@ -202,6 +207,11 @@ def add_inline_parameters(func: Callable) -> Callable:
             config.container_loglevel,
             "--container-loglevel",
             help="Logging level for containers to be run [debug | info | warning | error]",
+        ),
+        run_container_as_user: bool = typer.Option(
+            config.run_container_as_user,
+            "--run_container_as_user/--run_container_as_root",
+            help="Wether to run containe as root or current user",
         ),
         platform: str = typer.Option(
             config.platform,

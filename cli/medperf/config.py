@@ -171,7 +171,7 @@ evaluate_timeout = None
 container_loglevel = None
 mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
-run_container_as_user = False  # TODO: make it configurable. Write config.yaml migrations.
+run_container_as_user = False
 
 # Other
 loglevel = "debug"
@@ -194,6 +194,7 @@ inline_parameters = [
     "gpus",
     "cleanup",
     "container_loglevel",
+    "run_container_as_user",
 ]
 configurable_parameters = inline_parameters + [
     "server",

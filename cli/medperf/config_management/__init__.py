@@ -56,6 +56,14 @@ def setup_config():
 
     # Set current active profile parameters
     config_p = read_config()
+
+    # TODO: move these four lines to a place where all
+    # backward-compatibility changes will live
+    param = "run_container_as_user"
+    if param not in config_p.active_profile:
+        config_p.active_profile[param] = getattr(config, param)
+        write_config(config_p)
+
     for param in config_p.active_profile:
         setattr(config, param, config_p.active_profile[param])
 
