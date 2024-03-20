@@ -31,7 +31,8 @@ class SubmitCube:
         config.tmp_paths.append(self.cube.path)
 
     def download(self):
-        self.cube.download()
+        self.cube.download_config_files()
+        self.cube.download_run_files()
 
     def upload(self):
         updated_body = self.cube.upload()

@@ -39,11 +39,13 @@ def mock_benchmark(mocker, state_variables):
 
 def mock_dataset(mocker, state_variables):
     dataset_prep_cube = state_variables["dataset_prep_cube"]
+    operational_dataset = state_variables["operational_dataset"]
 
     def __get_side_effect(id):
         return TestDataset(
             id=id,
             data_preparation_mlcube=dataset_prep_cube,
+            state="OPERATION" if operational_dataset else "DEVELOPMENT",
         )
 
     mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
@@ -74,6 +76,7 @@ def mock_cube(mocker, state_variables):
         return cube
 
     mocker.patch(PATCH_EXECUTION.format("Cube.get"), side_effect=__get_side_effect)
+    mocker.patch(PATCH_EXECUTION.format("Cube.download_run_files"))
 
 
 def mock_execution(mocker, state_variables):
@@ -114,6 +117,7 @@ def setup(request, mocker, ui, fs):
             7: "invalid",
         },
         "evaluator": {"uid": 3, "invalid": False},
+        "operational_dataset": True,
     }
     state_variables.update(request.param)
 
@@ -147,6 +151,14 @@ def test_failure_with_unregistered_dset(mocker, setup):
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
         BenchmarkExecution.run(1, data_uid=None)
+
+
+@pytest.mark.parametrize("setup", [{"operational_dataset": False}], indirect=True)
+def test_failure_with_development_dataset(mocker, setup):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        BenchmarkExecution.run(1, 2, models_uids=[5])
+    # TODO: all of this testing style should be changed
 
 
 @pytest.mark.parametrize(

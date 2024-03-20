@@ -56,9 +56,6 @@ medperf profile view
 
 #### Choose the Container Runner
 
-!!! warning
-    Singularity is temporarily not supported.
-
 You can configure the MedPerf client to use either Docker or Singularity. The `local` profile is configured to use Docker. If you want to use MedPerf with Singularity, modify the `local` profile configured parameters by running the following:
 
 ```bash

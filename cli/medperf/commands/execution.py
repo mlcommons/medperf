@@ -90,7 +90,7 @@ class Execution:
         except ExecutionError as e:
             if not self.ignore_model_errors:
                 logging.error(f"Model MLCube Execution failed: {e}")
-                raise ExecutionError("Model MLCube failed")
+                raise ExecutionError(f"Model MLCube failed: {e}")
             else:
                 self.partial = True
                 logging.warning(f"Model MLCube Execution failed: {e}")

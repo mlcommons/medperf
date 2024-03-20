@@ -14,7 +14,7 @@ class TestReport(Entity, MedperfBaseSchema):
     """
     Class representing a compatibility test report entry
 
-    A test report is comprised of the components of a test execution:
+    A test report consists of the components of a test execution:
     - data used, which can be:
         - a demo dataset url and its hash, or
         - a raw data path and its labels path, or
@@ -129,10 +129,12 @@ class TestReport(Entity, MedperfBaseSchema):
         return {
             "UID": self.generated_uid,
             "Data Source": data_source,
-            "Model": self.model
-            if isinstance(self.model, int)
-            else self.model[:27] + "...",
-            "Evaluator": self.data_evaluator_mlcube
-            if isinstance(self.data_evaluator_mlcube, int)
-            else self.data_evaluator_mlcube[:27] + "...",
+            "Model": (
+                self.model if isinstance(self.model, int) else self.model[:27] + "..."
+            ),
+            "Evaluator": (
+                self.data_evaluator_mlcube
+                if isinstance(self.data_evaluator_mlcube, int)
+                else self.data_evaluator_mlcube[:27] + "..."
+            ),
         }

@@ -1,6 +1,6 @@
 from .requests import MockResponse
 from .benchmark import Benchmark
-from .cube import MockCube
+from .cube import TestCube
 from .tarfile import MockTar
 
-all = [MockResponse, Benchmark, MockCube, MockTar]
+all = [MockResponse, Benchmark, TestCube, MockTar]

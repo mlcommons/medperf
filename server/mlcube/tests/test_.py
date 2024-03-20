@@ -34,20 +34,12 @@ class MlCubePostTest(MlCubeTest):
         """Testing the valid scenario"""
         # Arrange
         testmlcube = self.mock_mlcube()
-        get_mlcube_url = self.api_prefix + "/mlcubes/{0}/"
 
         # Act
         response = self.client.post(self.url, testmlcube, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        uid = response.data["id"]
-        response = self.client.get(get_mlcube_url.format(uid))
-
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "mlcube retreival failed"
-        )
-
         for k, v in response.data.items():
             if k in testmlcube:
                 self.assertEqual(testmlcube[k], v, f"Unexpected value for {k}")

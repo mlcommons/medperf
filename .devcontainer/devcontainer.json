@@ -1,0 +1,10 @@
+{
+  "image": "docker.io/mlcommons/medperf-codespaces:latest",
+    "features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": false
+		}
+	},
+	"postStartCommand": "bash /workspaces/medperf/tutorials_scripts/codespaces/env_start.sh",
+	"postAttachCommand": "bash /workspaces/medperf/tutorials_scripts/codespaces/run_server_detached.sh"
+}

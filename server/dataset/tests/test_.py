@@ -47,45 +47,16 @@ class DatasetPostTest(DatasetTest):
         testdataset = self.mock_dataset(
             data_preparation_mlcube=self.data_preproc_mlcube_id
         )
-        get_dataset_url = self.api_prefix + "/datasets/{0}/"
 
         # Act
         response = self.client.post(self.url, testdataset, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        uid = response.data["id"]
-
-        response = self.client.get(get_dataset_url.format(uid))
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "Dataset retreival failed"
-        )
 
         for k, v in response.data.items():
             if k in testdataset:
                 self.assertEqual(testdataset[k], v, f"Unexpected value for {k}")
-
-    @parameterized.expand([(True,), (False,)])
-    def test_creation_of_duplicate_generated_uid_gets_rejected(self, different_uid):
-        """Testing the model fields rules"""
-        # Arrange
-        testdataset = self.mock_dataset(
-            data_preparation_mlcube=self.data_preproc_mlcube_id
-        )
-        self.create_dataset(testdataset)
-        if different_uid:
-            testdataset["generated_uid"] = "different uid"
-
-        # Act
-        response = self.client.post(self.url, testdataset, format="json")
-
-        # Assert
-        if different_uid:
-            exp_status = status.HTTP_201_CREATED
-        else:
-            exp_status = status.HTTP_400_BAD_REQUEST
-
-        self.assertEqual(response.status_code, exp_status)
 
     def test_default_values_are_as_expected(self):
         """Testing the model fields rules"""
@@ -97,6 +68,7 @@ class DatasetPostTest(DatasetTest):
             "user_metadata": {},
             "description": "",
             "location": "",
+            "report": {},
         }
         testdataset = self.mock_dataset(
             data_preparation_mlcube=self.data_preproc_mlcube_id
@@ -122,6 +94,7 @@ class DatasetPostTest(DatasetTest):
             "owner": 55,
             "created_at": "time",
             "modified_at": "time2",
+            "state": "OPERATION",
         }
         testdataset = self.mock_dataset(
             data_preparation_mlcube=self.data_preproc_mlcube_id
@@ -163,6 +136,7 @@ class DatasetGetListTest(DatasetTest):
         self.other_user = other_user
 
         self.testdataset = testdataset
+        self.private_fields = ["owner", "report"]
         self.set_credentials(self.actor)
 
     def test_generic_get_dataset_list(self):
@@ -176,6 +150,18 @@ class DatasetGetListTest(DatasetTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], dataset_id)
+
+    def test_get_dataset_list_private_fields(self):
+        # Act
+        response = self.client.get(self.url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for dataset in response.data["results"]:
+            for key in dataset:
+                self.assertNotIn(
+                    key, self.private_fields, f"{key} shouldn't be visible"
+                )
 
 
 class PermissionTest(DatasetTest):

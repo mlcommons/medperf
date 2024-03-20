@@ -93,6 +93,10 @@ class BenchmarkExecution:
             msg = "The provided dataset is not registered."
             raise InvalidArgumentError(msg)
 
+        if self.dataset.state != "OPERATION":
+            msg = "The provided dataset is not operational."
+            raise InvalidArgumentError(msg)
+
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             raise InvalidArgumentError(msg)
@@ -153,6 +157,7 @@ class BenchmarkExecution:
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
         cube = Cube.get(uid)
+        cube.download_run_files()
         self.ui.print(f"> {name} cube download complete")
         return cube
 

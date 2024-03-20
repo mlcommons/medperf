@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import os
+import signal
 import yaml
 import random
 import hashlib
@@ -18,8 +19,9 @@ from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
+from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException, InvalidEntityError
+from medperf.exceptions import ExecutionError, MedperfException
 
 
 def get_file_hash(path: str) -> str:
@@ -199,6 +201,7 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
 
     Args:
         in_dict (dict): dictionary to print
+        skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
     ui = config.ui
@@ -211,6 +214,37 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     ui.print("=" * 20)
 
 
+class _MLCubeOutputFilter:
+    def __init__(self, proc_pid: int):
+        self.log_pattern = re.compile(
+            r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
+        )
+        # Clear log lines from color / style symbols before matching with regexp
+        self.ansi_escape_pattern = re.compile(r"\x1b\[[0-9;]*[mGK]")
+        self.proc_pid = str(proc_pid)
+
+    def check_line(self, line: str) -> bool:
+        """
+        Args:
+            line: line from mlcube output
+        Returns:
+            true if line should be filtered out (==saved to debug file only),
+            false if line should be printed to user also
+        """
+        match = self.log_pattern.match(self.ansi_escape_pattern.sub("", line))
+        if match:
+            line_pid, matched_log_level_str, content = match.groups()
+            matched_log_level = logging.getLevelName(matched_log_level_str)
+
+            # if line matches conditions, it is just logged to debug; else, shown to user
+            return (
+                line_pid == self.proc_pid  # hide only `mlcube` framework logs
+                and isinstance(matched_log_level, int)
+                and matched_log_level < logging.INFO
+            )  # hide only debug logs
+        return False
+
+
 def combine_proc_sp_text(proc: spawn) -> str:
     """Combines the output of a process and the spinner.
     Joins any string captured from the process with the
@@ -219,15 +253,16 @@ def combine_proc_sp_text(proc: spawn) -> str:
 
     Args:
         proc (spawn): a pexpect spawned child
-        ui (UI): An instance of an UI implementation
 
     Returns:
         str: all non-carriage-return-ending string captured from proc
     """
+
     ui = config.ui
-    static_text = ui.text
     proc_out = ""
     break_ = False
+    log_filter = _MLCubeOutputFilter(proc.pid)
+
     while not break_:
         if not proc.isalive():
             break_ = True
@@ -235,25 +270,34 @@ def combine_proc_sp_text(proc: spawn) -> str:
             line = proc.readline()
         except TIMEOUT:
             logging.error("Process timed out")
+            logging.debug(proc_out)
             raise ExecutionError("Process timed out")
         line = line.decode("utf-8", "ignore")
-        if line:
-            proc_out += line
-            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
-            ui.text = static_text
 
+        if not line:
+            continue
+
+        # Always log each line just in case the final proc_out
+        # wasn't logged for some reason
+        logging.debug(line)
+        proc_out += line
+        if not log_filter.check_line(line):
+            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+
+    logging.debug("MLCube process finished")
+    logging.debug(proc_out)
     return proc_out
 
 
 def get_folders_hash(paths: List[str]) -> str:
     """Generates a hash for all the contents of the fiven folders. This procedure
-    hashes all of the files in all passed folders, sorts them and then hashes that list.
+    hashes all the files in all passed folders, sorts them and then hashes that list.
 
     Args:
-        path (str): Folder to hash
+        paths List(str): Folders to hash.
 
     Returns:
-        str: sha256 hash of the whole folder
+        str: sha256 hash that represents all the folders altogether
     """
     hashes = []
 
@@ -278,7 +322,7 @@ def list_files(startpath):
     tree_str = ""
     for root, dirs, files in os.walk(startpath):
         level = root.replace(startpath, "").count(os.sep)
-        indent = " " * 4 * (level)
+        indent = " " * 4 * level
 
         tree_str += "{}{}/\n".format(indent, os.path.basename(root))
         subindent = " " * 4 * (level + 1)
@@ -353,26 +397,11 @@ def get_cube_image_name(cube_path: str) -> str:
         cube_config = yaml.safe_load(f)
 
     try:
+        # TODO: Why do we check singularity only there? Why not docker?
         return cube_config["singularity"]["image"]
     except KeyError:
         msg = "The provided mlcube doesn't seem to be configured for singularity"
         raise MedperfException(msg)
-
-
-def verify_hash(obtained_hash: str, expected_hash: str):
-    """Checks hash exact match, and throws an error if not a match
-
-    Args:
-        obtained_hash (str): local hash computed from asset
-        expected_hash (str): expected hash obtained externally
-
-    Raises:
-        InvalidEntityError: Thrown if hashes don't match
-    """
-    if expected_hash and expected_hash != obtained_hash:
-        raise InvalidEntityError(
-            f"Hash mismatch. Expected {expected_hash}, found {obtained_hash}."
-        )
 
 
 def filter_latest_associations(associations, entity_key):
@@ -397,3 +426,83 @@ def filter_latest_associations(associations, entity_key):
 
     latest_associations = list(latest_associations.values())
     return latest_associations
+
+
+def check_for_updates() -> None:
+    """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
+    repo = Repo(config.BASE_DIR)
+    if repo.bare:
+        logging.debug("Repo is bare")
+        return
+
+    logging.debug(f"Current git commit: {repo.head.commit.hexsha}")
+
+    try:
+        for remote in repo.remotes:
+            remote.fetch()
+
+        if repo.head.is_detached:
+            logging.debug("Repo is in detached state")
+            return
+
+        current_branch = repo.active_branch
+        tracking_branch = current_branch.tracking_branch()
+
+        if tracking_branch is None:
+            logging.debug("Current branch does not track a remote branch.")
+            return
+        if current_branch.commit.hexsha == tracking_branch.commit.hexsha:
+            logging.debug("No git branch updates.")
+            return
+
+        logging.debug(
+            f"Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}"
+        )
+        config.ui.print_warning(
+            "MedPerf client updates found. Please, update your MedPerf installation."
+        )
+    except GitCommandError as e:
+        logging.debug(
+            "Exception raised during updates check. Maybe user checked out repo with git@ and private key"
+            "or repo is in detached / non-tracked state?"
+        )
+        logging.debug(e)
+
+
+class spawn_and_kill:
+    def __init__(self, cmd, timeout=None, *args, **kwargs):
+        self.cmd = cmd
+        self.timeout = timeout
+        self._args = args
+        self._kwargs = kwargs
+        self.proc: spawn
+        self.exception_occurred = False
+
+    @staticmethod
+    def spawn(*args, **kwargs):
+        return spawn(*args, **kwargs)
+
+    def killpg(self):
+        os.killpg(self.pid, signal.SIGINT)
+
+    def __enter__(self):
+        self.proc = self.spawn(
+            self.cmd, timeout=self.timeout, *self._args, **self._kwargs
+        )
+        self.pid = self.proc.pid
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            self.exception_occurred = True
+            # Forcefully kill the process group if any exception occurred, in particular,
+            # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
+            # - any other medperf exception like OOM or bug
+            # - pexpect.TIMEOUT
+            logging.info(f"Killing ancestor processes because of exception: {exc_val=}")
+            self.killpg()
+
+        self.proc.close()
+        self.proc.wait()
+        # Return False to propagate exceptions, if any
+        return False

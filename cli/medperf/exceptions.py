@@ -32,3 +32,7 @@ class ExecutionError(MedperfException):
 
 class CleanExit(MedperfException):
     """Raised when Medperf needs to stop for non erroneous reasons"""
+
+    def __init__(self, *args, medperf_status_code=0) -> None:
+        super().__init__(*args)
+        self.medperf_status_code = medperf_status_code

@@ -7,8 +7,7 @@ from medperf.exceptions import CommunicationAuthenticationError, InvalidArgument
 class SynapseLogin:
     @classmethod
     def run(cls, username: str = None, password: str = None, token: str = None):
-        """Login to the Synapse server. Must be done only once.
-        """
+        """Login to the Synapse server. Must be done only once."""
         if not any([username, password, token]):
             msg = "How do you want to login?\n"
             msg += "[1] Personal Access Token\n"
@@ -33,8 +32,7 @@ class SynapseLogin:
 
     @classmethod
     def login_with_password(cls, username: str = None, password: str = None):
-        """Login to the Synapse server. Must be done only once.
-        """
+        """Login to the Synapse server. Must be done only once."""
         username = username if username else config.ui.prompt("username: ")
         password = password if password else config.ui.hidden_prompt("password: ")
 
@@ -46,8 +44,7 @@ class SynapseLogin:
 
     @classmethod
     def login_with_token(cls, access_token=None):
-        """Login to the Synapse server. Must be done only once.
-        """
+        """Login to the Synapse server. Must be done only once."""
         access_token = (
             access_token if access_token else config.ui.hidden_prompt("access token: ")
         )
