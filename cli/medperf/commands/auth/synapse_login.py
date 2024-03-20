@@ -18,7 +18,6 @@ class SynapseLogin:
             token = config.ui.hidden_prompt(msg)
         cls.login_with_token(token)
 
-
     @classmethod
     def login_with_token(cls, access_token=None):
         """Login to the Synapse server. Must be done only once."""
