@@ -9,9 +9,12 @@ class SynapseLogin:
     def run(cls, token: str = None):
         """Login to the Synapse server. Must be done only once."""
         if not token:
-            msg = "Please provide your Synapse Personal Access Token (PAT). "
-            msg += "You can generate a new PAT at https://www.synapse.org/#!PersonalAccessTokens:0\n"
-            msg += "Synapse PAT: "
+            msg = (
+                "Please provide your Synapse Personal Access Token (PAT). "
+                "You can generate a new PAT at "
+                "https://www.synapse.org/#!PersonalAccessTokens:0\n"
+                "Synapse PAT: "
+            )
             token = config.ui.hidden_prompt(msg)
         cls.login_with_token(token)
 
