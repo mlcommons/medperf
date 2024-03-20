@@ -6,30 +6,14 @@ from medperf.exceptions import CommunicationAuthenticationError, InvalidArgument
 
 class SynapseLogin:
     @classmethod
-    def run(cls, username: str = None, password: str = None, token: str = None):
+    def run(cls, token: str = None):
         """Login to the Synapse server. Must be done only once."""
-        if not any([username, password, token]):
-            msg = "How do you want to login?\n"
-            msg += "[1] Personal Access Token\n"
-            msg += "[2] Username and Password\n"
-            msg += "Select an option (1 or 2): "
-            method = config.ui.prompt(msg)
-            if method == "1":
-                cls.login_with_token()
-            elif method == "2":
-                cls.login_with_password()
-            else:
-                raise InvalidArgumentError("Invalid input. Select either number 1 or 2")
-        else:
-            if token:
-                if any([username, password]):
-                    raise InvalidArgumentError(
-                        "Invalid input. Either an access token, or a username and password, should be given"
-                    )
-                cls.login_with_token(token)
-            else:
-                cls.login_with_password(username, password)
-
+        if not token:
+            msg = "Please provide your Synapse Personal Access Token (PAT). "
+            msg += "You can generate a new PAT at https://www.synapse.org/#!PersonalAccessTokens:0\n"
+            msg += "Synapse PAT: "
+            token = config.ui.hidden_prompt(msg)
+        cls.login_with_token(token)
 
 
     @classmethod
