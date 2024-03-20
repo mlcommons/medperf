@@ -19,12 +19,8 @@ class SynapseLogin:
     @classmethod
     def login_with_token(cls, access_token=None):
         """Login to the Synapse server. Must be done only once."""
-        access_token = (
-            access_token if access_token else config.ui.hidden_prompt("access token: ")
-        )
-
         syn = synapseclient.Synapse()
         try:
-            syn.login(authToken=access_token, rememberMe=True)
+            syn.login(authToken=access_token)
         except SynapseAuthenticationError:
             raise CommunicationAuthenticationError("Invalid Synapse credentials")
