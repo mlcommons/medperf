@@ -44,25 +44,33 @@ def get_memory_usage():
 
 def get_disk_usage():
     # Get disk usage
-    disk_usage = psutil.disk_usage("/")
-    return {
-        "Total Disk Space": disk_usage.total,
-        "Used Disk Space": disk_usage.used,
-        "Free Disk Space": disk_usage.free,
-        "Disk Usage Percentage": disk_usage.percent,
-    }
+    paths_of_interest = [os.environ["HOME"], config.config_storage]
+    disk_usage_dict = {}
+    for poi in paths_of_interest:
+        disk_usage_poi = psutil.disk_usage(poi)
+        disk_usage_dict[poi] = {
+            "Total Disk Space": disk_usage_poi.total,
+            "Used Disk Space": disk_usage_poi.used,
+            "Free Disk Space": disk_usage_poi.free,
+            "Disk Usage Percentage": disk_usage_poi.percent,
+        }
+
+    return disk_usage_dict
 
 
 def get_user_information():
     # Get user information
-    username = getpass.getuser()
-    is_sudoers = "sudo" in [g.gr_name for g in grp.getgrall() if username in g.gr_mem]
-    is_docker_group = "docker" in [
-        g.gr_name for g in grp.getgrall() if username in g.gr_mem
-    ]
+    try:
+        username = getpass.getuser()
+    except OSError:
+        return {"Error": "Could not retrieve user information"}
+    
+    user_groups = {grp.getgrgid(id).gr_name for id in os.getgroups()}
+    is_sudoer = "sudo" in user_groups
+    is_docker_group = "docker" in user_groups
     return {
         "Username": username,
-        "Is in Sudoers Group": is_sudoers,
+        "Is in Sudoers Group": is_sudoer,
         "Is in Docker Group": is_docker_group,
     }
 
@@ -70,12 +78,14 @@ def get_user_information():
 def get_docker_information():
     try:
         exec_path = shutil.which("docker")
+        nv_cli_path = shutil.which("nvidia-container-cli")
         client = docker.from_env()
         version = client.version()
         info = client.info()
         return {
             "Docker Installed": True,
-            "Executable path": exec_path,
+            "Docker Executable path": exec_path,
+            "Nvidia Container CLI Installed": nv_cli_path is not None,
             "information": info,
             "Version": version,
         }
@@ -195,20 +205,28 @@ def get_python_environment_information():
 def get_gpu_information():
     try:
         gpu_info = {}
+        out_path = "/tmp/medperf-nvidia-smi-report.csv"
+        if os.path.exists(out_path):
+            os.remove(out_path)
         # Get GPU information
         p = subprocess.Popen(
             [
                 "nvidia-smi",
                 "--query-gpu=index,gpu_name,driver_version,compute_cap,memory.total",
                 "--format=csv",
+                f"-f={out_path}"
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
-        output, _ = p.communicate()
+        p.communicate()
         if p.returncode != 0:
             raise ExecutionError("nvidia-smi not installed/available")
+
+        with open(out_path, "r") as f:
+            output = f.read()
+        os.remove(out_path)
         gpus_data = [row for row in csv.DictReader(output.split("\n"))]
         gpu_info["GPU(s)"] = gpus_data
 
@@ -222,10 +240,7 @@ def get_gpu_information():
         output, _ = p.communicate()
         if p.returncode != 0:
             raise ExecutionError("nvidia-smi not installed/available")
-        output = output.split("\n")
-        versions = [out.split(":") for out in output if len(out)]
-        for key, value in versions:
-            gpu_info[key.strip()] = value.strip()
+        gpu_info["versions"] = output
 
         return gpu_info
     except (subprocess.CalledProcessError, ExecutionError, FileNotFoundError) as e:
