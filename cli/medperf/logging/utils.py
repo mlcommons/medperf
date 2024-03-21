@@ -64,7 +64,7 @@ def get_user_information():
         username = getpass.getuser()
     except OSError:
         return {"Error": "Could not retrieve user information"}
-    
+
     user_groups = {grp.getgrgid(id).gr_name for id in os.getgroups()}
     is_sudoer = "sudo" in user_groups
     is_docker_group = "docker" in user_groups
