@@ -26,23 +26,16 @@ def test_run_fails_if_error(mocker, synapse_client, ui):
         SynapseLogin.run(token="token")
 
 
-@pytest.mark.parametrize("user_input", ["1", "2"])
-def test_run_calls_the_correct_method(mocker, synapse_client, ui, user_input):
+def test_run_calls_the_correct_method(mocker, synapse_client, ui):
     # Arrange
-    mocker.patch.object(ui, "prompt", return_value=user_input)
+    mocker.patch.object(ui, "prompt")
     token_spy = mocker.patch(PATCH_LOGIN.format("SynapseLogin.login_with_token"))
 
     # Act
     SynapseLogin.run()
 
     # Assert
-    if user_input == "1":
-        # i.e. the user chose token login
-        token_spy.assert_called_once()
-    else:
-        # i.e. the user chose password login
-        token_spy.assert_not_called()
-
+    token_spy.assert_called_once()
 
 
 def test_login_with_token_calls_synapse_login(mocker, synapse_client, ui):
@@ -53,4 +46,4 @@ def test_login_with_token_calls_synapse_login(mocker, synapse_client, ui):
     SynapseLogin.login_with_token("token")
 
     # Assert
-    spy.assert_called_once_with(authToken="token", rememberMe=True)
+    spy.assert_called_once_with(authToken="token")
