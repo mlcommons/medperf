@@ -23,9 +23,6 @@ def test_run_fails_if_error(mocker, synapse_client, ui):
 
     # Act & Assert
     with pytest.raises(CommunicationAuthenticationError):
-        SynapseLogin.run("usr", "pwd")
-
-    with pytest.raises(CommunicationAuthenticationError):
         SynapseLogin.run(token="token")
 
 
@@ -43,7 +40,6 @@ def test_run_calls_the_correct_method(mocker, synapse_client, ui, user_input):
     # Arrange
     mocker.patch.object(ui, "prompt", return_value=user_input)
     token_spy = mocker.patch(PATCH_LOGIN.format("SynapseLogin.login_with_token"))
-    pwd_spy = mocker.patch(PATCH_LOGIN.format("SynapseLogin.login_with_password"))
 
     # Act
     SynapseLogin.run()
@@ -52,11 +48,9 @@ def test_run_calls_the_correct_method(mocker, synapse_client, ui, user_input):
     if user_input == "1":
         # i.e. the user chose token login
         token_spy.assert_called_once()
-        pwd_spy.assert_not_called()
     else:
         # i.e. the user chose password login
         token_spy.assert_not_called()
-        pwd_spy.assert_called_once()
 
 
 def test_login_with_password_calls_synapse_login(mocker, synapse_client, ui):
