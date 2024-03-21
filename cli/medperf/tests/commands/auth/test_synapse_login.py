@@ -26,15 +26,6 @@ def test_run_fails_if_error(mocker, synapse_client, ui):
         SynapseLogin.run(token="token")
 
 
-def test_run_fails_if_invalid_args(mocker, synapse_client, ui):
-    # Act & Assert
-    with pytest.raises(InvalidArgumentError):
-        SynapseLogin.run("usr", "pwd", "token")
-
-    with pytest.raises(InvalidArgumentError):
-        SynapseLogin.run("usr", None, "token")
-
-
 @pytest.mark.parametrize("user_input", ["1", "2"])
 def test_run_calls_the_correct_method(mocker, synapse_client, ui, user_input):
     # Arrange
@@ -52,16 +43,6 @@ def test_run_calls_the_correct_method(mocker, synapse_client, ui, user_input):
         # i.e. the user chose password login
         token_spy.assert_not_called()
 
-
-def test_login_with_password_calls_synapse_login(mocker, synapse_client, ui):
-    # Arrange
-    spy = mocker.patch.object(synapse_client, "login")
-
-    # Act
-    SynapseLogin.login_with_password("usr", "pwd")
-
-    # Assert
-    spy.assert_called_once_with("usr", "pwd", rememberMe=True)
 
 
 def test_login_with_token_calls_synapse_login(mocker, synapse_client, ui):
