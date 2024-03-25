@@ -56,13 +56,21 @@ def prepare_plan(parameters_file, network_config, fl_workspace):
 def prepare_cols_list(collaborators_file, fl_workspace):
     with open(collaborators_file) as f:
         cols = f.read().strip().split("\n")
+    cols = [col.strip().split(",") for col in cols]
+    cols_dict = {}
+    for col in cols:
+        if len(col) == 1:
+            cols_dict[col[0]] = col[0]
+        else:
+            assert len(col) == 2
+            cols_dict[col[0]] = col[1]
 
     target_plan_folder = os.path.join(fl_workspace, "plan")
     # TODO: permissions
     os.makedirs(target_plan_folder, exist_ok=True)
     target_plan_file = os.path.join(target_plan_folder, "cols.yaml")
     with open(target_plan_file, "w") as f:
-        yaml.dump({"collaborators": cols}, f)
+        yaml.dump({"collaborators": cols_dict}, f)
 
 
 def prepare_init_weights(input_weights, fl_workspace):
