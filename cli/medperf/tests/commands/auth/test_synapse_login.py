@@ -2,7 +2,7 @@ import pytest
 from medperf.commands.auth.synapse_login import SynapseLogin
 import synapseclient
 from synapseclient.core.exceptions import SynapseAuthenticationError
-from medperf.exceptions import CommunicationAuthenticationError, InvalidArgumentError
+from medperf.exceptions import CommunicationAuthenticationError
 
 PATCH_LOGIN = "medperf.commands.auth.synapse_login.{}"
 
