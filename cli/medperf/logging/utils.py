@@ -1,3 +1,4 @@
+import sys
 import csv
 import getpass
 import grp
@@ -215,7 +216,7 @@ def get_python_environment_information():
         "Python Build": platform.python_build(),
         "Machine Architecture": platform.machine(),
         "Processor Type": platform.processor(),
-        "Python Executable": shutil.which("python"),
+        "Python Executable": sys.executable,
         "Installed Modules": get_installed_packages(),
     }
     return environment_info
