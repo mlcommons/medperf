@@ -11,9 +11,9 @@ import subprocess
 import tarfile
 
 import docker
-import pkg_resources
 import psutil
 import yaml
+from importlib import metadata
 
 from medperf import config
 from medperf.exceptions import ExecutionError
@@ -47,7 +47,10 @@ def get_disk_usage():
     paths_of_interest = [os.environ["HOME"], config.config_storage]
     disk_usage_dict = {}
     for poi in paths_of_interest:
-        disk_usage_poi = psutil.disk_usage(poi)
+        try:
+            disk_usage_poi = psutil.disk_usage(poi)
+        except OSError:
+            disk_usage_poi = "NOT FOUND"
         disk_usage_dict[poi] = {
             "Total Disk Space": disk_usage_poi.total,
             "Used Disk Space": disk_usage_poi.used,
@@ -65,7 +68,15 @@ def get_user_information():
     except OSError:
         return {"Error": "Could not retrieve user information"}
 
-    user_groups = {grp.getgrgid(id).gr_name for id in os.getgroups()}
+    groups = os.getgroups()
+    user_groups = set()
+    for id in groups:
+        try:
+            gr_name = grp.getgrgid(id).gr_name
+            user_groups.add(gr_name)
+        except (KeyError, TypeError):
+            continue
+
     is_sudoer = "sudo" in user_groups
     is_docker_group = "docker" in user_groups
     return {
@@ -99,13 +110,18 @@ def get_singularity_information():
         if exec_path is None:
             return {"Singularity installed": False}
         conf_path = "/usr/local/etc/singularity/singularity.conf"
-        with open(conf_path, "r") as f:
-            conf = f.readlines()
+
+        conf = []
+        if os.path.exists(conf_path):
+            with open(conf_path, "r") as f:
+                conf = f.readlines()
+
         conf_content = []
         for line in conf:
             if line.startswith("#") or len(line.strip()):
                 continue
             conf_content.append(line.strip)
+
         config_dict = {}
         for line in conf_content:
             key, value = line.split("=")
@@ -114,6 +130,9 @@ def get_singularity_information():
             if value.isdigit():
                 value = int(value)
             config_dict[key] = value
+
+        if len(config_dict) == 0:
+            config_dict = "Could not retrieve configuration information"
         return {
             "Singularity installed": True,
             "Executable path": exec_path,
@@ -180,8 +199,8 @@ def get_storage_contents():
 
 def get_installed_packages():
     installed_packages = {}
-    for package in pkg_resources.working_set:
-        installed_packages[package.key] = package.version
+    for dist in metadata.distributions():
+        installed_packages[dist.name] = dist.version
     return installed_packages
 
 
