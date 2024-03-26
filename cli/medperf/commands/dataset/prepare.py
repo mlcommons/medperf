@@ -161,8 +161,7 @@ class DataPreparation:
 
     def run_prepare(self):
         report_sender = ReportSender(self)
-        if self.allow_sending_reports:
-            report_sender.start()
+        report_sender.start()
 
         prepare_params = {
             "data_path": self.raw_data_path,
@@ -186,18 +185,13 @@ class DataPreparation:
                 )
         except Exception as e:
             # Inform the server that a failure occured
-            if self.allow_sending_reports:
-                report_sender.stop("failed")
-            raise e
+            report_sender.stop("failed")
         except KeyboardInterrupt:
             # Inform the server that the process is interrupted
-            if self.allow_sending_reports:
-                report_sender.stop("interrupted")
-            raise
+            report_sender.stop("interrupted")
 
         self.ui.print("> Cube execution complete")
-        if self.allow_sending_reports:
-            report_sender.stop("finished")
+        report_sender.stop("finished")
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
@@ -323,7 +317,9 @@ class DataPreparation:
             return self._send_report(report_metadata)
 
     def _send_report(self, report_metadata):
-        report_status_dict = self.__generate_report_dict()
+        report_status_dict = {}
+        if self.allow_sending_reports:
+            report_status_dict = self.__generate_report_dict()
         report = {"progress": report_status_dict, **report_metadata}
         if report == self.dataset.report:
             # Watchdog may trigger an event even if contents didn't change
