@@ -17,7 +17,6 @@ import yaml
 from importlib import metadata
 
 from medperf import config
-from medperf.exceptions import ExecutionError
 
 
 def get_system_information():
@@ -60,87 +59,6 @@ def get_disk_usage():
         }
 
     return disk_usage_dict
-
-
-def get_user_information():
-    # Get user information
-    try:
-        username = getpass.getuser()
-    except OSError:
-        return {"Error": "Could not retrieve user information"}
-
-    groups = os.getgroups()
-    user_groups = set()
-    for id in groups:
-        try:
-            gr_name = grp.getgrgid(id).gr_name
-            user_groups.add(gr_name)
-        except (KeyError, TypeError):
-            continue
-
-    is_sudoer = "sudo" in user_groups
-    is_docker_group = "docker" in user_groups
-    return {
-        "Username": username,
-        "Is in Sudoers Group": is_sudoer,
-        "Is in Docker Group": is_docker_group,
-    }
-
-
-def get_docker_information():
-    try:
-        exec_path = shutil.which("docker")
-        nv_cli_path = shutil.which("nvidia-container-cli")
-        client = docker.from_env()
-        version = client.version()
-        info = client.info()
-        return {
-            "Docker Installed": True,
-            "Docker Executable path": exec_path,
-            "Nvidia Container CLI Installed": nv_cli_path is not None,
-            "information": info,
-            "Version": version,
-        }
-    except Exception as e:
-        return {"Docker Installed": False, "Error": str(e)}
-
-
-def get_singularity_information():
-    try:
-        exec_path = shutil.which("singularity")
-        if exec_path is None:
-            return {"Singularity installed": False}
-        conf_path = "/usr/local/etc/singularity/singularity.conf"
-
-        conf = []
-        if os.path.exists(conf_path):
-            with open(conf_path, "r") as f:
-                conf = f.readlines()
-
-        conf_content = []
-        for line in conf:
-            if line.startswith("#") or len(line.strip()):
-                continue
-            conf_content.append(line.strip)
-
-        config_dict = {}
-        for line in conf_content:
-            key, value = line.split("=")
-            key = key.strip().lower()
-            value = value.strip()
-            if value.isdigit():
-                value = int(value)
-            config_dict[key] = value
-
-        if len(config_dict) == 0:
-            config_dict = "Could not retrieve configuration information"
-        return {
-            "Singularity installed": True,
-            "Executable path": exec_path,
-            "Configuration": config_dict,
-        }
-    except Exception as e:
-        return {"Singularity installed": False, "Error": str(e)}
 
 
 def get_configuration_variables():
@@ -222,49 +140,20 @@ def get_python_environment_information():
     return environment_info
 
 
-def get_gpu_information():
-    try:
-        gpu_info = {}
-        out_path = "/tmp/medperf-nvidia-smi-report.csv"
-        if os.path.exists(out_path):
-            os.remove(out_path)
-        # Get GPU information
-        p = subprocess.Popen(
-            [
-                "nvidia-smi",
-                "--query-gpu=index,gpu_name,driver_version,compute_cap,memory.total",
-                "--format=csv",
-                f"-f={out_path}"
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        p.communicate()
-        if p.returncode != 0:
-            raise ExecutionError("nvidia-smi not installed/available")
+def get_additional_information():
+    sh_script = os.path.join(os.path.dirname(__file__), "get_host_info.sh")
+    p = subprocess.Popen(
+        ["bash", sh_script],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    output, _ = p.communicate()
+    if p.returncode != 0:
+        return "Could not execute bash script for additional debug information"
 
-        with open(out_path, "r") as f:
-            output = f.read()
-        os.remove(out_path)
-        gpus_data = [row for row in csv.DictReader(output.split("\n"))]
-        gpu_info["GPU(s)"] = gpus_data
-
-        # Get CUDA version
-        p = subprocess.Popen(
-            ["nvidia-smi", "--version"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        output, _ = p.communicate()
-        if p.returncode != 0:
-            raise ExecutionError("nvidia-smi not installed/available")
-        gpu_info["versions"] = output
-
-        return gpu_info
-    except (subprocess.CalledProcessError, ExecutionError, FileNotFoundError) as e:
-        return {"Error": str(e)}
+    print(output)
+    return output
 
 
 def log_machine_details():
@@ -272,17 +161,14 @@ def log_machine_details():
     system_info["System Info"] = get_system_information()
     system_info["Memory Usage"] = get_memory_usage()
     system_info["Disk Usage"] = get_disk_usage()
-    system_info["User Info"] = get_user_information()
-    system_info["Docker Info"] = get_docker_information()
-    system_info["Singularity Info"] = get_singularity_information()
     system_info["Medperf Configuration"] = get_configuration_variables()
     system_info["Medperf Storage Contents"] = get_storage_contents()
     system_info["Python Environment"] = get_python_environment_information()
-    system_info["GPU(s) Information"] = get_gpu_information()
 
     debug_dict = {"Machine Details": system_info}
 
     logging.debug(yaml.dump(debug_dict, default_flow_style=False))
+    logging.debug(get_additional_information())
 
 
 def package_logs():
