@@ -10,9 +10,9 @@ colorama==0.4.4
 time-machine==2.4.0
 pytest-mock==1.13.0
 pyfakefs==5.0.0
-mlcube @ git+https://github.com/hasan7n/mlcube@d35df3e3638dfd051c8600096e520f50104c14ae#subdirectory=mlcube
-mlcube-docker @ git+https://github.com/hasan7n/mlcube@d35df3e3638dfd051c8600096e520f50104c14ae#subdirectory=runners/mlcube_docker
-mlcube-singularity @ git+https://github.com/hasan7n/mlcube@d35df3e3638dfd051c8600096e520f50104c14ae#subdirectory=runners/mlcube_singularity
+mlcube @ git+https://github.com/hasan7n/mlcube@e6755c5b7cef9d3f8b978175939d69436321998d#subdirectory=mlcube
+mlcube-docker @ git+https://github.com/hasan7n/mlcube@e6755c5b7cef9d3f8b978175939d69436321998d#subdirectory=runners/mlcube_docker
+mlcube-singularity @ git+https://github.com/hasan7n/mlcube@e6755c5b7cef9d3f8b978175939d69436321998d#subdirectory=runners/mlcube_singularity
 validators==0.18.2
 merge-args==0.1.4
 synapseclient==4.1.1
