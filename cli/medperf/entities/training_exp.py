@@ -10,7 +10,7 @@ from medperf.entities.interface import Entity, Uploadable
 from medperf.utils import get_dataset_common_name
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
-from medperf.account_management import get_medperf_user_data, read_user_account
+from medperf.account_management import get_medperf_user_data
 
 
 class TrainingExp(
@@ -37,7 +37,6 @@ class TrainingExp(
     datasets: List[int] = None
     metadata: dict = {}
     user_metadata: dict = {}
-    state: str = "DEVELOPMENT"
 
     @validator("datasets", pre=True, always=True)
     def set_default_datasets_value(cls, value, values, **kwargs):
@@ -216,7 +215,9 @@ class TrainingExp(
             dict: information of the training_exp
         """
         logging.info(f"Retrieving training_exp {training_exp_uid} from local storage")
-        training_exp_storage = os.path.join(config.training_folder, str(training_exp_uid))
+        training_exp_storage = os.path.join(
+            config.training_folder, str(training_exp_uid)
+        )
         training_exp_file = os.path.join(
             training_exp_storage, config.training_exps_filename
         )

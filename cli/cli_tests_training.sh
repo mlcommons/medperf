@@ -90,11 +90,11 @@ echo "====================================="
 echo "Submit cubes"
 echo "====================================="
 
-medperf mlcube submit --name trainprep -m $PREP_TRAINING_MLCUBE
+medperf mlcube submit --name trainprep -m $PREP_TRAINING_MLCUBE --operational
 checkFailed "Train prep submission failed"
 PREP_UID=$(medperf mlcube ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name traincube -m $TRAIN_MLCUBE -p $TRAIN_PARAMS -a $TRAIN_WEIGHTS
+medperf mlcube submit --name traincube -m $TRAIN_MLCUBE -p $TRAIN_PARAMS -a $TRAIN_WEIGHTS --operational
 checkFailed "traincube submission failed"
 TRAINCUBE_UID=$(medperf mlcube ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
@@ -162,22 +162,31 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data1 preparation step"
+echo "Running data1 submission step"
 echo "====================================="
-medperf dataset create -p $PREP_UID -d $DIRECTORY/col1 -l $DIRECTORY/col1 --name="col1" --description="col1data" --location="col1location"
-checkFailed "Data1 preparation step failed"
-DSET_1_GENUID=$(medperf dataset ls | grep col1 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+medperf dataset submit -p $PREP_UID -d $DIRECTORY/col1 -l $DIRECTORY/col1 --name="col1" --description="col1data" --location="col1location" -y
+checkFailed "Data1 submission step failed"
+DSET_1_UID=$(medperf dataset ls | grep col1 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data1 submission step"
+echo "Running data1 preparation step"
 echo "====================================="
-medperf dataset submit -d $DSET_1_GENUID -y
-checkFailed "Data1 submission step failed"
-DSET_1_UID=$(medperf dataset ls | grep col1 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+medperf dataset prepare -d $DSET_1_UID
+checkFailed "Data1 preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data1 set_operational step"
+echo "====================================="
+medperf dataset set_operational -d $DSET_1_UID -y
+checkFailed "Data1 set_operational step failed"
 ##########################################################
 
 echo "\n"
@@ -204,22 +213,31 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data2 preparation step"
+echo "Running data2 submission step"
 echo "====================================="
-medperf dataset create -p $PREP_UID -d $DIRECTORY/col2 -l $DIRECTORY/col2 --name="col2" --description="col2data" --location="col2location"
-checkFailed "Data2 preparation step failed"
-DSET_2_GENUID=$(medperf dataset ls | grep col2 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+medperf dataset submit -p $PREP_UID -d $DIRECTORY/col2 -l $DIRECTORY/col2 --name="col2" --description="col2data" --location="col2location" -y
+checkFailed "Data2 submission step failed"
+DSET_2_UID=$(medperf dataset ls | grep col2 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running data2 submission step"
+echo "Running data2 preparation step"
 echo "====================================="
-medperf dataset submit -d $DSET_2_GENUID -y
-checkFailed "Data2 submission step failed"
-DSET_2_UID=$(medperf dataset ls | grep col2 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+medperf dataset prepare -d $DSET_2_UID
+checkFailed "Data2 preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data2 set_operational step"
+echo "====================================="
+medperf dataset set_operational -d $DSET_2_UID -y
+checkFailed "Data2 set_operational step failed"
 ##########################################################
 
 echo "\n"
