@@ -323,7 +323,7 @@ nohup $AGGCOMMAND </dev/null &>agg.log &
 sleep 7
 
 # Check if the command is still running.
-if [ -z $(pgrep -xf "$AGGCOMMAND") ]; then
+if [ -z $(pgrep -f "$AGGCOMMAND") ]; then
   checkFailed "agg doesn't seem to be running" 1
 fi
 ##########################################################
@@ -351,7 +351,7 @@ nohup $DATA1COMMAND </dev/null &>col1.log &
 sleep 7
 
 # Check if the command is still running.
-if [ -z $(pgrep -xf "$DATA1COMMAND") ]; then
+if [ -z $(pgrep -f "$DATA1COMMAND") ]; then
   checkFailed "data1 training doesn't seem to be running" 1
 fi
 ##########################################################
@@ -388,9 +388,9 @@ echo "====================================="
 #       string is the most efficient way to reduce that probability further.
 # Followup NOTE: not sure, but the "wait" command may fail if it is waiting for
 #                a process that is not a child of the current shell
-wait $(pgrep -xf "$DATA1COMMAND")
+wait $(pgrep -f "$DATA1COMMAND")
 checkFailed "data1 training didn't exit successfully"
-wait $(pgrep -xf "$AGGCOMMAND")
+wait $(pgrep -f "$AGGCOMMAND")
 checkFailed "aggregator didn't exit successfully"
 ##########################################################
 
