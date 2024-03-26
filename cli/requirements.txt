@@ -15,7 +15,7 @@ mlcube-docker @ git+https://github.com/hasan7n/mlcube@11632a85064f653e6c5a59e3c6
 mlcube-singularity @ git+https://github.com/hasan7n/mlcube@11632a85064f653e6c5a59e3c6a4996ab9fe510b#subdirectory=runners/mlcube_singularity
 validators==0.18.2
 merge-args==0.1.4
-synapseclient==2.7.0
+synapseclient==4.1.1
 schema==0.7.5
 # setuptools hotfix: https://github.com/mlcommons/medperf/issues/449
 setuptools<=66.1.1
