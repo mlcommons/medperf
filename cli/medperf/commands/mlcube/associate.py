@@ -8,7 +8,11 @@ from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 class AssociateCube:
     @classmethod
     def run(
-        cls, cube_uid: int, benchmark_uid: int, approved=False, no_cache=False,
+        cls,
+        cube_uid: int,
+        benchmark_uid: int,
+        approved=False,
+        no_cache=False,
     ):
         """Associates a cube with a given benchmark
 

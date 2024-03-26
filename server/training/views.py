@@ -9,7 +9,7 @@ from .serializers import (
     ReadTrainingExperimentSerializer,
 )
 from .permissions import IsAdmin, IsExpOwner
-from dataset.serializers import DatasetSerializer
+from dataset.serializers import DatasetPublicSerializer
 from aggregator.serializers import AggregatorSerializer
 from drf_spectacular.utils import extend_schema
 from aggregator_association.utils import latest_agg_associations
@@ -83,7 +83,7 @@ class TrainingExperimentDetail(GenericAPIView):
 
 
 class TrainingDatasetList(GenericAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetPublicSerializer
     queryset = ""
 
     def get(self, request, pk, format=None):
@@ -94,7 +94,7 @@ class TrainingDatasetList(GenericAPIView):
         experiment_datasets = experiment_datasets.filter(approval_status="APPROVED")
         datasets = [exp_dset.dataset for exp_dset in experiment_datasets]
         datasets = self.paginate_queryset(datasets)
-        serializer = DatasetSerializer(datasets, many=True)
+        serializer = DatasetPublicSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
 
 

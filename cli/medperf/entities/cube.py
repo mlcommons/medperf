@@ -130,7 +130,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         cubes_folder = config.cubes_folder
         try:
             uids = next(os.walk(cubes_folder))[1]
-            logging.debug(f'Local cubes found: {uids}')
+            logging.debug(f"Local cubes found: {uids}")
         except StopIteration:
             msg = "Couldn't iterate over cubes directory"
             logging.warning(msg)
@@ -269,7 +269,9 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         if config.platform == "singularity":
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
         logging.info(f"Running MLCube command: {cmd}")
-        with spawn_and_kill(cmd, timeout=config.mlcube_configure_timeout) as proc_wrapper:
+        with spawn_and_kill(
+            cmd, timeout=config.mlcube_configure_timeout
+        ) as proc_wrapper:
             proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:

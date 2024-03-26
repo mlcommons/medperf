@@ -159,6 +159,11 @@ agg_cert_folder = "agg_cert"
 data_cert_folder = "data_cert"
 ca_cert_folder = "ca_cert"
 network_config_filename = "network.yaml"
+report_file = "report.yaml"
+metadata_folder = "metadata"
+statistics_filename = "statistics.yaml"
+dataset_raw_paths_file = "raw.yaml"
+ready_flag_file = ".ready"
 
 # MLCube assets conventions
 cube_filename = "mlcube.yaml"
@@ -171,6 +176,7 @@ image_path = "workspace/.image"
 default_page_size = 32  # This number was chosen arbitrarily
 ddl_stream_chunk_size = 10 * 1024 * 1024  # 10MB. This number was chosen arbitrarily
 ddl_max_redownload_attempts = 3
+wait_before_sending_reports = 30  # In seconds
 
 # Container config
 gpus = None

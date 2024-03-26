@@ -91,8 +91,7 @@ class MedperfSchema(MedperfBaseSchema):
 
 
 class DeployableSchema(BaseModel):
-    # TODO: This must change after allowing edits
-    state: str = "OPERATION"
+    state: str = "DEVELOPMENT"
 
 
 class ApprovableSchema(BaseModel):

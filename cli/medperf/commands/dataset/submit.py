@@ -1,54 +1,171 @@
 import os
-
-from medperf.utils import approval_prompt, remove_path, dict_pretty_print
+from pathlib import Path
+import shutil
 from medperf.entities.dataset import Dataset
-from medperf.enums import Status
-from medperf import config
-from medperf.exceptions import InvalidArgumentError
+import medperf.config as config
+from medperf.entities.cube import Cube
+from medperf.entities.benchmark import Benchmark
+from medperf.utils import (
+    approval_prompt,
+    dict_pretty_print,
+    get_folders_hash,
+    remove_path,
+)
+from medperf.exceptions import CleanExit, InvalidArgumentError
 
 
-class DatasetRegistration:
-    @staticmethod
-    def run(data_uid: str, approved=False):
-        """Registers a database to the backend.
+class DataCreation:
+    @classmethod
+    def run(
+        cls,
+        benchmark_uid: int,
+        prep_cube_uid: int,
+        data_path: str,
+        labels_path: str,
+        metadata_path: str = None,
+        name: str = None,
+        description: str = None,
+        location: str = None,
+        approved: bool = False,
+        submit_as_prepared: bool = False,
+    ):
+        preparation = cls(
+            benchmark_uid,
+            prep_cube_uid,
+            data_path,
+            labels_path,
+            metadata_path,
+            name,
+            description,
+            location,
+            approved,
+            submit_as_prepared,
+        )
+        preparation.validate()
+        preparation.validate_prep_cube()
+        preparation.create_dataset_object()
+        if submit_as_prepared:
+            preparation.make_dataset_prepared()
+        updated_dataset_dict = preparation.upload()
+        preparation.to_permanent_path(updated_dataset_dict)
+        preparation.write(updated_dataset_dict)
+
+        return updated_dataset_dict["id"]
+
+    def __init__(
+        self,
+        benchmark_uid: int,
+        prep_cube_uid: int,
+        data_path: str,
+        labels_path: str,
+        metadata_path: str,
+        name: str,
+        description: str,
+        location: str,
+        approved: bool,
+        submit_as_prepared: bool,
+    ):
+        self.ui = config.ui
+        self.data_path = str(Path(data_path).resolve())
+        self.labels_path = str(Path(labels_path).resolve())
+        self.metadata_path = metadata_path
+        self.name = name
+        self.description = description
+        self.location = location
+        self.benchmark_uid = benchmark_uid
+        self.prep_cube_uid = prep_cube_uid
+        self.approved = approved
+        self.submit_as_prepared = submit_as_prepared
+
+    def validate(self):
+        if not os.path.exists(self.data_path):
+            raise InvalidArgumentError("The provided data path doesn't exist")
+        if not os.path.exists(self.labels_path):
+            raise InvalidArgumentError("The provided labels path doesn't exist")
+
+        if not self.submit_as_prepared and self.metadata_path:
+            raise InvalidArgumentError(
+                "metadata path should only be provided when the dataset is submitted as prepared"
+            )
+        if self.metadata_path:
+            self.metadata_path = str(Path(self.metadata_path).resolve())
+            if not os.path.exists(self.metadata_path):
+                raise InvalidArgumentError("The provided metadata path doesn't exist")
+
+        # TODO: should we check the prep mlcube and accordingly check if metadata path
+        #       is required? For now, we will anyway create an empty metadata folder
+        #       (in self.make_dataset_prepared)
+        too_many_resources = self.benchmark_uid and self.prep_cube_uid
+        no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
+        if no_resource or too_many_resources:
+            raise InvalidArgumentError(
+                "Must provide either a benchmark or a preparation mlcube"
+            )
+
+    def validate_prep_cube(self):
+        if self.prep_cube_uid is None:
+            benchmark = Benchmark.get(self.benchmark_uid)
+            self.prep_cube_uid = benchmark.data_preparation_mlcube
+        Cube.get(self.prep_cube_uid)
+
+    def create_dataset_object(self):
+        """generates dataset UIDs for both input path"""
+        in_uid = get_folders_hash([self.data_path, self.labels_path])
+        dataset = Dataset(
+            name=self.name,
+            description=self.description,
+            location=self.location,
+            data_preparation_mlcube=self.prep_cube_uid,
+            input_data_hash=in_uid,
+            generated_uid=in_uid,
+            split_seed=0,
+            generated_metadata={},
+            state="DEVELOPMENT",
+            submitted_as_prepared=self.submit_as_prepared,
+        )
+        dataset.write()
+        config.tmp_paths.append(dataset.path)
+        dataset.set_raw_paths(
+            raw_data_path=self.data_path,
+            raw_labels_path=self.labels_path,
+        )
+        self.dataset = dataset
+
+    def make_dataset_prepared(self):
+        shutil.copytree(self.data_path, self.dataset.data_path)
+        shutil.copytree(self.labels_path, self.dataset.labels_path)
+        if self.metadata_path:
+            shutil.copytree(self.metadata_path, self.dataset.metadata_path)
+        else:
+            # Create an empty folder. The statistics logic should
+            # also expect an empty folder to accommodate for users who
+            # have prepared datasets with no the metadata information
+            os.makedirs(self.dataset.metadata_path, exist_ok=True)
+
+    def upload(self):
+        submission_dict = self.dataset.todict()
+        dict_pretty_print(submission_dict)
+        msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
+        self.approved = self.approved or approval_prompt(msg)
+
+        if self.approved:
+            updated_body = self.dataset.upload()
+            return updated_body
+
+        raise CleanExit("Dataset submission operation cancelled")
+
+    def to_permanent_path(self, updated_dataset_dict: dict):
+        """Renames the temporary benchmark submission to a permanent one
 
         Args:
-            data_uid (str): UID Hint of the unregistered dataset
+            bmk_dict (dict): dictionary containing updated information of the submitted benchmark
         """
-        comms = config.comms
-        ui = config.ui
-        dset = Dataset.get(data_uid)
+        old_dataset_loc = self.dataset.path
+        updated_dataset = Dataset(**updated_dataset_dict)
+        new_dataset_loc = updated_dataset.path
+        remove_path(new_dataset_loc)
+        os.rename(old_dataset_loc, new_dataset_loc)
 
-        if dset.id is not None:
-            # TODO: should get_dataset and update locally. solves existing issue?
-            raise InvalidArgumentError("This dataset has already been registered")
-        remote_dsets = comms.get_user_datasets()
-        remote_dset = [
-            remote_dset
-            for remote_dset in remote_dsets
-            if remote_dset["generated_uid"] == dset.generated_uid
-        ]
-        if len(remote_dset) == 1:
-            dset = Dataset(**remote_dset[0])
-            dset.write()
-            ui.print(f"Remote dataset {dset.name} detected. Updating local dataset.")
-            return dset.id
-
-        dict_pretty_print(dset.todict())
-        msg = "Do you approve the registration of the presented data to the MLCommons comms? [Y/n] "
-        approved = approved or approval_prompt(msg)
-        dset.status = Status("APPROVED") if approved else Status("REJECTED")
-        if approved:
-            ui.print("Uploading...")
-            updated_dset_dict = dset.upload()
-            updated_dset = Dataset(**updated_dset_dict)
-
-            old_dset_loc = dset.path
-            new_dset_loc = updated_dset.path
-            remove_path(new_dset_loc)
-            os.rename(old_dset_loc, new_dset_loc)
-
-            updated_dset.write()
-            return updated_dset.id
-        else:
-            ui.print("Registration request cancelled.")
+    def write(self, updated_dataset_dict):
+        dataset = Dataset(**updated_dataset_dict)
+        dataset.write()

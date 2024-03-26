@@ -223,7 +223,7 @@ class _MLCubeOutputFilter:
             r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \S+ \S+\[(\d+)\] (\S+) (.*)$"
         )
         # Clear log lines from color / style symbols before matching with regexp
-        self.ansi_escape_pattern = re.compile(r'\x1b\[[0-9;]*[mGK]')
+        self.ansi_escape_pattern = re.compile(r"\x1b\[[0-9;]*[mGK]")
         self.proc_pid = str(proc_pid)
 
     def check_line(self, line: str) -> bool:
@@ -234,15 +234,17 @@ class _MLCubeOutputFilter:
             true if line should be filtered out (==saved to debug file only),
             false if line should be printed to user also
         """
-        match = self.log_pattern.match(self.ansi_escape_pattern.sub('', line))
+        match = self.log_pattern.match(self.ansi_escape_pattern.sub("", line))
         if match:
             line_pid, matched_log_level_str, content = match.groups()
             matched_log_level = logging.getLevelName(matched_log_level_str)
 
             # if line matches conditions, it is just logged to debug; else, shown to user
-            return (line_pid == self.proc_pid  # hide only `mlcube` framework logs
-                    and isinstance(matched_log_level, int)
-                    and matched_log_level < logging.INFO)  # hide only debug logs
+            return (
+                line_pid == self.proc_pid  # hide only `mlcube` framework logs
+                and isinstance(matched_log_level, int)
+                and matched_log_level < logging.INFO
+            )  # hide only debug logs
         return False
 
 
@@ -433,17 +435,17 @@ def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
     repo = Repo(config.BASE_DIR)
     if repo.bare:
-        logging.debug('Repo is bare')
+        logging.debug("Repo is bare")
         return
 
-    logging.debug(f'Current git commit: {repo.head.commit.hexsha}')
+    logging.debug(f"Current git commit: {repo.head.commit.hexsha}")
 
     try:
         for remote in repo.remotes:
             remote.fetch()
 
         if repo.head.is_detached:
-            logging.debug('Repo is in detached state')
+            logging.debug("Repo is in detached state")
             return
 
         current_branch = repo.active_branch
@@ -453,14 +455,20 @@ def check_for_updates() -> None:
             logging.debug("Current branch does not track a remote branch.")
             return
         if current_branch.commit.hexsha == tracking_branch.commit.hexsha:
-            logging.debug('No git branch updates.')
+            logging.debug("No git branch updates.")
             return
 
-        logging.debug(f'Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}')
-        config.ui.print_warning('MedPerf client updates found. Please, update your MedPerf installation.')
+        logging.debug(
+            f"Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}"
+        )
+        config.ui.print_warning(
+            "MedPerf client updates found. Please, update your MedPerf installation."
+        )
     except GitCommandError as e:
-        logging.debug('Exception raised during updates check. Maybe user checked out repo with git@ and private key'
-                      'or repo is in detached / non-tracked state?')
+        logging.debug(
+            "Exception raised during updates check. Maybe user checked out repo with git@ and private key"
+            "or repo is in detached / non-tracked state?"
+        )
         logging.debug(e)
 
 
@@ -481,7 +489,9 @@ class spawn_and_kill:
         os.killpg(self.pid, signal.SIGINT)
 
     def __enter__(self):
-        self.proc = self.spawn(self.cmd, timeout=self.timeout, *self._args, **self._kwargs)
+        self.proc = self.spawn(
+            self.cmd, timeout=self.timeout, *self._args, **self._kwargs
+        )
         self.pid = self.proc.pid
         return self
 
@@ -492,7 +502,7 @@ class spawn_and_kill:
             # - KeyboardInterrupt (user pressed Ctrl+C in terminal)
             # - any other medperf exception like OOM or bug
             # - pexpect.TIMEOUT
-            logging.info(f'Killing ancestor processes because of exception: {exc_val=}')
+            logging.info(f"Killing ancestor processes because of exception: {exc_val=}")
             self.killpg()
 
         self.proc.close()

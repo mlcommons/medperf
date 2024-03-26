@@ -129,10 +129,12 @@ class TestReport(Entity, MedperfBaseSchema):
         return {
             "UID": self.generated_uid,
             "Data Source": data_source,
-            "Model": self.model
-            if isinstance(self.model, int)
-            else self.model[:27] + "...",
-            "Evaluator": self.data_evaluator_mlcube
-            if isinstance(self.data_evaluator_mlcube, int)
-            else self.data_evaluator_mlcube[:27] + "...",
+            "Model": (
+                self.model if isinstance(self.model, int) else self.model[:27] + "..."
+            ),
+            "Evaluator": (
+                self.data_evaluator_mlcube
+                if isinstance(self.data_evaluator_mlcube, int)
+                else self.data_evaluator_mlcube[:27] + "..."
+            ),
         }

@@ -10,7 +10,12 @@ from medperf.comms.entity_resources import resources
 
 class SubmitBenchmark:
     @classmethod
-    def run(cls, benchmark_info: dict, no_cache: bool = True):
+    def run(
+        cls,
+        benchmark_info: dict,
+        no_cache: bool = True,
+        skip_data_preparation_step: bool = False,
+    ):
         """Submits a new cube to the medperf platform
         Args:
             benchmark_info (dict): benchmark information
@@ -25,7 +30,7 @@ class SubmitBenchmark:
                     evaluator_mlcube (int): benchmark data evaluator mlcube uid
         """
         ui = config.ui
-        submission = cls(benchmark_info, no_cache)
+        submission = cls(benchmark_info, no_cache, skip_data_preparation_step)
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -37,10 +42,17 @@ class SubmitBenchmark:
         submission.to_permanent_path(updated_benchmark_body)
         submission.write(updated_benchmark_body)
 
-    def __init__(self, benchmark_info: dict, no_cache: bool = True):
+    def __init__(
+        self,
+        benchmark_info: dict,
+        no_cache: bool = True,
+        skip_data_preparation_step: bool = False,
+    ):
         self.ui = config.ui
         self.bmk = Benchmark(**benchmark_info)
         self.no_cache = no_cache
+        self.skip_data_preparation_step = skip_data_preparation_step
+        self.bmk.metadata["demo_dataset_already_prepared"] = skip_data_preparation_step
         config.tmp_paths.append(self.bmk.path)
 
     def get_extra_information(self):
@@ -50,13 +62,15 @@ class SubmitBenchmark:
         bmk_demo_url = self.bmk.demo_dataset_tarball_url
         bmk_demo_hash = self.bmk.demo_dataset_tarball_hash
         try:
-            _, demo_hash = resources.get_benchmark_demo_dataset(bmk_demo_url, bmk_demo_hash)
+            _, demo_hash = resources.get_benchmark_demo_dataset(
+                bmk_demo_url, bmk_demo_hash
+            )
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Demo dataset {bmk_demo_url}: {e}")
         self.bmk.demo_dataset_tarball_hash = demo_hash
         demo_uid, results = self.run_compatibility_test()
         self.bmk.demo_dataset_generated_uid = demo_uid
-        self.bmk.metadata = {"results": results}
+        self.bmk.metadata["results"] = results
 
     def run_compatibility_test(self):
         """Runs a compatibility test to ensure elements are compatible,
@@ -65,7 +79,9 @@ class SubmitBenchmark:
         self.ui.print("Running compatibility test")
         self.bmk.write()
         data_uid, results = CompatibilityTestExecution.run(
-            benchmark=self.bmk.generated_uid, no_cache=self.no_cache
+            benchmark=self.bmk.generated_uid,
+            no_cache=self.no_cache,
+            skip_data_preparation_step=self.skip_data_preparation_step,
         )
 
         return data_uid, results

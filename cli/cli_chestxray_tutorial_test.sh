@@ -46,22 +46,28 @@ medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 echo "\n"
 echo "====================================="
+echo "Registering dataset with medperf"
+echo "====================================="
+medperf dataset submit -b 1 -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data/labels --name="nih_chestxray" --description="sample dataset" --location="mock location" -y
+checkFailed "Data registration step failed"
+
+echo "\n"
+DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "Dataset UID: $DSET_UID"
+echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset create -b 1 -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data/labels --name="nih_chestxray" --description="sample dataset" --location="mock location"
+medperf dataset prepare -d $DSET_UID
 checkFailed "Data preparation step failed"
 
 echo "\n"
-DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 1)
-echo "Dataset UID: $DSET_UID"
-echo "====================================="
-echo "Registering dataset with medperf"
-echo "====================================="
-medperf dataset submit -d $DSET_UID -y
-checkFailed "Data registration step failed"
 
-DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "Dataset UID: $DSET_UID"
+echo "====================================="
+echo "Running data set operational step"
+echo "====================================="
+medperf dataset set_operational -d $DSET_UID -y
+checkFailed "Data set operational step failed"
+
 echo "====================================="
 echo "Creating dataset benchmark association"
 echo "====================================="

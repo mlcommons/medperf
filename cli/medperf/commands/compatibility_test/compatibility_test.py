@@ -15,7 +15,7 @@ app = typer.Typer()
 @clean_except
 def run(
     benchmark_uid: int = typer.Option(
-        None, "--benchmark", "-b", help="UID of the benchmark to test. Optional",
+        None, "--benchmark", "-b", help="UID of the benchmark to test. Optional"
     ),
     data_uid: str = typer.Option(
         None,
@@ -30,9 +30,9 @@ def run(
             See `medperf mlcube submit --help` for more information""",
     ),
     demo_dataset_hash: str = typer.Option(
-        None, "--demo_dataset_hash", help="Hash of the demo dataset, if provided.",
+        None, "--demo_dataset_hash", help="Hash of the demo dataset, if provided."
     ),
-    data_path: str = typer.Option(None, "--data_path", help="Path to raw input data.",),
+    data_path: str = typer.Option(None, "--data_path", help="Path to raw input data."),
     labels_path: str = typer.Option(
         None,
         "--labels_path",
@@ -57,12 +57,17 @@ def run(
         help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
     ),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist",
+        False, "--no-cache", help="Execute the test even if results already exist"
     ),
     offline: bool = typer.Option(
         False,
         "--offline",
         help="Execute the test without connecting to the MedPerf server.",
+    ),
+    skip_data_preparation_step: bool = typer.Option(
+        False,
+        "--skip-demo-data-preparation",
+        help="Use this flag if the passed demo dataset or data path is already prepared",
     ),
 ):
     """
@@ -81,6 +86,7 @@ def run(
         data_uid,
         no_cache=no_cache,
         offline=offline,
+        skip_data_preparation_step=skip_data_preparation_step,
     )
     config.ui.print("✅ Done!")
 
@@ -109,6 +115,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more test reports
-    """
+    """Displays the information of one or more test reports"""
     EntityView.run(entity_id, TestReport, format, output=output)

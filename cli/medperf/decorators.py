@@ -28,6 +28,7 @@ def clean_except(func: Callable) -> Callable:
         except CleanExit as e:
             logging.info(str(e))
             config.ui.print(str(e))
+            sys.exit(e.medperf_status_code)
         except MedperfException as e:
             logging.exception(e)
             pretty_error(str(e))

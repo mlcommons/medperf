@@ -14,8 +14,9 @@ class TestCube(Cube):
     parameters_hash: Optional[str] = EMPTY_FILE_HASH
     image_tarball_url: Optional[str] = "https://test.com/image.tar.gz"
     image_tarball_hash: Optional[str] = EMPTY_FILE_HASH
-    additional_files_tarball_url: Optional[
-        str
-    ] = "https://test.com/additional_files.tar.gz"
+    additional_files_tarball_url: Optional[str] = (
+        "https://test.com/additional_files.tar.gz"
+    )
     additional_files_tarball_hash: Optional[str] = EMPTY_FILE_HASH
-    state: str = "PRODUCTION"
+    state: str = "OPERATION"
+    is_valid = True
