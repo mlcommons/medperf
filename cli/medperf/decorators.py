@@ -1,4 +1,3 @@
-import os
 import sys
 import typer
 import logging
@@ -33,10 +32,7 @@ def clean_except(func: Callable) -> Callable:
             sys.exit(e.medperf_status_code)
         except MedperfException as e:
             logging.exception(e)
-            log_filepath = os.path.join(config.logs_storage, config.log_file)
-            additional_msg = f"For more information, check the logs at: {log_filepath}"
-            msg = ". ".join([str(e), additional_msg])
-            pretty_error(msg)
+            pretty_error(str(e))
             sys.exit(1)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
