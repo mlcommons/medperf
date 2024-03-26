@@ -298,15 +298,14 @@ echo "\n"
 echo "====================================="
 echo "Starting aggregator"
 echo "====================================="
-RUNCOMMAND="medperf aggregator start -a $AGG_UID -t $TRAINING_UID"
-nohup $RUNCOMMAND </dev/null &>agg.log &
+AGGCOMMAND="medperf aggregator start -a $AGG_UID -t $TRAINING_UID"
+nohup $AGGCOMMAND </dev/null &>agg.log &
 
 # sleep so that the mlcube is run before we change profiles
 sleep 7
 
-AGG_PID=$(ps -ef | grep "$RUNCOMMAND" | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 # Check if the command is still running.
-if ! kill -0 "$AGG_PID" &>/dev/null; then
+if [ -z $(pgrep -xf "$AGGCOMMAND") ]; then
   checkFailed "agg doesn't seem to be running" 1
 fi
 ##########################################################
@@ -327,15 +326,14 @@ echo "\n"
 echo "====================================="
 echo "Starting training with data1"
 echo "====================================="
-RUNCOMMAND="medperf training run -d $DSET_1_UID -t $TRAINING_UID"
-nohup $RUNCOMMAND </dev/null &>col1.log &
+DATA1COMMAND="medperf training run -d $DSET_1_UID -t $TRAINING_UID"
+nohup $DATA1COMMAND </dev/null &>col1.log &
 
 # sleep so that the mlcube is run before we change profiles
 sleep 7
 
-DATA1_PID=$(ps -ef | grep "$RUNCOMMAND" | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 # Check if the command is still running.
-if ! kill -0 "$DATA1_PID" &>/dev/null; then
+if [ -z $(pgrep -xf "$DATA1COMMAND") ]; then
   checkFailed "data1 training doesn't seem to be running" 1
 fi
 ##########################################################
@@ -372,9 +370,9 @@ echo "====================================="
 #       string is the most efficient way to reduce that probability further.
 # Followup NOTE: not sure, but the "wait" command may fail if it is waiting for
 #                a process that is not a child of the current shell
-wait $DATA1_PID
+wait $(pgrep -xf "$DATA1COMMAND")
 checkFailed "data1 training didn't exit successfully"
-wait $AGG_PID
+wait $(pgrep -xf "$AGGCOMMAND")
 checkFailed "aggregator didn't exit successfully"
 ##########################################################
 
