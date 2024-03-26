@@ -59,7 +59,7 @@ def filesystem():
 def test_setup_logging_filters_sensitive_data(text, exp_output):
     # Arrange
     logging.getLogger().setLevel("DEBUG")
-    log_file = os.path.join(config.logs_folder, config.log_file)
+    log_file = os.path.join(config.logs_storage, config.log_file)
 
     # Act
     logging.debug(text)

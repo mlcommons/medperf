@@ -1,6 +1,6 @@
 import os
 from medperf.config_management import setup_config
-from medperf.storage import override_storage_config_paths, init_storage
+from medperf.storage import override_storage_config_paths, init_storage, apply_configuration_migrations
 from medperf.logging import setup_logging
 from medperf.ui.factory import UIFactory
 from medperf.comms.factory import CommsFactory
@@ -8,6 +8,9 @@ from medperf import config
 
 
 def initialize():
+    # Apply any required migration
+    apply_configuration_migrations()
+
     # setup config
     setup_config()
 
@@ -16,7 +19,7 @@ def initialize():
     init_storage()
 
     # Setup logging
-    log_file = os.path.join(config.logs_folder, config.log_file)
+    log_file = os.path.join(config.logs_storage, config.log_file)
     setup_logging(log_file, config.loglevel)
 
     # Setup UI, COMMS

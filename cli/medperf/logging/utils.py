@@ -287,11 +287,11 @@ def log_machine_details():
 
 def package_logs():
     # Handle cases where the folder doesn't exist
-    if not os.path.exists(config.logs_folder):
+    if not os.path.exists(config.logs_storage):
         return
 
     # Don't create a tarball if there's no logs to be packaged
-    files = os.listdir(config.logs_folder)
+    files = os.listdir(config.logs_storage)
     if len(files) == 0:
         return
 
@@ -301,9 +301,9 @@ def package_logs():
         if is_logfile:
             logfiles.append(file)
 
-    package_file = os.path.join(config.logs_folder, config.log_package_file)
+    package_file = os.path.join(config.logs_storage, config.log_package_file)
 
     with tarfile.open(package_file, "w:gz") as tar:
         for file in logfiles:
-            filepath = os.path.join(config.logs_folder, file)
+            filepath = os.path.join(config.logs_storage, file)
             tar.add(filepath, arcname=os.path.basename(filepath))

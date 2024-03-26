@@ -43,13 +43,13 @@ local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 
 # Storage config
 config_storage = Path.home().resolve() / ".medperf_config"
+logs_storage = Path.home().resolve() / ".medperf_logs"
 config_path = str(config_storage / "config.yaml")
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 
 images_folder = ".images"
 trash_folder = ".trash"
-logs_folder = "logs"
 tmp_folder = ".tmp"
 demo_datasets_folder = "demo"
 
@@ -71,10 +71,6 @@ storage = {
     "trash_folder": {
         "base": default_base_storage,
         "name": trash_folder,
-    },
-    "logs_folder": {
-        "base": default_base_storage,
-        "name": logs_folder,
     },
     "tmp_folder": {
         "base": default_base_storage,
@@ -117,7 +113,6 @@ storage = {
 root_folders = [
     "images_folder",
     "trash_folder",
-    "logs_folder",
     "tmp_folder",
     "demo_datasets_folder",
 ]
