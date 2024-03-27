@@ -1,5 +1,9 @@
 import os
+import shutil
+
 from medperf import config
+from medperf.config_management import read_config, write_config
+
 from .utils import full_folder_path
 
 
@@ -13,3 +17,22 @@ def init_storage():
     for folder in config.storage:
         folder = getattr(config, folder)
         os.makedirs(folder, exist_ok=True)
+
+
+def apply_configuration_migrations():
+    if not os.path.exists(config.config_path):
+        return
+
+    config_p = read_config()
+
+    if "logs_folder" not in config_p.storage:
+        return
+
+    src_dir = os.path.join(config_p.storage["logs_folder"], "logs")
+    tgt_dir = config.logs_storage
+
+    shutil.move(src_dir, tgt_dir)
+
+    del config_p.storage["logs_folder"]
+
+    write_config(config_p)
