@@ -1,4 +1,5 @@
 import logging
+import traceback
 import os
 import platform
 import re
@@ -144,25 +145,50 @@ def get_additional_information():
         text=True,
     )
     output, _ = p.communicate()
-    if p.returncode != 0:
-        return "Could not execute bash script for additional debug information"
-
     return output
 
 
 def log_machine_details():
     system_info = {}
-    system_info["System Info"] = get_system_information()
-    system_info["Memory Usage"] = get_memory_usage()
-    system_info["Disk Usage"] = get_disk_usage()
-    system_info["Medperf Configuration"] = get_configuration_variables()
-    system_info["Medperf Storage Contents"] = get_storage_contents()
-    system_info["Python Environment"] = get_python_environment_information()
+    try:
+        system_info["System Info"] = get_system_information()
+    except Exception:
+        system_info["System Info"] = traceback.format_exc()
+
+    try:
+        system_info["Memory Usage"]
+    except Exception:
+        system_info["Memory Usage"] = traceback.format_exc()
+
+    try:
+        system_info["Disk Usage"]
+    except Exception:
+        system_info["Disk Usage"] = traceback.format_exc()
+
+    try:
+        system_info["Medperf Configuration"]
+    except Exception:
+        system_info["Medperf Configuration"] = traceback.format_exc()
+
+    try:
+        system_info["Medperf Storage Contents"]
+    except Exception:
+        system_info["Medperf Storage Contents"] = traceback.format_exc()
+
+    try:
+        system_info["Python Environment"]
+    except Exception:
+        system_info["Python Environment"] = traceback.format_exc()
+
+    try:
+        add_info = get_additional_information()
+    except Exception:
+        add_info = traceback.format_exc()
 
     debug_dict = {"Machine Details": system_info}
 
     logging.debug(yaml.dump(debug_dict, default_flow_style=False))
-    logging.debug(get_additional_information())
+    logging.debug(add_info)
 
 
 def package_logs():
