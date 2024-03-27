@@ -13,5 +13,3 @@ pyOpenSSL==23.2.0
 Werkzeug==2.2.3
 django-extensions==3.2.1
 djangorestframework-simplejwt==5.2.2
-psutil==5.9.8
-docker==7.0.0
