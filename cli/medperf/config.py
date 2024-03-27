@@ -60,6 +60,8 @@ experiments_logs_folder = "experiments_logs"
 results_folder = "results"
 predictions_folder = "predictions"
 tests_folder = "tests"
+training_folder = "training"
+aggregators_folder = "aggregators"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
@@ -112,6 +114,14 @@ storage = {
         "base": default_base_storage,
         "name": tests_folder,
     },
+    "training_folder": {
+        "base": default_base_storage,
+        "name": training_folder,
+    },
+    "aggregators_folder": {
+        "base": default_base_storage,
+        "name": aggregators_folder,
+    },
 }
 
 root_folders = [
@@ -129,6 +139,8 @@ server_folders = [
     "results_folder",
     "predictions_folder",
     "tests_folder",
+    "training_folder",
+    "aggregators_folder",
 ]
 
 # MedPerf filenames conventions
@@ -141,6 +153,12 @@ log_file = "medperf.log"
 tarball_filename = "tmp.tar.gz"
 demo_dset_paths_file = "paths.yaml"
 mlcube_cache_file = ".cache_metadata.yaml"
+training_exps_filename = "training-info.yaml"
+training_exp_cols_filename = "cols.yaml"
+agg_cert_folder = "agg_cert"
+data_cert_folder = "data_cert"
+ca_cert_folder = "ca_cert"
+network_config_filename = "network.yaml"
 report_file = "report.yaml"
 metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"

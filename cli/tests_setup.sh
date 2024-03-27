@@ -1,13 +1,12 @@
 #! /bin/bash
-while getopts s:d:c:ft: flag
-do
-    case "${flag}" in
-        s) SERVER_URL=${OPTARG};;
-        d) DIRECTORY=${OPTARG};;
-        c) CLEANUP="true";;
-        f) FRESH="true";;
-        t) TIMEOUT=${OPTARG};;
-    esac
+while getopts s:d:c:ft: flag; do
+  case "${flag}" in
+  s) SERVER_URL=${OPTARG} ;;
+  d) DIRECTORY=${OPTARG} ;;
+  c) CLEANUP="true" ;;
+  f) FRESH="true" ;;
+  t) TIMEOUT=${OPTARG} ;;
+  esac
 done
 
 SERVER_URL="${SERVER_URL:-https://localhost:8000}"
@@ -26,7 +25,7 @@ echo "Server URL: $SERVER_URL"
 echo "Storage location: $MEDPERF_SUBSTORAGE"
 
 # frequently used
-clean(){
+clean() {
   echo "====================================="
   echo "Cleaning up medperf tmp files"
   echo "====================================="
@@ -38,10 +37,17 @@ clean(){
   medperf profile delete testbenchmark
   medperf profile delete testmodel
   medperf profile delete testdata
+  medperf profile delete testagg
+  medperf profile delete testdata1
+  medperf profile delete testdata2
 }
-checkFailed(){
-  if [ "$?" -ne "0" ]; then
-    if [ "$?" -eq 124 ]; then
+checkFailed() {
+  EXITSTATUS="$?"
+  if [ -n "$2" ]; then
+    EXITSTATUS="1"
+  fi
+  if [ $EXITSTATUS -ne "0" ]; then
+    if [ $EXITSTATUS -eq 124 ]; then
       echo "Process timed out"
     fi
     echo $1
@@ -78,6 +84,7 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 # prep cubes
 PREP_MLCUBE="$ASSETS_URL/prep-sep/mlcube/mlcube.yaml"
 PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
+PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
@@ -99,8 +106,15 @@ MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/paramet
 METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 
+# FL cubes
+TRAIN_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube1.0.0.yaml"
+TRAIN_PARAMS="https://storage.googleapis.com/medperf-storage/testfl/parameters1.0.0.yaml"
+TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
+
 # test users credentials
 MODELOWNER="testmo@example.com"
 DATAOWNER="testdo@example.com"
 BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
+DATAOWNER2="testdo2@example.com"
+AGGOWNER="testao@example.com"

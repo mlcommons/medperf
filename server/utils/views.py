@@ -19,6 +19,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
+from training.models import TrainingExperiment
+from training.serializers import ReadTrainingExperimentSerializer
+from aggregator.models import Aggregator
+from aggregator.serializers import AggregatorSerializer
+from traindataset_association.models import ExperimentDataset
+from traindataset_association.serializers import ExperimentDatasetListSerializer
+from aggregator_association.models import ExperimentAggregator
+from aggregator_association.serializers import ExperimentAggregatorListSerializer
 
 
 class User(GenericAPIView):
@@ -51,6 +59,46 @@ class BenchmarkList(GenericAPIView):
         benchmarks = self.get_object(request.user.id)
         benchmarks = self.paginate_queryset(benchmarks)
         serializer = BenchmarkSerializer(benchmarks, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class TrainingExperimentList(GenericAPIView):
+    serializer_class = ReadTrainingExperimentSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingExperiment.objects.filter(owner__id=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all training_exps owned by the current user
+        """
+        training_exps = self.get_object(request.user.id)
+        training_exps = self.paginate_queryset(training_exps)
+        serializer = ReadTrainingExperimentSerializer(training_exps, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class AggregatorList(GenericAPIView):
+    serializer_class = AggregatorSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Aggregator.objects.filter(owner__id=pk)
+        except Aggregator.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all aggregators owned by the current user
+        """
+        aggregators = self.get_object(request.user.id)
+        aggregators = self.paginate_queryset(aggregators)
+        serializer = AggregatorSerializer(aggregators, many=True)
         return self.get_paginated_response(serializer.data)
 
 
@@ -155,6 +203,50 @@ class MlCubeAssociationList(GenericAPIView):
         benchmarkmodels = self.get_object(request.user.id)
         benchmarkmodels = self.paginate_queryset(benchmarkmodels)
         serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
+        return self.get_paginated_response(serializer.data)
+
+class DatasetTrainingAssociationList(GenericAPIView):
+    serializer_class = ExperimentDatasetListSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            # TODO: this retrieves everything (not just latest ones)
+            return ExperimentDataset.objects.filter(
+                Q(dataset__owner__id=pk) | Q(training_exp__owner__id=pk)
+            )
+        except ExperimentDataset.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all training dataset associations involving an asset of mine
+        """
+        experiment_datasets = self.get_object(request.user.id)
+        experiment_datasets = self.paginate_queryset(experiment_datasets)
+        serializer = ExperimentDatasetListSerializer(experiment_datasets, many=True)
+        return self.get_paginated_response(serializer.data)
+
+class AggregatorAssociationList(GenericAPIView):
+    serializer_class = ExperimentAggregatorListSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            # TODO: this retrieves everything (not just latest ones)
+            return ExperimentAggregator.objects.filter(
+                Q(aggregator__owner__id=pk) | Q(training_exp__owner__id=pk)
+            )
+        except ExperimentAggregator.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all aggregator associations involving an asset of mine
+        """
+        experiment_aggs = self.get_object(request.user.id)
+        experiment_aggs = self.paginate_queryset(experiment_aggs)
+        serializer = ExperimentAggregatorListSerializer(experiment_aggs, many=True)
         return self.get_paginated_response(serializer.data)
 
 

@@ -16,8 +16,11 @@ import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
 import medperf.commands.association.association as association
 import medperf.commands.compatibility_test.compatibility_test as compatibility_test
+import medperf.commands.training.training as training
+import medperf.commands.aggregator.aggregator as aggregator
 import medperf.commands.storage as storage
-from medperf.utils import check_for_updates
+
+# from medperf.utils import check_for_updates
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
@@ -29,6 +32,8 @@ app.add_typer(profile.app, name="profile", help="Manage profiles")
 app.add_typer(compatibility_test.app, name="test", help="Manage compatibility tests")
 app.add_typer(auth.app, name="auth", help="Authentication")
 app.add_typer(storage.app, name="storage", help="Storage management")
+app.add_typer(training.app, name="training", help="Training")
+app.add_typer(aggregator.app, name="aggregator", help="Aggregator")
 
 
 @app.command("run")
@@ -100,6 +105,6 @@ def main(
 
     logging.info(f"Running MedPerf v{__version__} on {loglevel} logging level")
     logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
-    check_for_updates()
+    # check_for_updates()
 
     config.ui.print(f"MedPerf {__version__}")

@@ -302,10 +302,12 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def run(
         self,
         task: str,
-        output_logs: str = None,
+        output_logs_file: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
         read_protected_input: bool = True,
+        port=None,
+        env_dict: dict = {},
         **kwargs,
     ):
         """Executes a given task on the cube instance
@@ -318,9 +320,12 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
+        # TODO: refactor this function. Move things to MLCube if possible
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
+        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform}"
+        if task not in ["train", "start_aggregator"]:
+            cmd += " --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         if read_protected_input:
@@ -330,6 +335,13 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cmd = " ".join([cmd, cmd_arg])
 
         container_loglevel = config.container_loglevel
+        if container_loglevel:
+            env_dict["MEDPERF_LOGLEVEL"] = container_loglevel.upper()
+
+        env_args_string = ""
+        for key, val in env_dict.items():
+            env_args_string += f"--env {key}={val} "
+        env_args_string = env_args_string.strip()
 
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
@@ -339,16 +351,24 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             gpu_args = self.get_config("docker.gpu_args") or ""
             cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
             gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
+            if port is not None:
+                cpu_args += f" -p {port}:{port}"
+                gpu_args += f" -p {port}:{port}"
             cmd += f' -Pdocker.cpu_args="{cpu_args}"'
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+            if env_args_string:  # TODO: why MLCube UI is so brittle?
+                env_args = self.get_config("docker.env_args") or ""
+                env_args = " ".join([env_args, env_args_string]).strip()
+                cmd += f' -Pdocker.env_args="{env_args}"'
 
-            if container_loglevel:
-                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
         elif config.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
             run_args = " ".join([run_args, "-eC"]).strip()
+            run_args += " " + env_args_string
             cmd += f' -Psingularity.run_args="{run_args}"'
+            # TODO: check if ports are already exposed. Think if this is OK
+            # TODO: check if --env works
 
             # set image name in case of running docker image with singularity
             # Assuming we only accept mlcube.yamls with either singularity or docker sections
@@ -358,7 +378,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 cmd += (
                     f' -Psingularity.image="{self._converted_singularity_image_name}"'
                 )
-            # TODO: pass logging env for singularity also there
         else:
             raise InvalidArgumentError("Unsupported platform")
 
@@ -371,8 +390,8 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             proc = proc_wrapper.proc
             proc_out = combine_proc_sp_text(proc)
 
-        if output_logs is not None:
-            with open(output_logs, "w") as f:
+        if output_logs_file is not None:
+            with open(output_logs_file, "w") as f:
                 f.write(proc_out)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")
