@@ -1,6 +1,7 @@
 import time
 import logging
 import threading
+import sqlite3
 from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError
@@ -152,15 +153,28 @@ class Auth0(Auth):
 
     @property
     def access_token(self):
-        """Thread-safe access token retrieval"""
-        # TODO: lock the credentials file to have this process-safe
-        #       If someone is preparing their dataset, and configured
-        #       the preparation to send reports async, there might be a
-        #       risk if they tried to run other commands separately (e.g., dataset ls)
-        #       (i.e., two processes may try to refresh an expired access token, which
-        #       may trigger refresh token reuse since we use refresh token rotation.)
+        """Thread and process-safe access token retrieval"""
+        # In case of multiple threads are using the same connection object,
+        # keep the thread lock, otherwise the database will throw
+        # errors of starting a transaction within a transaction.
+        # In case of each thread is using a different connection object,
+        # keep the thread lock to avoid the OperationalError when
+        # multiple threads want to access the database.
         with self._lock:
-            return self._access_token
+            # TODO: This is temporary. Use a cleaner solution.
+            db = sqlite3.connect(config.tokens_db, isolation_level=None, timeout=60)
+            try:
+                db.execute("BEGIN EXCLUSIVE TRANSACTION")
+            except sqlite3.OperationalError:
+                msg = "Another process is using the database. Try again later"
+                raise CommunicationError(msg)
+            token = self._access_token
+            # Sqlite will automatically execute COMMIT and close the connection
+            # if an exception is raised during the retrieval of the access token.
+            db.execute("COMMIT")
+            db.close()
+
+            return token
 
     @property
     def _access_token(self):

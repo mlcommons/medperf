@@ -46,6 +46,7 @@ config_storage = Path.home().resolve() / ".medperf_config"
 config_path = str(config_storage / "config.yaml")
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
+tokens_db = str(config_storage / ".tokens_db")
 
 images_folder = ".images"
 trash_folder = ".trash"
