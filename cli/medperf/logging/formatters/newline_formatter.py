@@ -1,13 +1,12 @@
 import logging
 
-class NewLineFormatter(logging.Formatter):
 
+class NewLineFormatter(logging.Formatter):
     def __init__(self, fmt, datefmt=None):
         """
         Init given the log line format and date format
         """
         logging.Formatter.__init__(self, fmt, datefmt)
-
 
     def format(self, record):
         """
@@ -17,6 +16,6 @@ class NewLineFormatter(logging.Formatter):
 
         if record.message != "":
             parts = msg.split(record.message)
-            msg = msg.replace('\n', '\n' + parts[0])
+            msg = msg.replace("\n", "\n" + parts[0])
 
         return msg

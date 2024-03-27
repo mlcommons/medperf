@@ -1,20 +1,15 @@
-import sys
-import csv
-import getpass
-import grp
 import logging
 import os
 import platform
 import re
-import shutil
 import socket
 import subprocess
+import sys
 import tarfile
+from importlib import metadata
 
-import docker
 import psutil
 import yaml
-from importlib import metadata
 
 from medperf import config
 

@@ -1,8 +1,10 @@
 import os
 import shutil
+
 from medperf import config
-from .utils import full_folder_path
 from medperf.config_management import read_config, write_config
+
+from .utils import full_folder_path
 
 
 def override_storage_config_paths():
