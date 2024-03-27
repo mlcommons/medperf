@@ -31,10 +31,7 @@ def apply_configuration_migrations():
     src_dir = os.path.join(config_p.storage["logs_folder"], "logs")
     tgt_dir = config.logs_storage
 
-    old_logs = os.listdir(src_dir)
-    for old_log in old_logs:
-        old_log_path = os.path.join(src_dir, old_log)
-        shutil.move(old_log_path, tgt_dir)
+    shutil.move(src_dir, tgt_dir)
 
     del config_p.storage["logs_folder"]
 
