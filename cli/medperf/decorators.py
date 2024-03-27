@@ -5,6 +5,7 @@ import functools
 from merge_args import merge_args
 from collections.abc import Callable
 from medperf.utils import pretty_error, cleanup
+from medperf.logging.utils import package_logs
 from medperf.exceptions import MedperfException, CleanExit
 import medperf.config as config
 
@@ -38,6 +39,7 @@ def clean_except(func: Callable) -> Callable:
             logging.exception(e)
             raise e
         finally:
+            package_logs()
             cleanup()
 
     return wrapper
