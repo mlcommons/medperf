@@ -21,9 +21,6 @@ class Auth0(Auth):
         self.client_id = config.auth_client_id
         self.audience = config.auth_audience
         self._lock = threading.Lock()
-        self.db = sqlite3.connect(
-            config.tokens_db, isolation_level=None, check_same_thread=False
-        )
 
     def login(self, email):
         """Retrieves and stores an access token/refresh token pair from the auth0
@@ -157,15 +154,26 @@ class Auth0(Auth):
     @property
     def access_token(self):
         """Thread and process-safe access token retrieval"""
+        # In case of multiple threads are using the same connection object,
         # keep the thread lock, otherwise the database will throw
-        # errors of starting a transaction within a transaction
-        # if multiple threads tried to start a transaction using
-        # the same connection object.
+        # errors of starting a transaction within a transaction.
+        # In case of each thread is using a different connection object,
+        # keep the thread lock to avoid the OperationalError when
+        # multiple threads want to access the database.
         with self._lock:
-            # TODO: change this to a cleaner solution
-            self.db.execute("BEGIN EXCLUSIVE TRANSACTION")
+            # TODO: This is temporary. Use a cleaner solution.
+            db = sqlite3.connect(config.tokens_db, isolation_level=None, timeout=60)
+            try:
+                db.execute("BEGIN EXCLUSIVE TRANSACTION")
+            except sqlite3.OperationalError:
+                msg = "Another process is using the database. Try again later"
+                raise CommunicationError(msg)
             token = self._access_token
-            self.db.execute("COMMIT")
+            # Sqlite will automatically execute COMMIT and close the connection
+            # if an exception is raised during the retrieval of the access token.
+            db.execute("COMMIT")
+            db.close()
+
             return token
 
     @property
