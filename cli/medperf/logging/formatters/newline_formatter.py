@@ -1,3 +1,4 @@
+# Taken from https://stackoverflow.com/questions/49049044/python-setup-of-logging-allowing-multiline-strings-logging-infofoo-nbar # noqa
 import logging
 
 
