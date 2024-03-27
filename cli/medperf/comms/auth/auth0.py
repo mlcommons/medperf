@@ -1,6 +1,7 @@
 import time
 import logging
 import threading
+import sqlite3
 from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError
@@ -20,6 +21,9 @@ class Auth0(Auth):
         self.client_id = config.auth_client_id
         self.audience = config.auth_audience
         self._lock = threading.Lock()
+        self.db = sqlite3.connect(
+            config.tokens_db, isolation_level=None, check_same_thread=False
+        )
 
     def login(self, email):
         """Retrieves and stores an access token/refresh token pair from the auth0
@@ -152,15 +156,17 @@ class Auth0(Auth):
 
     @property
     def access_token(self):
-        """Thread-safe access token retrieval"""
-        # TODO: lock the credentials file to have this process-safe
-        #       If someone is preparing their dataset, and configured
-        #       the preparation to send reports async, there might be a
-        #       risk if they tried to run other commands separately (e.g., dataset ls)
-        #       (i.e., two processes may try to refresh an expired access token, which
-        #       may trigger refresh token reuse since we use refresh token rotation.)
+        """Thread and process-safe access token retrieval"""
+        # keep the thread lock, otherwise the database will throw
+        # errors of starting a transaction within a transaction
+        # if multiple threads tried to start a transaction using
+        # the same connection object.
         with self._lock:
-            return self._access_token
+            # TODO: change this to a cleaner solution
+            self.db.execute("BEGIN EXCLUSIVE TRANSACTION")
+            token = self._access_token
+            self.db.execute("COMMIT")
+            return token
 
     @property
     def _access_token(self):
