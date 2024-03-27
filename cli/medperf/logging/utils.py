@@ -147,7 +147,6 @@ def get_additional_information():
     if p.returncode != 0:
         return "Could not execute bash script for additional debug information"
 
-    print(output)
     return output
 
 
