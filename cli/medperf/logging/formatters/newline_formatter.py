@@ -3,20 +3,18 @@ import logging
 
 
 class NewLineFormatter(logging.Formatter):
-    def __init__(self, fmt, datefmt=None):
-        """
-        Init given the log line format and date format
-        """
-        logging.Formatter.__init__(self, fmt, datefmt)
-
     def format(self, record):
         """
         Override format function
         """
-        msg = logging.Formatter.format(self, record)
+        # Apply log formatting
+        msg = super().format(record)
 
         if record.message != "":
+            # Separate the logging formatting prefix from the message
             parts = msg.split(record.message)
+            # Apply the logging formatting prefix to each newline to retain
+            # formatting structure
             msg = msg.replace("\n", "\n" + parts[0])
 
         return msg
