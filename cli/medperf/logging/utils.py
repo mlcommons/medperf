@@ -47,7 +47,10 @@ def get_memory_usage():
 def get_disk_usage():
     try:
         # Get disk usage
-        paths_of_interest = [os.environ["HOME"], config.config_storage]
+        # We are intereseted in home storage, and storage where medperf assets
+        # are saved. We currently assume all of them are together always, including
+        # the datasets folder.
+        paths_of_interest = [os.environ["HOME"], str(config.datasets_folder)]
         disk_usage_dict = {}
         for poi in paths_of_interest:
             try:
@@ -149,7 +152,7 @@ def get_python_environment_information():
             "Python Implementation": platform.python_implementation(),
             "Python Version": platform.python_version(),
             "Python Compiler": platform.python_compiler(),
-            "Python Build": platform.python_build(),
+            "Python Build": list(platform.python_build()),
             "Machine Architecture": platform.machine(),
             "Processor Type": platform.processor(),
             "Python Executable": sys.executable,
