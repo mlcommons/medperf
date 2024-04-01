@@ -21,6 +21,7 @@ import medperf.commands.aggregator.aggregator as aggregator
 import medperf.commands.storage as storage
 
 # from medperf.utils import check_for_updates
+from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
@@ -105,6 +106,7 @@ def main(
 
     logging.info(f"Running MedPerf v{__version__} on {loglevel} logging level")
     logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
+    log_machine_details()
     # check_for_updates()
 
     config.ui.print(f"MedPerf {__version__}")

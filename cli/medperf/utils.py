@@ -467,7 +467,7 @@ def check_for_updates() -> None:
     except GitCommandError as e:
         logging.debug(
             "Exception raised during updates check. Maybe user checked out repo with git@ and private key"
-            "or repo is in detached / non-tracked state?"
+            " or repo is in detached / non-tracked state?"
         )
         logging.debug(e)
 
