@@ -1,4 +1,3 @@
-import os
 import sys
 import typer
 import logging
@@ -6,6 +5,7 @@ import functools
 from merge_args import merge_args
 from collections.abc import Callable
 from medperf.utils import pretty_error, cleanup
+from medperf.logging.utils import package_logs
 from medperf.exceptions import MedperfException, CleanExit
 import medperf.config as config
 
@@ -32,16 +32,14 @@ def clean_except(func: Callable) -> Callable:
             sys.exit(e.medperf_status_code)
         except MedperfException as e:
             logging.exception(e)
-            log_filepath = os.path.join(config.logs_folder, config.log_file)
-            additional_msg = f"For more information, check the logs at: {log_filepath}"
-            msg = ". ".join([str(e), additional_msg])
-            pretty_error(msg)
+            pretty_error(str(e))
             sys.exit(1)
         except Exception as e:
             logging.error("An unexpected error occured. Terminating.")
             logging.exception(e)
             raise e
         finally:
+            package_logs()
             cleanup()
 
     return wrapper

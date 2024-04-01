@@ -10,12 +10,12 @@ colorama==0.4.4
 time-machine==2.4.0
 pytest-mock==1.13.0
 pyfakefs==5.0.0
-mlcube @ git+https://github.com/hasan7n/mlcube@d35df3e3638dfd051c8600096e520f50104c14ae#subdirectory=mlcube
-mlcube-docker @ git+https://github.com/hasan7n/mlcube@d35df3e3638dfd051c8600096e520f50104c14ae#subdirectory=runners/mlcube_docker
-mlcube-singularity @ git+https://github.com/hasan7n/mlcube@d35df3e3638dfd051c8600096e520f50104c14ae#subdirectory=runners/mlcube_singularity
+mlcube @ git+https://github.com/hasan7n/mlcube@11632a85064f653e6c5a59e3c6a4996ab9fe510b#subdirectory=mlcube
+mlcube-docker @ git+https://github.com/hasan7n/mlcube@11632a85064f653e6c5a59e3c6a4996ab9fe510b#subdirectory=runners/mlcube_docker
+mlcube-singularity @ git+https://github.com/hasan7n/mlcube@11632a85064f653e6c5a59e3c6a4996ab9fe510b#subdirectory=runners/mlcube_singularity
 validators==0.18.2
 merge-args==0.1.4
-synapseclient==2.7.0
+synapseclient==4.1.1
 schema==0.7.5
 # setuptools hotfix: https://github.com/mlcommons/medperf/issues/449
 setuptools<=66.1.1
@@ -23,3 +23,4 @@ email-validator==2.0.0
 auth0-python==4.3.0
 pandas==2.1.0
 watchdog==3.0.0
+psutil==5.9.8
