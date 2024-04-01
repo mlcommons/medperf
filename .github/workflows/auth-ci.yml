@@ -46,6 +46,10 @@ jobs:
       working-directory: ./server
       run: cp .env.local.online-auth .env
 
+    - name: Run postgresql server in background
+      working-directory: ./server
+      run: sh run_dev_postgresql.sh && sleep 6
+
     - name: Run django server in background with generated certs
       working-directory: ./server
       run: sh setup-dev-server.sh & sleep 6
