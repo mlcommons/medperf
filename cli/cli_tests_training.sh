@@ -132,7 +132,7 @@ echo "\n"
 echo "====================================="
 echo "Running aggregator submission step"
 echo "====================================="
-HOSTNAME_=$(hostname -A | cut -d " " -f 1)
+HOSTNAME_=$(hostname -I | cut -d " " -f 1)
 medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273
 checkFailed "aggregator submission step failed"
 AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
