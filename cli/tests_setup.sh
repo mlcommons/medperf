@@ -64,7 +64,7 @@ checkSucceeded() {
   if [ "$?" -eq 0 ]; then
     i_am_a_command_that_does_not_exist_and_hence_changes_the_last_exit_status_to_nonzero
   fi
-  checkFailed $1
+  checkFailed "$1"
 }
 
 if ${FRESH}; then
