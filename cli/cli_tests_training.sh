@@ -316,14 +316,14 @@ echo "\n"
 echo "====================================="
 echo "Starting aggregator"
 echo "====================================="
-AGGCOMMAND="medperf aggregator start -a $AGG_UID -t $TRAINING_UID"
-nohup $AGGCOMMAND </dev/null &>agg.log &
+medperf aggregator start -a $AGG_UID -t $TRAINING_UID </dev/null >agg.log 2>&1 &
+AGG_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
 sleep 7
 
 # Check if the command is still running.
-if [ -z $(pgrep -f "$AGGCOMMAND") ]; then
+if [ ! -d "/proc/$AGG_PID" ]; then
   checkFailed "agg doesn't seem to be running" 1
 fi
 ##########################################################
@@ -344,14 +344,14 @@ echo "\n"
 echo "====================================="
 echo "Starting training with data1"
 echo "====================================="
-DATA1COMMAND="medperf training run -d $DSET_1_UID -t $TRAINING_UID"
-nohup $DATA1COMMAND </dev/null &>col1.log &
+medperf training run -d $DSET_1_UID -t $TRAINING_UID </dev/null >col1.log 2>&1 &
+COL1_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
 sleep 7
 
 # Check if the command is still running.
-if [ -z $(pgrep -f "$DATA1COMMAND") ]; then
+if [ ! -d "/proc/$COL1_PID" ]; then
   checkFailed "data1 training doesn't seem to be running" 1
 fi
 ##########################################################
@@ -388,9 +388,9 @@ echo "====================================="
 #       string is the most efficient way to reduce that probability further.
 # Followup NOTE: not sure, but the "wait" command may fail if it is waiting for
 #                a process that is not a child of the current shell
-wait $(pgrep -f "$DATA1COMMAND")
+wait $COL1_PID
 checkFailed "data1 training didn't exit successfully"
-wait $(pgrep -f "$AGGCOMMAND")
+wait $AGG_PID
 checkFailed "aggregator didn't exit successfully"
 ##########################################################
 
