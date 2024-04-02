@@ -24,3 +24,4 @@ auth0-python==4.3.0
 pandas==2.1.0
 watchdog==3.0.0
 GitPython==3.1.41
+psutil==5.9.8
