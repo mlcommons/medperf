@@ -61,7 +61,7 @@ def review_tumor(subject: str, data_path: str, labels_path: str):
     if not is_nifti and not is_under_review:
         shutil.copyfile(seg_file, under_review_file)
 
-    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
+    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, under_review_file, label_file)
 
 
 def review_brain(subject, labels_path, data_path=None):
