@@ -16,7 +16,7 @@ from rano_monitor.handlers import ReportHandler, ReportState
 from rano_monitor.handlers import ReviewedHandler
 from rano_monitor.handlers import TarballReviewedHandler
 from rano_monitor.tarball_browser import TarballBrowser
-from typer import Option
+from typer import Option, Argument
 from watchdog.observers import Observer
 
 app = typer.Typer()
@@ -89,7 +89,7 @@ def run_tarball_app(tarball_path):
 
 @app.command()
 def main(
-    dataset_uid: str = Option(None, "-d", "--dataset", help=DSET_HELP),
+    dataset_uid: str = Option(..., "-d", "--dataset", help=DSET_HELP),
     stages_path: str = Option(
         DEFAULT_STAGES_PATH,
         "-s",

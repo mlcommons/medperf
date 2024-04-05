@@ -84,6 +84,27 @@ class DatasetBrowser(App):
                 ),
                 id="confirm-buttons",
             )
+        with Container(id="confirm-reviewed"):
+            yield Static(
+                "A new tarball containing reviewed subjects has been identified. "
+                "Do you want to transfer them to the pipeline?",
+                id="reviewed-details",
+            )
+            yield Horizontal(
+                Button(
+                    "[Y] Yes",
+                    id="confirm-transfer-approve",
+                    variant="success",
+                    classes="prompt-btn",
+                ),
+                Button(
+                    "[N] No",
+                    id="confirm-deny-transfer",
+                    variant="error",
+                    classes="prompt-btn",
+                ),
+                id="confirm-transfer-buttons",
+            )
         yield Footer()
 
     def on_mount(self):
