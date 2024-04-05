@@ -6,6 +6,7 @@ from rano_monitor.constants import (
     BRAINMASK_PATTERN,
     REVIEW_FILENAME,
     REVIEWED_PATTERN,
+    ANNOTATIONS_ENABLED
 )
 from rano_monitor.utils import delete
 from watchdog.events import FileSystemEventHandler
@@ -83,6 +84,8 @@ class ReviewedHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         if os.path.basename(event.src_path) == REVIEW_FILENAME:
+            return
+        if not ANNOTATIONS_ENABLED:
             return
         if event.src_path.endswith(self.ext):
             self.move_assets(event.src_path)
