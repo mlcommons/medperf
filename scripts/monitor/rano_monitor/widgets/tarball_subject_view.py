@@ -3,7 +3,8 @@ import os
 from rano_monitor.constants import (
     BRAINMASK,
     BRAINMASK_BAK,
-    DEFAULT_SEGMENTATION
+    DEFAULT_SEGMENTATION,
+    ANNOTATIONS_ENABLED
 )
 from rano_monitor.utils import (
     finalize,
@@ -64,12 +65,13 @@ class TarballSubjectView(Static):
         tumor_btn = self.query_one(".tumor-btn", Button)
         finalize_btn = self.query_one(".finalize-btn", Button)
         brain_btn = self.query_one(".brain-btn", Button)
-        if is_editor_installed():
-            tumor_btn.disabled = False
-        if self.__can_finalize():
-            finalize_btn.disabled = False
-        if self.__can_review_brain():
-            brain_btn.disabled = False
+        if ANNOTATIONS_ENABLED:
+            if is_editor_installed():
+                tumor_btn.disabled = False
+            if self.__can_finalize():
+                finalize_btn.disabled = False
+            if self.__can_review_brain():
+                brain_btn.disabled = False
 
     def __can_finalize(self):
         id, tp = self.subject.split("|")

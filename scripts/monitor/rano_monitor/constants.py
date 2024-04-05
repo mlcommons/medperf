@@ -24,9 +24,13 @@ BRAINMASK_BAK = ".brainMask_fused.nii.gz"
 REVIEW_FILENAME = "review_cases.tar.gz"
 REVIEWED_FILENAME = "reviewed_cases.tar.gz"
 REVIEW_COMMAND = "itksnap"
+REVIEW_COMMAND_WARNING = "ITK-Snap command-line-tools were not found in your system"
 MANUAL_REVIEW_STAGE = 5
 DONE_STAGE = 8
 LISTITEM_MAX_LEN = 30
 
 REVIEWED_PATTERN = r".*\/(.*)\/(.*)\/finalized\/(.*\.nii\.gz)"
 BRAINMASK_PATTERN = r".*\/(.*)\/(.*)\/brainMask_fused.nii.gz"
+
+ANNOTATIONS_ENABLED = False
+ANNOTATIONS_DISABLED_WARNING = "Annotations through the monitoring tool are currently disabled"

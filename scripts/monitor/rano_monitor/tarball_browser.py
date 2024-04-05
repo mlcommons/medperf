@@ -1,7 +1,12 @@
 import os
 import tarfile
 
-from rano_monitor.constants import REVIEWED_FILENAME
+from rano_monitor.constants import (
+    REVIEWED_FILENAME,
+    REVIEW_COMMAND_WARNING,
+    ANNOTATIONS_DISABLED_WARNING,
+    ANNOTATIONS_ENABLED,
+)
 from rano_monitor.utils import is_editor_installed
 from rano_monitor.widgets.tarball_subject_view import TarballSubjectView
 from textual.app import App, ComposeResult
@@ -65,9 +70,14 @@ class TarballBrowser(App):
             with Center():
                 yield Button("Package cases", id="package-btn")
             yield Static(
-                "ITK-Snap command-line-tools were not found in your system",
+                REVIEW_COMMAND_WARNING,
                 id="review-msg",
                 classes="warning",
+            )
+            yield Static(
+                ANNOTATIONS_DISABLED_WARNING,
+                id="annotations-disabled-msg",
+                classes="warning"
             )
             with VerticalScroll(id="subjects-container"):
                 for id, tp in self.subjects_list:
@@ -83,6 +93,9 @@ class TarballBrowser(App):
         subject_views = self.query(TarballSubjectView)
         editor_msg = self.query_one("#review-msg", Static)
         editor_msg.display = "none" if is_editor_installed() else "block"
+
+        annotations_disabled_msg = self.query_one("#annotations-disabled-msg", Static)
+        annotations_disabled_msg.display = "none" if ANNOTATIONS_ENABLED else "block"
 
         for subject_view in subject_views:
             subject_view.update_status()

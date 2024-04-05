@@ -5,6 +5,9 @@ from rano_monitor.constants import (
     DEFAULT_SEGMENTATION,
     DONE_STAGE,
     MANUAL_REVIEW_STAGE,
+    REVIEW_COMMAND_WARNING,
+    ANNOTATIONS_ENABLED,
+    ANNOTATIONS_DISABLED_WARNING,
 )
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.utils import (
@@ -19,6 +22,7 @@ from rano_monitor.widgets.copyable_item import CopyableItem
 from textual.app import ComposeResult
 from textual.containers import Center
 from textual.widgets import Button, Markdown, Static
+
 
 
 class SubjectDetails(Static):
@@ -36,8 +40,13 @@ class SubjectDetails(Static):
         yield CopyableItem("Labels path", "", id="subject-labels-container")
         with Center(id="review-buttons"):
             yield Static(
-                "ITK-Snap command-line-tools were not found in your system",
+                REVIEW_COMMAND_WARNING,
                 id="review-msg",
+                classes="warning",
+            )
+            yield Static(
+                ANNOTATIONS_DISABLED_WARNING,
+                id="annotations-disabled-msg",
                 classes="warning",
             )
             yield Button(
@@ -130,20 +139,23 @@ class SubjectDetails(Static):
 
     def __update_buttons(self):
         review_msg = self.query_one("#review-msg", Static)
+        annotations_disabled_msg = self.query_one("#annotations-disabled-msg", Static)
         review_button = self.query_one("#review-button", Button)
         reviewed_button = self.query_one("#reviewed-button", Button)
         brainmask_button = self.query_one("#brainmask-review-button", Button)
         valid_btn = self.query_one("#valid-btn", Button)
 
-        if is_editor_installed():
-            review_msg.display = "none"
-            review_button.disabled = False
-        if self.__can_finalize():
-            reviewed_button.label = "Mark as finalized"
-            reviewed_button.disabled = False
-        if self.__can_review_brain():
-            brainmask_button.label = "Review brain mask"
-            brainmask_button.disabled = False
+        if ANNOTATIONS_ENABLED:
+            annotations_disabled_msg.display = "none"
+            if is_editor_installed():
+                review_msg.display = "none"
+                review_button.disabled = False
+            if self.__can_finalize():
+                reviewed_button.label = "Mark as finalized"
+                reviewed_button.disabled = False
+            if self.__can_review_brain():
+                brainmask_button.label = "Review brain mask"
+                brainmask_button.disabled = False
         if self.subject.name in self.invalid_subjects:
             valid_btn.label = "Validate"
         else:
