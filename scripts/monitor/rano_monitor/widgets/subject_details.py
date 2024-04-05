@@ -24,7 +24,6 @@ from textual.containers import Center
 from textual.widgets import Button, Markdown, Static
 
 
-
 class SubjectDetails(Static):
     invalid_subjects = set()
     subject = pd.Series()
