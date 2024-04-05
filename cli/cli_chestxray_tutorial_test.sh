@@ -98,6 +98,20 @@ checkFailed "testdata profile activation failed"
 medperf run -b 1 -d $DSET_UID -m 4 -y
 checkFailed "Benchmark execution step failed"
 
+# Test offline compatibility test
+wget -P $MODEL_LOCAL/workspace/additional_files "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
+tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $MODEL_LOCAL/workspace/additional_files
+medperf test run --offline --no-cache \
+  --demo_dataset_url https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz \
+  --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
+  -p $PREP_LOCAL \
+  -m $MODEL_LOCAL \
+  -e $METRIC_LOCAL
+
+checkFailed "offline compatibility test execution step failed"
+rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
+rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
+
 echo "====================================="
 echo "Logout users"
 echo "====================================="
@@ -112,7 +126,6 @@ checkFailed "testdata profile activation failed"
 
 medperf auth logout
 checkFailed "logout failed"
-
 
 echo "====================================="
 echo "Delete test profiles"

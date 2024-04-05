@@ -105,3 +105,8 @@ MODELOWNER="testmo@example.com"
 DATAOWNER="testdo@example.com"
 BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
+
+# local MLCubes for local compatibility tests
+PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator/mlcube"
+MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn/mlcube"
+METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics/mlcube"
