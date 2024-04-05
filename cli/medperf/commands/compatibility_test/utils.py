@@ -131,12 +131,12 @@ def create_test_dataset(
         location="local",
         approved=False,
         submit_as_prepared=skip_data_preparation_step,
+        for_test=True,
     )
     data_creation.validate()
     data_creation.create_dataset_object()
     # TODO: existing dataset could make problems
     # make some changes since this is a test dataset
-    data_creation.dataset.for_test = True
     config.tmp_paths.remove(data_creation.dataset.path)
     data_creation.dataset.write()
     if skip_data_preparation_step:
