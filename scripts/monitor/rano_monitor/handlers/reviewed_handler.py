@@ -79,7 +79,7 @@ class ReviewedHandler(FileSystemEventHandler):
         self.ext = ".tar.gz"
 
         for file in os.listdir("."):
-            if file.endswith(self.ext):
+            if ANNOTATIONS_ENABLED and file.endswith(self.ext):
                 self.move_assets(file)
 
     def on_modified(self, event):
