@@ -1,6 +1,6 @@
 from ._version import __version__
 from pathlib import Path
-import os
+from os import getenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -45,7 +45,7 @@ local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 # Storage config
 config_storage = Path.home().resolve() / ".medperf_config"
 logs_storage = Path.home().resolve() / ".medperf_logs"
-config_path = os.getenv("MEDPERF_CONFIG_PATH", str(config_storage / "config.yaml"))
+config_path = getenv("MEDPERF_CONFIG_PATH", str(config_storage / "config.yaml"))
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
