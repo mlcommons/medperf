@@ -29,6 +29,13 @@ echo "Storage path: $MEDPERF_STORAGE"
 SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
 mkdir -p $SNAPSHOTS_FOLDER
 
+echo "ls tmp:"
+ls /tmp/
+
+echo "ls test root:"
+ls $TEST_ROOT
+echo "debug-ls finished"
+
 MEDPERF_LOG_PATH=~/.medperf_logs/medperf.log
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 TIMEOUT="${TIMEOUT:-30}"
