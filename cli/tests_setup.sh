@@ -30,7 +30,7 @@ MOCK_TOKENS_FILE="$(dirname $(dirname $(realpath "$0")))/mock_tokens/tokens.json
 SQLITE3_FILE="$(dirname $(dirname $(realpath "$0")))/server/db.sqlite3"
 echo "Server URL: $SERVER_URL"
 
-ev() {
+print_eval() {
     local timestamp=$(date +%m%d%H%M%S)
     local formatted_cmd=$(echo "$@" | sed 's/[^a-zA-Z0-9]\+/_/g' | cut -c 1-50)
     LAST_SNAPSHOT_PATH="$SNAPSHOTS_FOLDER/${timestamp}_${formatted_cmd}.sqlite3"
