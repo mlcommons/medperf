@@ -30,10 +30,12 @@ SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
 mkdir -p $SNAPSHOTS_FOLDER
 
 echo "ls tmp:"
-ls /tmp/
+ls -lAhrt /tmp/
+
+touch $TEST_ROOT/touch.txt
 
 echo "ls test root:"
-ls $TEST_ROOT
+ls -lAhrt $TEST_ROOT
 echo "debug-ls finished"
 
 MEDPERF_LOG_PATH=~/.medperf_logs/medperf.log
