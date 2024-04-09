@@ -14,18 +14,42 @@ SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
-MEDPERF_STORAGE=~/.medperf
-MEDPERF_LOG_STORAGE=~/.medperf_logs
+
+TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
+echo "Test root path: $TEST_ROOT"
+mkdir -p "$TEST_ROOT"
+
+export MEDPERF_CONFIG_PATH="$TEST_ROOT/config.yaml"
+echo "Config path: $MEDPERF_CONFIG_PATH"
+
+MEDPERF_STORAGE="$TEST_ROOT/storage"
+mkdir -p "$MEDPERF_STORAGE"
+echo "Storage path: $MEDPERF_STORAGE"
+
+SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
+mkdir -p $SNAPSHOTS_FOLDER
+
+MEDPERF_LOG_PATH=~/.medperf_logs/medperf.log
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
 LOGIN_SCRIPT="$(dirname $(realpath "$0"))/auto_login.sh"
 ADMIN_LOGIN_SCRIPT="$(dirname $(dirname $(realpath "$0")))/server/auth_provider_token.py"
 MOCK_TOKENS_FILE="$(dirname $(dirname $(realpath "$0")))/mock_tokens/tokens.json"
-
+SQLITE3_FILE="$(dirname $(dirname $(realpath "$0")))/server/db.sqlite3"
 echo "Server URL: $SERVER_URL"
-echo "Storage location: $MEDPERF_SUBSTORAGE"
 
+ev() {
+    local timestamp=$(date +%m%d%H%M%S)
+    local formatted_cmd=$(echo "$@" | sed 's/[^a-zA-Z0-9]\+/_/g' | cut -c 1-50)
+    LAST_SNAPSHOT_PATH="$SNAPSHOTS_FOLDER/${timestamp}_${formatted_cmd}.sqlite3"
+    cp $SQLITE3_FILE "$LAST_SNAPSHOT_PATH"
+    echo ">> $@"
+    eval "$@"
+    # local exit_code=$?
+    # echo "Exit code: $exit_code"
+    # return $exit_code
+}
 # frequently used
 clean(){
   echo "====================================="
@@ -33,12 +57,7 @@ clean(){
   echo "====================================="
   # move back storage
   rm -fr $DIRECTORY
-  rm -fr $MEDPERF_STORAGE/**/$SERVER_STORAGE_ID
-  # errors of the commands below are ignored
-  medperf profile activate default
-  medperf profile delete testbenchmark
-  medperf profile delete testmodel
-  medperf profile delete testdata
+  rm -fr $TEST_ROOT
 }
 checkFailed(){
   if [ "$?" -ne "0" ]; then
@@ -46,8 +65,12 @@ checkFailed(){
       echo "Process timed out"
     fi
     echo $1
-    echo "medperf log:"
-    tail "$MEDPERF_LOG_STORAGE/medperf.log"
+    echo "Test root path: $TEST_ROOT"
+    echo "Config path: $MEDPERF_CONFIG_PATH"
+    echo "Storage path: $MEDPERF_STORAGE"
+    echo "Snapshot before failed command: $LAST_SNAPSHOT_PATH"
+    echo "medperf log $MEDPERF_LOG_PATH:"
+    tail $MEDPERF_LOG_PATH
     if ${CLEANUP}; then
       clean
     fi

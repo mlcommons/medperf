@@ -10,8 +10,33 @@
 echo "=========================================="
 echo "Printing MedPerf version"
 echo "=========================================="
-medperf --version
+ev medperf --version
 checkFailed "MedPerf version failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "=========================================="
+echo "creating config at $MEDPERF_CONFIG_PATH"
+echo "=========================================="
+ev medperf profile ls
+checkFailed "Creating config failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Changing storage to tmp location"
+echo "====================================="
+# this 'move' command is used only for config updates.
+ev medperf storage move -t $MEDPERF_STORAGE
+checkFailed "moving storage failed"
+echo "We have to return the content back manually, so new tmp folder is empty"
+echo "and all the existing data is kept on the old place."
+mkdir -p ~/.medperf
+ev mv -f $MEDPERF_STORAGE/.medperf/* ~/.medperf/
 ##########################################################
 
 echo "\n"
@@ -20,14 +45,14 @@ echo "\n"
 echo "=========================================="
 echo "Creating test profiles for each user"
 echo "=========================================="
-medperf profile activate local
+ev medperf profile activate local
 checkFailed "local profile creation failed"
 
-medperf profile create -n testbenchmark
+ev medperf profile create -n testbenchmark
 checkFailed "testbenchmark profile creation failed"
-medperf profile create -n testmodel
+ev medperf profile create -n testmodel
 checkFailed "testmodel profile creation failed"
-medperf profile create -n testdata
+ev medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
 ##########################################################
 
@@ -51,22 +76,22 @@ echo "\n"
 echo "=========================================="
 echo "Login each user"
 echo "=========================================="
-medperf profile activate testbenchmark
+ev medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 
-medperf auth login -e $BENCHMARKOWNER
+ev medperf auth login -e $BENCHMARKOWNER
 checkFailed "testbenchmark login failed"
 
-medperf profile activate testmodel
+ev medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
 
-medperf auth login -e $MODELOWNER
+ev medperf auth login -e $MODELOWNER
 checkFailed "testmodel login failed"
 
-medperf profile activate testdata
+ev medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 
-medperf auth login -e $DATAOWNER
+ev medperf auth login -e $DATAOWNER
 checkFailed "testdata login failed"
 ##########################################################
 
@@ -76,7 +101,7 @@ echo "\n"
 echo "====================================="
 echo "Activate modelowner profile"
 echo "====================================="
-medperf profile activate testmodel
+ev medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
 ##########################################################
 
@@ -89,9 +114,10 @@ echo "====================================="
 
 PREP_MLCUBE="https://raw.githubusercontent.com/aristizabal95/medperf-2/4aea7de62fd71b377fd3a0b58352d104fd8f9c08/examples/DataPrepManualSteps/data_prep/mlcube/mlcube.yaml"
 PREP_PARAMS="https://raw.githubusercontent.com/aristizabal95/medperf-2/4aea7de62fd71b377fd3a0b58352d104fd8f9c08/examples/DataPrepManualSteps/data_prep/mlcube/workspace/parameters.yaml"
-medperf mlcube submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
+ev medperf mlcube submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "PREP_UID=$PREP_UID"
 
 ##########################################################
 
@@ -101,7 +127,7 @@ echo "\n"
 echo "====================================="
 echo "Activate dataowner profile"
 echo "====================================="
-medperf profile activate testdata
+ev medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 ##########################################################
 
@@ -111,9 +137,11 @@ echo "\n"
 echo "====================================="
 echo "Running data creation step"
 echo "====================================="
-medperf dataset submit -p $PREP_UID -d $DATA_PATH -l $LABELS_PATH --name="manual_a" --description="mock manual a" --location="mock location a" -y
+ev "medperf dataset submit -p $PREP_UID -d $DATA_PATH -l $LABELS_PATH --name='manual_a' --description='mock manual a' --location='mock location a' -y"
 checkFailed "Data submission step failed"
 DSET_A_UID=$(medperf dataset ls | grep manual_a | tr -s ' ' | cut -d ' ' -f 2)
+echo "DSET_A_UID=$DSET_A_UID"
+
 ##########################################################
 
 echo "\n"
@@ -122,7 +150,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step (it will fail, needs manual steps)"
 echo "====================================="
-medperf dataset prepare -d $DSET_A_UID -y
+ev medperf dataset prepare -d $DSET_A_UID -y
 checkSucceeded "Data preparation step should fail"
 ##########################################################
 
@@ -132,7 +160,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step (another way)"
 echo "====================================="
-echo "y" | medperf dataset prepare -d $DSET_A_UID
+ev echo "y" | medperf dataset prepare -d $DSET_A_UID
 checkSucceeded "Data preparation step should fail"
 ##########################################################
 
@@ -142,7 +170,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step (another way)"
 echo "====================================="
-echo "n" | medperf dataset prepare -d $DSET_A_UID
+ev echo "n" | medperf dataset prepare -d $DSET_A_UID
 checkSucceeded "Data preparation step should fail"
 ##########################################################
 
@@ -152,7 +180,7 @@ echo "\n"
 echo "====================================="
 echo "Do manual step of the preparation"
 echo "====================================="
-sed -i 's/0$/1/' $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID/data/data.csv
+ev "sed -i 's/0$/1/' $MEDPERF_STORAGE/.medperf/data/$SERVER_STORAGE_ID/$DSET_A_UID/data/data.csv"
 checkFailed "manual step failed"
 ##########################################################
 
@@ -162,7 +190,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step again (this will succeed)"
 echo "====================================="
-medperf dataset prepare -d $DSET_A_UID -y
+ev medperf dataset prepare -d $DSET_A_UID -y
 checkFailed "Data preparation step failed"
 ##########################################################
 
@@ -172,7 +200,7 @@ echo "\n"
 echo "====================================="
 echo "Running data set operational step"
 echo "====================================="
-medperf dataset set_operational -d $DSET_A_UID -y
+ev medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data activattion step failed"
 ##########################################################
 
@@ -182,9 +210,10 @@ echo "\n"
 echo "====================================="
 echo "Running data creation step"
 echo "====================================="
-medperf dataset submit -p $PREP_UID -d $PREPARED_DATA_PATH -l $PREPARED_LABELS_PATH --name="already_a" --description="mock already a" --location="mock location a" -y --submit-as-prepared
+ev "medperf dataset submit -p $PREP_UID -d $PREPARED_DATA_PATH -l $PREPARED_LABELS_PATH --name='already_a' --description='mock already a' --location='mock location a' -y --submit-as-prepared"
 checkFailed "Data submission step failed"
 DSET_A_UID=$(medperf dataset ls | grep already_a | tr -s ' ' | cut -d ' ' -f 2)
+echo "DSET_A_UID=$DSET_A_UID"
 ##########################################################
 
 echo "\n"
@@ -193,7 +222,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-medperf dataset prepare -d $DSET_A_UID
+ev medperf dataset prepare -d $DSET_A_UID
 checkFailed "Data preparation step failed"
 ##########################################################
 
@@ -203,7 +232,7 @@ echo "\n"
 echo "====================================="
 echo "Running data set operational step"
 echo "====================================="
-medperf dataset set_operational -d $DSET_A_UID -y
+ev medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data activattion step failed"
 ##########################################################
 
@@ -213,22 +242,22 @@ echo "\n"
 echo "====================================="
 echo "Logout users"
 echo "====================================="
-medperf profile activate testbenchmark
+ev medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 
-medperf auth logout
+ev medperf auth logout
 checkFailed "logout failed"
 
-medperf profile activate testmodel
+ev medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
 
-medperf auth logout
+ev medperf auth logout
 checkFailed "logout failed"
 
-medperf profile activate testdata
+ev medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 
-medperf auth logout
+ev medperf auth logout
 checkFailed "logout failed"
 ##########################################################
 
@@ -238,16 +267,16 @@ echo "\n"
 echo "====================================="
 echo "Delete test profiles"
 echo "====================================="
-medperf profile activate default
+ev medperf profile activate default
 checkFailed "default profile activation failed"
 
-medperf profile delete testbenchmark
+ev medperf profile delete testbenchmark
 checkFailed "Profile deletion failed"
 
-medperf profile delete testmodel
+ev medperf profile delete testmodel
 checkFailed "Profile deletion failed"
 
-medperf profile delete testdata
+ev medperf profile delete testdata
 checkFailed "Profile deletion failed"
 ##########################################################
 
