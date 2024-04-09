@@ -32,7 +32,8 @@ mkdir -p $SNAPSHOTS_FOLDER
 echo "ls tmp:"
 ls -lAhrt /tmp/
 
-touch $TEST_ROOT/touch.txt
+echo "123" > $TEST_ROOT/touch.txt
+touch $TEST_ROOT/config.yaml
 
 echo "ls test root:"
 ls -lAhrt $TEST_ROOT
