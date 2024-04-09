@@ -16,28 +16,9 @@ CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
 
 TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
-echo "Test root path: $TEST_ROOT"
-mkdir -p "$TEST_ROOT"
-
-export MEDPERF_CONFIG_PATH="$TEST_ROOT/config.yaml"
-echo "Config path: $MEDPERF_CONFIG_PATH"
-
+export MEDPERF_CONFIG_PATH="$TEST_ROOT/config.yaml"  # env var
 MEDPERF_STORAGE="$TEST_ROOT/storage"
-mkdir -p "$MEDPERF_STORAGE"
-echo "Storage path: $MEDPERF_STORAGE"
-
 SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
-mkdir -p $SNAPSHOTS_FOLDER
-
-echo "ls tmp:"
-ls -lAhrt /tmp/
-
-echo "123" > $TEST_ROOT/touch.txt
-touch $TEST_ROOT/config.yaml
-
-echo "ls test root:"
-ls -lAhrt $TEST_ROOT
-echo "debug-ls finished"
 
 MEDPERF_LOG_PATH=~/.medperf_logs/medperf.log
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
@@ -143,3 +124,13 @@ ADMIN="testadmin@example.com"
 PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator/mlcube"
 MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn/mlcube"
 METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics/mlcube"
+
+# create storage folders
+mkdir -p "$TEST_ROOT"
+mkdir -p "$MEDPERF_STORAGE"
+mkdir -p "$SNAPSHOTS_FOLDER"
+
+echo "Test root path: $TEST_ROOT"
+echo "Config path: $MEDPERF_CONFIG_PATH"
+echo "Snapshots path: $SNAPSHOTS_FOLDER"
+echo "Storage path: $MEDPERF_STORAGE"
