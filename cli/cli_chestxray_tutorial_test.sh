@@ -18,6 +18,9 @@ chmod a+w $DIRECTORY/sample_raw_data
 echo "====================================="
 echo "Changing storage to tmp location"
 echo "====================================="
+echo "123" > $MEDPERF_CONFIG_PATH
+ev cat $MEDPERF_CONFIG_PATH
+ev "" > $MEDPERF_CONFIG_PATH
 ev medperf profile ls
 checkFailed "creating config failed"
 # this 'move' command is used only for config updates.
