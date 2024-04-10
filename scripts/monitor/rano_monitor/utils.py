@@ -1,4 +1,5 @@
 import hashlib
+import re
 import os
 import shutil
 import tarfile
@@ -14,7 +15,10 @@ from rano_monitor.constants import (
     BRAINMASK,
     MANUAL_REVIEW_STAGE,
     DONE_STAGE,
-    REVIEW_FILENAME
+    REVIEW_FILENAME,
+    REVIEWED_PATTERN,
+    UNDER_REVIEW_PATTERN,
+    BRAINMASK_PATTERN,
 )
 
 
@@ -273,3 +277,111 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
                 img_path = os.path.join(base_path, file)
                 img_tar_path = os.path.join(tar_path, file)
                 tar.add(img_path, img_tar_path)
+
+
+def get_tar_identified_masks(file):
+    identified_reviewed = []
+    identified_under_review = []
+    identified_brainmasks = []
+    try:
+        with tarfile.open(file, "r") as tar:
+            for member in tar.getmembers():
+                review_match = re.match(REVIEWED_PATTERN, member.name)
+                if review_match:
+                    identified_reviewed.append(review_match)
+
+                under_review_match = re.match(UNDER_REVIEW_PATTERN, member.name)
+                if under_review_match:
+                    identified_under_review.append(under_review_match)
+
+                brainmask_match = re.match(BRAINMASK_PATTERN, member.name)
+                if brainmask_match:
+                    identified_brainmasks.append(brainmask_match)
+    except Exception:
+        return [], [], []
+
+    return identified_reviewed, identified_under_review, identified_brainmasks
+
+
+def get_identified_extract_paths(
+        identified_reviewed,
+        identified_under_review,
+        identified_brainmasks,
+        dset_data_path
+):
+    extracts = []
+    for reviewed in identified_reviewed:
+        id, tp, filename = reviewed.groups()
+        src_path = reviewed.group(0)
+        dest_path = os.path.join(
+            dset_data_path,
+            "tumor_extracted",
+            "DataForQC",
+            id,
+            tp,
+            "TumorMasksForQC",
+            "finalized",
+        )
+
+        # dest_path = os.path.join(dest_path, filename)
+        extracts.append((src_path, dest_path))
+
+    for under_review in identified_under_review:
+        id, tp, filename = under_review.groups()
+        src_path = under_review.group(0)
+        dest_path = os.path.join(
+            dset_data_path,
+            "tumor_extracted",
+            "DataForQC",
+            id,
+            tp,
+            "TumorMasksForQC",
+            "under_review",
+        )
+
+        # dest_path = os.path.join(dest_path, filename)
+        extracts.append((src_path, dest_path))
+
+
+    for mask in identified_brainmasks:
+        id, tp = mask.groups()
+        src_path = mask.group(0)
+        dest_path = os.path.join(
+            dset_data_path,
+            "tumor_extracted",
+            "DataForQC",
+            id,
+            tp,
+        )
+        extracts.append((src_path, dest_path))
+
+    return extracts
+
+
+def unpackage_reviews(file, app, dset_data_path):
+    identified_masks = get_tar_identified_masks(file)
+    identified_reviewed, identified_under_review, identified_brainmasks = identified_masks
+
+    if len(identified_reviewed):
+        app.notify("Reviewed cases identified")
+
+    if len(identified_brainmasks):
+        app.notify("Brain masks identified")
+
+    extracts = get_identified_extract_paths(
+        identified_reviewed,
+        identified_under_review,
+        identified_brainmasks,
+        dset_data_path
+    )
+
+    with tarfile.open(file, "r") as tar:
+        for src, dest in extracts:
+            member = tar.getmember(src)
+            member.name = os.path.basename(member.name)
+            target_file = os.path.join(dest, member.name)
+            # TODO: this might be problematic UX.
+            # The brainmask might get overwritten unknowingly
+            if os.path.exists(target_file):
+                delete(target_file, dset_data_path)
+            tar.extract(member, dest)

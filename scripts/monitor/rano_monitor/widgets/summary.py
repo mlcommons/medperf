@@ -1,9 +1,9 @@
+import os
 import pandas as pd
-from rano_monitor.constants import REVIEW_FILENAME
-from rano_monitor.handlers.reviewed_handler import ReviewedHandler
+from rano_monitor.constants import REVIEW_FILENAME, REVIEWED_FILENAME
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
-from rano_monitor.utils import package_review_cases
+from rano_monitor.utils import package_review_cases, unpackage_reviews
 from textual.app import ComposeResult
 from textual.containers import Center
 from textual.widgets import (
@@ -24,11 +24,9 @@ class Summary(Static):
     def compose(self) -> ComposeResult:
         yield Static("Report Status")
         yield Center(id="summary-content")
-        with Center():
-            yield Button("package cases for review", id="package-btn")
-
-    def set_reviewed_watchdog(self, reviewed_watchdog: ReviewedHandler):
-        self.reviewed_watchdog = reviewed_watchdog
+        with Center(id="package-btns"):
+            yield Button("package cases for review", classes="review-btn", id="package-btn")
+            yield Button("Load reviewed_cases.tar.gz", classes="review-btn", id="unpackage-btn")
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
@@ -49,7 +47,7 @@ class Summary(Static):
         report_df = self.report
         if report_df.empty:
             return
-        package_btn = self.query_one("#package-btn", Button)
+        package_btns = self.query_one("#package-btns", Center)
         # Generate progress bars for all states
         display_report_df = report_df.copy(deep=True)
         display_report_df.loc[list(self.invalid_subjects), "status_name"] = (
@@ -61,7 +59,7 @@ class Summary(Static):
             # Attach
             status_percents["DONE"] = 0.0
 
-        package_btn.display = "MANUAL_REVIEW_REQUIRED" in status_percents
+        package_btns.display = "MANUAL_REVIEW_REQUIRED" in status_percents
 
         widgets = []
         for name, val in status_percents.items():
@@ -80,5 +78,15 @@ class Summary(Static):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         event.stop()
-        package_review_cases(self.report, self.dset_path)
-        self.notify(f"{REVIEW_FILENAME} was created on the working directory")
+        pkg_btn = self.query_one("#package-btn", Button)
+        unpkg_btn = self.query_one("#unpackage-btn", Button)
+        
+        if event.control == pkg_btn:
+            package_review_cases(self.report, self.dset_path)
+            self.notify(f"{REVIEW_FILENAME} was created on the working directory")
+        elif event.control == unpkg_btn:
+            if REVIEWED_FILENAME not in os.listdir("."):
+                self.notify(f"{REVIEWED_FILENAME} not found in {os.path.abspath('.')}")
+                return
+            
+            unpackage_reviews(REVIEWED_FILENAME, self, self.dset_path)
