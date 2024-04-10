@@ -37,6 +37,7 @@ def creation(mocker, comms, ui):
         LOCATION,
         False,
         IS_PREPARED,
+        for_test=False,
     )
     mocker.patch(
         PATCH_DATAPREP.format("Cube.get"), return_value=TestCube(is_valid=True)
@@ -76,7 +77,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        creation = DataCreation(None, cube_uid, *[""] * 7, False)
+        creation = DataCreation(None, cube_uid, *[""] * 7, False, False)
         creation.validate_prep_cube()
 
         # Assert
@@ -94,7 +95,7 @@ class TestWithDefaultUID:
         )
 
         # Act
-        creation = DataCreation(cube_uid, None, *[""] * 7, False)
+        creation = DataCreation(cube_uid, None, *[""] * 7, False, False)
         creation.validate_prep_cube()
 
         # Assert
@@ -107,7 +108,7 @@ class TestWithDefaultUID:
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
         # Act
-        creation = DataCreation(benchmark_uid, cube_uid, *[""] * 7, False)
+        creation = DataCreation(benchmark_uid, cube_uid, *[""] * 7, False, False)
         # Assert
 
         if num_arguments != 1:
