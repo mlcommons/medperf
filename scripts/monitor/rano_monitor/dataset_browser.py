@@ -11,7 +11,7 @@ from rano_monitor.widgets.subject_list_view import SubjectListView
 from rano_monitor.widgets.summary import Summary
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal
+from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive, var
 from textual.widgets import (
     Button,
@@ -42,7 +42,6 @@ class DatasetBrowser(App):
         self,
         dset_data_path,
         stages_path,
-        reviewed_watchdog,
         output_path,
         invalid_path,
         invalid_watchdog,
@@ -50,7 +49,6 @@ class DatasetBrowser(App):
     ):
         self.dset_data_path = dset_data_path
         self.stages_path = stages_path
-        self.reviewed_watchdog = reviewed_watchdog
         self.output_path = output_path
         self.invalid_path = invalid_path
         self.invalid_watchdog = invalid_watchdog
@@ -65,8 +63,9 @@ class DatasetBrowser(App):
         with Container():
             with Container(id="list-container"):
                 yield SubjectListView(id="subjects-list")
-            yield Summary(id="summary")
-            yield SubjectDetails(id="details")
+            with VerticalScroll():
+                yield Summary(id="summary")
+                yield SubjectDetails(id="details")
         with Container(id="confirm-prompt"):
             yield Static(self.prompt, id="confirm-details")
             yield Horizontal(
