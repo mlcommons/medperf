@@ -22,6 +22,7 @@ def main(
 
     subject_ids = os.listdir(reviewed_path)
     subject_ids = [s_id for s_id in subject_ids if not s_id.startswith(".")]
+    corrected_count = 0
 
     for subject_id in subject_ids:
         subject_path = os.path.join(reviewed_path, subject_id)
@@ -64,6 +65,7 @@ def main(
                 # to recover the original mask_path
                 os.remove(mask_path)
                 shutil.copy(finalized_backup_path, mask_path)
+                corrected_count += 1
 
     # Package fixed contents to a new tarball
     with tarfile.open(FIXED_TARBALL_NAME, "w:gz") as tar:
@@ -71,6 +73,8 @@ def main(
 
     # Delete temporary folder
     shutil.rmtree(EXTRACT_PATH)
+
+    print(f"Number of corrected cases: {corrected_count}")
 
 
 if __name__ == "__main__":
