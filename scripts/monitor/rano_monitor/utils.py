@@ -225,11 +225,7 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
         for i, row in review_cases.iterrows():
             data_path = to_local_path(row["data_path"], dset_path)
             labels_path = to_local_path(row["labels_path"], dset_path)
-            brainscans = get_tumor_review_paths(
-                row.name,
-                data_path,
-                labels_path
-            )[:-2]
+            brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
             rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
             base_path = os.path.join(labels_path, "..")
 
@@ -243,12 +239,7 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             tar.addfile(reviewed_dir)
             tar.add(labels_path, tar_path)
 
-            brainscan_path = os.path.join(
-                "review_cases",
-                id,
-                tp,
-                "brain_scans"
-            )
+            brainscan_path = os.path.join("review_cases", id, tp, "brain_scans")
             for brainscan in brainscans:
                 brainscan_target_path = os.path.join(
                     brainscan_path, os.path.basename(brainscan)
@@ -304,10 +295,7 @@ def get_tar_identified_masks(file):
 
 
 def get_identified_extract_paths(
-        identified_reviewed,
-        identified_under_review,
-        identified_brainmasks,
-        dset_data_path
+    identified_reviewed, identified_under_review, identified_brainmasks, dset_data_path
 ):
     extracts = []
     for reviewed in identified_reviewed:
@@ -342,7 +330,6 @@ def get_identified_extract_paths(
         # dest_path = os.path.join(dest_path, filename)
         extracts.append((src_path, dest_path))
 
-
     for mask in identified_brainmasks:
         id, tp = mask.groups()
         src_path = mask.group(0)
@@ -360,7 +347,9 @@ def get_identified_extract_paths(
 
 def unpackage_reviews(file, app, dset_data_path):
     identified_masks = get_tar_identified_masks(file)
-    identified_reviewed, identified_under_review, identified_brainmasks = identified_masks
+    identified_reviewed, identified_under_review, identified_brainmasks = (
+        identified_masks
+    )
 
     if len(identified_reviewed):
         app.notify("Reviewed cases identified")
@@ -372,7 +361,7 @@ def unpackage_reviews(file, app, dset_data_path):
         identified_reviewed,
         identified_under_review,
         identified_brainmasks,
-        dset_data_path
+        dset_data_path,
     )
 
     with tarfile.open(file, "r") as tar:

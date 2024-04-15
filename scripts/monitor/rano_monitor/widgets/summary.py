@@ -25,8 +25,12 @@ class Summary(Static):
         yield Static("Report Status")
         yield Center(id="summary-content")
         with Center(id="package-btns"):
-            yield Button("package cases for review", classes="review-btn", id="package-btn")
-            yield Button("Load reviewed_cases.tar.gz", classes="review-btn", id="unpackage-btn")
+            yield Button(
+                "package cases for review", classes="review-btn", id="package-btn"
+            )
+            yield Button(
+                "Load reviewed_cases.tar.gz", classes="review-btn", id="unpackage-btn"
+            )
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         report = message.report
@@ -36,10 +40,7 @@ class Summary(Static):
             self.report = report_df
             self.update_summary()
 
-    def on_invalid_subjects_updated(
-            self,
-            message: InvalidSubjectsUpdated
-    ) -> None:
+    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
         self.invalid_subjects = message.invalid_subjects
         self.update_summary()
 
@@ -80,7 +81,7 @@ class Summary(Static):
         event.stop()
         pkg_btn = self.query_one("#package-btn", Button)
         unpkg_btn = self.query_one("#unpackage-btn", Button)
-        
+
         if event.control == pkg_btn:
             package_review_cases(self.report, self.dset_path)
             self.notify(f"{REVIEW_FILENAME} was created on the working directory")
@@ -88,5 +89,5 @@ class Summary(Static):
             if REVIEWED_FILENAME not in os.listdir("."):
                 self.notify(f"{REVIEWED_FILENAME} not found in {os.path.abspath('.')}")
                 return
-            
+
             unpackage_reviews(REVIEWED_FILENAME, self, self.dset_path)
