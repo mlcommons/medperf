@@ -310,6 +310,10 @@ def get_identified_extract_paths(
             "TumorMasksForQC",
             "finalized",
         )
+        if not os.path.exists(dest_path):
+            # Don't try to add reviewed file if the dest path
+            # doesn't exist
+            continue
 
         # dest_path = os.path.join(dest_path, filename)
         extracts.append((src_path, dest_path))
@@ -326,6 +330,10 @@ def get_identified_extract_paths(
             "TumorMasksForQC",
             "under_review",
         )
+        if not os.path.exists(dest_path):
+            # Don't try to add reviewed file if the dest path
+            # doesn't exist
+            continue
 
         # dest_path = os.path.join(dest_path, filename)
         extracts.append((src_path, dest_path))
@@ -340,6 +348,11 @@ def get_identified_extract_paths(
             id,
             tp,
         )
+        if not os.path.exists(dest_path):
+            # Don't try to add reviewed file if the dest path
+            # doesn't exist
+            continue
+
         extracts.append((src_path, dest_path))
 
     return extracts
