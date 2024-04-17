@@ -1,5 +1,4 @@
 from rest_framework.permissions import BasePermission
-from mlcube.models import MlCube
 from dataset.models import Dataset
 
 
@@ -24,7 +23,9 @@ class IsOwnerOfUsedMLCube(BasePermission):
         pk = view.kwargs.get("pk", None)
         if not pk:
             return False
-        
-        user_datasets_using_owned_mlcube = Dataset.objects.filter(owner=pk, data_preparation_mlcube__owner=request.user)
-        
+
+        user_datasets_using_owned_mlcube = Dataset.objects.filter(
+            owner=pk, data_preparation_mlcube__owner=request.user
+        )
+
         return len(user_datasets_using_owned_mlcube)
