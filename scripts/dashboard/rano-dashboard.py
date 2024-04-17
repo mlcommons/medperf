@@ -5,7 +5,8 @@ import plotly.express as px
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-from get_data import get_data, get_reports_path
+from get_data import get_data
+from utils import get_reports_path
 
 from typer import Typer, run, Option
 
@@ -295,7 +296,6 @@ def main(
 
     registered_df = pd.DataFrame(sites_dicts)
     registered_df = registered_df.drop_duplicates()
-    # values = registered_df["registered"].value_counts().sort_values().values.tolist()
 
     stages = pd.read_csv(stages_path)
     stages_colors = (
