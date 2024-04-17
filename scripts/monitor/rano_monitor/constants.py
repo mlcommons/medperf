@@ -29,4 +29,5 @@ DONE_STAGE = 8
 LISTITEM_MAX_LEN = 30
 
 REVIEWED_PATTERN = r".*\/(.*)\/(.*)\/finalized\/(.*\.nii\.gz)"
+UNDER_REVIEW_PATTERN = r".*\/(.*)\/(.*)\/under_review\/(.*\.nii\.gz)"
 BRAINMASK_PATTERN = r".*\/(.*)\/(.*)\/brainMask_fused.nii.gz"
