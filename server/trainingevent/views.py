@@ -1,4 +1,4 @@
-from .models import TrainingEvent
+from training.models import TrainingExperiment
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -35,23 +35,28 @@ class EventDetail(GenericAPIView):
 
     def get_object(self, tid):
         try:
-            return TrainingEvent.objects.filter(training_exp__id=tid)
-        except TrainingEvent.DoesNotExist:
+            training_exp = TrainingExperiment.objects.get(pk=tid)
+        except TrainingExperiment.DoesNotExist:
             raise Http404
+
+        event = training_exp.event
+        if not event:
+            raise Http404
+        return event
 
     def get(self, request, tid, format=None):
         """
-        Retrieve events of a training experiment
+        Retrieve latest event of a training experiment
         """
         event = self.get_object(tid)
-        serializer = EventDetailSerializer(event, many=True)
+        serializer = EventDetailSerializer(event)
         return Response(serializer.data)
 
     def put(self, request, tid, format=None):
         """
         Update latest event of a training experiment
         """
-        event = self.get_object(tid).order_by("-created_at").first()
+        event = self.get_object(tid)
         serializer = EventDetailSerializer(event, data=request.data)
         if serializer.is_valid():
             serializer.save()
