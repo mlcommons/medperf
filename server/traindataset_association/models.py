@@ -10,8 +10,6 @@ class ExperimentDataset(models.Model):
         ("APPROVED", "APPROVED"),
         ("REJECTED", "REJECTED"),
     )
-    certificate = models.TextField(blank=True)
-    signing_request = models.TextField()
     dataset = models.ForeignKey("dataset.Dataset", on_delete=models.PROTECT)
     training_exp = models.ForeignKey(
         "training.TrainingExperiment", on_delete=models.CASCADE
@@ -26,4 +24,4 @@ class ExperimentDataset(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["created_at"]
+        ordering = ["modified_at"]
