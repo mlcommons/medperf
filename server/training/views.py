@@ -1,19 +1,27 @@
+from aggregator.serializers import (
+    AggregatorSerializer,
+)
+from traindataset_association.serializers import (
+    TrainingExperimentListofDatasetsSerializer,
+)
+from ca.serializers import CASerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
 from .models import TrainingExperiment
 from .serializers import (
     WriteTrainingExperimentSerializer,
     ReadTrainingExperimentSerializer,
 )
-from .permissions import IsAdmin, IsExpOwner
-from dataset.serializers import DatasetPublicSerializer
-from aggregator.serializers import AggregatorSerializer
-from drf_spectacular.utils import extend_schema
-from aggregator_association.utils import latest_agg_associations
-from traindataset_association.utils import latest_data_associations
+from .permissions import (
+    IsAdmin,
+    IsExpOwner,
+    IsAssociatedDatasetOwner,
+    IsAggregatorOwner,
+)
 
 
 class TrainingExperimentList(GenericAPIView):
@@ -43,6 +51,80 @@ class TrainingExperimentList(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class TrainingAggregator(GenericAPIView):
+    permission_classes = [IsAdmin | IsExpOwner | IsAssociatedDatasetOwner]
+    serializer_class = AggregatorSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            training_exp = TrainingExperiment.objects.get(pk=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+        aggregator = training_exp.aggregator
+        if not aggregator:
+            raise Http404
+        return aggregator
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve the aggregator associated with a training exp instance.
+        """
+        aggregator = self.get_object(pk)
+        serializer = AggregatorSerializer(aggregator)
+        return Response(serializer.data)
+
+
+class TrainingDatasetList(GenericAPIView):
+    permission_classes = [IsAdmin | IsExpOwner]
+    serializer_class = TrainingExperimentListofDatasetsSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingExperiment.objects.get(pk=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve datasets associated with a training experiment instance.
+        """
+        training_exp = self.get_object(pk)
+        datasets = training_exp.traindataset_association_set.all()
+        datasets = self.paginate_queryset(datasets)
+        serializer = TrainingExperimentListofDatasetsSerializer(datasets, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class TrainingCA(GenericAPIView):
+    permission_classes = [
+        IsAdmin | IsExpOwner | IsAssociatedDatasetOwner | IsAggregatorOwner
+    ]
+    serializer_class = CASerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            training_exp = TrainingExperiment.objects.get(pk=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+        ca = training_exp.ca
+        if not ca:
+            raise Http404
+        return ca
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve CA associated with a training experiment instance.
+        """
+        ca = self.get_object(pk)
+        serializer = CASerializer(ca)
+        return Response(serializer.data)
+
+
 class TrainingExperimentDetail(GenericAPIView):
     serializer_class = ReadTrainingExperimentSerializer
     queryset = ""
@@ -52,6 +134,8 @@ class TrainingExperimentDetail(GenericAPIView):
             self.permission_classes = [IsAdmin | IsExpOwner]
             if "approval_status" in self.request.data:
                 self.permission_classes = [IsAdmin]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):
@@ -81,37 +165,10 @@ class TrainingExperimentDetail(GenericAPIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class TrainingDatasetList(GenericAPIView):
-    serializer_class = DatasetPublicSerializer
-    queryset = ""
-
-    def get(self, request, pk, format=None):
+    def delete(self, request, pk, format=None):
         """
-        Retrieve datasets associated with a training_exp instance.
+        Delete a training experiment instance.
         """
-        experiment_datasets = latest_data_associations(pk)
-        experiment_datasets = experiment_datasets.filter(approval_status="APPROVED")
-        datasets = [exp_dset.dataset for exp_dset in experiment_datasets]
-        datasets = self.paginate_queryset(datasets)
-        serializer = DatasetPublicSerializer(datasets, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class GetAggregator(GenericAPIView):
-    serializer_class = AggregatorSerializer
-    queryset = ""
-
-    def get(self, request, pk, format=None):
-        """
-        Retrieve aggregator associated with a training exp instance.
-        """
-        experiment_aggregators = latest_agg_associations(pk)
-        experiment_aggregators = experiment_aggregators.filter(
-            approval_status="APPROVED"
-        )
-        aggregators = [exp_agg.aggregator for exp_agg in experiment_aggregators]
-        if aggregators:
-            serializer = AggregatorSerializer(aggregators[0])
-            return Response(serializer.data)
-        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+        training_exp = self.get_object(pk)
+        training_exp.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

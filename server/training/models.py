@@ -19,7 +19,7 @@ class TrainingExperiment(models.Model):
     description = models.CharField(max_length=100, blank=True)
     docs_url = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    demo_dataset_tarball_url = models.CharField(max_length=256, blank=True)
+    demo_dataset_tarball_url = models.CharField(max_length=256)
     demo_dataset_tarball_hash = models.CharField(max_length=100)
     demo_dataset_generated_uid = models.CharField(max_length=128)
     data_preparation_mlcube = models.ForeignKey(
@@ -40,10 +40,7 @@ class TrainingExperiment(models.Model):
     approval_status = models.CharField(
         choices=EXP_STATUS, max_length=100, default="PENDING"
     )
-    private_key = models.CharField(max_length=100, blank=True)
-    public_key = models.TextField(blank=True)
-    # TODO: ensure unique, but allow blank (how?)
-    # TODO: rethink if keys are always needed
+    plan = models.JSONField(blank=True, null=True)
 
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
@@ -52,6 +49,24 @@ class TrainingExperiment(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def event(self):
+        return self.events.all().order_by("created_at").last()
+
+    @property
+    def aggregator(self):
+        aggregator_assoc = (
+            self.aggregator_association_set.all().order_by("created_at").last()
+        )
+        if aggregator_assoc and aggregator_assoc.approval_status == "APPROVED":
+            return aggregator_assoc.aggregator
+
+    @property
+    def ca(self):
+        ca_assoc = self.ca_association_set.all().order_by("created_at").last()
+        if ca_assoc and ca_assoc.approval_status == "APPROVED":
+            return ca_assoc.ca
 
     class Meta:
         ordering = ["modified_at"]
