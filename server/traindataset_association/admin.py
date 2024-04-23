@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import ExperimentDataset
 
-# Register your models here.
+
+@admin.register(ExperimentDataset)
+class ExperimentDatasetAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in ExperimentDataset._meta.fields]
