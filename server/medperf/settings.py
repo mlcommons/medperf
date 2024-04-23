@@ -62,6 +62,11 @@ SUPERUSER_USERNAME = env("SUPERUSER_USERNAME")
 
 SUPERUSER_PASSWORD = env("SUPERUSER_PASSWORD")
 
+CA_NAME = "MedPerf CA"
+CA_ADDRESS = env("CA_ADDRESS")
+CA_FINGERPRINT = env("CA_FINGERPRINT")
+CA_PORT = env("CA_PORT")
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # TODO Change later to list of allowed domains
