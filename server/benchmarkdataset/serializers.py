@@ -21,13 +21,7 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         dataset = self.context["request"].data.get("dataset")
         approval_status = self.context["request"].data.get("approval_status", "PENDING")
 
-        # benchmark state
         benchmark = Benchmark.objects.get(pk=bid)
-        benchmark_state = benchmark.state
-        if benchmark_state != "OPERATION":
-            raise serializers.ValidationError(
-                "Association requests can be made only on an operational benchmark"
-            )
 
         # benchmark approval status
         benchmark_approval_status = benchmark.approval_status

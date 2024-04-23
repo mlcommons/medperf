@@ -57,11 +57,6 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "User can only approve or reject a benchmark"
             )
-        if self.instance.state == "DEVELOPMENT":
-            raise serializers.ValidationError(
-                "User cannot approve or reject when benchmark is in development stage"
-            )
-
         if approval_status == "APPROVED":
             if self.instance.approval_status == "REJECTED":
                 raise serializers.ValidationError(
