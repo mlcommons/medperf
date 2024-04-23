@@ -12,7 +12,7 @@ from .serializers import (
 
 
 class ExperimentAggregatorList(GenericAPIView):
-    permission_classes = [IsAdmin | IsAggregatorOwner]
+    permission_classes = [IsAdmin | IsExpOwner | IsAggregatorOwner]
     serializer_class = ExperimentAggregatorListSerializer
     queryset = ""
 
@@ -30,9 +30,14 @@ class ExperimentAggregatorList(GenericAPIView):
 
 
 class AggregatorApproval(GenericAPIView):
-    permission_classes = [IsAdmin | IsExpOwner | IsAggregatorOwner]
     serializer_class = AggregatorApprovalSerializer
     queryset = ""
+
+    def get_permissions(self):
+        self.permission_classes = [IsAdmin | IsExpOwner | IsAggregatorOwner]
+        if self.request.method == "DELETE":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     def get_object(self, aggregator_id, training_exp_id):
         try:

@@ -10,8 +10,6 @@ class ExperimentAggregator(models.Model):
         ("APPROVED", "APPROVED"),
         ("REJECTED", "REJECTED"),
     )
-    certificate = models.TextField(blank=True)
-    signing_request = models.TextField()
     aggregator = models.ForeignKey("aggregator.Aggregator", on_delete=models.PROTECT)
     training_exp = models.ForeignKey(
         "training.TrainingExperiment", on_delete=models.CASCADE
