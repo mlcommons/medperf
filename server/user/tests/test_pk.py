@@ -8,14 +8,14 @@ from parameterized import parameterized
 class UserTest(MedPerfTest):
     def generic_setup(self):
         # setup users
-        user1 = "user1"
-        user2 = "user2"
+        user1 = 1
+        user2 = 2
 
         self.create_user(user1)
         self.create_user(user2)
 
-        self.user1 = "user1"
-        self.user2 = "user2"
+        self.user1 = 1
+        self.user2 = 2
 
         self.url = self.api_prefix + "/users/{0}/"
         self.set_credentials(None)
@@ -41,7 +41,7 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            ("user2", status.HTTP_403_FORBIDDEN),
+            (2, status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )
@@ -57,8 +57,8 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            ("user1", status.HTTP_403_FORBIDDEN),
-            ("user2", status.HTTP_403_FORBIDDEN),
+            (1, status.HTTP_403_FORBIDDEN),
+            (2, status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )
@@ -83,8 +83,8 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            ("user1", status.HTTP_403_FORBIDDEN),
-            ("user2", status.HTTP_403_FORBIDDEN),
+            (1, status.HTTP_403_FORBIDDEN),
+            (2, status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )
