@@ -20,7 +20,7 @@ class UserTest(MedPerfTest):
         # Setup mlcube and dataset
         self.set_credentials(user3)
         mlcube_id = self.create_mlcube(mock_mlcube())["id"]
-        
+
         self.set_credentials(user1)
         dset = mock_dataset(mlcube_id)
         self.create_dataset(dset)
@@ -36,7 +36,7 @@ class UserTest(MedPerfTest):
 class PermissionTest(UserTest):
     """Test module for permissions of /users/<pk> endpoint
     Non-permitted actions:
-        GET: for all users except admin, current user, 
+        GET: for all users except admin, current user,
              and users that created mlcubes used by current user in
              any of their datasets.
         PUT: for all users except admin
