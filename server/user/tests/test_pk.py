@@ -1,6 +1,7 @@
 from rest_framework import status
 
 from medperf.tests import MedPerfTest
+from medperf.testing_utils import mock_mlcube, mock_dataset
 
 from parameterized import parameterized
 
@@ -8,14 +9,25 @@ from parameterized import parameterized
 class UserTest(MedPerfTest):
     def generic_setup(self):
         # setup users
-        user1 = 1
-        user2 = 2
+        user1 = "user1"
+        user2 = "user2"
+        user3 = "user3"
 
         self.create_user(user1)
         self.create_user(user2)
+        self.create_user(user3)
 
-        self.user1 = 1
-        self.user2 = 2
+        # Setup mlcube and dataset
+        self.set_credentials(user3)
+        mlcube_id = self.create_mlcube(mock_mlcube())["id"]
+        
+        self.set_credentials(user1)
+        dset = mock_dataset(mlcube_id)
+        self.create_dataset(dset)
+
+        self.user1 = "user1"
+        self.user2 = "user2"
+        self.user3 = "user3"
 
         self.url = self.api_prefix + "/users/{0}/"
         self.set_credentials(None)
@@ -24,7 +36,9 @@ class UserTest(MedPerfTest):
 class PermissionTest(UserTest):
     """Test module for permissions of /users/<pk> endpoint
     Non-permitted actions:
-        GET: for all users except admin and the user themselves
+        GET: for all users except admin, current user, 
+             and users that created mlcubes used by current user in
+             any of their datasets.
         PUT: for all users except admin
         DELETE: for all users except admin
 
@@ -41,7 +55,8 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            (2, status.HTTP_403_FORBIDDEN),
+            ("user2", status.HTTP_403_FORBIDDEN),
+            ("user3", status.HTTP_200_OK),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )
@@ -57,8 +72,8 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            (1, status.HTTP_403_FORBIDDEN),
-            (2, status.HTTP_403_FORBIDDEN),
+            ("user1", status.HTTP_403_FORBIDDEN),
+            ("user2", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )
@@ -83,8 +98,8 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            (1, status.HTTP_403_FORBIDDEN),
-            (2, status.HTTP_403_FORBIDDEN),
+            ("user1", status.HTTP_403_FORBIDDEN),
+            ("user2", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )

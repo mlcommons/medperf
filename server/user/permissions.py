@@ -23,9 +23,11 @@ class IsOwnerOfUsedMLCube(BasePermission):
         pk = view.kwargs.get("pk", None)
         if not pk:
             return False
+        if not request.user.id:
+            return False
 
         user_datasets_using_owned_mlcube = Dataset.objects.filter(
             owner=pk, data_preparation_mlcube__owner=request.user
         )
 
-        return len(user_datasets_using_owned_mlcube)
+        return len(user_datasets_using_owned_mlcube) > 0
