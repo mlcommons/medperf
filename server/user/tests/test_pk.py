@@ -19,7 +19,7 @@ class UserTest(MedPerfTest):
 
         # Setup mlcube and dataset
         self.set_credentials(user3)
-        mlcube_id = self.create_mlcube(mock_mlcube())["id"]
+        mlcube_id = self.create_mlcube(mock_mlcube()).data["id"]
 
         self.set_credentials(user1)
         dset = mock_dataset(mlcube_id)
