@@ -13,15 +13,14 @@ from subprocess import check_call
 def start_collaborator(
     data_path,
     labels_path,
-    parameters_file,
     node_cert_folder,
     ca_cert_folder,
-    network_config,
+    plan_path,
     output_logs,
 ):
     workspace_folder = os.path.join(output_logs, "workspace")
     create_workspace(workspace_folder)
-    prepare_plan(parameters_file, network_config, workspace_folder)
+    prepare_plan(plan_path, workspace_folder)
     cn = get_collaborator_cn()
     prepare_node_cert(node_cert_folder, "client", f"col_{cn}", workspace_folder)
     prepare_ca_cert(ca_cert_folder, workspace_folder)

@@ -22,8 +22,7 @@ tasks:
         labels_path: labels/
         node_cert_folder: node_cert/
         ca_cert_folder: ca_cert/
-        parameters_file: parameters.yaml
-        network_config: network.yaml
+        plan_path: plan.yaml
       outputs:
         output_logs: logs/
   start_aggregator:
@@ -32,9 +31,15 @@ tasks:
         input_weights: additional_files/init_weights
         node_cert_folder: node_cert/
         ca_cert_folder: ca_cert/
-        parameters_file: parameters.yaml
-        network_config: network.yaml
+        plan_path: plan.yaml
         collaborators: cols.yaml
       outputs:
         output_logs: logs/
         output_weights: final_weights/
+  generate_plan:
+    parameters:
+      inputs:
+        training_config_path: training_config.yaml
+        aggregator_config_path: aggregator_config.yaml
+      outputs:
+        plan_path: { type: "file", default: "plan/plan.yaml" }

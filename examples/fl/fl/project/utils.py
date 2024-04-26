@@ -1,5 +1,6 @@
 import yaml
 import os
+import shutil
 
 
 def create_workspace(fl_workspace):
@@ -36,21 +37,13 @@ def get_weights_path(fl_workspace):
     }
 
 
-def prepare_plan(parameters_file, network_config, fl_workspace):
-    with open(parameters_file) as f:
-        params = yaml.safe_load(f)
-    if "plan" not in params:
-        raise RuntimeError("Parameters file should contain a `plan` entry")
-    with open(network_config) as f:
-        network_config_dict = yaml.safe_load(f)
-    plan = params["plan"]
-    plan["network"]["settings"].update(network_config_dict)
+def prepare_plan(plan_path, fl_workspace):
     target_plan_folder = os.path.join(fl_workspace, "plan")
     # TODO: permissions
     os.makedirs(target_plan_folder, exist_ok=True)
+
     target_plan_file = os.path.join(target_plan_folder, "plan.yaml")
-    with open(target_plan_file, "w") as f:
-        yaml.dump(plan, f)
+    shutil.copyfile(plan_path, target_plan_file)
 
 
 def prepare_cols_list(collaborators_file, fl_workspace):
@@ -58,12 +51,18 @@ def prepare_cols_list(collaborators_file, fl_workspace):
         cols = f.read().strip().split("\n")
     cols = [col.strip().split(",") for col in cols]
     cols_dict = {}
+    cn_different = False
     for col in cols:
         if len(col) == 1:
             cols_dict[col[0]] = col[0]
         else:
             assert len(col) == 2
             cols_dict[col[0]] = col[1]
+            if col[0] != col[1]:
+                cn_different = True
+    if not cn_different:
+        # quick hack to support old and new openfl versions
+        cols_dict = list(cols_dict.keys())
 
     target_plan_folder = os.path.join(fl_workspace, "plan")
     # TODO: permissions

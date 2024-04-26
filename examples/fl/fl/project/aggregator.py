@@ -17,18 +17,17 @@ from distutils.dir_util import copy_tree
 
 def start_aggregator(
     input_weights,
-    parameters_file,
     node_cert_folder,
     ca_cert_folder,
     output_logs,
     output_weights,
-    network_config,
+    plan_path,
     collaborators,
 ):
 
     workspace_folder = os.path.join(output_logs, "workspace")
     create_workspace(workspace_folder)
-    prepare_plan(parameters_file, network_config, workspace_folder)
+    prepare_plan(plan_path, workspace_folder)
     prepare_cols_list(collaborators, workspace_folder)
     prepare_init_weights(input_weights, workspace_folder)
     fqdn = get_aggregator_fqdn(workspace_folder)

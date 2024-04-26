@@ -26,10 +26,9 @@ def __modify_df(df):
 def collaborator_pre_training_hook(
     data_path,
     labels_path,
-    parameters_file,
     node_cert_folder,
     ca_cert_folder,
-    network_config,
+    plan_path,
     output_logs,
 ):
     cn = get_collaborator_cn()
@@ -66,10 +65,9 @@ def collaborator_pre_training_hook(
 def collaborator_post_training_hook(
     data_path,
     labels_path,
-    parameters_file,
     node_cert_folder,
     ca_cert_folder,
-    network_config,
+    plan_path,
     output_logs,
 ):
     pass
@@ -77,12 +75,11 @@ def collaborator_post_training_hook(
 
 def aggregator_pre_training_hook(
     input_weights,
-    parameters_file,
     node_cert_folder,
     ca_cert_folder,
     output_logs,
     output_weights,
-    network_config,
+    plan_path,
     collaborators,
 ):
     pass
@@ -90,12 +87,11 @@ def aggregator_pre_training_hook(
 
 def aggregator_post_training_hook(
     input_weights,
-    parameters_file,
     node_cert_folder,
     ca_cert_folder,
     output_logs,
     output_weights,
-    network_config,
+    plan_path,
     collaborators,
 ):
     pass
