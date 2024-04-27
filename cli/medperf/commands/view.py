@@ -14,7 +14,7 @@ class EntityView:
         entity_id: Union[int, str],
         entity_class: Entity,
         format: str = "yaml",
-        local_only: bool = False,
+        unregistered: bool = False,
         mine_only: bool = False,
         output: str = None,
         **kwargs,
@@ -24,14 +24,14 @@ class EntityView:
         Args:
             entity_id (Union[int, str]): Entity identifies
             entity_class (Entity): Entity type
-            local_only (bool, optional): Display all local entities. Defaults to False.
+            unregistered (bool, optional): Display only local unregistered entities. Defaults to False.
             mine_only (bool, optional): Display all current-user entities. Defaults to False.
             format (str, optional): What format to use to display the contents. Valid formats: [yaml, json]. Defaults to yaml.
             output (str, optional): Path to a file for storing the entity contents. If not provided, the contents are printed.
             kwargs (dict): Additional parameters for filtering entity lists.
         """
         entity_view = EntityView(
-            entity_id, entity_class, format, local_only, mine_only, output, **kwargs
+            entity_id, entity_class, format, unregistered, mine_only, output, **kwargs
         )
         entity_view.validate()
         entity_view.prepare()
@@ -41,12 +41,12 @@ class EntityView:
             entity_view.store()
 
     def __init__(
-        self, entity_id, entity_class, format, local_only, mine_only, output, **kwargs
+        self, entity_id, entity_class, format, unregistered, mine_only, output, **kwargs
     ):
         self.entity_id = entity_id
         self.entity_class = entity_class
         self.format = format
-        self.local_only = local_only
+        self.unregistered = unregistered
         self.mine_only = mine_only
         self.output = output
         self.filters = kwargs
@@ -65,7 +65,7 @@ class EntityView:
                 self.filters["owner"] = get_medperf_user_data()["id"]
 
             entities = self.entity_class.all(
-                local_only=self.local_only, filters=self.filters
+                unregistered=self.unregistered, filters=self.filters
             )
         self.data = [entity.todict() for entity in entities]
 
