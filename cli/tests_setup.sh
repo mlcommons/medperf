@@ -14,6 +14,7 @@ DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
 MEDPERF_STORAGE=~/.medperf
+MEDPERF_LOG_STORAGE=~/.medperf_logs
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
@@ -52,7 +53,7 @@ checkFailed() {
     fi
     echo $1
     echo "medperf log:"
-    tail "$MEDPERF_STORAGE/logs/medperf.log"
+    tail "$MEDPERF_LOG_STORAGE/medperf.log"
     if ${CLEANUP}; then
       clean
     fi
@@ -118,3 +119,8 @@ BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
 DATAOWNER2="testdo2@example.com"
 AGGOWNER="testao@example.com"
+
+# local MLCubes for local compatibility tests
+PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator/mlcube"
+MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn/mlcube"
+METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics/mlcube"

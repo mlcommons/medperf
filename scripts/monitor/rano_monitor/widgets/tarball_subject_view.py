@@ -146,5 +146,6 @@ class TarballSubjectView(Static):
             "finalized"
         )
         finalized_files = os.listdir(finalized_tumor_path)
+        finalized_files = [file for file in finalized_files if not file.startswith(".")]
 
         return len(finalized_files) > 0

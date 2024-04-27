@@ -55,7 +55,7 @@ docker_image_name [docker/image:latest]: # (6)!
 2. Determines how the MLCube root folder will be named.
 3. Gives a Human-readable description to the MLCube Project.
 4. Documents the MLCube implementation by specifying the author.
-5. Indicates how many GPUs should be visible by the MLCube.
+5. Set it to 0. This is now ignored and will be removed in the next release. Please check the last section to learn how to use MLCube with GPUs.
 6. MLCubes use Docker containers under the hood. Here, you can provide an image tag to the image that will be created by this MLCube. **You should use a valid name that allows you to upload it to a Docker registry.**
 
 After filling the configuration options, the following directory structure will be generated:
@@ -232,9 +232,6 @@ accelerator_count [0]: 0
 docker_image_name [docker/image:latest]: repository/model-tutorial:0.0.0
 ```
 
-!!! note
-    This example is built to be used with a CPU. See the [last section](#using-the-example-with-gpus) to know how to configure this example with a GPU.
-
 Note that `docker_image_name` is arbitrarily chosen. Use a valid docker image.
 
 ### Move your Codebase
@@ -355,6 +352,11 @@ The provided example codebase runs only on CPU. You can modify it to have `pytor
 
 The general instructions for building an MLCube to work with a GPU are the same as the provided instructions, but with the following slight modifications:
 
-- Use a number different than `0` for the `accelerator_count` that you will be prompted with when creating the MLCube template.
-- Inside the `docker` section of the `mlcube.yaml`, add a key value pair: `gpu_args: --gpus=all`. These `gpu_args` will be passed to `docker run` under the hood by MLCube. You may add more than just `--gpus=all`.
 - Make sure you install the required GPU dependencies in the docker image. For instance, this may be done by simply modifying the `pip` dependencies in the `requirements.txt` file to download `pytorch` with cuda, or by changing the base image of the dockerfile.
+
+For testing your MLCube with GPUs using the MLCube tool as in the previous section, make sure you run the `mlcube run` command with a `--gpus` argument. Example: `mlcube run --gpus=all ...`
+
+For testing your MLCube with GPUs using MedPerf, make sure you pass as well the `--gpus` argument to the MedPerf command. Example: `medperf --gpus=all <subcommand> ...`.
+
+!!!tip
+    Run `medperf --help` to see the possible options you can use for the `--gpus` argument.

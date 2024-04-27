@@ -1,6 +1,6 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
-from medperf.utils import get_folders_hash, remove_path
+from medperf.utils import get_file_hash, get_folders_hash, remove_path
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -48,11 +48,13 @@ def prepare_local_cube(path):
     config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     if not os.path.exists(cube_metadata_file):
+        mlcube_yaml_path = os.path.join(path, config.cube_filename)
+        mlcube_yaml_hash = get_file_hash(mlcube_yaml_path)
         temp_metadata = {
             "id": None,
             "name": temp_uid,
             "git_mlcube_url": "mock_url",
-            "mlcube_hash": "",
+            "mlcube_hash": mlcube_yaml_hash,
             "parameters_hash": "",
             "image_tarball_hash": "",
             "additional_files_tarball_hash": "",
@@ -88,9 +90,11 @@ def prepare_cube(cube_uid: str):
     path = path.resolve()
 
     if os.path.exists(path):
-        logging.info("local path provided. Creating symbolic link")
-        temp_uid = prepare_local_cube(path)
-        return temp_uid
+        mlcube_yaml_path = os.path.join(path, config.cube_filename)
+        if os.path.exists(mlcube_yaml_path):
+            logging.info("local path provided. Creating symbolic link")
+            temp_uid = prepare_local_cube(path)
+            return temp_uid
 
     logging.error(f"mlcube {cube_uid} was not found as an existing mlcube")
     raise InvalidArgumentError(
@@ -127,12 +131,12 @@ def create_test_dataset(
         location="local",
         approved=False,
         submit_as_prepared=skip_data_preparation_step,
+        for_test=True,
     )
     data_creation.validate()
     data_creation.create_dataset_object()
     # TODO: existing dataset could make problems
     # make some changes since this is a test dataset
-    data_creation.dataset.for_test = True
     config.tmp_paths.remove(data_creation.dataset.path)
     data_creation.dataset.write()
     if skip_data_preparation_step:
