@@ -1,22 +1,17 @@
 import os
 import yaml
-import logging
 from pydantic import Field, validator
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from medperf.utils import remove_path
-from medperf.entities.interface import Entity, Uploadable
+from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
-from medperf.exceptions import (
-    InvalidArgumentError,
-    MedperfException,
-    CommunicationRetrievalError,
-)
+
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 
 
-class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
+class Dataset(Entity, MedperfSchema, DeployableSchema):
     """
     Class representing a Dataset
 
@@ -37,6 +32,26 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     report: dict = {}
     submitted_as_prepared: bool
 
+    @staticmethod
+    def get_type():
+        return "dataset"
+
+    @staticmethod
+    def get_storage_path():
+        return config.datasets_folder
+
+    @staticmethod
+    def get_comms_retriever():
+        return config.comms.get_dataset
+
+    @staticmethod
+    def get_metadata_filename():
+        return config.reg_file
+
+    @staticmethod
+    def get_comms_uploader():
+        return config.comms.upload_dataset
+
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
         if not isinstance(v, int) and not values["for_test"]:
@@ -48,13 +63,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        path = config.datasets_folder
-        if self.id:
-            path = os.path.join(path, str(self.id))
-        else:
-            path = os.path.join(path, self.generated_uid)
-
-        self.path = path
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = os.path.join(self.path, "labels")
         self.report_path = os.path.join(self.path, config.report_file)
@@ -86,48 +94,8 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         flag_file = os.path.join(self.path, config.ready_flag_file)
         return os.path.exists(flag_file)
 
-    def todict(self):
-        return self.extended_dict()
-
     @classmethod
-    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Dataset"]:
-        """Gets and creates instances of all the locally prepared datasets
-
-        Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
-
-        Returns:
-            List[Dataset]: a list of Dataset instances.
-        """
-        logging.info("Retrieving all datasets")
-        dsets = []
-        if not local_only:
-            dsets = cls.__remote_all(filters=filters)
-
-        remote_uids = set([dset.id for dset in dsets])
-
-        local_dsets = cls.__local_all()
-
-        dsets += [dset for dset in local_dsets if dset.id not in remote_uids]
-
-        return dsets
-
-    @classmethod
-    def __remote_all(cls, filters: dict) -> List["Dataset"]:
-        dsets = []
-        try:
-            comms_fn = cls.__remote_prefilter(filters)
-            dsets_meta = comms_fn()
-            dsets = [cls(**meta) for meta in dsets_meta]
-        except CommunicationRetrievalError:
-            msg = "Couldn't retrieve all datasets from the server"
-            logging.warning(msg)
-
-        return dsets
-
-    @classmethod
-    def __remote_prefilter(cls, filters: dict) -> callable:
+    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
@@ -148,111 +116,6 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
             comms_fn = func
 
         return comms_fn
-
-    @classmethod
-    def __local_all(cls) -> List["Dataset"]:
-        dsets = []
-        datasets_folder = config.datasets_folder
-        try:
-            uids = next(os.walk(datasets_folder))[1]
-        except StopIteration:
-            msg = "Couldn't iterate over the dataset directory"
-            logging.warning(msg)
-            raise MedperfException(msg)
-
-        for uid in uids:
-            local_meta = cls.__get_local_dict(uid)
-            dset = cls(**local_meta)
-            dsets.append(dset)
-
-        return dsets
-
-    @classmethod
-    def get(cls, dset_uid: Union[str, int], local_only: bool = False) -> "Dataset":
-        """Retrieves and creates a Dataset instance from the comms instance.
-        If the dataset is present in the user's machine then it retrieves it from there.
-
-        Args:
-            dset_uid (str): server UID of the dataset
-
-        Returns:
-            Dataset: Specified Dataset Instance
-        """
-        if not str(dset_uid).isdigit() or local_only:
-            return cls.__local_get(dset_uid)
-
-        try:
-            return cls.__remote_get(dset_uid)
-        except CommunicationRetrievalError:
-            logging.warning(f"Getting Dataset {dset_uid} from comms failed")
-            logging.info(f"Looking for dataset {dset_uid} locally")
-            return cls.__local_get(dset_uid)
-
-    @classmethod
-    def __remote_get(cls, dset_uid: int) -> "Dataset":
-        """Retrieves and creates a Dataset instance from the comms instance.
-        If the dataset is present in the user's machine then it retrieves it from there.
-
-        Args:
-            dset_uid (str): server UID of the dataset
-
-        Returns:
-            Dataset: Specified Dataset Instance
-        """
-        logging.debug(f"Retrieving dataset {dset_uid} remotely")
-        meta = config.comms.get_dataset(dset_uid)
-        dataset = cls(**meta)
-        dataset.write()
-        return dataset
-
-    @classmethod
-    def __local_get(cls, dset_uid: Union[str, int]) -> "Dataset":
-        """Retrieves and creates a Dataset instance from the comms instance.
-        If the dataset is present in the user's machine then it retrieves it from there.
-
-        Args:
-            dset_uid (str): server UID of the dataset
-
-        Returns:
-            Dataset: Specified Dataset Instance
-        """
-        logging.debug(f"Retrieving dataset {dset_uid} locally")
-        local_meta = cls.__get_local_dict(dset_uid)
-        dataset = cls(**local_meta)
-        return dataset
-
-    def write(self):
-        logging.info(f"Updating registration information for dataset: {self.id}")
-        logging.debug(f"registration information: {self.todict()}")
-        regfile = os.path.join(self.path, config.reg_file)
-        os.makedirs(self.path, exist_ok=True)
-        with open(regfile, "w") as f:
-            yaml.dump(self.todict(), f)
-        return regfile
-
-    def upload(self):
-        """Uploads the registration information to the comms.
-
-        Args:
-            comms (Comms): Instance of the comms interface.
-        """
-        if self.for_test:
-            raise InvalidArgumentError("Cannot upload test datasets.")
-        dataset_dict = self.todict()
-        updated_dataset_dict = config.comms.upload_dataset(dataset_dict)
-        return updated_dataset_dict
-
-    @classmethod
-    def __get_local_dict(cls, data_uid):
-        dataset_path = os.path.join(config.datasets_folder, str(data_uid))
-        regfile = os.path.join(dataset_path, config.reg_file)
-        if not os.path.exists(regfile):
-            raise InvalidArgumentError(
-                "The requested dataset information could not be found locally"
-            )
-        with open(regfile, "r") as f:
-            reg = yaml.safe_load(f)
-        return reg
 
     def display_dict(self):
         return {

@@ -1,7 +1,7 @@
 import os
 import yaml
 import logging
-from typing import List, Dict, Optional, Union
+from typing import Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
@@ -12,21 +12,15 @@ from medperf.utils import (
     generate_tmp_path,
     spawn_and_kill,
 )
-from medperf.entities.interface import Entity, Uploadable
+from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
-from medperf.exceptions import (
-    InvalidArgumentError,
-    ExecutionError,
-    InvalidEntityError,
-    MedperfException,
-    CommunicationRetrievalError,
-)
+from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 
 
-class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
+class Cube(Entity, MedperfSchema, DeployableSchema):
     """
     Class representing an MLCube Container
 
@@ -48,6 +42,26 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
     metadata: dict = {}
     user_metadata: dict = {}
 
+    @staticmethod
+    def get_type():
+        return "cube"
+
+    @staticmethod
+    def get_storage_path():
+        return config.cubes_folder
+
+    @staticmethod
+    def get_comms_retriever():
+        return config.comms.get_cube_metadata
+
+    @staticmethod
+    def get_metadata_filename():
+        return config.cube_metadata_filename
+
+    @staticmethod
+    def get_comms_uploader():
+        return config.comms.upload_mlcube
+
     def __init__(self, *args, **kwargs):
         """Creates a Cube instance
 
@@ -57,59 +71,13 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         super().__init__(*args, **kwargs)
 
         self.generated_uid = self.name
-        path = config.cubes_folder
-        if self.id:
-            path = os.path.join(path, str(self.id))
-        else:
-            path = os.path.join(path, self.generated_uid)
-        # NOTE: maybe have these as @property, to have the same entity reusable
-        #       before and after submission
-        self.path = path
-        self.cube_path = os.path.join(path, config.cube_filename)
+        self.cube_path = os.path.join(self.path, config.cube_filename)
         self.params_path = None
         if self.git_parameters_url:
-            self.params_path = os.path.join(path, config.params_filename)
+            self.params_path = os.path.join(self.path, config.params_filename)
 
     @classmethod
-    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Cube"]:
-        """Class method for retrieving all retrievable MLCubes
-
-        Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
-
-        Returns:
-            List[Cube]: List containing all cubes
-        """
-        logging.info("Retrieving all cubes")
-        cubes = []
-        if not local_only:
-            cubes = cls.__remote_all(filters=filters)
-
-        remote_uids = set([cube.id for cube in cubes])
-
-        local_cubes = cls.__local_all()
-
-        cubes += [cube for cube in local_cubes if cube.id not in remote_uids]
-
-        return cubes
-
-    @classmethod
-    def __remote_all(cls, filters: dict) -> List["Cube"]:
-        cubes = []
-
-        try:
-            comms_fn = cls.__remote_prefilter(filters)
-            cubes_meta = comms_fn()
-            cubes = [cls(**meta) for meta in cubes_meta]
-        except CommunicationRetrievalError:
-            msg = "Couldn't retrieve all cubes from the server"
-            logging.warning(msg)
-
-        return cubes
-
-    @classmethod
-    def __remote_prefilter(cls, filters: dict):
+    def _Entity__remote_prefilter(cls, filters: dict):
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
@@ -125,25 +93,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         return comms_fn
 
     @classmethod
-    def __local_all(cls) -> List["Cube"]:
-        cubes = []
-        cubes_folder = config.cubes_folder
-        try:
-            uids = next(os.walk(cubes_folder))[1]
-            logging.debug(f"Local cubes found: {uids}")
-        except StopIteration:
-            msg = "Couldn't iterate over cubes directory"
-            logging.warning(msg)
-            raise MedperfException(msg)
-
-        for uid in uids:
-            meta = cls.__get_local_dict(uid)
-            cube = cls(**meta)
-            cubes.append(cube)
-
-        return cubes
-
-    @classmethod
     def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
@@ -155,34 +104,10 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             Cube : a Cube instance with the retrieved data.
         """
 
-        if not str(cube_uid).isdigit() or local_only:
-            cube = cls.__local_get(cube_uid)
-        else:
-            try:
-                cube = cls.__remote_get(cube_uid)
-            except CommunicationRetrievalError:
-                logging.warning(f"Getting MLCube {cube_uid} from comms failed")
-                logging.info(f"Retrieving MLCube {cube_uid} from local storage")
-                cube = cls.__local_get(cube_uid)
-
+        cube = super().get(cube_uid, local_only)
         if not cube.is_valid:
             raise InvalidEntityError("The requested MLCube is marked as INVALID.")
         cube.download_config_files()
-        return cube
-
-    @classmethod
-    def __remote_get(cls, cube_uid: int) -> "Cube":
-        logging.debug(f"Retrieving mlcube {cube_uid} remotely")
-        meta = config.comms.get_cube_metadata(cube_uid)
-        cube = cls(**meta)
-        cube.write()
-        return cube
-
-    @classmethod
-    def __local_get(cls, cube_uid: Union[str, int]) -> "Cube":
-        logging.debug(f"Retrieving cube {cube_uid} locally")
-        local_meta = cls.__get_local_dict(cube_uid)
-        cube = cls(**local_meta)
         return cube
 
     def download_mlcube(self):
@@ -448,36 +373,6 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
             cube = cube[key]
 
         return cube
-
-    def todict(self) -> Dict:
-        return self.extended_dict()
-
-    def write(self):
-        cube_loc = str(Path(self.cube_path).parent)
-        meta_file = os.path.join(cube_loc, config.cube_metadata_filename)
-        os.makedirs(cube_loc, exist_ok=True)
-        with open(meta_file, "w") as f:
-            yaml.dump(self.todict(), f)
-        return meta_file
-
-    def upload(self):
-        if self.for_test:
-            raise InvalidArgumentError("Cannot upload test mlcubes.")
-        cube_dict = self.todict()
-        updated_cube_dict = config.comms.upload_mlcube(cube_dict)
-        return updated_cube_dict
-
-    @classmethod
-    def __get_local_dict(cls, uid):
-        cubes_folder = config.cubes_folder
-        meta_file = os.path.join(cubes_folder, str(uid), config.cube_metadata_filename)
-        if not os.path.exists(meta_file):
-            raise InvalidArgumentError(
-                "The requested mlcube information could not be found locally"
-            )
-        with open(meta_file, "r") as f:
-            meta = yaml.safe_load(f)
-        return meta
 
     def display_dict(self):
         return {

@@ -41,14 +41,16 @@ def run(
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local mlcubes"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered mlcubes"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
 ):
-    """List mlcubes stored locally and remotely from the user"""
+    """List mlcubes"""
     EntityList.run(
         Cube,
         fields=["UID", "Name", "State", "Registered"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
     )
 
@@ -173,8 +175,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
-        False, "--local", help="Display local mlcubes if mlcube ID is not provided"
+    unregistered: bool = typer.Option(
+        False,
+        "--unregistered",
+        help="Display unregistered mlcubes if mlcube ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -189,4 +193,4 @@ def view(
     ),
 ):
     """Displays the information of one or more mlcubes"""
-    EntityView.run(entity_id, Cube, format, local, mine, output)
+    EntityView.run(entity_id, Cube, format, unregistered, mine, output)

@@ -15,14 +15,17 @@ PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
 
 # Setup Benchmark
 def setup_benchmark_fs(ents, fs):
-    bmks_path = config.benchmarks_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume we're passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        bmk_filepath = os.path.join(bmks_path, str(id), config.benchmarks_filename)
-        bmk_contents = TestBenchmark(**ent)
+        # Assume we're passing ids, names, or dicts
+        if isinstance(ent, dict):
+            bmk_contents = TestBenchmark(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            bmk_contents = TestBenchmark(id=str(ent))
+        else:
+            bmk_contents = TestBenchmark(id=None, name=ent)
+            bmk_contents.generated_uid = ent
+
+        bmk_filepath = os.path.join(bmk_contents.path, config.benchmarks_filename)
         cubes_ids = []
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
         cubes_ids.append(bmk_contents.reference_model_mlcube)
@@ -30,7 +33,7 @@ def setup_benchmark_fs(ents, fs):
         cubes_ids = list(set(cubes_ids))
         setup_cube_fs(cubes_ids, fs)
         try:
-            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents.dict()))
+            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents.todict()))
         except FileExistsError:
             pass
 
@@ -51,17 +54,18 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
 
 # Setup Cube
 def setup_cube_fs(ents, fs):
-    cubes_path = config.cubes_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume we're passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        meta_cube_file = os.path.join(
-            cubes_path, str(id), config.cube_metadata_filename
-        )
-        cube = TestCube(**ent)
-        meta = cube.dict()
+        # Assume we're passing ids, names, or dicts
+        if isinstance(ent, dict):
+            cube = TestCube(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            cube = TestCube(id=str(ent))
+        else:
+            cube = TestCube(id=None, name=ent)
+            cube.generated_uid = ent
+
+        meta_cube_file = os.path.join(cube.path, config.cube_metadata_filename)
+        meta = cube.todict()
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
         except FileExistsError:
@@ -124,18 +128,21 @@ def setup_cube_comms_downloads(mocker, fs):
 
 # Setup Dataset
 def setup_dset_fs(ents, fs):
-    dsets_path = config.datasets_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        reg_dset_file = os.path.join(dsets_path, str(id), config.reg_file)
-        dset_contents = TestDataset(**ent)
+        # Assume we're passing ids, names, or dicts
+        if isinstance(ent, dict):
+            dset_contents = TestDataset(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            dset_contents = TestDataset(id=str(ent))
+        else:
+            dset_contents = TestDataset(id=None, name=ent)
+            dset_contents.generated_uid = ent
+
+        reg_dset_file = os.path.join(dset_contents.path, config.reg_file)
         cube_id = dset_contents.data_preparation_mlcube
         setup_cube_fs([cube_id], fs)
         try:
-            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents.dict()))
+            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents.todict()))
         except FileExistsError:
             pass
 
@@ -155,22 +162,26 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
 
 # Setup Result
 def setup_result_fs(ents, fs):
-    results_path = config.results_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        result_file = os.path.join(results_path, str(id), config.results_info_file)
-        bmk_id = ent.get("benchmark", 1)
-        cube_id = ent.get("model", 1)
-        dataset_id = ent.get("dataset", 1)
+        # Assume we're passing ids, names, or dicts
+        if isinstance(ent, dict):
+            result_contents = TestResult(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            result_contents = TestResult(id=str(ent))
+        else:
+            result_contents = TestResult(id=None, name=ent)
+            result_contents.generated_uid = ent
+
+        result_file = os.path.join(result_contents.path, config.results_info_file)
+        bmk_id = result_contents.benchmark
+        cube_id = result_contents.model
+        dataset_id = result_contents.dataset
         setup_benchmark_fs([bmk_id], fs)
         setup_cube_fs([cube_id], fs)
         setup_dset_fs([dataset_id], fs)
-        result_contents = TestResult(**ent)
+
         try:
-            fs.create_file(result_file, contents=yaml.dump(result_contents.dict()))
+            fs.create_file(result_file, contents=yaml.dump(result_contents.todict()))
         except FileExistsError:
             pass
 
