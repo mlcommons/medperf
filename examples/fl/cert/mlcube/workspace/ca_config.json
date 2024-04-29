@@ -1,0 +1,7 @@
+{
+  "address": "https://example.com",
+  "port": 443,
+  "fingerprint": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "client_provisioner": "auth0",
+  "server_provisioner": "acme"
+}

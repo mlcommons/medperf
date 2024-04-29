@@ -1,6 +1,5 @@
 from typing import Optional
 from medperf.entities.training_exp import TrainingExp
-from medperf.enums import Status
 import typer
 
 import medperf.config as config
@@ -8,10 +7,9 @@ from medperf.decorators import clean_except
 
 from medperf.commands.training.submit import SubmitTrainingExp
 from medperf.commands.training.run import TrainingExecution
-from medperf.commands.training.lock import LockTrainingExp
-from medperf.commands.training.associate import DatasetTrainingAssociation
-from medperf.commands.training.approve import TrainingAssociationApproval
-from medperf.commands.training.list_assocs import ListTrainingAssociations
+from medperf.commands.training.set_plan import SetPlan
+from medperf.commands.training.start_event import StartEvent
+from medperf.commands.training.close_event import CloseEvent
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 
@@ -26,11 +24,14 @@ def submit(
         ..., "--description", "-d", help="Description of the benchmark"
     ),
     docs_url: str = typer.Option("", "--docs-url", "-u", help="URL to documentation"),
-    prep_mlcube: int = typer.Option(
-        ..., "--prep-mlcube", "-p", help="prep MLCube UID"
-    ),
+    prep_mlcube: int = typer.Option(..., "--prep-mlcube", "-p", help="prep MLCube UID"),
     fl_mlcube: int = typer.Option(
         ..., "--fl-mlcube", "-m", help="Reference Model MLCube UID"
+    ),
+    operational: bool = typer.Option(
+        False,
+        "--operational",
+        help="Submit the experiment as OPERATIONAL",
     ),
 ):
     """Submits a new benchmark to the platform"""
@@ -39,24 +40,69 @@ def submit(
         "description": description,
         "docs_url": docs_url,
         "fl_mlcube": fl_mlcube,
-        "demo_dataset_tarball_url": "link", # TODO later
+        "demo_dataset_tarball_url": "link",  # TODO later
         "demo_dataset_tarball_hash": "hash",
         "demo_dataset_generated_uid": "uid",
         "data_preparation_mlcube": prep_mlcube,
+        "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitTrainingExp.run(training_exp_info)
     config.ui.print("✅ Done!")
 
 
-@app.command("lock")
+@app.command("set_plan")
 @clean_except
-def lock(
+def set_plan(
     training_exp_id: int = typer.Option(
         ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
     ),
+    training_config_path: str = typer.Option(
+        ..., "--config-path", "-c", help="config path"
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    LockTrainingExp.run(training_exp_id)
+    SetPlan.run(training_exp_id, training_config_path, approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("start_event")
+@clean_except
+def start_event(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
+    StartEvent.run(training_exp_id, approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("close_event")
+@clean_except
+def close_event(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
+    CloseEvent.run(training_exp_id, approval=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("cancel_event")
+@clean_except
+def cancel_event(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    report_path: str = typer.Option(..., "--report-path", "-r", help="report path"),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
+    CloseEvent.run(training_exp_id, report_path=report_path, approval=approval)
     config.ui.print("✅ Done!")
 
 
@@ -73,54 +119,6 @@ def run(
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     TrainingExecution.run(training_exp_id, data_uid)
     config.ui.print("✅ Done!")
-
-
-@app.command("associate_dataset")
-@clean_except
-def associate(
-    training_exp_id: int = typer.Option(
-        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
-    ),
-    data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
-    ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    DatasetTrainingAssociation.run(training_exp_id, data_uid, approved=approval)
-    config.ui.print("✅ Done!")
-
-
-@app.command("approve_association")
-@clean_except
-def approve(
-    training_exp_id: int = typer.Option(
-        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
-    ),
-    data_uid: int = typer.Option(
-        None, "--data_uid", "-d", help="Registered Dataset UID"
-    ),
-    aggregator: int = typer.Option(
-        None, "--aggregator", "-a", help="Registered Dataset UID"
-    ),
-):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    TrainingAssociationApproval.run(
-        training_exp_id, Status.APPROVED, data_uid, aggregator
-    )
-    config.ui.print("✅ Done!")
-
-
-@app.command("list_associations")
-@clean_except
-def list(filter: Optional[str] = typer.Argument(None)):
-    """Display all training associations related to the current user.
-
-    Args:
-        filter (str, optional): Filter training associations by approval status.
-            Defaults to displaying all user training associations.
-    """
-    ListTrainingAssociations.run(filter)
 
 
 @app.command("ls")

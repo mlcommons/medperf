@@ -19,6 +19,6 @@ class AssociationPriority:
             raise InvalidArgumentError(
                 "The given mlcube doesn't exist or is not associated with the benchmark"
             )
-        config.comms.set_mlcube_association_priority(
-            benchmark_uid, mlcube_uid, priority
+        config.comms.update_benchmark_model_association(
+            benchmark_uid, mlcube_uid, {"priority": priority}
         )

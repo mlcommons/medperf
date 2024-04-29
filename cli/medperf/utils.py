@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import re
 import os
 import signal
@@ -15,15 +16,11 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.cryptography.participant import generate_csr
-from medperf.cryptography.io import get_csr_hash, write_key
-from medperf.cryptography.utils import cert_to_str
 from medperf.exceptions import ExecutionError, MedperfException
 
 
@@ -407,30 +404,6 @@ def get_cube_image_name(cube_path: str) -> str:
         raise MedperfException(msg)
 
 
-def filter_latest_associations(associations, entity_key):
-    """Given a list of entity-benchmark associations, this function
-    retrieves a list containing the latest association of each
-    entity instance.
-
-    Args:
-        associations (list[dict]): the list of associations
-        entity_key (str): either "dataset" or "model_mlcube"
-
-    Returns:
-        list[dict]: the list containing the latest association of each
-                    entity instance.
-    """
-
-    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
-    latest_associations = {}
-    for assoc in associations:
-        entity_id = assoc[entity_key]
-        latest_associations[entity_id] = assoc
-
-    latest_associations = list(latest_associations.values())
-    return latest_associations
-
-
 def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
     repo = Repo(config.BASE_DIR)
@@ -511,46 +484,12 @@ class spawn_and_kill:
         return False
 
 
-def get_dataset_common_name(email, dataset_id, exp_id):
-    return f"{email}_d{dataset_id}_e{exp_id}".lower()
+def get_pki_assets_path(common_name: str, ca_name: str):
+    # Base64 encoding is used just to avoid special characters used in emails
+    # and server domains/ipaddresses.
+    cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
+    return os.path.join(config.pki_assets, cn_encoded, ca_name)
 
 
-def generate_data_csr(email, data_uid, training_exp_id):
-    common_name = get_dataset_common_name(email, data_uid, training_exp_id)
-    private_key, csr = generate_csr(common_name, server=False)
-
-    # store private key
-    target_folder = os.path.join(
-        config.training_folder,
-        str(training_exp_id),
-        config.data_cert_folder,
-        str(data_uid),
-    )
-    os.makedirs(target_folder, exist_ok=True)
-    target_path = os.path.join(target_folder, "key.key")
-    write_key(private_key, target_path)
-
-    csr_hash = get_csr_hash(csr)
-    csr_str = cert_to_str(csr)
-    return csr_str, csr_hash
-
-
-def generate_agg_csr(training_exp_id, agg_address, agg_id):
-    common_name = f"{agg_address}".lower()
-    private_key, csr = generate_csr(common_name, server=True)
-
-    # store private key
-    target_folder = os.path.join(
-        config.training_folder,
-        str(training_exp_id),
-        config.agg_cert_folder,
-        str(agg_id),
-    )
-    os.makedirs(target_folder, exist_ok=True)
-    target_path = os.path.join(target_folder, "key.key")
-    write_key(private_key, target_path)
-
-    csr_hash = get_csr_hash(csr)
-    csr_str = cert_to_str(csr)
-
-    return csr_str, csr_hash
+def get_participant_label(email, data_id):
+    return f"{email}_d{data_id}"

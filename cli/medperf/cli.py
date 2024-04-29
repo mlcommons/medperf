@@ -18,6 +18,8 @@ import medperf.commands.association.association as association
 import medperf.commands.compatibility_test.compatibility_test as compatibility_test
 import medperf.commands.training.training as training
 import medperf.commands.aggregator.aggregator as aggregator
+import medperf.commands.ca.ca as ca
+import medperf.commands.certificate.certificate as certificate
 import medperf.commands.storage as storage
 
 # from medperf.utils import check_for_updates
@@ -33,8 +35,10 @@ app.add_typer(profile.app, name="profile", help="Manage profiles")
 app.add_typer(compatibility_test.app, name="test", help="Manage compatibility tests")
 app.add_typer(auth.app, name="auth", help="Authentication")
 app.add_typer(storage.app, name="storage", help="Storage management")
-app.add_typer(training.app, name="training", help="Training")
-app.add_typer(aggregator.app, name="aggregator", help="Aggregator")
+app.add_typer(training.app, name="training", help="Manage training experiments")
+app.add_typer(aggregator.app, name="aggregator", help="Manage aggregators")
+app.add_typer(ca.app, name="ca", help="Manage CAs")
+app.add_typer(certificate.app, name="certificate", help="Manage certificates")
 
 
 @app.command("run")

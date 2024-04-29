@@ -101,6 +101,8 @@ class BenchmarkExecution:
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             raise InvalidArgumentError(msg)
+        # TODO: there is no check if dataset is associated with the benchmark
+        #       Note that if it is present, this will break dataset association logic
 
     def prepare_models(self):
         if self.models_input_file:

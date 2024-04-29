@@ -17,16 +17,19 @@ app = typer.Typer()
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the agg"),
+    name: str = typer.Option(..., "--name", "-n", help="Name of the aggregator"),
     address: str = typer.Option(
-        ..., "--address", "-a", help="UID of benchmark to associate with"
+        ..., "--address", "-a", help="Address/domain of the aggregator"
     ),
     port: int = typer.Option(
-        ..., "--port", "-p", help="UID of benchmark to associate with"
+        ..., "--port", "-p", help="The port which the aggregator will use"
+    ),
+    aggregation_mlcube: int = typer.Option(
+        ..., "--aggregation-mlcube", "-m", help="Aggregation MLCube UID"
     ),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
-    SubmitAggregator.run(name, address, port)
+    """Submits an aggregator"""
+    SubmitAggregator.run(name, address, port, aggregation_mlcube)
     config.ui.print("✅ Done!")
 
 
@@ -49,29 +52,31 @@ def associate(
 @app.command("start")
 @clean_except
 def run(
-    aggregator_id: int = typer.Option(
-        ..., "--aggregator_id", "-a", help="UID of benchmark to associate with"
-    ),
     training_exp_id: int = typer.Option(
-        ..., "--training_exp_id", "-t", help="UID of benchmark to associate with"
+        ...,
+        "--training_exp_id",
+        "-t",
+        help="UID of training experiment whose aggregator to be run",
     ),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
-    StartAggregator.run(training_exp_id, aggregator_id)
+    """Starts the aggregation server of a training experiment"""
+    StartAggregator.run(training_exp_id)
     config.ui.print("✅ Done!")
 
 
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local aggregators"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered aggregators"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user aggregators"),
 ):
-    """List aggregators stored locally and remotely from the user"""
+    """List aggregators"""
     EntityList.run(
         Aggregator,
         fields=["UID", "Name", "Address", "Port"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
     )
 
@@ -86,10 +91,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
+    unregistered: bool = typer.Option(
         False,
-        "--local",
-        help="Display local benchmarks if benchmark ID is not provided",
+        "--unregistered",
+        help="Display unregistered benchmarks if benchmark ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -104,4 +109,4 @@ def view(
     ),
 ):
     """Displays the information of one or more aggregators"""
-    EntityView.run(entity_id, Aggregator, format, local, mine, output)
+    EntityView.run(entity_id, Aggregator, format, unregistered, mine, output)

@@ -1,5 +1,3 @@
-import os
-
 import medperf.config as config
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
@@ -41,9 +39,7 @@ class SubmitTrainingExp:
 
     def get_mlcube(self):
         mlcube_id = self.training_exp.fl_mlcube
-        cube = Cube.get(mlcube_id)
-        # TODO: do we want to download run files?
-        cube.download_run_files()
+        Cube.get(mlcube_id)
 
     def submit(self):
         updated_body = self.training_exp.upload()

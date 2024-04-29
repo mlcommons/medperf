@@ -8,7 +8,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingEvent
         fields = "__all__"
-        read_only_fields = ["finished", "finished_at", "report"]
+        read_only_fields = ["finished", "finished_at", "report", "owner"]
 
     def validate(self, data):
         training_exp = TrainingExperiment.objects.get(pk=data["training_exp"])
@@ -39,7 +39,13 @@ class EventDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingEvent
         fields = "__all__"
-        read_only_fields = ["finished_at", "training_exp", "participants", "finished"]
+        read_only_fields = [
+            "finished_at",
+            "training_exp",
+            "participants",
+            "finished",
+            "owner",
+        ]
 
     def validate(self, data):
         if self.instance.finished:

@@ -1,79 +1,49 @@
-import os
 from medperf import config
+from medperf.entities.ca import CA
+from medperf.entities.event import TrainingEvent
 from medperf.exceptions import InvalidArgumentError
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.aggregator import Aggregator
 from medperf.entities.cube import Cube
+from medperf.utils import get_pki_assets_path
+from medperf.certificates import trust
 
 
 class StartAggregator:
     @classmethod
-    def run(cls, training_exp_id: int, agg_uid: int):
-        """Sets approval status for an association between a benchmark and a aggregator or mlcube
+    def run(cls, training_exp_id: int):
+        """Starts the aggregation server of a training experiment
 
         Args:
-            benchmark_uid (int): Benchmark UID.
-            approval_status (str): Desired approval status to set for the association.
-            comms (Comms): Instance of Comms interface.
-            ui (UI): Instance of UI interface.
-            aggregator_uid (int, optional): Aggregator UID. Defaults to None.
-            mlcube_uid (int, optional): MLCube UID. Defaults to None.
+            training_exp_id (int): Training experiment UID.
         """
-        execution = cls(training_exp_id, agg_uid)
+        execution = cls(training_exp_id)
         execution.prepare()
         execution.validate()
-        execution.prepare_agg_cert()
-        execution.prepare_cube()
+        execution.prepare_aggregator()
+        execution.prepare_participants_list()
+        execution.prepare_plan()
+        execution.prepare_pki_assets()
         with config.ui.interactive():
             execution.run_experiment()
 
-    def __init__(self, training_exp_id, agg_uid) -> None:
+    def __init__(self, training_exp_id) -> None:
         self.training_exp_id = training_exp_id
-        self.agg_uid = agg_uid
         self.ui = config.ui
 
     def prepare(self):
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Execution: {self.training_exp.name}")
-        self.aggregator = Aggregator.get(self.agg_uid)
+        self.event = TrainingEvent.from_experiment(self.training_exp_id)
 
     def validate(self):
-        if self.aggregator.id is None:
-            msg = "The provided aggregator is not registered."
+        if self.event.finished():
+            msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
 
-        training_exp_aggregator = config.comms.get_experiment_aggregator(
-            self.training_exp.id
-        )
-
-        if self.aggregator.id != training_exp_aggregator["id"]:
-            msg = "The provided aggregator is not associated."
-            raise InvalidArgumentError(msg)
-
-        if self.training_exp.state != "OPERATION":
-            msg = "The provided training exp is not operational."
-            raise InvalidArgumentError(msg)
-
-    def prepare_agg_cert(self):
-        association = config.comms.get_aggregator_association(
-            self.training_exp.id, self.aggregator.id
-        )
-        cert = association["certificate"]
-        cert_folder = os.path.join(
-            config.training_folder,
-            str(self.training_exp.id),
-            config.agg_cert_folder,
-            str(self.aggregator.id),
-        )
-        os.makedirs(cert_folder, exist_ok=True)
-        cert_file = os.path.join(cert_folder, "cert.crt")
-        with open(cert_file, "w") as f:
-            f.write(cert)
-
-        self.agg_cert_path = cert_folder
-
-    def prepare_cube(self):
-        self.cube = self.__get_cube(self.training_exp.fl_mlcube, "training")
+    def prepare_aggregator(self):
+        self.aggregator = Aggregator.from_experiment(self.training_exp_id)
+        self.cube = self.__get_cube(self.aggregator.aggregation_mlcube, "aggregation")
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = f"Retrieving {name} cube"
@@ -82,22 +52,29 @@ class StartAggregator:
         self.ui.print(f"> {name} cube download complete")
         return cube
 
-    def run_experiment(self):
-        task = "start_aggregator"
-        # just for now create some output folders (TODO)
-        out_logs = os.path.join(self.training_exp.path, "logs")
-        out_weights = os.path.join(self.training_exp.path, "weights")
-        os.makedirs(out_logs, exist_ok=True)
-        os.makedirs(out_weights, exist_ok=True)
+    def prepare_participants_list(self):
+        self.event.prepare_participants_list()
 
+    def prepare_plan(self):
+        self.training_exp.prepare_plan()
+
+    def prepare_pki_assets(self):
+        ca = CA.from_experiment(self.training_exp_id)
+        trust(ca)
+        agg_address = self.aggregator.address
+        self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.name)
+        self.ca = ca
+
+    def run_experiment(self):
         params = {
-            "node_cert_folder": self.agg_cert_path,
-            "ca_cert_folder": self.training_exp.cert_path,
-            "network_config": self.aggregator.network_config_path,
-            "collaborators": self.training_exp.cols_path,
-            "output_logs": out_logs,
-            "output_weights": out_weights,
+            "node_cert_folder": self.aggregator_pki_assets,
+            "ca_cert_folder": self.ca.pki_assets,
+            "plan_path": self.training_exp.plan_path,
+            "collaborators": self.event.participants_list_path,
+            "output_logs": self.event.out_logs,
+            "output_weights": self.event.out_weights,
+            "report_path": self.event.report_path,
         }
 
         self.ui.text = "Running Aggregator"
-        self.cube.run(task=task, port=self.aggregator.port, **params)
+        self.cube.run(task="start_aggregator", port=self.aggregator.port, **params)

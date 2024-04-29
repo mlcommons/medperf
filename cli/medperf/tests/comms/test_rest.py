@@ -52,7 +52,7 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "associate_dset",
+            "associate_benchmark_dataset",
             "post",
             201,
             [1, 1],
@@ -115,7 +115,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
         ("upload_dataset", [{}], {"id": "invalid id"}, CommunicationRequestError),
         ("upload_result", [{}], {"id": "invalid id"}, CommunicationRequestError),
-        ("associate_dset", [1, 1], {}, CommunicationRequestError),
+        ("associate_benchmark_dataset", [1, 1], {}, CommunicationRequestError),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
@@ -462,7 +462,9 @@ def test_upload_results_returns_result_body(mocker, server, body):
 
 @pytest.mark.parametrize("cube_uid", [2156, 915])
 @pytest.mark.parametrize("benchmark_uid", [1206, 3741])
-def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchmark_uid):
+def test_associate_benchmark_model_posts_association_data(
+    mocker, server, cube_uid, benchmark_uid
+):
     # Arrange
     data = {
         "approval_status": Status.PENDING.value,
@@ -474,7 +476,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    server.associate_cube(cube_uid, benchmark_uid)
+    server.associate_benchmark_model(cube_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)
@@ -483,7 +485,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
 @pytest.mark.parametrize("dataset_uid", [4417, 1057])
 @pytest.mark.parametrize("benchmark_uid", [1011, 635])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
-def test_set_dataset_association_approval_sets_approval(
+def test_update_benchmark_dataset_association_sets_approval(
     mocker, server, dataset_uid, benchmark_uid, status
 ):
     # Arrange
@@ -494,7 +496,7 @@ def test_set_dataset_association_approval_sets_approval(
     exp_url = f"{full_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_dataset_association_approval(benchmark_uid, dataset_uid, status)
+    server.update_benchmark_dataset_association(benchmark_uid, dataset_uid, status)
 
     # Assert
     spy.assert_called_once_with(exp_url, status)
@@ -503,7 +505,7 @@ def test_set_dataset_association_approval_sets_approval(
 @pytest.mark.parametrize("mlcube_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
-def test_set_mlcube_association_approval_sets_approval(
+def test_update_benchmark_model_association_sets_approval(
     mocker, server, mlcube_uid, benchmark_uid, status
 ):
     # Arrange
@@ -514,7 +516,7 @@ def test_set_mlcube_association_approval_sets_approval(
     exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_mlcube_association_approval(benchmark_uid, mlcube_uid, status)
+    server.update_benchmark_model_association(benchmark_uid, mlcube_uid, status)
 
     # Assert
     spy.assert_called_once_with(exp_url, status)
@@ -576,7 +578,7 @@ def test_upload_benchmark_returns_benchmark_body(mocker, server, body):
 @pytest.mark.parametrize("mlcube_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("priority", [2, -10])
-def test_set_mlcube_association_priority_sets_priority(
+def test_update_benchmark_model_association_sets_priority(
     mocker, server, mlcube_uid, benchmark_uid, priority
 ):
     # Arrange
@@ -585,7 +587,7 @@ def test_set_mlcube_association_priority_sets_priority(
     exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_mlcube_association_priority(benchmark_uid, mlcube_uid, priority)
+    server.update_benchmark_model_association(benchmark_uid, mlcube_uid, priority)
 
     # Assert
     spy.assert_called_once_with(exp_url, json={"priority": priority})

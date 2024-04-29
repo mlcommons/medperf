@@ -1,5 +1,4 @@
 import typer
-from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
@@ -13,22 +12,47 @@ app = typer.Typer()
 
 @app.command("ls")
 @clean_except
-def list(filter: Optional[str] = typer.Argument(None)):
+def list(
+    benchmark: bool = typer.Option(False, "-b", help="list benchmark associations"),
+    training_exp: bool = typer.Option(False, "-t", help="list training associations"),
+    dataset: bool = typer.Option(False, "-d", help="list dataset associations"),
+    mlcube: bool = typer.Option(False, "-m", help="list mlcube associations"),
+    aggregator: bool = typer.Option(False, "-a", help="list aggregator associations"),
+    ca: bool = typer.Option(False, "-c", help="list ca associations"),
+    approval_status: str = typer.Option(
+        None, "--approval-status", help="Approval status"
+    ),
+):
     """Display all associations related to the current user.
 
     Args:
         filter (str, optional): Filter associations by approval status.
             Defaults to displaying all user associations.
     """
-    ListAssociations.run(filter)
+    ListAssociations.run(
+        benchmark,
+        training_exp,
+        dataset,
+        mlcube,
+        aggregator,
+        ca,
+        approval_status,
+    )
 
 
 @app.command("approve")
 @clean_except
 def approve(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    training_exp_uid: int = typer.Option(
+        ..., "--training_exp", "-t", help="Training exp UID"
+    ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
     mlcube_uid: int = typer.Option(None, "--mlcube", "-m", help="MLCube UID"),
+    aggregator_uid: int = typer.Option(
+        None, "--aggregator", "-a", help="Aggregator UID"
+    ),
+    ca_uid: int = typer.Option(None, "--ca", "-c", help="CA UID"),
 ):
     """Approves an association between a benchmark and a dataset or model mlcube
 
@@ -37,7 +61,15 @@ def approve(
         dataset_uid (int, optional): Dataset UID.
         mlcube_uid (int, optional): Model MLCube UID.
     """
-    Approval.run(benchmark_uid, Status.APPROVED, dataset_uid, mlcube_uid)
+    Approval.run(
+        Status.APPROVED,
+        benchmark_uid,
+        training_exp_uid,
+        dataset_uid,
+        mlcube_uid,
+        aggregator_uid,
+        ca_uid,
+    )
     config.ui.print("✅ Done!")
 
 
@@ -45,8 +77,15 @@ def approve(
 @clean_except
 def reject(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    training_exp_uid: int = typer.Option(
+        ..., "--training_exp", "-t", help="Training exp UID"
+    ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
     mlcube_uid: int = typer.Option(None, "--mlcube", "-m", help="MLCube UID"),
+    aggregator_uid: int = typer.Option(
+        None, "--aggregator", "-a", help="Aggregator UID"
+    ),
+    ca_uid: int = typer.Option(None, "--ca", "-c", help="CA UID"),
 ):
     """Rejects an association between a benchmark and a dataset or model mlcube
 
@@ -55,7 +94,15 @@ def reject(
         dataset_uid (int, optional): Dataset UID.
         mlcube_uid (int, optional): Model MLCube UID.
     """
-    Approval.run(benchmark_uid, Status.REJECTED, dataset_uid, mlcube_uid)
+    Approval.run(
+        Status.REJECTED,
+        benchmark_uid,
+        training_exp_uid,
+        dataset_uid,
+        mlcube_uid,
+        aggregator_uid,
+        ca_uid,
+    )
     config.ui.print("✅ Done!")
 
 

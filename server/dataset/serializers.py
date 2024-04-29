@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Dataset
+from user.serializers import UserSerializer
 
 
 class DatasetFullSerializer(serializers.ModelSerializer):
@@ -60,3 +61,14 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
                             "User cannot update non editable fields in Operation mode"
                         )
         return data
+
+
+class DatasetWithOwnerInfoSerializer(serializers.ModelSerializer):
+    """This is needed for training to get datasets and their owners
+    with one API call."""
+
+    owner = UserSerializer()
+
+    class Meta:
+        model = Dataset
+        fields = ["id", "owner"]
