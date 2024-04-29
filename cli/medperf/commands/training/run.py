@@ -77,7 +77,7 @@ class TrainingExecution:
 
     def run_experiment(self):
         participant_label = get_participant_label(self.user_email, self.dataset.id)
-        env_dict = {"COLLABORATOR_CN": participant_label}
+        env_dict = {"MEDPERF_PARTICIPANT_LABEL": participant_label}
         params = {
             "data_path": self.dataset.data_path,
             "labels_path": self.dataset.labels_path,

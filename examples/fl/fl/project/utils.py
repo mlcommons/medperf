@@ -24,7 +24,7 @@ def get_aggregator_fqdn(fl_workspace):
 def get_collaborator_cn():
     # TODO: check if there is a way this can cause a collision/race condition
     # TODO: from inside the file
-    return os.environ["COLLABORATOR_CN"]
+    return os.environ["MEDPERF_PARTICIPANT_LABEL"]
 
 
 def get_weights_path(fl_workspace):

@@ -81,6 +81,7 @@ def aggregator_pre_training_hook(
     output_weights,
     plan_path,
     collaborators,
+    report_path,
 ):
     pass
 
@@ -93,5 +94,6 @@ def aggregator_post_training_hook(
     output_weights,
     plan_path,
     collaborators,
+    report_path,
 ):
     pass

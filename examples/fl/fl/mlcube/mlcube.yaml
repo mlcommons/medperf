@@ -36,6 +36,7 @@ tasks:
       outputs:
         output_logs: logs/
         output_weights: final_weights/
+        report_path: { type: "file", default: "report/report.yaml" }
   generate_plan:
     parameters:
       inputs:

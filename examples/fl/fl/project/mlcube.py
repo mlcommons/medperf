@@ -74,6 +74,7 @@ def start_aggregator_(
     output_weights: str = typer.Option(..., "--output_weights"),
     plan_path: str = typer.Option(..., "--plan_path"),
     collaborators: str = typer.Option(..., "--collaborators"),
+    report_path: str = typer.Option(..., "--report_path"),
 ):
     _setup(output_logs)
     aggregator_pre_training_hook(
@@ -84,6 +85,7 @@ def start_aggregator_(
         output_weights=output_weights,
         plan_path=plan_path,
         collaborators=collaborators,
+        report_path=report_path,
     )
     start_aggregator(
         input_weights=input_weights,
@@ -93,6 +95,7 @@ def start_aggregator_(
         output_weights=output_weights,
         plan_path=plan_path,
         collaborators=collaborators,
+        report_path=report_path,
     )
     aggregator_post_training_hook(
         input_weights=input_weights,
@@ -102,6 +105,7 @@ def start_aggregator_(
         output_weights=output_weights,
         plan_path=plan_path,
         collaborators=collaborators,
+        report_path=report_path,
     )
     _teardown(output_logs)
 

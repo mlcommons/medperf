@@ -6,7 +6,7 @@ from utils import (
     prepare_cols_list,
     prepare_init_weights,
     create_workspace,
-    get_weights_path,
+    # get_weights_path,
 )
 
 import os
@@ -23,6 +23,7 @@ def start_aggregator(
     output_weights,
     plan_path,
     collaborators,
+    report_path,
 ):
 
     workspace_folder = os.path.join(output_logs, "workspace")
@@ -54,3 +55,7 @@ def start_aggregator(
 
     # Cleanup
     shutil.rmtree(workspace_folder, ignore_errors=True)
+
+    # for now create an arbitrary report
+    with open(report_path, "w") as f:
+        f.write("agg_accuracy: 1.0")
