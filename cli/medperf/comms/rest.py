@@ -367,13 +367,13 @@ class REST(Comms):
         return self.__get_list(url, error_msg=error_msg)
 
     def get_cas(self) -> List[dict]:
-        """Retrieves all training events
+        """Retrieves all cas
 
         Returns:
-            List[dict]: List of training events
+            List[dict]: List of cas
         """
-        url = f"{self.server_url}/training/events/"
-        error_msg = "Could not retrieve training events"
+        url = f"{self.server_url}/cas/"
+        error_msg = "Could not retrieve cas"
         return self.__get_list(url, error_msg=error_msg)
 
     def get_training_events(self) -> List[dict]:
@@ -841,7 +841,7 @@ class REST(Comms):
         return self.__get_list(url, error_msg=error_msg)
 
     def get_training_datasets_associations(self, training_exp_id: int) -> dict:
-        """Retrieves all approved datasets for a given training_exp
+        """Retrieves all datasets for a given training_exp
 
         Args:
             benchmark_id (int): benchmark ID to retrieve results from
@@ -864,4 +864,17 @@ class REST(Comms):
         """
         url = f"{self.server_url}/benchmarks/{benchmark_uid}/models"
         error_msg = "Could not get benchmark models associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_training_datasets_with_users(self, training_exp_id: int) -> dict:
+        """Retrieves all datasets for a given training_exp and their owner information
+
+        Args:
+            training_exp_id (int): training exp ID
+
+        Returns:
+            dict: dictionary with the contents of dataset IDs and owner info
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/participants_info/"
+        error_msg = "Could not get training experiment participants info"
         return self.__get_list(url, error_msg=error_msg)

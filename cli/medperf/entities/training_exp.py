@@ -106,7 +106,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         Returns:
             List[int]: List of mlcube uids
         """
-        uids_with_users = config.comms.get_experiment_datasets_with_users(
+        uids_with_users = config.comms.get_training_datasets_with_users(
             training_exp_uid
         )
         return uids_with_users

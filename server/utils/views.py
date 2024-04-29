@@ -27,6 +27,12 @@ from traindataset_association.models import ExperimentDataset
 from traindataset_association.serializers import ExperimentDatasetListSerializer
 from aggregator_association.models import ExperimentAggregator
 from aggregator_association.serializers import ExperimentAggregatorListSerializer
+from ca_association.models import ExperimentCA
+from ca_association.serializers import ExperimentCAListSerializer
+from trainingevent.serializers import EventDetailSerializer
+from ca.serializers import CASerializer
+from trainingevent.models import TrainingEvent
+from ca.models import CA
 
 
 class User(GenericAPIView):
@@ -82,6 +88,26 @@ class TrainingExperimentList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
+class TrainingEventList(GenericAPIView):
+    serializer_class = EventDetailSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingEvent.objects.filter(owner__id=pk)
+        except TrainingEvent.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all events owned by the current user
+        """
+        training_events = self.get_object(request.user.id)
+        training_events = self.paginate_queryset(training_events)
+        serializer = EventDetailSerializer(training_events, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 class AggregatorList(GenericAPIView):
     serializer_class = AggregatorSerializer
     queryset = ""
@@ -99,6 +125,26 @@ class AggregatorList(GenericAPIView):
         aggregators = self.get_object(request.user.id)
         aggregators = self.paginate_queryset(aggregators)
         serializer = AggregatorSerializer(aggregators, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CAList(GenericAPIView):
+    serializer_class = CASerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return CA.objects.filter(owner__id=pk)
+        except CA.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all CAs owned by the current user
+        """
+        cas = self.get_object(request.user.id)
+        cas = self.paginate_queryset(cas)
+        serializer = CASerializer(cas, many=True)
         return self.get_paginated_response(serializer.data)
 
 
@@ -205,6 +251,7 @@ class MlCubeAssociationList(GenericAPIView):
         serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
         return self.get_paginated_response(serializer.data)
 
+
 class DatasetTrainingAssociationList(GenericAPIView):
     serializer_class = ExperimentDatasetListSerializer
     queryset = ""
@@ -227,13 +274,13 @@ class DatasetTrainingAssociationList(GenericAPIView):
         serializer = ExperimentDatasetListSerializer(experiment_datasets, many=True)
         return self.get_paginated_response(serializer.data)
 
+
 class AggregatorAssociationList(GenericAPIView):
     serializer_class = ExperimentAggregatorListSerializer
     queryset = ""
 
     def get_object(self, pk):
         try:
-            # TODO: this retrieves everything (not just latest ones)
             return ExperimentAggregator.objects.filter(
                 Q(aggregator__owner__id=pk) | Q(training_exp__owner__id=pk)
             )
@@ -247,6 +294,28 @@ class AggregatorAssociationList(GenericAPIView):
         experiment_aggs = self.get_object(request.user.id)
         experiment_aggs = self.paginate_queryset(experiment_aggs)
         serializer = ExperimentAggregatorListSerializer(experiment_aggs, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CAAssociationList(GenericAPIView):
+    serializer_class = ExperimentCAListSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return ExperimentCA.objects.filter(
+                Q(ca__owner__id=pk) | Q(training_exp__owner__id=pk)
+            )
+        except ExperimentCA.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all ca associations involving an asset of mine
+        """
+        experiment_cas = self.get_object(request.user.id)
+        experiment_cas = self.paginate_queryset(experiment_cas)
+        serializer = ExperimentCAListSerializer(experiment_cas, many=True)
         return self.get_paginated_response(serializer.data)
 
 
