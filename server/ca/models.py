@@ -8,9 +8,15 @@ class CA(models.Model):
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     name = models.CharField(max_length=20, unique=True)
     config = models.JSONField()
-    client_mlcube = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
-    server_mlcube = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
-    ca_mlcube = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
+    client_mlcube = models.ForeignKey(
+        "mlcube.MlCube", on_delete=models.PROTECT, related_name="ca_client"
+    )
+    server_mlcube = models.ForeignKey(
+        "mlcube.MlCube", on_delete=models.PROTECT, related_name="ca_server"
+    )
+    ca_mlcube = models.ForeignKey(
+        "mlcube.MlCube", on_delete=models.PROTECT, related_name="ca"
+    )
     is_valid = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
