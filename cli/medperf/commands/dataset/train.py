@@ -73,7 +73,7 @@ class TrainingExecution:
 
     def prepare_pki_assets(self):
         ca = CA.from_experiment(self.training_exp_id)
-        # trust(ca)
+        trust(ca)
         self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.name)
         self.ca = ca
 
