@@ -94,7 +94,7 @@ medperf mlcube submit --name trainprep -m $PREP_TRAINING_MLCUBE --operational
 checkFailed "Train prep submission failed"
 PREP_UID=$(medperf mlcube ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf mlcube submit --name traincube -m $TRAIN_MLCUBE -p $TRAIN_PARAMS -a $TRAIN_WEIGHTS --operational
+medperf mlcube submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
 checkFailed "traincube submission failed"
 TRAINCUBE_UID=$(medperf mlcube ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
@@ -120,6 +120,17 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Associate with ca"
+echo "====================================="
+CA_UID=$(medperf ca ls | grep "MedPerf CA" | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+medperf ca associate -t $TRAINING_UID -c $CA_UID -y
+checkFailed "ca association failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Activate aggowner profile"
 echo "====================================="
 medperf profile activate testagg
@@ -132,8 +143,9 @@ echo "\n"
 echo "====================================="
 echo "Running aggregator submission step"
 echo "====================================="
-HOSTNAME_=$(hostname -I | cut -d " " -f 1)
-medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273
+# HOSTNAME_=$(hostname -I | cut -d " " -f 1)  # todo: figure this out
+HOSTNAME_=$(hostname -A | cut -d " " -f 1)
+medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 -m $TRAINCUBE_UID
 checkFailed "aggregator submission step failed"
 AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 ##########################################################
@@ -146,6 +158,37 @@ echo "Running aggregator association step"
 echo "====================================="
 medperf aggregator associate -a $AGG_UID -t $TRAINING_UID -y
 checkFailed "aggregator association step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate modelowner profile"
+echo "====================================="
+medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Approve aggregator association"
+echo "====================================="
+medperf association approve -t $TRAINING_UID -a $AGG_UID
+checkFailed "agg association approval failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "submit plan"
+echo "====================================="
+medperf training set_plan -t $TRAINING_UID -c $TRAINING_CONFIG -y
+checkFailed "submit plan failed"
+
 ##########################################################
 
 echo "\n"
@@ -195,7 +238,7 @@ echo "\n"
 echo "====================================="
 echo "Running data1 association step"
 echo "====================================="
-medperf training associate_dataset -d $DSET_1_UID -t $TRAINING_UID -y
+medperf dataset associate -d $DSET_1_UID -t $TRAINING_UID -y
 checkFailed "Data1 association step failed"
 ##########################################################
 
@@ -246,7 +289,7 @@ echo "\n"
 echo "====================================="
 echo "Running data2 association step"
 echo "====================================="
-medperf training associate_dataset -d $DSET_2_UID -t $TRAINING_UID -y
+medperf dataset associate -d $DSET_2_UID -t $TRAINING_UID -y
 checkFailed "Data2 association step failed"
 ##########################################################
 
@@ -264,19 +307,9 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Approve aggregator association"
-echo "====================================="
-medperf training approve_association -t $TRAINING_UID -a $AGG_UID
-checkFailed "agg association approval failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Approve data1 association"
 echo "====================================="
-medperf training approve_association -t $TRAINING_UID -d $DSET_1_UID
+medperf association approve -t $TRAINING_UID -d $DSET_1_UID
 checkFailed "data1 association approval failed"
 ##########################################################
 
@@ -286,7 +319,7 @@ echo "\n"
 echo "====================================="
 echo "Approve data2 association"
 echo "====================================="
-medperf training approve_association -t $TRAINING_UID -d $DSET_2_UID
+medperf association approve -t $TRAINING_UID -d $DSET_2_UID
 checkFailed "data2 association approval failed"
 ##########################################################
 
@@ -294,10 +327,71 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Lock experiment"
+echo "start event"
 echo "====================================="
-medperf training lock -t $TRAINING_UID
-checkFailed "locking experiment failed"
+medperf training start_event -n event1 -t $TRAINING_UID -y
+checkFailed "start event failed"
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate aggowner profile"
+echo "====================================="
+medperf profile activate testagg
+checkFailed "testagg profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get aggregator cert"
+echo "====================================="
+medperf certificate get_server_certificate -t $TRAINING_UID
+checkFailed "Get aggregator cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner profile"
+echo "====================================="
+medperf profile activate testdata1
+checkFailed "testdata1 profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get dataowner cert"
+echo "====================================="
+medperf certificate get_client_certificate -t $TRAINING_UID
+checkFailed "Get dataowner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner2 profile"
+echo "====================================="
+medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get dataowner2 cert"
+echo "====================================="
+medperf certificate get_client_certificate -t $TRAINING_UID
+checkFailed "Get dataowner2 cert failed"
 ##########################################################
 
 echo "\n"
@@ -316,7 +410,7 @@ echo "\n"
 echo "====================================="
 echo "Starting aggregator"
 echo "====================================="
-medperf aggregator start -a $AGG_UID -t $TRAINING_UID </dev/null >agg.log 2>&1 &
+medperf aggregator start -t $TRAINING_UID </dev/null >agg.log 2>&1 &
 AGG_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
@@ -344,7 +438,7 @@ echo "\n"
 echo "====================================="
 echo "Starting training with data1"
 echo "====================================="
-medperf training run -d $DSET_1_UID -t $TRAINING_UID </dev/null >col1.log 2>&1 &
+medperf dataset train -d $DSET_1_UID -t $TRAINING_UID </dev/null >col1.log 2>&1 &
 COL1_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
@@ -372,7 +466,7 @@ echo "\n"
 echo "====================================="
 echo "Starting training with data2"
 echo "====================================="
-medperf training run -d $DSET_2_UID -t $TRAINING_UID
+medperf dataset train -d $DSET_2_UID -t $TRAINING_UID
 checkFailed "data2 training failed"
 ##########################################################
 
@@ -392,6 +486,17 @@ wait $COL1_PID
 checkFailed "data1 training didn't exit successfully"
 wait $AGG_PID
 checkFailed "aggregator didn't exit successfully"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "close event"
+echo "====================================="
+medperf training close_event -t $TRAINING_UID -y
+checkFailed "close event failed"
+
 ##########################################################
 
 echo "\n"

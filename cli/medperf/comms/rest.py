@@ -222,7 +222,7 @@ class REST(Comms):
         Returns:
             dict: training_exp specification
         """
-        url = f"{self.server_url}/training/{training_exp_id}"
+        url = f"{self.server_url}/training/{training_exp_id}/"
         error_msg = "Could not retrieve training experiment"
         return self.__get(url, error_msg)
 
@@ -706,7 +706,7 @@ class REST(Comms):
         """
         url = f"{self.server_url}/cas/training/"
         data = {
-            "aggregator": ca_id,
+            "ca": ca_id,
             "training_exp": training_exp_id,
             "approval_status": Status.PENDING.value,
         }

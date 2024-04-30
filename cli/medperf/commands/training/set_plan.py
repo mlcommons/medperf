@@ -31,7 +31,7 @@ class SetPlan:
         self.ui = config.ui
         self.training_exp_id = training_exp_id
         self.training_config_path = training_config_path
-        self.approval = approval
+        self.approved = approval
         self.plan_out_path = generate_tmp_path()
 
     def validate(self):

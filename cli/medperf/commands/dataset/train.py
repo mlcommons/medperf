@@ -1,3 +1,4 @@
+import os
 from medperf import config
 from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
@@ -48,13 +49,14 @@ class TrainingExecution:
             msg = "The provided dataset is not operational."
             raise InvalidArgumentError(msg)
 
-        if self.event.finished():
+        if self.event.finished:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
 
-        if self.dataset.id not in self.training_exp.get_datasets_uids():
-            msg = "The provided dataset is not associated."
-            raise InvalidArgumentError(msg)
+        # TODO: Do we need this? This basically would make participants list public to them
+        # if self.dataset.id not in TrainingExp.get_datasets_uids(self.training_exp_id):
+        #     msg = "The provided dataset is not associated."
+        #     raise InvalidArgumentError(msg)
 
     def prepare_training_cube(self):
         self.cube = self.__get_cube(self.training_exp.fl_mlcube, "FL")
@@ -71,7 +73,7 @@ class TrainingExecution:
 
     def prepare_pki_assets(self):
         ca = CA.from_experiment(self.training_exp_id)
-        trust(ca)
+        # trust(ca)
         self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.name)
         self.ca = ca
 
@@ -84,7 +86,7 @@ class TrainingExecution:
             "node_cert_folder": self.dataset_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
-            "output_logs": self.event.out_logs,
+            "output_logs": os.path.join(self.event.col_out_logs, str(self.dataset.id)),
         }
 
         self.ui.text = "Running Training"

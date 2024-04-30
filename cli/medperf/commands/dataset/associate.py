@@ -28,4 +28,4 @@ class AssociateDataset:
                 raise InvalidArgumentError(
                     "no_cache argument is only valid when associating with a benchmark"
                 )
-            AssociateTrainingDataset.run(data_uid, benchmark_uid, approved=approved)
+            AssociateTrainingDataset.run(data_uid, training_exp_uid, approved=approved)

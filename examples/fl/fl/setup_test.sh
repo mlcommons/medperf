@@ -31,72 +31,41 @@ mkdir ./ca
 
 HOSTNAME_=$(hostname -A | cut -d " " -f 1)
 
-# root ca
-openssl genpkey -algorithm RSA -out ca/root.key -pkeyopt rsa_keygen_bits:3072
-openssl req -x509 -new -nodes -key ca/root.key -sha384 -days 36500 -out ca/root.crt \
-    -subj "/DC=org/DC=simple/CN=Simple Root CA/O=Simple Inc/OU=Simple Root CA"
+medperf mlcube run --mlcube ../mock_cert/mlcube --task trust
+mv ../mock_cert/mlcube/workspace/pki_assets/* ./ca
 
 # col1
-sed -i "/^commonName = /c\commonName = $COL1_CN" csr.conf
-sed -i "/^DNS\.1 = /c\DNS.1 = $COL1_CN" csr.conf
-cd mlcube_col1/workspace/node_cert
-openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
-openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_client
-openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-    -CAcreateserial -out crt.crt -days 36500 -sha384
-rm csr.csr
-cp ../../../ca/root.crt ../ca_cert/
-cd ../../../
+medperf mlcube run --mlcube ../mock_cert/mlcube --task get_client_cert -e MEDPERF_INPUT_CN=$COL1_CN
+mv ../mock_cert/mlcube/workspace/pki_assets/* ./mlcube_col1/workspace/node_cert
+cp -r ./ca/* ./mlcube_col1/workspace/ca_cert
 
 # col2
-sed -i "/^commonName = /c\commonName = $COL2_CN" csr.conf
-sed -i "/^DNS\.1 = /c\DNS.1 = $COL2_CN" csr.conf
-cd mlcube_col2/workspace/node_cert
-openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
-openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_client
-openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-    -CAcreateserial -out crt.crt -days 36500 -sha384
-rm csr.csr
-cp ../../../ca/root.crt ../ca_cert/
-cd ../../../
+medperf mlcube run --mlcube ../mock_cert/mlcube --task get_client_cert -e MEDPERF_INPUT_CN=$COL2_CN
+mv ../mock_cert/mlcube/workspace/pki_assets/* ./mlcube_col2/workspace/node_cert
+cp -r ./ca/* ./mlcube_col2/workspace/ca_cert
 
 # col3
 if ${TWO_COL_SAME_CERT}; then
     cp mlcube_col2/workspace/node_cert/* mlcube_col3/workspace/node_cert
     cp mlcube_col2/workspace/ca_cert/* mlcube_col3/workspace/ca_cert
 else
-    sed -i "/^commonName = /c\commonName = $COL3_CN" csr.conf
-    sed -i "/^DNS\.1 = /c\DNS.1 = $COL3_CN" csr.conf
-    cd mlcube_col3/workspace/node_cert
-    openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
-    openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_client
-    openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-        -CAcreateserial -out crt.crt -days 36500 -sha384
-    rm csr.csr
-    cp ../../../ca/root.crt ../ca_cert/
-    cd ../../../
+    medperf mlcube run --mlcube ../mock_cert/mlcube --task get_client_cert -e MEDPERF_INPUT_CN=$COL3_CN
+    mv ../mock_cert/mlcube/workspace/pki_assets/* ./mlcube_col3/workspace/node_cert
+    cp -r ./ca/* ./mlcube_col3/workspace/ca_cert
 fi
 
-# agg
-sed -i "/^commonName = /c\commonName = $HOSTNAME_" csr.conf
-sed -i "/^DNS\.1 = /c\DNS.1 = $HOSTNAME_" csr.conf
-cd mlcube_agg/workspace/node_cert
-openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
-openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_server
-openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-    -CAcreateserial -out crt.crt -days 36500 -sha384
-rm csr.csr
-cp ../../../ca/root.crt ../ca_cert/
-cd ../../../
+medperf mlcube run --mlcube ../mock_cert/mlcube --task get_server_cert -e MEDPERF_INPUT_CN=$HOSTNAME_
+mv ../mock_cert/mlcube/workspace/pki_assets/* ./mlcube_agg/workspace/node_cert
+cp -r ./ca/* ./mlcube_agg/workspace/ca_cert
 
 # aggregator_config
 echo "address: $HOSTNAME_" >>mlcube_agg/workspace/aggregator_config.yaml
 echo "port: 50273" >>mlcube_agg/workspace/aggregator_config.yaml
 
 # cols file
-echo "$COL1_LABEL,$COL1_CN" >>mlcube_agg/workspace/cols.yaml
-echo "$COL2_LABEL,$COL2_CN" >>mlcube_agg/workspace/cols.yaml
-echo "$COL3_LABEL,$COL3_CN" >>mlcube_agg/workspace/cols.yaml
+echo "$COL1_LABEL: $COL1_CN" >>mlcube_agg/workspace/cols.yaml
+echo "$COL2_LABEL: $COL2_CN" >>mlcube_agg/workspace/cols.yaml
+echo "$COL3_LABEL: $COL3_CN" >>mlcube_agg/workspace/cols.yaml
 
 # data download
 cd mlcube_col1/workspace/

@@ -6,16 +6,17 @@ from medperf.exceptions import CleanExit, InvalidArgumentError
 
 class StartEvent:
     @classmethod
-    def run(cls, training_exp_id: int, approval: bool = False):
-        submission = cls(training_exp_id, approval)
+    def run(cls, training_exp_id: int, name: str, approval: bool = False):
+        submission = cls(training_exp_id, name, approval)
         submission.prepare()
         submission.validate()
         submission.create_participants_list()
-        submission.submit()
-        submission.write()
+        updated_body = submission.submit()
+        submission.write(updated_body)
 
-    def __init__(self, training_exp_id: int, approval):
+    def __init__(self, training_exp_id: int, name: str, approval):
         self.training_exp_id = training_exp_id
+        self.name = name
         self.approved = approval
 
     def prepare(self):
@@ -46,7 +47,9 @@ class StartEvent:
         self.approved = self.approved or approval_prompt(msg)
 
         self.event = TrainingEvent(
-            training_exp=self.training_exp_id, participants=self.participants_list
+            name=self.name,
+            training_exp=self.training_exp_id,
+            participants=self.participants_list,
         )
         if self.approved:
             updated_body = self.event.upload()
@@ -55,4 +58,5 @@ class StartEvent:
         raise CleanExit("Event creation cancelled")
 
     def write(self, updated_body):
-        self.event.write(updated_body)
+        event = TrainingEvent(**updated_body)
+        event.write()

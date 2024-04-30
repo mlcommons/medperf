@@ -43,7 +43,7 @@ def submit(
 @app.command("associate")
 @clean_except
 def associate(
-    ca_id: int = typer.Option(..., "--ca_id", "-a", help="UID of CA to associate with"),
+    ca_id: int = typer.Option(..., "--ca_id", "-c", help="UID of CA to associate with"),
     training_exp_id: int = typer.Option(
         ..., "--training_exp_id", "-t", help="UID of training exp to associate with"
     ),

@@ -37,7 +37,7 @@ class StartAggregator:
         self.event = TrainingEvent.from_experiment(self.training_exp_id)
 
     def validate(self):
-        if self.event.finished():
+        if self.event.finished:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
 
@@ -71,7 +71,7 @@ class StartAggregator:
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
             "collaborators": self.event.participants_list_path,
-            "output_logs": self.event.out_logs,
+            "output_logs": self.event.agg_out_logs,
             "output_weights": self.event.out_weights,
             "report_path": self.event.report_path,
         }

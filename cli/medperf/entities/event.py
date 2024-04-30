@@ -27,7 +27,7 @@ class TrainingEvent(Entity, MedperfSchema):
     participants: dict
     finished: bool = False
     finished_at: Optional[datetime]
-    report: dict = {}
+    report: Optional[dict]
 
     @staticmethod
     def get_type():
@@ -56,8 +56,12 @@ class TrainingEvent(Entity, MedperfSchema):
         self.participants_list_path = os.path.join(
             self.path, config.participants_list_filename
         )
-        self.out_logs = os.path.join(self.path, config.training_out_logs)
+        self.agg_out_logs = os.path.join(self.path, config.training_out_agg_logs)
+        self.col_out_logs = os.path.join(self.path, config.training_out_col_logs)
         self.out_weights = os.path.join(self.path, config.training_out_weights)
+
+        # TODO: move this into a subfolder, since participants list file is in the same folder
+        #       which means this folder will be mounted read-only
         self.report_path = os.path.join(self.path, config.training_report_file)
 
     @classmethod

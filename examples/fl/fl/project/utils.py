@@ -48,18 +48,12 @@ def prepare_plan(plan_path, fl_workspace):
 
 def prepare_cols_list(collaborators_file, fl_workspace):
     with open(collaborators_file) as f:
-        cols = f.read().strip().split("\n")
-    cols = [col.strip().split(",") for col in cols]
-    cols_dict = {}
+        cols_dict = yaml.safe_load(f)
     cn_different = False
-    for col in cols:
-        if len(col) == 1:
-            cols_dict[col[0]] = col[0]
-        else:
-            assert len(col) == 2
-            cols_dict[col[0]] = col[1]
-            if col[0] != col[1]:
-                cn_different = True
+    for col_label in cols_dict.keys():
+        cn = cols_dict[col_label]
+        if cn != col_label:
+            cn_different = True
     if not cn_different:
         # quick hack to support old and new openfl versions
         cols_dict = list(cols_dict.keys())

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import TrainingEvent
-from training.models import TrainingExperiment
 from django.utils import timezone
 
 
@@ -11,7 +10,7 @@ class EventSerializer(serializers.ModelSerializer):
         read_only_fields = ["finished", "finished_at", "report", "owner"]
 
     def validate(self, data):
-        training_exp = TrainingExperiment.objects.get(pk=data["training_exp"])
+        training_exp = data["training_exp"]
         if training_exp.approval_status != "APPROVED":
             raise serializers.ValidationError(
                 "User cannot create an event unless the experiment is approved"
@@ -45,6 +44,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             "participants",
             "finished",
             "owner",
+            "name",
         ]
 
     def validate(self, data):

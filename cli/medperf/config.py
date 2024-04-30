@@ -64,6 +64,8 @@ predictions_folder = "predictions"
 tests_folder = "tests"
 training_folder = "training"
 aggregators_folder = "aggregators"
+cas_folder = "cas"
+training_events_folder = "training_events"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
@@ -120,6 +122,14 @@ storage = {
         "base": default_base_storage,
         "name": aggregators_folder,
     },
+    "cas_folder": {
+        "base": default_base_storage,
+        "name": cas_folder,
+    },
+    "training_events_folder": {
+        "base": default_base_storage,
+        "name": training_events_folder,
+    },
 }
 
 root_folders = [
@@ -138,6 +148,8 @@ server_folders = [
     "tests_folder",
     "training_folder",
     "aggregators_folder",
+    "cas_folder",
+    "training_events_folder",
 ]
 
 # MedPerf filenames conventions
@@ -146,6 +158,8 @@ benchmarks_filename = "benchmark.yaml"
 test_report_file = "test_report.yaml"
 reg_file = "registration-info.yaml"
 agg_file = "agg-info.yaml"
+ca_file = "ca-info.yaml"
+training_event_file = "event.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 log_file = "medperf.log"
 log_package_file = "medperf_logs.tar.gz"
@@ -156,7 +170,8 @@ training_exps_filename = "training-info.yaml"
 participants_list_filename = "cols.yaml"
 training_exp_plan_filename = "plan.yaml"
 training_report_file = "report.yaml"
-training_out_logs = "logs"
+training_out_agg_logs = "agg_logs"
+training_out_col_logs = "col_logs"
 training_out_weights = "weights"
 ca_cert_folder = "ca_cert"
 ca_config_file = "ca_config.json"

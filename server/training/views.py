@@ -59,7 +59,9 @@ class TrainingExperimentList(GenericAPIView):
 
 
 class TrainingAggregator(GenericAPIView):
-    permission_classes = [IsAdmin | IsExpOwner | IsAssociatedDatasetOwner]
+    permission_classes = [
+        IsAdmin | IsExpOwner | IsAssociatedDatasetOwner | IsAggregatorOwner
+    ]
     serializer_class = AggregatorSerializer
     queryset = ""
 
@@ -99,7 +101,7 @@ class TrainingDatasetList(GenericAPIView):
         Retrieve datasets associated with a training experiment instance.
         """
         training_exp = self.get_object(pk)
-        datasets = training_exp.traindataset_association_set.all()
+        datasets = training_exp.experimentdataset_set.all()
         datasets = self.paginate_queryset(datasets)
         serializer = TrainingExperimentListofDatasetsSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
@@ -225,7 +227,7 @@ class ParticipantsInfo(GenericAPIView):
         """
         training_exp = self.get_object(pk)
         latest_datasets_assocs_status = (
-            training_exp.traindataset_association_set.all()
+            training_exp.experimentdataset_set.all()
             .filter(dataset__id=OuterRef("id"))
             .order_by("-created_at")[:1]
             .values("approval_status")

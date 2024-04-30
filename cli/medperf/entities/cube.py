@@ -249,7 +249,13 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
         cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform}"
-        if task not in ["train", "start_aggregator"]:
+        if task not in [
+            "train",
+            "start_aggregator",
+            "trust",
+            "get_client_cert",
+            "get_server_cert",
+        ]:
             cmd += " --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"

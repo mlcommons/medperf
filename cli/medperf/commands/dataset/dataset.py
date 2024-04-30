@@ -10,6 +10,7 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.train import TrainingExecution
 
 app = typer.Typer()
 
@@ -142,6 +143,21 @@ def associate(
         data_uid, benchmark_uid, training_exp_uid, approved=approval, no_cache=no_cache
     )
     ui.print("✅ Done!")
+
+
+@app.command("train")
+@clean_except
+def train(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+):
+    """Runs training"""
+    TrainingExecution.run(training_exp_id, data_uid)
+    config.ui.print("✅ Done!")
 
 
 @app.command("view")

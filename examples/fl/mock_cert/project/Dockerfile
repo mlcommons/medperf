@@ -8,4 +8,6 @@ ENV LANG C.UTF-8
 
 COPY . /mlcube_project
 
+RUN chmod a+r /mlcube_project/ca/root.key
+
 ENTRYPOINT ["python3", "/mlcube_project/mlcube.py"]

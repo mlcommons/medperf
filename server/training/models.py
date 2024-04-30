@@ -57,14 +57,14 @@ class TrainingExperiment(models.Model):
     @property
     def aggregator(self):
         aggregator_assoc = (
-            self.aggregator_association_set.all().order_by("created_at").last()
+            self.experimentaggregator_set.all().order_by("created_at").last()
         )
         if aggregator_assoc and aggregator_assoc.approval_status == "APPROVED":
             return aggregator_assoc.aggregator
 
     @property
     def ca(self):
-        ca_assoc = self.ca_association_set.all().order_by("created_at").last()
+        ca_assoc = self.experimentca_set.all().order_by("created_at").last()
         if ca_assoc and ca_assoc.approval_status == "APPROVED":
             return ca_assoc.ca
 

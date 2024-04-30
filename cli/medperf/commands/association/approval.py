@@ -47,11 +47,11 @@ class Approval:
         if training_exp_uid:
             if dataset_uid:
                 comms.update_training_dataset_association(
-                    benchmark_uid, dataset_uid, update
+                    training_exp_uid, dataset_uid, update
                 )
             if aggregator_uid:
                 comms.update_training_aggregator_association(
-                    benchmark_uid, mlcube_uid, update
+                    training_exp_uid, aggregator_uid, update
                 )
             if ca_uid:
-                comms.update_training_ca_association(benchmark_uid, mlcube_uid, update)
+                comms.update_training_ca_association(training_exp_uid, ca_uid, update)

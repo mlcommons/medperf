@@ -17,9 +17,12 @@ if [ -z "$MEDPERF_INPUT_CN" ]; then
     exit 1
 fi
 
-CSR_TEMPLATE=/mlcube_project/csr.conf
-CA_KEY=/mlcube_project/ca/root.key
-CA_CERT=/mlcube_project/ca/cert/root.crt
+mkdir -p $OUT
+cp /mlcube_project/csr.conf $OUT/
+cp -r /mlcube_project/ca $OUT/
+CSR_TEMPLATE=$OUT/csr.conf
+CA_KEY=$OUT/ca/root.key
+CA_CERT=$OUT/ca/cert/root.crt
 
 sed -i "/^commonName = /c\commonName = $MEDPERF_INPUT_CN" $CSR_TEMPLATE
 sed -i "/^DNS\.1 = /c\DNS.1 = $MEDPERF_INPUT_CN" $CSR_TEMPLATE
@@ -29,3 +32,5 @@ openssl req -new -key $OUT/key.key -out $OUT/csr.csr -config $CSR_TEMPLATE -exte
 openssl x509 -req -in $OUT/csr.csr -CA $CA_CERT -CAkey $CA_KEY \
     -CAcreateserial -out $OUT/crt.crt -days 36500 -sha384
 rm $OUT/csr.csr
+rm -r $OUT/ca
+rm -r $OUT/csr.conf

@@ -6,7 +6,6 @@ import medperf.config as config
 from medperf.decorators import clean_except
 
 from medperf.commands.training.submit import SubmitTrainingExp
-from medperf.commands.training.run import TrainingExecution
 from medperf.commands.training.set_plan import SetPlan
 from medperf.commands.training.start_event import StartEvent
 from medperf.commands.training.close_event import CloseEvent
@@ -72,10 +71,11 @@ def start_event(
     training_exp_id: int = typer.Option(
         ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
     ),
+    name: str = typer.Option(..., "--name", "-n", help="Name of the benchmark"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    StartEvent.run(training_exp_id, approval)
+    StartEvent.run(training_exp_id, name, approval)
     config.ui.print("✅ Done!")
 
 
@@ -103,21 +103,6 @@ def cancel_event(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     CloseEvent.run(training_exp_id, report_path=report_path, approval=approval)
-    config.ui.print("✅ Done!")
-
-
-@app.command("run")
-@clean_except
-def run(
-    training_exp_id: int = typer.Option(
-        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
-    ),
-    data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
-    ),
-):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    TrainingExecution.run(training_exp_id, data_uid)
     config.ui.print("✅ Done!")
 
 

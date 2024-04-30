@@ -43,9 +43,9 @@ def list(
 @app.command("approve")
 @clean_except
 def approve(
-    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    benchmark_uid: int = typer.Option(None, "--benchmark", "-b", help="Benchmark UID"),
     training_exp_uid: int = typer.Option(
-        ..., "--training_exp", "-t", help="Training exp UID"
+        None, "--training_exp", "-t", help="Training exp UID"
     ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
     mlcube_uid: int = typer.Option(None, "--mlcube", "-m", help="MLCube UID"),
@@ -76,9 +76,9 @@ def approve(
 @app.command("reject")
 @clean_except
 def reject(
-    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    benchmark_uid: int = typer.Option(None, "--benchmark", "-b", help="Benchmark UID"),
     training_exp_uid: int = typer.Option(
-        ..., "--training_exp", "-t", help="Training exp UID"
+        None, "--training_exp", "-t", help="Training exp UID"
     ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
     mlcube_uid: int = typer.Option(None, "--mlcube", "-m", help="MLCube UID"),
