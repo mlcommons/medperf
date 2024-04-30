@@ -59,10 +59,9 @@ class TrainingEvent(Entity, MedperfSchema):
         self.agg_out_logs = os.path.join(self.path, config.training_out_agg_logs)
         self.col_out_logs = os.path.join(self.path, config.training_out_col_logs)
         self.out_weights = os.path.join(self.path, config.training_out_weights)
-
-        # TODO: move this into a subfolder, since participants list file is in the same folder
-        #       which means this folder will be mounted read-only
-        self.report_path = os.path.join(self.path, config.training_report_file)
+        self.report_path = os.path.join(
+            self.path, config.training_report_folder, config.training_report_file
+        )
 
     @classmethod
     def from_experiment(cls, training_exp_uid: int) -> "TrainingEvent":
