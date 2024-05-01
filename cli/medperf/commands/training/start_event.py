@@ -36,12 +36,9 @@ class StartEvent:
             participant_common_name = user_email
             participants_list[participant_label] = participant_common_name
         self.participants_list = participants_list
-        self.participants_list = "\n".join(
-            [f"{p},{participants_list[p]}" for p in participants_list]
-        )
 
     def submit(self):
-        print(self.participants_list)
+        dict_pretty_print(self.participants_list)
         msg = (
             f"You are about to start an event for the training experiment {self.training_exp.name}."
             " This is the list of participants (participant label, participant common name)"
