@@ -143,8 +143,8 @@ echo "\n"
 echo "====================================="
 echo "Running aggregator submission step"
 echo "====================================="
-# HOSTNAME_=$(hostname -I | cut -d " " -f 1) # todo: figure this out
-HOSTNAME_=$(hostname -A | cut -d " " -f 1)
+HOSTNAME_=$(hostname -I | cut -d " " -f 1) # todo: figure this out
+# HOSTNAME_=$(hostname -A | cut -d " " -f 1)
 medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 -m $TRAINCUBE_UID
 checkFailed "aggregator submission step failed"
 AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
