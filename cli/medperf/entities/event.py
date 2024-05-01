@@ -24,7 +24,7 @@ class TrainingEvent(Entity, MedperfSchema):
     """
 
     training_exp: int
-    participants: dict
+    participants: str
     finished: bool = False
     finished_at: Optional[datetime]
     report: Optional[dict]
@@ -87,7 +87,7 @@ class TrainingEvent(Entity, MedperfSchema):
 
     def prepare_participants_list(self):
         with open(self.participants_list_path, "w") as f:
-            yaml.dump(self.participants, f)
+            f.write(self.participants)
 
     def display_dict(self):
         return {
