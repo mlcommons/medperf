@@ -58,9 +58,12 @@ def run(
         "-t",
         help="UID of training experiment whose aggregator to be run",
     ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite outputs if present"
+    ),
 ):
     """Starts the aggregation server of a training experiment"""
-    StartAggregator.run(training_exp_id)
+    StartAggregator.run(training_exp_id, overwrite)
     config.ui.print("✅ Done!")
 
 

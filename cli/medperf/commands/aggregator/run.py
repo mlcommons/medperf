@@ -1,25 +1,27 @@
+import os
 from medperf import config
 from medperf.entities.ca import CA
 from medperf.entities.event import TrainingEvent
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.aggregator import Aggregator
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path
+from medperf.utils import get_pki_assets_path, remove_path
 from medperf.certificates import trust
 
 
 class StartAggregator:
     @classmethod
-    def run(cls, training_exp_id: int):
+    def run(cls, training_exp_id: int, overwrite: bool = False):
         """Starts the aggregation server of a training experiment
 
         Args:
             training_exp_id (int): Training experiment UID.
         """
-        execution = cls(training_exp_id)
+        execution = cls(training_exp_id, overwrite)
         execution.prepare()
         execution.validate()
+        execution.check_existing_outputs()
         execution.prepare_aggregator()
         execution.prepare_participants_list()
         execution.prepare_plan()
@@ -27,8 +29,9 @@ class StartAggregator:
         with config.ui.interactive():
             execution.run_experiment()
 
-    def __init__(self, training_exp_id) -> None:
+    def __init__(self, training_exp_id, overwrite) -> None:
         self.training_exp_id = training_exp_id
+        self.overwrite = overwrite
         self.ui = config.ui
 
     def prepare(self):
@@ -40,6 +43,22 @@ class StartAggregator:
         if self.event.finished:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
+
+    def check_existing_outputs(self):
+        msg = (
+            "Outputs still exist from previous runs. Overwrite"
+            " them by rerunning the command with --overwrite"
+        )
+        paths = [
+            self.event.agg_out_logs,
+            self.event.out_weights,
+            self.event.report_path,
+        ]
+        for path in paths:
+            if os.path.exists(path):
+                if not self.overwrite:
+                    raise MedperfException(msg)
+                remove_path(path)
 
     def prepare_aggregator(self):
         self.aggregator = Aggregator.from_experiment(self.training_exp_id)

@@ -3,23 +3,23 @@ from medperf import config
 from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
 from medperf.entities.event import TrainingEvent
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path, get_participant_label
+from medperf.utils import get_pki_assets_path, get_participant_label, remove_path
 from medperf.certificates import trust
 
 
 class TrainingExecution:
     @classmethod
-    def run(cls, training_exp_id: int, data_uid: int):
+    def run(cls, training_exp_id: int, data_uid: int, overwrite: bool = False):
         """Starts the aggregation server of a training experiment
 
         Args:
             training_exp_id (int): Training experiment UID.
         """
-        execution = cls(training_exp_id, data_uid)
+        execution = cls(training_exp_id, data_uid, overwrite)
         execution.prepare()
         execution.validate()
         execution.prepare_training_cube()
@@ -28,9 +28,10 @@ class TrainingExecution:
         with config.ui.interactive():
             execution.run_experiment()
 
-    def __init__(self, training_exp_id: int, data_uid: int) -> None:
+    def __init__(self, training_exp_id: int, data_uid: int, overwrite: bool) -> None:
         self.training_exp_id = training_exp_id
         self.data_uid = data_uid
+        self.overwrite = overwrite
         self.ui = config.ui
 
     def prepare(self):
@@ -39,6 +40,7 @@ class TrainingExecution:
         self.event = TrainingEvent.from_experiment(self.training_exp_id)
         self.dataset = Dataset.get(self.data_uid)
         self.user_email: str = get_medperf_user_data()["email"]
+        self.out_logs = os.path.join(self.event.col_out_logs, str(self.dataset.id))
 
     def validate(self):
         if self.dataset.id is None:
@@ -57,6 +59,18 @@ class TrainingExecution:
         # if self.dataset.id not in TrainingExp.get_datasets_uids(self.training_exp_id):
         #     msg = "The provided dataset is not associated."
         #     raise InvalidArgumentError(msg)
+
+    def check_existing_outputs(self):
+        msg = (
+            "Outputs still exist from previous runs. Overwrite"
+            " them by rerunning the command with --overwrite"
+        )
+        paths = [self.out_logs]
+        for path in paths:
+            if os.path.exists(path):
+                if not self.overwrite:
+                    raise MedperfException(msg)
+                remove_path(path)
 
     def prepare_training_cube(self):
         self.cube = self.__get_cube(self.training_exp.fl_mlcube, "FL")
@@ -86,7 +100,7 @@ class TrainingExecution:
             "node_cert_folder": self.dataset_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
-            "output_logs": os.path.join(self.event.col_out_logs, str(self.dataset.id)),
+            "output_logs": self.out_logs,
         }
 
         self.ui.text = "Running Training"

@@ -154,9 +154,12 @@ def train(
     data_uid: int = typer.Option(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite outputs if present"
+    ),
 ):
     """Runs training"""
-    TrainingExecution.run(training_exp_id, data_uid)
+    TrainingExecution.run(training_exp_id, data_uid, overwrite)
     config.ui.print("✅ Done!")
 
 
