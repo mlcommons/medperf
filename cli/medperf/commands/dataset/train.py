@@ -22,6 +22,7 @@ class TrainingExecution:
         execution = cls(training_exp_id, data_uid, overwrite)
         execution.prepare()
         execution.validate()
+        execution.check_existing_outputs()
         execution.prepare_training_cube()
         execution.prepare_plan()
         execution.prepare_pki_assets()
