@@ -488,6 +488,7 @@ def get_pki_assets_path(common_name: str, ca_name: str):
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
+    cn_encoded = cn_encoded.rstrip("=")
     return os.path.join(config.pki_assets, cn_encoded, ca_name)
 
 
