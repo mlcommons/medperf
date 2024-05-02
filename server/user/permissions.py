@@ -30,4 +30,4 @@ class IsOwnerOfUsedMLCube(BasePermission):
             owner=pk, data_preparation_mlcube__owner=request.user
         )
 
-        return len(user_datasets_using_owned_mlcube) > 0
+        return user_datasets_using_owned_mlcube.exists()
