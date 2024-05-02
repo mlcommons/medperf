@@ -286,9 +286,6 @@ def main(
     ),
 ):
     cur_path = os.path.dirname(__file__)
-    if stages_path is None:
-        stages_path = os.path.join(cur_path, "assets/stages.csv")
-
     if out_path is None:
         out_path = os.path.join(cur_path, "reports")
 
