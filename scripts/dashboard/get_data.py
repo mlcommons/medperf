@@ -1,10 +1,13 @@
+# Initialize medperf before anything else, to ensure nothing else might affect the initialization process
+from medperf.init import initialize
+initialize()
+
 import os
 import pandas as pd
 import datetime
 
 from medperf.entities.dataset import Dataset
 from medperf import config
-from medperf.init import initialize
 
 from utils import get_institution_from_email, get_reports_path, stage_id2name
 
@@ -88,14 +91,13 @@ def write_sites(dsets_df, institutions_df, full_path):
 
 
 def get_data(mlcube_id, stages_path, institutions_path, out_path):
-    initialize()
     dsets = get_dsets(mlcube_id)
     full_path = get_reports_path(out_path, mlcube_id)
     os.makedirs(full_path, exist_ok=True)
 
     institutions_df = pd.read_csv(institutions_path)
     user2institution = {u: i for i, u in institutions_df.values.tolist()}
-    stages_df = pd.read_csv(stages_path)
+    stages_df = pd.read_csv(stages_path, dtype=str)
     stages_df.set_index("Status Code", inplace=True)
 
     dsets_df = build_dset_df(dsets, user2institution, stages_df)
