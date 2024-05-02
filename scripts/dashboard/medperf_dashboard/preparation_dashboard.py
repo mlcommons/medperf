@@ -5,8 +5,8 @@ import plotly.express as px
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-from get_data import get_data
-from utils import get_reports_path
+from .get_data import get_data
+from .utils import get_reports_path
 
 from typer import Typer, run, Option
 

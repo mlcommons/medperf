@@ -1,7 +1,3 @@
-# Initialize medperf before anything else, to ensure nothing else might affect the initialization process
-from medperf.init import initialize
-initialize()
-
 import os
 import pandas as pd
 import datetime
@@ -9,7 +5,7 @@ import datetime
 from medperf.entities.dataset import Dataset
 from medperf import config
 
-from utils import get_institution_from_email, get_reports_path, stage_id2name
+from .utils import get_institution_from_email, get_reports_path, stage_id2name
 
 from typer import Typer, Option, run
 
