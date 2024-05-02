@@ -97,7 +97,7 @@ def get_data(mlcube_id, stages_path, institutions_path, out_path):
 
     institutions_df = pd.read_csv(institutions_path)
     user2institution = {u: i for i, u in institutions_df.values.tolist()}
-    stages_df = pd.read_csv(stages_path, dtype=str)
+    stages_df = pd.read_csv(stages_path)
     stages_df.set_index("Status Code", inplace=True)
 
     dsets_df = build_dset_df(dsets, user2institution, stages_df)
