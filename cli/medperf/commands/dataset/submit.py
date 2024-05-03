@@ -151,7 +151,10 @@ class DataCreation:
         submission_dict = self.dataset.todict()
         dict_pretty_print(submission_dict)
         msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
-        warning = "Upon submission, your email address will be visible to the Data Preparation Owner for traceability and debugging purposes."
+        warning = (
+            "Upon submission, your email address will be visible to the Data Preparation"
+            + " Owner for traceability and debugging purposes."
+            )
         self.ui.print_warning(warning)
         self.approved = self.approved or approval_prompt(msg)
 
