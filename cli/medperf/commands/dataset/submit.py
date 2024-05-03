@@ -154,7 +154,7 @@ class DataCreation:
         warning = (
             "Upon submission, your email address will be visible to the Data Preparation"
             + " Owner for traceability and debugging purposes."
-            )
+        )
         self.ui.print_warning(warning)
         self.approved = self.approved or approval_prompt(msg)
 
