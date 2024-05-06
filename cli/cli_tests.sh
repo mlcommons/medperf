@@ -18,31 +18,6 @@ echo "\n"
 
 ##########################################################
 echo "=========================================="
-echo "creating config at $MEDPERF_CONFIG_PATH"
-echo "=========================================="
-print_eval medperf profile ls
-checkFailed "Creating config failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Changing storage to tmp location"
-echo "====================================="
-# this 'move' command is used only for config updates.
-print_eval medperf storage move -t $MEDPERF_STORAGE
-checkFailed "moving storage failed"
-echo "We have to return the content back manually, so new tmp folder is empty"
-echo "and all the existing data is kept on the old place."
-mkdir -p ~/.medperf
-print_eval mv -f $MEDPERF_STORAGE/.medperf/* ~/.medperf/
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "=========================================="
 echo "Creating test profiles for each user"
 echo "=========================================="
 print_eval medperf profile activate local

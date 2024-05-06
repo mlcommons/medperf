@@ -13,18 +13,6 @@ wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_tuto
 tar -xzvf $DIRECTORY/sample_raw_data.tar.gz -C $DIRECTORY
 chmod a+w $DIRECTORY/sample_raw_data
 
-
-# the config does not exists still, but is created automatically by any command
-echo "====================================="
-echo "Changing storage to tmp location"
-echo "====================================="
-# this 'move' command is used only for config updates.
-print_eval medperf storage move -t $MEDPERF_STORAGE
-checkFailed "moving storage failed"
-echo "We have to return the content back manually, so new tmp folder is empty"
-echo "and all the existing data is kept on the old place."
-mkdir -p ~/.medperf
-print_eval mv -f $MEDPERF_STORAGE/.medperf/* ~/.medperf/
 ##########################################################
 
 

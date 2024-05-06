@@ -134,3 +134,12 @@ echo "Test root path: $TEST_ROOT"
 echo "Config path: $MEDPERF_CONFIG_PATH"
 echo "Snapshots path: $SNAPSHOTS_FOLDER"
 echo "Storage path: $MEDPERF_STORAGE"
+
+# test env folder preparation
+echo "creating config at $MEDPERF_CONFIG_PATH"
+print_eval medperf profile ls
+checkFailed "Creating config failed"
+
+echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
+python ./cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
+checkFailed "Moving storage failed"
