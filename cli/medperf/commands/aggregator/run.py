@@ -12,13 +12,13 @@ from medperf.certificates import trust
 
 class StartAggregator:
     @classmethod
-    def run(cls, training_exp_id: int, overwrite: bool = False):
+    def run(cls, training_exp_id: int, publish_on: str, overwrite: bool = False):
         """Starts the aggregation server of a training experiment
 
         Args:
             training_exp_id (int): Training experiment UID.
         """
-        execution = cls(training_exp_id, overwrite)
+        execution = cls(training_exp_id, publish_on, overwrite)
         execution.prepare()
         execution.validate()
         execution.check_existing_outputs()
@@ -29,9 +29,10 @@ class StartAggregator:
         with config.ui.interactive():
             execution.run_experiment()
 
-    def __init__(self, training_exp_id, overwrite) -> None:
+    def __init__(self, training_exp_id, publish_on, overwrite) -> None:
         self.training_exp_id = training_exp_id
         self.overwrite = overwrite
+        self.publish_on = publish_on
         self.ui = config.ui
 
     def prepare(self):
@@ -43,6 +44,14 @@ class StartAggregator:
         if self.event.finished:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
+        if self.publish_on == "127.0.0.1":
+            pass
+            # config.ui.print_warning("This has a bug...TODO")
+        # TODO: take confirmation somewhere about the whole process
+        # TODO: We should start checking inputs before proceeding. For example,
+        #       now if the user provided some malformed network interface, this
+        #       will not throw an error until many calls to the server has been made
+        #       and things are configured...
 
     def check_existing_outputs(self):
         msg = (
@@ -96,4 +105,9 @@ class StartAggregator:
         }
 
         self.ui.text = "Running Aggregator"
-        self.cube.run(task="start_aggregator", port=self.aggregator.port, **params)
+        self.cube.run(
+            task="start_aggregator",
+            port=self.aggregator.port,
+            publish_on=self.publish_on,
+            **params,
+        )

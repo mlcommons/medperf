@@ -143,8 +143,8 @@ echo "\n"
 echo "====================================="
 echo "Running aggregator submission step"
 echo "====================================="
-HOSTNAME_=$(hostname -I | cut -d " " -f 1) # todo: figure this out
-# HOSTNAME_=$(hostname -A | cut -d " " -f 1)
+HOSTNAME_=$(hostname -I | cut -d " " -f 1)
+# HOSTNAME_=$(hostname -A | cut -d " " -f 1)  # fqdn on github CI runner doesn't resolve from inside containers
 medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 -m $TRAINCUBE_UID
 checkFailed "aggregator submission step failed"
 AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
@@ -406,11 +406,14 @@ checkFailed "testagg profile activation failed"
 
 echo "\n"
 
+TRAINING_UID=1
+DSET_1_UID=1
+DSET_2_UID=2
 ##########################################################
 echo "====================================="
 echo "Starting aggregator"
 echo "====================================="
-medperf aggregator start -t $TRAINING_UID </dev/null >agg.log 2>&1 &
+medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
 AGG_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
