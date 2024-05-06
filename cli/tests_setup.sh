@@ -141,5 +141,5 @@ print_eval medperf profile ls
 checkFailed "Creating config failed"
 
 echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
-python ./cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
+python  $(dirname $(realpath "$0"))/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
 checkFailed "Moving storage failed"
