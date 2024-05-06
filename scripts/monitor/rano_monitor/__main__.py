@@ -7,13 +7,12 @@ from rano_monitor.constants import (
     DEFAULT_STAGES_PATH,
     STAGES_HELP,
     DSET_LOC_HELP,
-    OUT_HELP
+    OUT_HELP,
 )
 from rano_monitor.dataset_browser import DatasetBrowser
 from rano_monitor.handlers import InvalidHandler
 from rano_monitor.handlers import PromptHandler
 from rano_monitor.handlers import ReportHandler, ReportState
-from rano_monitor.handlers import ReviewedHandler
 from rano_monitor.handlers import TarballReviewedHandler
 from rano_monitor.tarball_browser import TarballBrowser
 from typer import Option
@@ -40,13 +39,11 @@ def run_dset_app(dset_path, stages_path, output_path):
     report_state = ReportState(report_path, t_app)
     report_watchdog = ReportHandler(report_state)
     prompt_watchdog = PromptHandler(dset_data_path, t_app)
-    reviewed_watchdog = ReviewedHandler(dset_data_path, t_app)
     invalid_watchdog = InvalidHandler(invalid_path, t_app)
 
     t_app.set_vars(
         dset_data_path,
         stages_path,
-        reviewed_watchdog,
         output_path,
         invalid_path,
         invalid_watchdog,
@@ -56,7 +53,6 @@ def run_dset_app(dset_path, stages_path, output_path):
     observer = Observer()
     observer.schedule(report_watchdog, dset_path)
     observer.schedule(prompt_watchdog, os.path.join(dset_path, "data"))
-    observer.schedule(reviewed_watchdog, ".")
     observer.schedule(invalid_watchdog, os.path.dirname(invalid_path))
     observer.start()
     t_app.run()
@@ -89,13 +85,8 @@ def run_tarball_app(tarball_path):
 
 @app.command()
 def main(
-    dataset_uid: str = Option(None, "-d", "--dataset", help=DSET_HELP),
-    stages_path: str = Option(
-        DEFAULT_STAGES_PATH,
-        "-s",
-        "--stages",
-        help=STAGES_HELP
-    ),
+    dataset_uid: str = Option(..., "-d", "--dataset", help=DSET_HELP),
+    stages_path: str = Option(DEFAULT_STAGES_PATH, "-s", "--stages", help=STAGES_HELP),
     dset_path: str = Option(
         None,
         "-p",
