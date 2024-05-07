@@ -409,7 +409,7 @@ echo "\n"
 echo "====================================================================="
 echo "Run failing cube with ignore errors after deleting predictions folder"
 echo "====================================================================="
-print_eval rm -rf $MEDPERF_STORAGE/.medperf/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
+print_eval rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
 print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
 checkFailed "Failing mlcube run with ignore errors failed"
 ##########################################################
