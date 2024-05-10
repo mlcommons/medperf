@@ -57,6 +57,7 @@ class PermissionTest(UserTest):
         [
             ("user2", status.HTTP_403_FORBIDDEN),
             ("user3", status.HTTP_200_OK),
+            ("user1", status.HTTP_200_OK),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
     )
