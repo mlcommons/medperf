@@ -309,8 +309,13 @@ class DataPreparation:
             + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"
             + " have reached Stage 3:"
         )
+        warning = (
+            "Note that reports will be visible by the Data Preparation MLCube owner and by the"
+            " Benchmark owner to keep track of progress and provide support if needed."
+        )
         config.ui.print(msg)
         dict_pretty_print(example)
+        config.ui.print_warning(warning)
 
         msg = (
             " \nDo you approve the automatic submission of summaries similar to the one above"
