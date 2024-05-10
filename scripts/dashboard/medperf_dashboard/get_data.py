@@ -7,10 +7,6 @@ from medperf import config
 
 from .utils import get_institution_from_email, get_reports_path, stage_id2name
 
-from typer import Typer, Option, run
-
-app = Typer()
-
 
 def get_dsets(mlcube_id):
     dsets = Dataset.all(filters={"mlcube": mlcube_id})
@@ -99,28 +95,3 @@ def get_data(mlcube_id, stages_path, institutions_path, out_path):
     dsets_df = build_dset_df(dsets, user2institution, stages_df)
     write_dsets_df(dsets_df, full_path)
     write_sites(dsets_df, institutions_df, full_path)
-
-
-@app.command()
-def main(
-    mlcube_id: int = Option(
-        ..., "-m", "--mlcube", help="MLCube ID to inspect prparation from"
-    ),
-    stages_path: str = Option(
-        "assets/stages.csv", "-s", "--stages", help="Path to stages.csv"
-    ),
-    institutions_path: str = Option(
-        ...,
-        "-i",
-        "--institutions",
-        help="Path to a CSV file containing institution-email information",
-    ),
-    out_path: str = Option(
-        "reports", "-o", "--out-path", help="location to store progress CSVs"
-    ),
-):
-    get_data(mlcube_id, stages_path, institutions_path, out_path)
-
-
-if __name__ == "__main__":
-    run(main)
