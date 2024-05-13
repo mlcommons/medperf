@@ -303,8 +303,12 @@ class DataPreparation:
         dict_pretty_print(example)
 
         msg = (
-            " \nDo you approve the automatic submission of summaries similar to the one above"
-            + " to the MedPerf Server throughout the preparation process?[Y/n]"
+            "\nYou can decide wether or not to send information about your dataset preparation"
+            + "\nProgress. Keep in mind that information about the execution status of the pipeline"
+            + "\nwill be sent regardless (wether the pipeline is running, finished or failed)"
+            + "\nto identify issues with the preparation procedure. Do you approve the automatic"
+            + "\nsubmission of summaries similar to the one above to the MedPerf Server throughout"
+            + "\nthe preparation process?[Y/n]"
         )
 
         self.allow_sending_reports = approval_prompt(msg)
