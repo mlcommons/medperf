@@ -25,7 +25,7 @@ class Entity(MedperfBaseSchema, ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def get_comms_uploader():
+    def get_comms_uploader() -> Callable[dict, dict]:
         raise NotImplementedError()
 
     @property
