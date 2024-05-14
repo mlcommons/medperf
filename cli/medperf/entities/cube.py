@@ -245,7 +245,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         """
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform} --network=none"
+        cmd += f" --mlcube=\"{self.cube_path}\" --task={task} --platform={config.platform} --network=none"
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         if read_protected_input:
