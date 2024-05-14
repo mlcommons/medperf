@@ -18,7 +18,7 @@ class EntityList:
 
         Args:
             unregistered (bool, optional): Display only local unregistered results. Defaults to False.
-            mine_only (bool, optional): Display all current-user results. Defaults to False.
+            mine_only (bool, optional): Display all registered current-user results. Defaults to False.
             kwargs (dict): Additional parameters for filtering entity lists.
         """
         entity_list = EntityList(

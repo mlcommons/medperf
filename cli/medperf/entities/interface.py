@@ -29,7 +29,7 @@ class Entity(MedperfBaseSchema, ABC):
         raise NotImplementedError()
 
     @property
-    def identifier(self):
+    def identifier(self) -> Union[int, str]:
         return self.id or self.generated_uid
 
     @property
