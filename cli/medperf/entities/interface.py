@@ -5,6 +5,9 @@ import os
 import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
+from typing import Type, TypeVar
+
+EntityType = TypeVar("EntityType", bound="Entity")
 
 
 class Entity(MedperfSchema, ABC):
@@ -46,7 +49,9 @@ class Entity(MedperfSchema, ABC):
         return os.path.join(storage_path, str(self.identifier))
 
     @classmethod
-    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["Entity"]:
+    def all(
+        cls: Type[EntityType], unregistered: bool = False, filters: dict = {}
+    ) -> List[EntityType]:
         """Gets a list of all instances of the respective entity.
         Whether the list is local or remote depends on the implementation.
 
@@ -68,14 +73,14 @@ class Entity(MedperfSchema, ABC):
         return cls.__remote_all(filters=filters)
 
     @classmethod
-    def __remote_all(cls, filters: dict) -> List["Entity"]:
+    def __remote_all(cls: Type[EntityType], filters: dict) -> List[EntityType]:
         comms_fn = cls.remote_prefilter(filters)
         entity_meta = comms_fn()
         entities = [cls(**meta) for meta in entity_meta]
         return entities
 
     @classmethod
-    def __unregistered_all(cls) -> List["Entity"]:
+    def __unregistered_all(cls: Type[EntityType]) -> List[EntityType]:
         entities = []
         storage_path = cls.get_storage_path()
         try:
@@ -106,7 +111,9 @@ class Entity(MedperfSchema, ABC):
         raise NotImplementedError
 
     @classmethod
-    def get(cls, uid: Union[str, int], local_only: bool = False) -> "Entity":
+    def get(
+        cls: Type[EntityType], uid: Union[str, int], local_only: bool = False
+    ) -> EntityType:
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends
         on the implementation.
@@ -124,7 +131,7 @@ class Entity(MedperfSchema, ABC):
         return cls.__remote_get(uid)
 
     @classmethod
-    def __remote_get(cls, uid: int) -> "Entity":
+    def __remote_get(cls: Type[EntityType], uid: int) -> EntityType:
         """Retrieves and creates an entity instance from the comms instance.
 
         Args:
@@ -141,7 +148,7 @@ class Entity(MedperfSchema, ABC):
         return entity
 
     @classmethod
-    def __local_get(cls, uid: Union[str, int]) -> "Entity":
+    def __local_get(cls: Type[EntityType], uid: Union[str, int]) -> EntityType:
         """Retrieves and creates an entity instance from the local storage.
 
         Args:
@@ -156,7 +163,7 @@ class Entity(MedperfSchema, ABC):
         return entity
 
     @classmethod
-    def __get_local_dict(cls, uid: Union[str, int]) -> dict:
+    def __get_local_dict(cls: Type[EntityType], uid: Union[str, int]) -> dict:
         """Retrieves a local entity information
 
         Args:
