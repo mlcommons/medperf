@@ -47,12 +47,12 @@ class Execution:
         logging.debug(f"tmp results output: {self.results_path}")
 
     def __setup_logs_path(self):
-        model_uid = self.model.generated_uid
-        eval_uid = self.evaluator.generated_uid
-        data_hash = self.dataset.generated_uid
+        model_uid = self.model.local_id
+        eval_uid = self.evaluator.local_id
+        data_uid = self.dataset.local_id
 
         logs_path = os.path.join(
-            config.experiments_logs_folder, str(model_uid), str(data_hash)
+            config.experiments_logs_folder, str(model_uid), str(data_uid)
         )
         os.makedirs(logs_path, exist_ok=True)
         model_logs_path = os.path.join(logs_path, "model.log")
@@ -60,10 +60,10 @@ class Execution:
         return model_logs_path, metrics_logs_path
 
     def __setup_predictions_path(self):
-        model_uid = self.model.generated_uid
-        data_hash = self.dataset.generated_uid
+        model_uid = self.model.local_id
+        data_uid = self.dataset.local_id
         preds_path = os.path.join(
-            config.predictions_folder, str(model_uid), str(data_hash)
+            config.predictions_folder, str(model_uid), str(data_uid)
         )
         if os.path.exists(preds_path):
             msg = f"Found existing predictions for model {self.model.id} on dataset "

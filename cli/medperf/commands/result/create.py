@@ -257,7 +257,7 @@ class BenchmarkExecution:
                 data_lists_for_display.append(
                     [
                         experiment["model_uid"],
-                        experiment["result"].generated_uid,
+                        experiment["result"].local_id,
                         experiment["result"].metadata["partial"],
                         experiment["cached"],
                         experiment["error"],
