@@ -168,12 +168,12 @@ class Entity(MedperfSchema, ABC):
         logging.info(f"Retrieving {cls.get_type()} {uid} from local storage")
         storage_path = cls.get_storage_path()
         metadata_filename = cls.get_metadata_filename()
-        bmk_file = os.path.join(storage_path, str(uid), metadata_filename)
-        if not os.path.exists(bmk_file):
+        entity_file = os.path.join(storage_path, str(uid), metadata_filename)
+        if not os.path.exists(entity_file):
             raise InvalidArgumentError(
                 f"No {cls.get_type()} with the given uid could be found"
             )
-        with open(bmk_file, "r") as f:
+        with open(entity_file, "r") as f:
             data = yaml.safe_load(f)
 
         return data
