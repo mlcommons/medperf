@@ -13,14 +13,14 @@ from medperf.utils import (
     spawn_and_kill,
 )
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema, DeployableSchema
+from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 
 
-class Cube(Entity, MedperfSchema, DeployableSchema):
+class Cube(Entity, DeployableSchema):
     """
     Class representing an MLCube Container
 
@@ -70,7 +70,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = self.name
+        self.local_id = self.name
         self.cube_path = os.path.join(self.path, config.cube_filename)
         self.params_path = None
         if self.git_parameters_url:
@@ -245,7 +245,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         """
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f" --mlcube=\"{self.cube_path}\" --task={task} --platform={config.platform} --network=none"
+        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'
         if config.gpus is not None:
             cmd += f" --gpus={config.gpus}"
         if read_protected_input:

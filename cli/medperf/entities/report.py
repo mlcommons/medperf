@@ -18,8 +18,16 @@ class TestReport(Entity):
     - model cube
     - evaluator cube
     - results
+
+    Note: This entity is only a local one, there is no TestReports on the server
+          However, we still use the same Entity interface used by other entities
+          in order to reduce repeated code. Consequently, we mocked a few methods
+          and attributes inherited from the Entity interface that are not relevant to
+          this entity, such as the `name` and `id` attributes, and such as
+          the `get` and `all` methods.
     """
 
+    name: Optional[str] = "name"
     demo_dataset_url: Optional[str]
     demo_dataset_hash: Optional[str]
     data_path: Optional[str]
@@ -46,7 +54,7 @@ class TestReport(Entity):
         super().__init__(*args, **kwargs)
         self.id = None
         self.for_test = True
-        self.generated_uid = self.__generate_uid()
+        self.local_id = self.__generate_uid()
 
     def __generate_uid(self):
         """A helper that generates a unique hash for a test report."""
@@ -84,7 +92,7 @@ class TestReport(Entity):
             data_source = f"{self.prepared_data_hash}"
 
         return {
-            "UID": self.generated_uid,
+            "UID": self.local_id,
             "Data Source": data_source,
             "Model": (
                 self.model if isinstance(self.model, int) else self.model[:27] + "..."

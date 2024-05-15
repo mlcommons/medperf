@@ -3,11 +3,11 @@ from pydantic import HttpUrl, Field
 
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
+from medperf.entities.schemas import ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
 
 
-class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 
@@ -58,7 +58,7 @@ class Benchmark(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
+        self.local_id = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
 
     @classmethod
     def _Entity__remote_prefilter(cls, filters: dict) -> callable:

@@ -5,13 +5,13 @@ from typing import Optional, Union
 
 from medperf.utils import remove_path
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema, DeployableSchema
+from medperf.entities.schemas import DeployableSchema
 
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 
 
-class Dataset(Entity, MedperfSchema, DeployableSchema):
+class Dataset(Entity, DeployableSchema):
     """
     Class representing a Dataset
 
@@ -62,7 +62,7 @@ class Dataset(Entity, MedperfSchema, DeployableSchema):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
+        self.local_id = self.generated_uid
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = os.path.join(self.path, "labels")
         self.report_path = os.path.join(self.path, config.report_file)

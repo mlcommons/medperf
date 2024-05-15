@@ -1,13 +1,13 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
 import os
 import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
-from medperf.entities.schemas import MedperfBaseSchema
+from medperf.entities.schemas import MedperfSchema
 
 
-class Entity(MedperfBaseSchema, ABC):
+class Entity(MedperfSchema, ABC):
     @staticmethod
     def get_type():
         raise NotImplementedError()
@@ -25,12 +25,12 @@ class Entity(MedperfBaseSchema, ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def get_comms_uploader() -> Callable[dict, dict]:
+    def get_comms_uploader() -> Callable[[dict], dict]:
         raise NotImplementedError()
 
     @property
     def identifier(self) -> Union[int, str]:
-        return self.id or self.generated_uid
+        return self.id or self.local_id
 
     @property
     def is_registered(self):
