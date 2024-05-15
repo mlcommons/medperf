@@ -58,7 +58,9 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.local_id = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
+    @property
+    def local_id(self):
+        return self.name
 
     @classmethod
     def _Entity__remote_prefilter(cls, filters: dict) -> callable:
