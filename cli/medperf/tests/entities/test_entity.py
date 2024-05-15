@@ -93,8 +93,8 @@ class TestAll:
         entities = Implementation.all(unregistered=True)
 
         # Assert
-        retrieved_names = set([e.name for e in entities])
-        assert self.unregistered_ids == retrieved_names
+        retrieved_ids = set([e.local_id for e in entities])
+        assert self.unregistered_ids == retrieved_ids
 
 
 @pytest.mark.parametrize(

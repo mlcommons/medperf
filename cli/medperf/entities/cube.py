@@ -70,11 +70,14 @@ class Cube(Entity, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.local_id = self.name
         self.cube_path = os.path.join(self.path, config.cube_filename)
         self.params_path = None
         if self.git_parameters_url:
             self.params_path = os.path.join(self.path, config.params_filename)
+
+    @property
+    def local_id(self):
+        return self.name
 
     @classmethod
     def _Entity__remote_prefilter(cls, filters: dict):

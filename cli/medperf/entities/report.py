@@ -54,9 +54,9 @@ class TestReport(Entity):
         super().__init__(*args, **kwargs)
         self.id = None
         self.for_test = True
-        self.local_id = self.__generate_uid()
 
-    def __generate_uid(self):
+    @property
+    def local_id(self):
         """A helper that generates a unique hash for a test report."""
         params = self.todict()
         del params["results"]

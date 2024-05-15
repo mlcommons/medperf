@@ -40,7 +40,6 @@ class DatasetSetOperational:
         generated_uid = get_folders_hash([prepared_data_path, prepared_labels_path])
         self.dataset.input_data_hash = in_uid
         self.dataset.generated_uid = generated_uid
-        self.dataset.local_id = generated_uid  # Not relevant, but for consistency
 
     def set_statistics(self):
         with open(self.dataset.statistics_path, "r") as f:

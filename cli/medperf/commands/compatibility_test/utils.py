@@ -155,7 +155,6 @@ def create_test_dataset(
         remove_path(new_path)
         os.rename(old_path, new_path)
         dataset.generated_uid = new_generated_uid
-        dataset.local_id = new_generated_uid
         dataset.write()
 
     return new_generated_uid

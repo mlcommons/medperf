@@ -29,6 +29,10 @@ class Entity(MedperfSchema, ABC):
         raise NotImplementedError()
 
     @property
+    def local_id(self) -> str:
+        raise NotImplementedError()
+
+    @property
     def identifier(self) -> Union[int, str]:
         return self.id or self.local_id
 

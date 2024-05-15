@@ -62,12 +62,15 @@ class Dataset(Entity, DeployableSchema):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.local_id = self.generated_uid
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = os.path.join(self.path, "labels")
         self.report_path = os.path.join(self.path, config.report_file)
         self.metadata_path = os.path.join(self.path, config.metadata_folder)
         self.statistics_path = os.path.join(self.path, config.statistics_filename)
+
+    @property
+    def local_id(self):
+        return self.generated_uid
 
     def set_raw_paths(self, raw_data_path: str, raw_labels_path: str):
         raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)

@@ -46,7 +46,9 @@ class Result(Entity, ApprovableSchema):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
 
-        self.local_id = f"b{self.benchmark}m{self.model}d{self.dataset}"
+    @property
+    def local_id(self):
+        return self.name
 
     @classmethod
     def _Entity__remote_prefilter(cls, filters: dict) -> callable:

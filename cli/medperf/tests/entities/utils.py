@@ -23,7 +23,6 @@ def setup_benchmark_fs(ents, fs):
             bmk_contents = TestBenchmark(id=str(ent))
         else:
             bmk_contents = TestBenchmark(id=None, name=ent)
-            bmk_contents.local_id = ent
 
         bmk_filepath = os.path.join(bmk_contents.path, config.benchmarks_filename)
         cubes_ids = []
@@ -62,7 +61,6 @@ def setup_cube_fs(ents, fs):
             cube = TestCube(id=str(ent))
         else:
             cube = TestCube(id=None, name=ent)
-            cube.local_id = ent
 
         meta_cube_file = os.path.join(cube.path, config.cube_metadata_filename)
         meta = cube.todict()
@@ -129,14 +127,13 @@ def setup_cube_comms_downloads(mocker, fs):
 # Setup Dataset
 def setup_dset_fs(ents, fs):
     for ent in ents:
-        # Assume we're passing ids, names, or dicts
+        # Assume we're passing ids, generated_uids, or dicts
         if isinstance(ent, dict):
             dset_contents = TestDataset(**ent)
         elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
             dset_contents = TestDataset(id=str(ent))
         else:
-            dset_contents = TestDataset(id=None, name=ent)
-            dset_contents.local_id = ent
+            dset_contents = TestDataset(id=None, generated_uid=ent)
 
         reg_dset_file = os.path.join(dset_contents.path, config.reg_file)
         cube_id = dset_contents.data_preparation_mlcube
@@ -170,7 +167,6 @@ def setup_result_fs(ents, fs):
             result_contents = TestResult(id=str(ent))
         else:
             result_contents = TestResult(id=None, name=ent)
-            result_contents.local_id = ent
 
         result_file = os.path.join(result_contents.path, config.results_info_file)
         bmk_id = result_contents.benchmark
