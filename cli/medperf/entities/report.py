@@ -67,7 +67,7 @@ class TestReport(Entity):
         self.results = results
 
     @classmethod
-    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["Entity"]:
+    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["TestReport"]:
         assert unregistered, "Reports are only unregistered"
         assert filters == {}, "Reports cannot be filtered"
         return super().all(unregistered=True, filters={})

@@ -145,7 +145,7 @@ class BenchmarkExecution:
 
     def load_cached_results(self):
         user_id = get_medperf_user_data()["id"]
-        results = Result.all(filters={"owner": user_id})
+        results: List[Result] = Result.all(filters={"owner": user_id})
         results += Result.all(unregistered=True)
         benchmark_dset_results = [
             result

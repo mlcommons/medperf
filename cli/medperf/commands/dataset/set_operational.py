@@ -21,7 +21,7 @@ class DatasetSetOperational:
 
     def __init__(self, dataset_id: int, approved: bool):
         self.ui = config.ui
-        self.dataset = Dataset.get(dataset_id)
+        self.dataset: Dataset = Dataset.get(dataset_id)
         self.approved = approved
 
     def validate(self):

@@ -9,19 +9,19 @@ from medperf.entities.schemas import MedperfSchema
 
 class Entity(MedperfSchema, ABC):
     @staticmethod
-    def get_type():
+    def get_type() -> str:
         raise NotImplementedError()
 
     @staticmethod
-    def get_storage_path():
+    def get_storage_path() -> str:
         raise NotImplementedError()
 
     @staticmethod
-    def get_comms_retriever():
+    def get_comms_retriever() -> Callable[[int], dict]:
         raise NotImplementedError()
 
     @staticmethod
-    def get_metadata_filename():
+    def get_metadata_filename() -> str:
         raise NotImplementedError()
 
     @staticmethod
@@ -37,11 +37,11 @@ class Entity(MedperfSchema, ABC):
         return self.id or self.local_id
 
     @property
-    def is_registered(self):
+    def is_registered(self) -> bool:
         return self.id is not None
 
     @property
-    def path(self):
+    def path(self) -> str:
         storage_path = self.get_storage_path()
         return os.path.join(storage_path, str(self.identifier))
 
@@ -88,8 +88,7 @@ class Entity(MedperfSchema, ABC):
         for uid in uids:
             if uid.isdigit():
                 continue
-            meta = cls.__get_local_dict(uid)
-            entity = cls(**meta)
+            entity = cls.__local_get(uid)
             entities.append(entity)
 
         return entities

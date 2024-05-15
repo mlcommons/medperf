@@ -1,3 +1,5 @@
+from typing import List, Type
+from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError
 from tabulate import tabulate
 
@@ -8,8 +10,8 @@ from medperf.account_management import get_medperf_user_data
 class EntityList:
     @staticmethod
     def run(
-        entity_class,
-        fields,
+        entity_class: Type[Entity],
+        fields: List[str],
         unregistered: bool = False,
         mine_only: bool = False,
         **kwargs,
@@ -29,7 +31,14 @@ class EntityList:
         entity_list.filter()
         entity_list.display()
 
-    def __init__(self, entity_class, fields, unregistered, mine_only, **kwargs):
+    def __init__(
+        self,
+        entity_class: Type[Entity],
+        fields: List[str],
+        unregistered: bool,
+        mine_only: bool,
+        **kwargs,
+    ):
         self.entity_class = entity_class
         self.fields = fields
         self.unregistered = unregistered
