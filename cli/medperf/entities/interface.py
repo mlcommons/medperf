@@ -69,7 +69,7 @@ class Entity(MedperfSchema, ABC):
 
     @classmethod
     def __remote_all(cls, filters: dict) -> List["Entity"]:
-        comms_fn = cls.__remote_prefilter(filters)
+        comms_fn = cls.remote_prefilter(filters)
         entity_meta = comms_fn()
         entities = [cls(**meta) for meta in entity_meta]
         return entities
@@ -93,8 +93,8 @@ class Entity(MedperfSchema, ABC):
 
         return entities
 
-    @classmethod
-    def __remote_prefilter(cls, filters: dict) -> callable:
+    @staticmethod
+    def remote_prefilter(filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:

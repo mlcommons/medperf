@@ -79,8 +79,8 @@ class Cube(Entity, DeployableSchema):
     def local_id(self):
         return self.name
 
-    @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict):
+    @staticmethod
+    def remote_prefilter(filters: dict):
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:

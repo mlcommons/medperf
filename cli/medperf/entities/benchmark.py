@@ -62,8 +62,8 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     def local_id(self):
         return self.name
 
-    @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
+    @staticmethod
+    def remote_prefilter(filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:

@@ -97,8 +97,8 @@ class Dataset(Entity, DeployableSchema):
         flag_file = os.path.join(self.path, config.ready_flag_file)
         return os.path.exists(flag_file)
 
-    @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
+    @staticmethod
+    def remote_prefilter(filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
