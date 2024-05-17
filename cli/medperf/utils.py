@@ -493,5 +493,5 @@ def get_pki_assets_path(common_name: str, ca_name: str):
 
 
 def get_participant_label(email, data_id):
-    # return f"d{data_id}"  # TODO: use this when building openfl fork
+    # return f"d{data_id}"
     return f"{email}"

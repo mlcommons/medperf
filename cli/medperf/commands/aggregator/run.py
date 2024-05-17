@@ -46,12 +46,6 @@ class StartAggregator:
             raise InvalidArgumentError(msg)
         if self.publish_on == "127.0.0.1":
             pass
-            # config.ui.print_warning("This has a bug...TODO")
-        # TODO: take confirmation somewhere about the whole process
-        # TODO: We should start checking inputs before proceeding. For example,
-        #       now if the user provided some malformed network interface, this
-        #       will not throw an error until many calls to the server has been made
-        #       and things are configured...
 
     def check_existing_outputs(self):
         msg = (

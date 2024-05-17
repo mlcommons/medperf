@@ -56,11 +56,6 @@ class TrainingExecution:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
 
-        # TODO: Do we need this? This basically would make participants list public to them
-        # if self.dataset.id not in TrainingExp.get_datasets_uids(self.training_exp_id):
-        #     msg = "The provided dataset is not associated."
-        #     raise InvalidArgumentError(msg)
-
     def check_existing_outputs(self):
         msg = (
             "Outputs still exist from previous runs. Overwrite"

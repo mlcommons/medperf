@@ -39,7 +39,7 @@ def submit(
         "description": description,
         "docs_url": docs_url,
         "fl_mlcube": fl_mlcube,
-        "demo_dataset_tarball_url": "link",  # TODO later
+        "demo_dataset_tarball_url": "link",
         "demo_dataset_tarball_hash": "hash",
         "demo_dataset_generated_uid": "uid",
         "data_preparation_mlcube": prep_mlcube,
