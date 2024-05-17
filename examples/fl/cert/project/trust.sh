@@ -32,11 +32,21 @@ if [ "$task" != "trust" ]; then
     exit 1
 fi
 
+export STEPPATH=$pki_assets/.step
+
 CA_ADDRESS=$(jq -r '.address' $ca_config)
 CA_PORT=$(jq -r '.port' $ca_config)
 CA_FINGERPRINT=$(jq -r '.fingerprint' $ca_config)
 
-# trust the CA.
-rm -rf $pki_assets/*
-step ca root $pki_assets/root_ca.crt --ca-url $CA_ADDRESS:$CA_PORT \
-    --fingerprint $CA_FINGERPRINT
+rm -rf $pki_assets/root_ca.crt
+
+if [ -n "$CA_FINGERPRINT" ]; then
+    # trust the CA.
+    step ca root $pki_assets/root_ca.crt --ca-url $CA_ADDRESS:$CA_PORT \
+        --fingerprint $CA_FINGERPRINT
+else
+    wget -O $pki_assets/root_ca.crt $CA_ADDRESS:$CA_PORT/roots.pem
+fi
+
+# cleanup
+rm -rf $STEPPATH

@@ -1,0 +1,57 @@
+{
+    "root": "/stephome/certs/root_ca.crt",
+    "federatedRoots": null,
+    "crt": "/stephome/certs/intermediate_ca.crt",
+    "key": "/stephome/secrets/intermediate_ca_key",
+    "dnsNames": [
+        "127.0.0.1"
+    ],
+    "address": "127.0.0.1:8000",
+    "logger": {
+        "format": "text"
+    },
+    "db": "",
+    "authority": {
+        "provisioners": [
+            {
+                "type": "ACME",
+                "name": "acme",
+                "options": {
+                    "x509": {
+                        "templateFile": "/stephome/templates/certs/x509/server.tpl"
+                    }
+                }
+            },
+            {
+                "type": "OIDC",
+                "name": "auth0",
+                "clientID": "kQoZ38ESRfUuMUUBlQRv2gWwOwGAMOqd",
+                "clientSecret": "",
+                "configurationEndpoint": "https://dev-5xl8y6uuc2hig2ly.us.auth0.com/.well-known/openid-configuration",
+                "options": {
+                    "x509": {
+                        "templateFile": "/stephome/templates/certs/x509/client.tpl"
+                    },
+                    "ssh": {}
+                }
+            }
+        ],
+        "claims": {
+            "minTLSCertDuration": "8766h",
+            "maxTLSCertDuration": "8766h",
+            "defaultTLSCertDuration": "8766h",
+            "disableRenewal": true
+        },
+        "template": {},
+        "backdate": "1m0s"
+    },
+    "tls": {
+        "cipherSuites": [
+            "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
+            "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+        ],
+        "minVersion": 1.2,
+        "maxVersion": 1.3,
+        "renegotiation": false
+    }
+}
