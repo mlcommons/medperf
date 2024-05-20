@@ -249,7 +249,9 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         # TODO: refactor this function. Move things to MLCube if possible
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform}"
+        cmd += (
+            f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform}'
+        )
         if task not in [
             "train",
             "start_aggregator",
