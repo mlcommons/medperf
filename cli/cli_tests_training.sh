@@ -258,7 +258,7 @@ echo "\n"
 echo "====================================="
 echo "Starting training with data1"
 echo "====================================="
-print_eval medperf dataset train -d $DSET_1_UID -t $TRAINING_UID </dev/null >col1.log 2>&1 &
+print_eval medperf dataset train -d $DSET_1_UID -t $TRAINING_UID -y </dev/null >col1.log 2>&1 &
 COL1_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
@@ -337,7 +337,7 @@ echo "\n"
 echo "====================================="
 echo "Starting training with data2"
 echo "====================================="
-print_eval medperf dataset train -d $DSET_2_UID -t $TRAINING_UID </dev/null >col2.log 2>&1 &
+print_eval medperf dataset train -d $DSET_2_UID -t $TRAINING_UID -y </dev/null >col2.log 2>&1 &
 COL2_PID=$!
 
 # sleep so that the mlcube is run before we change profiles
