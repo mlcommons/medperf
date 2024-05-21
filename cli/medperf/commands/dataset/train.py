@@ -38,8 +38,8 @@ class TrainingExecution:
         execution.prepare_plan()
         execution.prepare_pki_assets()
         execution.confirm_run()
-        execution.prepare_training_cube()
         with config.ui.interactive():
+            execution.prepare_training_cube()
             execution.run_experiment()
 
     def __init__(
@@ -109,7 +109,9 @@ class TrainingExecution:
         self.cube = self.__get_cube(self.training_exp.fl_mlcube, "FL")
 
     def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
+        self.ui.text = (
+            "Retrieving and setting up training MLCube. This may take some time."
+        )
         cube = Cube.get(uid)
         cube.download_run_files()
         self.ui.print(f"> {name} cube download complete")
