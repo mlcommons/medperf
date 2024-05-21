@@ -157,9 +157,10 @@ def train(
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite outputs if present"
     ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs training"""
-    TrainingExecution.run(training_exp_id, data_uid, overwrite)
+    TrainingExecution.run(training_exp_id, data_uid, overwrite, approval)
     config.ui.print("✅ Done!")
 
 

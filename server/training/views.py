@@ -108,9 +108,9 @@ class TrainingDatasetList(GenericAPIView):
 
 
 class TrainingCA(GenericAPIView):
-    permission_classes = [
-        IsAdmin | IsExpOwner | IsAssociatedDatasetOwner | IsAggregatorOwner
-    ]
+    # permission_classes = [
+    #     IsAdmin | IsExpOwner | IsAssociatedDatasetOwner | IsAggregatorOwner
+    # ]
     serializer_class = CASerializer
     queryset = ""
 

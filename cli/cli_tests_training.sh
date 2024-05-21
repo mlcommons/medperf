@@ -246,6 +246,34 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Get data1owner cert"
+echo "====================================="
+medperf certificate get_client_certificate -t $TRAINING_UID
+checkFailed "Get data1owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting training with data1"
+echo "====================================="
+medperf dataset train -d $DSET_1_UID -t $TRAINING_UID </dev/null >col1.log 2>&1 &
+COL1_PID=$!
+
+# sleep so that the mlcube is run before we change profiles
+sleep 7
+
+# Check if the command is still running.
+if [ ! -d "/proc/$COL1_PID" ]; then
+  checkFailed "data1 training doesn't seem to be running" 1
+fi
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Activate dataowner2 profile"
 echo "====================================="
 medperf profile activate testdata2
@@ -291,6 +319,34 @@ echo "Running data2 association step"
 echo "====================================="
 medperf dataset associate -d $DSET_2_UID -t $TRAINING_UID -y
 checkFailed "Data2 association step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get data2owner cert"
+echo "====================================="
+medperf certificate get_client_certificate -t $TRAINING_UID
+checkFailed "Get data2owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting training with data2"
+echo "====================================="
+medperf dataset train -d $DSET_2_UID -t $TRAINING_UID </dev/null >col2.log 2>&1 &
+COL2_PID=$!
+
+# sleep so that the mlcube is run before we change profiles
+sleep 7
+
+# Check if the command is still running.
+if [ ! -d "/proc/$COL2_PID" ]; then
+  checkFailed "data2 training doesn't seem to be running" 1
+fi
 ##########################################################
 
 echo "\n"
@@ -358,119 +414,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Activate dataowner profile"
-echo "====================================="
-medperf profile activate testdata1
-checkFailed "testdata1 profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Get dataowner cert"
-echo "====================================="
-medperf certificate get_client_certificate -t $TRAINING_UID
-checkFailed "Get dataowner cert failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate dataowner2 profile"
-echo "====================================="
-medperf profile activate testdata2
-checkFailed "testdata2 profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Get dataowner2 cert"
-echo "====================================="
-medperf certificate get_client_certificate -t $TRAINING_UID
-checkFailed "Get dataowner2 cert failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate aggowner profile"
-echo "====================================="
-medperf profile activate testagg
-checkFailed "testagg profile activation failed"
-##########################################################
-
-echo "\n"
-
-TRAINING_UID=1
-DSET_1_UID=1
-DSET_2_UID=2
-##########################################################
-echo "====================================="
 echo "Starting aggregator"
 echo "====================================="
-medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
-AGG_PID=$!
-
-# sleep so that the mlcube is run before we change profiles
-sleep 7
-
-# Check if the command is still running.
-if [ ! -d "/proc/$AGG_PID" ]; then
-  checkFailed "agg doesn't seem to be running" 1
-fi
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate dataowner profile"
-echo "====================================="
-medperf profile activate testdata1
-checkFailed "testdata1 profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Starting training with data1"
-echo "====================================="
-medperf dataset train -d $DSET_1_UID -t $TRAINING_UID </dev/null >col1.log 2>&1 &
-COL1_PID=$!
-
-# sleep so that the mlcube is run before we change profiles
-sleep 7
-
-# Check if the command is still running.
-if [ ! -d "/proc/$COL1_PID" ]; then
-  checkFailed "data1 training doesn't seem to be running" 1
-fi
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate dataowner2 profile"
-echo "====================================="
-medperf profile activate testdata2
-checkFailed "testdata2 profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Starting training with data2"
-echo "====================================="
-medperf dataset train -d $DSET_2_UID -t $TRAINING_UID
-checkFailed "data2 training failed"
+medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_
+checkFailed "agg didn't exit successfully"
 ##########################################################
 
 echo "\n"
@@ -487,18 +434,8 @@ echo "====================================="
 #                a process that is not a child of the current shell
 wait $COL1_PID
 checkFailed "data1 training didn't exit successfully"
-wait $AGG_PID
-checkFailed "aggregator didn't exit successfully"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate modelowner profile"
-echo "====================================="
-medperf profile activate testmodel
-checkFailed "testmodel profile activation failed"
+wait $COL2_PID
+checkFailed "data2 training didn't exit successfully"
 ##########################################################
 
 echo "\n"
