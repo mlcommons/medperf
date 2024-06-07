@@ -9,7 +9,7 @@ with open("requirements.txt", "r") as f:
 
 setup(
     name="rano-monitor",
-    version="0.0.0",
+    version="0.0.1",
     description="TUI for monitoring medperf datasets",
     url="https://github.com/mlcommons/medperf",
     author="MLCommons",
