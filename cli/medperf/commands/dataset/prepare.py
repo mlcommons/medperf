@@ -80,7 +80,8 @@ class DataPreparation:
         preparation = cls(dataset_id, approve_sending_reports)
         preparation.get_dataset()
         preparation.validate()
-        preparation.get_prep_cube()
+        with preparation.ui.interactive():
+            preparation.get_prep_cube()
         preparation.setup_parameters()
 
         # TODO: make these more readable
@@ -135,7 +136,10 @@ class DataPreparation:
             raise InvalidArgumentError("This dataset is in operation mode")
 
     def get_prep_cube(self):
-        self.ui.text = "Retrieving data preparation cube"
+        self.ui.text = (
+            "Retrieving and setting up data preparation MLCube. "
+            "This may take some time."
+        )
         self.cube = Cube.get(self.dataset.data_preparation_mlcube)
         self.cube.download_run_files()
         self.ui.print("> Preparation cube download complete")

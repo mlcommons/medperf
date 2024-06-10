@@ -12,12 +12,6 @@ app = typer.Typer()
 @app.command("synapse_login")
 @clean_except
 def synapse_login(
-    username: str = typer.Option(
-        None, "--username", "-u", help="Username to login with"
-    ),
-    password: str = typer.Option(
-        None, "--password", "-p", help="Password to login with"
-    ),
     token: str = typer.Option(
         None, "--token", "-t", help="Personal Access Token to login with"
     ),
@@ -25,7 +19,7 @@ def synapse_login(
     """Login to the synapse server.
     Provide either a username and a password, or a token
     """
-    SynapseLogin.run(username=username, password=password, token=token)
+    SynapseLogin.run(token=token)
     config.ui.print("✅ Done!")
 
 

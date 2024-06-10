@@ -28,6 +28,7 @@ class DataCreation:
         location: str = None,
         approved: bool = False,
         submit_as_prepared: bool = False,
+        for_test: bool = False,
     ):
         preparation = cls(
             benchmark_uid,
@@ -40,6 +41,7 @@ class DataCreation:
             location,
             approved,
             submit_as_prepared,
+            for_test,
         )
         preparation.validate()
         preparation.validate_prep_cube()
@@ -64,6 +66,7 @@ class DataCreation:
         location: str,
         approved: bool,
         submit_as_prepared: bool,
+        for_test: bool,
     ):
         self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
@@ -76,6 +79,7 @@ class DataCreation:
         self.prep_cube_uid = prep_cube_uid
         self.approved = approved
         self.submit_as_prepared = submit_as_prepared
+        self.for_test = for_test
 
     def validate(self):
         if not os.path.exists(self.data_path):
@@ -122,6 +126,7 @@ class DataCreation:
             generated_metadata={},
             state="DEVELOPMENT",
             submitted_as_prepared=self.submit_as_prepared,
+            for_test=self.for_test,
         )
         dataset.write()
         config.tmp_paths.append(dataset.path)
@@ -146,6 +151,11 @@ class DataCreation:
         submission_dict = self.dataset.todict()
         dict_pretty_print(submission_dict)
         msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
+        warning = (
+            "Upon submission, your email address will be visible to the Data Preparation"
+            + " Owner for traceability and debugging purposes."
+        )
+        self.ui.print_warning(warning)
         self.approved = self.approved or approval_prompt(msg)
 
         if self.approved:

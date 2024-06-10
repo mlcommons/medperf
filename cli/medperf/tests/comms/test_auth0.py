@@ -2,7 +2,7 @@ import time
 from unittest.mock import ANY
 from medperf.tests.mocks import MockResponse
 from medperf.comms.auth.auth0 import Auth0
-
+import sqlite3
 import pytest
 
 PATCH_AUTH = "medperf.comms.auth.auth0.{}"
@@ -10,6 +10,8 @@ PATCH_AUTH = "medperf.comms.auth.auth0.{}"
 
 @pytest.fixture
 def setup(mocker):
+    db = mocker.create_autospec(sqlite3.Connection)
+    mocker.patch(PATCH_AUTH.format("sqlite3.connect"), return_value=db)
     mocker.patch(PATCH_AUTH.format("requests.post"), return_value=MockResponse({}, 200))
 
 
@@ -26,7 +28,7 @@ def test_logout_removes_credentials(mocker, setup):
     spy.assert_called_once()
 
 
-def test_token_is_not_refreshed_if_not_expired(mocker):
+def test_token_is_not_refreshed_if_not_expired(mocker, setup):
     # Arrange
     creds = {
         "refresh_token": "",
@@ -44,7 +46,7 @@ def test_token_is_not_refreshed_if_not_expired(mocker):
     spy.assert_not_called()
 
 
-def test_token_is_refreshed_if_expired(mocker):
+def test_token_is_refreshed_if_expired(mocker, setup):
     # Arrange
     creds = {
         "refresh_token": "",
@@ -62,7 +64,7 @@ def test_token_is_refreshed_if_expired(mocker):
     spy.assert_called_once()
 
 
-def test_refresh_token_sets_new_tokens(mocker):
+def test_refresh_token_sets_new_tokens(mocker, setup):
     # Arrange
     access_token = "access_token"
     refresh_token = "refresh_token"

@@ -50,10 +50,12 @@ class TarballBrowser(App):
 
     def __get_subjects(self):
         subjects = os.listdir(self.contents_path)
+        subjects = [subject for subject in subjects if not subject.startswith(".")]
         subject_timepoint_list = []
         for subject in subjects:
             subject_path = os.path.join(self.contents_path, subject)
             timepoints = os.listdir(subject_path)
+            timepoints = [timepoint for timepoint in timepoints if not timepoint.startswith(".")]
             subject_timepoint_list += [(subject, tp) for tp in timepoints]
 
         return subject_timepoint_list
