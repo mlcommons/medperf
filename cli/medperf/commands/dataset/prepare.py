@@ -187,7 +187,7 @@ class DataPreparation:
                     timeout=config.prepare_timeout,
                     **prepare_params,
                 )
-        except Exception as e:
+        except Exception:
             # Inform the server that a failure occured
             report_sender.stop("failed")
         except KeyboardInterrupt:
