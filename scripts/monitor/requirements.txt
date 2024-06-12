@@ -1,4 +1,4 @@
-pandas
-textual
-pyperclip
-PyYAML
+pandas==2.1.0
+textual==0.46.0
+pyperclip==1.8.2
+PyYAML==6.0.1
