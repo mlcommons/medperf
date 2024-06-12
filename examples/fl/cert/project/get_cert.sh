@@ -38,6 +38,8 @@ CA_FINGERPRINT=$(jq -r '.fingerprint' $ca_config)
 CA_CLIENT_PROVISIONER=$(jq -r '.client_provisioner' $ca_config)
 CA_SERVER_PROVISIONER=$(jq -r '.server_provisioner' $ca_config)
 
+export STEPPATH=$pki_assets/.step
+
 if [ "$task" = "get_server_cert" ]; then
     PROVISIONER_ARGS="--provisioner $CA_SERVER_PROVISIONER"
 elif [ "$task" = "get_client_cert" ]; then
@@ -50,13 +52,36 @@ fi
 cert_path=$pki_assets/crt.crt
 key_path=$pki_assets/key.key
 
-# trust the CA.
-step ca bootstrap --ca-url $CA_ADDRESS:$CA_PORT \
-    --fingerprint $CA_FINGERPRINT
+if [ -e $STEPPATH ]; then
+    echo ".step folder already exists"
+    exit 1
+fi
+
+if [ -e $cert_path ]; then
+    echo "cert file already exists"
+    exit 1
+fi
+
+if [ -e $key_path ]; then
+    echo "key file already exists"
+    exit 1
+fi
+
+if [ -n "$CA_FINGERPRINT" ]; then
+    # trust the CA.
+    step ca bootstrap --ca-url $CA_ADDRESS:$CA_PORT \
+        --fingerprint $CA_FINGERPRINT
+    ROOT=$STEPPATH/certs/root_ca.crt
+else
+    ROOT=/etc/ssl/certs/ca-certificates.crt
+fi
 
 # generate private key and ask for a certificate
-# $STEPPATH/certs/root_ca.crt is the path where step-ca stores the trusted ca cert by default
 step ca certificate --ca-url $CA_ADDRESS:$CA_PORT \
-    --root $STEPPATH/certs/root_ca.crt \
+    --root $ROOT \
+    --kty=RSA \
     $PROVISIONER_ARGS \
     $MEDPERF_INPUT_CN $cert_path $key_path
+
+# cleanup
+rm -rf $STEPPATH

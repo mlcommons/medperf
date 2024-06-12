@@ -17,9 +17,12 @@ def get_client_certificate(
         "-t",
         help="UID of training exp which you intend to be a part of",
     ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite cert and key if present"
+    ),
 ):
     """get a client certificate"""
-    GetUserCertificate.run(training_exp_id)
+    GetUserCertificate.run(training_exp_id, overwrite)
     config.ui.print("✅ Done!")
 
 
@@ -32,7 +35,10 @@ def get_server_certificate(
         "-t",
         help="UID of training exp which you intend to be a part of",
     ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite cert and key if present"
+    ),
 ):
     """get a server certificate"""
-    GetServerCertificate.run(training_exp_id)
+    GetServerCertificate.run(training_exp_id, overwrite)
     config.ui.print("✅ Done!")

@@ -232,6 +232,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         timeout: int = None,
         read_protected_input: bool = True,
         port=None,
+        publish_on=None,
         env_dict: dict = {},
         **kwargs,
     ):
@@ -248,7 +249,9 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
         # TODO: refactor this function. Move things to MLCube if possible
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f" --mlcube={self.cube_path} --task={task} --platform={config.platform}"
+        cmd += (
+            f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform}'
+        )
         if task not in [
             "train",
             "start_aggregator",
@@ -283,8 +286,12 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
             gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
             if port is not None:
-                cpu_args += f" -p {port}:{port}"
-                gpu_args += f" -p {port}:{port}"
+                if publish_on:
+                    cpu_args += f" -p {publish_on}:{port}:{port}"
+                    gpu_args += f" -p {publish_on}:{port}:{port}"
+                else:
+                    cpu_args += f" -p {port}:{port}"
+                    gpu_args += f" -p {port}:{port}"
             cmd += f' -Pdocker.cpu_args="{cpu_args}"'
             cmd += f' -Pdocker.gpu_args="{gpu_args}"'
             if env_args_string:  # TODO: why MLCube UI is so brittle?
@@ -299,6 +306,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             run_args += " " + env_args_string
             cmd += f' -Psingularity.run_args="{run_args}"'
             # TODO: check if ports are already exposed. Think if this is OK
+            # TODO: check about exposing to specific network interfaces
             # TODO: check if --env works
 
             # set image name in case of running docker image with singularity

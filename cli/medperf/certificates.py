@@ -13,6 +13,7 @@ def get_client_cert(ca: CA, email: str, output_path: str):
     env = {"MEDPERF_INPUT_CN": common_name}
 
     mlcube = Cube.get(ca.client_mlcube)
+    mlcube.download_run_files()
     mlube_task = "get_client_cert"
     mlcube.run(task=mlube_task, env_dict=env, **params)
 
@@ -28,6 +29,7 @@ def get_server_cert(ca: CA, address: str, output_path: str):
     env = {"MEDPERF_INPUT_CN": common_name}
 
     mlcube = Cube.get(ca.server_mlcube)
+    mlcube.download_run_files()
     mlube_task = "get_server_cert"
     mlcube.run(task=mlube_task, env_dict=env, port=80, **params)
 
@@ -43,5 +45,6 @@ def trust(ca: CA):
         "pki_assets": ca.pki_assets,
     }
     mlcube = Cube.get(ca.ca_mlcube)
+    mlcube.download_run_files()
     mlube_task = "trust"
     mlcube.run(task=mlube_task, **params)

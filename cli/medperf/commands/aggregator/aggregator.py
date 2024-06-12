@@ -58,9 +58,18 @@ def run(
         "-t",
         help="UID of training experiment whose aggregator to be run",
     ),
+    publish_on: str = typer.Option(
+        "127.0.0.1",
+        "--publish_on",
+        "-p",
+        help="Host network interface on which the aggregator will listen",
+    ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite outputs if present"
+    ),
 ):
     """Starts the aggregation server of a training experiment"""
-    StartAggregator.run(training_exp_id)
+    StartAggregator.run(training_exp_id, publish_on, overwrite)
     config.ui.print("✅ Done!")
 
 

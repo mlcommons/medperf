@@ -13,18 +13,33 @@ SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
-MEDPERF_STORAGE=~/.medperf
-MEDPERF_LOG_STORAGE=~/.medperf_logs
+
+TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
+export MEDPERF_CONFIG_PATH="$TEST_ROOT/config.yaml" # env var
+MEDPERF_STORAGE="$TEST_ROOT/storage"
+SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
+
+MEDPERF_LOG_PATH=~/.medperf_logs/medperf.log
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
 LOGIN_SCRIPT="$(dirname $(realpath "$0"))/auto_login.sh"
 ADMIN_LOGIN_SCRIPT="$(dirname $(dirname $(realpath "$0")))/server/auth_provider_token.py"
 MOCK_TOKENS_FILE="$(dirname $(dirname $(realpath "$0")))/mock_tokens/tokens.json"
-
+SQLITE3_FILE="$(dirname $(dirname $(realpath "$0")))/server/db.sqlite3"
 echo "Server URL: $SERVER_URL"
-echo "Storage location: $MEDPERF_SUBSTORAGE"
 
+print_eval() {
+  local timestamp=$(date +%m%d%H%M%S)
+  local formatted_cmd=$(echo "$@" | sed 's/[^a-zA-Z0-9]\+/_/g' | cut -c 1-50)
+  LAST_SNAPSHOT_PATH="$SNAPSHOTS_FOLDER/${timestamp}_${formatted_cmd}.sqlite3"
+  cp $SQLITE3_FILE "$LAST_SNAPSHOT_PATH"
+  echo ">> $@"
+  eval "$@"
+  # local exit_code=$?
+  # echo "Exit code: $exit_code"
+  # return $exit_code
+}
 # frequently used
 clean() {
   echo "====================================="
@@ -32,15 +47,7 @@ clean() {
   echo "====================================="
   # move back storage
   rm -fr $DIRECTORY
-  rm -fr $MEDPERF_STORAGE/**/$SERVER_STORAGE_ID
-  # errors of the commands below are ignored
-  medperf profile activate default
-  medperf profile delete testbenchmark
-  medperf profile delete testmodel
-  medperf profile delete testdata
-  medperf profile delete testagg
-  medperf profile delete testdata1
-  medperf profile delete testdata2
+  rm -fr $TEST_ROOT
 }
 checkFailed() {
   EXITSTATUS="$?"
@@ -52,8 +59,12 @@ checkFailed() {
       echo "Process timed out"
     fi
     echo $1
-    echo "medperf log:"
-    tail "$MEDPERF_LOG_STORAGE/medperf.log"
+    echo "Test root path: $TEST_ROOT"
+    echo "Config path: $MEDPERF_CONFIG_PATH"
+    echo "Storage path: $MEDPERF_STORAGE"
+    echo "Snapshot before failed command: $LAST_SNAPSHOT_PATH"
+    echo "medperf log $MEDPERF_LOG_PATH:"
+    tail $MEDPERF_LOG_PATH
     if ${CLEANUP}; then
       clean
     fi
@@ -125,3 +136,21 @@ MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/
 METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics/mlcube"
 
 TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
+# create storage folders
+mkdir -p "$TEST_ROOT"
+mkdir -p "$MEDPERF_STORAGE"
+mkdir -p "$SNAPSHOTS_FOLDER"
+
+echo "Test root path: $TEST_ROOT"
+echo "Config path: $MEDPERF_CONFIG_PATH"
+echo "Snapshots path: $SNAPSHOTS_FOLDER"
+echo "Storage path: $MEDPERF_STORAGE"
+
+# test env folder preparation
+echo "creating config at $MEDPERF_CONFIG_PATH"
+print_eval medperf profile ls
+checkFailed "Creating config failed"
+
+echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
+python $(dirname $(realpath "$0"))/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
+checkFailed "Moving storage failed"

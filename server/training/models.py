@@ -34,7 +34,6 @@ class TrainingExperiment(models.Model):
     )
 
     metadata = models.JSONField(default=dict, blank=True, null=True)
-    # TODO: consider if we want to enable restarts and epochs/"fresh restarts"
     state = models.CharField(choices=STATES, max_length=100, default="DEVELOPMENT")
     is_valid = models.BooleanField(default=True)
     approval_status = models.CharField(

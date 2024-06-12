@@ -43,7 +43,7 @@ cd mlcube_col1/workspace/node_cert
 openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
 openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_client
 openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-    -CAcreateserial -out crt.crt -days 36500 -sha384
+    -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_client_crt -extfile ../../../csr.conf
 rm csr.csr
 cp ../../../ca/root.crt ../ca_cert/
 cd ../../../
@@ -55,7 +55,7 @@ cd mlcube_col2/workspace/node_cert
 openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
 openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_client
 openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-    -CAcreateserial -out crt.crt -days 36500 -sha384
+    -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_client_crt -extfile ../../../csr.conf
 rm csr.csr
 cp ../../../ca/root.crt ../ca_cert/
 cd ../../../
@@ -71,7 +71,7 @@ else
     openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
     openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_client
     openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-        -CAcreateserial -out crt.crt -days 36500 -sha384
+        -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_client_crt -extfile ../../../csr.conf
     rm csr.csr
     cp ../../../ca/root.crt ../ca_cert/
     cd ../../../
@@ -84,7 +84,7 @@ cd mlcube_agg/workspace/node_cert
 openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
 openssl req -new -key key.key -out csr.csr -config ../../../csr.conf -extensions v3_server
 openssl x509 -req -in csr.csr -CA ../../../ca/root.crt -CAkey ../../../ca/root.key \
-    -CAcreateserial -out crt.crt -days 36500 -sha384
+    -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_server_crt -extfile ../../../csr.conf
 rm csr.csr
 cp ../../../ca/root.crt ../ca_cert/
 cd ../../../
