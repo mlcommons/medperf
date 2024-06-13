@@ -119,7 +119,7 @@ class DataPreparation:
 
     def should_run_prepare(self):
         return not self.dataset.submitted_as_prepared and not self.dataset.is_ready()
-    
+
     def should_prompt_for_report_sending_approval(self):
         return (
             self.should_run_prepare()
