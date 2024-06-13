@@ -8,7 +8,7 @@ import pytest
 
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.cube import TestCube
-from medperf.commands.dataset.prepare import DataPreparation
+from medperf.commands.dataset.prepare import DataPreparation, ReportHandler
 
 PATCH_REGISTER = "medperf.commands.dataset.prepare.{}"
 
@@ -62,6 +62,8 @@ def test_prepare_runs_then_stops_report_handler(
     data_preparation.allow_sending_reports = allow_sending_reports
     mocker.patch.object(cube, "run")
     mocker.patch.object(data_preparation.dataset, "write")
+    mock_handler = mocker.create_autospec(spec=ReportHandler)
+    mocker.patch(PATCH_REGISTER.format("ReportHandler", side_effect=mock_handler))
     gen_report_spy = mocker.patch(PATCH_REGISTER.format("DataPreparation._DataPreparation__generate_report_dict"))
 
     # Act
