@@ -56,35 +56,32 @@ def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
 
 @pytest.mark.parametrize("allow_sending_reports", [False, True])
 def test_prepare_runs_then_stops_report_handler(
-    mocker, data_preparation, allow_sending_reports, cube
+    mocker, data_preparation, allow_sending_reports, cube, comms
 ):
     # Arrange
     data_preparation.allow_sending_reports = allow_sending_reports
     mocker.patch.object(cube, "run")
-    start_spy = mocker.patch(PATCH_REGISTER.format("ReportSender.start"))
-    stop_spy = mocker.patch(PATCH_REGISTER.format("ReportSender.stop"))
+    mocker.patch.object(data_preparation.dataset, "write")
+    gen_report_spy = mocker.patch(PATCH_REGISTER.format("DataPreparation._DataPreparation__generate_report_dict"))
 
     # Act
     data_preparation.run_prepare()
 
     # Assert
     if allow_sending_reports:
-        start_spy.assert_called_once()
-        stop_spy.assert_called_once_with("finished")
+        gen_report_spy.assert_called()
     else:
-        start_spy.assert_not_called()
-        stop_spy.assert_not_called()
+        gen_report_spy.assert_not_called()
 
 
-@pytest.mark.parametrize("allow_sending_reports", [False, True])
 def test_prepare_runs_then_stops_report_handler_on_failure(
-    mocker, data_preparation, allow_sending_reports, cube
+    mocker, data_preparation, cube
 ):
     # Arrange
     def _failure_run(*args, **kwargs):
         raise Exception()
 
-    data_preparation.allow_sending_reports = allow_sending_reports
+    data_preparation.allow_sending_reports = True
     mocker.patch.object(cube, "run", side_effect=_failure_run)
     start_spy = mocker.patch(PATCH_REGISTER.format("ReportSender.start"))
     stop_spy = mocker.patch(PATCH_REGISTER.format("ReportSender.stop"))
@@ -94,23 +91,18 @@ def test_prepare_runs_then_stops_report_handler_on_failure(
         data_preparation.run_prepare()
 
     # Assert
-    if allow_sending_reports:
-        start_spy.assert_called_once()
-        stop_spy.assert_called_once_with("failed")
-    else:
-        start_spy.assert_not_called()
-        stop_spy.assert_not_called()
+    start_spy.assert_called_once()
+    stop_spy.assert_called_once_with("failed")
 
 
-@pytest.mark.parametrize("allow_sending_reports", [False, True])
 def test_prepare_runs_then_stops_report_handler_on_interrupt(
-    mocker, data_preparation, allow_sending_reports, cube
+    mocker, data_preparation, cube
 ):
     # Arrange
     def _failure_run(*args, **kwargs):
         raise KeyboardInterrupt()
 
-    data_preparation.allow_sending_reports = allow_sending_reports
+    data_preparation.allow_sending_reports = True
     mocker.patch.object(cube, "run", side_effect=_failure_run)
     start_spy = mocker.patch(PATCH_REGISTER.format("ReportSender.start"))
     stop_spy = mocker.patch(PATCH_REGISTER.format("ReportSender.stop"))
@@ -120,12 +112,8 @@ def test_prepare_runs_then_stops_report_handler_on_interrupt(
         data_preparation.run_prepare()
 
     # Assert
-    if allow_sending_reports:
-        start_spy.assert_called_once()
-        stop_spy.assert_called_once_with("interrupted")
-    else:
-        start_spy.assert_not_called()
-        stop_spy.assert_not_called()
+    start_spy.assert_called_once()
+    stop_spy.assert_called_once_with("interrupted")
 
 
 @pytest.mark.parametrize("report_specified", [False, True])

@@ -187,12 +187,14 @@ class DataPreparation:
                     timeout=config.prepare_timeout,
                     **prepare_params,
                 )
-        except Exception:
+        except Exception as e:
             # Inform the server that a failure occured
             report_sender.stop("failed")
-        except KeyboardInterrupt:
+            raise e
+        except KeyboardInterrupt as e:
             # Inform the server that the process is interrupted
             report_sender.stop("interrupted")
+            raise e
 
         self.ui.print("> Cube execution complete")
         report_sender.stop("finished")
