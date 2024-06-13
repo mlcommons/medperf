@@ -1,5 +1,5 @@
 # Copyright (C) 2020-2021 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 
 """
 Contributors: Micah Sheller, Patrick Foley, Brandon Edwards  - DELETEME?
@@ -18,8 +18,8 @@ from openfl.utilities import TensorKey
 from openfl.utilities.split import split_tensor_dict_for_holdouts
 
 from openfl.federated.task.runner import TaskRunner
-from openfl.federated.task.runner_pt_utils import rebuild_model_util, derive_opt_state_dict, expand_derived_opt_state_dict
-from openfl.federated.task.runner_pt_utils import initialize_tensorkeys_for_functions_util, to_cpu_numpy
+from .runner_pt_utils import rebuild_model_util, derive_opt_state_dict, expand_derived_opt_state_dict
+from .runner_pt_utils import initialize_tensorkeys_for_functions_util, to_cpu_numpy
 
 
 class PyTorchCheckpointTaskRunner(TaskRunner):
