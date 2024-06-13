@@ -62,6 +62,8 @@ def test_prepare_with_test_data_doesnt_send_reports(
     data_preparation.dataset.for_test = dataset_for_test
     mocker.patch.object(cube, "run")
     mocker.patch.object(data_preparation.dataset, "write")
+    mocked_obs = mocker.create_autospec(spec=Observer)
+    mocker.patch(PATCH_REGISTER.format("Observer", side_effect=mocked_obs))
     send_report_spy = mocker.patch.object(comms, "update_dataset")
 
     # Act
