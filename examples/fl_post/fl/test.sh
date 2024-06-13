@@ -6,12 +6,6 @@ cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col1/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col2/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col3/workspace
 
-medperf mlcube run --mlcube ./mlcube_agg --task start_aggregator -P 50273
-
-# medperf --gpus="device=0" mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com
-# docker run --env MEDPERF_PARTICIPANT_LABEL=col1@example.com --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace/data:/mlcube_io0:ro --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace/labels:/mlcube_io1:ro --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace/node_cert:/mlcube_io2:ro --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace/ca_cert:/mlcube_io3:ro --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace:/mlcube_io4:ro --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace/additional_files/init_nnunet:/mlcube_io5:ro --volume /home/msheller/git/medperf-hasan/examples/fl_post/fl/mlcube_col1/workspace/logs:/mlcube_io6 -it --entrypoint bash mlcommons/medperf-fl:1.0.0
-# python /mlcube_project/mlcube.py train --data_path=/mlcube_io0 --labels_path=/mlcube_io1 --node_cert_folder=/mlcube_io2 --ca_cert_folder=/mlcube_io3 --plan_path=/mlcube_io4/plan.yaml --init_nnunet_directory=/mlcube_io5 --output_logs=/mlcube_io6
-exit
 # Run nodes
 AGG="medperf mlcube run --mlcube ./mlcube_agg --task start_aggregator -P 50273"
 COL1="medperf mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com"

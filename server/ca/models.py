@@ -23,7 +23,7 @@ class CA(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.config
+        return str(self.config)
 
     class Meta:
         ordering = ["created_at"]

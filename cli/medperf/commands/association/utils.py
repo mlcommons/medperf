@@ -87,11 +87,17 @@ def get_associations_list(
                 "user": config.comms.get_user_training_datasets_associations,
                 "experiment": config.comms.get_training_datasets_associations,
             },
-            "aggregator": config.comms.get_user_training_aggregators_associations,
-            "ca": config.comms.get_user_training_cas_associations,
+            "aggregator": {
+                "user": config.comms.get_user_training_aggregators_associations,
+            },
+            "ca": {
+                "user": config.comms.get_user_training_cas_associations,
+            },
         },
         "benchmark": {
-            "dataset": config.comms.get_user_benchmarks_datasets_associations,
+            "dataset": {
+                "user": config.comms.get_user_benchmarks_datasets_associations,
+            },
             "mode_mlcube": {
                 "user": config.comms.get_user_benchmarks_models_associations,
                 "experiment": config.comms.get_benchmark_models_associations,

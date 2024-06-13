@@ -189,7 +189,7 @@ class TestRun:
         )
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube={self.manifest_path} --task={task} "
+            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
             + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
@@ -214,7 +214,7 @@ class TestRun:
             side_effect=["", ""],
         )
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube={self.manifest_path} --task={task} "
+            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
             + f"--platform={self.platform} --network=none"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
@@ -236,7 +236,7 @@ class TestRun:
         )
         mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube={self.manifest_path} --task={task} "
+            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
             + f'--platform={self.platform} --network=none --mount=ro test="test"'
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
@@ -261,7 +261,7 @@ class TestRun:
             side_effect=["cpuarg cpuval", "gpuarg gpuval"],
         )
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube={self.manifest_path} --task={task} "
+            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
             + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="cpuarg cpuval -u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="gpuarg gpuval -u $(id -u):$(id -g)"'

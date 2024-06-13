@@ -30,7 +30,7 @@ class SetPlan:
     def __init__(self, training_exp_id: int, training_config_path: str, approval: bool):
         self.ui = config.ui
         self.training_exp_id = training_exp_id
-        self.training_config_path = training_config_path
+        self.training_config_path = os.path.abspath(training_config_path)
         self.approved = approval
         self.plan_out_path = generate_tmp_path()
 

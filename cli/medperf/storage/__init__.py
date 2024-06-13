@@ -2,7 +2,7 @@ import os
 import shutil
 
 from medperf import config
-from medperf.config_management import read_config, write_config
+from medperf.config_management import read_config, write_config, ConfigManager
 
 from .utils import full_folder_path
 
@@ -19,12 +19,7 @@ def init_storage():
         os.makedirs(folder, exist_ok=True)
 
 
-def apply_configuration_migrations():
-    if not os.path.exists(config.config_path):
-        return
-
-    config_p = read_config()
-
+def __apply_logs_migrations(config_p: ConfigManager):
     if "logs_folder" not in config_p.storage:
         return
 
@@ -34,5 +29,28 @@ def apply_configuration_migrations():
     shutil.move(src_dir, tgt_dir)
 
     del config_p.storage["logs_folder"]
+
+
+def __apply_training_migrations(config_p: ConfigManager):
+
+    for folder in [
+        "aggregators_folder",
+        "cas_folder",
+        "training_events_folder",
+        "training_folder",
+    ]:
+        if folder not in config_p.storage:
+            # Assuming for now all folders are always moved together
+            # I used here "benchmarks_folder" arbitrarily
+            config_p.storage[folder] = config_p.storage["benchmarks_folder"]
+
+
+def apply_configuration_migrations():
+    if not os.path.exists(config.config_path):
+        return
+
+    config_p = read_config()
+    __apply_logs_migrations(config_p)
+    __apply_training_migrations(config_p)
 
     write_config(config_p)

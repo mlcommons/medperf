@@ -3,42 +3,62 @@ from medperf import config
 from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
 from medperf.entities.event import TrainingEvent
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError, MedperfException
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path, get_participant_label
+from medperf.utils import (
+    approval_prompt,
+    dict_pretty_print,
+    get_pki_assets_path,
+    get_participant_label,
+    remove_path,
+)
 from medperf.certificates import trust
 
 
 class TrainingExecution:
     @classmethod
-    def run(cls, training_exp_id: int, data_uid: int):
+    def run(
+        cls,
+        training_exp_id: int,
+        data_uid: int,
+        overwrite: bool = False,
+        approved: bool = False,
+    ):
         """Starts the aggregation server of a training experiment
 
         Args:
             training_exp_id (int): Training experiment UID.
         """
-        execution = cls(training_exp_id, data_uid)
+        execution = cls(training_exp_id, data_uid, overwrite, approved)
         execution.prepare()
         execution.validate()
-        execution.prepare_training_cube()
+        execution.check_existing_outputs()
         execution.prepare_plan()
         execution.prepare_pki_assets()
+        execution.confirm_run()
         with config.ui.interactive():
+            execution.prepare_training_cube()
             execution.run_experiment()
 
-    def __init__(self, training_exp_id: int, data_uid: int) -> None:
+    def __init__(
+        self, training_exp_id: int, data_uid: int, overwrite: bool, approved: bool
+    ) -> None:
         self.training_exp_id = training_exp_id
         self.data_uid = data_uid
+        self.overwrite = overwrite
         self.ui = config.ui
+        self.approved = approved
 
     def prepare(self):
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Execution: {self.training_exp.name}")
-        self.event = TrainingEvent.from_experiment(self.training_exp_id)
+        # self.event = TrainingEvent.from_experiment(self.training_exp_id)
         self.dataset = Dataset.get(self.data_uid)
         self.user_email: str = get_medperf_user_data()["email"]
+        # self.out_logs = os.path.join(self.event.col_out_logs, str(self.dataset.id))
+        self.out_logs = os.path.join(self.training_exp.path, str(self.dataset.id))
 
     def validate(self):
         if self.dataset.id is None:
@@ -49,24 +69,21 @@ class TrainingExecution:
             msg = "The provided dataset is not operational."
             raise InvalidArgumentError(msg)
 
-        if self.event.finished:
-            msg = "The provided training experiment has to start a training event."
-            raise InvalidArgumentError(msg)
-
-        # TODO: Do we need this? This basically would make participants list public to them
-        # if self.dataset.id not in TrainingExp.get_datasets_uids(self.training_exp_id):
-        #     msg = "The provided dataset is not associated."
+        # if self.event.finished:
+        #     msg = "The provided training experiment has to start a training event."
         #     raise InvalidArgumentError(msg)
 
-    def prepare_training_cube(self):
-        self.cube = self.__get_cube(self.training_exp.fl_mlcube, "FL")
-
-    def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
-        cube = Cube.get(uid)
-        cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
-        return cube
+    def check_existing_outputs(self):
+        msg = (
+            "Outputs still exist from previous runs. Overwrite"
+            " them by rerunning the command with --overwrite"
+        )
+        paths = [self.out_logs]
+        for path in paths:
+            if os.path.exists(path):
+                if not self.overwrite:
+                    raise MedperfException(msg)
+                remove_path(path)
 
     def prepare_plan(self):
         self.training_exp.prepare_plan()
@@ -77,6 +94,29 @@ class TrainingExecution:
         self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.name)
         self.ca = ca
 
+    def confirm_run(self):
+        msg = (
+            "Above is the training configuration that will be used."
+            " Do you confirm starting training? [Y/n] "
+        )
+        dict_pretty_print(self.training_exp.plan)
+        self.approved = self.approved or approval_prompt(msg)
+
+        if not self.approved:
+            raise CleanExit("Training cancelled.")
+
+    def prepare_training_cube(self):
+        self.cube = self.__get_cube(self.training_exp.fl_mlcube, "FL")
+
+    def __get_cube(self, uid: int, name: str) -> Cube:
+        self.ui.text = (
+            "Retrieving and setting up training MLCube. This may take some time."
+        )
+        cube = Cube.get(uid)
+        cube.download_run_files()
+        self.ui.print(f"> {name} cube download complete")
+        return cube
+
     def run_experiment(self):
         participant_label = get_participant_label(self.user_email, self.dataset.id)
         env_dict = {"MEDPERF_PARTICIPANT_LABEL": participant_label}
@@ -86,7 +126,7 @@ class TrainingExecution:
             "node_cert_folder": self.dataset_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
-            "output_logs": os.path.join(self.event.col_out_logs, str(self.dataset.id)),
+            "output_logs": self.out_logs,
         }
 
         self.ui.text = "Running Training"

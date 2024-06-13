@@ -20,17 +20,17 @@ fi
 mkdir -p $OUT
 cp /mlcube_project/csr.conf $OUT/
 cp -r /mlcube_project/ca $OUT/
-CSR_TEMPLATE=$OUT/csr.conf
+CSR_CONF=$OUT/csr.conf
 CA_KEY=$OUT/ca/root.key
 CA_CERT=$OUT/ca/cert/root.crt
 
-sed -i "/^commonName = /c\commonName = $MEDPERF_INPUT_CN" $CSR_TEMPLATE
-sed -i "/^DNS\.1 = /c\DNS.1 = $MEDPERF_INPUT_CN" $CSR_TEMPLATE
+sed -i "/^commonName = /c\commonName = $MEDPERF_INPUT_CN" $CSR_CONF
+sed -i "/^DNS\.1 = /c\DNS.1 = $MEDPERF_INPUT_CN" $CSR_CONF
 
 openssl genpkey -algorithm RSA -out $OUT/key.key -pkeyopt rsa_keygen_bits:3072
-openssl req -new -key $OUT/key.key -out $OUT/csr.csr -config $CSR_TEMPLATE -extensions $EXT
+openssl req -new -key $OUT/key.key -out $OUT/csr.csr -config $CSR_CONF -extensions $EXT
 openssl x509 -req -in $OUT/csr.csr -CA $CA_CERT -CAkey $CA_KEY \
-    -CAcreateserial -out $OUT/crt.crt -days 36500 -sha384
+    -CAcreateserial -out $OUT/crt.crt -days 36500 -sha384 -extensions ${EXT}_crt -extfile $CSR_CONF
 rm $OUT/csr.csr
 rm -r $OUT/ca
 rm -r $OUT/csr.conf
