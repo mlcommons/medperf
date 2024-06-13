@@ -54,6 +54,26 @@ def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
     spy.assert_called_once()
 
 
+@pytest.mark.parametrize("dataset_for_test", [False, True])
+def test_prepare_with_test_data_doesnt_send_reports(
+        mocker, data_preparation, dataset_for_test, cube, comms, fs
+):
+    # Arrange
+    data_preparation.dataset.for_test = dataset_for_test
+    mocker.patch.object(cube, "run")
+    mocker.patch.object(data_preparation.dataset, "write")
+    send_report_spy = mocker.patch.object(comms, "update_dataset")
+
+    # Act
+    data_preparation.run_prepare()
+
+    # Assert
+    if dataset_for_test:
+        send_report_spy.assert_not_called()
+    else:
+        send_report_spy.assert_called()
+
+
 @pytest.mark.parametrize("allow_sending_reports", [False, True])
 def test_prepare_runs_then_stops_report_handler(
     mocker, data_preparation, allow_sending_reports, cube, comms, fs

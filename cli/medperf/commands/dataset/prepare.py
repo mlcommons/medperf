@@ -164,9 +164,8 @@ class DataPreparation:
             self.allow_sending_reports = False
 
     def run_prepare(self):
-        if not self.dataset.for_test:
-            report_sender = ReportSender(self)
-            report_sender.start()
+        report_sender = ReportSender(self)
+        report_sender.start()
 
         prepare_params = {
             "data_path": self.raw_data_path,
@@ -190,17 +189,16 @@ class DataPreparation:
                 )
         except Exception as e:
             # Inform the server that a failure occured
-            if not self.dataset.for_test:
-                report_sender.stop("failed")
+            report_sender.stop("failed")
             raise e
         except KeyboardInterrupt as e:
             # Inform the server that the process is interrupted
-            if not self.dataset.for_test:
-                report_sender.stop("interrupted")
+            report_sender.stop("interrupted")
             raise e
 
         self.ui.print("> Cube execution complete")
-        report_sender.stop("finished")
+        if not self.dataset.for_test:
+            report_sender.stop("finished")
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
@@ -330,6 +328,9 @@ class DataPreparation:
             return self._send_report(report_metadata)
 
     def _send_report(self, report_metadata):
+        if self.dataset.for_test:
+            # Test datasets don't have a registration on the server
+            return
         report_status_dict = {}
         if self.allow_sending_reports:
             report_status_dict = self.__generate_report_dict()
