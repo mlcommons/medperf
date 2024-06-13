@@ -56,7 +56,7 @@ def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
 
 @pytest.mark.parametrize("allow_sending_reports", [False, True])
 def test_prepare_runs_then_stops_report_handler(
-    mocker, data_preparation, allow_sending_reports, cube, comms
+    mocker, data_preparation, allow_sending_reports, cube, comms, fs
 ):
     # Arrange
     data_preparation.allow_sending_reports = allow_sending_reports
