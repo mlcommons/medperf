@@ -119,7 +119,7 @@ class DataPreparation:
 
     def should_run_prepare(self):
         return not self.dataset.submitted_as_prepared and not self.dataset.is_ready()
-
+    
     def should_prompt_for_report_sending_approval(self):
         return (
             self.should_run_prepare()
@@ -164,8 +164,9 @@ class DataPreparation:
             self.allow_sending_reports = False
 
     def run_prepare(self):
-        report_sender = ReportSender(self)
-        report_sender.start()
+        if not self.dataset.for_test:
+            report_sender = ReportSender(self)
+            report_sender.start()
 
         prepare_params = {
             "data_path": self.raw_data_path,
@@ -189,11 +190,13 @@ class DataPreparation:
                 )
         except Exception as e:
             # Inform the server that a failure occured
-            report_sender.stop("failed")
+            if not self.dataset.for_test:
+                report_sender.stop("failed")
             raise e
         except KeyboardInterrupt as e:
             # Inform the server that the process is interrupted
-            report_sender.stop("interrupted")
+            if not self.dataset.for_test:
+                report_sender.stop("interrupted")
             raise e
 
         self.ui.print("> Cube execution complete")
