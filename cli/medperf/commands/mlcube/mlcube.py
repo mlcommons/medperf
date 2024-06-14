@@ -4,11 +4,13 @@ from typing import Optional
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
+from medperf.entities.edit_cube import EditCubeData
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.mlcube.edit import EditCube
 
 app = typer.Typer()
 
@@ -120,6 +122,71 @@ def submit(
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitCube.run(mlcube_info)
+    config.ui.print("✅ Done!")
+
+
+@app.command("edit")
+@clean_except
+def edit(
+        uid: str = typer.Option(..., "--uid", "-u", help="UID of the MLCube to edit"),
+        name: str = typer.Option(None, "--name", "-n", help="Name of the mlcube"),
+        mlcube_file: str = typer.Option(
+            None,
+            "--mlcube-file",
+            "-m",
+            help="Identifier to download the mlcube file. See the description above",
+        ),
+        mlcube_hash: str = typer.Option(None, "--mlcube-hash", help="hash of mlcube file"),
+        parameters_file: str = typer.Option(
+            None,
+            "--parameters-file",
+            "-p",
+            help="Identifier to download the parameters file. See the description above",
+        ),
+        parameters_hash: str = typer.Option(None, "--parameters-hash", help="hash of parameters file"),
+        additional_file: str = typer.Option(
+            None,
+            "--additional-file",
+            "-a",
+            help="Identifier to download the additional files tarball. See the description above",
+        ),
+        additional_hash: str = typer.Option(None, "--additional-hash", help="hash of additional file"),
+        image_file: str = typer.Option(
+            None,
+            "--image-file",
+            "-i",
+            help="Identifier to download the image file. See the description above",
+        ),
+        image_hash: str = typer.Option(None, "--image-hash", help="hash of image file"),
+):
+    """Updates the existing mlcube. Only mlcubes in DEVELOPMENT state may be updated.\n
+    The following assets:\n
+        - mlcube_file\n
+        - parameters_file\n
+        - additional_file\n
+        - image_file\n
+    are expected to be given in the following format: <source_prefix:resource_identifier>
+    where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
+    is the identifier used to download the asset. The following are supported:\n
+    1. A direct link: "direct:<URL>"\n
+    2. An asset hosted on the Synapse platform: "synapse:<synapse ID>"\n\n
+
+    If a URL is given without a source prefix, it will be treated as a direct download link.
+    """
+
+    mlcube_partial_info = EditCubeData(
+        uid=uid,
+        name=name,
+        git_mlcube_url=mlcube_file,
+        git_mlcube_hash=mlcube_hash,
+        git_parameters_url=parameters_file,
+        parameters_hash=parameters_hash,
+        image_tarball_url=image_file,
+        image_tarball_hash=image_hash,
+        additional_files_tarball_url=additional_file,
+        additional_files_tarball_hash=additional_hash,
+    )
+    EditCube.run(uid, mlcube_partial_info)
     config.ui.print("✅ Done!")
 
 

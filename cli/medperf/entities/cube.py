@@ -12,6 +12,7 @@ from medperf.utils import (
     generate_tmp_path,
     spawn_and_kill,
 )
+from medperf.entities.edit_cube import EditCubeData
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
@@ -61,6 +62,12 @@ class Cube(Entity, DeployableSchema):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_mlcube
+
+    # as currently edit is implemented only for mlcubes, this function is not defined
+    # in interface and thus is not overridden.
+    @staticmethod
+    def get_comms_edit():
+        return config.comms.edit_cube
 
     def __init__(self, *args, **kwargs):
         """Creates a Cube instance
@@ -367,3 +374,16 @@ class Cube(Entity, DeployableSchema):
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }
+
+    @staticmethod
+    def edit(cube_uid: Union[str, int], edited_fields: EditCubeData) -> Dict:
+        """Uploads the mlcube diff and updates the entity
+
+        Returns:
+            Dict: Dictionary with the updated cube
+        """
+
+        comms_func = Cube.get_comms_edit()
+        logging.debug(f"Editing cube {cube_uid} with fields: {edited_fields}")
+        updated_body = comms_func(cube_uid, edited_fields.not_null_dict())
+        return updated_body

@@ -1,3 +1,4 @@
+import shutil
 from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
@@ -198,6 +199,11 @@ class Entity(MedperfSchema, ABC):
         with open(entity_file, "w") as f:
             yaml.dump(data, f)
         return entity_file
+
+    def remove_from_filesystem(self):
+        """Removes the entity folder recursively from the local storage"""
+        # TODO: might be dangerous
+        shutil.rmtree(self.path, ignore_errors=True)
 
     def upload(self) -> Dict:
         """Upload the entity-related information to the communication's interface
