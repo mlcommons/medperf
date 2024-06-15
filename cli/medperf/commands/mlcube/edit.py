@@ -25,7 +25,7 @@ class EditCube:
         with ui.interactive():
             ui.text = "Validating updated MLCube can be downloaded"
             logging.debug("Applying MLCube edit..")
-            edition.apply()
+            edition.apply_and_get_hashes()
             ui.text = "Submitting MLCube edit to MedPerf"
             logging.debug("Uploading MLCube..")
             edition.upload()
@@ -40,7 +40,7 @@ class EditCube:
         if self.cube.state != "DEVELOPMENT":
             raise ValueError("Only cubes in development state can be edited")
 
-    def apply(self):
+    def apply_and_get_hashes(self):
         cube = self.cube
         new = self.edit_info
 
@@ -49,11 +49,13 @@ class EditCube:
 
         if new.git_mlcube_url:
             cube.git_mlcube_url = new.git_mlcube_url
+            # Differs from further ifs: if mlcube.yaml url is provided, reset image also
+            cube.image_hash = ""
 
-        if new.git_mlcube_hash:
-            cube.git_mlcube_hash = new.git_mlcube_hash
+        if new.mlcube_hash:
+            cube.mlcube_hash = new.mlcube_hash
         elif new.git_mlcube_url is not None:
-            cube.git_mlcube_hash = ""
+            cube.mlcube_hash = ""
 
         if new.git_parameters_url:
             cube.git_parameters_url = new.git_parameters_url
@@ -65,6 +67,8 @@ class EditCube:
 
         if new.image_tarball_url:
             cube.image_tarball_url = new.image_tarball_url
+            # same as with git_mlcube_url
+            cube.image_hash = ""
 
         if new.image_tarball_hash:
             cube.image_tarball_hash = new.image_tarball_hash
@@ -81,14 +85,16 @@ class EditCube:
 
         self.download()
 
-        if new.git_mlcube_hash == "":
-            new.git_mlcube_hash = cube.git_mlcube_hash
-        if new.parameters_hash == "":
+        if new.git_mlcube_url and not new.mlcube_hash:
+            new.mlcube_hash = cube.mlcube_hash
+        if new.git_parameters_url and not new.parameters_hash:
             new.parameters_hash = cube.parameters_hash
-        if new.image_tarball_hash == "":
+        if new.image_tarball_url and not new.image_tarball_hash:
             new.image_tarball_hash = cube.image_tarball_hash
-        if new.additional_files_tarball_hash == "":
+        if new.additional_files_tarball_url and not new.additional_files_tarball_hash:
             new.additional_files_tarball_hash = cube.additional_files_tarball_hash
+        if new.git_mlcube_url or new.image_tarball_url:
+            new.image_hash = cube.image_hash
 
     def download(self):
         logging.debug("removing from filesystem...")
