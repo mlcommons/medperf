@@ -1,4 +1,5 @@
 import os
+
 from medperf import config
 import yaml
 
@@ -8,7 +9,7 @@ from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.result import TestResult
 from medperf.tests.mocks.cube import TestCube
-from medperf.tests.mocks.comms import mock_comms_entity_gets
+from medperf.tests.mocks.comms import mock_comms_entity_gets, TestEntityStorage
 
 PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
 
@@ -37,7 +38,7 @@ def setup_benchmark_fs(ents, fs):
             pass
 
 
-def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_benchmark_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestBenchmark
     comms_calls = {
         "get_all": "get_benchmarks",
@@ -46,8 +47,8 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
         "upload_instance": "upload_benchmark",
     }
     mocker.patch.object(comms, "get_benchmark_model_associations", return_value=[])
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
 
 
@@ -70,7 +71,7 @@ def setup_cube_fs(ents, fs):
             pass
 
 
-def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_cube_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestCube
     comms_calls = {
         "get_all": "get_cubes",
@@ -78,15 +79,15 @@ def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_cube_metadata",
         "upload_instance": "upload_mlcube",
     }
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
 
 
 def generate_cubefile_fn(fs, path, filename):
     # all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
 
-    def cubefile_fn(url, cube_path, *args):
+    def cubefile_fn(url: str, cube_path: str, *args):
         if url == "broken_url":
             raise CommunicationRetrievalError
         filepath = os.path.join(cube_path, path, filename)
@@ -144,7 +145,7 @@ def setup_dset_fs(ents, fs):
             pass
 
 
-def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_dset_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestDataset
     comms_calls = {
         "get_all": "get_datasets",
@@ -152,8 +153,8 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_dataset",
         "upload_instance": "upload_dataset",
     }
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
 
 
@@ -182,7 +183,7 @@ def setup_result_fs(ents, fs):
             pass
 
 
-def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_result_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestResult
     comms_calls = {
         "get_all": "get_results",
@@ -192,7 +193,7 @@ def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
     }
 
     # Enable dset retrieval since its required for result creation
-    setup_dset_comms(mocker, comms, [1], [1], uploaded)
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    setup_dset_comms(mocker, comms, [1], [1])
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )

@@ -16,6 +16,7 @@ from medperf.tests.entities.utils import (
     setup_result_comms,
 )
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
+from medperf.tests.mocks.comms import TestEntityStorage
 
 
 @pytest.fixture(params=[Benchmark, Cube, Dataset, Result])
@@ -29,7 +30,6 @@ def setup(request, mocker, comms, Implementation, fs):
     remote_ids = request.param.get("remote", [])
     user_ids = request.param.get("user", [])
     # Have a list that will contain all uploaded entities of the given type
-    uploaded = []
 
     if Implementation == Benchmark:
         setup_fs = setup_benchmark_fs
@@ -44,10 +44,13 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Result:
         setup_fs = setup_result_fs
         setup_comms = setup_result_comms
+    else:
+        raise NotImplementedError("Wrong implementation")
 
-    setup_comms(mocker, comms, remote_ids, user_ids, uploaded)
+    storage = setup_comms(mocker, comms, remote_ids, user_ids)
     setup_fs(local_ids, fs)
-    request.param["uploaded"] = uploaded
+
+    request.param["storage"] = storage
 
     return request.param
 
@@ -167,14 +170,16 @@ class TestUpload:
 
     def test_upload_adds_to_remote(self, Implementation, setup):
         # Arrange
-        uploaded_entities = setup["uploaded"]
+        storage: TestEntityStorage = setup["storage"]
+        assert self.id not in storage.storage
+
         ent = Implementation.get(self.id)
 
         # Act
         ent.upload()
 
         # Assert
-        assert ent.todict() in uploaded_entities
+        assert ent.todict() in storage.uploaded
 
     def test_upload_returns_dict(self, Implementation):
         # Arrange
@@ -184,20 +189,30 @@ class TestUpload:
         ent_dict = ent.upload()
 
         # Assert
-        assert ent_dict == ent.todict()
+        real_dict = ent.todict()
+        diff = {}
+        for k in set(real_dict) | set(ent_dict):
+            if real_dict.get(k) != ent_dict.get(k):
+                diff[k] = (real_dict.get(k), ent_dict.get(k))
+        assert ent_dict == ent.todict(), f"Expected: {ent_dict}\nGot: {real_dict}\nDiff: {diff}"
 
     def test_upload_fails_for_test_entity(self, Implementation, setup):
         # Arrange
-        uploaded_entities = setup["uploaded"]
+        storage: TestEntityStorage = setup["storage"]
         ent = Implementation.get(self.id)
         ent.for_test = True
 
+        # pre-check
+        len_before_test = len(storage.uploaded)
+        assert self.id not in storage.storage
         # Act
         with pytest.raises(InvalidArgumentError):
             ent.upload()
 
         # Assert
-        assert ent.todict() not in uploaded_entities
+        assert self.id not in storage.storage
+        assert ent.todict() not in storage.uploaded
+        assert len(storage.uploaded) == len_before_test
 
 
 @pytest.mark.parametrize(

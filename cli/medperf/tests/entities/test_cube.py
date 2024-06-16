@@ -30,12 +30,10 @@ def setup(request, mocker, comms, fs):
     remote_ents = request.param.get("remote", [])
     user_ents = request.param.get("user", [])
     # Have a list that will contain all uploaded entities of the given type
-    uploaded = []
 
     setup_cube_fs(local_ents, fs)
-    setup_cube_comms(mocker, comms, remote_ents, user_ents, uploaded)
+    request.param["storage"] = setup_cube_comms(mocker, comms, remote_ents, user_ents)
     setup_cube_comms_downloads(mocker, fs)
-    request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
     mpexpect = MockPexpect(0)

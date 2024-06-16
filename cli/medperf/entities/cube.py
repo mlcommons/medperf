@@ -251,7 +251,7 @@ class Cube(Entity, DeployableSchema):
                                                  Defaults to {}.
             timeout (int, optional): timeout for the task in seconds. Defaults to None.
             read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
-            kwargs (dict): additional arguments that are passed directly to the mlcube command
+            kwargs: additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
