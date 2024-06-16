@@ -24,14 +24,7 @@ NO_IMG_CUBE = {
 }
 
 
-@pytest.fixture(
-    params={
-        "unregistered": ["c1", "c2"],
-        "local": ["c1", "c2", 1, 2, 3],
-        "remote": [1, 2, 3, 4, 5, 6],
-        "user": [4],
-    }
-)
+@pytest.fixture(autouse=True)
 def setup(request, mocker, comms, fs):
     local_ents = request.param.get("local", [])
     remote_ents = request.param.get("remote", [])

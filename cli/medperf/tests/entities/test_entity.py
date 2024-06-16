@@ -23,14 +23,7 @@ def Implementation(request):
     return request.param
 
 
-@pytest.fixture(
-    params={
-        "unregistered": ["e1", "e2"],
-        "local": ["e1", "e2", 1, 2, 3],
-        "remote": [1, 2, 3, 4, 5, 6],
-        "user": [4],
-    }
-)
+@pytest.fixture(autouse=True)
 def setup(request, mocker, comms, Implementation, fs):
     local_ids = request.param.get("local", [])
     remote_ids = request.param.get("remote", [])

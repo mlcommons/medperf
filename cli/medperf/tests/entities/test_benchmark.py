@@ -7,15 +7,7 @@ from medperf.tests.entities.utils import setup_benchmark_fs, setup_benchmark_com
 PATCH_BENCHMARK = "medperf.entities.benchmark.{}"
 
 
-@pytest.fixture(
-    params={
-        "unregistered": ["b1", "b2"],
-        "local": ["b1", "b2", 1, 2, 3],
-        "remote": [1, 2, 3, 4, 5, 6],
-        "user": [4],
-        "models": [10, 11],
-    }
-)
+@pytest.fixture(autouse=True)
 def setup(request, mocker, comms, fs):
     local_ids = request.param.get("local", [])
     remote_ids = request.param.get("remote", [])
