@@ -42,6 +42,9 @@ jobs:
     - name: Set server environment vars
       working-directory: ./server
       run: cp .env.local.local-auth .env
+    - name: Run postgresql server in background
+      working-directory: ./server
+      run: sh run_dev_postgresql.sh && sleep 6
     - name: Run migrations
       working-directory: ./server
       run: python manage.py migrate
