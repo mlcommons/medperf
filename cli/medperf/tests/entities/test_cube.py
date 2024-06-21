@@ -24,7 +24,14 @@ NO_IMG_CUBE = {
 }
 
 
-@pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
+@pytest.fixture(
+    params={
+        "unregistered": ["c1", "c2"],
+        "local": ["c1", "c2", 1, 2, 3],
+        "remote": [1, 2, 3, 4, 5, 6],
+        "user": [4],
+    }
+)
 def setup(request, mocker, comms, fs):
     local_ents = request.param.get("local", [])
     remote_ents = request.param.get("remote", [])
@@ -282,7 +289,9 @@ class TestRun:
             cube.run(task)
 
 
-@pytest.mark.parametrize("setup", [{"local": [DEFAULT_CUBE]}], indirect=True)
+@pytest.mark.parametrize(
+    "setup", [{"local": [DEFAULT_CUBE], "remote": [DEFAULT_CUBE]}], indirect=True
+)
 @pytest.mark.parametrize("task", ["task"])
 @pytest.mark.parametrize(
     "out_key,out_value",

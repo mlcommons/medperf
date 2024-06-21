@@ -138,23 +138,23 @@ def create_test_dataset(
     # TODO: existing dataset could make problems
     # make some changes since this is a test dataset
     config.tmp_paths.remove(data_creation.dataset.path)
-    data_creation.dataset.write()
     if skip_data_preparation_step:
         data_creation.make_dataset_prepared()
     dataset = data_creation.dataset
+    old_generated_uid = dataset.generated_uid
+    old_path = dataset.path
 
     # prepare/check dataset
     DataPreparation.run(dataset.generated_uid)
 
     # update dataset generated_uid
-    old_path = dataset.path
-    generated_uid = get_folders_hash([dataset.data_path, dataset.labels_path])
-    dataset.generated_uid = generated_uid
-    dataset.write()
-    if dataset.input_data_hash != dataset.generated_uid:
+    new_generated_uid = get_folders_hash([dataset.data_path, dataset.labels_path])
+    if new_generated_uid != old_generated_uid:
         # move to a correct location if it underwent preparation
-        new_path = old_path.replace(dataset.input_data_hash, generated_uid)
+        new_path = old_path.replace(old_generated_uid, new_generated_uid)
         remove_path(new_path)
         os.rename(old_path, new_path)
+        dataset.generated_uid = new_generated_uid
+        dataset.write()
 
-    return generated_uid
+    return new_generated_uid
