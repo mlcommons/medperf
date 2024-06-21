@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import datetime
+import numpy as np
 
 from medperf.entities.dataset import Dataset
 from medperf import config
@@ -38,6 +39,9 @@ def build_dset_df(dsets, user2institution, stages_df):
             exec_status = report["execution_status"]
             formatted_dset["execution_status"] = exec_status
             formatted_dset["progress"] = report["progress"]
+        else:
+            formatted_dset["execution_status"] = np.nan
+            formatted_dset["progress"] = np.nan
 
         formatted_dsets.append(formatted_dset)
         dsets_df = pd.DataFrame(formatted_dsets)
