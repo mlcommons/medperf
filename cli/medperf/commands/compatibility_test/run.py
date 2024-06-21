@@ -239,7 +239,7 @@ class CompatibilityTestExecution:
         """
         if self.no_cache:
             return
-        uid = self.report.generated_uid
+        uid = self.report.local_id
         try:
             report = TestReport.get(uid)
         except InvalidArgumentError:

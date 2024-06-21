@@ -1,9 +1,42 @@
 # Utility functions for mocking comms and its methods
-from typing import Dict, List, Callable, Union
+from typing import Dict, List, Callable, Union, TypeVar, Tuple
 from unittest.mock import MagicMock
 from pytest_mock.plugin import MockFixture
-
 from medperf.exceptions import CommunicationRetrievalError
+
+
+class TestEntityStorage:
+    AnyEntity = TypeVar("AnyEntity")
+
+    def __init__(self,
+                 generate_fun: Callable[[Dict], AnyEntity],
+                 ents: Dict[str, Dict]):
+
+        self.storage = ents
+        self.uploaded = []
+        self.generate_fun = generate_fun  # 🥳  <- generated fun
+
+    def get(self, id_) -> Dict:
+        if id_ not in self.storage:
+            raise CommunicationRetrievalError(f"Get entity {id_}: not found in test storage")
+        return self.storage[id_]
+
+    def upload(self, ent: Dict) -> Dict:
+        id_ = ent["id"]
+        if id_ is None or id_ == "":  # not include 0 as 0 is a valid id
+            id_ = str(-len(self.storage))  # some non-existent id
+            assert id_ not in self.storage, f"Upload failed: generated id {id_} already exists in storage"
+        self.storage[id_] = self.generate_fun(**ent).todict()
+        self.uploaded.append(ent)
+        return self.storage[id_]
+
+    def edit(self, ent: Dict):
+        id_ = ent["id"]
+        if id_ not in self.storage:
+            raise CommunicationRetrievalError(f"Edit entity {id_}: not found in test storage")
+        orig_value = self.storage[id_]
+        new_value = {**orig_value, **ent}  # rewrites all fields from ent
+        self.storage[id_] = new_value
 
 
 def mock_comms_entity_gets(
@@ -13,8 +46,7 @@ def mock_comms_entity_gets(
     comms_calls: Dict[str, str],
     all_ents: List[Union[str, Dict]],
     user_ents: List[Union[str, Dict]],
-    uploaded: List,
-):
+) -> TestEntityStorage:
     """Mocks API endpoints used by an entity instance. Allows to define
     what is returned by each endpoint, and keeps track of submitted instances.
 
@@ -28,69 +60,34 @@ def mock_comms_entity_gets(
             - get_user
             - get_instance
             - upload_instance
-        all_ids (List[Union[str, Dict]]): List of ids or curations that should be returned by the all endpoint
-        user_ids (List[Union[str, Dict]]): List of ids or configurations that should be returned by the user endpoint
-        uploaded (List): List that will be updated with uploaded instances
+            - edit_instance [optional]
+        all_ents (List[Union[str, Dict]]): List of ids or configurations to init storage. Should be returned by the
+            `all` endpoint.
+        user_ents (List[Union[str, Dict]]): List of ids or configurations that should be returned by the user endpoint.
+            Non-updatable.
+    Returns:
+        TestStorage: A link to the storage. Whenever new entity is uploaded / edited, it is updated
     """
     get_all = comms_calls["get_all"]
     get_user = comms_calls["get_user"]
     get_instance = comms_calls["get_instance"]
     upload_instance = comms_calls["upload_instance"]
 
-    all_ents = [ent if isinstance(ent, dict) else {"id": ent} for ent in all_ents]
-    user_ents = [ent if isinstance(ent, dict) else {"id": ent} for ent in user_ents]
-
-    instances = [generate_fn(**ent).dict() for ent in all_ents]
-    user_instances = [generate_fn(**ent).dict() for ent in user_ents]
-    mocker.patch.object(comms, get_all, return_value=instances)
-    mocker.patch.object(comms, get_user, return_value=user_instances)
-    get_behavior = get_comms_instance_behavior(generate_fn, all_ents)
-    mocker.patch.object(
-        comms,
-        get_instance,
-        side_effect=get_behavior,
-    )
-    upload_behavior = upload_comms_instance_behavior(uploaded)
-    mocker.patch.object(comms, upload_instance, side_effect=upload_behavior)
-
-
-def get_comms_instance_behavior(
-    generate_fn: Callable, ents: List[Union[str, Dict]]
-) -> Callable:
-    """Function that defines a GET behavior
-
-    Args:
-        generate_fn (Callable): Function to generate entity dictionaries
-        ents (List[Union[str, Dict]]): List of Entities configurations that are allowed to return
-
-    Return:
-        function: Function that returns an entity dictionary if found,
-        or raises an error if not
-    """
-    ids = [ent["id"] if isinstance(ent, dict) else ent for ent in ents]
-
-    def get_behavior(id: int):
-        if id in ids:
-            idx = ids.index(id)
-            return generate_fn(**ents[idx]).dict()
+    def _to_dict_entity(ent: Union[str, Dict]) -> Tuple[str, Dict]:
+        """returns pair (id, entity-as-a-full-dict)"""
+        if isinstance(ent, dict):
+            id_, ent_params = ent["id"], ent
         else:
-            raise CommunicationRetrievalError
+            id_, ent_params = ent, {"id": ent}
+        return id_, generate_fn(**ent_params).dict()
 
-    return get_behavior
+    all_ents = dict(_to_dict_entity(ent) for ent in all_ents)
+    user_ents = dict(_to_dict_entity(ent) for ent in user_ents)
 
+    storage = TestEntityStorage(generate_fn, all_ents)
+    mocker.patch.object(comms, get_all, return_value=list(all_ents.values()))
+    mocker.patch.object(comms, get_user, return_value=list(user_ents.values()))
 
-def upload_comms_instance_behavior(uploaded: List) -> Callable:
-    """Function that defines the comms mocked behavior when uploading entities
-
-    Args:
-        uploaded (List): List that will be updated with uploaded entities
-
-    Returns:
-        Callable: Function containing the desired behavior
-    """
-
-    def upload_behavior(entity_dict):
-        uploaded.append(entity_dict)
-        return entity_dict
-
-    return upload_behavior
+    mocker.patch.object(comms, get_instance, side_effect=storage.get)
+    mocker.patch.object(comms, upload_instance, side_effect=storage.upload)
+    return storage

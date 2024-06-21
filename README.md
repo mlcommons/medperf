@@ -17,7 +17,7 @@ Inside this repo you can find all important pieces for running MedPerf. In its c
 
 If you use MedPerf, please cite our main paper: Karargyris, A., Umeton, R., Sheller, M.J. et al. Federated benchmarking of medical artificial intelligence with MedPerf. *Nature Machine Intelligence* **5**, 799–810 (2023). [https://www.nature.com/articles/s42256-023-00652-2](https://www.nature.com/articles/s42256-023-00652-2)
 
-Additonally, here you can see how others used MedPerf already: [https://scholar.google.com/scholar?q="medperf"](https://scholar.google.com/scholar?q="medperf").
+Additionally, here you can see how others used MedPerf already: [https://scholar.google.com/scholar?q="medperf"](https://scholar.google.com/scholar?q="medperf").
 
 ## Experiments
 

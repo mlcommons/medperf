@@ -88,6 +88,18 @@ class Comms(ABC):
         """
 
     @abstractmethod
+    def edit_cube(self, cube_uid: int, edited_fields: dict) -> dict:
+        """Updates mlcube with dict of changed fields
+
+        Args:
+            cube_uid (int): UID of the desired cube.
+            edited_fields: Dictionary containing the fields to be updated
+
+        Returns:
+            dict: Dictionary containing the full mlcube
+        """
+
+    @abstractmethod
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
