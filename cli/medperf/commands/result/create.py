@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+from medperf.account_management.account_management import get_medperf_user_data
 from medperf.commands.execution import Execution
 from medperf.entities.result import Result
 from tabulate import tabulate
@@ -100,6 +101,8 @@ class BenchmarkExecution:
         if dset_prep_cube != bmark_prep_cube:
             msg = "The provided dataset is not compatible with the specified benchmark."
             raise InvalidArgumentError(msg)
+        # TODO: there is no check if dataset is associated with the benchmark
+        #       Note that if it is present, this will break dataset association logic
 
     def prepare_models(self):
         if self.models_input_file:
@@ -143,7 +146,9 @@ class BenchmarkExecution:
             raise InvalidArgumentError(msg)
 
     def load_cached_results(self):
-        results = Result.all()
+        user_id = get_medperf_user_data()["id"]
+        results = Result.all(filters={"owner": user_id})
+        results += Result.all(unregistered=True)
         benchmark_dset_results = [
             result
             for result in results

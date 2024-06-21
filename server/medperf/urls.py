@@ -36,5 +36,8 @@ urlpatterns = [
         path("results/", include("result.urls", namespace=API_VERSION), name="result"),
         path("users/", include("user.urls", namespace=API_VERSION), name="users"),
         path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
+        path("training/", include("training.urls", namespace=API_VERSION), name="training"),
+        path("aggregators/", include("aggregator.urls", namespace=API_VERSION), name="aggregator"),
+        path("cas/", include("ca.urls", namespace=API_VERSION), name="ca")
     ])),
 ]

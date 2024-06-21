@@ -1,16 +1,11 @@
 import hashlib
-import os
-import yaml
-import logging
 from typing import List, Union, Optional
 
-from medperf.entities.schemas import MedperfBaseSchema
 import medperf.config as config
-from medperf.exceptions import InvalidArgumentError
 from medperf.entities.interface import Entity
 
 
-class TestReport(Entity, MedperfBaseSchema):
+class TestReport(Entity):
     """
     Class representing a compatibility test report entry
 
@@ -35,11 +30,23 @@ class TestReport(Entity, MedperfBaseSchema):
     data_evaluator_mlcube: Union[int, str]
     results: Optional[dict]
 
+    @staticmethod
+    def get_type():
+        return "report"
+
+    @staticmethod
+    def get_storage_path():
+        return config.tests_folder
+
+    @staticmethod
+    def get_metadata_filename():
+        return config.test_report_file
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.id = None
+        self.for_test = True
         self.generated_uid = self.__generate_uid()
-        path = config.tests_folder
-        self.path = os.path.join(path, self.generated_uid)
 
     def __generate_uid(self):
         """A helper that generates a unique hash for a test report."""
@@ -52,71 +59,14 @@ class TestReport(Entity, MedperfBaseSchema):
         self.results = results
 
     @classmethod
-    def all(
-        cls, local_only: bool = False, mine_only: bool = False
-    ) -> List["TestReport"]:
-        """Gets and creates instances of test reports.
-        Arguments are only specified for compatibility with
-        `Entity.List` and `Entity.View`, but they don't contribute to
-        the logic.
-
-        Returns:
-            List[TestReport]: List containing all test reports
-        """
-        logging.info("Retrieving all reports")
-        reports = []
-        tests_folder = config.tests_folder
-        try:
-            uids = next(os.walk(tests_folder))[1]
-        except StopIteration:
-            msg = "Couldn't iterate over the tests directory"
-            logging.warning(msg)
-            raise RuntimeError(msg)
-
-        for uid in uids:
-            local_meta = cls.__get_local_dict(uid)
-            report = cls(**local_meta)
-            reports.append(report)
-
-        return reports
+    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["Entity"]:
+        assert unregistered, "Reports are only unregistered"
+        assert filters == {}, "Reports cannot be filtered"
+        return super().all(unregistered=True, filters={})
 
     @classmethod
-    def get(cls, report_uid: str) -> "TestReport":
-        """Retrieves and creates a TestReport instance obtained the user's machine
-
-        Args:
-            report_uid (str): UID of the TestReport instance
-
-        Returns:
-            TestReport: Specified TestReport instance
-        """
-        logging.debug(f"Retrieving report {report_uid}")
-        report_dict = cls.__get_local_dict(report_uid)
-        report = cls(**report_dict)
-        report.write()
-        return report
-
-    def todict(self):
-        return self.extended_dict()
-
-    def write(self):
-        report_file = os.path.join(self.path, config.test_report_file)
-        os.makedirs(self.path, exist_ok=True)
-        with open(report_file, "w") as f:
-            yaml.dump(self.todict(), f)
-        return report_file
-
-    @classmethod
-    def __get_local_dict(cls, local_uid):
-        report_path = os.path.join(config.tests_folder, str(local_uid))
-        report_file = os.path.join(report_path, config.test_report_file)
-        if not os.path.exists(report_file):
-            raise InvalidArgumentError(
-                f"The requested report {local_uid} could not be retrieved"
-            )
-        with open(report_file, "r") as f:
-            report_info = yaml.safe_load(f)
-        return report_info
+    def get(cls, report_uid: str, local_only: bool = False) -> "TestReport":
+        return super().get(report_uid, local_only=True)
 
     def display_dict(self):
         if self.data_path:

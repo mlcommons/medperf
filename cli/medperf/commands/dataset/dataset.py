@@ -10,6 +10,7 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.train import TrainingExecution
 
 app = typer.Typer()
 
@@ -17,17 +18,19 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local datasets"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered datasets"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
     mlcube: int = typer.Option(
         None, "--mlcube", "-m", help="Get datasets for a given data prep mlcube"
     ),
 ):
-    """List datasets stored locally and remotely from the user"""
+    """List datasets"""
     EntityList.run(
         Dataset,
         fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status", "Owner"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
         mlcube=mlcube,
     )
@@ -122,21 +125,43 @@ def associate(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark_uid", "-b", help="Benchmark UID"
+        None, "--benchmark_uid", "-b", help="Benchmark UID"
+    ),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp_uid", "-t", help="Training experiment UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
-        help="Execute the test even if results already exist",
+        help="Execute the benchmark association test even if results already exist",
     ),
 ):
-    """Associate a registered dataset with a specific benchmark.
-    The dataset and benchmark must share the same data preparation cube.
-    """
+    """Associate a registered dataset with a specific benchmark or experiment."""
     ui = config.ui
-    AssociateDataset.run(data_uid, benchmark_uid, approved=approval, no_cache=no_cache)
+    AssociateDataset.run(
+        data_uid, benchmark_uid, training_exp_uid, approved=approval, no_cache=no_cache
+    )
     ui.print("✅ Done!")
+
+
+@app.command("train")
+@clean_except
+def train(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite outputs if present"
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Runs training"""
+    TrainingExecution.run(training_exp_id, data_uid, overwrite, approval)
+    config.ui.print("✅ Done!")
 
 
 @app.command("view")
@@ -149,8 +174,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
-        False, "--local", help="Display local datasets if dataset ID is not provided"
+    unregistered: bool = typer.Option(
+        False,
+        "--unregistered",
+        help="Display unregistered datasets if dataset ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -165,4 +192,4 @@ def view(
     ),
 ):
     """Displays the information of one or more datasets"""
-    EntityView.run(entity_id, Dataset, format, local, mine, output)
+    EntityView.run(entity_id, Dataset, format, unregistered, mine, output)
