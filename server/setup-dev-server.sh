@@ -9,19 +9,21 @@ do
     esac
 done
 
+CONFIG_PATH=$HOME/.medperf_dev
 DEPLOY="${DEPLOY:-1}"
 CERT_GENERATE="${CERT_GENERATE:-1}"
-CERT_FILE="${CERT_FILE:-cert.crt}"
-KEY_FILE="${KEY_FILE:-cert.key}"
+CERT_FILE="${CERT_FILE:-$CONFIG_PATH/cert.crt}"
+KEY_FILE="${KEY_FILE:-$CONFIG_PATH/cert.key}"
 RESET_DB="${RESET_DB:-0}"
 
 echo $CERT_FILE
 echo $KEY_FILE
 echo $DEPLOY
 echo $CERT_GENERATE
-echo $CERT_PATH
 echo $RESET_DB
+echo $CONFIG_PATH
 
+mkdir -p $CONFIG_PATH
 
 if [ -z "$CERT_FILE" ]
 then
