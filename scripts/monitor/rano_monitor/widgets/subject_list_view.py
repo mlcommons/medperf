@@ -1,13 +1,21 @@
+import os
 import pandas as pd
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages.report_updated import ReportUpdated
 from textual.widgets import Label, ListItem, ListView
+from rano_monitor.utils import (
+    get_hash,
+    tumor_has_been_finalized,
+    get_finalized_tumor_path,
+    get_brainmask_path,
+)
 
 
 class SubjectListView(ListView):
     report = {}
     highlight = set()
     invalid_subjects = set()
+    dset_path = ""
 
     def on_report_updated(self, message: ReportUpdated) -> None:
         self.report = message.report
@@ -38,12 +46,30 @@ class SubjectListView(ListView):
             else:
                 status = report_df.loc[subject]["status_name"]
                 status = status.capitalize().replace("_", " ")
+                status_code = report_df.loc[subject]["status"]
                 if subject in self.invalid_subjects:
                     status = "Invalidated"
-                widget = ListItem(
+
+                list_contents = [
                     Label(subject),
                     Label(status, classes="subtitle"),
-                )
+                ]
+
+                tumor_path = get_finalized_tumor_path(subject, self.dset_path)
+                if os.path.exists(tumor_path) and tumor_has_been_finalized(tumor_path):
+                    list_contents.append(
+                        Label("Tumor finalized", classes="tumor-status")
+                    )
+
+                brain_path = get_brainmask_path(subject, self.dset_path)
+                exp_hash = report_df.loc[subject]["brain_mask_hash"]
+                if os.path.exists(brain_path) and get_hash(brain_path) != exp_hash:
+                    list_contents.append(
+                        Label("Brain Mask Modified", classes="brain-status")
+                    )
+
+                widget = ListItem(*list_contents)
+
             if subject in self.highlight:
                 widget.set_class(True, "highlight")
             widgets.append(widget)
