@@ -46,7 +46,6 @@ class SubjectListView(ListView):
             else:
                 status = report_df.loc[subject]["status_name"]
                 status = status.capitalize().replace("_", " ")
-                status_code = report_df.loc[subject]["status"]
                 if subject in self.invalid_subjects:
                     status = "Invalidated"
 

@@ -1,10 +1,6 @@
 import os
 
-from rano_monitor.constants import (
-    BRAINMASK,
-    BRAINMASK_BAK,
-    DEFAULT_SEGMENTATION
-)
+from rano_monitor.constants import BRAINMASK, BRAINMASK_BAK, DEFAULT_SEGMENTATION
 from rano_monitor.utils import (
     finalize,
     is_editor_installed,
@@ -28,10 +24,7 @@ class TarballSubjectView(Static):
             with Container(classes="subject-text"):
                 yield Static(self.subject)
                 yield Static("Brain mask modified", classes="brain-status")
-                yield Static(
-                    "Tumor segmentation reviewed",
-                    classes="tumor-status"
-                )
+                yield Static("Tumor segmentation reviewed", classes="tumor-status")
 
             yield Button("Review Brain Mask", classes="brain-btn")
             yield Button("Review Tumor Segmentation", classes="tumor-btn")
@@ -56,7 +49,7 @@ class TarballSubjectView(Static):
     def update_status(self):
         tumor_status = self.query_one(".tumor-status", Static)
         brain_status = self.query_one(".brain-status", Static)
-        
+
         id, tp = self.subject.split("|")
         finalized_tumor_path = os.path.join(self.contents_path, id, tp, "finalized")
         brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
