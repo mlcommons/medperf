@@ -25,7 +25,8 @@ class Summary(Static):
         yield Static("Report Status")
         yield Static(
             "HINT: To move forward with finalized annotations, ensure the preparation pipeline is running.",
-            id="hint-msg"
+            id="hint-msg",
+            classes="warning"
         )
         yield Center(id="summary-content")
         with Center(id="package-btns"):
