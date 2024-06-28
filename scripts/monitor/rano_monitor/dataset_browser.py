@@ -104,6 +104,10 @@ class DatasetBrowser(App):
         subject_details = self.query_one("#details", SubjectDetails)
         subject_details.set_invalid_path(self.invalid_path)
 
+        # Set dataset path to listview
+        listview = self.query_one("#subjects-list", ListView)
+        listview.dset_path = self.dset_data_path
+
         # Execute handlers
         self.prompt_watchdog.manual_execute()
         self.invalid_watchdog.manual_execute()

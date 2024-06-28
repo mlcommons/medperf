@@ -1,16 +1,13 @@
 import os
 
-from rano_monitor.constants import (
-    BRAINMASK,
-    BRAINMASK_BAK,
-    DEFAULT_SEGMENTATION
-)
+from rano_monitor.constants import BRAINMASK, BRAINMASK_BAK, DEFAULT_SEGMENTATION
 from rano_monitor.utils import (
     finalize,
-    get_hash,
     is_editor_installed,
     review_brain,
     review_tumor,
+    brain_has_been_reviewed,
+    tumor_has_been_finalized,
 )
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -27,10 +24,7 @@ class TarballSubjectView(Static):
             with Container(classes="subject-text"):
                 yield Static(self.subject)
                 yield Static("Brain mask modified", classes="brain-status")
-                yield Static(
-                    "Tumor segmentation reviewed",
-                    classes="tumor-status"
-                )
+                yield Static("Tumor segmentation reviewed", classes="tumor-status")
 
             yield Button("Review Brain Mask", classes="brain-btn")
             yield Button("Review Tumor Segmentation", classes="tumor-btn")
@@ -55,9 +49,15 @@ class TarballSubjectView(Static):
     def update_status(self):
         tumor_status = self.query_one(".tumor-status", Static)
         brain_status = self.query_one(".brain-status", Static)
-        if self.__tumor_has_been_finalized():
+
+        id, tp = self.subject.split("|")
+        finalized_tumor_path = os.path.join(self.contents_path, id, tp, "finalized")
+        brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
+        backup_brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK_BAK)
+
+        if tumor_has_been_finalized(finalized_tumor_path):
             tumor_status.display = "block"
-        if self.__brain_has_been_reviewed():
+        if brain_has_been_reviewed(brainpath, backup_brainpath):
             brain_status.display = "block"
 
     def __update_buttons(self):
@@ -119,33 +119,3 @@ class TarballSubjectView(Static):
             self.__finalize()
 
         self.__update_buttons()
-
-    def __brain_has_been_reviewed(self):
-        id, tp = self.subject.split("|")
-        brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
-        backup_brainpath = os.path.join(
-            self.contents_path,
-            id,
-            tp,
-            BRAINMASK_BAK
-        )
-
-        if not os.path.exists(backup_brainpath):
-            return False
-
-        brain_hash = get_hash(brainpath)
-        backup_hash = get_hash(backup_brainpath)
-        return brain_hash != backup_hash
-
-    def __tumor_has_been_finalized(self):
-        id, tp = self.subject.split("|")
-        finalized_tumor_path = os.path.join(
-            self.contents_path,
-            id,
-            tp,
-            "finalized"
-        )
-        finalized_files = os.listdir(finalized_tumor_path)
-        finalized_files = [file for file in finalized_files if not file.startswith(".")]
-
-        return len(finalized_files) > 0

@@ -23,6 +23,11 @@ class Summary(Static):
 
     def compose(self) -> ComposeResult:
         yield Static("Report Status")
+        yield Static(
+            "HINT: To move forward with finalized annotations, ensure the preparation pipeline is running.",
+            id="hint-msg",
+            classes="warning"
+        )
         yield Center(id="summary-content")
         with Center(id="package-btns"):
             yield Button(
@@ -49,6 +54,7 @@ class Summary(Static):
         if report_df.empty:
             return
         package_btns = self.query_one("#package-btns", Center)
+        hint_msg = self.query_one("#hint-msg", Static)
         # Generate progress bars for all states
         display_report_df = report_df.copy(deep=True)
         display_report_df.loc[list(self.invalid_subjects), "status_name"] = (
@@ -61,6 +67,7 @@ class Summary(Static):
             status_percents["DONE"] = 0.0
 
         package_btns.display = "MANUAL_REVIEW_REQUIRED" in status_percents
+        hint_msg.display = package_btns.display
 
         widgets = []
         for name, val in status_percents.items():

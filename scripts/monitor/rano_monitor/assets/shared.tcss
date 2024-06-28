@@ -1,3 +1,11 @@
 .warning {
     border: tall $warning;
 }
+
+.tumor-status {
+    color: $success;
+}
+
+.brain-status {
+    color: $warning;
+}
