@@ -197,8 +197,7 @@ class DataPreparation:
             raise e
 
         self.ui.print("> Cube execution complete")
-        if not self.dataset.for_test:
-            report_sender.stop("finished")
+        report_sender.stop("finished")
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
