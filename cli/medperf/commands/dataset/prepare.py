@@ -310,7 +310,7 @@ class DataPreparation:
         dict_pretty_print(example)
 
         msg = (
-            "\nYou can decide wether or not to send information about your dataset preparation"
+            "\nYou can decide whether or not to send information about your dataset preparation"
             + "\nProgress. Keep in mind that information about the execution status of the pipeline"
             + "\nwill be sent regardless (whether the pipeline is running, finished or failed)"
             + "\nto identify issues with the preparation procedure. Do you approve the automatic"
