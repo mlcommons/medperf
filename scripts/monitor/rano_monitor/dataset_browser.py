@@ -19,6 +19,7 @@ from textual.widgets import (
     Header,
     ListView,
     Static,
+    Input,
 )
 
 
@@ -62,6 +63,7 @@ class DatasetBrowser(App):
         yield Header()
         with Container():
             with Container(id="list-container"):
+                yield Input(placeholder="Search", id="subjects-search")
                 yield SubjectListView(id="subjects-list")
             with VerticalScroll():
                 yield Summary(id="summary")
@@ -142,6 +144,14 @@ class DatasetBrowser(App):
             self.action_respond("y")
         elif event.control == n_button:
             self.action_respond("n")
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        search_input = self.query_one("#subjects-search")
+        subjects_list = self.query_one("#subjects-list")
+        if event.control == search_input:
+            search_term = search_input.value
+            subjects_list.update_list(search_term)
+
 
     def update_prompt(self, prompt: str):
         self.prompt = prompt

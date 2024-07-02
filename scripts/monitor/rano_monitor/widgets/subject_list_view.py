@@ -23,7 +23,7 @@ class SubjectListView(ListView):
         self.invalid_subjects = message.invalid_subjects
         self.update_list()
 
-    def update_list(self):
+    def update_list(self, search_term=""):
         # Check for content differences with old report
         # apply alert class to listitem
         report = self.report
@@ -46,7 +46,17 @@ class SubjectListView(ListView):
                 )
             if subject in self.highlight:
                 widget.set_class(True, "highlight")
+
+            should_display = True
+            if search_term != "":
+                should_display = subject == "SUMMARY" or \
+                    search_term.lower() in subject.lower() or \
+                    search_term.lower() in status.lower()
+
+            if not should_display:
+                continue
             widgets.append(widget)
+                
 
         current_idx = self.index
         while len(self.children):
