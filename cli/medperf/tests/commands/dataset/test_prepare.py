@@ -85,7 +85,7 @@ def test_prepare_runs_then_stops_report_handler(
     mocker.patch.object(cube, "run")
     mocker.patch.object(data_preparation.dataset, "write")
     mocked_obs = mocker.create_autospec(spec=Observer)
-    mocker.patch(PATCH_REGISTER.format("Observer", side_effect=mocked_obs))
+    mocker.patch(PATCH_REGISTER.format("Observer"), side_effect=mocked_obs)
     gen_report_spy = mocker.patch(PATCH_REGISTER.format("DataPreparation._DataPreparation__generate_report_dict"))
 
     # Act
