@@ -312,7 +312,7 @@ class DataPreparation:
         msg = (
             "\nYou can decide wether or not to send information about your dataset preparation"
             + "\nProgress. Keep in mind that information about the execution status of the pipeline"
-            + "\nwill be sent regardless (wether the pipeline is running, finished or failed)"
+            + "\nwill be sent regardless (whether the pipeline is running, finished or failed)"
             + "\nto identify issues with the preparation procedure. Do you approve the automatic"
             + "\nsubmission of summaries similar to the one above to the MedPerf Server throughout"
             + "\nthe preparation process?[Y/n]"
