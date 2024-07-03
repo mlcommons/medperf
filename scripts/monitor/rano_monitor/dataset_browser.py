@@ -5,6 +5,7 @@ import pandas as pd
 import yaml
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
+from rano_monitor.messages import AnnotationsLoaded
 from rano_monitor.utils import generate_full_report
 from rano_monitor.widgets.subject_details import SubjectDetails
 from rano_monitor.widgets.subject_list_view import SubjectListView
@@ -156,6 +157,9 @@ class DatasetBrowser(App):
             search_term = search_input.value
             subjects_list.update_list(search_term)
 
+    def on_annotations_loaded(self, message: AnnotationsLoaded):
+        subjects_list = self.query_one("#subjects-list")
+        subjects_list.update_list()
 
     def update_prompt(self, prompt: str):
         self.prompt = prompt

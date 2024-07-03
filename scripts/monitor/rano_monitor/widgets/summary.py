@@ -3,6 +3,7 @@ import pandas as pd
 from rano_monitor.constants import REVIEW_FILENAME, REVIEWED_FILENAME
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
+from rano_monitor.messages import AnnotationsLoaded
 from rano_monitor.utils import package_review_cases, unpackage_reviews
 from textual.app import ComposeResult
 from textual.containers import Center
@@ -71,7 +72,8 @@ class Summary(Static):
 
         widgets = []
         for name, val in status_percents.items():
-            wname = Label(name.capitalize().replace("_", " "))
+            count = status_counts[name] if name in status_counts else 0
+            wname = Label(f'{name.capitalize().replace("_", " ")} ({count}/{len(report_df)})')
             wpbar = ProgressBar(total=1, show_eta=False)
             wpbar.advance(val)
             widget = Center(wname, wpbar, classes="pbar")
@@ -105,6 +107,7 @@ class Summary(Static):
         self.notify("Annotations have been loaded")
         unpkg_btn.label = label
         unpkg_btn.disabled = False
+        self.post_message(AnnotationsLoaded())
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         event.stop()
