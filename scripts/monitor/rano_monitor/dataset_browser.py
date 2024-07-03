@@ -33,7 +33,7 @@ class DatasetBrowser(App):
         Binding("y", "respond('y')", "Yes", show=False),
         Binding("n", "respond('n')", "No", show=False),
     ]
-    AUTO_FOCUS = '' # Don't focus automatically to search bar
+    AUTO_FOCUS = ""  # Don't focus automatically to search bar
 
     subjects = var([])
     report = reactive({})

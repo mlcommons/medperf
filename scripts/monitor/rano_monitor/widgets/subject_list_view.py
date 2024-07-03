@@ -24,10 +24,7 @@ class SubjectListView(ListView):
         if len(self.report) > 0:
             self.update_list()
 
-    def on_invalid_subjects_updated(
-            self,
-            message: InvalidSubjectsUpdated
-    ) -> None:
+    def on_invalid_subjects_updated(self, message: InvalidSubjectsUpdated) -> None:
         self.invalid_subjects = message.invalid_subjects
         self.update_list()
 
@@ -74,14 +71,15 @@ class SubjectListView(ListView):
 
             should_display = True
             if search_term != "":
-                should_display = subject == "SUMMARY" or \
-                    search_term.lower() in subject.lower() or \
-                    search_term.lower() in status.lower()
+                should_display = (
+                    subject == "SUMMARY"
+                    or search_term.lower() in subject.lower()
+                    or search_term.lower() in status.lower()
+                )
 
             if not should_display:
                 continue
             widgets.append(widget)
-                
 
         current_idx = self.index
         while len(self.children):

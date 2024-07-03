@@ -27,7 +27,7 @@ class Summary(Static):
         yield Static(
             "HINT: To move forward with finalized annotations, ensure the preparation pipeline is running.",
             id="hint-msg",
-            classes="warning"
+            classes="warning",
         )
         yield Center(id="summary-content")
         with Center(id="package-btns"):
@@ -73,7 +73,9 @@ class Summary(Static):
         widgets = []
         for name, val in status_percents.items():
             count = status_counts[name] if name in status_counts else 0
-            wname = Label(f'{name.capitalize().replace("_", " ")} ({count}/{len(report_df)})')
+            wname = Label(
+                f'{name.capitalize().replace("_", " ")} ({count}/{len(report_df)})'
+            )
             wpbar = ProgressBar(total=1, show_eta=False)
             wpbar.advance(val)
             widget = Center(wname, wpbar, classes="pbar")
@@ -122,4 +124,3 @@ class Summary(Static):
                 return
 
             self.run_worker(self._unpackage_reviews(), exclusive=True, thread=True)
-
