@@ -364,12 +364,6 @@ def unpackage_reviews(file, app, dset_data_path):
         identified_masks
     )
 
-    if len(identified_reviewed):
-        app.notify("Reviewed cases identified")
-
-    if len(identified_brainmasks):
-        app.notify("Brain masks identified")
-
     extracts = get_identified_extract_paths(
         identified_reviewed,
         identified_under_review,

@@ -77,17 +77,39 @@ class Summary(Static):
 
         content.mount(*widgets)
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    async def _package_review_cases(self):
+        pkg_btn = self.query_one("#package-btn", Button)
+        label = pkg_btn.label
+        pkg_btn.disabled = True
+        pkg_btn.label = "Creating package..."
+        self.notify("Packaging review cases. This may take a while")
+        package_review_cases(self.report, self.dset_path)
+        self.notify(f"{REVIEW_FILENAME} was created on the working directory")
+        pkg_btn.label = label
+        pkg_btn.disabled = False
+
+    async def _unpackage_reviews(self):
+        unpkg_btn = self.query_one("#unpackage-btn", Button)
+        label = unpkg_btn.label
+        unpkg_btn.disabled = True
+        unpkg_btn.label = "Loading annotations..."
+        self.notify("Loading annotations. This may take a while")
+        unpackage_reviews(REVIEWED_FILENAME, self, self.dset_path)
+        self.notify("Annotations have been loaded")
+        unpkg_btn.label = label
+        unpkg_btn.disabled = False
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         event.stop()
         pkg_btn = self.query_one("#package-btn", Button)
         unpkg_btn = self.query_one("#unpackage-btn", Button)
 
         if event.control == pkg_btn:
-            package_review_cases(self.report, self.dset_path)
-            self.notify(f"{REVIEW_FILENAME} was created on the working directory")
+            self.run_worker(self._package_review_cases(), exclusive=True, thread=True)
         elif event.control == unpkg_btn:
             if REVIEWED_FILENAME not in os.listdir("."):
                 self.notify(f"{REVIEWED_FILENAME} not found in {os.path.abspath('.')}")
                 return
 
-            unpackage_reviews(REVIEWED_FILENAME, self, self.dset_path)
+            self.run_worker(self._unpackage_reviews(), exclusive=True, thread=True)
+
