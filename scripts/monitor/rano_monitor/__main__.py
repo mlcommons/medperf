@@ -8,6 +8,8 @@ from rano_monitor.constants import (
     STAGES_HELP,
     DSET_LOC_HELP,
     OUT_HELP,
+    REVIEW_COMMAND,
+    REVIEW_CMD_HELP,
 )
 from rano_monitor.dataset_browser import DatasetBrowser
 from rano_monitor.handlers import InvalidHandler
@@ -21,7 +23,7 @@ from watchdog.observers import Observer
 app = typer.Typer()
 
 
-def run_dset_app(dset_path, stages_path, output_path):
+def run_dset_app(dset_path, stages_path, output_path, review_cmd):
     report_path = os.path.join(dset_path, "report.yaml")
     dset_data_path = os.path.join(dset_path, "data")
     invalid_path = os.path.join(dset_path, "metadata/.invalid.txt")
@@ -48,6 +50,7 @@ def run_dset_app(dset_path, stages_path, output_path):
         invalid_path,
         invalid_watchdog,
         prompt_watchdog,
+        review_cmd
     )
 
     observer = Observer()
@@ -60,7 +63,7 @@ def run_dset_app(dset_path, stages_path, output_path):
     observer.stop()
 
 
-def run_tarball_app(tarball_path):
+def run_tarball_app(tarball_path, review_cmd):
     folder_name = f".{os.path.basename(tarball_path).split('.')[0]}"
     contents_path = os.path.join(os.path.dirname(tarball_path), folder_name)
     if not os.path.exists(contents_path):
@@ -72,7 +75,7 @@ def run_tarball_app(tarball_path):
     contents_path = os.path.join(contents_path, "review_cases")
     reviewed_watchdog = TarballReviewedHandler(contents_path, t_app)
 
-    t_app.set_vars(contents_path)
+    t_app.set_vars(contents_path, review_cmd)
 
     observer = Observer()
     observer.schedule(reviewed_watchdog, path=contents_path, recursive=True)
@@ -94,10 +97,11 @@ def main(
         help=DSET_LOC_HELP,
     ),
     output_path: str = Option(None, "-o", "--out", help=OUT_HELP),
+    itksnap_executable: str = Option(REVIEW_COMMAND, "-i", "--itksnap", help=REVIEW_CMD_HELP),
 ):
     if dataset_uid.endswith(".tar.gz"):
         # TODO: implement tarball_app
-        run_tarball_app(dataset_uid)
+        run_tarball_app(dataset_uid, itksnap_executable)
         return
     elif dataset_uid.isdigit():
         # Only import medperf dependencies if the user intends to use medperf
@@ -115,7 +119,7 @@ def main(
             "Please ensure the passed dataset UID/path is correct"
         )
 
-    run_dset_app(dset_path, stages_path, output_path)
+    run_dset_app(dset_path, stages_path, output_path, itksnap_executable)
 
 
 if __name__ == "__main__":
