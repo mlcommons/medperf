@@ -1,10 +1,6 @@
 import os
 
-from rano_monitor.constants import (
-    BRAINMASK,
-    BRAINMASK_BAK,
-    DEFAULT_SEGMENTATION
-)
+from rano_monitor.constants import BRAINMASK, BRAINMASK_BAK, DEFAULT_SEGMENTATION
 from rano_monitor.utils import (
     finalize,
     get_hash,
@@ -21,17 +17,14 @@ from textual.widgets import Button, Static
 class TarballSubjectView(Static):
     subject = reactive("")
     contents_path = reactive("")
-    review_cmd = None # This will be assigned after initialized
+    review_cmd = None  # This will be assigned after initialized
 
     def compose(self) -> ComposeResult:
         with Horizontal(classes="subject-item"):
             with Container(classes="subject-text"):
                 yield Static(self.subject)
                 yield Static("Brain mask modified", classes="brain-status")
-                yield Static(
-                    "Tumor segmentation reviewed",
-                    classes="tumor-status"
-                )
+                yield Static("Tumor segmentation reviewed", classes="tumor-status")
 
             yield Button("Review Brain Mask", classes="brain-btn")
             yield Button("Review Tumor Segmentation", classes="tumor-btn")
@@ -124,12 +117,7 @@ class TarballSubjectView(Static):
     def __brain_has_been_reviewed(self):
         id, tp = self.subject.split("|")
         brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
-        backup_brainpath = os.path.join(
-            self.contents_path,
-            id,
-            tp,
-            BRAINMASK_BAK
-        )
+        backup_brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK_BAK)
 
         if not os.path.exists(backup_brainpath):
             return False
@@ -140,12 +128,7 @@ class TarballSubjectView(Static):
 
     def __tumor_has_been_finalized(self):
         id, tp = self.subject.split("|")
-        finalized_tumor_path = os.path.join(
-            self.contents_path,
-            id,
-            tp,
-            "finalized"
-        )
+        finalized_tumor_path = os.path.join(self.contents_path, id, tp, "finalized")
         finalized_files = os.listdir(finalized_tumor_path)
         finalized_files = [file for file in finalized_files if not file.startswith(".")]
 

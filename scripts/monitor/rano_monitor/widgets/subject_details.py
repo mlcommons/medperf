@@ -25,7 +25,7 @@ class SubjectDetails(Static):
     invalid_subjects = set()
     subject = pd.Series()
     dset_path = ""
-    review_cmd = None # This will be assigned after initialized
+    review_cmd = None  # This will be assigned after initialized
 
     def compose(self) -> ComposeResult:
         with Center(id="subject-title"):
@@ -52,10 +52,7 @@ class SubjectDetails(Static):
                 id="reviewed-button",
                 disabled=True,
             )
-            yield Static(
-                "If brain mask is not correct",
-                id="brianmask-review-header"
-            )
+            yield Static("If brain mask is not correct", id="brianmask-review-header")
             yield Button(
                 "Brain mask not available",
                 disabled=True,

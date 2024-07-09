@@ -56,7 +56,9 @@ class TarballBrowser(App):
         for subject in subjects:
             subject_path = os.path.join(self.contents_path, subject)
             timepoints = os.listdir(subject_path)
-            timepoints = [timepoint for timepoint in timepoints if not timepoint.startswith(".")]
+            timepoints = [
+                timepoint for timepoint in timepoints if not timepoint.startswith(".")
+            ]
             subject_timepoint_list += [(subject, tp) for tp in timepoints]
 
         return subject_timepoint_list

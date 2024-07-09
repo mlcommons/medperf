@@ -50,7 +50,7 @@ def run_dset_app(dset_path, stages_path, output_path, review_cmd):
         invalid_path,
         invalid_watchdog,
         prompt_watchdog,
-        review_cmd
+        review_cmd,
     )
 
     observer = Observer()
@@ -97,7 +97,9 @@ def main(
         help=DSET_LOC_HELP,
     ),
     output_path: str = Option(None, "-o", "--out", help=OUT_HELP),
-    itksnap_executable: str = Option(REVIEW_COMMAND, "-i", "--itksnap", help=REVIEW_CMD_HELP),
+    itksnap_executable: str = Option(
+        REVIEW_COMMAND, "-i", "--itksnap", help=REVIEW_CMD_HELP
+    ),
 ):
     if dataset_uid.endswith(".tar.gz"):
         # TODO: implement tarball_app
