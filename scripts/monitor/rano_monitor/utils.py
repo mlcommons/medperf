@@ -9,7 +9,6 @@ from subprocess import DEVNULL, Popen
 import pandas as pd
 import yaml
 from rano_monitor.constants import (
-    REVIEW_COMMAND,
     BRAINMASK_BAK,
     DEFAULT_SEGMENTATION,
     BRAINMASK,
@@ -22,8 +21,8 @@ from rano_monitor.constants import (
 )
 
 
-def is_editor_installed():
-    review_command_path = shutil.which(REVIEW_COMMAND)
+def is_editor_installed(review_command):
+    review_command_path = shutil.which(review_command)
     return review_command_path is not None
 
 
@@ -34,10 +33,10 @@ def get_hash(filepath: str):
     return file_hash
 
 
-def run_editor(t1c, flair, t2, t1, seg, label, cmd=REVIEW_COMMAND):
+def run_editor(t1c, flair, t2, t1, seg, label, cmd):
     review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
     review_cmd = review_cmd.format(
-        cmd=REVIEW_COMMAND,
+        cmd=cmd,
         t1c=t1c,
         flair=flair,
         t2=t2,
@@ -48,7 +47,9 @@ def run_editor(t1c, flair, t2, t1, seg, label, cmd=REVIEW_COMMAND):
     Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
 
 
-def review_tumor(subject: str, data_path: str, labels_path: str):
+def review_tumor(
+    subject: str, data_path: str, labels_path: str, review_cmd: str
+):
     (
         t1c_file,
         t1n_file,
@@ -65,10 +66,18 @@ def review_tumor(subject: str, data_path: str, labels_path: str):
     if not is_nifti and not is_under_review:
         shutil.copyfile(seg_file, under_review_file)
 
-    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, under_review_file, label_file)
+    run_editor(
+        t1c_file,
+        t2f_file,
+        t2w_file,
+        t1n_file,
+        under_review_file,
+        label_file,
+        cmd=review_cmd,
+    )
 
 
-def review_brain(subject, labels_path, data_path=None):
+def review_brain(subject, labels_path, review_cmd, data_path=None):
     (
         t1c_file,
         t1n_file,
@@ -82,7 +91,9 @@ def review_brain(subject, labels_path, data_path=None):
     if not os.path.exists(backup_path):
         shutil.copyfile(seg_file, backup_path)
 
-    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
+    run_editor(
+        t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file, cmd=review_cmd
+    )
 
 
 def finalize(subject: str, labels_path: str):

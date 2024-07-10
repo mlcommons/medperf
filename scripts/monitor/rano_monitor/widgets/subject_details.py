@@ -25,6 +25,7 @@ class SubjectDetails(Static):
     invalid_subjects = set()
     subject = pd.Series()
     dset_path = ""
+    review_cmd = None  # This will be assigned after initialized
 
     def compose(self) -> ComposeResult:
         with Center(id="subject-title"):
@@ -51,10 +52,7 @@ class SubjectDetails(Static):
                 id="reviewed-button",
                 disabled=True,
             )
-            yield Static(
-                "If brain mask is not correct",
-                id="brianmask-review-header"
-            )
+            yield Static("If brain mask is not correct", id="brianmask-review-header")
             yield Button(
                 "Brain mask not available",
                 disabled=True,
@@ -134,7 +132,7 @@ class SubjectDetails(Static):
         brainmask_button = self.query_one("#brainmask-review-button", Button)
         valid_btn = self.query_one("#valid-btn", Button)
 
-        if is_editor_installed():
+        if is_editor_installed(self.review_cmd):
             review_msg.display = "none"
             review_button.disabled = False
         if self.__can_finalize():
@@ -175,7 +173,7 @@ class SubjectDetails(Static):
         data_path = to_local_path(data_path, self.dset_path)
         labels_path = self.subject["labels_path"]
         labels_path = to_local_path(labels_path, self.dset_path)
-        review_tumor(subject, data_path, labels_path)
+        review_tumor(subject, data_path, labels_path, review_cmd=self.review_cmd)
         self.__update_buttons()
         self.notify("This subject can be finalized now")
 
@@ -183,7 +181,7 @@ class SubjectDetails(Static):
         subject = self.subject.name
         labels_path = self.subject["labels_path"]
         labels_path = to_local_path(labels_path, self.dset_path)
-        review_brain(subject, labels_path)
+        review_brain(subject, labels_path, review_cmd=self.review_cmd)
         self.__update_buttons()
 
     def __finalize(self):

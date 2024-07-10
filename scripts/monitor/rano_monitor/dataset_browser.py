@@ -49,6 +49,7 @@ class DatasetBrowser(App):
         invalid_path,
         invalid_watchdog,
         prompt_watchdog,
+        review_cmd,
     ):
         self.dset_data_path = dset_data_path
         self.stages_path = stages_path
@@ -56,6 +57,7 @@ class DatasetBrowser(App):
         self.invalid_path = invalid_path
         self.invalid_watchdog = invalid_watchdog
         self.prompt_watchdog = prompt_watchdog
+        self.review_cmd = review_cmd
 
     def update_invalid(self, invalid_subjects):
         self.invalid_subjects = invalid_subjects
@@ -107,6 +109,7 @@ class DatasetBrowser(App):
         # Set invalid path for subject view
         subject_details = self.query_one("#details", SubjectDetails)
         subject_details.set_invalid_path(self.invalid_path)
+        subject_details.review_cmd = self.review_cmd
 
         # Set dataset path to listview
         listview = self.query_one("#subjects-list", ListView)
