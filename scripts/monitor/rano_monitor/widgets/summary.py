@@ -55,7 +55,6 @@ class Summary(Static):
         if report_df.empty:
             return
         package_btns = self.query_one("#package-btns", Center)
-        hint_msg = self.query_one("#hint-msg", Static)
         # Generate progress bars for all states
         display_report_df = report_df.copy(deep=True)
         display_report_df.loc[list(self.invalid_subjects), "status_name"] = (
