@@ -57,7 +57,7 @@ def test_to_permanent_path_renames_correctly(mocker, comms, ui, cube, uid):
     submission.cube = cube
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.exists", return_value=False)
-    old_path = os.path.join(config.cubes_folder, cube.generated_uid)
+    old_path = os.path.join(config.cubes_folder, cube.local_id)
     new_path = os.path.join(config.cubes_folder, str(uid))
     # Act
     submission.to_permanent_path({**cube.todict(), "id": uid})

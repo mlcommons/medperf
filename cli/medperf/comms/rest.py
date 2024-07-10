@@ -227,6 +227,25 @@ class REST(Comms):
             )
         return res.json()
 
+    def edit_cube(self, cube_uid: int, edited_fields: dict) -> dict:
+        """Updates mlcube with dict of changed fields
+
+        Args:
+            cube_uid (int): UID of the desired cube.
+            edited_fields: Dictionary containing the fields to be updated
+
+        Returns:
+            dict: Dictionary containing the full mlcube
+        """
+        res = self.__auth_put(f"{self.server_url}/mlcubes/{cube_uid}/", json=edited_fields)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"the specified cube doesn't exist {details}"
+            )
+        return res.json()
+
     def get_user_cubes(self) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
