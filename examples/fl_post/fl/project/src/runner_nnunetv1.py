@@ -6,6 +6,7 @@ Contributors: Micah Sheller, Patrick Foley, Brandon Edwards  - DELETEME?
 
 """
 # TODO: Clean up imports
+# TODO: ask Micah if this has to be changed (most probably no)
 
 import os
 import subprocess

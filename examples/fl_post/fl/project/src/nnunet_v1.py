@@ -20,8 +20,6 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-# EDITED for OpenFL test integration by Brandon Edwards and Micah Sheller
-
 
 import os
 import numpy as np
@@ -29,7 +27,6 @@ import torch
 import random
 from batchgenerators.utilities.file_and_folder_operations import *
 from nnunet.run.default_configuration import get_default_configuration
-from nnunet.paths import default_plans_identifier
 from nnunet.run.load_pretrained_weights import load_pretrained_weights
 from nnunet.training.cascade_stuff.predict_next_stage import predict_next_stage
 from nnunet.training.network_training.nnUNetTrainer import nnUNetTrainer
@@ -40,6 +37,13 @@ from nnunet.training.network_training.nnUNetTrainerV2_CascadeFullRes import (
     nnUNetTrainerV2CascadeFullRes,
 )
 from nnunet.utilities.task_name_id_conversion import convert_id_to_task_name
+
+
+# We will be syncing training across many nodes who independently preprocess data
+# In order to do this we will need to sync the training plans (defining the model architecture etc.)
+# NNUnet does this by overwriting the plans file which includes a unique alternative plans identifier other than the default one
+plans_param = 'nnUNetPlans_pretrained_POSTOPP'
+#from nnunet.paths import default_plans_identifier
 
 def seed_everything(seed=1234):
     random.seed(seed)
@@ -59,7 +63,7 @@ def train_nnunet(epochs,
                  continue_training=True,
                  validation_only=False, 
                  c=False, 
-                 p=default_plans_identifier, 
+                 p=plans_param, 
                  use_compressed_data=False, 
                  deterministic=False, 
                  npz=False, 
@@ -164,7 +168,6 @@ def train_nnunet(epochs,
     #     force_separate_z = True
     # else:
     #     raise ValueError("force_separate_z must be None, True or False. Given: %s" % force_separate_z)
-
     (
         plans_file,
         output_folder_name,

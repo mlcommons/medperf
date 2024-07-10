@@ -1,10 +1,4 @@
-# Copyright (C) 2020-2021 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
 
-"""
-Contributors: Brandon Edwards, Micah Sheller
-
-"""
 import os
 import subprocess
 import pickle as pkl
@@ -15,7 +9,7 @@ from collections import OrderedDict
 
 from nnunet.dataset_conversion.utils import generate_dataset_json
 
-from nnunet_model_setup import trim_data_and_setup_nnunet_models
+from fl_model_setup import trim_data_and_setup_model
 
 
 num_to_modality = {'_0000': '_brain_t1n.nii.gz',
@@ -24,37 +18,24 @@ num_to_modality = {'_0000': '_brain_t1n.nii.gz',
                    '_0003': '_brain_t2f.nii.gz'}
 
 
-def get_subdirs(parent_directory):
-    subjects = os.listdir(parent_directory)
-    # print("before filter:", subjects)
-    subjects = [p for p in subjects if os.path.isdir(os.path.join(parent_directory, p)) and not p.startswith(".")]
-    # print("after filter:", subjects)
-    return subjects
-
-
 def subject_time_to_mask_path(pardir, subject, timestamp):
     mask_fname = f'{subject}_{timestamp}_tumorMask_model_0.nii.gz'
     return os.path.join(pardir, 'labels', '.tumor_segmentation_backup', subject, timestamp,'TumorMasksForQC', mask_fname)
 
 
-def create_task_folders(first_three_digit_task_num, num_institutions, task_name):
-    """
-    Creates task folders for all simulated instiutions in the federation
-    """
-    nnunet_dst_pardirs = []
-    nnunet_images_train_pardirs = []
-    nnunet_labels_train_pardirs = []
+def create_task_folders(task_num, task_name, overwrite_nnunet_datadirs):
+    task = f'Task{str(task_num)}_{task_name}'
 
-    task_nums = range(first_three_digit_task_num, first_three_digit_task_num + num_institutions)
-    tasks = [f'Task{str(num)}_{task_name}' for num in task_nums]
-    for task in tasks:
+    # The NNUnet data path is obtained from an environmental variable
+    nnunet_dst_pardir = os.path.join(os.environ['nnUNet_raw_data_base'], 'nnUNet_raw_data', f'{task}')
+        
+    nnunet_images_train_pardir = os.path.join(nnunet_dst_pardir, 'imagesTr')
+    nnunet_labels_train_pardir = os.path.join(nnunet_dst_pardir, 'labelsTr')
 
-        # The NNUnet data path is obtained from an environmental variable
-        nnunet_dst_pardir = os.path.join(os.environ['nnUNet_raw_data_base'], 'nnUNet_raw_data', f'{task}')
-            
-        nnunet_images_train_pardir = os.path.join(nnunet_dst_pardir, 'imagesTr')
-        nnunet_labels_train_pardir = os.path.join(nnunet_dst_pardir, 'labelsTr')
+    task_cropped_pardir = os.path.join(os.environ['nnUNet_raw_data_base'], 'nnUNet_cropped_data', f'{task}')
+    task_preprocessed_pardir = os.path.join(os.environ['nnUNet_raw_data_base'], 'nnUNet_preprocessed', f'{task}')
 
+    if not overwrite_nnunet_datadirs:
         if os.path.exists(nnunet_images_train_pardir) and os.path.exists(nnunet_labels_train_pardir):
             raise ValueError(f"Train images pardirs: {nnunet_images_train_pardir} and {nnunet_labels_train_pardir} both already exist. Please move them both and rerun to prevent overwriting.")
         elif os.path.exists(nnunet_images_train_pardir):
@@ -62,19 +43,32 @@ def create_task_folders(first_three_digit_task_num, num_institutions, task_name)
         elif os.path.exists(nnunet_labels_train_pardir):
             raise ValueError(f"Train labels pardir: {nnunet_labels_train_pardir} already exists, please move and run again to prevent overwriting.")
         
-        os.makedirs(nnunet_images_train_pardir, exist_ok=False)
-        os.makedirs(nnunet_labels_train_pardir, exist_ok=False) 
-        
-        nnunet_dst_pardirs.append(nnunet_dst_pardir)
-        nnunet_images_train_pardirs.append(nnunet_images_train_pardir)
-        nnunet_labels_train_pardirs.append(nnunet_labels_train_pardir)
+        if os.path.exists(task_cropped_pardir):
+            raise ValueError(f"Cropped data pardir: {task_cropped_pardir} already exists, please move and run again to prevent overwriting.")
+        if os.path.exists(task_preprocessed_pardir):
+            raise ValueError(f"Preprocessed data pardir: {task_preprocessed_pardir} already exists, please move and run again to prevent overwriting.")
+    else:      
+        if os.path.exists(task_cropped_pardir):
+            shutil.rmtree(task_cropped_pardir)
+        if os.path.exists(task_preprocessed_pardir):
+            shutil.rmtree(task_preprocessed_pardir)
+        if os.path.exists(nnunet_images_train_pardir):
+            shutil.rmtree(nnunet_images_train_pardir)
+        if os.path.exists(nnunet_labels_train_pardir):
+            shutil.rmtree(nnunet_labels_train_pardir)
 
-    return task_nums, tasks, nnunet_dst_pardirs, nnunet_images_train_pardirs, nnunet_labels_train_pardirs
+    
+    os.makedirs(nnunet_images_train_pardir, exist_ok=False)
+    os.makedirs(nnunet_labels_train_pardir, exist_ok=False)
+
+    return task, nnunet_dst_pardir, nnunet_images_train_pardir, nnunet_labels_train_pardir
     
 
-def symlink_one_subject(postopp_subject_dir, postopp_data_dirpath, postopp_labels_dirpath, nnunet_images_train_pardir, nnunet_labels_train_pardir, timestamp_selection):
+def symlink_one_subject(postopp_subject_dir, postopp_data_dirpath, postopp_labels_dirpath, nnunet_images_train_pardir, nnunet_labels_train_pardir, timestamp_selection, verbose=False):
+    if verbose:
+        print(f"\n#######\nsymlinking subject: {postopp_subject_dir}\n########\nPostopp_data_dirpath: {postopp_data_dirpath}\n\n\n\n")
     postopp_subject_dirpath = os.path.join(postopp_data_dirpath, postopp_subject_dir)
-    all_timestamps = get_subdirs(postopp_subject_dirpath)
+    all_timestamps = sorted(list(os.listdir(postopp_subject_dirpath)))
     if timestamp_selection == 'latest':
         timestamps = all_timestamps[-1:]
     elif timestamp_selection == 'earliest':
@@ -109,7 +103,7 @@ def symlink_one_subject(postopp_subject_dir, postopp_data_dirpath, postopp_label
 def doublecheck_postopp_pardir(postopp_pardir, verbose=False):
     if verbose:
         print(f"Checking postopp_pardir: {postopp_pardir}")
-    postopp_subdirs = get_subdirs(postopp_pardir)
+    postopp_subdirs = list(os.listdir(postopp_pardir))
     if 'data' not in postopp_subdirs:
         raise ValueError(f"'data' must be a subdirectory of postopp_src_pardir:{postopp_pardir}, but it is not.")
     if 'labels' not in postopp_subdirs:
@@ -186,9 +180,10 @@ def split_by_timed_subjects(subject_to_timestamps, percent_train, random_tries=3
     return train_subject_to_timestamps, val_subject_to_timestamps
   
 
-def write_splits_file(nnunet_dst_pardir, subject_to_timestamps, percent_train, split_logic, fold, task, splits_fname='splits_final.pkl', verbose=False):
+def write_splits_file(subject_to_timestamps, percent_train, split_logic, fold, task, splits_fname='splits_final.pkl', verbose=False):
     # double check we are in the right folder to modify the splits file
     splits_fpath = os.path.join(os.environ['nnUNet_preprocessed'], f'{task}', splits_fname)
+    POSTOPP_splits_fpath = os.path.join(os.environ['nnUNet_preprocessed'], f'{task}', 'POSTOPP_BACKUP_' + splits_fname)
 
     # now split
     if split_logic == 'by_subject':
@@ -211,24 +206,31 @@ def write_splits_file(nnunet_dst_pardir, subject_to_timestamps, percent_train, s
     # Now write the splits file (note None is put into the folds that we don't use as a safety measure so that no unintended folds are used)
     new_folds = [None, None, None, None, None]
     new_folds[int(fold)] = OrderedDict({'train': np.array(train_subjects_list), 'val': np.array(val_subjects_list)})
+    
     with open(splits_fpath, 'wb') as f:
         pkl.dump(new_folds, f)
 
+    # Making an extra copy to test that things are not overwriten later
+    with open(POSTOPP_splits_fpath, 'wb') as f:
+        pkl.dump(new_folds, f)
 
-def setup_nnunet_data(postopp_pardirs, 
-                      first_three_digit_task_num, 
+
+def setup_fl_data(postopp_pardir, 
+                      three_digit_task_num, 
                       task_name, 
                       percent_train, 
                       split_logic, 
                       fold, 
                       timestamp_selection, 
-                      num_institutions, 
                       network, 
                       network_trainer, 
-                      plans_identifier, 
+                      local_plans_identifier,
+                      shared_plans_identifier, 
                       init_model_path, 
                       init_model_info_path, 
-                      cuda_device, 
+                      cuda_device,
+                      overwrite_nnunet_datadirs,
+                      plans_path=None, 
                       verbose=False):
     """
     Generates symlinks to be used for NNUnet training, assuming we already have a 
@@ -291,127 +293,125 @@ def setup_nnunet_data(postopp_pardirs,
                                     │           └── AAAC_extra_2008.12.10_final_seg.nii.gz
                                     └── report.yaml
 
-    first_three_digit_task_num(str): Should start with '5'. If num_institutions == N (see below), all N task numbers starting with this number will be used.
+    three_digit_task_num(str): Should start with '5'. If num_institutions == N (see below), all N task numbers starting with this number will be used.
     task_name(str)                 : Any string task name.
+    percent_train(float)           : what percent of data is put into the training data split (rest to val)
+    split_logic(str)               : Determines how train/val split is performed
     timestamp_selection(str)       : Indicates how to determine the timestamp to pick
                                    for each subject ID at the source: 'latest', 'earliest', and 'all' are the only ones supported so far
+    network(str)                    : Which network is being used for NNUnet
+    network_trainer(str)            : Which network trainer class is being used for NNUnet
+    local_plans_identifier(str)     : Used in the plans file name for a collaborator that will be performing local training to produce an initial model
+    shared_plans_identifier(str)    : Used in the plans file name for creation and dissemination of the shared plan to be used in the federation
+    init_model_path(str)            : Path to the initial model
+    init_model_info_path(str)       : Path to the initial model info (pkl) file
+    cuda_device(str)                : Device to perform training ('cpu' or 'cuda')
+    overwrite_nnunet_datadirs(bool) : Allows for overwriting past instances of NNUnet data directories using the task numbers from first_three_digit_task_num to that plus one less than number of insitutions.
+    plans_path(str)                 : Path to the training plans (pkl)
     percent_train(float)            : What percentage of timestamped subjects to attempt dedicate to train versus val. Will be only approximately acheived in general since
                                       all timestamps associated with the same subject need to land exclusively in either train or val.
     split_logic(str)                : Determines how the percent_train is computed. Choices are: 'by_subject' and 'by_subject_time_pair'.
     fold(str)                       :   Fold to train on, can be a sting indicating an int, or can be 'all'
-    num_institutions(int)          : Number of simulated institutions to shard the data into.
+    timestamp_selection(str)        : Determines which timestamps are used for each subject. Can be 'earliest', 'latest', or 'all'
     verbose(bool)                   : Debugging output if True.
 
     Returns:
     task_nums, tasks, nnunet_dst_pardirs, nnunet_images_train_pardirs, nnunet_labels_train_pardirs 
     """
 
-    task_nums, tasks, nnunet_dst_pardirs, nnunet_images_train_pardirs, nnunet_labels_train_pardirs = \
-        create_task_folders(first_three_digit_task_num=first_three_digit_task_num, 
-                            num_institutions=num_institutions, 
-                            task_name=task_name)
+    task, nnunet_dst_pardir, nnunet_images_train_pardir, nnunet_labels_train_pardir = \
+        create_task_folders(task_num=three_digit_task_num, task_name=task_name, overwrite_nnunet_datadirs=overwrite_nnunet_datadirs)
 
-    if len(postopp_pardirs) == 1:
-        postopp_pardir = postopp_pardirs[0]
-        doublecheck_postopp_pardir(postopp_pardir, verbose=verbose)
-        postopp_data_dirpaths = num_institutions * [os.path.join(postopp_pardir, 'data')]
-        postopp_labels_dirpaths = num_institutions * [os.path.join(postopp_pardir, 'labels')]
+    doublecheck_postopp_pardir(postopp_pardir, verbose=verbose)
+    postopp_data_dirpath = os.path.join(postopp_pardir, 'data')
+    postopp_labels_dirpath = os.path.join(postopp_pardir, 'labels')
 
-        all_subjects = get_subdirs(postopp_data_dirpaths[0])
-        subject_shards = [all_subjects[start::num_institutions] for start in range(num_institutions)]
-    elif len(postopp_pardirs) != num_institutions:
-        raise ValueError(f"The length of postopp_pardirs must be equal to the number of insitutions needed for the federation, or can be length one and an automated split is peroformed.")
-    else:
-        subject_shards = []
-        postopp_data_dirpaths = []
-        postopp_labels_dirpaths = []
-        for postopp_pardir in postopp_pardirs:
-            doublecheck_postopp_pardir(postopp_pardir, verbose=verbose)
-            postopp_data_dirpath = os.path.join(postopp_pardir, 'data')
-            postopp_labels_dirpath = os.path.join(postopp_pardir, 'labels')
-            postopp_data_dirpaths.append(postopp_data_dirpath)
-            postopp_labels_dirpaths.append(postopp_labels_dirpath)
-            subject_shards.append(get_subdirs(postopp_labels_dirpath))
+    all_subjects = list(os.listdir(postopp_data_dirpath))
+    
     
     # Track the subjects and timestamps for each shard
-    shard_subject_to_timestamps = []
-
-    for shard_idx, (postopp_subject_dirs, task_num, task, nnunet_dst_pardir, nnunet_images_train_pardir, nnunet_labels_train_pardir, postopp_data_dirpath, postopp_labels_dirpath) in \
-          enumerate(zip(subject_shards, task_nums, tasks, nnunet_dst_pardirs, nnunet_images_train_pardirs, nnunet_labels_train_pardirs, postopp_data_dirpaths, postopp_labels_dirpaths)):
-        print(f"\n######### CREATING SYMLINKS TO POSTOPP DATA FOR COLLABORATOR {shard_idx} #########\n")
-        subject_to_timestamps = {} 
-        for postopp_subject_dir in postopp_subject_dirs:
-            subject_to_timestamps[postopp_subject_dir] = symlink_one_subject(postopp_subject_dir=postopp_subject_dir, 
-                                                                               postopp_data_dirpath=postopp_data_dirpath, 
-                                                                               postopp_labels_dirpath=postopp_labels_dirpath, 
-                                                                               nnunet_images_train_pardir=nnunet_images_train_pardir, 
-                                                                               nnunet_labels_train_pardir=nnunet_labels_train_pardir, 
-                                                                               timestamp_selection=timestamp_selection)
-        shard_subject_to_timestamps.append(subject_to_timestamps)
+    subject_to_timestamps = {}
         
-        # Generate json file for the dataset
-        print(f"\n######### GENERATING DATA JSON FILE FOR COLLABORATOR {shard_idx} #########\n")
-        json_path = os.path.join(nnunet_dst_pardir, 'dataset.json')
-        labels = {0: 'Background', 1: 'Necrosis', 2: 'Edema', 3: 'Enhancing Tumor', 4: 'Cavity'}
-        # labels = {0: 'Background', 1: 'Necrosis', 2: 'Edema'}
-        # print(f"{nnunet_images_train_pardir}")
-        # print(list(os.listdir(nnunet_images_train_pardir)))
-
+    print(f"\n######### CREATING SYMLINKS TO POSTOPP DATA #########\n")
+    for postopp_subject_dir in all_subjects:
+        subject_to_timestamps[postopp_subject_dir] = symlink_one_subject(postopp_subject_dir=postopp_subject_dir, 
+                                                                            postopp_data_dirpath=postopp_data_dirpath, 
+                                                                            postopp_labels_dirpath=postopp_labels_dirpath, 
+                                                                            nnunet_images_train_pardir=nnunet_images_train_pardir, 
+                                                                            nnunet_labels_train_pardir=nnunet_labels_train_pardir, 
+                                                                            timestamp_selection=timestamp_selection, 
+                                                                            verbose=verbose)
         
-        # from typing import List, Union
-        # def subfiles(folder: str, join: bool = True, prefix: Union[List[str], str] = None,
-        #     suffix: Union[List[str], str] = None, sort: bool = True) -> List[str]:
-        #     if join:
-        #         l = os.path.join
-        #     else:
-        #         l = lambda x, y: y
-
-        #     if prefix is not None and isinstance(prefix, str):
-        #         prefix = [prefix]
-        #     if suffix is not None and isinstance(suffix, str):
-        #         suffix = [suffix]
-        #     print([ i for i in os.listdir(folder)])
-        #     print([ i for i in os.listdir(folder) if os.path.isfile(os.path.join(folder, i)) ])
-        #     res = [l(folder, i) for i in os.listdir(folder) if os.path.isfile(os.path.join(folder, i))
-        #         and (prefix is None or any([i.startswith(j) for j in prefix]))
-        #         and (suffix is None or any([i.endswith(j) for j in suffix]))]
-
-        #     if sort:
-        #         res.sort()
-        #     return res
-        
-
-        # uniques = np.unique([i[:-12] for i in subfiles(nnunet_images_train_pardir, suffix='.nii.gz', join=False)])
-        # print("UNIQUES::::\n",uniques)
-        generate_dataset_json(output_file=json_path, 
-                              imagesTr_dir=nnunet_images_train_pardir, 
-                              imagesTs_dir=None, 
-                              modalities=tuple(num_to_modality.keys()),
-                              labels=labels, 
-                              dataset_name='RANO Postopp')
-        
-        # Now call the os process to preprocess the data
-        print(f"\n######### OS CALL TO PREPROCESS DATA FOR COLLABORATOR {shard_idx} #########\n")
-        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{task_num}", "--verify_dataset_integrity"])
-
-    # trim 2d data if not working with 2d model, and distribute common model architecture across simulated collaborators
-    trim_data_and_setup_nnunet_models(tasks=tasks, 
-                                      network=network, 
-                                      network_trainer=network_trainer, 
-                                      plans_identifier=plans_identifier, 
-                                      fold=fold, 
-                                      init_model_path=init_model_path, 
-                                      init_model_info_path=init_model_info_path, 
-                                      cuda_device=cuda_device)
+    # Generate json file for the dataset
+    print(f"\n######### GENERATING DATA JSON FILE #########\n")
+    json_path = os.path.join(nnunet_dst_pardir, 'dataset.json')
+    labels = {0: 'Background', 1: 'Necrosis', 2: 'Edema', 3: 'Enhancing Tumor', 4: 'Cavity'}
+    generate_dataset_json(output_file=json_path, imagesTr_dir=nnunet_images_train_pardir, imagesTs_dir=None, modalities=tuple(num_to_modality.keys()),
+                        labels=labels, dataset_name='RANO Postopp')
     
-    
-    for task, subject_to_timestamps in zip(tasks, shard_subject_to_timestamps):
-        # Now compute our own stratified splits file, keeping all timestampts for a given subject exclusively in either train or val
-        write_splits_file(nnunet_dst_pardir=nnunet_dst_pardir, 
-                          subject_to_timestamps=subject_to_timestamps, 
+    # Now call the os process to preprocess the data
+    print(f"\n######### OS CALL TO PREPROCESS DATA #########\n")
+    if plans_path:
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity"])
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-overwrite_plans", f"{plans_path}", "-overwrite_plans_identifier", "POSTOPP", "-no_pp"])
+        plans_identifier_for_model_writing = shared_plans_identifier
+    else: 
+        # this is a preliminary data setup, which will be passed over to the pretrained plan similar to above after we perform training on this plan 
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity"])
+        plans_identifier_for_model_writing = local_plans_identifier
+
+    # Now compute our own stratified splits file, keeping all timestampts for a given subject exclusively in either train or val
+    write_splits_file(subject_to_timestamps=subject_to_timestamps, 
                           percent_train=percent_train, 
                           split_logic=split_logic, 
                           fold=fold, 
                           task=task, 
                           verbose=verbose)
+
+    # trim 2d data if not working with 2d model, then train an initial model if needed (initial_model_path is None) or write in provided model otherwise
+    col_paths = {}
+    col_paths['initial_model_path'], \
+        col_paths['final_model_path'], \
+        col_paths['initial_model_info_path'], \
+        col_paths['final_model_info_path'], \
+        col_paths['plans_path'] = trim_data_and_setup_model(task=task, 
+                                                            network=network, 
+                                                            network_trainer=network_trainer, 
+                                                            plans_identifier=plans_identifier_for_model_writing, 
+                                                            fold=fold, 
+                                                            init_model_path=init_model_path, 
+                                                            init_model_info_path=init_model_info_path,
+                                                            plans_path=plans_path, 
+                                                            cuda_device=cuda_device)
     
+    if not plans_path:
+        # In this case we have created an initial model with this data, so running preprocesssing again in order to create a 'pretrained' plan similar to what other collaborators will create with our initial plan
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-overwrite_plans", f"{col_paths['plans_path']}", "-overwrite_plans_identifier", "POSTOPP", "--verify_dataset_integrity", "-no_pp"])
+        # Now coying the collaborator paths above to a new location that uses the pretrained planner that will be shared across federation
+        new_col_paths = {}
+        new_col_paths['initial_model_path'], \
+        new_col_paths['final_model_path'], \
+        new_col_paths['initial_model_info_path'], \
+        new_col_paths['final_model_info_path'], \
+        new_col_paths['plans_path'] = trim_data_and_setup_model(task=task, 
+                                                            network=network, 
+                                                            network_trainer=network_trainer, 
+                                                            plans_identifier=shared_plans_identifier, 
+                                                            fold=fold, 
+                                                            init_model_path=col_paths['initial_model_path'], 
+                                                            init_model_info_path=col_paths['initial_model_info_path'],
+                                                            plans_path=col_paths['plans_path'], 
+                                                            cuda_device=cuda_device)
+        
+        col_paths = new_col_paths
+
+        print(f"\n###   ###   ###   ###   ###   ###   ###\n")
+        print(f"A MODEL HAS TRAINED. HERE ARE PATHS WHERE FILES CAN BE OBTAINED:\n")
+        print(f"initial_model_path: {col_paths['initial_model_path']}")
+        print(f"initial_model_info_path: {col_paths['initial_model_info_path']}")
+        print(f"final_model_path: {col_paths['final_model_path']}")
+        print(f"final_model_info_path: {col_paths['final_model_info_path']}")
+        print(f"plans_path: {col_paths['plans_path']}")
+        print(f"\n###   ###   ###   ###   ###   ###   ###\n")
+    
+    return col_paths
