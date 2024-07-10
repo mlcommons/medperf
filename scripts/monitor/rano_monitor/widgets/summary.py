@@ -25,7 +25,7 @@ class Summary(Static):
     def compose(self) -> ComposeResult:
         yield Static("Report Status")
         yield Static(
-            "HINT: To move forward with finalized annotations, ensure the preparation pipeline is running.",
+            "HINT: To move forward with processing and finalized annotations, ensure the preparation pipeline is running.",
             id="hint-msg",
             classes="warning",
         )
@@ -68,7 +68,6 @@ class Summary(Static):
             status_percents["DONE"] = 0.0
 
         package_btns.display = "MANUAL_REVIEW_REQUIRED" in status_percents
-        hint_msg.display = package_btns.display
 
         widgets = []
         for name, val in status_percents.items():
