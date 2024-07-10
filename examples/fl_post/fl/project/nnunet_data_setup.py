@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 from nnunet.dataset_conversion.utils import generate_dataset_json
 
-from fl_model_setup import trim_data_and_setup_model
+from nnunet_model_setup import trim_data_and_setup_model
 
 
 num_to_modality = {'_0000': '_brain_t1n.nii.gz',

@@ -6,7 +6,7 @@ import argparse
 
 from nnunet.paths import default_plans_identifier
 
-from fl_data_setup import setup_fl_data
+from nnunet_data_setup import setup_fl_data
 
 local_plans_identifier = default_plans_identifier
 shared_plans_identifier = 'nnUNetPlans_pretrained_POSTOPP'
