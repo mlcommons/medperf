@@ -57,9 +57,14 @@ jobs:
         cp ../mock_tokens/tokens.json tokens.json
         docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
+    - name: Run postgresql server in background
+      working-directory: ./server
+      run: sh run_dev_postgresql.sh -n postgreserver && sleep 6
+      # NOTE: Actually there is no need to publish the database container port
+
     - name: Run server in background
       working-directory: ./server
-      run: PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
+      run: PORT=8080 && docker run --name medperf_api --network container:postgreserver -d -p 127.0.0.1:8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
 
     - name: Run server integration tests
       working-directory: ./server
