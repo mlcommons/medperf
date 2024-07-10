@@ -9,7 +9,6 @@ from subprocess import DEVNULL, Popen
 import pandas as pd
 import yaml
 from rano_monitor.constants import (
-    REVIEW_COMMAND,
     BRAINMASK_BAK,
     DEFAULT_SEGMENTATION,
     BRAINMASK,
