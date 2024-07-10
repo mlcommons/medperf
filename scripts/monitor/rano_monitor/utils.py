@@ -34,7 +34,7 @@ def get_hash(filepath: str):
     return file_hash
 
 
-def run_editor(t1c, flair, t2, t1, seg, label, cmd=REVIEW_COMMAND):
+def run_editor(t1c, flair, t2, t1, seg, label, cmd):
     review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
     review_cmd = review_cmd.format(
         cmd=cmd,
@@ -49,7 +49,7 @@ def run_editor(t1c, flair, t2, t1, seg, label, cmd=REVIEW_COMMAND):
 
 
 def review_tumor(
-    subject: str, data_path: str, labels_path: str, review_cmd: str = REVIEW_COMMAND
+    subject: str, data_path: str, labels_path: str, review_cmd: str
 ):
     (
         t1c_file,
@@ -78,7 +78,7 @@ def review_tumor(
     )
 
 
-def review_brain(subject, labels_path, data_path=None, review_cmd=REVIEW_COMMAND):
+def review_brain(subject, labels_path, review_cmd, data_path=None):
     (
         t1c_file,
         t1n_file,

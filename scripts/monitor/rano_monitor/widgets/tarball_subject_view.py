@@ -93,7 +93,7 @@ class TarballSubjectView(Static):
         id, tp = self.subject.split("|")
         data_path = os.path.join(self.contents_path, id, tp, "raw_scans")
         labels_path = os.path.join(self.contents_path, id, tp)
-        review_brain(self.subject, labels_path, data_path, review_cmd=self.review_cmd)
+        review_brain(self.subject, labels_path, self.review_cmd, data_path)
 
     def __finalize(self):
         id, tp = self.subject.split("|")
