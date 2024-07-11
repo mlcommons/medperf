@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Datasets</title>
+    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+</head>
+<body>
+    <h1>Datasets</h1>
+    <div id="datasets-list" hx-get="/datasets" hx-trigger="load" hx-target="#datasets-list">
+        <!-- Datasets will be loaded here -->
+    </div>
+</body>
+</html>
