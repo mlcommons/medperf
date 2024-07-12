@@ -4,7 +4,7 @@ import threading
 import sqlite3
 from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
-from medperf.exceptions import CommunicationError
+from medperf.exceptions import CommunicationError, AuthenticationError
 import requests
 import medperf.config as config
 from medperf.utils import log_response_error
@@ -191,11 +191,16 @@ class Auth0(Auth):
         refresh_token = creds["refresh_token"]
         token_expires_in = creds["token_expires_in"]
         token_issued_at = creds["token_issued_at"]
-        if (
-            time.time()
-            > token_issued_at + token_expires_in - config.token_expiration_leeway
-        ):
+        expiration_time = token_issued_at + token_expires_in
+        leeway_time = expiration_time - config.token_expiration_leeway
+        current_time = time.time()
+        if current_time > leeway_time and current_time < expiration_time:
             access_token = self.__refresh_access_token(refresh_token)
+        elif current_time > expiration_time:
+            # Expired token. Force logout and ask the user to re-authenticate
+            logging.debug(f"Token expired: {expiration_time=} <> {current_time=}")
+            self.logout()
+            raise AuthenticationError("Token expired. Please re-authenticate")
         return access_token
 
     def __refresh_access_token(self, refresh_token):
