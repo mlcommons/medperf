@@ -1,13 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Datasets</title>
-    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
-</head>
-<body>
-    <h1>Datasets</h1>
-    <div id="datasets-list" hx-get="/datasets" hx-trigger="load" hx-target="#datasets-list">
-        <!-- Datasets will be loaded here -->
+{% extends "base.html" %}
+
+{% block title %}Datasets{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Datasets</h1>
+<div class="row">
+    {% for dataset in datasets %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ dataset.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ dataset.state }}</h6>
+                <p class="card-text">{{ dataset.description }}</p>
+                <p class="card-text"><small class="text-muted">Location: {{ dataset.location }}</small></p>
+                <p class="card-text"><small class="text-muted">Created At: {{ dataset.created_at }}</small></p>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+    {% endfor %}
+</div>
+{% endblock %}

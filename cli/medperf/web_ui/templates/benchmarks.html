@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmarks{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Benchmarks</h1>
+<div class="row">
+    {% for benchmark in benchmarks %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ benchmark.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
+                <p class="card-text">{{ benchmark.description }}</p>
+                <p class="card-text"><a href="{{ benchmark.docs_url }}" class="card-link">Documentation</a></p>
+                <p class="card-text"><small class="text-muted">Created At: {{ benchmark.created_at }}</small></p>
+                <p class="card-text"><small class="text-muted">Data Preparation MLCube: {{ benchmark.data_preparation_mlcube }}</small></p>
+                <p class="card-text"><small class="text-muted">Reference Model MLCube: {{ benchmark.reference_model_mlcube }}</small></p>
+                <p class="card-text"><small class="text-muted">Data Evaluator MLCube: {{ benchmark.data_evaluator_mlcube }}</small></p>
+                <p class="card-text"><small class="text-muted">Approval Status: {{ benchmark.approval_status }}</small></p>
+                <p class="card-text"><small class="text-muted">Registered: {{ benchmark.is_registered }}</small></p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
