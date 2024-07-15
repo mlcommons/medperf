@@ -1,5 +1,6 @@
 import typer
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from medperf import config
 from medperf.decorators import clean_except
@@ -12,6 +13,12 @@ web_app = FastAPI()
 web_app.include_router(datasets_router, prefix="/datasets")
 web_app.include_router(benchmarks_router, prefix="/benchmarks")
 web_app.include_router(mlcubes_router, prefix="/mlcubes")
+
+
+@web_app.get("/", include_in_schema=False)
+def read_root():
+    return RedirectResponse(url="/benchmarks/ui")
+
 
 app = typer.Typer()
 
