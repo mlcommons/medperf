@@ -49,11 +49,10 @@ def test_token_is_not_refreshed_if_not_expired(mocker, setup):
     spy.assert_not_called()
 
 
-def test_token_is_refreshed_if_about_to_expire(mocker, setup):
+def test_token_is_refreshed_if_expired(mocker, setup):
     # Arrange
     expiration_time = 900
-    leeway = config.token_expiration_leeway
-    mocked_issued_at = time.time() - expiration_time + leeway
+    mocked_issued_at = time.time() - expiration_time
     creds = {
         "refresh_token": "",
         "access_token": "",
@@ -70,10 +69,11 @@ def test_token_is_refreshed_if_about_to_expire(mocker, setup):
     spy.assert_called_once()
 
 
-def test_logs_out_if_session_expires(mocker, setup):
+def test_logs_out_if_session_reaches_token_absolute_expiration_time(mocker, setup):
     # Arrange
     expiration_time = 900
-    mocked_issued_at = time.time() - expiration_time
+    absolute_expiration_time = config.token_absolute_expiry
+    mocked_issued_at = time.time() - absolute_expiration_time
     creds = {
         "refresh_token": "",
         "access_token": "",

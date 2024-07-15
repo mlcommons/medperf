@@ -191,14 +191,14 @@ class Auth0(Auth):
         refresh_token = creds["refresh_token"]
         token_expires_in = creds["token_expires_in"]
         token_issued_at = creds["token_issued_at"]
-        expiration_time = token_issued_at + token_expires_in
-        leeway_time = expiration_time - config.token_expiration_leeway
+        leeway_time = token_issued_at + token_expires_in - config.token_expiration_leeway
+        absolute_expiration_time = token_issued_at + config.token_absolute_expiry
         current_time = time.time()
-        if current_time > leeway_time and current_time < expiration_time:
+        if current_time > leeway_time and current_time <= absolute_expiration_time:
             access_token = self.__refresh_access_token(refresh_token)
-        elif current_time > expiration_time:
+        elif current_time > absolute_expiration_time:
             # Expired token. Force logout and ask the user to re-authenticate
-            logging.debug(f"Token expired: {expiration_time=} <> {current_time=}")
+            logging.debug(f"Token expired: {absolute_expiration_time=} <> {current_time=}")
             self.logout()
             raise AuthenticationError("Token expired. Please re-authenticate")
         return access_token
