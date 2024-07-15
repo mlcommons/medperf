@@ -5,6 +5,7 @@ import pandas as pd
 import yaml
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
+from rano_monitor.messages import AnnotationsLoaded
 from rano_monitor.utils import generate_full_report
 from rano_monitor.widgets.subject_details import SubjectDetails
 from rano_monitor.widgets.subject_list_view import SubjectListView
@@ -19,6 +20,7 @@ from textual.widgets import (
     Header,
     ListView,
     Static,
+    Input,
 )
 
 
@@ -31,6 +33,7 @@ class DatasetBrowser(App):
         Binding("y", "respond('y')", "Yes", show=False),
         Binding("n", "respond('n')", "No", show=False),
     ]
+    AUTO_FOCUS = ""  # Don't focus automatically to search bar
 
     subjects = var([])
     report = reactive({})
@@ -64,6 +67,7 @@ class DatasetBrowser(App):
         yield Header()
         with Container():
             with Container(id="list-container"):
+                yield Input(placeholder="Search", id="subjects-search")
                 yield SubjectListView(id="subjects-list")
             with VerticalScroll():
                 yield Summary(id="summary")
@@ -107,6 +111,10 @@ class DatasetBrowser(App):
         subject_details.set_invalid_path(self.invalid_path)
         subject_details.review_cmd = self.review_cmd
 
+        # Set dataset path to listview
+        listview = self.query_one("#subjects-list", ListView)
+        listview.dset_path = self.dset_data_path
+
         # Execute handlers
         self.prompt_watchdog.manual_execute()
         self.invalid_watchdog.manual_execute()
@@ -145,6 +153,17 @@ class DatasetBrowser(App):
             self.action_respond("y")
         elif event.control == n_button:
             self.action_respond("n")
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        search_input = self.query_one("#subjects-search")
+        subjects_list = self.query_one("#subjects-list")
+        if event.control == search_input:
+            search_term = search_input.value
+            subjects_list.update_list(search_term)
+
+    def on_annotations_loaded(self, message: AnnotationsLoaded):
+        subjects_list = self.query_one("#subjects-list")
+        subjects_list.update_list()
 
     def update_prompt(self, prompt: str):
         self.prompt = prompt
