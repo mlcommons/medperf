@@ -375,12 +375,6 @@ def unpackage_reviews(file, app, dset_data_path):
         identified_masks
     )
 
-    if len(identified_reviewed):
-        app.notify("Reviewed cases identified")
-
-    if len(identified_brainmasks):
-        app.notify("Brain masks identified")
-
     extracts = get_identified_extract_paths(
         identified_reviewed,
         identified_under_review,
@@ -398,3 +392,58 @@ def unpackage_reviews(file, app, dset_data_path):
             if os.path.exists(target_file):
                 delete(target_file, dset_data_path)
             tar.extract(member, dest)
+
+
+def brain_has_been_reviewed(brainpath, backup_brainpath):
+    if not os.path.exists(backup_brainpath):
+        return False
+
+    brain_hash = get_hash(brainpath)
+    backup_hash = get_hash(backup_brainpath)
+    return brain_hash != backup_hash
+
+
+def tumor_has_been_finalized(finalized_tumor_path):
+    finalized_files = os.listdir(finalized_tumor_path)
+    finalized_files = [file for file in finalized_files if not file.startswith(".")]
+
+    return len(finalized_files) > 0
+
+
+def can_review(subject):
+    return MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
+
+
+def get_finalized_tumor_path(subject: str, dset_path: str) -> str:
+    """Get's the path to the finalized tumor path based solely on the
+    subject identifier and data path. Works regardless of wether the subject is in
+    that stage or the folder being pointed to exists or not.
+
+    Args:
+        subject (str): subject identified, written as {subject}|{timepoint}
+
+    Returns:
+        str: _description_
+    """
+    id, tp = subject.split("|")
+    return os.path.join(
+        dset_path,
+        "tumor_extracted",
+        "DataForQC",
+        id,
+        tp,
+        "TumorMasksForQC",
+        "finalized",
+    )
+
+
+def get_brainmask_path(subject: str, dset_path: str) -> str:
+    id, tp = subject.split("|")
+    return os.path.join(
+        dset_path,
+        "tumor_extracted",
+        "DataForQC",
+        id,
+        tp,
+        BRAINMASK,
+    )

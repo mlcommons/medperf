@@ -3,10 +3,11 @@ import os
 from rano_monitor.constants import BRAINMASK, BRAINMASK_BAK, DEFAULT_SEGMENTATION
 from rano_monitor.utils import (
     finalize,
-    get_hash,
     is_editor_installed,
     review_brain,
     review_tumor,
+    brain_has_been_reviewed,
+    tumor_has_been_finalized,
 )
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -49,9 +50,15 @@ class TarballSubjectView(Static):
     def update_status(self):
         tumor_status = self.query_one(".tumor-status", Static)
         brain_status = self.query_one(".brain-status", Static)
-        if self.__tumor_has_been_finalized():
+
+        id, tp = self.subject.split("|")
+        finalized_tumor_path = os.path.join(self.contents_path, id, tp, "finalized")
+        brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
+        backup_brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK_BAK)
+
+        if tumor_has_been_finalized(finalized_tumor_path):
             tumor_status.display = "block"
-        if self.__brain_has_been_reviewed():
+        if brain_has_been_reviewed(brainpath, backup_brainpath):
             brain_status.display = "block"
 
     def __update_buttons(self):

@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from rano_monitor.constants import (
     DEFAULT_SEGMENTATION,
-    DONE_STAGE,
     MANUAL_REVIEW_STAGE,
 )
 from rano_monitor.messages import InvalidSubjectsUpdated
@@ -14,6 +13,7 @@ from rano_monitor.utils import (
     review_brain,
     review_tumor,
     to_local_path,
+    can_review,
 )
 from rano_monitor.widgets.copyable_item import CopyableItem
 from textual.app import ComposeResult
@@ -116,8 +116,7 @@ class SubjectDetails(Static):
         # This SHOULD NOT be here for general data prep monitoring.
         # Additional configuration must be set
         # to make this kind of features generic
-        can_review = MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
-        buttons_container.display = "block" if can_review else "none"
+        buttons_container.display = "block" if can_review(subject) else "none"
 
         # Only display finalize button for the manual review
         can_finalize = abs(subject["status"]) == MANUAL_REVIEW_STAGE
