@@ -46,3 +46,11 @@ tasks:
         aggregator_config_path: aggregator_config.yaml
       outputs:
         plan_path: { type: "file", default: "plan/plan.yaml" }
+  train_initial_model:
+    parameters:
+      inputs:
+        data_path: data/
+        labels_path: labels/
+      outputs:
+        output_logs: logs/
+        init_nnunet_directory: init_nnunet_directory/

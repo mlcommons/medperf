@@ -27,6 +27,8 @@ from openfl.utilities.split import split_tensor_dict_for_holdouts
 from .runner_pt_chkpt import PyTorchCheckpointTaskRunner
 from .nnunet_v1 import train_nnunet
 
+shared_plans_identifier = 'nnUNetPlans_pretrained_POSTOPP'
+
 class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
     """An abstract class for PyTorch model based Tasks, where training, validation etc. are processes that
        pull model state from a PyTorch checkpoint."""
@@ -53,17 +55,17 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         super().__init__(
             checkpoint_path_initial=os.path.join(
                 os.environ['RESULTS_FOLDER'], 
-                f'nnUNet/3d_fullres/{nnunet_task}/nnUNetTrainerV2__nnUNetPlansv2.1/fold_0/',
+                f'nnUNet/3d_fullres/{nnunet_task}/nnUNetTrainerV2__{shared_plans_identifier}/fold_0/',
                 'model_initial_checkpoint.model'
                 ),
             checkpoint_path_save=os.path.join(
                 os.environ['RESULTS_FOLDER'], 
-                f'nnUNet/3d_fullres/{nnunet_task}/nnUNetTrainerV2__nnUNetPlansv2.1/fold_0/',
+                f'nnUNet/3d_fullres/{nnunet_task}/nnUNetTrainerV2__{shared_plans_identifier}/fold_0/',
                 'model_final_checkpoint.model'
                 ),
             checkpoint_path_load=os.path.join(
                 os.environ['RESULTS_FOLDER'], 
-                f'nnUNet/3d_fullres/{nnunet_task}/nnUNetTrainerV2__nnUNetPlansv2.1/fold_0/',
+                f'nnUNet/3d_fullres/{nnunet_task}/nnUNetTrainerV2__{shared_plans_identifier}/fold_0/',
                 'model_final_checkpoint.model'
                 ),
             **kwargs,

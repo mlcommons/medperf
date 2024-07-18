@@ -64,7 +64,7 @@ def collaborator_pre_training_hook(
                       network='3d_fullres', 
                       network_trainer='nnUNetTrainerV2', 
                       fold='0',
-                      plans_path="PATHHHH",  # TODO: point this to a mounted file. IT IS NOT AN OPENFL PLAN
+                      plans_path=f'{init_nnunet_directory}/nnUNetPlans_pretrained_POSTOPP_plans_3D.pkl',  # NOTE: IT IS NOT AN OPENFL PLAN
                       cuda_device='0', 
                       verbose=False)
 

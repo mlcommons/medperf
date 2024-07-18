@@ -2,7 +2,7 @@ import os
 import pickle as pkl
 import shutil
 
-from nnunet_v1 import train_nnunet
+from src.nnunet_v1 import train_nnunet
 from nnunet.paths import default_plans_identifier
 
 def train_on_task(task, network, network_trainer, fold, cuda_device, plans_identifier, continue_training=False, current_epoch=0):

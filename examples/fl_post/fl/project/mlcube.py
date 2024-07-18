@@ -12,6 +12,7 @@ from hooks import (
     collaborator_pre_training_hook,
     collaborator_post_training_hook,
 )
+from init_model import train_initial_model
 
 app = typer.Typer()
 
@@ -122,6 +123,23 @@ def generate_plan_(
     # later if need this we think of a solution. Currently the create_plam
     # logic is assumed to not write within the container.
     generate_plan(training_config_path, aggregator_config_path, plan_path)
+
+
+@app.command("train_initial_model")
+def train_initial_model_(
+    data_path: str = typer.Option(..., "--data_path"),
+    labels_path: str = typer.Option(..., "--labels_path"),
+    output_logs: str = typer.Option(..., "--output_logs"),
+    init_nnunet_directory: str = typer.Option(..., "--init_nnunet_directory"),
+):
+    _setup(output_logs)
+    train_initial_model(
+        data_path=data_path,
+        labels_path=labels_path,
+        output_logs=output_logs,
+        init_nnunet_directory=init_nnunet_directory,
+    )
+    _teardown(output_logs)
 
 
 if __name__ == "__main__":
