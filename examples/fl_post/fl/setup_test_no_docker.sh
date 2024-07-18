@@ -94,23 +94,5 @@ echo "address: $HOSTNAME_" >>mlcube_agg/workspace/aggregator_config.yaml
 echo "port: 50273" >>mlcube_agg/workspace/aggregator_config.yaml
 
 # cols file
-echo "$COL1_LABEL: $COL1_CN" >>mlcube_agg/workspace/cols.yaml
 echo "$COL2_LABEL: $COL2_CN" >>mlcube_agg/workspace/cols.yaml
 echo "$COL3_LABEL: $COL3_CN" >>mlcube_agg/workspace/cols.yaml
-
-# data download
-cd mlcube_col1/workspace/
-wget https://storage.googleapis.com/medperf-storage/testfl/col1_prepared.tar.gz
-tar -xf col1_prepared.tar.gz
-rm col1_prepared.tar.gz
-cd ../..
-
-cd mlcube_col2/workspace/
-wget https://storage.googleapis.com/medperf-storage/testfl/col2_prepared.tar.gz
-tar -xf col2_prepared.tar.gz
-rm col2_prepared.tar.gz
-cd ../..
-
-cp -r mlcube_col2/workspace/data mlcube_col3/workspace
-cp -r mlcube_col2/workspace/labels mlcube_col3/workspace
-
