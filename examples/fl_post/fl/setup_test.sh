@@ -82,12 +82,3 @@ cd ../..
 
 cp -r mlcube_col2/workspace/data mlcube_col3/workspace
 cp -r mlcube_col2/workspace/labels mlcube_col3/workspace
-
-# weights download
-cd mlcube_agg/workspace/
-mkdir additional_files
-cd additional_files
-wget https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz
-tar -xf init_weights_miccai.tar.gz
-rm init_weights_miccai.tar.gz
-cd ../../..
