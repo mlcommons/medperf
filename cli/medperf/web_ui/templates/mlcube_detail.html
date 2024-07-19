@@ -1,3 +1,4 @@
+<!-- ./cli/medperf/web-ui/templates/mlcube_detail.html -->
 {% extends "base.html" %}
 
 {% block title %}MLCube Details{% endblock %}
@@ -26,9 +27,9 @@
         <div id="yamlFilesUrls">
             <div class="card mb-3">
                 <div class="card-body">
-                    <p class="card-text"><strong>MLCube:</strong> <a href="{{ mlcube.git_mlcube_url }}" class="text-primary" target="_blank">{{ mlcube.git_mlcube_url }}</a></p>
+                    <p class="card-text"><strong>MLCube:</strong> <a href="{{ mlcube.git_mlcube_url }}" class="text-primary yaml-link" target="_blank">{{ mlcube.git_mlcube_url }}</a></p>
                     <p class="card-text text-muted small">{{ mlcube.mlcube_hash }}</p>
-                    <p class="card-text"><strong>Parameters:</strong> <a href="{{ mlcube.git_parameters_url }}" class="text-primary" target="_blank">{{ mlcube.git_parameters_url }}</a></p>
+                    <p class="card-text"><strong>Parameters:</strong> <a href="{{ mlcube.git_parameters_url }}" class="text-primary yaml-link" target="_blank">{{ mlcube.git_parameters_url }}</a></p>
                     <p class="card-text text-muted small">{{ mlcube.parameters_hash }}</p>
                 </div>
             </div>
@@ -82,6 +83,16 @@
         const modifiedAt = document.getElementById('modified-at');
         createdAt.textContent = formatDate(createdAt.textContent);
         modifiedAt.textContent = formatDate(modifiedAt.textContent);
+
+        $('.yaml-link').on('click', function(event) {
+            event.preventDefault();
+            const url = $(this).attr('href');
+            $.get('/fetch-yaml', { url: url }, function(data) {
+                $('#yaml-code').text(data.content);
+                Prism.highlightElement($('#yaml-code')[0]);
+                $('#yaml-content').show();
+            });
+        });
     });
 </script>
 {% endblock %}

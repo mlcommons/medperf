@@ -4,7 +4,7 @@
     <title>{% block title %}MedPerf{% endblock %}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css">
     <style>
         .badge-success {
             background-color: lightgreen;
@@ -13,6 +13,20 @@
         .badge-danger {
             background-color: lightcoral;
             color: black;
+        }
+        .right-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 40%;
+            height: 100%;
+            overflow-y: scroll;
+            background: #f8f9fa;
+            border-left: 1px solid #dee2e6;
+            padding: 20px;
+        }
+        pre {
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -36,7 +50,12 @@
     <div class="container mt-4">
         {% block content %}{% endblock %}
     </div>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
+    <div class="right-panel" id="yaml-content" style="display: none;">
+        <h5>YAML Content</h5>
+        <pre><code id="yaml-code" class="language-yaml"></code></pre>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js"></script>
 </body>
 </html>

@@ -7,12 +7,14 @@ from medperf.decorators import clean_except
 from medperf.web_ui.datasets.routes import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.mlcubes.routes import router as mlcubes_router
+from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
 
 web_app = FastAPI()
 
 web_app.include_router(datasets_router, prefix="/datasets")
 web_app.include_router(benchmarks_router, prefix="/benchmarks")
 web_app.include_router(mlcubes_router, prefix="/mlcubes")
+web_app.include_router(yaml_fetch_router)
 
 
 @web_app.get("/", include_in_schema=False)
