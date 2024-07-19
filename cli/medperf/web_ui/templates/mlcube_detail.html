@@ -87,10 +87,18 @@
         $('.yaml-link').on('click', function(event) {
             event.preventDefault();
             const url = $(this).attr('href');
+            $('#yaml-content').show();
+            $('#loading-indicator').show();
+            $('#yaml-code').hide();
             $.get('/fetch-yaml', { url: url }, function(data) {
                 $('#yaml-code').text(data.content);
                 Prism.highlightElement($('#yaml-code')[0]);
-                $('#yaml-content').show();
+                $('#loading-indicator').hide();
+                $('#yaml-code').show();
+            }).fail(function() {
+                $('#yaml-code').text('Failed to load content');
+                $('#loading-indicator').hide();
+                $('#yaml-code').show();
             });
         });
     });

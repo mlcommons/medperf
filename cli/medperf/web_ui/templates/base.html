@@ -25,6 +25,21 @@
             border-left: 1px solid #dee2e6;
             padding: 20px;
         }
+        .spinner {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #007bff;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
         pre {
             white-space: pre-wrap;
         }
@@ -52,6 +67,7 @@
     </div>
     <div class="right-panel" id="yaml-content" style="display: none;">
         <h5>YAML Content</h5>
+        <div id="loading-indicator" class="spinner" style="display: none;"></div>
         <pre><code id="yaml-code" class="language-yaml"></code></pre>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
