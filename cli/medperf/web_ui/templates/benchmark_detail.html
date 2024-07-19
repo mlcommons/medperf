@@ -13,17 +13,16 @@
         word-wrap: break-word;
         white-space: normal;
     }
-
 </style>
 <h1 class="my-4">{{ benchmark.name }}</h1>
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title mb-0">Details</h5>
-            <span class="badge {% if benchmark.state == 'OPERATION' %}badge-success{% else %}badge-danger{% endif %}">
+            <span class="badge {% if benchmark.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
                 {{ benchmark.state }}
             </span>
-            <span class="badge {% if benchmark.approval_status == 'APPROVED' %}badge-success{% else %}badge-danger{% endif %}">
+            <span class="badge {% if benchmark.approval_status == 'APPROVED' %}badge-approval-approved{% elif benchmark.approval_status == 'PENDING' %}badge-approval-pending{% else %}badge-approval-rejected{% endif %}">
                 {{ benchmark.approval_status }}
             </span>
         </div>
@@ -51,7 +50,6 @@
         </div>
     </div>
 </div>
-<script src="/static/js/common.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         formatDates();

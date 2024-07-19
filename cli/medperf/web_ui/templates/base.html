@@ -1,3 +1,4 @@
+<!-- ./cli/medperf/web-ui/templates/base.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,12 +7,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css">
     <style>
-        .badge-success {
+        .badge-state-operational {
             background-color: lightgreen;
             color: black;
         }
-        .badge-danger {
+        .badge-state-development {
             background-color: lightcoral;
+            color: black;
+        }
+        .badge-approval-pending {
+            background-color: coral;
+            color: black;
+        }
+        .badge-approval-approved {
+            background-color: lightgreen;
+            color: black;
+        }
+        .badge-approval-rejected {
+            background-color: red;
             color: black;
         }
         .spinner {
