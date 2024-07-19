@@ -1,6 +1,7 @@
+# medperf/web-ui/benchmarks/routes.py
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
@@ -24,3 +25,9 @@ def benchmarks_ui(request: Request, local_only: bool = False, mine_only: bool = 
         filters=filters,
     )
     return templates.TemplateResponse("benchmarks.html", {"request": request, "benchmarks": benchmarks})
+
+
+@router.get("/ui/{benchmark_id}", response_class=HTMLResponse)
+def benchmark_detail_ui(request: Request, benchmark_id: int):
+    benchmark = Benchmark.get(benchmark_id)
+    return templates.TemplateResponse("benchmark_detail.html", {"request": request, "benchmark": benchmark})

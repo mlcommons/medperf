@@ -1,6 +1,7 @@
 import typer
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from medperf import config
 from medperf.decorators import clean_except
@@ -15,6 +16,8 @@ web_app.include_router(datasets_router, prefix="/datasets")
 web_app.include_router(benchmarks_router, prefix="/benchmarks")
 web_app.include_router(mlcubes_router, prefix="/mlcubes")
 web_app.include_router(yaml_fetch_router)
+
+web_app.mount("/static", StaticFiles(directory="medperf/web_ui/static"), name="static")
 
 
 @web_app.get("/", include_in_schema=False)

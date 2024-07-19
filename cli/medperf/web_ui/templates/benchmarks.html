@@ -9,7 +9,7 @@
     <div class="col-md-4 mb-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">{{ benchmark.name }}</h5>
+                <h5 class="card-title"><a href="/benchmarks/ui/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a></h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
                 <p class="card-text">{{ benchmark.description }}</p>
                 <p class="card-text"><a href="{{ benchmark.docs_url }}" class="card-link">Documentation</a></p>
