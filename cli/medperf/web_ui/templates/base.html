@@ -35,6 +35,20 @@
             animation: spin 1s ease-in-out infinite;
             margin: 0 auto;
         }
+        .page-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 100vh; /* Ensure the parent container takes full viewport height */
+        }
+
+        #yaml-content {
+            flex: 0 0 40%; /* Adjust width as necessary */
+            max-width: 40%;
+            height: 100%; /* Take full height of the parent container */
+            overflow-y: auto; /* Enable vertical scrolling within this container */
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -62,13 +76,15 @@
             </ul>
         </div>
     </nav>
-    <div class="container mt-4">
-        {% block content %}{% endblock %}
-    </div>
-    <div class="right-panel" id="yaml-content" style="display: none;">
-        <h5>YAML Content</h5>
-        <div id="loading-indicator" class="spinner" style="display: none;"></div>
-        <pre><code id="yaml-code" class="language-yaml"></code></pre>
+    <div class="page-container d-flex mt-4">
+        <div class="container mt-4">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="container mt-4" id="yaml-content" style="display: none;">
+            <h5>YAML Content</h5>
+            <div id="loading-indicator" class="spinner" style="display: none;"></div>
+            <pre><code id="yaml-code" class="language-yaml"></code></pre>
+        </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
