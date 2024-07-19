@@ -41,6 +41,7 @@
                     <p class="card-text"><strong>Data Preparation MLCube:</strong> <a href="/mlcubes/ui/{{ data_preparation_mlcube.id }}" class="text-primary">{{ data_preparation_mlcube.name }}</a></p>
                     <p class="card-text"><strong>Reference Model MLCube:</strong> <a href="/mlcubes/ui/{{ reference_model_mlcube.id }}" class="text-primary">{{ reference_model_mlcube.name }}</a></p>
                     <p class="card-text"><strong>Metrics MLCube:</strong> <a href="/mlcubes/ui/{{ metrics_mlcube.id }}" class="text-primary">{{ metrics_mlcube.name }}</a></p>
+                    <p class="card-text"><strong>Owner:</strong> <i class="fas fa-user"></i> <span class="text-muted small">{{ benchmark.owner }}</span></p>
                 </div>
                 <div class="text-right w-50">
                     <p class="card-text"><strong>Created:</strong> <span class="text-muted small" id="created-at">{{ benchmark.created_at }}</span></p>
