@@ -14,17 +14,6 @@
             background-color: lightcoral;
             color: black;
         }
-        .right-panel {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 40%;
-            height: 100%;
-            overflow-y: scroll;
-            background: #f8f9fa;
-            border-left: 1px solid #dee2e6;
-            padding: 20px;
-        }
         .spinner {
             display: inline-block;
             width: 80px;
@@ -40,13 +29,22 @@
             justify-content: space-between;
             align-items: flex-start;
             height: 100vh; /* Ensure the parent container takes full viewport height */
+            overflow: hidden; /* Prevent horizontal scrolling on the whole page */
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0; /* Allow the main content to shrink below its content size */
+            margin-right: 20px; /* Optional: spacing between main content and yaml-content */
         }
 
         #yaml-content {
-            flex: 0 0 40%; /* Adjust width as necessary */
+            flex: 0 0 40%;
             max-width: 40%;
+            min-width: 300px; /* Set a reasonable minimum width */
             height: 100%; /* Take full height of the parent container */
             overflow-y: auto; /* Enable vertical scrolling within this container */
+            overflow-x: auto; /* Enable horizontal scrolling within this container if needed */
         }
 
         @keyframes spin {
@@ -77,7 +75,7 @@
         </div>
     </nav>
     <div class="page-container d-flex mt-4">
-        <div class="container mt-4">
+        <div class="container main-content">
             {% block content %}{% endblock %}
         </div>
         <div class="container mt-4" id="yaml-content" style="display: none;">
