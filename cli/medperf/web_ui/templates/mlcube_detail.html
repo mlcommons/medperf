@@ -4,6 +4,16 @@
 {% block title %}MLCube Details{% endblock %}
 
 {% block content %}
+<style>
+    .card-body.d-flex {
+    flex-wrap: wrap;
+}
+
+.card-text {
+    word-wrap: break-word;
+    white-space: normal;
+}
+</style>
 <h1 class="my-4">{{ mlcube.name }}</h1>
 <div class="card">
     <div class="card-body">
@@ -45,12 +55,12 @@
             </div>
         </div>
         <div class="card mb-3">
-            <div class="card-body d-flex justify-content-between">
-                <div>
+            <div class="card-body d-flex justify-content-between flex-wrap">
+                <div class="w-50">
                     <p class="card-text"><strong>Image Hash:</strong> <span class="text-muted small">{{ mlcube.image_hash }}</span></p>
                     <p class="card-text"><i class="fas fa-user"></i> <span class="text-muted small">{{ mlcube.owner }}</span></p>
                 </div>
-                <div class="text-right">
+                <div class="text-right w-50">
                     <p class="card-text"><strong>Created:</strong> <span class="text-muted small" id="created-at">{{ mlcube.created_at }}</span></p>
                     <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" id="modified-at">{{ mlcube.modified_at }}</span></p>
                 </div>

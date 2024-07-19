@@ -32,10 +32,18 @@
             overflow: hidden; /* Prevent horizontal scrolling on the whole page */
         }
 
-        .main-content {
+        .main-content-wrapper {
             flex: 1;
+            display: flex;
+            justify-content: center; /* Center the main content horizontally */
+            align-items: flex-start; /* Align items to the top */
+            width: 100%; /* Take all the available width */
+        }
+
+        .main-content {
+            /*max-width: 800px;*/
             min-width: 0; /* Allow the main content to shrink below its content size */
-            margin-right: 20px; /* Optional: spacing between main content and yaml-content */
+            transition: margin-right 0.3s;
         }
 
         #yaml-content {
@@ -75,13 +83,15 @@
         </div>
     </nav>
     <div class="page-container d-flex mt-4">
-        <div class="container main-content">
+        <div class="main-content-wrapper">
+            <div class="container main-content">
             {% block content %}{% endblock %}
-        </div>
-        <div class="container mt-4" id="yaml-content" style="display: none;">
-            <h5>YAML Content</h5>
-            <div id="loading-indicator" class="spinner" style="display: none;"></div>
-            <pre><code id="yaml-code" class="language-yaml"></code></pre>
+            </div>
+            <div class="container mt-4" id="yaml-content" style="display: none;">
+                <h5>YAML Content</h5>
+                <div id="loading-indicator" class="spinner" style="display: none;"></div>
+                <pre><code id="yaml-code" class="language-yaml"></code></pre>
+            </div>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
