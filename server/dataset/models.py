@@ -11,7 +11,7 @@ class Dataset(models.Model):
     )
 
     name = models.CharField(max_length=20)
-    description = models.CharField(max_length=20, blank=True)
+    description = models.CharField(max_length=256, blank=True)
     location = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     input_data_hash = models.CharField(max_length=128)
