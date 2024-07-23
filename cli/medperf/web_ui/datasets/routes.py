@@ -1,19 +1,16 @@
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from typing import List
 from fastapi import Request
-from fastapi.templating import Jinja2Templates
 
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
+from medperf.web_ui.common import templates
 
 router = APIRouter()
-
-templates = Jinja2Templates(directory="medperf/web_ui/templates")
-
 logger = logging.getLogger(__name__)
 
 

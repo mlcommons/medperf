@@ -1,4 +1,3 @@
-<!-- ./cli/medperf/web-ui/templates/benchmark_detail.html -->
 {% extends "base.html" %}
 
 {% block title %}Benchmark Details{% endblock %}
@@ -43,16 +42,11 @@
                     <p class="card-text"><strong>Owner:</strong> <i class="fas fa-user"></i> <span class="text-muted small">{{ benchmark.owner }}</span></p>
                 </div>
                 <div class="text-right w-50">
-                    <p class="card-text"><strong>Created:</strong> <span class="text-muted small" id="created-at">{{ benchmark.created_at }}</span></p>
-                    <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" id="modified-at">{{ benchmark.modified_at }}</span></p>
+                    <p class="card-text"><strong>Created:</strong> <span class="text-muted small" data-date="{{ benchmark.created_at }}"></span></p>
+                    <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" data-date="{{ benchmark.modified_at }}"></span></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        formatDates();
-    });
-</script>
 {% endblock %}

@@ -15,11 +15,15 @@ function formatDate(dateString) {
     return date.toLocaleDateString(undefined, options);
 }
 
-function formatDates() {
-    const createdAt = document.getElementById('created-at');
-    const modifiedAt = document.getElementById('modified-at');
-    if (createdAt && modifiedAt) {
-        createdAt.textContent = formatDate(createdAt.textContent);
-        modifiedAt.textContent = formatDate(modifiedAt.textContent);
-    }
+function applyDateFormatting() {
+    console.log("Date formatter started");
+    const dateElements = document.querySelectorAll('[data-date]');
+    dateElements.forEach(element => {
+        const date = element.getAttribute('data-date');
+        element.textContent = formatDate(date);
+    });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    applyDateFormatting();
+});
