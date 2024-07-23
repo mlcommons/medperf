@@ -1,3 +1,4 @@
+<!-- ./cli/medperf/web-ui/templates/datasets.html -->
 {% extends "base.html" %}
 
 {% block title %}Datasets{% endblock %}
@@ -9,7 +10,7 @@
     <div class="col-md-4 mb-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">{{ dataset.name }}</h5>
+                <h5 class="card-title"><a href="/datasets/ui/{{ dataset.id }}" class="text-primary">{{ dataset.name }}</a></h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{ dataset.state }}</h6>
                 <p class="card-text">{{ dataset.description }}</p>
                 <p class="card-text"><small class="text-muted">Location: {{ dataset.location }}</small></p>
