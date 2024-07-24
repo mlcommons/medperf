@@ -37,35 +37,28 @@
             animation: spin 1s ease-in-out infinite;
             margin: 0 auto;
         }
+
         .page-container {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            height: 100vh; /* Ensure the parent container takes full viewport height */
-            overflow: hidden; /* Prevent horizontal scrolling on the whole page */
-        }
-
-        .main-content-wrapper {
-            flex: 1;
-            display: flex;
-            justify-content: center; /* Center the main content horizontally */
-            align-items: flex-start; /* Align items to the top */
-            width: 100%; /* Take all the available width */
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .main-content {
-            /*max-width: 800px;*/
-            min-width: 0; /* Allow the main content to shrink below its content size */
-            transition: margin-right 0.3s;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
         }
 
-        #yaml-content {
+        .yaml-content {
+            display: none;
             flex: 0 0 40%;
             max-width: 40%;
-            min-width: 300px; /* Set a reasonable minimum width */
-            height: 100%; /* Take full height of the parent container */
-            overflow-y: auto; /* Enable vertical scrolling within this container */
-            overflow-x: auto; /* Enable horizontal scrolling within this container if needed */
+            min-width: 300px;
+            height: 100vh;
+            overflow: auto;
         }
 
         @keyframes spin {
@@ -73,6 +66,7 @@
                 transform: rotate(360deg);
             }
         }
+
         pre {
             white-space: pre-wrap;
         }
@@ -95,21 +89,19 @@
             </ul>
         </div>
     </nav>
-    <div class="page-container d-flex mt-4">
-        <div class="main-content-wrapper">
-            <div class="container main-content">
+    <div class="page-container">
+        <div class="main-content">
             {% block content %}{% endblock %}
-            </div>
-            <div class="container mt-4" id="yaml-content" style="display: none;">
-                <h5>YAML Content</h5>
-                <div id="loading-indicator" class="spinner" style="display: none;"></div>
-                <pre><code id="yaml-code" class="language-yaml"></code></pre>
-            </div>
+        </div>
+        <div class="yaml-content" id="yaml-content">
+            <h5>YAML Content</h5>
+            <div id="loading-indicator" class="spinner" style="display: none;"></div>
+            <pre><code id="yaml-code" class="language-yaml"></code></pre>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js"></script>
-    <script src="/static/js/common.js"></script>
+    <script src="/static/js/common.js?v=1.0"></script>
 </body>
 </html>
