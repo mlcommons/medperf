@@ -22,35 +22,16 @@
                 {{ mlcube.state }}
             </span>
         </div>
-        <div class="form-group">
-            <label for="url-type" class="font-weight-bold">URL Type</label>
-            <div id="url-type" class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="urlType" id="yamlFiles" value="yaml" checked>
-                <label class="form-check-label" for="yamlFiles">YAML files</label>
-            </div>
-            <div id="url-type" class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="urlType" id="imageTarball" value="tarball">
-                <label class="form-check-label" for="imageTarball">Image tarball</label>
-            </div>
-        </div>
-        <div id="yamlFilesUrls">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <p class="card-text"><strong>MLCube:</strong> <a href="{{ mlcube.git_mlcube_url }}" class="text-primary yaml-link" target="_blank">{{ mlcube.git_mlcube_url }}</a></p>
-                    <p class="card-text text-muted small">{{ mlcube.mlcube_hash }}</p>
-                    <p class="card-text"><strong>Parameters:</strong> <a href="{{ mlcube.git_parameters_url }}" class="text-primary yaml-link" target="_blank">{{ mlcube.git_parameters_url }}</a></p>
-                    <p class="card-text text-muted small">{{ mlcube.parameters_hash }}</p>
-                </div>
-            </div>
-        </div>
-        <div id="imageTarballUrls" style="display: none;">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <p class="card-text"><strong>Image Tarball:</strong> <a href="{{ mlcube.image_tarball_url }}" class="text-primary" target="_blank">{{ mlcube.image_tarball_url }}</a></p>
-                    <p class="card-text text-muted small">{{ mlcube.image_tarball_hash }}</p>
-                    <p class="card-text"><strong>Additional Files:</strong> <a href="{{ mlcube.additional_files_tarball_url }}" class="text-primary" target="_blank">{{ mlcube.additional_files_tarball_url }}</a></p>
-                    <p class="card-text text-muted small">{{ mlcube.additional_files_tarball_hash }}</p>
-                </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text"><strong>MLCube:</strong> <a href="{{ mlcube.git_mlcube_url }}" class="text-primary yaml-link" target="_blank">{{ mlcube.git_mlcube_url }}</a></p>
+                <p class="card-text text-muted small">{{ mlcube.mlcube_hash }}</p>
+                <p class="card-text"><strong>Parameters:</strong> <a href="{{ mlcube.git_parameters_url }}" class="text-primary yaml-link" target="_blank">{{ mlcube.git_parameters_url }}</a></p>
+                <p class="card-text text-muted small">{{ mlcube.parameters_hash }}</p>
+                <p class="card-text"><strong>Image Tarball:</strong> <a href="{{ mlcube.image_tarball_url }}" class="text-primary" target="_blank">{{ mlcube.image_tarball_url }}</a></p>
+                <p class="card-text text-muted small">{{ mlcube.image_tarball_hash }}</p>
+                <p class="card-text"><strong>Additional Files:</strong> <a href="{{ mlcube.additional_files_tarball_url }}" class="text-primary" target="_blank">{{ mlcube.additional_files_tarball_url }}</a></p>
+                <p class="card-text text-muted small">{{ mlcube.additional_files_tarball_hash }}</p>
             </div>
         </div>
         <div class="card mb-3">
@@ -69,15 +50,6 @@
     </div>
 </div>
 <script>
-    document.getElementById('yamlFiles').addEventListener('click', function() {
-        document.getElementById('yamlFilesUrls').style.display = 'block';
-        document.getElementById('imageTarballUrls').style.display = 'none';
-    });
-    document.getElementById('imageTarball').addEventListener('click', function() {
-        document.getElementById('yamlFilesUrls').style.display = 'none';
-        document.getElementById('imageTarballUrls').style.display = 'block';
-    });
-
     document.addEventListener('DOMContentLoaded', function() {
 
         $('.yaml-link').on('click', function(event) {
