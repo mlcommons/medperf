@@ -12,6 +12,8 @@ COL1="medperf --gpus=1 mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF
 COL2="medperf --gpus=device=0 mlcube run --mlcube ./mlcube_col2 --task train -e MEDPERF_PARTICIPANT_LABEL=col2@example.com"
 COL3="medperf --gpus=device=1 mlcube run --mlcube ./mlcube_col3 --task train -e MEDPERF_PARTICIPANT_LABEL=col3@example.com"
 
+# medperf --gpus=device=2 mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com >>col1.log &
+
 # gnome-terminal -- bash -c "$AGG; bash"
 # gnome-terminal -- bash -c "$COL1; bash"
 # gnome-terminal -- bash -c "$COL2; bash"

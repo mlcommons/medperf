@@ -35,7 +35,7 @@ network :
 
 assigner :
   defaults : plan/defaults/assigner.yaml
-  template : openfl.component.RandomGroupedAssigner
+  template : openfl.component.assigner.DynamicRandomGroupedAssigner
   settings :
     task_groups  :
       - name       : train_and_validate
@@ -57,3 +57,9 @@ tasks :
 
 compression_pipeline :
   defaults : plan/defaults/compression_pipeline.yaml
+
+straggler_handling_policy :
+    template : openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
+    settings :
+        straggler_cutoff_time : 600
+        minimum_reporting : 2
