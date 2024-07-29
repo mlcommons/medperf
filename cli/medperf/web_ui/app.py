@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from medperf import config
 from medperf.decorators import clean_except
+from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets.routes import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.mlcubes.routes import router as mlcubes_router
@@ -26,6 +27,7 @@ web_app.mount(
     )
 )
 
+web_app.add_exception_handler(Exception, custom_exception_handler)
 
 @web_app.get("/", include_in_schema=False)
 def read_root():
