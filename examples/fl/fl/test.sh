@@ -5,6 +5,7 @@ rm -r ./mlcube_agg/workspace/plan
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col1/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col2/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col3/workspace
+cp ./mlcube_agg/workspace/plan.yaml ./for_admin
 
 # Run nodes
 AGG="medperf mlcube run --mlcube ./mlcube_agg --task start_aggregator -P 50273"

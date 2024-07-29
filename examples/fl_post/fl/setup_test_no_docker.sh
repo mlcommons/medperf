@@ -96,3 +96,20 @@ echo "port: 50273" >>mlcube_agg/workspace/aggregator_config.yaml
 # cols file
 echo "$COL2_LABEL: $COL2_CN" >>mlcube_agg/workspace/cols.yaml
 echo "$COL3_LABEL: $COL3_CN" >>mlcube_agg/workspace/cols.yaml
+
+# for admin
+ADMIN_CN="admin@example.com"
+
+mkdir ./for_admin
+mkdir ./for_admin/node_cert
+
+sed -i "/^commonName = /c\commonName = $ADMIN_CN" csr.conf
+sed -i "/^DNS\.1 = /c\DNS.1 = $ADMIN_CN" csr.conf
+cd for_admin/node_cert
+openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
+openssl req -new -key key.key -out csr.csr -config ../../csr.conf -extensions v3_client
+openssl x509 -req -in csr.csr -CA ../../ca/root.crt -CAkey ../../ca/root.key \
+    -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_client_crt -extfile ../../csr.conf
+rm csr.csr
+cp ../../ca/root.crt ../ca_cert/
+cd ../..
