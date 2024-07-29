@@ -72,10 +72,13 @@ def start_event(
         ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
     ),
     name: str = typer.Option(..., "--name", "-n", help="Name of the benchmark"),
+    participants_list_file: str = typer.Option(
+        None, "--participants_list_file", "-p", help="Name of the benchmark"
+    ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    StartEvent.run(training_exp_id, name, approval)
+    StartEvent.run(training_exp_id, name, participants_list_file, approval)
     config.ui.print("✅ Done!")
 
 
