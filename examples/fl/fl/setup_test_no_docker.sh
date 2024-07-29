@@ -137,5 +137,5 @@ openssl req -new -key key.key -out csr.csr -config ../../csr.conf -extensions v3
 openssl x509 -req -in csr.csr -CA ../../ca/root.crt -CAkey ../../ca/root.key \
     -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_client_crt -extfile ../../csr.conf
 rm csr.csr
-cp ../../ca/root.crt ../ca_cert/
+cp -r ../../ca/root.crt ../ca_cert/
 cd ../..

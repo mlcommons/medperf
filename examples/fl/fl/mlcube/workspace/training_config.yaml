@@ -6,9 +6,16 @@ aggregator:
     last_state_path: save/classification_last.pbuf
     rounds_to_train: 2
     write_logs: true
+    admins:
+      - admin@example.com
+    allowed_admin_endpoints:
+      - GetExperimentStatus
+      - AddCollaborator
+      - RemoveCollaborator
   template: openfl.component.Aggregator
 assigner:
   settings:
+    template : openfl.component.assigner.DynamicRandomGroupedAssigner
     task_groups:
       - name: train_and_validate
         percentage: 1.0
@@ -163,3 +170,9 @@ tasks:
       metrics:
         - loss
         - train_accuracy
+
+straggler_handling_policy :
+    template : openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
+    settings :
+        straggler_cutoff_time : 600
+        minimum_reporting : 2

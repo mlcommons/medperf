@@ -6,6 +6,12 @@ aggregator :
     best_state_path : save/fl_post_two_best.pbuf
     last_state_path : save/fl_post_two_last.pbuf
     rounds_to_train : 10
+    admins:
+      - admin@example.com
+    allowed_admin_endpoints:
+      - GetExperimentStatus
+      - AddCollaborator
+      - RemoveCollaborator
 
 collaborator :
   defaults : plan/defaults/collaborator.yaml
@@ -35,7 +41,7 @@ network :
 
 assigner :
   defaults : plan/defaults/assigner.yaml
-  template : openfl.component.RandomGroupedAssigner
+  template : openfl.component.assigner.DynamicRandomGroupedAssigner
   settings :
     task_groups  :
       - name       : train_and_validate
@@ -57,3 +63,9 @@ tasks :
 
 compression_pipeline :
   defaults : plan/defaults/compression_pipeline.yaml
+
+straggler_handling_policy :
+    template : openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
+    settings :
+        straggler_cutoff_time : 600
+        minimum_reporting : 2
