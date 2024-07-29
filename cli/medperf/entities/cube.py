@@ -258,6 +258,9 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             "trust",
             "get_client_cert",
             "get_server_cert",
+            "get_experiment_status",
+            "add_collaborator",
+            "remove_collaborator",
         ]:
             cmd += " --network=none"
         if config.gpus is not None:

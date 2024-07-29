@@ -17,6 +17,11 @@ num_to_modality = {'_0000': '_brain_t1n.nii.gz',
                    '_0002': '_brain_t1c.nii.gz',
                    '_0003': '_brain_t2f.nii.gz'}
 
+def get_subdirs(parent_directory):
+    subjects = os.listdir(parent_directory)
+    subjects = [p for p in subjects if os.path.isdir(os.path.join(parent_directory, p)) and not p.startswith(".")]
+    return subjects
+
 
 def subject_time_to_mask_path(pardir, subject, timestamp):
     mask_fname = f'{subject}_{timestamp}_tumorMask_model_0.nii.gz'
@@ -68,7 +73,7 @@ def symlink_one_subject(postopp_subject_dir, postopp_data_dirpath, postopp_label
     if verbose:
         print(f"\n#######\nsymlinking subject: {postopp_subject_dir}\n########\nPostopp_data_dirpath: {postopp_data_dirpath}\n\n\n\n")
     postopp_subject_dirpath = os.path.join(postopp_data_dirpath, postopp_subject_dir)
-    all_timestamps = sorted(list(os.listdir(postopp_subject_dirpath)))
+    all_timestamps = sorted(list(get_subdirs(postopp_subject_dirpath)))
     if timestamp_selection == 'latest':
         timestamps = all_timestamps[-1:]
     elif timestamp_selection == 'earliest':
@@ -103,7 +108,7 @@ def symlink_one_subject(postopp_subject_dir, postopp_data_dirpath, postopp_label
 def doublecheck_postopp_pardir(postopp_pardir, verbose=False):
     if verbose:
         print(f"Checking postopp_pardir: {postopp_pardir}")
-    postopp_subdirs = list(os.listdir(postopp_pardir))
+    postopp_subdirs = list(get_subdirs(postopp_pardir))
     if 'data' not in postopp_subdirs:
         raise ValueError(f"'data' must be a subdirectory of postopp_src_pardir:{postopp_pardir}, but it is not.")
     if 'labels' not in postopp_subdirs:
@@ -326,8 +331,7 @@ def setup_fl_data(postopp_pardir,
     postopp_data_dirpath = os.path.join(postopp_pardir, 'data')
     postopp_labels_dirpath = os.path.join(postopp_pardir, 'labels')
 
-    all_subjects = list(os.listdir(postopp_data_dirpath))
-    
+    all_subjects = list(get_subdirs(postopp_data_dirpath))
     
     # Track the subjects and timestamps for each shard
     subject_to_timestamps = {}
