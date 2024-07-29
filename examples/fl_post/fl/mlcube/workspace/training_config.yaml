@@ -7,11 +7,11 @@ aggregator :
     last_state_path : save/fl_post_two_last.pbuf
     rounds_to_train : 10
     admins:
-    - col1@example.com
+      - col1@example.com
     allowed_admin_endpoints:
-    - GetExperimentStatus
-    - AddCollaborator
-    - RemoveCollaborator
+      - GetExperimentStatus
+      - AddCollaborator
+      - RemoveCollaborator
 
 collaborator :
   defaults : plan/defaults/collaborator.yaml

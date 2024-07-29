@@ -54,11 +54,10 @@ class TrainingExecution:
     def prepare(self):
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Execution: {self.training_exp.name}")
-        # self.event = TrainingEvent.from_experiment(self.training_exp_id)
+        self.event = TrainingEvent.from_experiment(self.training_exp_id)
         self.dataset = Dataset.get(self.data_uid)
         self.user_email: str = get_medperf_user_data()["email"]
-        # self.out_logs = os.path.join(self.event.col_out_logs, str(self.dataset.id))
-        self.out_logs = os.path.join(self.training_exp.path, str(self.dataset.id))
+        self.out_logs = os.path.join(self.event.col_out_logs, str(self.dataset.id))
 
     def validate(self):
         if self.dataset.id is None:
@@ -69,9 +68,9 @@ class TrainingExecution:
             msg = "The provided dataset is not operational."
             raise InvalidArgumentError(msg)
 
-        # if self.event.finished:
-        #     msg = "The provided training experiment has to start a training event."
-        #     raise InvalidArgumentError(msg)
+        if self.event.finished:
+            msg = "The provided training experiment has to start a training event."
+            raise InvalidArgumentError(msg)
 
     def check_existing_outputs(self):
         msg = (

@@ -10,6 +10,18 @@ from utils.associations import (
 )
 
 
+def is_approved_participant(training_exp, dataset):
+    # training_exp event status
+    event = training_exp.event
+    if not event or event.finished:
+        return
+
+    # TODO: modify when we use dataset labels
+    # TODO: is there a cleaner way? We are making assumptions on the json field structure
+    participants_list = event.participants.values()
+    return dataset.owner.email in participants_list
+
+
 class ExperimentDatasetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExperimentDataset
@@ -28,13 +40,6 @@ class ExperimentDatasetListSerializer(serializers.ModelSerializer):
         if training_exp_approval_status != "APPROVED":
             raise serializers.ValidationError(
                 "Association requests can be made only on an approved training experiment"
-            )
-
-        # training_exp event status
-        event = training_exp.event
-        if event and not event.finished:
-            raise serializers.ValidationError(
-                "The training experiment does not currently accept associations"
             )
 
         # dataset state
@@ -71,7 +76,9 @@ class ExperimentDatasetListSerializer(serializers.ModelSerializer):
                 validated_data["dataset"].owner.id
                 == validated_data["training_exp"].owner.id
             )
-            if same_owner:
+            if same_owner or is_approved_participant(
+                validated_data["training_exp"], validated_data["dataset"]
+            ):
                 validated_data["approval_status"] = "APPROVED"
                 validated_data["approved_at"] = timezone.now()
         return ExperimentDataset.objects.create(**validated_data)

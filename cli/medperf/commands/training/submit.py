@@ -25,7 +25,9 @@ class SubmitTrainingExp:
 
         with ui.interactive():
             ui.text = "Getting FL MLCube"
-            submission.get_mlcube()
+            submission.get_fl_mlcube()
+            ui.text = "Getting FL admin MLCube"
+            submission.get_fl_admin_mlcube()
             ui.print("> Completed retrieving FL MLCube")
             ui.text = "Submitting TrainingExp to MedPerf"
             updated_benchmark_body = submission.submit()
@@ -37,8 +39,12 @@ class SubmitTrainingExp:
         self.training_exp = TrainingExp(**training_exp_info)
         config.tmp_paths.append(self.training_exp.path)
 
-    def get_mlcube(self):
+    def get_fl_mlcube(self):
         mlcube_id = self.training_exp.fl_mlcube
+        Cube.get(mlcube_id)
+
+    def get_fl_admin_mlcube(self):
+        mlcube_id = self.training_exp.fl_admin_mlcube
         Cube.get(mlcube_id)
 
     def submit(self):

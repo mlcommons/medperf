@@ -122,3 +122,21 @@ wget https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.t
 tar -xf init_weights_miccai.tar.gz
 rm init_weights_miccai.tar.gz
 cd ../../..
+
+# for admin
+ADMIN_CN="admin@example.com"
+
+mkdir ./for_admin
+mkdir ./for_admin/node_cert
+
+sed -i "/^commonName = /c\commonName = $ADMIN_CN" csr.conf
+sed -i "/^DNS\.1 = /c\DNS.1 = $ADMIN_CN" csr.conf
+cd for_admin/node_cert
+openssl genpkey -algorithm RSA -out key.key -pkeyopt rsa_keygen_bits:3072
+openssl req -new -key key.key -out csr.csr -config ../../csr.conf -extensions v3_client
+openssl x509 -req -in csr.csr -CA ../../ca/root.crt -CAkey ../../ca/root.key \
+    -CAcreateserial -out crt.crt -days 36500 -sha384 -extensions v3_client_crt -extfile ../../csr.conf
+rm csr.csr
+mkdir ../ca_cert
+cp -r ../../ca/root.crt ../ca_cert/root.crt
+cd ../..

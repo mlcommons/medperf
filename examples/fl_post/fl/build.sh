@@ -6,14 +6,14 @@ done
 BUILD_BASE="${BUILD_BASE:-false}"
 
 if ${BUILD_BASE}; then
-    # git clone https://github.com/securefederatedai/openfl.git
     # git clone https://github.com/hasan7n/openfl.git
-    cd /home/msheller/git/openfl-hasan
     # cd openfl
-    # git checkout e6f3f5fd4462307b2c9431184190167aa43d962f
-    docker build -t local/openfl:local -f openfl-docker/Dockerfile.base .
-    # cd ..
+    # git checkout 8c75ddb252930dd6306885a55d0bb9bd0462c333
+    # docker build -t local/openfl:local -f openfl-docker/Dockerfile.base .
+    # # cd ..
     # rm -rf openfl
+    
+    cd /home/msheller/git/openfl-hasan
     cd -
 fi
 mlcube configure --mlcube ./mlcube -Pdocker.build_strategy=always
