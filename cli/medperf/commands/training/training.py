@@ -27,6 +27,9 @@ def submit(
     fl_mlcube: int = typer.Option(
         ..., "--fl-mlcube", "-m", help="Reference Model MLCube UID"
     ),
+    fl_admin_mlcube: int = typer.Option(
+        ..., "--fl-mlcube", "-a", help="FL admin interface MLCube"
+    ),
     operational: bool = typer.Option(
         False,
         "--operational",
@@ -39,6 +42,7 @@ def submit(
         "description": description,
         "docs_url": docs_url,
         "fl_mlcube": fl_mlcube,
+        "fl_admin_mlcube": fl_admin_mlcube,
         "demo_dataset_tarball_url": "link",
         "demo_dataset_tarball_hash": "hash",
         "demo_dataset_generated_uid": "uid",

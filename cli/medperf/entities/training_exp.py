@@ -28,6 +28,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     demo_dataset_generated_uid: str
     data_preparation_mlcube: int
     fl_mlcube: int
+    fl_admin_mlcube: Optional[int]
     plan: dict = {}
     metadata: dict = {}
     user_metadata: dict = {}

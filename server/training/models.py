@@ -32,6 +32,13 @@ class TrainingExperiment(models.Model):
         on_delete=models.PROTECT,
         related_name="fl_mlcube",
     )
+    fl_admin_mlcube = models.ForeignKey(
+        "mlcube.MlCube",
+        on_delete=models.PROTECT,
+        related_name="fl_admin_mlcube",
+        blank=True,
+        null=True,
+    )
 
     metadata = models.JSONField(default=dict, blank=True, null=True)
     state = models.CharField(choices=STATES, max_length=100, default="DEVELOPMENT")
