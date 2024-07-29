@@ -4,6 +4,7 @@ from utils import (
     get_col_cn_to_add,
     get_col_label_to_remove,
     get_col_cn_to_remove,
+    get_straggler_cutoff_time
 )
 
 
@@ -55,6 +56,22 @@ def remove_collaborator(workspace_folder, admin_cn):
             col_label,
             "--col_cn",
             col_cn,
+        ],
+        cwd=workspace_folder,
+    )
+
+
+def set_straggler_cuttoff_time(workspace_folder, admin_cn):
+    timeout_in_seconds = get_straggler_cutoff_time()
+    check_call(
+        [
+            "fx",
+            "admin",
+            "set_straggler_cuttoff_time",
+            "-n",
+            admin_cn,
+            "--timeout_in_seconds",
+            timeout_in_seconds,
         ],
         cwd=workspace_folder,
     )

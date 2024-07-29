@@ -44,6 +44,10 @@ def get_col_cn_to_remove():
     return os.environ["MEDPERF_COLLABORATOR_CN_TO_REMOVE"]
 
 
+def get_straggler_cutoff_time():
+    return os.environ["MEDPERF_STRAGGLER_CUTOFF_TIME"]
+
+
 def prepare_plan(plan_path, fl_workspace):
     target_plan_folder = os.path.join(fl_workspace, "plan")
     os.makedirs(target_plan_folder, exist_ok=True)

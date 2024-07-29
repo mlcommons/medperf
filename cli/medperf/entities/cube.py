@@ -261,6 +261,7 @@ class Cube(Entity, MedperfSchema, DeployableSchema):
             "get_experiment_status",
             "add_collaborator",
             "remove_collaborator",
+            "set_straggler_cuttoff_time",
         ]:
             cmd += " --network=none"
         if config.gpus is not None:

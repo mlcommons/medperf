@@ -4,7 +4,7 @@ import os
 import shutil
 import typer
 from utils import setup_ws
-from admin import get_experiment_status, add_collaborator, remove_collaborator
+from admin import get_experiment_status, add_collaborator, remove_collaborator, set_straggler_cuttoff_time
 
 app = typer.Typer()
 
@@ -65,6 +65,21 @@ def remove_collaborator_(
         node_cert_folder, ca_cert_folder, plan_path, temp_dir
     )
     remove_collaborator(workspace_folder, admin_cn)
+    _teardown(temp_dir)
+
+
+@app.command("set_straggler_cuttoff_time")
+def set_straggler_cuttoff_time_(
+    node_cert_folder: str = typer.Option(..., "--node_cert_folder"),
+    ca_cert_folder: str = typer.Option(..., "--ca_cert_folder"),
+    plan_path: str = typer.Option(..., "--plan_path"),
+    temp_dir: str = typer.Option(..., "--temp_dir"),
+):
+    _setup(temp_dir)
+    workspace_folder, admin_cn = setup_ws(
+        node_cert_folder, ca_cert_folder, plan_path, temp_dir
+    )
+    set_straggler_cuttoff_time(workspace_folder, admin_cn)
     _teardown(temp_dir)
 
 

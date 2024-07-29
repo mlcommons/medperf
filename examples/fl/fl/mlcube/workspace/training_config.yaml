@@ -12,6 +12,7 @@ aggregator:
       - GetExperimentStatus
       - AddCollaborator
       - RemoveCollaborator
+      - SetStragglerCuttoffTime
   template: openfl.component.Aggregator
 assigner:
   settings:
