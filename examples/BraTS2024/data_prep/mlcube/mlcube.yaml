@@ -1,14 +1,15 @@
-name: BraTS2023 Data Preparator Cube
-description: BraTS2023 Data Preparator Cube
+name: BraTS2024 Data Preparator Cube
+description: BraTS2024 Data Preparator Cube for Tasks 3 and 10
 authors:
   - { name: "MLCommons Medical Working Group" }
+  - { name: "Verena Chung" }
 
 platform:
   accelerator_count: 0
 
 docker:
   # Image name.
-  image: mlcommons/brats2023-prep:0.0.2
+  image: mlcommons/brats2023-prep:0.0.3
   # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
   build_context: "../project"
   # Docker file name within docker build context, default is `Dockerfile`.
