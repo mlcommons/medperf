@@ -28,13 +28,14 @@ def copy_radiotherapy_data(
         __copy_modalities(folder, modalities, outfolder)
 
     # copy labels
-    modalities = ["gtv"]
-    for folder in iglob(os.path.join(labels_path, "*/")):
-        outfolder = os.path.join(
-            output_labels_path, os.path.basename(os.path.normpath(folder))
-        )
-        os.makedirs(outfolder, exist_ok=True)
-        __copy_modalities(folder, modalities, outfolder)
+    modality = "gtv"
+    for f in iglob(os.path.join(labels_path, "*")):
+        if os.path.isdir(f):
+            __copy_modalities(f, [modality], output_labels_path)
+        else:
+            if f.endswith(f"{modality}.nii.gz"):
+                new_file = os.path.join(output_labels_path, os.path.basename(f))
+                shutil.copyfile(f, new_file)
 
 
 def copy_pathology_data(data_path, labels_path, output_path, output_labels_path):
@@ -57,7 +58,7 @@ def prepare_dataset(
     os.makedirs(output_path, exist_ok=True)
     os.makedirs(output_labels_path, exist_ok=True)
 
-    if task == "seg-radiotherpy":
+    if task == "seg-radiotherapy":
         copy_radiotherapy_data(data_path, labels_path, output_path, output_labels_path)
     else:
         copy_pathology_data(data_path, labels_path, output_path, output_labels_path)
