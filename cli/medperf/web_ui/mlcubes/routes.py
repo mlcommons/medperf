@@ -27,5 +27,5 @@ def mlcubes_ui(request: Request, local_only: bool = False, mine_only: bool = Fal
 
 @router.get("/ui/{mlcube_id}", response_class=HTMLResponse)
 def mlcube_detail_ui(request: Request, mlcube_id: int):
-    mlcube = Cube.get(cube_uid=mlcube_id)
+    mlcube = Cube.get(cube_uid=mlcube_id, valid_only=False)
     return templates.TemplateResponse("mlcube_detail.html", {"request": request, "mlcube": mlcube})

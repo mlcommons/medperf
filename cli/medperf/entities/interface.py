@@ -19,6 +19,7 @@ class Entity(ABC):
             List[Entity]: a list of entities.
         """
 
+    # TODO: get differs from ancestors' get signature (local_only, valid_only)
     @abstractmethod
     def get(cls, uid: Union[str, int]) -> "Entity":
         """Gets an instance of the respective entity.
