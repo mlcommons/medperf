@@ -1,0 +1,80 @@
+import json
+import os
+import random
+import shutil
+from glob import iglob
+
+random.seed(7)
+
+
+def __copy_modalities(input_folder, modalities, output_folder):
+    for file in iglob(os.path.join(input_folder, "*.nii.gz")):
+        for modality in modalities:
+            if file.endswith(f"{modality}.nii.gz"):
+                new_file = os.path.join(output_folder, os.path.basename(file))
+                shutil.copyfile(file, new_file)
+                break
+
+
+def copy_radiotherapy_data(
+    data_path, labels_path, parameters, output_path, output_labels_path
+):
+    # copy data
+    modalities = ["t1c"]
+    for folder in iglob(os.path.join(data_path, "*/")):
+        outfolder = os.path.join(
+            output_path, os.path.basename(os.path.normpath(folder))
+        )
+        os.makedirs(outfolder, exist_ok=True)
+        __copy_modalities(folder, modalities, outfolder)
+
+    # copy labels
+    modalities = ["gtv"]
+    for folder in iglob(os.path.join(labels_path, "*/")):
+        outfolder = os.path.join(
+            output_labels_path, os.path.basename(os.path.normpath(folder))
+        )
+        os.makedirs(outfolder, exist_ok=True)
+        __copy_modalities(folder, modalities, outfolder)
+
+
+def copy_pathology_data(
+    data_path, labels_path, parameters, output_path, output_labels_path
+):
+    # copy data
+    for folder in iglob(os.path.join(data_path, "*/")):
+        outfolder = os.path.join(
+            output_path, os.path.basename(os.path.normpath(folder))
+        )
+        os.makedirs(outfolder, exist_ok=True)
+        for file in iglob(os.path.join(folder, "*.png")):
+            new_file = os.path.join(outfolder, os.path.basename(file))
+            shutil.copyfile(file, new_file)
+
+    # copy labels
+    for folder in iglob(os.path.join(labels_path, "*/")):
+        outfolder = os.path.join(
+            output_labels_path, os.path.basename(os.path.normpath(folder))
+        )
+        os.makedirs(outfolder, exist_ok=True)
+        for file in iglob(os.path.join(folder, "*.csv")):
+            new_file = os.path.join(outfolder, os.path.basename(file))
+            shutil.copyfile(file, new_file)
+
+
+def prepare_dataset(
+    data_path, labels_path, parameters, output_path, output_labels_path
+):
+    task = parameters["task"]
+    assert task in ["seg-radiotherapy", "pathology"], "Invalid task"
+    os.makedirs(output_path, exist_ok=True)
+    os.makedirs(output_labels_path, exist_ok=True)
+
+    if task == "seg-radiotherpy":
+        copy_radiotherapy_data(
+            data_path, labels_path, parameters, output_path, output_labels_path
+        )
+    else:
+        copy_pathology_data(
+            data_path, labels_path, parameters, output_path, output_labels_path
+        )
