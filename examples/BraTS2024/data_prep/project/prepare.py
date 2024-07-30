@@ -1,4 +1,3 @@
-import json
 import os
 import random
 import shutil
@@ -17,7 +16,7 @@ def __copy_modalities(input_folder, modalities, output_folder):
 
 
 def copy_radiotherapy_data(
-    data_path, labels_path, parameters, output_path, output_labels_path
+    data_path, labels_path, output_path, output_labels_path
 ):
     # copy data
     modalities = ["t1c"]
@@ -38,9 +37,7 @@ def copy_radiotherapy_data(
         __copy_modalities(folder, modalities, outfolder)
 
 
-def copy_pathology_data(
-    data_path, labels_path, parameters, output_path, output_labels_path
-):
+def copy_pathology_data(data_path, labels_path, output_path, output_labels_path):
     # copy data
     for file in iglob(os.path.join(data_path, "*.png")):
         new_file = os.path.join(output_path, os.path.basename(file))
@@ -61,10 +58,6 @@ def prepare_dataset(
     os.makedirs(output_labels_path, exist_ok=True)
 
     if task == "seg-radiotherpy":
-        copy_radiotherapy_data(
-            data_path, labels_path, parameters, output_path, output_labels_path
-        )
+        copy_radiotherapy_data(data_path, labels_path, output_path, output_labels_path)
     else:
-        copy_pathology_data(
-            data_path, labels_path, parameters, output_path, output_labels_path
-        )
+        copy_pathology_data(data_path, labels_path, output_path, output_labels_path)
