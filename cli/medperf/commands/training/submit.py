@@ -45,7 +45,8 @@ class SubmitTrainingExp:
 
     def get_fl_admin_mlcube(self):
         mlcube_id = self.training_exp.fl_admin_mlcube
-        Cube.get(mlcube_id)
+        if mlcube_id:
+            Cube.get(mlcube_id)
 
     def submit(self):
         updated_body = self.training_exp.upload()

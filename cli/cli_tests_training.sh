@@ -195,6 +195,58 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "start event"
+echo "====================================="
+echo "testdo@example.com: testdo@example.com" >>./testcols.yaml
+echo "testdo2@example.com: testdo2@example.com" >>./testcols.yaml
+print_eval medperf training start_event -n event1 -t $TRAINING_UID -p ./testcols.yaml -y
+checkFailed "start event failed"
+rm ./testcols.yaml
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate aggowner profile"
+echo "====================================="
+print_eval medperf profile activate testagg
+checkFailed "testagg profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get aggregator cert"
+echo "====================================="
+print_eval medperf certificate get_server_certificate -t $TRAINING_UID
+checkFailed "Get aggregator cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting aggregator"
+echo "====================================="
+print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
+AGG_PID=$!
+
+# sleep so that the mlcube is run before we change profiles
+sleep 7
+
+# Check if the command is still running.
+if [ ! -d "/proc/$AGG_PID" ]; then
+  checkFailed "agg doesn't seem to be running" 1
+fi
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Activate dataowner profile"
 echo "====================================="
 print_eval medperf profile activate testdata1
@@ -353,77 +405,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Activate modelowner profile"
-echo "====================================="
-print_eval medperf profile activate testmodel
-checkFailed "testmodel profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Approve data1 association"
-echo "====================================="
-print_eval medperf association approve -t $TRAINING_UID -d $DSET_1_UID
-checkFailed "data1 association approval failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Approve data2 association"
-echo "====================================="
-print_eval medperf association approve -t $TRAINING_UID -d $DSET_2_UID
-checkFailed "data2 association approval failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "start event"
-echo "====================================="
-print_eval medperf training start_event -n event1 -t $TRAINING_UID -y
-checkFailed "start event failed"
-
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate aggowner profile"
-echo "====================================="
-print_eval medperf profile activate testagg
-checkFailed "testagg profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Get aggregator cert"
-echo "====================================="
-print_eval medperf certificate get_server_certificate -t $TRAINING_UID
-checkFailed "Get aggregator cert failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Starting aggregator"
-echo "====================================="
-print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_
-checkFailed "agg didn't exit successfully"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Waiting for other prcocesses to exit successfully"
 echo "====================================="
 # NOTE: on systems with small process ID table or very short-lived processes,
@@ -436,6 +417,18 @@ wait $COL1_PID
 checkFailed "data1 training didn't exit successfully"
 wait $COL2_PID
 checkFailed "data2 training didn't exit successfully"
+wait $AGG_PID
+checkFailed "agg didn't exit successfully"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate aggowner profile"
+echo "====================================="
+print_eval medperf profile activate testagg
+checkFailed "testagg profile activation failed"
 ##########################################################
 
 echo "\n"

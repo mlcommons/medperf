@@ -28,7 +28,7 @@ def submit(
         ..., "--fl-mlcube", "-m", help="Reference Model MLCube UID"
     ),
     fl_admin_mlcube: int = typer.Option(
-        ..., "--fl-mlcube", "-a", help="FL admin interface MLCube"
+        None, "--fl-mlcube", "-a", help="FL admin interface MLCube"
     ),
     operational: bool = typer.Option(
         False,
