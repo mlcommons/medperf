@@ -42,24 +42,14 @@ def copy_pathology_data(
     data_path, labels_path, parameters, output_path, output_labels_path
 ):
     # copy data
-    for folder in iglob(os.path.join(data_path, "*/")):
-        outfolder = os.path.join(
-            output_path, os.path.basename(os.path.normpath(folder))
-        )
-        os.makedirs(outfolder, exist_ok=True)
-        for file in iglob(os.path.join(folder, "*.png")):
-            new_file = os.path.join(outfolder, os.path.basename(file))
-            shutil.copyfile(file, new_file)
+    for file in iglob(os.path.join(data_path, "*.png")):
+        new_file = os.path.join(output_path, os.path.basename(file))
+        shutil.copyfile(file, new_file)
 
     # copy labels
-    for folder in iglob(os.path.join(labels_path, "*/")):
-        outfolder = os.path.join(
-            output_labels_path, os.path.basename(os.path.normpath(folder))
-        )
-        os.makedirs(outfolder, exist_ok=True)
-        for file in iglob(os.path.join(folder, "*.csv")):
-            new_file = os.path.join(outfolder, os.path.basename(file))
-            shutil.copyfile(file, new_file)
+    for file in iglob(os.path.join(labels_path, "*.csv")):
+        new_file = os.path.join(output_labels_path, os.path.basename(file))
+        shutil.copyfile(file, new_file)
 
 
 def prepare_dataset(
