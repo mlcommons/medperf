@@ -1,1 +1,2 @@
 task: seg-radiotherapy
+segmentation_modalities: ["t1c"]

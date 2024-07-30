@@ -16,10 +16,10 @@ def __copy_modalities(input_folder, modalities, output_folder):
 
 
 def copy_radiotherapy_data(
-    data_path, labels_path, output_path, output_labels_path
+    data_path, labels_path, parameters, output_path, output_labels_path
 ):
     # copy data
-    modalities = ["t1c"]
+    modalities = parameters["segmentation_modalities"]
     for folder in iglob(os.path.join(data_path, "*/")):
         outfolder = os.path.join(
             output_path, os.path.basename(os.path.normpath(folder))
@@ -59,6 +59,6 @@ def prepare_dataset(
     os.makedirs(output_labels_path, exist_ok=True)
 
     if task == "seg-radiotherapy":
-        copy_radiotherapy_data(data_path, labels_path, output_path, output_labels_path)
+        copy_radiotherapy_data(data_path, labels_path, parameters, output_path, output_labels_path)
     else:
         copy_pathology_data(data_path, labels_path, output_path, output_labels_path)
