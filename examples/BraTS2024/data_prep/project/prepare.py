@@ -28,7 +28,7 @@ def copy_radiotherapy_data(
         __copy_modalities(folder, modalities, outfolder)
 
     # copy labels
-    modality = "gtv"
+    modality = parameters["label_modality"]
     for f in iglob(os.path.join(labels_path, "*")):
         if os.path.isdir(f):
             __copy_modalities(f, [modality], output_labels_path)
@@ -54,11 +54,11 @@ def prepare_dataset(
     data_path, labels_path, parameters, output_path, output_labels_path
 ):
     task = parameters["task"]
-    assert task in ["seg-radiotherapy", "pathology"], "Invalid task"
+    assert task in ["segmentation-radiotherapy", "pathology"], "Invalid task"
     os.makedirs(output_path, exist_ok=True)
     os.makedirs(output_labels_path, exist_ok=True)
 
-    if task == "seg-radiotherapy":
+    if task == "segmentation-radiotherapy":
         copy_radiotherapy_data(data_path, labels_path, parameters, output_path, output_labels_path)
     else:
         copy_pathology_data(data_path, labels_path, output_path, output_labels_path)
