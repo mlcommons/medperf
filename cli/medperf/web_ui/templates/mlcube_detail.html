@@ -64,12 +64,15 @@
 <div class="detail-container">
     <div class="detail-panel">
         <h1 class="my-4">{{ mlcube.name }}</h1>
-        <div class="card">
+        <div class="{% if mlcube.is_valid %}card{% else %}invalid-card{% endif %}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="card-title mb-0">Details</h5>
                     <span class="badge {% if mlcube.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
                         {{ mlcube.state }}
+                    </span>
+                    <span class="badge {% if mlcube.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
+                        {% if mlcube.is_valid %}Valid{% else %}Invalid{% endif %}
                     </span>
                 </div>
                 <div class="card mb-3">

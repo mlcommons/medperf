@@ -11,7 +11,7 @@
     <div class="row justify-content-center">
         {% for mlcube in mlcubes %}
         <div class="col-md-4 mb-4">
-            <div class="card">
+            <div class="{% if mlcube.is_valid %}card{% else %}invalid-card{% endif %}">
                 <div class="card-body">
                     <h5 class="card-title"><a href="/mlcubes/ui/{{ mlcube.id }}" class="text-primary">{{ mlcube.name }}</a></h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ mlcube.state }}</h6>

@@ -11,7 +11,7 @@
     <div class="row justify-content-center">
         {% for benchmark in benchmarks %}
         <div class="col-md-4 mb-4">
-            <div class="card">
+            <div class="card {% if not benchmark.is_valid %}invalid-card{% endif %}">
                 <div class="card-body">
                     <h5 class="card-title"><a href="/benchmarks/ui/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a></h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
