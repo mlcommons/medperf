@@ -67,7 +67,7 @@ class Summary(Static):
             status_percents["DONE"] = 0.0
 
         abs_status = display_report_df["status"].abs()
-        is_beyond_manual_review = (abs_status >= MANUAL_REVIEW_STAGE) 
+        is_beyond_manual_review = (abs_status >= MANUAL_REVIEW_STAGE)
         is_not_done = (abs_status < DONE_STAGE)
         package_btns.display = any(is_beyond_manual_review & is_not_done)
 
