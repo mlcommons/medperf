@@ -9,7 +9,7 @@ platform:
 
 docker:
   # Image name.
-  image: mlcommons/brats2023-prep:0.0.3
+  image: mlcommons/brats2023-prep:0.1.0
   # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
   build_context: "../project"
   # Docker file name within docker build context, default is `Dockerfile`.
