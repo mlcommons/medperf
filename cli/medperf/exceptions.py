@@ -30,6 +30,10 @@ class ExecutionError(MedperfException):
     """Raised when an execution component fails"""
 
 
+class AuthenticationError(MedperfException):
+    """Raised when authentication can't be processed"""
+
+
 class CleanExit(MedperfException):
     """Raised when Medperf needs to stop for non erroneous reasons"""
 
