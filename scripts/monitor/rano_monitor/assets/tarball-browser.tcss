@@ -16,6 +16,14 @@ Button {
     background: $accent;
 }
 
+.tumor-status {
+    color: $success;
+}
+
+.brain-status {
+    color: $warning;
+}
+
 #package-btn {
     min-width: 50%;
 }

@@ -5,14 +5,13 @@ import pandas as pd
 import yaml
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
-from rano_monitor.messages import AnnotationsLoaded
 from rano_monitor.utils import generate_full_report
 from rano_monitor.widgets.subject_details import SubjectDetails
 from rano_monitor.widgets.subject_list_view import SubjectListView
 from rano_monitor.widgets.summary import Summary
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, VerticalScroll
+from textual.containers import Container, Horizontal
 from textual.reactive import reactive, var
 from textual.widgets import (
     Button,
@@ -20,7 +19,6 @@ from textual.widgets import (
     Header,
     ListView,
     Static,
-    Input,
 )
 
 
@@ -33,7 +31,6 @@ class DatasetBrowser(App):
         Binding("y", "respond('y')", "Yes", show=False),
         Binding("n", "respond('n')", "No", show=False),
     ]
-    AUTO_FOCUS = ""  # Don't focus automatically to search bar
 
     subjects = var([])
     report = reactive({})
@@ -45,19 +42,19 @@ class DatasetBrowser(App):
         self,
         dset_data_path,
         stages_path,
+        reviewed_watchdog,
         output_path,
         invalid_path,
         invalid_watchdog,
         prompt_watchdog,
-        review_cmd,
     ):
         self.dset_data_path = dset_data_path
         self.stages_path = stages_path
+        self.reviewed_watchdog = reviewed_watchdog
         self.output_path = output_path
         self.invalid_path = invalid_path
         self.invalid_watchdog = invalid_watchdog
         self.prompt_watchdog = prompt_watchdog
-        self.review_cmd = review_cmd
 
     def update_invalid(self, invalid_subjects):
         self.invalid_subjects = invalid_subjects
@@ -67,11 +64,9 @@ class DatasetBrowser(App):
         yield Header()
         with Container():
             with Container(id="list-container"):
-                yield Input(placeholder="Search", id="subjects-search")
                 yield SubjectListView(id="subjects-list")
-            with VerticalScroll():
-                yield Summary(id="summary")
-                yield SubjectDetails(id="details")
+            yield Summary(id="summary")
+            yield SubjectDetails(id="details")
         with Container(id="confirm-prompt"):
             yield Static(self.prompt, id="confirm-details")
             yield Horizontal(
@@ -109,11 +104,6 @@ class DatasetBrowser(App):
         # Set invalid path for subject view
         subject_details = self.query_one("#details", SubjectDetails)
         subject_details.set_invalid_path(self.invalid_path)
-        subject_details.review_cmd = self.review_cmd
-
-        # Set dataset path to listview
-        listview = self.query_one("#subjects-list", ListView)
-        listview.dset_path = self.dset_data_path
 
         # Execute handlers
         self.prompt_watchdog.manual_execute()
@@ -153,17 +143,6 @@ class DatasetBrowser(App):
             self.action_respond("y")
         elif event.control == n_button:
             self.action_respond("n")
-
-    def on_input_changed(self, event: Input.Changed) -> None:
-        search_input = self.query_one("#subjects-search")
-        subjects_list = self.query_one("#subjects-list")
-        if event.control == search_input:
-            search_term = search_input.value
-            subjects_list.update_list(search_term)
-
-    def on_annotations_loaded(self, message: AnnotationsLoaded):
-        subjects_list = self.query_one("#subjects-list")
-        subjects_list.update_list()
 
     def update_prompt(self, prompt: str):
         self.prompt = prompt

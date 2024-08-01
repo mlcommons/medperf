@@ -285,17 +285,3 @@ class Comms(ABC):
             dataset_id (int): ID of the dataset to update
             data (dict): Updated information of the dataset.
         """
-
-    @abstractmethod
-    def get_user(self, user_id: int) -> dict:
-        """Retrieves the specified user. This will only return if
-        the current user has permission to view the requested user,
-        either by being himself, an admin or an owner of a data preparation
-        mlcube used by the requested user
-
-        Args:
-            user_id (int): User UID
-
-        Returns:
-            dict: Requested user information
-        """

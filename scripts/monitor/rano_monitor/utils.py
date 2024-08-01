@@ -1,5 +1,4 @@
 import hashlib
-import re
 import os
 import shutil
 import tarfile
@@ -9,20 +8,18 @@ from subprocess import DEVNULL, Popen
 import pandas as pd
 import yaml
 from rano_monitor.constants import (
+    REVIEW_COMMAND,
     BRAINMASK_BAK,
     DEFAULT_SEGMENTATION,
     BRAINMASK,
     MANUAL_REVIEW_STAGE,
     DONE_STAGE,
-    REVIEW_FILENAME,
-    REVIEWED_PATTERN,
-    UNDER_REVIEW_PATTERN,
-    BRAINMASK_PATTERN,
+    REVIEW_FILENAME
 )
 
 
-def is_editor_installed(review_command):
-    review_command_path = shutil.which(review_command)
+def is_editor_installed():
+    review_command_path = shutil.which(REVIEW_COMMAND)
     return review_command_path is not None
 
 
@@ -33,10 +30,10 @@ def get_hash(filepath: str):
     return file_hash
 
 
-def run_editor(t1c, flair, t2, t1, seg, label, cmd):
+def run_editor(t1c, flair, t2, t1, seg, label, cmd=REVIEW_COMMAND):
     review_cmd = "{cmd} -g {t1c} -o {flair} {t2} {t1} -s {seg} -l {label}"
     review_cmd = review_cmd.format(
-        cmd=cmd,
+        cmd=REVIEW_COMMAND,
         t1c=t1c,
         flair=flair,
         t2=t2,
@@ -47,9 +44,7 @@ def run_editor(t1c, flair, t2, t1, seg, label, cmd):
     Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
 
 
-def review_tumor(
-    subject: str, data_path: str, labels_path: str, review_cmd: str
-):
+def review_tumor(subject: str, data_path: str, labels_path: str):
     (
         t1c_file,
         t1n_file,
@@ -66,18 +61,10 @@ def review_tumor(
     if not is_nifti and not is_under_review:
         shutil.copyfile(seg_file, under_review_file)
 
-    run_editor(
-        t1c_file,
-        t2f_file,
-        t2w_file,
-        t1n_file,
-        under_review_file,
-        label_file,
-        cmd=review_cmd,
-    )
+    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
 
 
-def review_brain(subject, labels_path, review_cmd, data_path=None):
+def review_brain(subject, labels_path, data_path=None):
     (
         t1c_file,
         t1n_file,
@@ -91,9 +78,7 @@ def review_brain(subject, labels_path, review_cmd, data_path=None):
     if not os.path.exists(backup_path):
         shutil.copyfile(seg_file, backup_path)
 
-    run_editor(
-        t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file, cmd=review_cmd
-    )
+    run_editor(t1c_file, t2f_file, t2w_file, t1n_file, seg_file, label_file)
 
 
 def finalize(subject: str, labels_path: str):
@@ -236,7 +221,11 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
         for i, row in review_cases.iterrows():
             data_path = to_local_path(row["data_path"], dset_path)
             labels_path = to_local_path(row["labels_path"], dset_path)
-            brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
+            brainscans = get_tumor_review_paths(
+                row.name,
+                data_path,
+                labels_path
+            )[:-2]
             rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
             base_path = os.path.join(labels_path, "..")
 
@@ -250,7 +239,12 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             tar.addfile(reviewed_dir)
             tar.add(labels_path, tar_path)
 
-            brainscan_path = os.path.join("review_cases", id, tp, "brain_scans")
+            brainscan_path = os.path.join(
+                "review_cases",
+                id,
+                tp,
+                "brain_scans"
+            )
             for brainscan in brainscans:
                 brainscan_target_path = os.path.join(
                     brainscan_path, os.path.basename(brainscan)
@@ -279,171 +273,3 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
                 img_path = os.path.join(base_path, file)
                 img_tar_path = os.path.join(tar_path, file)
                 tar.add(img_path, img_tar_path)
-
-
-def get_tar_identified_masks(file):
-    identified_reviewed = []
-    identified_under_review = []
-    identified_brainmasks = []
-    try:
-        with tarfile.open(file, "r") as tar:
-            for member in tar.getmembers():
-                review_match = re.match(REVIEWED_PATTERN, member.name)
-                if review_match:
-                    identified_reviewed.append(review_match)
-
-                under_review_match = re.match(UNDER_REVIEW_PATTERN, member.name)
-                if under_review_match:
-                    identified_under_review.append(under_review_match)
-
-                brainmask_match = re.match(BRAINMASK_PATTERN, member.name)
-                if brainmask_match:
-                    identified_brainmasks.append(brainmask_match)
-    except Exception:
-        return [], [], []
-
-    return identified_reviewed, identified_under_review, identified_brainmasks
-
-
-def get_identified_extract_paths(
-    identified_reviewed, identified_under_review, identified_brainmasks, dset_data_path
-):
-    extracts = []
-    for reviewed in identified_reviewed:
-        id, tp, filename = reviewed.groups()
-        src_path = reviewed.group(0)
-        dest_path = os.path.join(
-            dset_data_path,
-            "tumor_extracted",
-            "DataForQC",
-            id,
-            tp,
-            "TumorMasksForQC",
-            "finalized",
-        )
-        if not os.path.exists(dest_path):
-            # Don't try to add reviewed file if the dest path
-            # doesn't exist
-            continue
-
-        # dest_path = os.path.join(dest_path, filename)
-        extracts.append((src_path, dest_path))
-
-    for under_review in identified_under_review:
-        id, tp, filename = under_review.groups()
-        src_path = under_review.group(0)
-        dest_path = os.path.join(
-            dset_data_path,
-            "tumor_extracted",
-            "DataForQC",
-            id,
-            tp,
-            "TumorMasksForQC",
-            "under_review",
-        )
-        if not os.path.exists(dest_path):
-            # Don't try to add reviewed file if the dest path
-            # doesn't exist
-            continue
-
-        # dest_path = os.path.join(dest_path, filename)
-        extracts.append((src_path, dest_path))
-
-    for mask in identified_brainmasks:
-        id, tp = mask.groups()
-        src_path = mask.group(0)
-        dest_path = os.path.join(
-            dset_data_path,
-            "tumor_extracted",
-            "DataForQC",
-            id,
-            tp,
-        )
-        if not os.path.exists(dest_path):
-            # Don't try to add reviewed file if the dest path
-            # doesn't exist
-            continue
-
-        extracts.append((src_path, dest_path))
-
-    return extracts
-
-
-def unpackage_reviews(file, app, dset_data_path):
-    identified_masks = get_tar_identified_masks(file)
-    identified_reviewed, identified_under_review, identified_brainmasks = (
-        identified_masks
-    )
-
-    extracts = get_identified_extract_paths(
-        identified_reviewed,
-        identified_under_review,
-        identified_brainmasks,
-        dset_data_path,
-    )
-
-    with tarfile.open(file, "r") as tar:
-        for src, dest in extracts:
-            member = tar.getmember(src)
-            member.name = os.path.basename(member.name)
-            target_file = os.path.join(dest, member.name)
-            # TODO: this might be problematic UX.
-            # The brainmask might get overwritten unknowingly
-            if os.path.exists(target_file):
-                delete(target_file, dset_data_path)
-            tar.extract(member, dest)
-
-
-def brain_has_been_reviewed(brainpath, backup_brainpath):
-    if not os.path.exists(backup_brainpath):
-        return False
-
-    brain_hash = get_hash(brainpath)
-    backup_hash = get_hash(backup_brainpath)
-    return brain_hash != backup_hash
-
-
-def tumor_has_been_finalized(finalized_tumor_path):
-    finalized_files = os.listdir(finalized_tumor_path)
-    finalized_files = [file for file in finalized_files if not file.startswith(".")]
-
-    return len(finalized_files) > 0
-
-
-def can_review(subject):
-    return MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
-
-
-def get_finalized_tumor_path(subject: str, dset_path: str) -> str:
-    """Get's the path to the finalized tumor path based solely on the
-    subject identifier and data path. Works regardless of wether the subject is in
-    that stage or the folder being pointed to exists or not.
-
-    Args:
-        subject (str): subject identified, written as {subject}|{timepoint}
-
-    Returns:
-        str: _description_
-    """
-    id, tp = subject.split("|")
-    return os.path.join(
-        dset_path,
-        "tumor_extracted",
-        "DataForQC",
-        id,
-        tp,
-        "TumorMasksForQC",
-        "finalized",
-    )
-
-
-def get_brainmask_path(subject: str, dset_path: str) -> str:
-    id, tp = subject.split("|")
-    return os.path.join(
-        dset_path,
-        "tumor_extracted",
-        "DataForQC",
-        id,
-        tp,
-        BRAINMASK,
-    )

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 
 from .serializers import UserSerializer
-from .permissions import IsAdmin, IsOwnUser, IsOwnerOfUsedMLCube
+from .permissions import IsAdmin, IsOwnUser
 
 User = get_user_model()
 
@@ -33,7 +33,7 @@ class UserDetail(GenericAPIView):
 
     def get_permissions(self):
         if self.request.method == "GET":
-            self.permission_classes = [IsAdmin | IsOwnUser | IsOwnerOfUsedMLCube]
+            self.permission_classes = [IsAdmin | IsOwnUser]
         elif self.request.method == "DELETE" or self.request.method == "PUT":
             self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()

@@ -71,6 +71,11 @@ SubjectDetails Button {
     column-span: 2;
 }
 
+SubjectDetails {
+    overflow-y: scroll;
+    height: 100%;
+}
+
 SubjectDetails CopyableItem {
     layout: grid;
     grid-size: 12 1;
@@ -116,6 +121,7 @@ Summary {
     padding: 3;
     align: center middle;
     content-align: center middle;
+    overflow-y: scroll;
 }
 
 Summary Static {
@@ -142,9 +148,4 @@ ListItem .subtitle {
 MarkdownViewer {
     height: auto;
     min-height: 2;
-}
-
-.review-btn {
-    width: 100%;
-    margin: 1;
 }

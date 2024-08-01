@@ -44,21 +44,16 @@ class TarballBrowser(App):
 
     subjects = var([])
 
-    def set_vars(self, contents_path, review_cmd):
+    def set_vars(self, contents_path):
         self.contents_path = contents_path
-        self.review_cmd = review_cmd
         self.subjects_list = self.__get_subjects()
 
     def __get_subjects(self):
         subjects = os.listdir(self.contents_path)
-        subjects = [subject for subject in subjects if not subject.startswith(".")]
         subject_timepoint_list = []
         for subject in subjects:
             subject_path = os.path.join(self.contents_path, subject)
             timepoints = os.listdir(subject_path)
-            timepoints = [
-                timepoint for timepoint in timepoints if not timepoint.startswith(".")
-            ]
             subject_timepoint_list += [(subject, tp) for tp in timepoints]
 
         return subject_timepoint_list
@@ -79,7 +74,6 @@ class TarballBrowser(App):
                     subject_view = TarballSubjectView()
                     subject_view.subject = f"{id}|{tp}"
                     subject_view.contents_path = self.contents_path
-                    subject_view.review_cmd = self.review_cmd
                     yield subject_view
 
     def on_mount(self):
@@ -88,7 +82,7 @@ class TarballBrowser(App):
     def update_subjects_status(self):
         subject_views = self.query(TarballSubjectView)
         editor_msg = self.query_one("#review-msg", Static)
-        editor_msg.display = "none" if is_editor_installed(self.review_cmd) else "block"
+        editor_msg.display = "none" if is_editor_installed() else "block"
 
         for subject_view in subject_views:
             subject_view.update_status()

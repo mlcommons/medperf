@@ -7,14 +7,13 @@ from rano_monitor.constants import (
     DEFAULT_STAGES_PATH,
     STAGES_HELP,
     DSET_LOC_HELP,
-    OUT_HELP,
-    REVIEW_COMMAND,
-    REVIEW_CMD_HELP,
+    OUT_HELP
 )
 from rano_monitor.dataset_browser import DatasetBrowser
 from rano_monitor.handlers import InvalidHandler
 from rano_monitor.handlers import PromptHandler
 from rano_monitor.handlers import ReportHandler, ReportState
+from rano_monitor.handlers import ReviewedHandler
 from rano_monitor.handlers import TarballReviewedHandler
 from rano_monitor.tarball_browser import TarballBrowser
 from typer import Option
@@ -23,7 +22,7 @@ from watchdog.observers import Observer
 app = typer.Typer()
 
 
-def run_dset_app(dset_path, stages_path, output_path, review_cmd):
+def run_dset_app(dset_path, stages_path, output_path):
     report_path = os.path.join(dset_path, "report.yaml")
     dset_data_path = os.path.join(dset_path, "data")
     invalid_path = os.path.join(dset_path, "metadata/.invalid.txt")
@@ -41,21 +40,23 @@ def run_dset_app(dset_path, stages_path, output_path, review_cmd):
     report_state = ReportState(report_path, t_app)
     report_watchdog = ReportHandler(report_state)
     prompt_watchdog = PromptHandler(dset_data_path, t_app)
+    reviewed_watchdog = ReviewedHandler(dset_data_path, t_app)
     invalid_watchdog = InvalidHandler(invalid_path, t_app)
 
     t_app.set_vars(
         dset_data_path,
         stages_path,
+        reviewed_watchdog,
         output_path,
         invalid_path,
         invalid_watchdog,
         prompt_watchdog,
-        review_cmd,
     )
 
     observer = Observer()
     observer.schedule(report_watchdog, dset_path)
     observer.schedule(prompt_watchdog, os.path.join(dset_path, "data"))
+    observer.schedule(reviewed_watchdog, ".")
     observer.schedule(invalid_watchdog, os.path.dirname(invalid_path))
     observer.start()
     t_app.run()
@@ -63,7 +64,7 @@ def run_dset_app(dset_path, stages_path, output_path, review_cmd):
     observer.stop()
 
 
-def run_tarball_app(tarball_path, review_cmd):
+def run_tarball_app(tarball_path):
     folder_name = f".{os.path.basename(tarball_path).split('.')[0]}"
     contents_path = os.path.join(os.path.dirname(tarball_path), folder_name)
     if not os.path.exists(contents_path):
@@ -75,7 +76,7 @@ def run_tarball_app(tarball_path, review_cmd):
     contents_path = os.path.join(contents_path, "review_cases")
     reviewed_watchdog = TarballReviewedHandler(contents_path, t_app)
 
-    t_app.set_vars(contents_path, review_cmd)
+    t_app.set_vars(contents_path)
 
     observer = Observer()
     observer.schedule(reviewed_watchdog, path=contents_path, recursive=True)
@@ -88,8 +89,13 @@ def run_tarball_app(tarball_path, review_cmd):
 
 @app.command()
 def main(
-    dataset_uid: str = Option(..., "-d", "--dataset", help=DSET_HELP),
-    stages_path: str = Option(DEFAULT_STAGES_PATH, "-s", "--stages", help=STAGES_HELP),
+    dataset_uid: str = Option(None, "-d", "--dataset", help=DSET_HELP),
+    stages_path: str = Option(
+        DEFAULT_STAGES_PATH,
+        "-s",
+        "--stages",
+        help=STAGES_HELP
+    ),
     dset_path: str = Option(
         None,
         "-p",
@@ -97,13 +103,10 @@ def main(
         help=DSET_LOC_HELP,
     ),
     output_path: str = Option(None, "-o", "--out", help=OUT_HELP),
-    itksnap_executable: str = Option(
-        REVIEW_COMMAND, "-i", "--itksnap", help=REVIEW_CMD_HELP
-    ),
 ):
     if dataset_uid.endswith(".tar.gz"):
         # TODO: implement tarball_app
-        run_tarball_app(dataset_uid, itksnap_executable)
+        run_tarball_app(dataset_uid)
         return
     elif dataset_uid.isdigit():
         # Only import medperf dependencies if the user intends to use medperf
@@ -121,7 +124,7 @@ def main(
             "Please ensure the passed dataset UID/path is correct"
         )
 
-    run_dset_app(dset_path, stages_path, output_path, itksnap_executable)
+    run_dset_app(dset_path, stages_path, output_path)
 
 
 if __name__ == "__main__":

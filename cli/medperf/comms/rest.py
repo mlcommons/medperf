@@ -531,23 +531,3 @@ class REST(Comms):
 
         datasets = self.__get_list(f"{self.server_url}/mlcubes/{mlcube_id}/datasets/")
         return datasets
-
-    def get_user(self, user_id: int) -> dict:
-        """Retrieves the specified user. This will only return if
-        the current user has permission to view the requested user,
-        either by being himself, an admin or an owner of a data preparation
-        mlcube used by the requested user
-
-        Args:
-            user_id (int): User UID
-
-        Returns:
-            dict: Requested user information
-        """
-        url = f"{self.server_url}/users/{user_id}/"
-        res = self.__auth_get(url)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not retrieve user: {details}")
-        return res.json()
