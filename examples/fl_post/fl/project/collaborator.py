@@ -26,7 +26,10 @@ def start_collaborator(
     prepare_ca_cert(ca_cert_folder, workspace_folder)
 
     # set log files
-    check_call(["fx", "collaborator", "start", "-n", cn], cwd=workspace_folder)
+    check_call(
+        [os.environ.get("OPENFL_EXECUTABLE", "fx"), "collaborator", "start", "-n", cn],
+        cwd=workspace_folder,
+    )
 
     # Cleanup
     shutil.rmtree(workspace_folder, ignore_errors=True)
