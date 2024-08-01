@@ -24,3 +24,10 @@
 # env_args="$env_arg1,$env_arg2,$env_arg3"
 # medperf mlcube run --mlcube ./mlcube_admin --task remove_collaborator \
 #     -e $env_args
+
+# # SET STRAGGLER CUTOFF
+# env_arg1="MEDPERF_ADMIN_PARTICIPANT_CN=admin@example.com"
+# env_arg2="MEDPERF_STRAGGLER_CUTOFF_TIME=1200"
+# env_args="$env_arg1,$env_arg2"
+# medperf mlcube run --mlcube ./mlcube_admin --task set_straggler_cuttoff_time \
+#     -e $env_args
