@@ -9,21 +9,48 @@ from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.mlcube.run import run_mlcube
 
 app = typer.Typer()
+
+
+@app.command("run")
+@clean_except
+def run(
+    mlcube_path: str = typer.Option(
+        ..., "--mlcube", "-m", help="path to mlcube folder"
+    ),
+    task: str = typer.Option(..., "--task", "-t", help="mlcube task to run"),
+    out_logs: str = typer.Option(
+        None, "--output-logs", "-o", help="where to store stdout"
+    ),
+    port: str = typer.Option(None, "--port", "-P", help="port to expose"),
+    env: str = typer.Option(
+        "", "--env", "-e", help="comma separated list of key=value pairs"
+    ),
+    params: str = typer.Option(
+        "", "--params", "-p", help="comma separated list of key=value pairs"
+    ),
+):
+    """List mlcubes stored locally and remotely from the user"""
+    params = dict([p.split("=") for p in params.strip().strip(",").split(",") if p])
+    env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
+    run_mlcube(mlcube_path, task, out_logs, params, port, env)
 
 
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local mlcubes"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered mlcubes"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
 ):
-    """List mlcubes stored locally and remotely from the user"""
+    """List mlcubes"""
     EntityList.run(
         Cube,
         fields=["UID", "Name", "State", "Registered"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
     )
 
@@ -148,8 +175,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
-        False, "--local", help="Display local mlcubes if mlcube ID is not provided"
+    unregistered: bool = typer.Option(
+        False,
+        "--unregistered",
+        help="Display unregistered mlcubes if mlcube ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -164,4 +193,4 @@ def view(
     ),
 ):
     """Displays the information of one or more mlcubes"""
-    EntityView.run(entity_id, Cube, format, local, mine, output)
+    EntityView.run(entity_id, Cube, format, unregistered, mine, output)

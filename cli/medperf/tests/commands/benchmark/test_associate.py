@@ -11,8 +11,8 @@ PATCH_ASSOC = "medperf.commands.benchmark.associate.{}"
 def test_run_fails_if_model_and_dset_passed(mocker, model_uid, data_uid, comms, ui):
     # Arrange
     num_arguments = int(data_uid is None) + int(model_uid is None)
-    mocker.patch.object(comms, "associate_cube")
-    mocker.patch.object(comms, "associate_dset")
+    mocker.patch.object(comms, "associate_benchmark_model")
+    mocker.patch.object(comms, "associate_benchmark_dataset")
     mocker.patch(PATCH_ASSOC.format("AssociateCube.run"))
     mocker.patch(PATCH_ASSOC.format("AssociateDataset.run"))
 

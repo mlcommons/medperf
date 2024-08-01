@@ -1,143 +1,86 @@
 import pytest
-import yaml
-import json
 from medperf.entities.interface import Entity
-from medperf.exceptions import InvalidArgumentError
 from medperf.commands.view import EntityView
 
-
-def expected_output(entities, format):
-    if isinstance(entities, list):
-        data = [entity.todict() for entity in entities]
-    else:
-        data = entities.todict()
-
-    if format == "yaml":
-        return yaml.dump(data)
-    if format == "json":
-        return json.dumps(data)
-
-
-def generate_entity(id, mocker):
-    entity = mocker.create_autospec(spec=Entity)
-    mocker.patch.object(entity, "todict", return_value={"id": id})
-    return entity
+PATCH_VIEW = "medperf.commands.view.{}"
 
 
 @pytest.fixture
-def ui_spy(mocker, ui):
-    return mocker.patch.object(ui, "print")
+def entity(mocker):
+    return mocker.create_autospec(Entity)
 
 
-@pytest.fixture(
-    params=[{"local": ["1", "2", "3"], "remote": ["4", "5", "6"], "user": ["4"]}]
-)
-def setup(request, mocker):
-    local_ids = request.param.get("local", [])
-    remote_ids = request.param.get("remote", [])
-    user_ids = request.param.get("user", [])
-    all_ids = list(set(local_ids + remote_ids + user_ids))
-
-    local_entities = [generate_entity(id, mocker) for id in local_ids]
-    remote_entities = [generate_entity(id, mocker) for id in remote_ids]
-    user_entities = [generate_entity(id, mocker) for id in user_ids]
-    all_entities = list(set(local_entities + remote_entities + user_entities))
-
-    def mock_all(filters={}, local_only=False):
-        if "owner" in filters:
-            return user_entities
-        if local_only:
-            return local_entities
-        return all_entities
-
-    def mock_get(entity_id):
-        if entity_id in all_ids:
-            return generate_entity(entity_id, mocker)
-        else:
-            raise InvalidArgumentError
-
-    mocker.patch("medperf.commands.view.get_medperf_user_data", return_value={"id": 1})
-    mocker.patch.object(Entity, "all", side_effect=mock_all)
-    mocker.patch.object(Entity, "get", side_effect=mock_get)
-
-    return local_entities, remote_entities, user_entities, all_entities
+@pytest.fixture
+def entity_view(mocker):
+    view_class = EntityView(None, Entity, "", "", "", "")
+    return view_class
 
 
-class TestViewEntityID:
-    def test_view_displays_entity_if_given(self, mocker, setup, ui_spy):
-        # Arrange
-        entity_id = "1"
-        entity = generate_entity(entity_id, mocker)
-        output = expected_output(entity, "yaml")
+def test_prepare_with_id_given(mocker, entity_view, entity):
+    # Arrange
+    entity_view.entity_id = 1
+    get_spy = mocker.patch(PATCH_VIEW.format("Entity.get"), return_value=entity)
+    all_spy = mocker.patch(PATCH_VIEW.format("Entity.all"), return_value=[entity])
 
-        # Act
-        EntityView.run(entity_id, Entity)
+    # Act
+    entity_view.prepare()
 
-        # Assert
-        ui_spy.assert_called_once_with(output)
-
-    def test_view_displays_all_if_no_id(self, setup, ui_spy):
-        # Arrange
-        *_, entities = setup
-        output = expected_output(entities, "yaml")
-
-        # Act
-        EntityView.run(None, Entity)
-
-        # Assert
-        ui_spy.assert_called_once_with(output)
+    # Assert
+    get_spy.assert_called_once_with(1)
+    all_spy.assert_not_called()
+    assert not isinstance(entity_view.data, list)
 
 
-class TestViewFilteredEntities:
-    def test_view_displays_local_entities(self, setup, ui_spy):
-        # Arrange
-        entities, *_ = setup
-        output = expected_output(entities, "yaml")
+def test_prepare_with_no_id_given(mocker, entity_view, entity):
+    # Arrange
+    entity_view.entity_id = None
+    entity_view.mine_only = False
+    get_spy = mocker.patch(PATCH_VIEW.format("Entity.get"), return_value=entity)
+    all_spy = mocker.patch(PATCH_VIEW.format("Entity.all"), return_value=[entity])
 
-        # Act
-        EntityView.run(None, Entity, local_only=True)
+    # Act
+    entity_view.prepare()
 
-        # Assert
-        ui_spy.assert_called_once_with(output)
-
-    def test_view_displays_user_entities(self, setup, ui_spy):
-        # Arrange
-        *_, entities, _ = setup
-        output = expected_output(entities, "yaml")
-
-        # Act
-        EntityView.run(None, Entity, mine_only=True)
-
-        # Assert
-        ui_spy.assert_called_once_with(output)
+    # Assert
+    all_spy.assert_called_once()
+    get_spy.assert_not_called()
+    assert isinstance(entity_view.data, list)
 
 
-@pytest.mark.parametrize("entity_id", ["4", None])
-@pytest.mark.parametrize("format", ["yaml", "json"])
-class TestViewOutput:
-    @pytest.fixture
-    def output(self, setup, mocker, entity_id, format):
-        if entity_id is None:
-            *_, entities = setup
-            return expected_output(entities, format)
-        else:
-            entity = generate_entity(entity_id, mocker)
-            return expected_output(entity, format)
+@pytest.mark.parametrize("unregistered", [False, True])
+def test_prepare_with_no_id_calls_all_with_unregistered_properly(
+    mocker, entity_view, entity, unregistered
+):
+    # Arrange
+    entity_view.entity_id = None
+    entity_view.mine_only = False
+    entity_view.unregistered = unregistered
+    all_spy = mocker.patch(PATCH_VIEW.format("Entity.all"), return_value=[entity])
 
-    def test_view_displays_specified_format(self, entity_id, output, ui_spy, format):
-        # Act
-        EntityView.run(entity_id, Entity, format=format)
+    # Act
+    entity_view.prepare()
 
-        # Assert
-        ui_spy.assert_called_once_with(output)
+    # Assert
+    all_spy.assert_called_once_with(unregistered=unregistered, filters={})
 
-    def test_view_stores_specified_format(self, entity_id, output, format, fs):
-        # Arrange
-        filename = "file.txt"
 
-        # Act
-        EntityView.run(entity_id, Entity, format=format, output=filename)
+@pytest.mark.parametrize("filters", [{}, {"f1": "v1"}])
+@pytest.mark.parametrize("mine_only", [False, True])
+def test_prepare_with_no_id_calls_all_with_proper_filters(
+    mocker, entity_view, entity, filters, mine_only
+):
+    # Arrange
+    entity_view.entity_id = None
+    entity_view.mine_only = False
+    entity_view.unregistered = False
+    entity_view.filters = filters
+    all_spy = mocker.patch(PATCH_VIEW.format("Entity.all"), return_value=[entity])
+    mocker.patch(PATCH_VIEW.format("get_medperf_user_data"), return_value={"id": 1})
+    if mine_only:
+        filters["owner"] = 1
 
-        # Assert
-        contents = open(filename, "r").read()
-        assert contents == output
+    # Act
+    entity_view.prepare()
+
+    # Assert
+    all_spy.assert_called_once_with(unregistered=False, filters=filters)

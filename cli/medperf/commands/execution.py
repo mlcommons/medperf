@@ -80,7 +80,7 @@ class Execution:
         try:
             self.model.run(
                 task="infer",
-                output_logs=self.model_logs_path,
+                output_logs_file=self.model_logs_path,
                 timeout=infer_timeout,
                 data_path=data_path,
                 output_path=preds_path,
@@ -105,7 +105,7 @@ class Execution:
         try:
             self.evaluator.run(
                 task="evaluate",
-                output_logs=self.metrics_logs_path,
+                output_logs_file=self.metrics_logs_path,
                 timeout=evaluate_timeout,
                 predictions=preds_path,
                 labels=labels_path,

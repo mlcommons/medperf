@@ -1,0 +1,6 @@
+mlcube_*
+ca
+quick*
+mlcube/workspace/additional_files/init_nnunet/*
+mlcube/workspace/additional_files/init_weights/*
+for_admin

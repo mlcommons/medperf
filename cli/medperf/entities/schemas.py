@@ -46,7 +46,7 @@ class MedperfBaseSchema(BaseModel):
         out_dict = {k: v for k, v in model_dict.items() if k in valid_fields}
         return out_dict
 
-    def extended_dict(self) -> dict:
+    def todict(self) -> dict:
         """Dictionary containing both original and alias fields
 
         Returns:
@@ -74,7 +74,7 @@ class MedperfBaseSchema(BaseModel):
         use_enum_values = True
 
 
-class MedperfSchema(MedperfBaseSchema):
+class MedperfSchema(BaseModel):
     for_test: bool = False
     id: Optional[int]
     name: str = Field(..., max_length=64)

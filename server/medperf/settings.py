@@ -60,6 +60,13 @@ SUPERUSER_USERNAME = env("SUPERUSER_USERNAME")
 
 SUPERUSER_PASSWORD = env("SUPERUSER_PASSWORD")
 
+CA_NAME = env("CA_NAME")
+CA_CONFIG = env.json("CA_CONFIG")
+CA_MLCUBE_NAME = env("CA_MLCUBE_NAME")
+CA_MLCUBE_URL = env("CA_MLCUBE_URL")
+CA_MLCUBE_HASH = env("CA_MLCUBE_HASH")
+CA_MLCUBE_IMAGE_HASH = env("CA_MLCUBE_IMAGE_HASH")
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # TODO Change later to list of allowed domains
@@ -91,6 +98,13 @@ INSTALLED_APPS = [
     "benchmarkmodel",
     "user",
     "result",
+    "training",
+    "aggregator",
+    "ca",
+    "traindataset_association",
+    "aggregator_association",
+    "ca_association",
+    "trainingevent",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
