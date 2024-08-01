@@ -41,7 +41,8 @@ def start_aggregator(
     #       perhaps investigate overriding plan entries?
 
     # NOTE: logs and weights are copied, even if target folders are not empty
-    copy_tree(os.path.join(workspace_folder, "logs"), output_logs)
+    if os.path.exists(os.path.join(workspace_folder, "logs")):
+        copy_tree(os.path.join(workspace_folder, "logs"), output_logs)
 
     # NOTE: conversion fails since openfl needs sample data...
     # weights_paths = get_weights_path(fl_workspace)
@@ -56,5 +57,5 @@ def start_aggregator(
     # Cleanup
     shutil.rmtree(workspace_folder, ignore_errors=True)
 
-    with open(report_path, 'w') as f:
+    with open(report_path, "w") as f:
         f.write("IsDone: 1")
