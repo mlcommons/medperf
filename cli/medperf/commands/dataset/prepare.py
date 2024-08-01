@@ -165,8 +165,7 @@ class DataPreparation:
 
     def run_prepare(self):
         report_sender = ReportSender(self)
-        if self.allow_sending_reports:
-            report_sender.start()
+        report_sender.start()
 
         prepare_params = {
             "data_path": self.raw_data_path,
@@ -190,18 +189,15 @@ class DataPreparation:
                 )
         except Exception as e:
             # Inform the server that a failure occured
-            if self.allow_sending_reports:
-                report_sender.stop("failed")
+            report_sender.stop("failed")
             raise e
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             # Inform the server that the process is interrupted
-            if self.allow_sending_reports:
-                report_sender.stop("interrupted")
-            raise
+            report_sender.stop("interrupted")
+            raise e
 
         self.ui.print("> Cube execution complete")
-        if self.allow_sending_reports:
-            report_sender.stop("finished")
+        report_sender.stop("finished")
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
@@ -313,8 +309,12 @@ class DataPreparation:
         dict_pretty_print(example)
 
         msg = (
-            " \nDo you approve the automatic submission of summaries similar to the one above"
-            + " to the MedPerf Server throughout the preparation process?[Y/n]"
+            "\nYou can decide whether or not to send information about your dataset preparation"
+            + "\nProgress. Keep in mind that information about the execution status of the pipeline"
+            + "\nwill be sent regardless (whether the pipeline is running, finished or failed)"
+            + "\nto identify issues with the preparation procedure. Do you approve the automatic"
+            + "\nsubmission of summaries similar to the one above to the MedPerf Server throughout"
+            + "\nthe preparation process?[Y/n]"
         )
 
         self.allow_sending_reports = approval_prompt(msg)
@@ -327,7 +327,12 @@ class DataPreparation:
             return self._send_report(report_metadata)
 
     def _send_report(self, report_metadata):
-        report_status_dict = self.__generate_report_dict()
+        if self.dataset.for_test:
+            # Test datasets don't have a registration on the server
+            return
+        report_status_dict = {}
+        if self.allow_sending_reports:
+            report_status_dict = self.__generate_report_dict()
         report = {"progress": report_status_dict, **report_metadata}
         if report == self.dataset.report:
             # Watchdog may trigger an event even if contents didn't change
