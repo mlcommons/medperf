@@ -22,7 +22,7 @@ BraTS-MEN-RT/
     └── BraTS-MEN-RT-zzzz-z_t1c.nii.gz
 ```
 
-where 
+where:
 * `*_t1c.nii.gz` are data given to model MLCubes to make their inference
 * `*_gtv.nii.gz` are the labels (groundtruth)
 
@@ -69,58 +69,4 @@ data
 
 labels
 └── labels.csv
-```
-
-## Usage
-
-> [!NOTE]
-> For `PARAMETERS_FILE`, use `patameters-rt.yaml` for a radiotherapy
-> dataset and `parameters-path.yaml` for pathology.
-
-### Prepare the raw data
-
-**Python**
-
-```
-python project/mlcube.py prepare \
-  --parameters_file mlcube/workspace/PARAMETERS_FILE \
-  --data_path /path/to/raw_data/ \
-  --labels_path /path/to/raw_data/ \
-  --output_path data \
-  --output_labels_path labels
-```
-
-**Docker**
-
-```
-docker run --rm \
-  -v $PWD/mlcube/workspace/PARAMETERS_FILE:/parameters.yaml \
-  -v /path/to/raw_data:/data \
-  -v $PWD/data:/data \
-  -v $PWD/labels:/labels \
-  ghcr.io/vpchung/brats2024-prep:0.0.1 \
-  prepare --data_path /data --labels_path /data --output_path /data --output_labels_path /labels --parameters_file /parameters.yaml
-```
-
-
-### Validate the prepared data
-
-**Python**
-
-```
-python project/mlcube.py sanity_check \
-  --parameters_file mlcube/workspace/PARAMETERS_FILE \
-  --data_path data/ \
-  --labels_path labels/
-```
-
-**Docker**
-
-```
-docker run --rm \
-  -v $PWD/mlcube/workspace/PARAMETERS_FILE:/parameters.yaml \
-  -v $PWD/data:/data \
-  -v $PWD/labels:/labels \
-  ghcr.io/vpchung/brats2024-prep:0.0.1 \
-  sanity_check --data_path /data --labels_path /labels --parameters_file /parameters.yaml
 ```
