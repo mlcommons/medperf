@@ -1,0 +1,4 @@
+PyYAML~=5.3
+typer
+cnb-tools==0.3.2
+pandas
