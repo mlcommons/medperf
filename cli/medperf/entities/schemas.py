@@ -8,7 +8,15 @@ from medperf.exceptions import MedperfException
 from medperf.utils import format_errors_dict
 
 
-class MedperfBaseSchema(BaseModel):
+class MedperfSchema(BaseModel):
+    for_test: bool = False
+    id: Optional[int]
+    name: str = Field(..., max_length=64)
+    owner: Optional[int]
+    is_valid: bool = True
+    created_at: Optional[datetime]
+    modified_at: Optional[datetime]
+
     def __init__(self, *args, **kwargs):
         """Override the ValidationError procedure so we can
         format the error message in our desired way
@@ -46,7 +54,7 @@ class MedperfBaseSchema(BaseModel):
         out_dict = {k: v for k, v in model_dict.items() if k in valid_fields}
         return out_dict
 
-    def extended_dict(self) -> dict:
+    def todict(self) -> dict:
         """Dictionary containing both original and alias fields
 
         Returns:
@@ -68,26 +76,16 @@ class MedperfBaseSchema(BaseModel):
             return None
         return v
 
-    class Config:
-        allow_population_by_field_name = True
-        extra = "allow"
-        use_enum_values = True
-
-
-class MedperfSchema(MedperfBaseSchema):
-    for_test: bool = False
-    id: Optional[int]
-    name: str = Field(..., max_length=64)
-    owner: Optional[int]
-    is_valid: bool = True
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
-
     @validator("name", pre=True, always=True)
     def name_max_length(cls, v, *, values, **kwargs):
         if not values["for_test"] and len(v) > 20:
             raise ValueError("The name must have no more than 20 characters")
         return v
+
+    class Config:
+        allow_population_by_field_name = True
+        extra = "allow"
+        use_enum_values = True
 
 
 class DeployableSchema(BaseModel):

@@ -17,17 +17,19 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local datasets"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered datasets"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
     mlcube: int = typer.Option(
         None, "--mlcube", "-m", help="Get datasets for a given data prep mlcube"
     ),
 ):
-    """List datasets stored locally and remotely from the user"""
+    """List datasets"""
     EntityList.run(
         Dataset,
         fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status", "Owner"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
         mlcube=mlcube,
     )
@@ -149,8 +151,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
-        False, "--local", help="Display local datasets if dataset ID is not provided"
+    unregistered: bool = typer.Option(
+        False,
+        "--unregistered",
+        help="Display unregistered datasets if dataset ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -165,4 +169,4 @@ def view(
     ),
 ):
     """Displays the information of one or more datasets"""
-    EntityView.run(entity_id, Dataset, format, local, mine, output)
+    EntityView.run(entity_id, Dataset, format, unregistered, mine, output)

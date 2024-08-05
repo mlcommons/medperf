@@ -62,17 +62,19 @@ def submit(
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local results"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered results"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
     benchmark: int = typer.Option(
         None, "--benchmark", "-b", help="Get results for a given benchmark"
     ),
 ):
-    """List results stored locally and remotely from the user"""
+    """List results"""
     EntityList.run(
         Result,
         fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
         benchmark=benchmark,
     )
@@ -88,8 +90,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
-        False, "--local", help="Display local results if result ID is not provided"
+    unregistered: bool = typer.Option(
+        False,
+        "--unregistered",
+        help="Display unregistered results if result ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -107,4 +111,6 @@ def view(
     ),
 ):
     """Displays the information of one or more results"""
-    EntityView.run(entity_id, Result, format, local, mine, output, benchmark=benchmark)
+    EntityView.run(
+        entity_id, Result, format, unregistered, mine, output, benchmark=benchmark
+    )

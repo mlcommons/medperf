@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+from medperf.account_management.account_management import get_medperf_user_data
 from medperf.commands.execution import Execution
 from medperf.entities.result import Result
 from tabulate import tabulate
@@ -143,7 +144,9 @@ class BenchmarkExecution:
             raise InvalidArgumentError(msg)
 
     def load_cached_results(self):
-        results = Result.all()
+        user_id = get_medperf_user_data()["id"]
+        results = Result.all(filters={"owner": user_id})
+        results += Result.all(unregistered=True)
         benchmark_dset_results = [
             result
             for result in results
@@ -254,7 +257,7 @@ class BenchmarkExecution:
                 data_lists_for_display.append(
                     [
                         experiment["model_uid"],
-                        experiment["result"].generated_uid,
+                        experiment["result"].local_id,
                         experiment["result"].metadata["partial"],
                         experiment["cached"],
                         experiment["error"],

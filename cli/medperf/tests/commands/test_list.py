@@ -47,18 +47,18 @@ class TestEntityList:
         self.state_variables = state_variables
         self.spies = spies
 
-    @pytest.mark.parametrize("local_only", [False, True])
+    @pytest.mark.parametrize("unregistered", [False, True])
     @pytest.mark.parametrize("mine_only", [False, True])
-    def test_entity_all_is_called_properly(self, mocker, local_only, mine_only):
+    def test_entity_all_is_called_properly(self, mocker, unregistered, mine_only):
         # Arrange
         filters = {"owner": 1} if mine_only else {}
 
         # Act
-        EntityList.run(Entity, [], local_only, mine_only)
+        EntityList.run(Entity, [], unregistered, mine_only)
 
         # Assert
         self.spies["all"].assert_called_once_with(
-            local_only=local_only, filters=filters
+            unregistered=unregistered, filters=filters
         )
 
     @pytest.mark.parametrize("fields", [["UID", "MLCube"]])
