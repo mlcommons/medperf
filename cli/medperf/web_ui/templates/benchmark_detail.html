@@ -29,10 +29,21 @@
         margin: 0 auto;
     }
 
+    .association-panel {
+        flex: 1;
+        padding-left: 20px;
+        box-sizing: border-box;
+    }
+
+    .association-card {
+        margin-bottom: 20px;
+    }
+
     @media (max-width: 992px) {
-        .detail-panel {
+        .detail-panel, .association-panel {
             max-width: 100%;
             padding-right: 0;
+            padding-left: 0;
         }
     }
 
@@ -83,6 +94,32 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div class="association-panel">
+        <h2 class="my-4">Associated Datasets</h2>
+        {% for assoc in datasets_associations %}
+        <div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
+            <div class="card-body">
+                <h5 class="card-title">{{ datasets[assoc.dataset].name }}</h5>
+                <p class="card-text"><strong>Approval Status:</strong> {{ assoc.approval_status }}</p>
+                <p class="card-text"><strong>Approved At:</strong> {{ assoc.approved_at }}</p>
+                <p class="card-text"><strong>Modified At:</strong> {{ assoc.modified_at }}</p>
+                <p class="card-text"><strong>Initiated By:</strong> <i class="fas fa-user"></i> {{ assoc.initiated_by }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        <h2 class="my-4">Associated Models</h2>
+        {% for assoc in models_associations %}
+        <div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
+            <div class="card-body">
+                <h5 class="card-title">{{ models[assoc.model_mlcube].name }}</h5>
+                <p class="card-text"><strong>Approval Status:</strong> {{ assoc.approval_status }}</p>
+                <p class="card-text"><strong>Approved At:</strong> {{ assoc.approved_at }}</p>
+                <p class="card-text"><strong>Modified At:</strong> {{ assoc.modified_at }}</p>
+                <p class="card-text"><strong>Initiated By:</strong> <i class="fas fa-user"></i> {{ assoc.initiated_by }}</p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

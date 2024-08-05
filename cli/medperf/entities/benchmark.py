@@ -1,4 +1,6 @@
 import os
+
+from medperf.entities.association import Association
 from medperf.exceptions import MedperfException
 import yaml
 import logging
@@ -220,6 +222,38 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             if assoc["approval_status"] == "APPROVED"
         ]
         return models_uids
+
+    @classmethod
+    def get_models_associations(cls, benchmark_uid: int) -> List[Association]:
+        """Retrieves the list of model associations to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+            comms (Comms): Instance of the communications interface.
+
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_cubes_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.benchmark == benchmark_uid]
+        return associations
+
+    @classmethod
+    def get_datasets_associations(cls, benchmark_uid: int) -> List[Association]:
+        """Retrieves the list of models associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+            comms (Comms): Instance of the communications interface.
+
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_datasets_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.benchmark == benchmark_uid]
+        return associations
 
     def todict(self) -> dict:
         """Dictionary representation of the benchmark instance
