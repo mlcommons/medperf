@@ -144,7 +144,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         return cubes
 
     @classmethod
-    def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
+    def get(cls, cube_uid: Union[str, int], local_only: bool = False, valid_only: bool = True) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
@@ -165,7 +165,7 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
                 logging.info(f"Retrieving MLCube {cube_uid} from local storage")
                 cube = cls.__local_get(cube_uid)
 
-        if not cube.is_valid:
+        if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested MLCube is marked as INVALID.")
         cube.download_config_files()
         return cube

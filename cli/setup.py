@@ -11,11 +11,14 @@ with open("requirements.txt", "r") as f:
         if req and not req.startswith("--"):
             requires.append(req)
 
+# TODO: doesn't work right now because medperf wheel is not building properly
+package_data = ["medperf/web_ui/templates/*", "medperf/web_ui/static/*"]
+
 setup(
     name="medperf",
     version=__version__,
     description="CLI Tool for federated benchmarking on medical private data",
-    url="https://github.com/aristizabal95/medperf",
+    url="https://github.com/mlcommons/medperf",
     author="MLCommons",
     license="Apache 2.0",
     packages=["medperf"],
@@ -25,4 +28,5 @@ setup(
         [console_scripts]
         medperf=medperf.__main__:app
         """,
+    package_data={"medperf": package_data}
 )
