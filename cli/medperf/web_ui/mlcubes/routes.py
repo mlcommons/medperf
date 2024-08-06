@@ -15,13 +15,19 @@ logger = logging.getLogger(__name__)
 @router.get("/ui", response_class=HTMLResponse)
 def mlcubes_ui(request: Request, local_only: bool = False, mine_only: bool = False):
     filters = {}
+    my_user_id = get_medperf_user_data()["id"]
     if mine_only:
-        filters["owner"] = get_medperf_user_data()["id"]
+        filters["owner"] = my_user_id
 
     mlcubes = Cube.all(
         local_only=local_only,
         filters=filters,
     )
+    mlcubes = sorted(mlcubes, key=lambda x: x.created_at, reverse=True)
+    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
+    mine_cubes = [c for c in mlcubes if c.owner == my_user_id]
+    other_cubes = [c for c in mlcubes if c.owner != my_user_id]
+    mlcubes = mine_cubes + other_cubes
     return templates.TemplateResponse("mlcubes.html", {"request": request, "mlcubes": mlcubes})
 
 

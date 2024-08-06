@@ -14,21 +14,22 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response_model=List[Dataset])
-def get_datasets(local_only: bool = False, mine_only: bool = False):
+@router.get("/ui", response_class=HTMLResponse)
+def datasets_ui(request: Request, local_only: bool = False, mine_only: bool = False):
     filters = {}
+    my_user_id = get_medperf_user_data()["id"]
     if mine_only:
-        filters["owner"] = get_medperf_user_data()["id"]
-
-    return Dataset.all(
+        filters["owner"] = my_user_id
+    datasets = Dataset.all(
         local_only=local_only,
         filters=filters,
     )
 
-
-@router.get("/ui", response_class=HTMLResponse)
-def datasets_ui(request: Request, local_only: bool = False, mine_only: bool = False):
-    datasets = get_datasets(local_only, mine_only)
+    datasets = sorted(datasets, key=lambda x: x.created_at, reverse=True)
+    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
+    mine_datasets = [d for d in datasets if d.owner == my_user_id]
+    other_datasets = [d for d in datasets if d.owner != my_user_id]
+    datasets = mine_datasets + other_datasets
     return templates.TemplateResponse("datasets.html", {"request": request, "datasets": datasets})
 
 
@@ -38,4 +39,5 @@ def dataset_detail_ui(request: Request, dataset_id: int):
 
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
     prep_cube_name = prep_cube.name if prep_cube else "Unknown"
-    return templates.TemplateResponse("dataset_detail.html", {"request": request, "dataset": dataset, "prep_cube_name": prep_cube_name})
+    return templates.TemplateResponse("dataset_detail.html",
+                                      {"request": request, "dataset": dataset, "prep_cube_name": prep_cube_name})
