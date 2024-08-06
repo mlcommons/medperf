@@ -1,5 +1,6 @@
 <!-- ./cli/medperf/web-ui/templates/benchmark_detail.html -->
 {% extends "base.html" %}
+{% import 'association_card_macros.html' as macros %}
 
 {% block title %}Benchmark Details{% endblock %}
 
@@ -108,29 +109,13 @@
         <div class="associations-column">
             <h2 class="my-4">Associated Datasets</h2>
             {% for assoc in datasets_associations %}
-            <div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
-                <div class="card-body">
-                    <h5 class="card-title">{{ datasets[assoc.dataset].name }}</h5>
-                    <p class="card-text"><strong>Approval Status:</strong> {{ assoc.approval_status }}</p>
-                    <p class="card-text"><strong>Approved:</strong> <span class="text-muted small" data-date="{{ assoc.approved_at }}"></span></p>
-                    <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" data-date="{{ assoc.modified_at }}"></span></p>
-                    <p class="card-text"><strong>Initiated By:</strong> <i class="fas fa-user"></i> {{ assoc.initiated_by }}</p>
-                </div>
-            </div>
+                {{ macros.association_card(assoc, datasets[assoc.dataset], "datasets") }}
             {% endfor %}
         </div>
         <div class="associations-column">
             <h2 class="my-4">Associated Models</h2>
             {% for assoc in models_associations %}
-            <div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
-                <div class="card-body">
-                    <h5 class="card-title">{{ models[assoc.model_mlcube].name }}</h5>
-                    <p class="card-text"><strong>Approval Status:</strong> {{ assoc.approval_status }}</p>
-                    <p class="card-text"><strong>Approved:</strong> <span class="text-muted small" data-date="{{ assoc.approved_at }}"></span></p>
-                    <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" data-date="{{ assoc.modified_at }}"></span></p>
-                    <p class="card-text"><strong>Initiated By:</strong> <i class="fas fa-user"></i> {{ assoc.initiated_by }}</p>
-                </div>
-            </div>
+                {{ macros.association_card(assoc, models[assoc.model_mlcube], "models") }}
             {% endfor %}
         </div>
     </div>
