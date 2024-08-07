@@ -1,5 +1,6 @@
 <!-- ./cli/medperf/web-ui/templates/dataset_detail.html -->
 {% extends "base.html" %}
+{% import 'association_card_macros.html' as macros %}
 
 {% block title %}Dataset Details{% endblock %}
 
@@ -16,12 +17,12 @@
 
     .detail-container {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
         width: 100%;
-        flex-wrap: nowrap;
     }
 
-    .detail-panel {
+    .detail-panel, .associations-panel {
         flex: 1;
         max-width: 60%;
         padding-right: 20px;
@@ -29,10 +30,30 @@
         margin: 0 auto;
     }
 
+    .association-card {
+        margin-bottom: 20px;
+    }
+
+    .associations-panel {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .associations-column {
+        flex: 1;
+        min-width: 150px;
+        max-width: 48%;
+        box-sizing: border-box;
+    }
+
     @media (max-width: 992px) {
-        .detail-panel {
+        .detail-panel, .associations-panel {
             max-width: 100%;
             padding-right: 0;
+            padding-left: 0;
         }
     }
 
@@ -62,7 +83,7 @@
                         <p class="card-text"><strong>Location:</strong> {{ dataset.location }}</p>
                         <p class="card-text"><strong>Input Data Hash:</strong> {{ dataset.input_data_hash }}</p>
                         <p class="card-text"><strong>Generated UID:</strong> {{ dataset.generated_uid }}</p>
-                        <p class="card-text"><strong>Data Preparation MLCube:</strong> <a href="/mlcubes/ui/{{ dataset.data_preparation_mlcube }}" class="text-primary">{{ dataset.data_preparation_mlcube_name }}</a></p>
+                        <p class="card-text"><strong>Data Preparation MLCube:</strong> <a href="/mlcubes/ui/{{ dataset.data_preparation_mlcube }}" class="text-primary">{{ prep_cube_name }}</a></p>
                     </div>
                 </div>
                 <div class="card mb-3">
@@ -79,6 +100,14 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="associations-panel">
+        <div class="associations-column">
+            <h2 class="my-4">Associated Benchmarks</h2>
+            {% for assoc in benchmark_associations %}
+                {{ macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmarks") }}
+            {% endfor %}
         </div>
     </div>
 </div>

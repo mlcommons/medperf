@@ -4,6 +4,7 @@ import logging
 from pydantic import Field, validator
 from typing import List, Optional, Union
 
+from medperf.entities.association import Association
 from medperf.utils import remove_path
 from medperf.entities.interface import Entity, Uploadable
 from medperf.entities.schemas import MedperfSchema, DeployableSchema
@@ -253,6 +254,21 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
         with open(regfile, "r") as f:
             reg = yaml.safe_load(f)
         return reg
+
+    @classmethod
+    def get_benchmarks_associations(cls, dataset_uid: int) -> List[Association]:
+        """Retrieves the list of models associated to the benchmark
+
+        Args:
+            dataset_uid (int): UID of the dataset.
+            comms (Comms): Instance of the communications interface.
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_datasets_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.dataset == dataset_uid]
+        return associations
 
     def display_dict(self):
         return {

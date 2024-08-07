@@ -1,3 +1,4 @@
+# medperf/web-ui/datasets/routes.py
 import logging
 
 from fastapi import APIRouter
@@ -8,6 +9,8 @@ from fastapi import Request
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
+from medperf.entities.benchmark import Benchmark
+from medperf.enums import Status
 from medperf.web_ui.common import templates
 
 router = APIRouter()
@@ -39,5 +42,34 @@ def dataset_detail_ui(request: Request, dataset_id: int):
 
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
     prep_cube_name = prep_cube.name if prep_cube else "Unknown"
+
+    # Fetching associations and related benchmarks
+    benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
+
+    approval_status_order = {
+        Status.PENDING: 0,
+        Status.APPROVED: 1,
+        Status.REJECTED: 2,
+    }
+
+    def assoc_sorting_key(assoc):
+        # lower status - first
+        status_order = approval_status_order.get(assoc.approval_status, -1)
+        # recent associations - first
+        date_order = -(assoc.approved_at or assoc.created_at).timestamp()
+        return status_order, date_order
+
+    benchmark_associations = sorted(benchmark_associations, key=assoc_sorting_key)
+
+    # Fetch benchmarks information
+    benchmarks = {assoc.benchmark: Benchmark.get(assoc.benchmark) for assoc in benchmark_associations if
+                  assoc.benchmark}
+
     return templates.TemplateResponse("dataset_detail.html",
-                                      {"request": request, "dataset": dataset, "prep_cube_name": prep_cube_name})
+                                      {
+                                          "request": request,
+                                          "dataset": dataset,
+                                          "prep_cube_name": prep_cube_name,
+                                          "benchmark_associations": benchmark_associations,
+                                          "benchmarks": benchmarks
+                                      })
