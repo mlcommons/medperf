@@ -1,3 +1,4 @@
+# medperf/web-ui/mlcubes/routes.py
 import logging
 
 from fastapi import APIRouter
@@ -5,7 +6,8 @@ from fastapi.responses import HTMLResponse
 from fastapi import Request
 
 from medperf.entities.cube import Cube
-from medperf.account_management import get_medperf_user_data
+from medperf.entities.benchmark import Benchmark
+from medperf.enums import Status
 from medperf.web_ui.common import templates
 
 router = APIRouter()
@@ -34,4 +36,35 @@ def mlcubes_ui(request: Request, local_only: bool = False, mine_only: bool = Fal
 @router.get("/ui/{mlcube_id}", response_class=HTMLResponse)
 def mlcube_detail_ui(request: Request, mlcube_id: int):
     mlcube = Cube.get(cube_uid=mlcube_id, valid_only=False)
-    return templates.TemplateResponse("mlcube_detail.html", {"request": request, "mlcube": mlcube})
+
+    # Fetching associations and related benchmarks
+    benchmarks_associations = Cube.get_benchmarks_associations(mlcube_uid=mlcube_id)
+
+    approval_status_order = {
+        Status.PENDING: 0,
+        Status.APPROVED: 1,
+        Status.REJECTED: 2,
+    }
+
+    def assoc_sorting_key(assoc):
+        # lower status - first
+        status_order = approval_status_order.get(assoc.approval_status, -1)
+        # recent associations - first
+        date_order = -(assoc.approved_at or assoc.created_at).timestamp()
+        return status_order, date_order
+
+    benchmarks_associations = sorted(benchmarks_associations, key=assoc_sorting_key)
+
+    # Fetch benchmarks information
+    benchmarks = {assoc.benchmark: Benchmark.get(assoc.benchmark) for assoc in benchmarks_associations if
+                  assoc.benchmark}
+
+    return templates.TemplateResponse(
+        "mlcube_detail.html",
+        {
+            "request": request,
+            "mlcube": mlcube,
+            "benchmarks_associations": benchmarks_associations,
+            "benchmarks": benchmarks
+        }
+    )

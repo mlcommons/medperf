@@ -1,5 +1,6 @@
 <!-- ./cli/medperf/web-ui/templates/mlcube_detail.html -->
 {% extends "base.html" %}
+{% import 'association_card_macros.html' as macros %}
 
 {% block title %}MLCube Details{% endblock %}
 
@@ -16,12 +17,12 @@
 
     .detail-container {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
         width: 100%;
-        flex-wrap: nowrap;
     }
 
-    .detail-panel {
+    .detail-panel, .associations-panel {
         flex: 1;
         max-width: 60%;
         padding-right: 20px;
@@ -29,35 +30,36 @@
         margin: 0 auto;
     }
 
-    .yaml-panel {
+    .association-card {
+        margin-bottom: 20px;
+    }
+
+    .associations-panel {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .associations-column {
         flex: 1;
-        max-width: 40%;
-        min-width: 300px;
-        height: 100vh;
-        overflow: auto;
-        display: none;
+        min-width: 150px;
+        max-width: 48%;
+        box-sizing: border-box;
     }
 
     @media (max-width: 992px) {
-        .detail-panel {
+        .detail-panel, .associations-panel {
             max-width: 100%;
             padding-right: 0;
-        }
-
-        .yaml-panel {
-            max-width: 100%;
-            display: none;
+            padding-left: 0;
         }
     }
 
     @media (max-width: 768px) {
         .detail-container {
             flex-direction: column;
-        }
-
-        .yaml-panel {
-            display: none;
-            height: auto;
         }
     }
 </style>
@@ -102,10 +104,13 @@
             </div>
         </div>
     </div>
-    <div class="yaml-panel" id="yaml-panel">
-        <h5>YAML Content</h5>
-        <div id="loading-indicator" class="spinner" style="display: none;"></div>
-        <pre><code id="yaml-code" class="language-yaml"></code></pre>
+    <div class="associations-panel">
+        <div class="associations-column">
+            <h2 class="my-4">Associated Benchmarks</h2>
+            {% for assoc in benchmarks_associations %}
+                {{ macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmarks") }}
+            {% endfor %}
+        </div>
     </div>
 </div>
 <script>

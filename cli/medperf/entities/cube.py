@@ -5,6 +5,7 @@ from typing import List, Dict, Optional, Union
 from pydantic import Field
 from pathlib import Path
 
+from medperf.entities.association import Association
 from medperf.utils import (
     combine_proc_sp_text,
     log_storage,
@@ -459,6 +460,22 @@ class Cube(Entity, Uploadable, MedperfSchema, DeployableSchema):
         with open(meta_file, "r") as f:
             meta = yaml.safe_load(f)
         return meta
+
+    @classmethod
+    def get_benchmarks_associations(cls, mlcube_uid: int) -> List[Association]:
+        """Retrieves the list of benchmarks model is associated with
+
+        Args:
+            mlcube_uid (int): UID of the cube.
+            comms (Comms): Instance of the communications interface.
+
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_cubes_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.model_mlcube == mlcube_uid]
+        return associations
 
     def display_dict(self):
         return {

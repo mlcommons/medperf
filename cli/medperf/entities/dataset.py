@@ -257,7 +257,7 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
 
     @classmethod
     def get_benchmarks_associations(cls, dataset_uid: int) -> List[Association]:
-        """Retrieves the list of models associated to the benchmark
+        """Retrieves the list of benchmarks dataset is associated with
 
         Args:
             dataset_uid (int): UID of the dataset.
