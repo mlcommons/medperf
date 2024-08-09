@@ -4,9 +4,10 @@ import os
 def check_subject_validity_for_segmentation(labels_path, subject_dir, parameters):
     modalities = parameters["segmentation_modalities"]
     label_modality = parameters["label_modality"]
+    sep = parameters["separator"]
 
     # data
-    strings_to_check = [f"_{modality}.nii.gz" for modality in modalities]
+    strings_to_check = [f"{sep}{modality}.nii.gz" for modality in modalities]
     for string in strings_to_check:
         if not os.path.isfile(
             os.path.join(subject_dir, os.path.basename(subject_dir) + string)
@@ -22,7 +23,7 @@ def check_subject_validity_for_segmentation(labels_path, subject_dir, parameters
     # labels
     if not os.path.isfile(
         os.path.join(
-            labels_path, os.path.basename(subject_dir) + f"_{label_modality}.nii.gz"
+            labels_path, os.path.basename(subject_dir) + f"{sep}{label_modality}.nii.gz"
         )
     ):
         raise ValueError(
@@ -48,7 +49,7 @@ def check_subject_validity_for_pathology(labels_path, data_path):
 def perform_sanity_checks(data_path, labels_path, parameters):
     task = parameters["task"]
 
-    if task == "segmentation-radiotherapy":
+    if task.startswith("segmentation"):
         data_folders = os.listdir(data_path)
         for folder in data_folders:
             current_subject = os.path.join(data_path, folder)
