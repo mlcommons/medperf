@@ -24,18 +24,16 @@ NO_IMG_CUBE = {
 }
 
 
-@pytest.fixture(params={"local": [1, 2, 3], "remote": [4, 5, 6], "user": [4]})
+@pytest.fixture(autouse=True)
 def setup(request, mocker, comms, fs):
     local_ents = request.param.get("local", [])
     remote_ents = request.param.get("remote", [])
     user_ents = request.param.get("user", [])
     # Have a list that will contain all uploaded entities of the given type
-    uploaded = []
 
     setup_cube_fs(local_ents, fs)
-    setup_cube_comms(mocker, comms, remote_ents, user_ents, uploaded)
+    request.param["storage"] = setup_cube_comms(mocker, comms, remote_ents, user_ents)
     setup_cube_comms_downloads(mocker, fs)
-    request.param["uploaded"] = uploaded
 
     # Mock additional third party elements
     mpexpect = MockPexpect(0)
@@ -282,7 +280,9 @@ class TestRun:
             cube.run(task)
 
 
-@pytest.mark.parametrize("setup", [{"local": [DEFAULT_CUBE]}], indirect=True)
+@pytest.mark.parametrize(
+    "setup", [{"local": [DEFAULT_CUBE], "remote": [DEFAULT_CUBE]}], indirect=True
+)
 @pytest.mark.parametrize("task", ["task"])
 @pytest.mark.parametrize(
     "out_key,out_value",

@@ -1,4 +1,5 @@
 import os
+
 from medperf import config
 import yaml
 
@@ -8,21 +9,23 @@ from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.result import TestResult
 from medperf.tests.mocks.cube import TestCube
-from medperf.tests.mocks.comms import mock_comms_entity_gets
+from medperf.tests.mocks.comms import mock_comms_entity_gets, TestEntityStorage
 
 PATCH_RESOURCES = "medperf.comms.entity_resources.resources.{}"
 
 
 # Setup Benchmark
 def setup_benchmark_fs(ents, fs):
-    bmks_path = config.benchmarks_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume we're passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        bmk_filepath = os.path.join(bmks_path, str(id), config.benchmarks_filename)
-        bmk_contents = TestBenchmark(**ent)
+        # Assume we're passing ids, local_ids, or dicts
+        if isinstance(ent, dict):
+            bmk_contents = TestBenchmark(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            bmk_contents = TestBenchmark(id=str(ent))
+        else:
+            bmk_contents = TestBenchmark(id=None, name=ent)
+
+        bmk_filepath = os.path.join(bmk_contents.path, config.benchmarks_filename)
         cubes_ids = []
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
         cubes_ids.append(bmk_contents.reference_model_mlcube)
@@ -30,12 +33,12 @@ def setup_benchmark_fs(ents, fs):
         cubes_ids = list(set(cubes_ids))
         setup_cube_fs(cubes_ids, fs)
         try:
-            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents.dict()))
+            fs.create_file(bmk_filepath, contents=yaml.dump(bmk_contents.todict()))
         except FileExistsError:
             pass
 
 
-def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_benchmark_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestBenchmark
     comms_calls = {
         "get_all": "get_benchmarks",
@@ -44,31 +47,31 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
         "upload_instance": "upload_benchmark",
     }
     mocker.patch.object(comms, "get_benchmark_model_associations", return_value=[])
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
 
 
 # Setup Cube
 def setup_cube_fs(ents, fs):
-    cubes_path = config.cubes_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume we're passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        meta_cube_file = os.path.join(
-            cubes_path, str(id), config.cube_metadata_filename
-        )
-        cube = TestCube(**ent)
-        meta = cube.dict()
+        # Assume we're passing ids, names, or dicts
+        if isinstance(ent, dict):
+            cube = TestCube(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            cube = TestCube(id=str(ent))
+        else:
+            cube = TestCube(id=None, name=ent)
+
+        meta_cube_file = os.path.join(cube.path, config.cube_metadata_filename)
+        meta = cube.todict()
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
         except FileExistsError:
             pass
 
 
-def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_cube_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestCube
     comms_calls = {
         "get_all": "get_cubes",
@@ -76,15 +79,15 @@ def setup_cube_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_cube_metadata",
         "upload_instance": "upload_mlcube",
     }
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
 
 
 def generate_cubefile_fn(fs, path, filename):
     # all_ids = [ent["id"] if type(ent) == dict else ent for ent in all_ents]
 
-    def cubefile_fn(url, cube_path, *args):
+    def cubefile_fn(url: str, cube_path: str, *args):
         if url == "broken_url":
             raise CommunicationRetrievalError
         filepath = os.path.join(cube_path, path, filename)
@@ -124,23 +127,25 @@ def setup_cube_comms_downloads(mocker, fs):
 
 # Setup Dataset
 def setup_dset_fs(ents, fs):
-    dsets_path = config.datasets_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        reg_dset_file = os.path.join(dsets_path, str(id), config.reg_file)
-        dset_contents = TestDataset(**ent)
+        # Assume we're passing ids, generated_uids, or dicts
+        if isinstance(ent, dict):
+            dset_contents = TestDataset(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            dset_contents = TestDataset(id=str(ent))
+        else:
+            dset_contents = TestDataset(id=None, generated_uid=ent)
+
+        reg_dset_file = os.path.join(dset_contents.path, config.reg_file)
         cube_id = dset_contents.data_preparation_mlcube
         setup_cube_fs([cube_id], fs)
         try:
-            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents.dict()))
+            fs.create_file(reg_dset_file, contents=yaml.dump(dset_contents.todict()))
         except FileExistsError:
             pass
 
 
-def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_dset_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestDataset
     comms_calls = {
         "get_all": "get_datasets",
@@ -148,34 +153,37 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_dataset",
         "upload_instance": "upload_dataset",
     }
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
 
 
 # Setup Result
 def setup_result_fs(ents, fs):
-    results_path = config.results_folder
     for ent in ents:
-        if not isinstance(ent, dict):
-            # Assume passing ids
-            ent = {"id": str(ent)}
-        id = ent["id"]
-        result_file = os.path.join(results_path, str(id), config.results_info_file)
-        bmk_id = ent.get("benchmark", 1)
-        cube_id = ent.get("model", 1)
-        dataset_id = ent.get("dataset", 1)
+        # Assume we're passing ids, names, or dicts
+        if isinstance(ent, dict):
+            result_contents = TestResult(**ent)
+        elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
+            result_contents = TestResult(id=str(ent))
+        else:
+            result_contents = TestResult(id=None, name=ent)
+
+        result_file = os.path.join(result_contents.path, config.results_info_file)
+        bmk_id = result_contents.benchmark
+        cube_id = result_contents.model
+        dataset_id = result_contents.dataset
         setup_benchmark_fs([bmk_id], fs)
         setup_cube_fs([cube_id], fs)
         setup_dset_fs([dataset_id], fs)
-        result_contents = TestResult(**ent)
+
         try:
-            fs.create_file(result_file, contents=yaml.dump(result_contents.dict()))
+            fs.create_file(result_file, contents=yaml.dump(result_contents.todict()))
         except FileExistsError:
             pass
 
 
-def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
+def setup_result_comms(mocker, comms, all_ents, user_ents) -> TestEntityStorage:
     generate_fn = TestResult
     comms_calls = {
         "get_all": "get_results",
@@ -185,7 +193,7 @@ def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
     }
 
     # Enable dset retrieval since its required for result creation
-    setup_dset_comms(mocker, comms, [1], [1], uploaded)
-    mock_comms_entity_gets(
-        mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
+    setup_dset_comms(mocker, comms, [1], [1])
+    return mock_comms_entity_gets(
+        mocker, comms, generate_fn, comms_calls, all_ents, user_ents
     )
