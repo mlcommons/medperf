@@ -19,16 +19,29 @@ def set_credentials(
     id_token_payload,
     token_issued_at,
     token_expires_in,
+    login_event=False,
 ):
     email = id_token_payload["email"]
     TokenStore().set_tokens(email, access_token, refresh_token)
+    config_p = read_config()
+
+    if login_event:
+        # Set the time the user logged in, so that we can track the lifetime of
+        # the refresh token
+        logged_in_at = token_issued_at
+    else:
+        # This means this is a refresh event. Preserve the logged_in_at timestamp.
+        logged_in_at = config_p.active_profile[config.credentials_keyword][
+            "logged_in_at"
+        ]
 
     account_info = {
         "email": email,
         "token_issued_at": token_issued_at,
         "token_expires_in": token_expires_in,
+        "logged_in_at": logged_in_at,
     }
-    config_p = read_config()
+
     config_p.active_profile[config.credentials_keyword] = account_info
     write_config(config_p)
 
