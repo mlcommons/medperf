@@ -1,0 +1,6 @@
+PyYAML~=5.3
+typer
+cnb-tools==0.3.2
+pandas
+SimpleITK>=2.1.0
+numpy~=1.24.2
