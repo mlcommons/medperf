@@ -9,7 +9,7 @@ from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.enums import Status
-from medperf.web_ui.common import templates
+from medperf.web_ui.common import templates, sort_associations_display
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,23 +38,8 @@ def mlcubes_ui(request: Request, local_only: bool = False, mine_only: bool = Fal
 def mlcube_detail_ui(request: Request, mlcube_id: int):
     mlcube = Cube.get(cube_uid=mlcube_id, valid_only=False)
 
-    # Fetching associations and related benchmarks
     benchmarks_associations = Cube.get_benchmarks_associations(mlcube_uid=mlcube_id)
-
-    approval_status_order = {
-        Status.PENDING: 0,
-        Status.APPROVED: 1,
-        Status.REJECTED: 2,
-    }
-
-    def assoc_sorting_key(assoc):
-        # lower status - first
-        status_order = approval_status_order.get(assoc.approval_status, -1)
-        # recent associations - first
-        date_order = -(assoc.approved_at or assoc.created_at).timestamp()
-        return status_order, date_order
-
-    benchmarks_associations = sorted(benchmarks_associations, key=assoc_sorting_key)
+    benchmarks_associations = sort_associations_display(benchmarks_associations)
 
     benchmarks = {assoc.benchmark: Benchmark.get(assoc.benchmark) for assoc in benchmarks_associations if
                   assoc.benchmark}
