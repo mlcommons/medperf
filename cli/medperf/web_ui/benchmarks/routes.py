@@ -18,13 +18,20 @@ logger = logging.getLogger(__name__)
 @router.get("/ui", response_class=HTMLResponse)
 def benchmarks_ui(request: Request, local_only: bool = False, mine_only: bool = False):
     filters = {}
+    my_user_id = get_medperf_user_data()["id"]
     if mine_only:
-        filters["owner"] = get_medperf_user_data()["id"]
+        filters["owner"] = my_user_id
 
     benchmarks = Benchmark.all(
         local_only=local_only,
         filters=filters,
     )
+
+    benchmarks = sorted(benchmarks, key=lambda x: x.created_at, reverse=True)
+    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
+    mine_benchmarks = [d for d in benchmarks if d.owner == my_user_id]
+    other_benchmarks = [d for d in benchmarks if d.owner != my_user_id]
+    benchmarks = mine_benchmarks + other_benchmarks
     return templates.TemplateResponse("benchmarks.html", {"request": request, "benchmarks": benchmarks})
 
 
