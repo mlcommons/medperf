@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi import Request
 
+from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.enums import Status
@@ -55,7 +56,6 @@ def mlcube_detail_ui(request: Request, mlcube_id: int):
 
     benchmarks_associations = sorted(benchmarks_associations, key=assoc_sorting_key)
 
-    # Fetch benchmarks information
     benchmarks = {assoc.benchmark: Benchmark.get(assoc.benchmark) for assoc in benchmarks_associations if
                   assoc.benchmark}
 
@@ -63,7 +63,8 @@ def mlcube_detail_ui(request: Request, mlcube_id: int):
         "mlcube_detail.html",
         {
             "request": request,
-            "mlcube": mlcube,
+            "entity": mlcube,
+            "entity_name": mlcube.name,
             "benchmarks_associations": benchmarks_associations,
             "benchmarks": benchmarks
         }

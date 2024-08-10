@@ -68,7 +68,8 @@ def dataset_detail_ui(request: Request, dataset_id: int):
     return templates.TemplateResponse("dataset_detail.html",
                                       {
                                           "request": request,
-                                          "dataset": dataset,
+                                          "entity": dataset,
+                                          "entity_name": dataset.name,
                                           "prep_cube_name": prep_cube_name,
                                           "benchmark_associations": benchmark_associations,
                                           "benchmarks": benchmarks

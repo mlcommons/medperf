@@ -61,7 +61,8 @@ def benchmark_detail_ui(request: Request, benchmark_id: int):
         "benchmark_detail.html",
         {
             "request": request,
-            "benchmark": benchmark,
+            "entity": benchmark,
+            "entity_name": benchmark.name,
             "data_preparation_mlcube": data_preparation_mlcube,
             "reference_model_mlcube": reference_model_mlcube,
             "metrics_mlcube": metrics_mlcube,
