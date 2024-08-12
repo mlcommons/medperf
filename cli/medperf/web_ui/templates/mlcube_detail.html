@@ -82,10 +82,20 @@
                         <p class="card-text text-muted small">{{ entity.mlcube_hash }}</p>
                         <p class="card-text"><strong>Parameters:</strong> <a href="{{ entity.git_parameters_url }}" class="text-primary yaml-link" target="_blank">{{ entity.git_parameters_url }}</a></p>
                         <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>
-                        <p class="card-text"><strong>Image Tarball:</strong> <a href="{{ entity.image_tarball_url }}" class="text-primary" target="_blank">{{ entity.image_tarball_url }}</a></p>
-                        <p class="card-text text-muted small">{{ entity.image_tarball_hash }}</p>
-                        <p class="card-text"><strong>Additional Files:</strong> <a href="{{ entity.additional_files_tarball_url }}" class="text-primary" target="_blank">{{ entity.additional_files_tarball_url }}</a></p>
-                        <p class="card-text text-muted small">{{ entity.additional_files_tarball_hash }}</p>
+                        {% if entity.image_tarball_url %}
+                            <p class="card-text"><strong>Image Tarball:</strong> <a href="{{ entity.image_tarball_url }}" class="text-primary" target="_blank">{{ entity.image_tarball_url }}</a></p>
+                            <p class="card-text text-muted small">{{ entity.image_tarball_hash }}</p>
+                        {% else %}
+                            <p class="card-text"><strong>Image Tarball:</strong> Not Available</p>
+                            <p class="card-text text-muted small">N/A</p>
+                        {% endif %}
+                        {% if entity.additional_files_tarball_url %}
+                            <p class="card-text"><strong>Additional Files:</strong> <a href="{{ entity.additional_files_tarball_url }}" class="text-primary" target="_blank">{{ entity.additional_files_tarball_url }}</a></p>
+                            <p class="card-text text-muted small">{{ entity.additional_files_tarball_hash }}</p>
+                        {% else %}
+                            <p class="card-text"><strong>Additional Files:</strong> Not Available</p>
+                            <p class="card-text text-muted small">N/A</p>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card mb-3">

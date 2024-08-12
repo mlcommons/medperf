@@ -24,7 +24,11 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <p class="card-text"><strong>Description:</strong> {{ entity.description }}</p>
-                    <p class="card-text"><strong>Documentation:</strong> <a href="{{ entity.docs_url }}" class="text-primary" target="_blank">{{ entity.docs_url }}</a></p>
+                    {% if entity.docs_url %}
+                        <p class="card-text"><strong>Documentation:</strong> <a href="{{ entity.docs_url }}" class="text-primary" target="_blank">{{ entity.docs_url }}</a></p>
+                    {% else %}
+                        <p class="card-text"><strong>Documentation:</strong> Not Available</p>
+                    {% endif %}
                     <p class="card-text"><strong>Demo Dataset Tarball:</strong> <a href="{{ entity.demo_dataset_tarball_url }}" class="text-primary" target="_blank">{{ entity.demo_dataset_tarball_url }}</a></p>
                     <p class="card-text text-muted small">{{ entity.demo_dataset_tarball_hash }}</p>
                 </div>
