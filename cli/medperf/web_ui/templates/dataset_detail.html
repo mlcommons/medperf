@@ -1,6 +1,7 @@
 <!-- ./cli/medperf/web-ui/templates/dataset_detail.html -->
 {% extends "detail_base.html" %}
 {% import 'association_card_macros.html' as macros %}
+{% import 'mlcube_macros.html' as mlcube_macros %}
 
 {% block title %}Dataset Details{% endblock %}
 
@@ -24,7 +25,9 @@
                     <p class="card-text"><strong>Location:</strong> {{ entity.location }}</p>
                     <p class="card-text"><strong>Input Data Hash:</strong> {{ entity.input_data_hash }}</p>
                     <p class="card-text"><strong>Generated UID:</strong> {{ entity.generated_uid }}</p>
-                    <p class="card-text"><strong>Data Preparation MLCube:</strong> <a href="/mlcubes/ui/{{ entity.data_preparation_mlcube }}" class="text-primary">{{ prep_cube_name }}</a></p>
+                    <p class="card-text">
+                        <strong>Data Preparation MLCube:</strong> {{ mlcube_macros.mlcube_link(prep_cube) }}
+                    </p>
                 </div>
             </div>
             <div class="card mb-3">

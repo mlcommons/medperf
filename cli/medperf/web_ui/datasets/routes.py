@@ -41,7 +41,6 @@ def dataset_detail_ui(request: Request, dataset_id: int):
     dataset = Dataset.get(dataset_id)
 
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
-    prep_cube_name = prep_cube.name if prep_cube else "Unknown"
 
     benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
     benchmark_associations = sort_associations_display(benchmark_associations)
@@ -54,7 +53,7 @@ def dataset_detail_ui(request: Request, dataset_id: int):
                                           "request": request,
                                           "entity": dataset,
                                           "entity_name": dataset.name,
-                                          "prep_cube_name": prep_cube_name,
+                                          "prep_cube": prep_cube,
                                           "benchmark_associations": benchmark_associations,
                                           "benchmarks": benchmarks
                                       })
