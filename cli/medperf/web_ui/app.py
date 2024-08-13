@@ -1,4 +1,5 @@
 from importlib import resources
+from pathlib import Path
 
 import typer
 from fastapi import FastAPI
@@ -20,14 +21,16 @@ web_app.include_router(benchmarks_router, prefix="/benchmarks")
 web_app.include_router(mlcubes_router, prefix="/mlcubes")
 web_app.include_router(yaml_fetch_router)
 
+static_folder_path = Path(resources.files("medperf.web_ui")) / "static"  # noqa
 web_app.mount(
     "/static",
     StaticFiles(
-        directory=str(resources.path("medperf.web_ui", "static")),
+        directory=static_folder_path,
     )
 )
 
 web_app.add_exception_handler(Exception, custom_exception_handler)
+
 
 @web_app.get("/", include_in_schema=False)
 def read_root():
