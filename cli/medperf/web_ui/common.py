@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
 from importlib import resources
@@ -8,7 +9,8 @@ from fastapi.requests import Request
 from medperf.entities.association import Association
 from medperf.enums import Status
 
-templates = Jinja2Templates(directory=str(resources.path("medperf.web_ui", "templates")))
+templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"  # noqa
+templates = Jinja2Templates(directory=templates_folder_path)
 
 logger = logging.getLogger(__name__)
 
