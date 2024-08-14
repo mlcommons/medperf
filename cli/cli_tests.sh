@@ -5,7 +5,6 @@
 ################### Start Testing ########################
 ##########################################################
 
-
 ##########################################################
 echo "=========================================="
 echo "Printing MedPerf version"
@@ -195,7 +194,7 @@ echo "Running data submission step"
 echo "====================================="
 print_eval "medperf dataset submit -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name='dataset_a' --description='mock dataset a' --location='mock location a' -y"
 checkFailed "Data submission step failed"
-DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | cut -d ' ' -f 1)
+DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 echo "DSET_A_UID=$DSET_A_UID"
 ##########################################################
 

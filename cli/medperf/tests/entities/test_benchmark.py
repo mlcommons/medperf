@@ -9,8 +9,9 @@ PATCH_BENCHMARK = "medperf.entities.benchmark.{}"
 
 @pytest.fixture(
     params={
-        "local": [1, 2, 3],
-        "remote": [4, 5, 6],
+        "unregistered": ["b1", "b2"],
+        "local": ["b1", "b2", 1, 2, 3],
+        "remote": [1, 2, 3, 4, 5, 6],
         "user": [4],
         "models": [10, 11],
     }
