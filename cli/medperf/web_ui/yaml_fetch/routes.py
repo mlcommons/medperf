@@ -19,5 +19,5 @@ async def fetch_yaml(url: str):
             raise HTTPException(status_code=400, detail="Invalid YAML content")
 
         return {"content": content}
-    except requests.RequestException as e:
+    except requests.RequestException:
         raise HTTPException(status_code=400, detail="Failed to fetch YAML content")

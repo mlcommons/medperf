@@ -8,7 +8,6 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
-from medperf.enums import Status
 from medperf.web_ui.common import templates, sort_associations_display
 
 router = APIRouter()
