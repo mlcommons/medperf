@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from rano_monitor.constants import (
     DEFAULT_SEGMENTATION,
-    DONE_STAGE,
     MANUAL_REVIEW_STAGE,
 )
 from rano_monitor.messages import InvalidSubjectsUpdated
@@ -14,6 +13,7 @@ from rano_monitor.utils import (
     review_brain,
     review_tumor,
     to_local_path,
+    can_review,
 )
 from rano_monitor.widgets.copyable_item import CopyableItem
 from textual.app import ComposeResult
@@ -25,6 +25,7 @@ class SubjectDetails(Static):
     invalid_subjects = set()
     subject = pd.Series()
     dset_path = ""
+    review_cmd = None  # This will be assigned after initialized
 
     def compose(self) -> ComposeResult:
         with Center(id="subject-title"):
@@ -51,10 +52,7 @@ class SubjectDetails(Static):
                 id="reviewed-button",
                 disabled=True,
             )
-            yield Static(
-                "If brain mask is not correct",
-                id="brianmask-review-header"
-            )
+            yield Static("If brain mask is not correct", id="brianmask-review-header")
             yield Button(
                 "Brain mask not available",
                 disabled=True,
@@ -118,8 +116,7 @@ class SubjectDetails(Static):
         # This SHOULD NOT be here for general data prep monitoring.
         # Additional configuration must be set
         # to make this kind of features generic
-        can_review = MANUAL_REVIEW_STAGE <= abs(subject["status"]) < DONE_STAGE
-        buttons_container.display = "block" if can_review else "none"
+        buttons_container.display = "block" if can_review(subject) else "none"
 
         # Only display finalize button for the manual review
         can_finalize = abs(subject["status"]) == MANUAL_REVIEW_STAGE
@@ -135,7 +132,7 @@ class SubjectDetails(Static):
         brainmask_button = self.query_one("#brainmask-review-button", Button)
         valid_btn = self.query_one("#valid-btn", Button)
 
-        if is_editor_installed():
+        if is_editor_installed(self.review_cmd):
             review_msg.display = "none"
             review_button.disabled = False
         if self.__can_finalize():
@@ -176,7 +173,7 @@ class SubjectDetails(Static):
         data_path = to_local_path(data_path, self.dset_path)
         labels_path = self.subject["labels_path"]
         labels_path = to_local_path(labels_path, self.dset_path)
-        review_tumor(subject, data_path, labels_path)
+        review_tumor(subject, data_path, labels_path, review_cmd=self.review_cmd)
         self.__update_buttons()
         self.notify("This subject can be finalized now")
 
@@ -184,7 +181,7 @@ class SubjectDetails(Static):
         subject = self.subject.name
         labels_path = self.subject["labels_path"]
         labels_path = to_local_path(labels_path, self.dset_path)
-        review_brain(subject, labels_path)
+        review_brain(subject, labels_path, review_cmd=self.review_cmd)
         self.__update_buttons()
 
     def __finalize(self):

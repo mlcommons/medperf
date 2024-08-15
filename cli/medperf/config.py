@@ -1,5 +1,6 @@
 from ._version import __version__
 from pathlib import Path
+from os import getenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -36,6 +37,8 @@ auth_dev_audience = "https://localhost-dev/"
 auth_jwks_cache_ttl = 600  # fetch jwks every 10 mins. Default value in auth0 python SDK
 
 token_expiration_leeway = 10  # Refresh tokens 10 seconds before expiration
+refresh_token_expiration_leeway = 10  # Logout users 10 seconds before absolute token expiration.
+token_absolute_expiry = 2592000  # Refresh token absolute expiration time (seconds). This value is set on auth0's configuration
 access_token_storage_id = "medperf_access_token"
 refresh_token_storage_id = "medperf_refresh_token"
 
@@ -44,7 +47,7 @@ local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 # Storage config
 config_storage = Path.home().resolve() / ".medperf_config"
 logs_storage = Path.home().resolve() / ".medperf_logs"
-config_path = str(config_storage / "config.yaml")
+config_path = getenv("MEDPERF_CONFIG_PATH", str(config_storage / "config.yaml"))
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
