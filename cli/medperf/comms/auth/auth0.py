@@ -204,6 +204,12 @@ class Auth0(Auth):
             - config.refresh_token_expiration_leeway
         )
         current_time = time.time()
+
+        if current_time < sliding_expiration_time:
+            # Access token not expired. No need to refresh.
+            return access_token
+
+        # So we need to refresh.
         if current_time > absolute_expiration_time:
             # Expired refresh token. Force logout and ask the user to re-authenticate
             logging.debug(
@@ -212,9 +218,8 @@ class Auth0(Auth):
             self.logout()
             raise AuthenticationError("Token expired. Please re-authenticate")
 
-        if current_time > sliding_expiration_time:
-            # Expired access token. Refresh it.
-            access_token = self.__refresh_access_token(refresh_token)
+        # Expired access token and not expired refresh token. Refresh.
+        access_token = self.__refresh_access_token(refresh_token)
 
         return access_token
 
