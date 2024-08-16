@@ -34,14 +34,19 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
+                 num_train_batches_per_epoch,
+                 num_val_batches_per_epoch,
                  nnunet_task=None,
                  config_path=None,
                  **kwargs):
         """Initialize.
 
         Args:
-            config_path(str)            : Path to the configuration file used by the training and validation script.
-            kwargs                      : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
+            num_train_batches_per_epoch (int)   : Number of batches to be samples (with replacemtnt) for training 
+            num_val_batches_per_epoch (int)     : Number of batches to be sampled (with replacement) for validation
+            nnunet_task (str)                   : Task string used to identify the data and model folders
+            config_path(str)                    : Path to the configuration file used by the training and validation script.
+            kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
             TODO: 
         """ 
         
@@ -71,6 +76,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             **kwargs,
             )
 
+        self.num_train_batches_per_epoch = num_train_batches_per_epoch
+        self.num_val_batches_per_epoch = num_val_batches_per_epoch
         self.config_path = config_path
         
     
@@ -149,7 +156,11 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        train_nnunet(epochs=epochs, current_epoch=current_epoch, task=self.data_loader.get_task_name())
+        train_nnunet(epochs=epochs, 
+                     current_epoch=current_epoch, 
+                     num_train_batches_per_epoch = self.num_train_batches_per_epoch,
+                     num_val_batches_per_epoch = self.num_val_batches_per_epoch, 
+                     task=self.data_loader.get_task_name())
        
         # 3. Load metrics from checkpoint
         (all_tr_losses, all_val_losses, all_val_losses_tr_mode, all_val_eval_metrics) = self.load_checkpoint()['plot_stuff']
