@@ -11,6 +11,8 @@ from medperf.commands.training.start_event import StartEvent
 from medperf.commands.training.close_event import CloseEvent
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+from medperf.commands.training.get_experiment_status import GetExperimentStatus
+from medperf.commands.training.update_plan import UpdatePlan
 
 app = typer.Typer()
 
@@ -83,6 +85,36 @@ def start_event(
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     StartEvent.run(training_exp_id, name, participants_list_file, approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("get_experiment_status")
+@clean_except
+def get_experiment_status(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    )
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
+    GetExperimentStatus.run(training_exp_id)
+    config.ui.print("✅ Done!")
+
+
+@app.command("update_plan")
+@clean_except
+def update_plan(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    field_name: str = typer.Option(
+        ..., "--field_name", "-f", help="UID of the desired benchmark"
+    ),
+    value: str = typer.Option(
+        ..., "--value", "-v", help="UID of the desired benchmark"
+    ),
+):
+    """Runtime-update of a scalar field of the training plan"""
+    UpdatePlan.run(training_exp_id, field_name, value)
     config.ui.print("✅ Done!")
 
 

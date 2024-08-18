@@ -63,6 +63,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
 
         self.generated_uid = self.name
         self.plan_path = os.path.join(self.path, config.training_exp_plan_filename)
+        self.status_path = os.path.join(self.path, config.training_exp_status_filename)
 
     @classmethod
     def _Entity__remote_prefilter(cls, filters: dict) -> callable:
