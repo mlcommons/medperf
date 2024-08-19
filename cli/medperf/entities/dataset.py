@@ -26,8 +26,8 @@ class Dataset(Entity, Uploadable, MedperfSchema, DeployableSchema):
     data preparation output.
     """
 
-    description: Optional[str] = Field(None, max_length=20)
-    location: Optional[str] = Field(None, max_length=20)
+    description: Optional[str] = Field(None, max_length=256)
+    location: Optional[str] = Field(None, max_length=256)
     input_data_hash: str
     generated_uid: str
     data_preparation_mlcube: Union[int, str]
