@@ -1,0 +1,4 @@
+pyYAML
+typer
+numpy
+SimpleITK>=2.1.0
