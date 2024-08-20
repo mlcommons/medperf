@@ -4,7 +4,7 @@ import threading
 import sqlite3
 from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
-from medperf.exceptions import CommunicationError
+from medperf.exceptions import CommunicationError, AuthenticationError
 import requests
 import medperf.config as config
 from medperf.utils import log_response_error
@@ -66,6 +66,7 @@ class Auth0(Auth):
             id_token_payload,
             token_issued_at,
             token_expires_in,
+            login_event=True,
         )
 
     def __request_device_code(self):
@@ -191,11 +192,35 @@ class Auth0(Auth):
         refresh_token = creds["refresh_token"]
         token_expires_in = creds["token_expires_in"]
         token_issued_at = creds["token_issued_at"]
-        if (
-            time.time()
-            > token_issued_at + token_expires_in - config.token_expiration_leeway
-        ):
-            access_token = self.__refresh_access_token(refresh_token)
+        logged_in_at = creds["logged_in_at"]
+
+        # token_issued_at and expires_in are for the access token
+        sliding_expiration_time = (
+            token_issued_at + token_expires_in - config.token_expiration_leeway
+        )
+        absolute_expiration_time = (
+            logged_in_at
+            + config.token_absolute_expiry
+            - config.refresh_token_expiration_leeway
+        )
+        current_time = time.time()
+
+        if current_time < sliding_expiration_time:
+            # Access token not expired. No need to refresh.
+            return access_token
+
+        # So we need to refresh.
+        if current_time > absolute_expiration_time:
+            # Expired refresh token. Force logout and ask the user to re-authenticate
+            logging.debug(
+                f"Refresh token expired: {absolute_expiration_time=} <> {current_time=}"
+            )
+            self.logout()
+            raise AuthenticationError("Token expired. Please re-authenticate")
+
+        # Expired access token and not expired refresh token. Refresh.
+        access_token = self.__refresh_access_token(refresh_token)
+
         return access_token
 
     def __refresh_access_token(self, refresh_token):

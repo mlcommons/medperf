@@ -1,16 +1,11 @@
 import hashlib
-import os
-import yaml
-import logging
 from typing import List, Union, Optional
 
-from medperf.entities.schemas import MedperfBaseSchema
 import medperf.config as config
-from medperf.exceptions import InvalidArgumentError
 from medperf.entities.interface import Entity
 
 
-class TestReport(Entity, MedperfBaseSchema):
+class TestReport(Entity):
     """
     Class representing a compatibility test report entry
 
@@ -23,8 +18,16 @@ class TestReport(Entity, MedperfBaseSchema):
     - model cube
     - evaluator cube
     - results
+
+    Note: This entity is only a local one, there is no TestReports on the server
+          However, we still use the same Entity interface used by other entities
+          in order to reduce repeated code. Consequently, we mocked a few methods
+          and attributes inherited from the Entity interface that are not relevant to
+          this entity, such as the `name` and `id` attributes, and such as
+          the `get` and `all` methods.
     """
 
+    name: Optional[str] = "name"
     demo_dataset_url: Optional[str]
     demo_dataset_hash: Optional[str]
     data_path: Optional[str]
@@ -35,13 +38,25 @@ class TestReport(Entity, MedperfBaseSchema):
     data_evaluator_mlcube: Union[int, str]
     results: Optional[dict]
 
+    @staticmethod
+    def get_type():
+        return "report"
+
+    @staticmethod
+    def get_storage_path():
+        return config.tests_folder
+
+    @staticmethod
+    def get_metadata_filename():
+        return config.test_report_file
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.generated_uid = self.__generate_uid()
-        path = config.tests_folder
-        self.path = os.path.join(path, self.generated_uid)
+        self.id = None
+        self.for_test = True
 
-    def __generate_uid(self):
+    @property
+    def local_id(self):
         """A helper that generates a unique hash for a test report."""
         params = self.todict()
         del params["results"]
@@ -52,71 +67,21 @@ class TestReport(Entity, MedperfBaseSchema):
         self.results = results
 
     @classmethod
-    def all(
-        cls, local_only: bool = False, mine_only: bool = False
-    ) -> List["TestReport"]:
-        """Gets and creates instances of test reports.
-        Arguments are only specified for compatibility with
-        `Entity.List` and `Entity.View`, but they don't contribute to
-        the logic.
-
-        Returns:
-            List[TestReport]: List containing all test reports
-        """
-        logging.info("Retrieving all reports")
-        reports = []
-        tests_folder = config.tests_folder
-        try:
-            uids = next(os.walk(tests_folder))[1]
-        except StopIteration:
-            msg = "Couldn't iterate over the tests directory"
-            logging.warning(msg)
-            raise RuntimeError(msg)
-
-        for uid in uids:
-            local_meta = cls.__get_local_dict(uid)
-            report = cls(**local_meta)
-            reports.append(report)
-
-        return reports
+    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["TestReport"]:
+        assert unregistered, "Reports are only unregistered"
+        assert filters == {}, "Reports cannot be filtered"
+        return super().all(unregistered=True, filters={})
 
     @classmethod
-    def get(cls, report_uid: str) -> "TestReport":
-        """Retrieves and creates a TestReport instance obtained the user's machine
-
+    def get(cls, uid: str, local_only: bool = False) -> "TestReport":
+        """Gets an instance of the TestReport. ignores local_only inherited flag as TestReport is always a local entity.
         Args:
-            report_uid (str): UID of the TestReport instance
-
+            uid (str): Report Unique Identifier
+            local_only (bool): ignored. Left for aligning with parent Entity class
         Returns:
-            TestReport: Specified TestReport instance
+            TestReport: Report Instance associated to the UID
         """
-        logging.debug(f"Retrieving report {report_uid}")
-        report_dict = cls.__get_local_dict(report_uid)
-        report = cls(**report_dict)
-        report.write()
-        return report
-
-    def todict(self):
-        return self.extended_dict()
-
-    def write(self):
-        report_file = os.path.join(self.path, config.test_report_file)
-        os.makedirs(self.path, exist_ok=True)
-        with open(report_file, "w") as f:
-            yaml.dump(self.todict(), f)
-        return report_file
-
-    @classmethod
-    def __get_local_dict(cls, local_uid):
-        report_path = os.path.join(config.tests_folder, str(local_uid))
-        report_file = os.path.join(report_path, config.test_report_file)
-        if not os.path.exists(report_file):
-            raise InvalidArgumentError(
-                f"The requested report {local_uid} could not be retrieved"
-            )
-        with open(report_file, "r") as f:
-            report_info = yaml.safe_load(f)
-        return report_info
+        return super().get(uid, local_only=True)
 
     def display_dict(self):
         if self.data_path:
@@ -127,7 +92,7 @@ class TestReport(Entity, MedperfBaseSchema):
             data_source = f"{self.prepared_data_hash}"
 
         return {
-            "UID": self.generated_uid,
+            "UID": self.local_id,
             "Data Source": data_source,
             "Model": (
                 self.model if isinstance(self.model, int) else self.model[:27] + "..."
