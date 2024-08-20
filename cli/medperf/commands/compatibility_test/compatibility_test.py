@@ -95,7 +95,11 @@ def run(
 @clean_except
 def list():
     """List previously executed tests reports."""
-    EntityList.run(TestReport, fields=["UID", "Data Source", "Model", "Evaluator"])
+    EntityList.run(
+        TestReport,
+        fields=["UID", "Data Source", "Model", "Evaluator"],
+        unregistered=True,
+    )
 
 
 @app.command("view")
@@ -116,4 +120,4 @@ def view(
     ),
 ):
     """Displays the information of one or more test reports"""
-    EntityView.run(entity_id, TestReport, format, output=output)
+    EntityView.run(entity_id, TestReport, format, unregistered=True, output=output)

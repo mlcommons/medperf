@@ -1,18 +1,13 @@
-import os
-from medperf.exceptions import MedperfException
-import yaml
-import logging
-from typing import List, Optional, Union
+from typing import List, Optional
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
-from medperf.entities.interface import Entity, Uploadable
-from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
-from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
+from medperf.entities.interface import Entity
+from medperf.entities.schemas import ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
 
 
-class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     """
     Class representing a Benchmark
 
@@ -35,6 +30,26 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
     user_metadata: dict = {}
     is_active: bool = True
 
+    @staticmethod
+    def get_type():
+        return "benchmark"
+
+    @staticmethod
+    def get_storage_path():
+        return config.benchmarks_folder
+
+    @staticmethod
+    def get_comms_retriever():
+        return config.comms.get_benchmark
+
+    @staticmethod
+    def get_metadata_filename():
+        return config.benchmarks_filename
+
+    @staticmethod
+    def get_comms_uploader():
+        return config.comms.upload_benchmark
+
     def __init__(self, *args, **kwargs):
         """Creates a new benchmark instance
 
@@ -43,54 +58,12 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         """
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = f"p{self.data_preparation_mlcube}m{self.reference_model_mlcube}e{self.data_evaluator_mlcube}"
-        path = config.benchmarks_folder
-        if self.id:
-            path = os.path.join(path, str(self.id))
-        else:
-            path = os.path.join(path, self.generated_uid)
-        self.path = path
+    @property
+    def local_id(self):
+        return self.name
 
-    @classmethod
-    def all(cls, local_only: bool = False, filters: dict = {}) -> List["Benchmark"]:
-        """Gets and creates instances of all retrievable benchmarks
-
-        Args:
-            local_only (bool, optional): Wether to retrieve only local entities. Defaults to False.
-            filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
-
-        Returns:
-            List[Benchmark]: a list of Benchmark instances.
-        """
-        logging.info("Retrieving all benchmarks")
-        benchmarks = []
-
-        if not local_only:
-            benchmarks = cls.__remote_all(filters=filters)
-
-        remote_uids = set([bmk.id for bmk in benchmarks])
-
-        local_benchmarks = cls.__local_all()
-
-        benchmarks += [bmk for bmk in local_benchmarks if bmk.id not in remote_uids]
-
-        return benchmarks
-
-    @classmethod
-    def __remote_all(cls, filters: dict) -> List["Benchmark"]:
-        benchmarks = []
-        try:
-            comms_fn = cls.__remote_prefilter(filters)
-            bmks_meta = comms_fn()
-            benchmarks = [cls(**meta) for meta in bmks_meta]
-        except CommunicationRetrievalError:
-            msg = "Couldn't retrieve all benchmarks from the server"
-            logging.warning(msg)
-
-        return benchmarks
-
-    @classmethod
-    def __remote_prefilter(cls, filters: dict) -> callable:
+    @staticmethod
+    def remote_prefilter(filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
@@ -103,104 +76,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_benchmarks
         return comms_fn
-
-    @classmethod
-    def __local_all(cls) -> List["Benchmark"]:
-        benchmarks = []
-        bmks_storage = config.benchmarks_folder
-        try:
-            uids = next(os.walk(bmks_storage))[1]
-        except StopIteration:
-            msg = "Couldn't iterate over benchmarks directory"
-            logging.warning(msg)
-            raise MedperfException(msg)
-
-        for uid in uids:
-            meta = cls.__get_local_dict(uid)
-            benchmark = cls(**meta)
-            benchmarks.append(benchmark)
-
-        return benchmarks
-
-    @classmethod
-    def get(
-        cls, benchmark_uid: Union[str, int], local_only: bool = False
-    ) -> "Benchmark":
-        """Retrieves and creates a Benchmark instance from the server.
-        If benchmark already exists in the platform then retrieve that
-        version.
-
-        Args:
-            benchmark_uid (str): UID of the benchmark.
-            comms (Comms): Instance of a communication interface.
-
-        Returns:
-            Benchmark: a Benchmark instance with the retrieved data.
-        """
-
-        if not str(benchmark_uid).isdigit() or local_only:
-            return cls.__local_get(benchmark_uid)
-
-        try:
-            return cls.__remote_get(benchmark_uid)
-        except CommunicationRetrievalError:
-            logging.warning(f"Getting Benchmark {benchmark_uid} from comms failed")
-            logging.info(f"Looking for benchmark {benchmark_uid} locally")
-            return cls.__local_get(benchmark_uid)
-
-    @classmethod
-    def __remote_get(cls, benchmark_uid: int) -> "Benchmark":
-        """Retrieves and creates a Dataset instance from the comms instance.
-        If the dataset is present in the user's machine then it retrieves it from there.
-
-        Args:
-            dset_uid (str): server UID of the dataset
-
-        Returns:
-            Dataset: Specified Dataset Instance
-        """
-        logging.debug(f"Retrieving benchmark {benchmark_uid} remotely")
-        benchmark_dict = config.comms.get_benchmark(benchmark_uid)
-        benchmark = cls(**benchmark_dict)
-        benchmark.write()
-        return benchmark
-
-    @classmethod
-    def __local_get(cls, benchmark_uid: Union[str, int]) -> "Benchmark":
-        """Retrieves and creates a Dataset instance from the comms instance.
-        If the dataset is present in the user's machine then it retrieves it from there.
-
-        Args:
-            dset_uid (str): server UID of the dataset
-
-        Returns:
-            Dataset: Specified Dataset Instance
-        """
-        logging.debug(f"Retrieving benchmark {benchmark_uid} locally")
-        benchmark_dict = cls.__get_local_dict(benchmark_uid)
-        benchmark = cls(**benchmark_dict)
-        return benchmark
-
-    @classmethod
-    def __get_local_dict(cls, benchmark_uid) -> dict:
-        """Retrieves a local benchmark information
-
-        Args:
-            benchmark_uid (str): uid of the local benchmark
-
-        Returns:
-            dict: information of the benchmark
-        """
-        logging.info(f"Retrieving benchmark {benchmark_uid} from local storage")
-        storage = config.benchmarks_folder
-        bmk_storage = os.path.join(storage, str(benchmark_uid))
-        bmk_file = os.path.join(bmk_storage, config.benchmarks_filename)
-        if not os.path.exists(bmk_file):
-            raise InvalidArgumentError("No benchmark with the given uid could be found")
-        with open(bmk_file, "r") as f:
-            data = yaml.safe_load(f)
-
-        return data
 
     @classmethod
     def get_models_uids(cls, benchmark_uid: int) -> List[int]:
@@ -220,43 +95,6 @@ class Benchmark(Entity, Uploadable, MedperfSchema, ApprovableSchema, DeployableS
             if assoc["approval_status"] == "APPROVED"
         ]
         return models_uids
-
-    def todict(self) -> dict:
-        """Dictionary representation of the benchmark instance
-
-        Returns:
-        dict: Dictionary containing benchmark information
-        """
-        return self.extended_dict()
-
-    def write(self) -> str:
-        """Writes the benchmark into disk
-
-        Args:
-            filename (str, optional): name of the file. Defaults to config.benchmarks_filename.
-
-        Returns:
-            str: path to the created benchmark file
-        """
-        data = self.todict()
-        bmk_file = os.path.join(self.path, config.benchmarks_filename)
-        if not os.path.exists(bmk_file):
-            os.makedirs(self.path, exist_ok=True)
-        with open(bmk_file, "w") as f:
-            yaml.dump(data, f)
-        return bmk_file
-
-    def upload(self):
-        """Uploads a benchmark to the server
-
-        Args:
-            comms (Comms): communications entity to submit through
-        """
-        if self.for_test:
-            raise InvalidArgumentError("Cannot upload test benchmarks.")
-        body = self.todict()
-        updated_body = config.comms.upload_benchmark(body)
-        return updated_body
 
     def display_dict(self):
         return {
