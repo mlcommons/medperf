@@ -3,6 +3,59 @@ import os
 import shutil
 
 
+def generic_setup(output_logs):
+    tmpfolder = os.path.join(output_logs, ".tmp")
+    os.makedirs(tmpfolder, exist_ok=True)
+    # NOTE: this should be set before any code imports tempfile
+    os.environ["TMPDIR"] = tmpfolder
+    os.environ["RESULTS_FOLDER"] = os.path.join(tmpfolder, "nnUNet_trained_models")
+    os.environ["nnUNet_raw_data_base"] = os.path.join(tmpfolder, "nnUNet_raw_data_base")
+    os.environ["nnUNet_preprocessed"] = os.path.join(tmpfolder, "nnUNet_preprocessed")
+    workspace_folder = os.path.join(output_logs, "workspace")
+    os.makedirs(workspace_folder, exist_ok=True)
+    create_workspace(workspace_folder)
+    return workspace_folder
+
+
+def setup_collaborator(
+    data_path,
+    labels_path,
+    node_cert_folder,
+    ca_cert_folder,
+    plan_path,
+    output_logs,
+    workspace_folder,
+):
+    prepare_plan(plan_path, workspace_folder)
+    cn = get_collaborator_cn()
+    prepare_node_cert(node_cert_folder, "client", f"col_{cn}", workspace_folder)
+    prepare_ca_cert(ca_cert_folder, workspace_folder)
+
+
+def setup_aggregator(
+    input_weights,
+    node_cert_folder,
+    ca_cert_folder,
+    output_logs,
+    output_weights,
+    plan_path,
+    collaborators,
+    report_path,
+    workspace_folder,
+):
+    prepare_plan(plan_path, workspace_folder)
+    prepare_cols_list(collaborators, workspace_folder)
+    prepare_init_weights(input_weights, workspace_folder)
+    fqdn = get_aggregator_fqdn(workspace_folder)
+    prepare_node_cert(node_cert_folder, "server", f"agg_{fqdn}", workspace_folder)
+    prepare_ca_cert(ca_cert_folder, workspace_folder)
+
+
+def generic_teardown(output_logs):
+    tmp_folder = os.path.join(output_logs, ".tmp")
+    shutil.rmtree(tmp_folder, ignore_errors=True)
+
+
 def create_workspace(fl_workspace):
     plan_folder = os.path.join(fl_workspace, "plan")
     workspace_config = os.path.join(fl_workspace, ".workspace")

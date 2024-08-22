@@ -3,21 +3,9 @@ import shutil
 
 
 def train_initial_model(
-    data_path,
-    labels_path,
-    output_logs,
-    init_nnunet_directory,
+    data_path, labels_path, init_nnunet_directory, workspace_folder
 ):
-    # runtime env vars should be set as early as possible
-    tmpfolder = os.path.join(output_logs, ".tmp")
-    os.makedirs(tmpfolder, exist_ok=True)
-    os.environ["RESULTS_FOLDER"] = os.path.join(tmpfolder, "nnUNet_trained_models")
-    os.environ["nnUNet_raw_data_base"] = os.path.join(tmpfolder, "nnUNet_raw_data_base")
-    os.environ["nnUNet_preprocessed"] = os.path.join(tmpfolder, "nnUNet_preprocessed")
     import nnunet_setup
-
-    workspace_folder = os.path.join(output_logs, "workspace")
-    os.makedirs(workspace_folder, exist_ok=True)
 
     os.symlink(data_path, f"{workspace_folder}/data", target_is_directory=True)
     os.symlink(labels_path, f"{workspace_folder}/labels", target_is_directory=True)
