@@ -7,7 +7,7 @@ from medperf.utils import get_pki_assets_path, generate_tmp_path
 from medperf.certificates import trust
 
 
-class GetExperimentStatus:
+class UpdatePlan:
     @classmethod
     def run(cls, training_exp_id: int, field_name: str, field_value: str):
         """Starts the aggregation server of a training experiment
