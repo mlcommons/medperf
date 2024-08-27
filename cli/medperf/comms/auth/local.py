@@ -39,6 +39,7 @@ class Local(Auth):
             id_token_payload,
             token_issued_at,
             token_expires_in,
+            login_event=True,
         )
 
     def logout(self):

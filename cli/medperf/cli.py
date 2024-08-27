@@ -73,7 +73,7 @@ def execute(
             please run the command again with the --no-cache option.\n"""
         )
     else:
-        ResultSubmission.run(result.generated_uid, approved=approval)
+        ResultSubmission.run(result.local_id, approved=approval)
     config.ui.print("✅ Done!")
 
 
