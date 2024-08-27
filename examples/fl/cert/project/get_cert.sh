@@ -83,5 +83,13 @@ step ca certificate --ca-url $CA_ADDRESS:$CA_PORT \
     $PROVISIONER_ARGS \
     $MEDPERF_INPUT_CN $cert_path $key_path
 
+EXITSTATUS="$?"
+if [ $EXITSTATUS -ne "0" ]; then
+    echo "Failed to get the certificate"
+    # cleanup
+    rm -rf $STEPPATH
+    exit 1
+fi
+
 # cleanup
 rm -rf $STEPPATH
