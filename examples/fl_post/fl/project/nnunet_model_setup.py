@@ -60,51 +60,7 @@ def delete_2d_data(network, task, plans_identifier):
                 print(f"\n###########\nDeleting 2D data directory at: {data_dir_2d} \n##############\n")
                 shutil.rmtree(data_dir_2d)
 
-"""
-def normalize_architecture(reference_plan_path, target_plan_path):
-    
-    # Take the plan file from reference_plan_path and use its contents to copy architecture into target_plan_path
 
-    # NOTE: Here we perform some checks and protection steps so that our assumptions if not correct will more
-          likely leed to an exception.
-    
-    
-    
-    assert_same_keys = ['num_stages', 'num_modalities', 'modalities', 'normalization_schemes', 'num_classes', 'all_classes', 'base_num_features', 
-                        'use_mask_for_norm', 'keep_only_largest_region', 'min_region_size_per_class', 'min_size_per_class', 'transpose_forward', 
-                        'transpose_backward', 'preprocessor_name', 'conv_per_stage', 'data_identifier']
-    copy_over_keys = ['plans_per_stage']
-    nullify_keys = ['original_spacings', 'original_sizes']
-    leave_alone_keys = ['list_of_npz_files', 'preprocessed_data_folder', 'dataset_properties']
- 
-
-    # check I got all keys here
-    assert set(copy_over_keys).union(set(assert_same_keys)).union(set(nullify_keys)).union(set(leave_alone_keys)) == set(['num_stages', 'num_modalities', 'modalities', 'normalization_schemes', 'dataset_properties', 'list_of_npz_files', 'original_spacings', 'original_sizes', 'preprocessed_data_folder', 'num_classes', 'all_classes', 'base_num_features', 'use_mask_for_norm', 'keep_only_largest_region', 'min_region_size_per_class', 'min_size_per_class', 'transpose_forward', 'transpose_backward', 'data_identifier', 'plans_per_stage', 'preprocessor_name', 'conv_per_stage'])
-    
-    def get_pickle_obj(path):
-        with open(path, 'rb') as _file:
-            plan= pkl.load(_file)
-        return plan 
-
-    def write_pickled_obj(obj, path):
-        with open(path, 'wb') as _file:
-            pkl.dump(obj, _file) 
-
-    reference_plan = get_pickle_obj(path=reference_plan_path)
-    target_plan = get_pickle_obj(path=target_plan_path)
-
-    for key in assert_same_keys:
-        if reference_plan[key] != target_plan[key]:
-            raise ValueError(f"normalize architecture failed since the reference and target plans differed in at least key: {key}")
-    for key in copy_over_keys:
-        target_plan[key] = reference_plan[key]
-    for key in nullify_keys:
-        target_plan[key] = None
-    # leave alone keys are left alone :)
-
-    # write back to target plan
-    write_pickled_obj(obj=target_plan, path=target_plan_path) 
-"""
 
 def trim_data_and_setup_model(task, network, network_trainer, plans_identifier, fold, init_model_path, init_model_info_path, plans_path, cuda_device='0'):
     """

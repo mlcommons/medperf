@@ -56,8 +56,7 @@ def seed_everything(seed=1234):
 
 def train_nnunet(epochs,
                  current_epoch,
-                 num_train_batches_per_epoch,
-                 num_val_batches_per_epoch, 
+                 partial_epoch=1.0, 
                  network='3d_fullres', 
                  network_trainer='nnUNetTrainerV2', 
                  task='Task543_FakePostOpp_More', 
@@ -82,8 +81,7 @@ def train_nnunet(epochs,
     """
     epochs (int): Number of epochs to train for on top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
-    num_train_batches_per_epoch (int): Number of batches to train over each epoch (batches are sampled with replacement)
-    num_val_batches_per_epoch (int): Number of batches to validate on each epoch (batches are samples with replacement)
+    partial_epoch (float):
     task (int): can be task name or task id
     fold: "0, 1, ..., 5 or 'all'"
     validation_only: use this if you want to only run the validation
@@ -229,6 +227,14 @@ def train_nnunet(epochs,
     )
     trainer.max_num_epochs = current_epoch + epochs
     trainer.epoch = current_epoch
+
+    # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
+    # point is expected to be seen epochs number of times
+
+    num_train_batches_per_epoch = int(partial_epoch * len(trainer.dataset_tr)/trainer.batch_size)
+    num_val_batches_per_epoch = int(partial_epoch * len(trainer.dataset_val)/trainer.batch_size)
+
+    # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
     trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
 

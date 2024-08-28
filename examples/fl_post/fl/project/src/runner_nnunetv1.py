@@ -34,16 +34,14 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 num_train_batches_per_epoch,
-                 num_val_batches_per_epoch,
+                 partial_epoch=1.0, 
                  nnunet_task=None,
                  config_path=None,
                  **kwargs):
         """Initialize.
 
         Args:
-            num_train_batches_per_epoch (int)   : Number of batches to be samples (with replacemtnt) for training 
-            num_val_batches_per_epoch (int)     : Number of batches to be sampled (with replacement) for validation
+            partial_epoch (float)               : What portion of the data to use to compute number of batches per epoch (for both train and val).
             nnunet_task (str)                   : Task string used to identify the data and model folders
             config_path(str)                    : Path to the configuration file used by the training and validation script.
             kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
@@ -76,8 +74,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             **kwargs,
             )
 
-        self.num_train_batches_per_epoch = num_train_batches_per_epoch
-        self.num_val_batches_per_epoch = num_val_batches_per_epoch
+        self.partial_epoch = partial_epoch
         self.config_path = config_path
         
     
@@ -158,8 +155,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Should we put this in a separate process?
         train_nnunet(epochs=epochs, 
                      current_epoch=current_epoch, 
-                     num_train_batches_per_epoch = self.num_train_batches_per_epoch,
-                     num_val_batches_per_epoch = self.num_val_batches_per_epoch, 
+                     partial_epoch=self.partial_epoch, 
                      task=self.data_loader.get_task_name())
        
         # 3. Load metrics from checkpoint
