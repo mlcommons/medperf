@@ -1,7 +1,7 @@
 import os
 import yaml
 import logging
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 from pydantic import Field
 from pathlib import Path
 
@@ -97,11 +97,12 @@ class Cube(Entity, DeployableSchema):
         return comms_fn
 
     @classmethod
-    def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
+    def get(cls, cube_uid: Union[str, int], local_only: bool = False, valid_only: bool = True) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
+            valid_only: if to raise an error in case of invalidated Cube
             cube_uid (str): UID of the cube.
 
         Returns:
@@ -109,7 +110,7 @@ class Cube(Entity, DeployableSchema):
         """
 
         cube = super().get(cube_uid, local_only)
-        if not cube.is_valid:
+        if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested MLCube is marked as INVALID.")
         cube.download_config_files()
         return cube

@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Optional
 
-from medperf.entities.schemas import ApprovableSchema, MedperfBaseSchema
+from medperf.entities.schemas import ApprovableSchema, MedperfSchema
 
 
-class Association(MedperfBaseSchema, ApprovableSchema):
+class Association(MedperfSchema, ApprovableSchema):
     id: int
     metadata: dict
     dataset: Optional[int]

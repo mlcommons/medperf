@@ -15,13 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/ui", response_class=HTMLResponse)
-def datasets_ui(request: Request, local_only: bool = False, mine_only: bool = False):
+def datasets_ui(request: Request, mine_only: bool = False):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
     if mine_only:
         filters["owner"] = my_user_id
     datasets = Dataset.all(
-        local_only=local_only,
         filters=filters,
     )
 

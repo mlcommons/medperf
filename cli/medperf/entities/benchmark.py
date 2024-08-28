@@ -126,14 +126,6 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         associations = [a for a in associations if a.benchmark == benchmark_uid]
         return associations
 
-    def todict(self) -> dict:
-        """Dictionary representation of the benchmark instance
-
-        Returns:
-        dict: Dictionary containing benchmark information
-        """
-        return self.extended_dict()
-
     def display_dict(self):
         return {
             "UID": self.identifier,

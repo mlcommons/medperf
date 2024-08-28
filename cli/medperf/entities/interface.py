@@ -112,7 +112,7 @@ class Entity(MedperfSchema, ABC):
 
     @classmethod
     def get(
-            cls: Type[EntityType], uid: Union[str, int], local_only: bool = False
+            cls: Type[EntityType], uid: Union[str, int], local_only: bool = False, valid_only: bool = True
     ) -> EntityType:
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends
@@ -121,6 +121,7 @@ class Entity(MedperfSchema, ABC):
         Args:
             uid (str): Unique Identifier to retrieve the entity
             local_only (bool): If True, the entity will be retrieved locally
+            valid_only: if to raise en error in case of invalidated entity
 
         Returns:
             Entity: Entity Instance associated to the UID
