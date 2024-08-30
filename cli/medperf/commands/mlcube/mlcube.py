@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-import medperf.config as config
+from medperf import settings
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
@@ -35,7 +35,7 @@ def list(
 def create(
     template: str = typer.Argument(
         ...,
-        help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
+        help=f"MLCube template name. Available templates: [{' | '.join(settings.templates.keys())}]",
     ),
     output_path: str = typer.Option(
         ".", "--output", "-o", help="Save the generated MLCube to the specified path"
@@ -120,7 +120,7 @@ def submit(
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitCube.run(mlcube_info)
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")
 
 
 @app.command("associate")
@@ -137,7 +137,7 @@ def associate(
 ):
     """Associates an MLCube to a benchmark"""
     AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")
 
 
 @app.command("view")

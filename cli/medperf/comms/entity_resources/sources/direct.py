@@ -1,6 +1,6 @@
 import requests
 from medperf.exceptions import CommunicationRetrievalError
-from medperf import config
+from medperf import settings
 from medperf.utils import remove_path, log_response_error
 from .source import BaseSource
 import validators
@@ -48,7 +48,7 @@ class DirectLinkSource(BaseSource):
                 raise CommunicationRetrievalError(msg)
 
             with open(output_path, "wb") as f:
-                for chunk in res.iter_content(chunk_size=config.ddl_stream_chunk_size):
+                for chunk in res.iter_content(chunk_size=settings.ddl_stream_chunk_size):
                     # NOTE: if the response is chunk-encoded, this may not work
                     # check whether this is common.
                     f.write(chunk)
@@ -59,7 +59,7 @@ class DirectLinkSource(BaseSource):
         link servers."""
 
         attempt = 0
-        while attempt < config.ddl_max_redownload_attempts:
+        while attempt < settings.ddl_max_redownload_attempts:
             try:
                 self.__download_once(resource_identifier, output_path)
                 return

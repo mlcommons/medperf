@@ -3,7 +3,7 @@ from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError
 from tabulate import tabulate
 
-from medperf import config
+from medperf import settings
 from medperf.account_management import get_medperf_user_data
 
 
@@ -74,4 +74,4 @@ class EntityList:
         headers = self.fields
         data_lists = [list(entity_dict.values()) for entity_dict in self.data]
         tab = tabulate(data_lists, headers=headers)
-        config.ui.print(tab)
+        settings.ui.print(tab)

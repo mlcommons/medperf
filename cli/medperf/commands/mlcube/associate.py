@@ -1,4 +1,4 @@
-from medperf import config
+from medperf import settings
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, approval_prompt
@@ -21,8 +21,8 @@ class AssociateCube:
             benchmark_uid (int): UID of benchmark
             approved (bool): Skip validation step. Defualts to False
         """
-        comms = config.comms
-        ui = config.ui
+        comms = settings.comms
+        ui = settings.ui
         cube = Cube.get(cube_uid)
         benchmark = Benchmark.get(benchmark_uid)
 

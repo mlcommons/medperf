@@ -3,7 +3,7 @@ import pytest
 import requests
 from unittest.mock import ANY, call
 
-from medperf import config
+from medperf import settings
 from medperf.enums import Status
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
@@ -171,7 +171,7 @@ def test_auth_get_adds_token_to_request(mocker, server, token, req_type, auth):
         func = requests.post
 
     exp_headers = {"Authorization": f"Bearer {token}"}
-    cert_verify = config.certificate or True
+    cert_verify = settings.certificate or True
 
     # Act
     server._REST__auth_req(url, func)
@@ -196,7 +196,7 @@ def test__req_sanitizes_json(mocker, server):
 
 def test__get_list_uses_default_page_size(mocker, server):
     # Arrange
-    exp_page_size = config.default_page_size
+    exp_page_size = settings.default_page_size
     exp_url = f"{full_url}?limit={exp_page_size}&offset=0"
     ret_body = MockResponse({"count": 1, "next": None, "results": []}, 200)
     spy = mocker.patch.object(server, "_REST__auth_get", return_value=ret_body)

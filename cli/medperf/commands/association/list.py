@@ -1,14 +1,14 @@
 from tabulate import tabulate
 
-from medperf import config
+from medperf import settings
 
 
 class ListAssociations:
     @staticmethod
     def run(filter: str = None):
         """Get Pending association requests"""
-        comms = config.comms
-        ui = config.ui
+        comms = settings.comms
+        ui = settings.ui
         dset_assocs = comms.get_datasets_associations()
         cube_assocs = comms.get_cubes_associations()
 

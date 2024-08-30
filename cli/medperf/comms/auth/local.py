@@ -1,5 +1,5 @@
 from medperf.comms.auth.interface import Auth
-import medperf.config as config
+from medperf import settings
 from medperf.exceptions import InvalidArgumentError
 from medperf.account_management import (
     set_credentials,
@@ -11,7 +11,7 @@ import json
 
 class Local(Auth):
     def __init__(self):
-        with open(config.local_tokens_path) as f:
+        with open(settings.local_tokens_path) as f:
             self.tokens = json.load(f)
 
     def login(self, email):

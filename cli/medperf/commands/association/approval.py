@@ -1,4 +1,4 @@
-from medperf import config
+from medperf import settings
 from medperf.exceptions import InvalidArgumentError
 
 
@@ -20,7 +20,7 @@ class Approval:
             dataset_uid (int, optional): Dataset UID. Defaults to None.
             mlcube_uid (int, optional): MLCube UID. Defaults to None.
         """
-        comms = config.comms
+        comms = settings.comms
         too_many_resources = dataset_uid and mlcube_uid
         no_resource = dataset_uid is None and mlcube_uid is None
         if no_resource or too_many_resources:

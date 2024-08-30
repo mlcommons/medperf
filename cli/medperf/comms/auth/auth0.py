@@ -6,7 +6,7 @@ from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError, AuthenticationError
 import requests
-import medperf.config as config
+from medperf import settings
 from medperf.utils import log_response_error
 from medperf.account_management import (
     set_credentials,
@@ -17,9 +17,9 @@ from medperf.account_management import (
 
 class Auth0(Auth):
     def __init__(self):
-        self.domain = config.auth_domain
-        self.client_id = config.auth_client_id
-        self.audience = config.auth_audience
+        self.domain = settings.auth_domain
+        self.client_id = settings.auth_client_id
+        self.audience = settings.auth_audience
         self._lock = threading.Lock()
 
     def login(self, email):
@@ -38,13 +38,13 @@ class Auth0(Auth):
         verification_uri_complete = device_code_response["verification_uri_complete"]
         interval = device_code_response["interval"]
 
-        config.ui.print(
+        settings.ui.print(
             "\nPlease go to the following link to complete your login request:\n"
             f"\t{verification_uri_complete}\n\n"
             "Make sure that you will be presented with the following code:\n"
             f"\t{user_code}\n\n"
         )
-        config.ui.print_warning(
+        settings.ui.print_warning(
             "Keep this terminal open until you complete your login request. "
             "The command will exit on its own once you complete the request. "
             "If you wish to stop the login request anyway, press Ctrl+C."
@@ -163,7 +163,7 @@ class Auth0(Auth):
         # multiple threads want to access the database.
         with self._lock:
             # TODO: This is temporary. Use a cleaner solution.
-            db = sqlite3.connect(config.tokens_db, isolation_level=None, timeout=60)
+            db = sqlite3.connect(settings.tokens_db, isolation_level=None, timeout=60)
             try:
                 db.execute("BEGIN EXCLUSIVE TRANSACTION")
             except sqlite3.OperationalError:
@@ -196,12 +196,12 @@ class Auth0(Auth):
 
         # token_issued_at and expires_in are for the access token
         sliding_expiration_time = (
-            token_issued_at + token_expires_in - config.token_expiration_leeway
+            token_issued_at + token_expires_in - settings.token_expiration_leeway
         )
         absolute_expiration_time = (
             logged_in_at
-            + config.token_absolute_expiry
-            - config.refresh_token_expiration_leeway
+            + settings.token_absolute_expiry
+            - settings.refresh_token_expiration_leeway
         )
         current_time = time.time()
 

@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-import medperf.config as config
+from medperf import settings
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
 from medperf.entities.report import TestReport
@@ -88,7 +88,7 @@ def run(
         offline=offline,
         skip_data_preparation_step=skip_data_preparation_step,
     )
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")
 
 
 @app.command("ls")

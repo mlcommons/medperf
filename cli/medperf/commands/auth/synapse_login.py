@@ -1,6 +1,6 @@
 import synapseclient
 from synapseclient.core.exceptions import SynapseAuthenticationError
-from medperf import config
+from medperf import settings
 from medperf.exceptions import CommunicationAuthenticationError
 
 
@@ -15,7 +15,7 @@ class SynapseLogin:
                 "https://www.synapse.org/#!PersonalAccessTokens:0\n"
                 "Synapse PAT: "
             )
-            token = config.ui.hidden_prompt(msg)
+            token = settings.ui.hidden_prompt(msg)
         cls.login_with_token(token)
 
     @classmethod

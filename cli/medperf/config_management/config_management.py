@@ -1,5 +1,5 @@
 import yaml
-from medperf import config
+from medperf import settings
 
 
 class ConfigManager:
@@ -46,14 +46,14 @@ class ConfigManager:
     def __iter__(self):
         return iter(self.profiles)
 
+    def read_config(self):
+        config_path = settings.config_path
+        self.read(config_path)
+        return self
 
-def read_config():
-    config_p = ConfigManager()
-    config_path = config.config_path
-    config_p.read(config_path)
-    return config_p
+    def write_config(self):
+        config_path = settings.config_path
+        self.write(config_path)
 
 
-def write_config(config_p: ConfigManager):
-    config_path = config.config_path
-    config_p.write(config_path)
+config = ConfigManager()

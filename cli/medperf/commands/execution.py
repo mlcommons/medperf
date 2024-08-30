@@ -4,7 +4,7 @@ import logging
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.utils import generate_tmp_path
-import medperf.config as config
+from medperf import settings
 from medperf.exceptions import ExecutionError
 import yaml
 
@@ -32,8 +32,8 @@ class Execution:
     def __init__(
         self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
-        self.comms = config.comms
-        self.ui = config.ui
+        self.comms = settings.comms
+        self.ui = settings.ui
         self.dataset = dataset
         self.model = model
         self.evaluator = evaluator
@@ -52,7 +52,7 @@ class Execution:
         data_uid = self.dataset.local_id
 
         logs_path = os.path.join(
-            config.experiments_logs_folder, str(model_uid), str(data_uid)
+            settings.experiments_logs_folder, str(model_uid), str(data_uid)
         )
         os.makedirs(logs_path, exist_ok=True)
         model_logs_path = os.path.join(logs_path, "model.log")
@@ -63,7 +63,7 @@ class Execution:
         model_uid = self.model.local_id
         data_uid = self.dataset.local_id
         preds_path = os.path.join(
-            config.predictions_folder, str(model_uid), str(data_uid)
+            settings.predictions_folder, str(model_uid), str(data_uid)
         )
         if os.path.exists(preds_path):
             msg = f"Found existing predictions for model {self.model.id} on dataset "
@@ -74,7 +74,7 @@ class Execution:
 
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"
-        infer_timeout = config.infer_timeout
+        infer_timeout = settings.infer_timeout
         preds_path = self.preds_path
         data_path = self.dataset.data_path
         try:
@@ -97,7 +97,7 @@ class Execution:
 
     def run_evaluation(self):
         self.ui.text = "Running model evaluation on dataset"
-        evaluate_timeout = config.evaluate_timeout
+        evaluate_timeout = settings.evaluate_timeout
         preds_path = self.preds_path
         labels_path = self.dataset.labels_path
         results_path = self.results_path

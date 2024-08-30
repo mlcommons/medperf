@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-import medperf.config as config
+from medperf import settings
 from medperf.decorators import clean_except
 from medperf.commands.association.list import ListAssociations
 from medperf.commands.association.approval import Approval
@@ -38,7 +38,7 @@ def approve(
         mlcube_uid (int, optional): Model MLCube UID.
     """
     Approval.run(benchmark_uid, Status.APPROVED, dataset_uid, mlcube_uid)
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")
 
 
 @app.command("reject")
@@ -56,7 +56,7 @@ def reject(
         mlcube_uid (int, optional): Model MLCube UID.
     """
     Approval.run(benchmark_uid, Status.REJECTED, dataset_uid, mlcube_uid)
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")
 
 
 @app.command("set_priority")
@@ -85,4 +85,4 @@ def set_priority(
         priority (int): Priority, an integer
     """
     AssociationPriority.run(benchmark_uid, mlcube_uid, priority)
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")

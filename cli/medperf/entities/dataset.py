@@ -7,7 +7,7 @@ from medperf.utils import remove_path
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 
-import medperf.config as config
+from medperf import settings
 from medperf.account_management import get_medperf_user_data
 
 
@@ -38,19 +38,19 @@ class Dataset(Entity, DeployableSchema):
 
     @staticmethod
     def get_storage_path():
-        return config.datasets_folder
+        return settings.datasets_folder
 
     @staticmethod
     def get_comms_retriever():
-        return config.comms.get_dataset
+        return settings.comms.get_dataset
 
     @staticmethod
     def get_metadata_filename():
-        return config.reg_file
+        return settings.reg_file
 
     @staticmethod
     def get_comms_uploader():
-        return config.comms.upload_dataset
+        return settings.comms.upload_dataset
 
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
@@ -64,37 +64,37 @@ class Dataset(Entity, DeployableSchema):
         super().__init__(*args, **kwargs)
         self.data_path = os.path.join(self.path, "data")
         self.labels_path = os.path.join(self.path, "labels")
-        self.report_path = os.path.join(self.path, config.report_file)
-        self.metadata_path = os.path.join(self.path, config.metadata_folder)
-        self.statistics_path = os.path.join(self.path, config.statistics_filename)
+        self.report_path = os.path.join(self.path, settings.report_file)
+        self.metadata_path = os.path.join(self.path, settings.metadata_folder)
+        self.statistics_path = os.path.join(self.path, settings.statistics_filename)
 
     @property
     def local_id(self):
         return self.generated_uid
 
     def set_raw_paths(self, raw_data_path: str, raw_labels_path: str):
-        raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
+        raw_paths_file = os.path.join(self.path, settings.dataset_raw_paths_file)
         data = {"data_path": raw_data_path, "labels_path": raw_labels_path}
         with open(raw_paths_file, "w") as f:
             yaml.dump(data, f)
 
     def get_raw_paths(self):
-        raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
+        raw_paths_file = os.path.join(self.path, settings.dataset_raw_paths_file)
         with open(raw_paths_file) as f:
             data = yaml.safe_load(f)
         return data["data_path"], data["labels_path"]
 
     def mark_as_ready(self):
-        flag_file = os.path.join(self.path, config.ready_flag_file)
+        flag_file = os.path.join(self.path, settings.ready_flag_file)
         with open(flag_file, "w"):
             pass
 
     def unmark_as_ready(self):
-        flag_file = os.path.join(self.path, config.ready_flag_file)
+        flag_file = os.path.join(self.path, settings.ready_flag_file)
         remove_path(flag_file)
 
     def is_ready(self):
-        flag_file = os.path.join(self.path, config.ready_flag_file)
+        flag_file = os.path.join(self.path, settings.ready_flag_file)
         return os.path.exists(flag_file)
 
     @staticmethod
@@ -107,14 +107,14 @@ class Dataset(Entity, DeployableSchema):
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
         """
-        comms_fn = config.comms.get_datasets
+        comms_fn = settings.comms.get_datasets
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
-            comms_fn = config.comms.get_user_datasets
+            comms_fn = settings.comms.get_user_datasets
 
         if "mlcube" in filters and filters["mlcube"] is not None:
 
             def func():
-                return config.comms.get_mlcube_datasets(filters["mlcube"])
+                return settings.comms.get_mlcube_datasets(filters["mlcube"])
 
             comms_fn = func
 

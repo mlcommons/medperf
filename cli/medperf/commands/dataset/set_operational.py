@@ -1,5 +1,5 @@
 from medperf.entities.dataset import Dataset
-import medperf.config as config
+from medperf import settings
 from medperf.utils import approval_prompt, dict_pretty_print, get_folders_hash
 from medperf.exceptions import CleanExit, InvalidArgumentError
 import yaml
@@ -20,7 +20,7 @@ class DatasetSetOperational:
         return preparation.dataset.id
 
     def __init__(self, dataset_id: int, approved: bool):
-        self.ui = config.ui
+        self.ui = settings.ui
         self.dataset = Dataset.get(dataset_id)
         self.approved = approved
 
@@ -56,7 +56,7 @@ class DatasetSetOperational:
         self.approved = self.approved or approval_prompt(msg)
 
         if self.approved:
-            config.comms.update_dataset(self.dataset.id, body)
+            settings.comms.update_dataset(self.dataset.id, body)
             return
 
         raise CleanExit("Setting Dataset as operational was cancelled")

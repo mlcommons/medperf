@@ -3,7 +3,7 @@ import requests
 import builtins
 import os
 from copy import deepcopy
-from medperf import config
+from medperf import settings
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.comms.auth.interface import Auth
@@ -73,36 +73,36 @@ def package_init(fs):
     # TODO: this might not be enough. Fixtures that don't depend on
     #       ui, auth, or comms may still run before this fixture
     #       all of this should hacky test setup be changed anyway
-    orig_config_as_dict = {}
+    orig_settings_as_dict = {}
     try:
-        orig_config = importlib.reload(config)
+        orig_settings = importlib.reload(settings)
     except ImportError:
-        orig_config = importlib.import_module("medperf.config", "medperf")
-    for attr in dir(orig_config):
+        orig_settings = importlib.import_module("medperf.settings", "medperf")
+    for attr in dir(orig_settings):
         if not attr.startswith("__"):
-            orig_config_as_dict[attr] = deepcopy(getattr(orig_config, attr))
+            orig_settings_as_dict[attr] = deepcopy(getattr(orig_settings, attr))
     initialize()
     yield
-    for attr in orig_config_as_dict:
-        setattr(config, attr, orig_config_as_dict[attr])
+    for attr in orig_settings_as_dict:
+        setattr(settings, attr, orig_settings_as_dict[attr])
 
 
 @pytest.fixture
 def ui(mocker, package_init):
     ui = mocker.create_autospec(spec=UI)
-    config.ui = ui
+    settings.ui = ui
     return ui
 
 
 @pytest.fixture
 def comms(mocker, package_init):
     comms = mocker.create_autospec(spec=Comms)
-    config.comms = comms
+    settings.comms = comms
     return comms
 
 
 @pytest.fixture
 def auth(mocker, package_init):
     auth = mocker.create_autospec(spec=Auth)
-    config.auth = auth
+    settings.auth = auth
     return auth

@@ -1,6 +1,6 @@
 import os
 
-import medperf.config as config
+from medperf import settings
 from medperf.entities.benchmark import Benchmark
 from medperf.exceptions import InvalidEntityError
 from medperf.utils import remove_path
@@ -29,7 +29,7 @@ class SubmitBenchmark:
                     reference_model_mlcube (int): benchmark reference model mlcube uid
                     evaluator_mlcube (int): benchmark data evaluator mlcube uid
         """
-        ui = config.ui
+        ui = settings.ui
         submission = cls(benchmark_info, no_cache, skip_data_preparation_step)
 
         with ui.interactive():
@@ -48,12 +48,12 @@ class SubmitBenchmark:
         no_cache: bool = True,
         skip_data_preparation_step: bool = False,
     ):
-        self.ui = config.ui
+        self.ui = settings.ui
         self.bmk = Benchmark(**benchmark_info)
         self.no_cache = no_cache
         self.skip_data_preparation_step = skip_data_preparation_step
         self.bmk.metadata["demo_dataset_already_prepared"] = skip_data_preparation_step
-        config.tmp_paths.append(self.bmk.path)
+        settings.tmp_paths.append(self.bmk.path)
 
     def get_extra_information(self):
         """Retrieves information that must be populated automatically,

@@ -4,7 +4,7 @@ import logging
 import logging.handlers
 
 from medperf import __version__
-import medperf.config as config
+from medperf import settings
 from medperf.decorators import clean_except, add_inline_parameters
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
@@ -65,14 +65,14 @@ def execute(
         no_cache=no_cache,
     )[0]
     if result.id:  # TODO: use result.is_registered once PR #338 is merged
-        config.ui.print(  # TODO: msg should be colored yellow
+        settings.ui.print(  # TODO: msg should be colored yellow
             """An existing registered result for the requested execution has been\n
             found. If you wish to submit a new result for the same execution,\n
             please run the command again with the --no-cache option.\n"""
         )
     else:
         ResultSubmission.run(result.local_id, approved=approval)
-    config.ui.print("✅ Done!")
+    settings.ui.print("✅ Done!")
 
 
 def version_callback(value: bool):
@@ -92,10 +92,10 @@ def main(
     # Set inline parameters
     inline_args = ctx.params
     for param in inline_args:
-        setattr(config, param, inline_args[param])
+        setattr(settings, param, inline_args[param])
 
     # Update logging level according to the passed inline params
-    loglevel = config.loglevel.upper()
+    loglevel = settings.loglevel.upper()
     logging.getLogger().setLevel(loglevel)
     logging.getLogger("requests").setLevel(loglevel)
 
@@ -104,4 +104,4 @@ def main(
     log_machine_details()
     check_for_updates()
 
-    config.ui.print(f"MedPerf {__version__}")
+    settings.ui.print(f"MedPerf {__version__}")

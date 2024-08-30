@@ -1,4 +1,4 @@
-import medperf.config as config
+from medperf import settings
 
 
 class Logout:
@@ -6,4 +6,4 @@ class Logout:
     def run():
         """Revoke the currently active login state."""
 
-        config.auth.logout()
+        settings.auth.logout()

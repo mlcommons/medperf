@@ -1,6 +1,6 @@
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema
-import medperf.config as config
+from medperf import settings
 from medperf.account_management import get_medperf_user_data
 
 
@@ -28,19 +28,19 @@ class Result(Entity, ApprovableSchema):
 
     @staticmethod
     def get_storage_path():
-        return config.results_folder
+        return settings.results_folder
 
     @staticmethod
     def get_comms_retriever():
-        return config.comms.get_result
+        return settings.comms.get_result
 
     @staticmethod
     def get_metadata_filename():
-        return config.results_info_file
+        return settings.results_info_file
 
     @staticmethod
     def get_comms_uploader():
-        return config.comms.upload_result
+        return settings.comms.upload_result
 
     def __init__(self, *args, **kwargs):
         """Creates a new result instance"""
@@ -60,16 +60,16 @@ class Result(Entity, ApprovableSchema):
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
         """
-        comms_fn = config.comms.get_results
+        comms_fn = settings.comms.get_results
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
-            comms_fn = config.comms.get_user_results
+            comms_fn = settings.comms.get_user_results
         if "benchmark" in filters and filters["benchmark"] is not None:
             bmk = filters["benchmark"]
 
             def get_benchmark_results():
                 # Decorate the benchmark results remote function so it has the same signature
                 # as all the comms_fns
-                return config.comms.get_benchmark_results(bmk)
+                return settings.comms.get_benchmark_results(bmk)
 
             comms_fn = get_benchmark_results
 

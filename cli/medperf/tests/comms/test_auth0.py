@@ -2,7 +2,7 @@ import time
 from unittest.mock import ANY
 from medperf.tests.mocks import MockResponse
 from medperf.comms.auth.auth0 import Auth0
-from medperf import config
+from medperf import settings
 from medperf.exceptions import AuthenticationError
 import sqlite3
 import pytest
@@ -74,7 +74,7 @@ def test_token_is_refreshed_if_expired(mocker, setup):
 def test_logs_out_if_session_reaches_token_absolute_expiration_time(mocker, setup):
     # Arrange
     expiration_time = 900
-    absolute_expiration_time = config.token_absolute_expiry
+    absolute_expiration_time = settings.token_absolute_expiry
     mocked_logged_in_at = time.time() - absolute_expiration_time
     mocked_issued_at = time.time() - expiration_time
     creds = {

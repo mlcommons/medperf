@@ -20,7 +20,7 @@ from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
-import medperf.config as config
+from medperf import settings
 from medperf.exceptions import ExecutionError, MedperfException
 
 
@@ -75,7 +75,7 @@ def remove_path(path):
 
 
 def move_to_trash(path):
-    trash_folder = config.trash_folder
+    trash_folder = settings.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
     os.makedirs(unique_path)
     shutil.move(path, unique_path)
@@ -83,18 +83,18 @@ def move_to_trash(path):
 
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure."""
-    if not config.cleanup:
+    if not settings.cleanup:
         logging.info("Cleanup disabled")
         return
 
-    for path in config.tmp_paths:
+    for path in settings.tmp_paths:
         remove_path(path)
 
-    trash_folder = config.trash_folder
+    trash_folder = settings.trash_folder
     if os.path.exists(trash_folder) and os.listdir(trash_folder):
         msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
-        config.ui.print_warning(msg)
+        settings.ui.print_warning(msg)
 
 
 def get_uids(path: str) -> List[str]:
@@ -116,7 +116,7 @@ def pretty_error(msg: str):
     Args:
         msg (str): Error message to show to the user
     """
-    ui = config.ui
+    ui = settings.ui
     logging.warning(
         "MedPerf had to stop execution. See logs above for more information"
     )
@@ -146,8 +146,8 @@ def generate_tmp_path() -> str:
     Returns:
         str: generated temporary path
     """
-    tmp_path = os.path.join(config.tmp_folder, generate_tmp_uid())
-    config.tmp_paths.append(tmp_path)
+    tmp_path = os.path.join(settings.tmp_folder, generate_tmp_uid())
+    settings.tmp_paths.append(tmp_path)
     return tmp_path
 
 
@@ -188,7 +188,7 @@ def approval_prompt(msg: str) -> bool:
         bool: Wether the user explicitly approved or not.
     """
     logging.info("Prompting for user's approval")
-    ui = config.ui
+    ui = settings.ui
     approval = None
     while approval is None or approval not in "yn":
         approval = ui.prompt(msg.strip() + " ").lower()
@@ -204,7 +204,7 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    ui = config.ui
+    ui = settings.ui
     ui.print()
     ui.print("=" * 20)
     if skip_none_values:
@@ -258,7 +258,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
         str: all non-carriage-return-ending string captured from proc
     """
 
-    ui = config.ui
+    ui = settings.ui
     proc_out = ""
     break_ = False
     log_filter = _MLCubeOutputFilter(proc.pid)
@@ -333,8 +333,8 @@ def list_files(startpath):
 
 
 def log_storage():
-    for folder in config.storage:
-        folder = getattr(config, folder)
+    for folder in settings.storage:
+        folder = getattr(settings, folder)
         logging.debug(list_files(folder))
 
 
@@ -392,7 +392,7 @@ def format_errors_dict(errors_dict: dict):
 
 def get_cube_image_name(cube_path: str) -> str:
     """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
-    cube_config_path = os.path.join(cube_path, config.cube_filename)
+    cube_config_path = os.path.join(cube_path, settings.cube_filename)
     with open(cube_config_path, "r") as f:
         cube_config = yaml.safe_load(f)
 
@@ -430,7 +430,7 @@ def filter_latest_associations(associations, entity_key):
 
 def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
-    repo = Repo(config.BASE_DIR)
+    repo = Repo(settings.BASE_DIR)
     if repo.bare:
         logging.debug("Repo is bare")
         return
@@ -458,7 +458,7 @@ def check_for_updates() -> None:
         logging.debug(
             f"Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}"
         )
-        config.ui.print_warning(
+        settings.ui.print_warning(
             "MedPerf client updates found. Please, update your MedPerf installation."
         )
     except GitCommandError as e:

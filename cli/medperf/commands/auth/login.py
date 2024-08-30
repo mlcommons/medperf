@@ -1,4 +1,4 @@
-import medperf.config as config
+from medperf import settings
 from medperf.account_management import read_user_account
 from medperf.exceptions import InvalidArgumentError, MedperfException
 from email_validator import validate_email, EmailNotValidError
@@ -20,9 +20,9 @@ class Login:
         be provided and should be open in a browser to complete the login process."""
         raise_if_logged_in()
         if not email:
-            email = config.ui.prompt("Please type your email: ")
+            email = settings.ui.prompt("Please type your email: ")
         try:
             validate_email(email, check_deliverability=False)
         except EmailNotValidError as e:
             raise InvalidArgumentError(str(e))
-        config.auth.login(email)
+        settings.auth.login(email)

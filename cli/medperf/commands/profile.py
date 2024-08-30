@@ -1,9 +1,9 @@
 import typer
 
-from medperf import config
+from medperf import settings
 from medperf.decorators import configurable, clean_except
 from medperf.utils import dict_pretty_print
-from medperf.config_management import read_config, write_config
+from medperf.config_management import config
 from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
@@ -17,13 +17,13 @@ def activate(profile: str):
     Args:
         profile (str): Name of the profile to be used.
     """
-    config_p = read_config()
+    config_p = config.read_config()
 
     if profile not in config_p:
         raise InvalidArgumentError("The provided profile does not exists")
 
     config_p.activate(profile)
-    write_config(config_p)
+    config_p.write_config()
 
 
 @app.command("create")
@@ -36,13 +36,13 @@ def create(
     """Creates a new profile for managing and customizing configuration"""
     args = ctx.params
     args.pop("name")
-    config_p = read_config()
+    config_p = config.read_config()
 
     if name in config_p:
         raise InvalidArgumentError("A profile with the same name already exists")
 
     config_p[name] = args
-    write_config(config_p)
+    config_p.write_config()
 
 
 @app.command("set")
@@ -51,18 +51,18 @@ def create(
 def set_args(ctx: typer.Context):
     """Assign key-value configuration pairs to the current profile."""
     args = ctx.params
-    config_p = read_config()
+    config_p = config.read_config()
 
     config_p.active_profile.update(args)
-    write_config(config_p)
+    config_p.write_config()
 
 
 @app.command("ls")
 @clean_except
 def list():
     """Lists all available profiles"""
-    ui = config.ui
-    config_p = read_config()
+    ui = settings.ui
+    config_p = config.read_config()
     for profile in config_p:
         if config_p.is_profile_active(profile):
             ui.print_highlight("* " + profile)
@@ -78,14 +78,14 @@ def view(profile: str = typer.Argument(None)):
     Args:
         profile (str, optional): Profile to display information from. Defaults to active profile.
     """
-    config_p = read_config()
+    config_p = config.read_config()
     profile_config = config_p.active_profile
     if profile:
         profile_config = config_p[profile]
 
-    profile_config.pop(config.credentials_keyword, None)
+    profile_config.pop(settings.credentials_keyword, None)
     profile_name = profile if profile else config_p.active_profile_name
-    config.ui.print(f"\nProfile '{profile_name}':")
+    settings.ui.print(f"\nProfile '{profile_name}':")
     dict_pretty_print(profile_config, skip_none_values=False)
 
 
@@ -97,14 +97,14 @@ def delete(profile: str):
     Args:
         profile (str): Profile to delete.
     """
-    config_p = read_config()
+    config_p = config.read_config()
     if profile not in config_p.profiles:
         raise InvalidArgumentError("The provided profile does not exists")
 
     if profile in [
-        config.default_profile_name,
-        config.testauth_profile_name,
-        config.test_profile_name,
+        settings.default_profile_name,
+        settings.testauth_profile_name,
+        settings.test_profile_name,
     ]:
         raise InvalidArgumentError("Cannot delete reserved profiles")
 
@@ -112,4 +112,4 @@ def delete(profile: str):
         raise InvalidArgumentError("Cannot delete a currently activated profile")
 
     del config_p[profile]
-    write_config(config_p)
+    config_p.write_config()
