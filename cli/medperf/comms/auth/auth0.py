@@ -7,6 +7,7 @@ from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError, AuthenticationError
 import requests
 from medperf import settings
+from medperf.config_management import config
 from medperf.utils import log_response_error
 from medperf.account_management import (
     set_credentials,
@@ -38,13 +39,13 @@ class Auth0(Auth):
         verification_uri_complete = device_code_response["verification_uri_complete"]
         interval = device_code_response["interval"]
 
-        settings.ui.print(
+        config.ui.print(
             "\nPlease go to the following link to complete your login request:\n"
             f"\t{verification_uri_complete}\n\n"
             "Make sure that you will be presented with the following code:\n"
             f"\t{user_code}\n\n"
         )
-        settings.ui.print_warning(
+        config.ui.print_warning(
             "Keep this terminal open until you complete your login request. "
             "The command will exit on its own once you complete the request. "
             "If you wish to stop the login request anyway, press Ctrl+C."

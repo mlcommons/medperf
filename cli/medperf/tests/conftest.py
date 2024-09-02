@@ -5,6 +5,7 @@ import os
 from copy import deepcopy
 from medperf import settings
 from medperf.config_management import config_management
+from medperf.config_management import config
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.comms.auth.interface import Auth
@@ -98,7 +99,7 @@ def package_init(fs, monkeypatch):
 @pytest.fixture
 def ui(mocker, package_init):
     ui = mocker.create_autospec(spec=UI)
-    settings.ui = ui
+    config.ui = ui
     return ui
 
 

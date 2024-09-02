@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from medperf.entities.dataset import Dataset
 from medperf import settings
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.exceptions import (
@@ -101,7 +102,7 @@ class DataPreparation:
 
     def __init__(self, dataset_id: int, approve_sending_reports: bool):
         self.comms = settings.comms
-        self.ui = settings.ui
+        self.ui = config.ui
         self.dataset_id = dataset_id
         self.allow_sending_reports = approve_sending_reports
         self.dataset = None
@@ -305,7 +306,7 @@ class DataPreparation:
             + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"
             + " have reached Stage 3:"
         )
-        settings.ui.print(msg)
+        config.ui.print(msg)
         dict_pretty_print(example)
 
         msg = (

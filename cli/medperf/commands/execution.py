@@ -5,6 +5,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.utils import generate_tmp_path
 from medperf import settings
+from medperf.config_management import config
 from medperf.exceptions import ExecutionError
 import yaml
 
@@ -33,7 +34,7 @@ class Execution:
         self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
         self.comms = settings.comms
-        self.ui = settings.ui
+        self.ui = config.ui
         self.dataset = dataset
         self.model = model
         self.evaluator = evaluator

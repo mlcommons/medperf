@@ -2,7 +2,7 @@ import yaml
 import json
 from typing import Union, Type
 
-from medperf import settings
+from medperf.config_management import config
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError
@@ -88,7 +88,7 @@ class EntityView:
             formatter = yaml.dump
 
         formatted_data = formatter(self.data)
-        settings.ui.print(formatted_data)
+        config.ui.print(formatted_data)
 
     def store(self):
         if self.format == "json":

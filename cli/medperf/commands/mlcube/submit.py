@@ -1,6 +1,7 @@
 import os
 
 from medperf import settings
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.utils import remove_path
 
@@ -13,7 +14,7 @@ class SubmitCube:
         Args:
             submit_info (dict): Dictionary containing the cube information.
         """
-        ui = settings.ui
+        ui = config.ui
         submission = cls(submit_info)
 
         with ui.interactive():
@@ -26,7 +27,7 @@ class SubmitCube:
 
     def __init__(self, submit_info: dict):
         self.comms = settings.comms
-        self.ui = settings.ui
+        self.ui = config.ui
         self.cube = Cube(**submit_info)
         settings.tmp_paths.append(self.cube.path)
 

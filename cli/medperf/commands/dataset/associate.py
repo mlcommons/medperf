@@ -1,4 +1,5 @@
 from medperf import settings
+from medperf.config_management import config
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, approval_prompt
@@ -16,7 +17,7 @@ class AssociateDataset:
             benchmark_uid (int): UID of the benchmark to associate with
         """
         comms = settings.comms
-        ui = settings.ui
+        ui = config.ui
         dset = Dataset.get(data_uid)
         if dset.id is None:
             msg = "The provided dataset is not registered."

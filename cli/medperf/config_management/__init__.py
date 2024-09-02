@@ -6,9 +6,14 @@ import os
 def _init_config():
     """builds the initial configuration file"""
 
+    # TODO: This implicit default profile generation worth to be replaced with explicit
+    #  definition. Keep as is for now
     default_profile = {
         param: getattr(settings, param) for param in settings.configurable_parameters
     }
+    # TODO: Some explicit params for now
+    default_profile["ui"] = settings.default_ui
+
     config_p = config
 
     # default profile

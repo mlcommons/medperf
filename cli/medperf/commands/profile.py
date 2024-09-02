@@ -41,7 +41,7 @@ def create(
     if name in config_p:
         raise InvalidArgumentError("A profile with the same name already exists")
 
-    config_p[name] = args
+    config_p[name] = {**config_p.active_profile, **args}
     config_p.write_config()
 
 
@@ -61,7 +61,7 @@ def set_args(ctx: typer.Context):
 @clean_except
 def list():
     """Lists all available profiles"""
-    ui = settings.ui
+    ui = config.ui
     config_p = config.read_config()
     for profile in config_p:
         if config_p.is_profile_active(profile):
@@ -85,7 +85,7 @@ def view(profile: str = typer.Argument(None)):
 
     profile_config.pop(settings.credentials_keyword, None)
     profile_name = profile if profile else config_p.active_profile_name
-    settings.ui.print(f"\nProfile '{profile_name}':")
+    config.ui.print(f"\nProfile '{profile_name}':")
     dict_pretty_print(profile_config, skip_none_values=False)
 
 

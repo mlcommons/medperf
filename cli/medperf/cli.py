@@ -5,6 +5,7 @@ import logging.handlers
 
 from medperf import __version__
 from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except, add_inline_parameters
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
@@ -65,14 +66,14 @@ def execute(
         no_cache=no_cache,
     )[0]
     if result.id:  # TODO: use result.is_registered once PR #338 is merged
-        settings.ui.print(  # TODO: msg should be colored yellow
+        config.ui.print(  # TODO: msg should be colored yellow
             """An existing registered result for the requested execution has been\n
             found. If you wish to submit a new result for the same execution,\n
             please run the command again with the --no-cache option.\n"""
         )
     else:
         ResultSubmission.run(result.local_id, approved=approval)
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 def version_callback(value: bool):
@@ -104,4 +105,4 @@ def main(
     log_machine_details()
     check_for_updates()
 
-    settings.ui.print(f"MedPerf {__version__}")
+    config.ui.print(f"MedPerf {__version__}")

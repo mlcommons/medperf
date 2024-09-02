@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.list import EntityList
@@ -83,7 +83,7 @@ def submit(
         benchmark_info,
         skip_data_preparation_step=skip_data_preparation_step,
     )
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("associate")
@@ -109,7 +109,7 @@ def associate(
     AssociateBenchmark.run(
         benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("run")
@@ -151,7 +151,7 @@ def run(
         show_summary=True,
         ignore_failed_experiments=True,
     )
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("view")

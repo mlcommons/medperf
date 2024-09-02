@@ -21,6 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 from medperf import settings
+from medperf.config_management import config
 from medperf.exceptions import ExecutionError, MedperfException
 
 
@@ -94,7 +95,7 @@ def cleanup():
     if os.path.exists(trash_folder) and os.listdir(trash_folder):
         msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
-        settings.ui.print_warning(msg)
+        config.ui.print_warning(msg)
 
 
 def get_uids(path: str) -> List[str]:
@@ -116,7 +117,7 @@ def pretty_error(msg: str):
     Args:
         msg (str): Error message to show to the user
     """
-    ui = settings.ui
+    ui = config.ui
     logging.warning(
         "MedPerf had to stop execution. See logs above for more information"
     )
@@ -188,7 +189,7 @@ def approval_prompt(msg: str) -> bool:
         bool: Wether the user explicitly approved or not.
     """
     logging.info("Prompting for user's approval")
-    ui = settings.ui
+    ui = config.ui
     approval = None
     while approval is None or approval not in "yn":
         approval = ui.prompt(msg.strip() + " ").lower()
@@ -204,7 +205,7 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    ui = settings.ui
+    ui = config.ui
     ui.print()
     ui.print("=" * 20)
     if skip_none_values:
@@ -258,7 +259,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
         str: all non-carriage-return-ending string captured from proc
     """
 
-    ui = settings.ui
+    ui = config.ui
     proc_out = ""
     break_ = False
     log_filter = _MLCubeOutputFilter(proc.pid)
@@ -458,7 +459,7 @@ def check_for_updates() -> None:
         logging.debug(
             f"Git branch updates found: {current_branch.commit.hexsha} -> {tracking_branch.commit.hexsha}"
         )
-        settings.ui.print_warning(
+        config.ui.print_warning(
             "MedPerf client updates found. Please, update your MedPerf installation."
         )
     except GitCommandError as e:

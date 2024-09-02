@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.entities.dataset import Dataset
 from medperf.commands.list import EntityList
@@ -71,7 +71,7 @@ def submit(
     ),
 ):
     """Submits a Dataset instance to the backend"""
-    ui = settings.ui
+    ui = config.ui
     DataCreation.run(
         benchmark_uid,
         data_prep_uid,
@@ -98,7 +98,7 @@ def prepare(
     ),
 ):
     """Runs the Data preparation step for a raw dataset"""
-    ui = settings.ui
+    ui = config.ui
     DataPreparation.run(data_uid, approve_sending_reports=approval)
     ui.print("✅ Done!")
 
@@ -112,7 +112,7 @@ def set_operational(
     ),
 ):
     """Marks a dataset as Operational"""
-    ui = settings.ui
+    ui = config.ui
     DatasetSetOperational.run(data_uid, approved=approval)
     ui.print("✅ Done!")
 
@@ -136,7 +136,7 @@ def associate(
     """Associate a registered dataset with a specific benchmark.
     The dataset and benchmark must share the same data preparation cube.
     """
-    ui = settings.ui
+    ui = config.ui
     AssociateDataset.run(data_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     ui.print("✅ Done!")
 

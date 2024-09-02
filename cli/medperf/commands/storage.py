@@ -1,6 +1,7 @@
 import typer
 
 from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.utils import cleanup
 from medperf.storage.utils import move_storage
@@ -19,7 +20,7 @@ def ls():
         info.append((folder, settings.storage[folder]["base"]))
 
     tab = tabulate(info, headers=headers)
-    settings.ui.print(tab)
+    config.ui.print(tab)
 
 
 @app.command("move")

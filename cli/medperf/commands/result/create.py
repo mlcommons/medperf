@@ -8,7 +8,7 @@ from tabulate import tabulate
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf import settings
+from medperf.config_management import config
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,
@@ -72,7 +72,7 @@ class BenchmarkExecution:
         self.data_uid = data_uid
         self.models_uids = models_uids
         self.models_input_file = models_input_file
-        self.ui = settings.ui
+        self.ui = config.ui
         self.evaluator = None
         self.ignore_model_errors = ignore_model_errors
         self.ignore_failed_experiments = ignore_failed_experiments
@@ -213,11 +213,11 @@ class BenchmarkExecution:
 
     def __handle_experiment_error(self, model_uid, exception):
         if isinstance(exception, InvalidEntityError):
-            settings.ui.print_error(
+            config.ui.print_error(
                 f"There was an error when retrieving the model mlcube {model_uid}: {exception}"
             )
         elif isinstance(exception, ExecutionError):
-            settings.ui.print_error(
+            config.ui.print_error(
                 f"There was an error when executing the benchmark with the model {model_uid}: {exception}"
             )
         else:
@@ -289,5 +289,5 @@ class BenchmarkExecution:
         msg += f"\t{num_success_run} ran successfully, "
         msg += f"of which {num_partial_run} have partial results\n"
 
-        settings.ui.print(tab)
-        settings.ui.print(msg)
+        config.ui.print(tab)
+        config.ui.print(msg)

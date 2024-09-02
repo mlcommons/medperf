@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 from medperf.entities.dataset import Dataset
 from medperf import settings
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
@@ -68,7 +69,7 @@ class DataCreation:
         submit_as_prepared: bool,
         for_test: bool,
     ):
-        self.ui = settings.ui
+        self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
         self.labels_path = str(Path(labels_path).resolve())
         self.metadata_path = metadata_path

@@ -2,6 +2,7 @@ import typer
 from typing import Optional
 
 from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
@@ -120,7 +121,7 @@ def submit(
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitCube.run(mlcube_info)
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("associate")
@@ -137,7 +138,7 @@ def associate(
 ):
     """Associates an MLCube to a benchmark"""
     AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("view")

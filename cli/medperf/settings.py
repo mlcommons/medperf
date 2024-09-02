@@ -176,7 +176,6 @@ mlcube_inspect_timeout = None
 loglevel = "debug"
 logs_backup_count = 100
 cleanup = True
-ui = "CLI"
 
 default_profile_name = "default"
 testauth_profile_name = "testauth"
@@ -205,6 +204,8 @@ configurable_parameters = inline_parameters + [
     "auth_client_id",
     "auth_audience",
 ]
+
+default_ui = "CLI"
 
 templates = {
     "data_preparator": "templates/data_preparator_mlcube",

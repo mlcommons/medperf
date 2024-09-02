@@ -1,5 +1,7 @@
 import yaml
 from medperf import settings
+from medperf.ui.factory import UIFactory
+from medperf.ui.interface import UI
 
 
 class ConfigManager:
@@ -7,13 +9,19 @@ class ConfigManager:
         self.active_profile_name = None
         self.profiles = {}
         self.storage = {}
+        self.ui: UI = None
 
     @property
     def active_profile(self):
         return self.profiles[self.active_profile_name]
 
+    def _recreate_ui(self):
+        ui_type = self.active_profile.get("ui") or settings.default_ui
+        self.ui = UIFactory.create_ui(ui_type)
+
     def activate(self, profile_name):
         self.active_profile_name = profile_name
+        self._recreate_ui()
 
     def is_profile_active(self, profile_name):
         return self.active_profile_name == profile_name
@@ -24,6 +32,7 @@ class ConfigManager:
         self.active_profile_name = data["active_profile_name"]
         self.profiles = data["profiles"]
         self.storage = data["storage"]
+        self._recreate_ui()
 
     def write(self, path):
         data = {

@@ -9,7 +9,6 @@ from medperf.storage import (
     init_storage,
     override_storage_config_paths,
 )
-from medperf.ui.factory import UIFactory
 
 
 def initialize():
@@ -28,7 +27,6 @@ def initialize():
     setup_logging(log_file, settings.loglevel)
 
     # Setup UI, COMMS
-    settings.ui = UIFactory.create_ui(settings.ui)
     settings.comms = CommsFactory.create_comms(settings.comms, settings.server)
 
     # Setup auth class

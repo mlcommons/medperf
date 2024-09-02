@@ -6,6 +6,7 @@ from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 from medperf.comms.entity_resources import resources
 from medperf.entities.cube import Cube
 from medperf import settings
+from medperf.config_management import config
 import os
 import yaml
 from pathlib import Path
@@ -103,10 +104,10 @@ def prepare_cube(cube_uid: str):
 
 
 def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
-    settings.ui.text = f"Retrieving {name} cube"
+    config.ui.text = f"Retrieving {name} cube"
     cube = Cube.get(uid, local_only=local_only)
     cube.download_run_files()
-    settings.ui.print(f"> {name} cube download complete")
+    config.ui.print(f"> {name} cube download complete")
     return cube
 
 

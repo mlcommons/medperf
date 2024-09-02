@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
 from medperf.entities.result import Result
@@ -43,7 +43,7 @@ def create(
         no_cache=no_cache,
         ignore_model_errors=ignore_model_errors,
     )
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("submit")
@@ -56,7 +56,7 @@ def submit(
 ):
     """Submits already obtained results to the server"""
     ResultSubmission.run(result_uid, approved=approval)
-    settings.ui.print("✅ Done!")
+    config.ui.print("✅ Done!")
 
 
 @app.command("ls")
