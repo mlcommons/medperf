@@ -1,6 +1,6 @@
 import yaml
 from medperf import settings
-from medperf.ui.factory import UIFactory
+from medperf.ui.factory import create_ui
 from medperf.ui.interface import UI
 
 
@@ -17,7 +17,7 @@ class ConfigManager:
 
     def _recreate_ui(self):
         ui_type = self.active_profile.get("ui") or settings.default_ui
-        self.ui = UIFactory.create_ui(ui_type)
+        self.ui = create_ui(ui_type)
 
     def activate(self, profile_name):
         self.active_profile_name = profile_name
