@@ -4,6 +4,7 @@ import builtins
 import os
 from copy import deepcopy
 from medperf import settings
+from medperf.config_management import config_management
 from medperf.ui.interface import UI
 from medperf.comms.interface import Comms
 from medperf.comms.auth.interface import Auth
@@ -69,7 +70,7 @@ def disable_fs_IO_operations(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def package_init(fs):
+def package_init(fs, monkeypatch):
     # TODO: this might not be enough. Fixtures that don't depend on
     #       ui, auth, or comms may still run before this fixture
     #       all of this should hacky test setup be changed anyway
@@ -78,6 +79,13 @@ def package_init(fs):
         orig_settings = importlib.reload(settings)
     except ImportError:
         orig_settings = importlib.import_module("medperf.settings", "medperf")
+
+    try:
+        config_mgmt = importlib.reload(config_management)
+    except ImportError:
+        config_mgmt = importlib.import_module("medperf.config_management.config_management", "medperf.config_management")
+    monkeypatch.setattr('medperf.config_management.config', config_mgmt.config)
+
     for attr in dir(orig_settings):
         if not attr.startswith("__"):
             orig_settings_as_dict[attr] = deepcopy(getattr(orig_settings, attr))
