@@ -26,7 +26,7 @@ class SubmitCube:
             submission.write(updated_cube_dict)
 
     def __init__(self, submit_info: dict):
-        self.comms = settings.comms
+        self.comms = config.comms
         self.ui = config.ui
         self.cube = Cube(**submit_info)
         settings.tmp_paths.append(self.cube.path)

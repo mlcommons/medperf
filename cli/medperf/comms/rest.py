@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import requests
 import logging
 
@@ -19,9 +19,9 @@ from medperf.exceptions import (
 
 
 class REST(Comms):
-    def __init__(self, source: str):
+    def __init__(self, source: str, cert: Union[str, bool, None]):
         self.server_url = self.parse_url(source)
-        self.cert = settings.certificate
+        self.cert = cert
         if self.cert is None:
             # No certificate provided, default to normal verification
             self.cert = True

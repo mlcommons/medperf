@@ -13,7 +13,7 @@ certificate = None
 local_server = "https://localhost:8000"
 local_certificate = str(BASE_DIR / "server" / "cert.crt")
 
-comms = "REST"
+default_comms = "REST"
 
 # Auth config
 auth = None  # This will be overwritten by the globally initialized auth class object

@@ -16,6 +16,7 @@ from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
 from medperf import settings
+from medperf.config_management import config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 
@@ -52,7 +53,7 @@ class Cube(Entity, DeployableSchema):
 
     @staticmethod
     def get_comms_retriever():
-        return settings.comms.get_cube_metadata
+        return config.comms.get_cube_metadata
 
     @staticmethod
     def get_metadata_filename():
@@ -60,7 +61,7 @@ class Cube(Entity, DeployableSchema):
 
     @staticmethod
     def get_comms_uploader():
-        return settings.comms.upload_mlcube
+        return config.comms.upload_mlcube
 
     def __init__(self, *args, **kwargs):
         """Creates a Cube instance
@@ -89,9 +90,9 @@ class Cube(Entity, DeployableSchema):
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
         """
-        comms_fn = settings.comms.get_cubes
+        comms_fn = config.comms.get_cubes
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
-            comms_fn = settings.comms.get_user_cubes
+            comms_fn = config.comms.get_user_cubes
 
         return comms_fn
 

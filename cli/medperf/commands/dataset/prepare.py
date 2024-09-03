@@ -101,7 +101,7 @@ class DataPreparation:
         return preparation.dataset.id
 
     def __init__(self, dataset_id: int, approve_sending_reports: bool):
-        self.comms = settings.comms
+        self.comms = config.comms
         self.ui = config.ui
         self.dataset_id = dataset_id
         self.allow_sending_reports = approve_sending_reports
@@ -346,7 +346,7 @@ class DataPreparation:
         # TODO: it should have retries, perhaps?  NO, later
         # TODO: modify this piece of code after merging the `entity edit` PR
         try:
-            settings.comms.update_dataset(self.dataset.id, body)
+            config.comms.update_dataset(self.dataset.id, body)
         except CommunicationError as e:
             # print warning?
             logging.error(str(e))

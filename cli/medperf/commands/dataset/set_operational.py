@@ -1,5 +1,4 @@
 from medperf.entities.dataset import Dataset
-from medperf import settings
 from medperf.config_management import config
 from medperf.utils import approval_prompt, dict_pretty_print, get_folders_hash
 from medperf.exceptions import CleanExit, InvalidArgumentError
@@ -57,7 +56,7 @@ class DatasetSetOperational:
         self.approved = self.approved or approval_prompt(msg)
 
         if self.approved:
-            settings.comms.update_dataset(self.dataset.id, body)
+            config.comms.update_dataset(self.dataset.id, body)
             return
 
         raise CleanExit("Setting Dataset as operational was cancelled")
@@ -75,7 +74,7 @@ class DatasetSetOperational:
             "state": self.dataset.state,
         }
 
-    def write(self) -> str:
+    def write(self) -> None:
         """Writes the registration into disk
         Args:
             filename (str, optional): name of the file. Defaults to config.reg_file.

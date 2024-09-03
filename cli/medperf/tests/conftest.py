@@ -106,7 +106,7 @@ def ui(mocker, package_init):
 @pytest.fixture
 def comms(mocker, package_init):
     comms = mocker.create_autospec(spec=Comms)
-    settings.comms = comms
+    config.comms = comms
     return comms
 
 

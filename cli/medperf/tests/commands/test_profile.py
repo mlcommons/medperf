@@ -73,12 +73,11 @@ def test_ls_prints_profile_names(mocker, ui):
     # Arrange
     spy = mocker.patch.object(ui, "print")
     green_spy = mocker.patch.object(ui, "print_highlight")
-    config_p = config.read_config()
 
     calls = [
         call("  " + profile)
-        for profile in config_p
-        if not config_p.is_profile_active(profile)
+        for profile in config
+        if not config.is_profile_active(profile)
     ]
 
     # Act
@@ -86,7 +85,7 @@ def test_ls_prints_profile_names(mocker, ui):
 
     # Assert
     spy.assert_has_calls(calls)
-    green_spy.assert_called_once_with("* " + config_p.active_profile_name)
+    green_spy.assert_called_once_with("* " + config.active_profile_name)
 
 
 @pytest.mark.parametrize("profile", ["default", "local"])

@@ -3,7 +3,6 @@ import os
 from medperf.exceptions import CleanExit
 from medperf.utils import remove_path, dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
-from medperf import settings
 from medperf.config_management import config
 
 
@@ -18,7 +17,7 @@ class ResultSubmission:
 
     def __init__(self, result_uid, approved=False):
         self.result_uid = result_uid
-        self.comms = settings.comms
+        self.comms = config.comms
         self.ui = config.ui
         self.approved = approved
 

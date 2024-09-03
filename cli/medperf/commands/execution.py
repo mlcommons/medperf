@@ -33,7 +33,7 @@ class Execution:
     def __init__(
         self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
     ):
-        self.comms = settings.comms
+        self.comms = config.comms
         self.ui = config.ui
         self.dataset = dataset
         self.model = model

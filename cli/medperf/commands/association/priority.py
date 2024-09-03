@@ -1,4 +1,4 @@
-from medperf import settings
+from medperf.config_management import config
 from medperf.exceptions import InvalidArgumentError
 from medperf.entities.benchmark import Benchmark
 
@@ -19,6 +19,6 @@ class AssociationPriority:
             raise InvalidArgumentError(
                 "The given mlcube doesn't exist or is not associated with the benchmark"
             )
-        settings.comms.set_mlcube_association_priority(
+        config.comms.set_mlcube_association_priority(
             benchmark_uid, mlcube_uid, priority
         )

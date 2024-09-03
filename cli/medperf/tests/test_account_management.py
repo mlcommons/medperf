@@ -40,7 +40,7 @@ def test_get_medperf_user_data_gets_data_from_comms(mocker, mock_config, comms):
     # Arrange
     medperf_user = "medperf_user"
     mocker.patch.object(comms, "get_current_user", return_value=medperf_user)
-
+    mock_config.comms = comms
     # Act
     account_management.get_medperf_user_data()
 

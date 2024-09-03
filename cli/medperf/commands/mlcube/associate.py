@@ -1,4 +1,3 @@
-from medperf import settings
 from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
@@ -22,7 +21,7 @@ class AssociateCube:
             benchmark_uid (int): UID of benchmark
             approved (bool): Skip validation step. Defualts to False
         """
-        comms = settings.comms
+        comms = config.comms
         ui = config.ui
         cube = Cube.get(cube_uid)
         benchmark = Benchmark.get(benchmark_uid)

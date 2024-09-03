@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import HttpUrl, Field
 
 from medperf import settings
+from medperf.config_management import config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
@@ -40,7 +41,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
     @staticmethod
     def get_comms_retriever():
-        return settings.comms.get_benchmark
+        return config.comms.get_benchmark
 
     @staticmethod
     def get_metadata_filename():
@@ -48,7 +49,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
     @staticmethod
     def get_comms_uploader():
-        return settings.comms.upload_benchmark
+        return config.comms.upload_benchmark
 
     def __init__(self, *args, **kwargs):
         """Creates a new benchmark instance
@@ -72,9 +73,9 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
         """
-        comms_fn = settings.comms.get_benchmarks
+        comms_fn = config.comms.get_benchmarks
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
-            comms_fn = settings.comms.get_user_benchmarks
+            comms_fn = config.comms.get_user_benchmarks
         return comms_fn
 
     @classmethod
@@ -88,7 +89,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         Returns:
             List[int]: List of mlcube uids
         """
-        associations = settings.comms.get_benchmark_model_associations(benchmark_uid)
+        associations = config.comms.get_benchmark_model_associations(benchmark_uid)
         models_uids = [
             assoc["model_mlcube"]
             for assoc in associations

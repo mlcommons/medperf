@@ -1,7 +1,6 @@
 import os
 
 from medperf import settings
-from medperf.comms.factory import CommsFactory
 from medperf.config_management import setup_config
 from medperf.logging import setup_logging
 from medperf.storage import (
@@ -26,8 +25,6 @@ def initialize():
     log_file = os.path.join(settings.logs_storage, settings.log_file)
     setup_logging(log_file, settings.loglevel)
 
-    # Setup UI, COMMS
-    settings.comms = CommsFactory.create_comms(settings.comms, settings.server)
 
     # Setup auth class
     if settings.auth_class == "Auth0":

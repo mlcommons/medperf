@@ -1,4 +1,3 @@
-from medperf import settings
 from medperf.config_management import config
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -16,7 +15,7 @@ class AssociateDataset:
             data_uid (int): UID of the registered dataset to associate
             benchmark_uid (int): UID of the benchmark to associate with
         """
-        comms = settings.comms
+        comms = config.comms
         ui = config.ui
         dset = Dataset.get(data_uid)
         if dset.id is None:

@@ -75,7 +75,7 @@ def delete_credentials():
 def set_medperf_user_data():
     """Get and cache user data from the MedPerf server"""
     config_p = config.read_config()
-    medperf_user = settings.comms.get_current_user()
+    medperf_user = config.comms.get_current_user()
 
     config_p.active_profile[settings.credentials_keyword]["medperf_user"] = medperf_user
     config_p.write_config()

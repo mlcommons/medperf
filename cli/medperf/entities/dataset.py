@@ -8,6 +8,7 @@ from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 
 from medperf import settings
+from medperf.config_management import config
 from medperf.account_management import get_medperf_user_data
 
 
@@ -42,7 +43,7 @@ class Dataset(Entity, DeployableSchema):
 
     @staticmethod
     def get_comms_retriever():
-        return settings.comms.get_dataset
+        return config.comms.get_dataset
 
     @staticmethod
     def get_metadata_filename():
@@ -50,7 +51,7 @@ class Dataset(Entity, DeployableSchema):
 
     @staticmethod
     def get_comms_uploader():
-        return settings.comms.upload_dataset
+        return config.comms.upload_dataset
 
     @validator("data_preparation_mlcube", pre=True, always=True)
     def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
@@ -107,14 +108,14 @@ class Dataset(Entity, DeployableSchema):
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
         """
-        comms_fn = settings.comms.get_datasets
+        comms_fn = config.comms.get_datasets
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
-            comms_fn = settings.comms.get_user_datasets
+            comms_fn = config.comms.get_user_datasets
 
         if "mlcube" in filters and filters["mlcube"] is not None:
 
             def func():
-                return settings.comms.get_mlcube_datasets(filters["mlcube"])
+                return config.comms.get_mlcube_datasets(filters["mlcube"])
 
             comms_fn = func
 

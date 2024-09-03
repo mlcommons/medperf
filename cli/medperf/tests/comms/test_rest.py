@@ -15,7 +15,7 @@ patch_server = "medperf.comms.rest.{}"
 
 @pytest.fixture
 def server(mocker, ui):
-    server = REST(url)
+    server = REST(url, cert=None)
     return server
 
 
