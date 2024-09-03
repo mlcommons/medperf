@@ -3,9 +3,15 @@ from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path, generate_tmp_path, dict_pretty_print
+from medperf.utils import (
+    get_pki_assets_path,
+    generate_tmp_path,
+    dict_pretty_print,
+    remove_path,
+)
 from medperf.certificates import trust
 import yaml
+import os
 
 
 class GetExperimentStatus:
@@ -24,6 +30,7 @@ class GetExperimentStatus:
             execution.prepare_admin_cube()
             execution.get_experiment_status()
         execution.print_experiment_status()
+        execution.store_status()
 
     def __init__(self, training_exp_id: int) -> None:
         self.training_exp_id = training_exp_id
@@ -33,7 +40,7 @@ class GetExperimentStatus:
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
-        self.status_output = self.training_exp.status_path
+        self.status_output = generate_tmp_path()
         self.temp_dir = generate_tmp_path()
 
     def prepare_plan(self):
@@ -74,3 +81,8 @@ class GetExperimentStatus:
         with open(self.status_output) as f:
             contents = yaml.safe_load(f)
         dict_pretty_print(contents)
+
+    def store_status(self):
+        new_status_path = self.training_exp.status_path
+        remove_path(new_status_path)
+        os.rename(self.status_output, new_status_path)
