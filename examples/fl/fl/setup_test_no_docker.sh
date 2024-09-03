@@ -124,7 +124,7 @@ rm init_weights_miccai.tar.gz
 cd ../../..
 
 # for admin
-ADMIN_CN="admin@example.com"
+ADMIN_CN="testfladmin@example.com"
 
 mkdir ./for_admin
 mkdir ./for_admin/node_cert

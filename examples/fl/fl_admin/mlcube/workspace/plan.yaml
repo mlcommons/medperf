@@ -7,10 +7,9 @@ aggregator:
     rounds_to_train: 2
     write_logs: true
     admins_endpoints_mapping:
-      admin@example.com: 
-      - GetExperimentStatus
-      - AddCollaborator
-      - SetStragglerCutoffTime
+      testfladmin@example.com:
+        - GetExperimentStatus
+        - SetStragglerCuttoffTime
 
   template: openfl.component.Aggregator
 assigner:

@@ -98,7 +98,7 @@ echo "$COL2_LABEL: $COL2_CN" >>mlcube_agg/workspace/cols.yaml
 echo "$COL3_LABEL: $COL3_CN" >>mlcube_agg/workspace/cols.yaml
 
 # for admin
-ADMIN_CN="admin@example.com"
+ADMIN_CN="testfladmin@example.com"
 
 mkdir ./for_admin
 mkdir ./for_admin/node_cert

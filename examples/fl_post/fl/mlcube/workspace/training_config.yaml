@@ -5,13 +5,11 @@ aggregator :
     init_state_path : save/fl_post_two_init.pbuf
     best_state_path : save/fl_post_two_best.pbuf
     last_state_path : save/fl_post_two_last.pbuf
-    rounds_to_train : 10
-    admins:
-      - col1@example.com
-    allowed_admin_endpoints:
-      - GetExperimentStatus
-      - AddCollaborator
-      - RemoveCollaborator
+    rounds_to_train : 2
+    admins_endpoints_mapping:
+      testfladmin@example.com:
+        - GetExperimentStatus
+        - SetStragglerCuttoffTime
 
 collaborator :
   defaults : plan/defaults/collaborator.yaml
