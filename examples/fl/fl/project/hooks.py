@@ -30,9 +30,9 @@ def collaborator_pre_training_hook(
     ca_cert_folder,
     plan_path,
     output_logs,
+    workspace_folder,
 ):
     cn = get_collaborator_cn()
-    workspace_folder = os.path.join(output_logs, "workspace")
 
     target_data_folder = os.path.join(workspace_folder, "data", cn)
     os.makedirs(target_data_folder, exist_ok=True)
@@ -69,6 +69,7 @@ def collaborator_post_training_hook(
     ca_cert_folder,
     plan_path,
     output_logs,
+    workspace_folder,
 ):
     pass
 
@@ -82,6 +83,7 @@ def aggregator_pre_training_hook(
     plan_path,
     collaborators,
     report_path,
+    workspace_folder,
 ):
     pass
 
@@ -95,5 +97,6 @@ def aggregator_post_training_hook(
     plan_path,
     collaborators,
     report_path,
+    workspace_folder,
 ):
     pass
