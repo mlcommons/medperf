@@ -16,8 +16,7 @@ local_certificate = str(BASE_DIR / "server" / "cert.crt")
 default_comms = "REST"
 
 # Auth config
-auth = None  # This will be overwritten by the globally initialized auth class object
-auth_class = "Auth0"
+default_auth_class = "Auth0"
 
 auth_domain = "auth.medperf.org"
 auth_dev_domain = "dev-5xl8y6uuc2hig2ly.us.auth0.com"
@@ -182,28 +181,27 @@ testauth_profile_name = "testauth"
 test_profile_name = "local"
 credentials_keyword = "credentials"
 
-inline_parameters = [
-    "loglevel",
-    "prepare_timeout",
-    "sanity_check_timeout",
-    "statistics_timeout",
-    "infer_timeout",
-    "evaluate_timeout",
-    "platform",
-    "gpus",
-    "cleanup",
-    "container_loglevel",
-]
-configurable_parameters = inline_parameters + [
-    "server",
-    "certificate",
-    "auth_class",
-    "auth_domain",
-    "auth_jwks_url",
-    "auth_idtoken_issuer",
-    "auth_client_id",
-    "auth_audience",
-]
+default_profile = {
+    "loglevel": loglevel,
+    "prepare_timeout": prepare_timeout,
+    "sanity_check_timeout": sanity_check_timeout,
+    "statistics_timeout": statistics_timeout,
+    "infer_timeout": infer_timeout,
+    "evaluate_timeout": evaluate_timeout,
+    "platform": platform,
+    "gpus": gpus,
+    "cleanup": cleanup,
+    "container_loglevel": container_loglevel,
+    "server": server,
+    "certificate": certificate,
+    "auth_class": default_auth_class,
+    "auth_domain": auth_domain,
+    "auth_jwks_url": auth_jwks_url,
+    "auth_idtoken_issuer": auth_idtoken_issuer,
+    "auth_client_id": auth_client_id,
+    "auth_audience": auth_audience,
+}
+
 
 default_ui = "CLI"
 

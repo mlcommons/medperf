@@ -4,6 +4,7 @@ import logging
 
 from medperf.enums import Status
 from medperf import settings
+from medperf.config_management import config
 from medperf.comms.interface import Comms
 from medperf.utils import (
     sanitize_json,
@@ -55,7 +56,7 @@ class REST(Comms):
         return self.__auth_req(url, requests.put, **kwargs)
 
     def __auth_req(self, url, req_func, **kwargs):
-        token = settings.auth.access_token
+        token = config.auth.access_token
         return self.__req(
             url, req_func, headers={"Authorization": f"Bearer {token}"}, **kwargs
         )

@@ -4,6 +4,7 @@ import requests
 from unittest.mock import ANY, call
 
 from medperf import settings
+from medperf.config_management import config
 from medperf.enums import Status
 from medperf.comms.rest import REST
 from medperf.tests.mocks import MockResponse
@@ -160,8 +161,10 @@ def test_auth_post_calls_authorized_request(mocker, server):
 @pytest.mark.parametrize("req_type", ["get", "post"])
 @pytest.mark.parametrize("token", ["test", "token", "auth_token"])
 def test_auth_get_adds_token_to_request(mocker, server, token, req_type, auth):
+    config.read_config()
     # Arrange
     auth.access_token = token
+    config.auth = auth
 
     if req_type == "get":
         spy = mocker.patch("requests.get")

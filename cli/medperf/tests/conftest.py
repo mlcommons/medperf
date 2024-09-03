@@ -12,6 +12,7 @@ from medperf.comms.auth.interface import Auth
 from medperf.init import initialize
 import importlib
 
+
 # from copy import deepcopy
 
 
@@ -84,7 +85,8 @@ def package_init(fs, monkeypatch):
     try:
         config_mgmt = importlib.reload(config_management)
     except ImportError:
-        config_mgmt = importlib.import_module("medperf.config_management.config_management", "medperf.config_management")
+        config_mgmt = importlib.import_module("medperf.config_management.config_management",
+                                              "medperf.config_management")
     monkeypatch.setattr('medperf.config_management.config', config_mgmt.config)
 
     for attr in dir(orig_settings):
@@ -115,3 +117,12 @@ def auth(mocker, package_init):
     auth = mocker.create_autospec(spec=Auth)
     settings.auth = auth
     return auth
+
+
+@pytest.fixture
+def fs(fs):
+    fs.add_real_file(
+        settings.local_tokens_path,
+        target_path=settings.local_tokens_path
+    )
+    yield fs

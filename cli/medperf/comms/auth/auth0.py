@@ -6,8 +6,7 @@ from medperf.comms.auth.interface import Auth
 from medperf.comms.auth.token_verifier import verify_token
 from medperf.exceptions import CommunicationError, AuthenticationError
 import requests
-from medperf import settings
-from medperf.config_management import config
+from medperf.config_management import config, Auth0Settings
 from medperf.utils import log_response_error
 from medperf.account_management import (
     set_credentials,
@@ -17,10 +16,8 @@ from medperf.account_management import (
 
 
 class Auth0(Auth):
-    def __init__(self):
-        self.domain = settings.auth_domain
-        self.client_id = settings.auth_client_id
-        self.audience = settings.auth_audience
+    def __init__(self, auth_config: Auth0Settings):
+        self.settings = auth_config
         self._lock = threading.Lock()
 
     def login(self, email):
@@ -72,11 +69,11 @@ class Auth0(Auth):
 
     def __request_device_code(self):
         """Get a device code from the auth0 backend to be used for the authorization process"""
-        url = f"https://{self.domain}/oauth/device/code"
+        url = f"https://{self.settings.domain}/oauth/device/code"
         headers = {"content-type": "application/x-www-form-urlencoded"}
         body = {
-            "client_id": self.client_id,
-            "audience": self.audience,
+            "client_id": self.settings.client_id,
+            "audience": self.settings.audience,
             "scope": "offline_access openid email",
         }
         res = requests.post(url=url, headers=headers, data=body)
@@ -100,12 +97,12 @@ class Auth0(Auth):
             json_res (dict): the response of the successful request, containg the access/refresh tokens pair
             token_issued_at (float): the timestamp when the access token was issued
         """
-        url = f"https://{self.domain}/oauth/token"
+        url = f"https://{self.settings.domain}/oauth/token"
         headers = {"content-type": "application/x-www-form-urlencoded"}
         body = {
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
             "device_code": device_code,
-            "client_id": self.client_id,
+            "client_id": self.settings.client_id,
         }
 
         while True:
@@ -140,10 +137,10 @@ class Auth0(Auth):
         creds = read_credentials()
         refresh_token = creds["refresh_token"]
 
-        url = f"https://{self.domain}/oauth/revoke"
+        url = f"https://{self.settings.domain}/oauth/revoke"
         headers = {"content-type": "application/json"}
         body = {
-            "client_id": self.client_id,
+            "client_id": self.settings.client_id,
             "token": refresh_token,
         }
         res = requests.post(url=url, headers=headers, json=body)
@@ -164,7 +161,7 @@ class Auth0(Auth):
         # multiple threads want to access the database.
         with self._lock:
             # TODO: This is temporary. Use a cleaner solution.
-            db = sqlite3.connect(settings.tokens_db, isolation_level=None, timeout=60)
+            db = sqlite3.connect(self.settings.tokens_db, isolation_level=None, timeout=60)
             try:
                 db.execute("BEGIN EXCLUSIVE TRANSACTION")
             except sqlite3.OperationalError:
@@ -197,12 +194,12 @@ class Auth0(Auth):
 
         # token_issued_at and expires_in are for the access token
         sliding_expiration_time = (
-            token_issued_at + token_expires_in - settings.token_expiration_leeway
+            token_issued_at + token_expires_in - self.settings.token_expiration_leeway
         )
         absolute_expiration_time = (
             logged_in_at
-            + settings.token_absolute_expiry
-            - settings.refresh_token_expiration_leeway
+            + self.settings.token_absolute_expiry
+            - self.settings.refresh_token_expiration_leeway
         )
         current_time = time.time()
 
@@ -234,11 +231,11 @@ class Auth0(Auth):
             access_token (str): the new access token
         """
 
-        url = f"https://{self.domain}/oauth/token"
+        url = f"https://{self.settings.domain}/oauth/token"
         headers = {"content-type": "application/x-www-form-urlencoded"}
         body = {
             "grant_type": "refresh_token",
-            "client_id": self.client_id,
+            "client_id": self.settings.client_id,
             "refresh_token": refresh_token,
         }
         token_issued_at = time.time()

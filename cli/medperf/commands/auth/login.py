@@ -1,4 +1,3 @@
-from medperf import settings
 from medperf.config_management import config
 from medperf.account_management import read_user_account
 from medperf.exceptions import InvalidArgumentError, MedperfException
@@ -26,4 +25,4 @@ class Login:
             validate_email(email, check_deliverability=False)
         except EmailNotValidError as e:
             raise InvalidArgumentError(str(e))
-        settings.auth.login(email)
+        config.auth.login(email)

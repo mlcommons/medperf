@@ -1,12 +1,26 @@
-import os
 from typing import Optional, Dict, Any
 
 import yaml
+from pydantic import BaseSettings
 from medperf import settings
+from medperf.comms.auth.interface import Auth
 from medperf.comms.factory import create_comms
 from medperf.comms.interface import Comms
 from medperf.ui.factory import create_ui
 from medperf.ui.interface import UI
+
+
+class Auth0Settings(BaseSettings):
+    domain: str
+    jwks_url: str
+    idtoken_issuer: str
+    client_id: str
+    audience: str
+    jwks_cache_ttl: int
+    tokens_db: str
+    token_expiration_leeway: int
+    token_absolute_expiry: int
+    refresh_token_expiration_leeway: int
 
 
 class ConfigManager:
@@ -19,6 +33,7 @@ class ConfigManager:
         self._profile_to_override: Optional[str] = None
 
         self.ui: UI = None
+        self.auth: Auth = None
         self.comms: Comms = None
 
     def keep_overridden_fields(self, profile_name: Optional[str] = None, **kwargs):
@@ -56,7 +71,30 @@ class ConfigManager:
         self.comms = create_comms(comms_type, server, cert)
 
     def _recreate_auth(self):
-        pass
+        # Setup auth class
+        auth_class = self.active_profile.get("auth_class") or settings.default_auth_class
+        if auth_class == "Auth0":
+            from medperf.comms.auth.auth0 import Auth0
+            auth_config = Auth0Settings(
+                domain=self.active_profile.get("auth_domain") or settings.auth_domain,
+                jwks_url=self.active_profile.get("auth_jwks_url") or settings.auth_jwks_url,
+                idtoken_issuer=self.active_profile.get("auth_idtoken_issuer") or settings.auth_idtoken_issuer,
+                client_id=self.active_profile.get("auth_client_id") or settings.auth_client_id,
+                audience=self.active_profile.get("auth_audience") or settings.auth_audience,
+                jwks_cache_ttl=settings.auth_jwks_cache_ttl,
+                tokens_db=settings.tokens_db,
+                token_expiration_leeway=settings.token_expiration_leeway,
+                token_absolute_expiry=settings.token_absolute_expiry,
+                refresh_token_expiration_leeway=settings.refresh_token_expiration_leeway,
+            )
+
+            self.auth = Auth0(auth_config=auth_config)
+        elif auth_class == "Local":
+            from medperf.comms.auth.local import Local
+
+            self.auth = Local(local_tokens_path=settings.local_tokens_path)
+        else:
+            raise ValueError(f"Unknown Auth class {auth_class}")
 
     def activate(self, profile_name):
         self.active_profile_name = profile_name

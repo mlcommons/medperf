@@ -4,6 +4,8 @@ import logging
 import functools
 from merge_args import merge_args
 from collections.abc import Callable
+
+from medperf.config_management import config
 from medperf.utils import pretty_error, cleanup
 from medperf.logging.utils import package_logs
 from medperf.exceptions import MedperfException, CleanExit
@@ -63,8 +65,10 @@ def configurable(func: Callable) -> Callable:
         server: str = typer.Option(
             settings.server, "--server", help="URL of a hosted MedPerf API instance"
         ),
+        # TODO: auth_class is broken (param is written back to `settings.auth_class`
+        #  should be stored to config profile instead
         auth_class: str = typer.Option(
-            settings.auth_class,
+            settings.default_auth_class,
             "--auth_class",
             help="Authentication interface to use [Auth0]",
         ),

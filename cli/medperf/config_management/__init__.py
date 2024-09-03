@@ -1,4 +1,4 @@
-from .config_management import config  # noqa
+from .config_management import config, Auth0Settings  # noqa
 from medperf import settings
 import os
 
@@ -6,13 +6,8 @@ import os
 def _init_config():
     """builds the initial configuration file"""
 
-    # TODO: This implicit default profile generation worth to be replaced with explicit
-    #  definition. Keep as is for now
-    default_profile = {
-        param: getattr(settings, param) for param in settings.configurable_parameters
-    }
-    # TODO: Some explicit params for now
-    default_profile["ui"] = settings.default_ui
+    default_profile = settings.default_profile.copy()
+    # default_profile["ui"] = settings.default_ui
 
     config_p = config
 
@@ -60,10 +55,10 @@ def setup_config():
         _init_config()
 
     # Set current active profile parameters
-    config_p = config.read_config()
-    for param in config_p.active_profile:
-        setattr(settings, param, config_p.active_profile[param])
+    config.read_config()
+    # for param in config_p.active_profile:
+    #     setattr(settings, param, config_p.active_profile[param])
 
     # Set storage parameters
-    for folder in config_p.storage:
-        settings.storage[folder]["base"] = config_p.storage[folder]
+    for folder in config.storage:
+        settings.storage[folder]["base"] = config.storage[folder]
