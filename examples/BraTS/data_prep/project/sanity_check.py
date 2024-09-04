@@ -17,6 +17,7 @@ def check_subject_validity(subject_dir):
     subject_valid = True
     strings_to_check = [
         "_t1.nii.gz",
+        "_t1c.nii.gz",
         "_t1ce.nii.gz",
         "_t2.nii.gz",
         "_flair.nii.gz",
