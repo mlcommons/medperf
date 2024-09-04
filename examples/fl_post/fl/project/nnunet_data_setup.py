@@ -246,11 +246,8 @@ def setup_fl_data(postopp_pardir,
     should be run using a virtual environment that has nnunet version 1 installed.
 
     args:
-    postopp_pardirs(list of str)     : Parent directories for postopp data. The length of the list should either be 
-                                   equal to num_insitutions, or one. If the length of the list is one and num_insitutions is not one,
-                                   the samples within that single directory will be used to create num_insititutions shards.
-                                   If the length of this list is equal to num_insitutions, the shards are defined by the samples within each string path.  
-                                   Either way, all string paths within this list should piont to folders that have 'data' and 'labels' subdirectories with structure:
+    postopp_pardir(str)     : Parent directory for postopp data. 
+                              This directory should have 'data' and 'labels' subdirectories, with structure:
                                     ├── data
                                     │   ├── AAAC_0
                                     │   │   ├── 2008.03.30
@@ -298,7 +295,7 @@ def setup_fl_data(postopp_pardir,
                                     │           └── AAAC_extra_2008.12.10_final_seg.nii.gz
                                     └── report.yaml
 
-    three_digit_task_num(str): Should start with '5'. If num_institutions == N (see below), all N task numbers starting with this number will be used.
+    three_digit_task_num(str): Should start with '5'.
     task_name(str)                 : Any string task name.
     percent_train(float)           : what percent of data is put into the training data split (rest to val)
     split_logic(str)               : Determines how train/val split is performed
@@ -337,6 +334,7 @@ def setup_fl_data(postopp_pardir,
     subject_to_timestamps = {}
         
     print(f"\n######### CREATING SYMLINKS TO POSTOPP DATA #########\n")
+    print(f"\nBrandon DEBUG -- Here are all subjects: {all_subjects}\n\n")
     for postopp_subject_dir in all_subjects:
         subject_to_timestamps[postopp_subject_dir] = symlink_one_subject(postopp_subject_dir=postopp_subject_dir, 
                                                                             postopp_data_dirpath=postopp_data_dirpath, 
@@ -357,12 +355,15 @@ def setup_fl_data(postopp_pardir,
     print(f"\n######### OS CALL TO PREPROCESS DATA #########\n")
     if plans_path:
         subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity"])
-        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-overwrite_plans", f"{plans_path}", "-overwrite_plans_identifier", "POSTOPP", "-no_pp"])
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-overwrite_plans", f"{plans_path}", "-overwrite_plans_identifier", "POSTOPP", "-no_pp", "-pl2d", "None"])
         plans_identifier_for_model_writing = shared_plans_identifier
     else: 
         # this is a preliminary data setup, which will be passed over to the pretrained plan similar to above after we perform training on this plan 
-        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity"])
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity", "-pl2d", "None"])
         plans_identifier_for_model_writing = local_plans_identifier
+
+    # Brandon debug
+    # print(f"\nListing directory of plans path: {os.listdir(os.path.join(os.environ['nnUNet_preprocessed'], 'Task537_FLPost'))}\n\n")
 
     # Now compute our own stratified splits file, keeping all timestampts for a given subject exclusively in either train or val
     write_splits_file(subject_to_timestamps=subject_to_timestamps, 

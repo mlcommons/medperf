@@ -228,6 +228,13 @@ def train_nnunet(epochs,
     trainer.max_num_epochs = current_epoch + epochs
     trainer.epoch = current_epoch
 
+    print(f"\n\nBrandon DEBUG - dataset directory is: {dataset_directory} \n")
+    print(f"\n\nBrandon DEBUG - dataset directory contains: {os.listdir(dataset_directory)} \n")
+    print(f"\n\nBrandon DEBUG - plans file variable has value: {plans_file} \n")
+
+    # TODO: call validation separately
+    trainer.initialize(not validation_only)
+
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
     # point is expected to be seen epochs number of times
 
@@ -237,9 +244,6 @@ def train_nnunet(epochs,
     # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
     trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
-
-    # TODO: call validation separately
-    trainer.initialize(not validation_only)
 
     if os.getenv("PREP_INCREMENT_STEP", None) == "from_dataset_properties":
         trainer.save_checkpoint(

@@ -49,6 +49,7 @@ def train(
         output_logs=output_logs,
         init_nnunet_directory=init_nnunet_directory,
     )
+    
     start_collaborator(
         data_path=data_path,
         labels_path=labels_path,
@@ -65,6 +66,7 @@ def train(
         plan_path=plan_path,
         output_logs=output_logs,
     )
+    
     _teardown(output_logs)
 
 
