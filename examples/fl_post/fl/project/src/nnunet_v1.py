@@ -56,7 +56,9 @@ def seed_everything(seed=1234):
 
 def train_nnunet(epochs,
                  current_epoch,
-                 partial_epoch=1.0, 
+                 train_val_cutoff=None,
+                 train_cutoff_part=None,
+                 val_cutoff_part=None,
                  network='3d_fullres', 
                  network_trainer='nnUNetTrainerV2', 
                  task='Task543_FakePostOpp_More', 
@@ -81,7 +83,9 @@ def train_nnunet(epochs,
     """
     epochs (int): Number of epochs to train for on top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
-    partial_epoch (float):
+    train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
+    train_cutoff_part (float): Portion of train_val_cutoff going to training
+    val_cutoff_part (float): Portion of train_val_cutoff going to val
     task (int): can be task name or task id
     fold: "0, 1, ..., 5 or 'all'"
     validation_only: use this if you want to only run the validation
@@ -131,6 +135,14 @@ def train_nnunet(epochs,
 
     if args.deterministic:
         seed_everything()
+
+    # validation of some args
+
+    if args.train_val_cutoff or args.train_cutoff_part or args.val_cutoff_part:
+        if not (args.train_val_cutoff and args.train_cutoff_part and args.val_cutoff_part):
+            raise ValueError(f"If any of train_val_cutoff, train_cutoff_part, or val_cutoff_part are None, then they all must be None.")
+        if args.train_cutoff_part + args.val_cutoff_part >= 1.0:
+            raise ValueError(f"train_cutoff_part + val_cutoff_part must be less than 1.0 to account for some time left outside of those two loops.")
 
     task = args.task
     fold = args.fold
@@ -238,8 +250,16 @@ def train_nnunet(epochs,
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
     # point is expected to be seen epochs number of times
 
-    num_train_batches_per_epoch = int(partial_epoch * len(trainer.dataset_tr)/trainer.batch_size)
-    num_val_batches_per_epoch = int(partial_epoch * len(trainer.dataset_val)/trainer.batch_size)
+    num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
+    num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
+
+    train_cutoff = int(np.floor(train_cutoff_part * train_val_cutoff))
+    val_cutoff = int(np.floor(val_cutoff_part * train_val_cutoff))
+
+    if train_cutoff == 0:
+        raise ValueError(f"The setting for train_cutoff_part does not allow (with use of np.floor) for a non-zero train loop time in seconds.")
+    if val_cutoff == 0:
+        raise ValueError(f"The setting for val_cutoff_part does not allow (with use of np.floor) for a non-zero val loop time in seconds.")
 
     # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
@@ -266,15 +286,17 @@ def train_nnunet(epochs,
                 # new training without pretraine weights, do nothing
                 pass
 
-            trainer.run_training()
+            batches_applied_train, batches_applied_val = trainer.run_training(train_cutoff=train_cutoff, val_cutoff=val_cutoff)
         else:
             # if valbest:
             #     trainer.load_best_checkpoint(train=False)
             # else:
             #     trainer.load_final_checkpoint(train=False)
             trainer.load_latest_checkpoint()
+        
+        return batches_applied_train, batches_applied_val
 
-        trainer.network.eval()
+        # trainer.network.eval()
 
         # if fold == "all":
         #     print("--> fold == 'all'")

@@ -34,14 +34,20 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 partial_epoch=1.0, 
+                 train_val_cutoff=None,
+                 train_cutoff_part=None,
+                 val_cutoff_part=None,
+                 other_cutoff_part=None, 
                  nnunet_task=None,
                  config_path=None,
                  **kwargs):
         """Initialize.
 
         Args:
-            partial_epoch (float)               : What portion of the data to use to compute number of batches per epoch (for both train and val).
+            train_val_cutoff (int)              : Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
+            train_cutoff_part (float)           : Portion of train_val_cutoff going to training
+            val_cutoff_part (float)             : Portion of train_val_cutoff going to val
+            other_cutoff_part (float)           : Portion of train_val_cutoff going to the rest of the 'train' function
             nnunet_task (str)                   : Task string used to identify the data and model folders
             config_path(str)                    : Path to the configuration file used by the training and validation script.
             kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
@@ -74,7 +80,10 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             **kwargs,
             )
 
-        self.partial_epoch = partial_epoch
+        self.train_val_cutoff = train_val_cutoff
+        self.train_cutoff_part = train_cutoff_part
+        self.val_cutoff_part = val_cutoff_part
+        self.other_cutoff_part = other_cutoff_part
         self.config_path = config_path
         
     
@@ -155,7 +164,10 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Should we put this in a separate process?
         train_nnunet(epochs=epochs, 
                      current_epoch=current_epoch, 
-                     partial_epoch=self.partial_epoch, 
+                     train_val_cutoff=self.train_val_cutoff,
+                     train_cutoff_part = self.train_cutoff_part,
+                     val_cutoff_part = self.val_cutoff_part,
+                     other_cutoff_part = self.other_cutoff_part, 
                      task=self.data_loader.get_task_name())
        
         # 3. Load metrics from checkpoint

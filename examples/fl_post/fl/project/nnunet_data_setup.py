@@ -333,8 +333,6 @@ def setup_fl_data(postopp_pardir,
     # Track the subjects and timestamps for each shard
     subject_to_timestamps = {}
         
-    print(f"\n######### CREATING SYMLINKS TO POSTOPP DATA #########\n")
-    print(f"\nBrandon DEBUG -- Here are all subjects: {all_subjects}\n\n")
     for postopp_subject_dir in all_subjects:
         subject_to_timestamps[postopp_subject_dir] = symlink_one_subject(postopp_subject_dir=postopp_subject_dir, 
                                                                             postopp_data_dirpath=postopp_data_dirpath, 
@@ -354,16 +352,13 @@ def setup_fl_data(postopp_pardir,
     # Now call the os process to preprocess the data
     print(f"\n######### OS CALL TO PREPROCESS DATA #########\n")
     if plans_path:
-        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity"])
-        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-overwrite_plans", f"{plans_path}", "-overwrite_plans_identifier", "POSTOPP", "-no_pp", "-pl2d", "None"])
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl2d", "None", "--verify_dataset_integrity"])
+        subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-pl2d", "None", "-overwrite_plans", f"{plans_path}", "-overwrite_plans_identifier", "POSTOPP", "-no_pp"])
         plans_identifier_for_model_writing = shared_plans_identifier
     else: 
         # this is a preliminary data setup, which will be passed over to the pretrained plan similar to above after we perform training on this plan 
         subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "--verify_dataset_integrity", "-pl2d", "None"])
         plans_identifier_for_model_writing = local_plans_identifier
-
-    # Brandon debug
-    # print(f"\nListing directory of plans path: {os.listdir(os.path.join(os.environ['nnUNet_preprocessed'], 'Task537_FLPost'))}\n\n")
 
     # Now compute our own stratified splits file, keeping all timestampts for a given subject exclusively in either train or val
     write_splits_file(subject_to_timestamps=subject_to_timestamps, 
