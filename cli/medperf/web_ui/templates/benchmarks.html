@@ -13,7 +13,7 @@
         <div class="col-md-4 mb-4">
             <div class="card {% if not benchmark.is_valid %}invalid-card{% endif %}">
                 <div class="card-body">
-                    <h5 class="card-title"><a href="/benchmarks/ui/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a></h5>
+                    <h5 class="card-title"><a href="/benchmarks/ui/display/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a></h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ benchmark.is_valid }}</h6>
                     <p class="card-text"><strong>Description:</strong> {{ benchmark.description }}</p>

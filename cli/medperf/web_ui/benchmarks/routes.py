@@ -33,7 +33,7 @@ def benchmarks_ui(request: Request, mine_only: bool = False):
     return templates.TemplateResponse("benchmarks.html", {"request": request, "benchmarks": benchmarks})
 
 
-@router.get("/ui/{benchmark_id}", response_class=HTMLResponse)
+@router.get("/ui/display/{benchmark_id}", response_class=HTMLResponse)
 def benchmark_detail_ui(request: Request, benchmark_id: int):
     benchmark = Benchmark.get(benchmark_id)
     data_preparation_mlcube = Cube.get(cube_uid=benchmark.data_preparation_mlcube)

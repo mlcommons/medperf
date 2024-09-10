@@ -32,7 +32,7 @@ def mlcubes_ui(request: Request, mine_only: bool = False):
     return templates.TemplateResponse("mlcubes.html", {"request": request, "mlcubes": mlcubes})
 
 
-@router.get("/ui/{mlcube_id}", response_class=HTMLResponse)
+@router.get("/ui/display/{mlcube_id}", response_class=HTMLResponse)
 def mlcube_detail_ui(request: Request, mlcube_id: int):
     mlcube = Cube.get(cube_uid=mlcube_id, valid_only=False)
 

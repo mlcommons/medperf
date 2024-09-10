@@ -5,15 +5,17 @@
 
 {% block content %}
 <div class="container text-center">
+    <button class="btn btn-primary mb-4" id="create-dataset-btn" onclick="window.location.href='/datasets/ui/create'">Create New Dataset</button>
     <h1 class="my-4">Datasets</h1>
 </div>
 <div class="container">
+    <!-- Dataset Cards -->
     <div class="row justify-content-center">
         {% for dataset in datasets %}
         <div class="col-md-4 mb-4">
             <div class="card {% if not dataset.is_valid %}invalid-card{% endif %}">
                 <div class="card-body">
-                    <h5 class="card-title"><a href="/datasets/ui/{{ dataset.id }}" class="text-primary">{{ dataset.name }}</a></h5>
+                    <h5 class="card-title"><a href="/datasets/ui/display/{{ dataset.id }}" class="text-primary">{{ dataset.name }}</a></h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ dataset.state }}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ dataset.is_valid }}</h6>
                     <p class="card-text">{{ dataset.description }}</p>

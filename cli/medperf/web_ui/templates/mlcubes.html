@@ -13,7 +13,7 @@
         <div class="col-md-4 mb-4">
             <div class="{% if mlcube.is_valid %}card{% else %}invalid-card{% endif %}">
                 <div class="card-body">
-                    <h5 class="card-title"><a href="/mlcubes/ui/{{ mlcube.id }}" class="text-primary">{{ mlcube.name }}</a></h5>
+                    <h5 class="card-title"><a href="/mlcubes/ui/display/{{ mlcube.id }}" class="text-primary">{{ mlcube.name }}</a></h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ mlcube.state }}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ mlcube.is_valid }}</h6>
                     <p class="card-text"><a href="{{ mlcube.git_mlcube_url }}" target="_blank" class="text-primary">Config File</a></p>

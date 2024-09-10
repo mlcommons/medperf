@@ -1,10 +1,11 @@
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse
 from fastapi import Request
 
 from medperf.account_management import get_medperf_user_data
+from medperf.commands.dataset.submit import DataCreation
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -32,7 +33,7 @@ def datasets_ui(request: Request, mine_only: bool = False):
     return templates.TemplateResponse("datasets.html", {"request": request, "datasets": datasets})
 
 
-@router.get("/ui/{dataset_id}", response_class=HTMLResponse)
+@router.get("/ui/display/{dataset_id}", response_class=HTMLResponse)
 def dataset_detail_ui(request: Request, dataset_id: int):
     dataset = Dataset.get(dataset_id)
 
@@ -53,3 +54,34 @@ def dataset_detail_ui(request: Request, dataset_id: int):
                                           "benchmark_associations": benchmark_associations,
                                           "benchmarks": benchmarks
                                       })
+
+
+@router.get("/ui/create", response_class=HTMLResponse)
+def create_dataset_ui(request: Request):
+    # Fetch the list of benchmarks to populate the benchmark dropdown
+    benchmarks = Benchmark.all()
+    # Render the dataset creation form with the list of benchmarks
+    return templates.TemplateResponse("create_dataset.html", {"request": request, "benchmarks": benchmarks})
+
+
+@router.post("/create", response_class=HTMLResponse)
+async def create_dataset(
+        request: Request,
+        benchmark: int = Form(...),
+        name: str = Form(...),
+        description: str = Form(...),
+        location: str = Form(...),
+        data_path: str = Form(...),
+        labels_path: str = Form(...)
+):
+    # Run the dataset creation logic using the CLI method
+    DataCreation.run(
+        benchmark_uid=benchmark,
+        prep_cube_uid=None,
+        data_path=data_path,
+        labels_path=labels_path,
+        name=name,
+        description=description,
+        location=location
+    )
+    return templates.TemplateResponse("success.html", {"request": request})
