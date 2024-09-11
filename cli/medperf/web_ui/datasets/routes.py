@@ -1,8 +1,13 @@
 import logging
+import uuid
+from dataclasses import dataclass
+from typing import Dict
 
 from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse
 from fastapi import Request
+from starlette.responses import JSONResponse, RedirectResponse
+from pydantic import BaseModel
 
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.dataset.submit import DataCreation
@@ -13,6 +18,17 @@ from medperf.web_ui.common import templates, sort_associations_display
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class _DatasetDraft:
+    preparation: DataCreation
+    submission_dict: dict
+    draft_id: str
+
+
+# stores some draft data for the dataset creation form
+_drafts: Dict[str, _DatasetDraft] = {}
 
 
 @router.get("/ui", response_class=HTMLResponse)
@@ -64,9 +80,8 @@ def create_dataset_ui(request: Request):
     return templates.TemplateResponse("create_dataset.html", {"request": request, "benchmarks": benchmarks})
 
 
-@router.post("/create", response_class=HTMLResponse)
-async def create_dataset(
-        request: Request,
+@router.post("/draft/generate", response_class=JSONResponse)
+async def generate_draft(
         benchmark: int = Form(...),
         name: str = Form(...),
         description: str = Form(...),
@@ -74,14 +89,48 @@ async def create_dataset(
         data_path: str = Form(...),
         labels_path: str = Form(...)
 ):
+    draft_id = str(uuid.uuid4())
     # Run the dataset creation logic using the CLI method
-    DataCreation.run(
+    preparation = DataCreation(
         benchmark_uid=benchmark,
         prep_cube_uid=None,
         data_path=data_path,
         labels_path=labels_path,
+        metadata_path=None,  # metadata_path,
         name=name,
         description=description,
-        location=location
+        location=location,
+        approved=False,
+        submit_as_prepared=False,
+        for_test=False,
     )
-    return templates.TemplateResponse("success.html", {"request": request})
+    submission_dict = preparation.prepare_dict(False)
+    draft = _DatasetDraft(
+        preparation=preparation,
+        submission_dict=submission_dict,
+        draft_id=draft_id
+    )
+    _drafts[draft_id] = draft
+
+    return {"data": draft.submission_dict, "draft_id": draft.draft_id}
+
+
+@router.get("/draft/submit", response_class=RedirectResponse)
+async def submit_draft(
+        draft_id: str,
+):
+    draft = _drafts[draft_id]
+    preparation = draft.preparation
+    preparation.approved = True
+
+    updated_dataset_dict = preparation.upload()
+    preparation.to_permanent_path(updated_dataset_dict)
+    preparation.write(updated_dataset_dict)
+    dataset_id = updated_dataset_dict["id"]
+    return RedirectResponse(f"/datasets/ui/display/{dataset_id}")
+
+
+@router.get("/draft/decline", response_class=RedirectResponse)
+async def decline_draft(draft_id: str):
+    del _drafts[draft_id]
+    return RedirectResponse("/datasets/ui")

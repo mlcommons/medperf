@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container">
     <h1>Create New Dataset</h1>
-    <form id="dataset-form" method="POST" action="/datasets/create" enctype="multipart/form-data">
+    <form id="dataset-form" method="POST">
         <!-- Step 1: Benchmark Selection -->
         <div id="step-1" class="form-step">
             <h2>Select Benchmark</h2>
@@ -49,11 +49,9 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success">Submit</button>
+            <button type="button" class="btn btn-success" id="submit-draft-btn">Submit</button>
         </div>
     </form>
-</div>
-
 <!-- Modal for folder selection -->
 <div class="modal fade" id="folderPickerModal" tabindex="-1" aria-labelledby="folderPickerLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -74,6 +72,19 @@
                 <button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>
             </div>
         </div>
+    </div>
+</div>
+
+    <!-- Review Section (hidden initially) -->
+    <div id="review-section" style="display:none;">
+        <h2>Do you approve the registration of the presented data to MedPerf?</h2>
+        <ul id="review-data"></ul>
+        <div class="alert alert-warning">
+            Upon submission, your email address will be visible to the Data Preparation Owner for traceability and debugging purposes.
+        </div>
+        <button type="button" class="btn btn-secondary" id="edit-draft-btn">Edit</button>
+        <button type="button" class="btn btn-danger" id="cancel-draft-btn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="submit-final-btn">Submit</button>
     </div>
 </div>
 
@@ -132,6 +143,50 @@
             activeInput.value = currentPath;
         }
         $('#folderPickerModal').modal('hide');
+    });
+
+    // Handle draft submission
+    document.getElementById('submit-draft-btn').addEventListener('click', function() {
+        const formData = new FormData(document.getElementById('dataset-form'));
+        fetch('/datasets/draft/generate', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide form, show review section
+            document.getElementById('step-3').style.display = 'none';
+            const reviewSection = document.getElementById('review-section');
+            reviewSection.style.display = 'block';
+
+            // Display draft data for review
+            const reviewDataList = document.getElementById('review-data');
+            reviewDataList.innerHTML = '';
+            for (const key in data.data) {
+                reviewDataList.innerHTML += `<li><strong>${key}:</strong> ${data.data[key]}</li>`;
+            }
+
+            // Set draft_id for submit/cancel
+            reviewSection.setAttribute('data-draft-id', data.draft_id);
+        });
+    });
+
+    // Handle draft cancellation
+    document.getElementById('cancel-draft-btn').addEventListener('click', function() {
+        const draftId = document.getElementById('review-section').getAttribute('data-draft-id');
+        window.location.href = `/datasets/draft/decline?draft_id=${draftId}`;
+    });
+
+    // Handle draft submission
+    document.getElementById('submit-final-btn').addEventListener('click', function() {
+        const draftId = document.getElementById('review-section').getAttribute('data-draft-id');
+        window.location.href = `/datasets/draft/submit?draft_id=${draftId}`;
+    });
+
+    // Handle editing the draft
+    document.getElementById('edit-draft-btn').addEventListener('click', function() {
+        document.getElementById('review-section').style.display = 'none';
+        document.getElementById('step-3').style.display = 'block';  // Go back to the folder selection step
     });
 </script>
 {% endblock %}

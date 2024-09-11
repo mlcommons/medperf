@@ -43,11 +43,16 @@ class DataCreation:
             submit_as_prepared,
             for_test,
         )
-        preparation.validate()
-        preparation.validate_prep_cube()
-        preparation.create_dataset_object()
-        if submit_as_prepared:
-            preparation.make_dataset_prepared()
+        submission_dict = preparation.prepare_dict(submit_as_prepared)
+        dict_pretty_print(submission_dict)
+        msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
+        warning = (
+            "Upon submission, your email address will be visible to the Data Preparation"
+            + " Owner for traceability and debugging purposes."
+        )
+        config.ui.print_warning(warning)
+        preparation.approved = preparation.approved or approval_prompt(msg)
+
         updated_dataset_dict = preparation.upload()
         preparation.to_permanent_path(updated_dataset_dict)
         preparation.write(updated_dataset_dict)
@@ -147,17 +152,16 @@ class DataCreation:
             # have prepared datasets with no the metadata information
             os.makedirs(self.dataset.metadata_path, exist_ok=True)
 
-    def upload(self):
-        submission_dict = self.dataset.todict()
-        dict_pretty_print(submission_dict)
-        msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
-        warning = (
-            "Upon submission, your email address will be visible to the Data Preparation"
-            + " Owner for traceability and debugging purposes."
-        )
-        self.ui.print_warning(warning)
-        self.approved = self.approved or approval_prompt(msg)
+    def prepare_dict(self, submit_as_prepared: bool):
+        self.validate()
+        self.validate_prep_cube()
+        self.create_dataset_object()
+        if submit_as_prepared:
+            self.make_dataset_prepared()
 
+        return self.dataset.todict()
+
+    def upload(self):
         if self.approved:
             updated_body = self.dataset.upload()
             return updated_body
