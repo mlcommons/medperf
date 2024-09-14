@@ -56,9 +56,8 @@ def seed_everything(seed=1234):
 
 def train_nnunet(epochs,
                  current_epoch,
-                 train_val_cutoff=None,
-                 train_cutoff_part=None,
-                 val_cutoff_part=None,
+                 traincutoff=np.inf,
+                 val_cutoff=np.inf,
                  network='3d_fullres', 
                  network_trainer='nnUNetTrainerV2', 
                  task='Task543_FakePostOpp_More', 
@@ -240,10 +239,6 @@ def train_nnunet(epochs,
     trainer.max_num_epochs = current_epoch + epochs
     trainer.epoch = current_epoch
 
-    print(f"\n\nBrandon DEBUG - dataset directory is: {dataset_directory} \n")
-    print(f"\n\nBrandon DEBUG - dataset directory contains: {os.listdir(dataset_directory)} \n")
-    print(f"\n\nBrandon DEBUG - plans file variable has value: {plans_file} \n")
-
     # TODO: call validation separately
     trainer.initialize(not validation_only)
 
@@ -252,14 +247,6 @@ def train_nnunet(epochs,
 
     num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
     num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
-
-    train_cutoff = train_cutoff_part * train_val_cutoff
-    val_cutoff = val_cutoff_part * train_val_cutoff
-
-    if train_cutoff == 0:
-        raise ValueError(f"The setting for train_cutoff_part does not allow (with use of np.floor) for a non-zero train loop time in seconds.")
-    if val_cutoff == 0:
-        raise ValueError(f"The setting for val_cutoff_part does not allow (with use of np.floor) for a non-zero val loop time in seconds.")
 
     # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
