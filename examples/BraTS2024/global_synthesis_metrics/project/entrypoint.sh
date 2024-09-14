@@ -9,9 +9,6 @@ export MKL_THREADING_LAYER=GNU
 # Read arguments
 while [ "${1:-}" != "" ]; do
     case "$1" in
-        "--type"*)
-            labels="${1#*=}"
-            ;;
         "--predictions"*)
             predictions="${1#*=}"
             ;;
@@ -31,12 +28,6 @@ while [ "${1:-}" != "" ]; do
     shift
 done
 
-# validate arguments
-if [ -z "$type" ]
-then
-    echo "--type is required"
-    exit 1
-fi
 
 
 if [ -z "$predictions" ]
@@ -69,6 +60,14 @@ then
     exit 1
 fi
 
+type=$(yq -r '.disease_type' $parameters_file)
+if [[ $type =~ ^("metastasis"|"glioma")$ ]]; then
+    echo "$type is valid"
+else
+    echo "$type is not valid"
+    exit 1
+fi
+
 # Prepare input data to FeTS tool
 /main_venv/bin/python /mlcube_project/prepare_data_input.py \
     --predictions $predictions \
@@ -79,11 +78,14 @@ fi
 
 mkdir /seg_output_folder
 
+
 # Run glioma segmentation tool or metasis tool
 if [ "$type" == "glioma" ]
 then
     nnUNetv2_predict -d Dataset137_BraTS2021 -i "/data_renamed" -o "/seg_output_folder" -f  0 1 2 3 4 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans
-else
+fi
+
+if [ "$type" == "metastasis" ]
     nnUNetv2_predict -d Dataset133_BraTS_metasis_2024 -i "/data_renamed" -o "/seg_output_folder" -f  0 1 2 3 4 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans
 fi
 

@@ -2,3 +2,5 @@ original_data_in_labels: original_data
 missing_modality_json: "missing.json"
 segmentation_labels: segmentation_labels
 requires_gpu: False
+disease_type: glioma
+# disease_type can only be glioma or metastasis
