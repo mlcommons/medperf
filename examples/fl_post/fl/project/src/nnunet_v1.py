@@ -56,7 +56,7 @@ def seed_everything(seed=1234):
 
 def train_nnunet(epochs,
                  current_epoch,
-                 traincutoff=np.inf,
+                 train_cutoff=np.inf,
                  val_cutoff=np.inf,
                  network='3d_fullres', 
                  network_trainer='nnUNetTrainerV2', 
@@ -134,14 +134,6 @@ def train_nnunet(epochs,
 
     if args.deterministic:
         seed_everything()
-
-    # validation of some args
-
-    if args.train_val_cutoff or args.train_cutoff_part or args.val_cutoff_part:
-        if not (args.train_val_cutoff and args.train_cutoff_part and args.val_cutoff_part):
-            raise ValueError(f"If any of train_val_cutoff, train_cutoff_part, or val_cutoff_part are None, then they all must be None.")
-        if args.train_cutoff_part + args.val_cutoff_part >= 1.0:
-            raise ValueError(f"train_cutoff_part + val_cutoff_part must be less than 1.0 to account for some time left outside of those two loops.")
 
     task = args.task
     fold = args.fold
