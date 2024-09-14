@@ -34,20 +34,16 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 train_val_cutoff=None,
-                 train_cutoff_part=None,
-                 val_cutoff_part=None,
-                 other_cutoff_part=None, 
+                 train_cutoff=16,
+                 val_cutoff=2,
                  nnunet_task=None,
                  config_path=None,
                  **kwargs):
         """Initialize.
 
         Args:
-            train_val_cutoff (int)              : Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
-            train_cutoff_part (float)           : Portion of train_val_cutoff going to training
-            val_cutoff_part (float)             : Portion of train_val_cutoff going to val
-            other_cutoff_part (float)           : Portion of train_val_cutoff going to the rest of the 'train' function
+            train_cutoff (int)                  : Total time (in seconds) allowed for iterating over train batches (plus or minus one iteration since check willl be once an iteration).
+            val_cutoff (int)                    : Total time (in seconds) allowed for iterating over val batches (plus or minus one iteration since check willl be once an iteration).
             nnunet_task (str)                   : Task string used to identify the data and model folders
             config_path(str)                    : Path to the configuration file used by the training and validation script.
             kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
@@ -80,10 +76,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             **kwargs,
             )
 
-        self.train_val_cutoff = train_val_cutoff
-        self.train_cutoff_part = train_cutoff_part
-        self.val_cutoff_part = val_cutoff_part
-        self.other_cutoff_part = other_cutoff_part
+        self.train_cutoff = train_cutoff
+        self.val_cutoff = val_cutoff
         self.config_path = config_path
         
     
@@ -162,13 +156,15 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        train_nnunet(epochs=epochs, 
-                     current_epoch=current_epoch, 
-                     train_val_cutoff=self.train_val_cutoff,
-                     train_cutoff_part = self.train_cutoff_part,
-                     val_cutoff_part = self.val_cutoff_part,
-                     other_cutoff_part = self.other_cutoff_part, 
-                     task=self.data_loader.get_task_name())
+        train_completed, val_completed = train_nnunet(epochs=epochs, 
+                                                      current_epoch=current_epoch, 
+                                                      train_cutoff=self.train_cutoff,
+                                                      val_cutoff = self.val_cutoff,
+                                                      task=self.data_loader.get_task_name())
+        
+        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed)*100}% of the val work.")
+
+        
        
         # 3. Load metrics from checkpoint
         (all_tr_losses, all_val_losses, all_val_losses_tr_mode, all_val_eval_metrics) = self.load_checkpoint()['plot_stuff']
@@ -176,6 +172,9 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         metrics = {'train_loss': all_tr_losses[-1], 
                    'val_eval': all_val_eval_metrics[-1]}
 
+        ######################################################################################################           
+        # TODO:  Provide train_completed and val_completed to be incorporated into the collab weight computation
+        ###################################################################################################### 
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
 
         

@@ -253,8 +253,8 @@ def train_nnunet(epochs,
     num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
     num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
 
-    train_cutoff = int(np.floor(train_cutoff_part * train_val_cutoff))
-    val_cutoff = int(np.floor(val_cutoff_part * train_val_cutoff))
+    train_cutoff = train_cutoff_part * train_val_cutoff
+    val_cutoff = val_cutoff_part * train_val_cutoff
 
     if train_cutoff == 0:
         raise ValueError(f"The setting for train_cutoff_part does not allow (with use of np.floor) for a non-zero train loop time in seconds.")
@@ -293,29 +293,10 @@ def train_nnunet(epochs,
             # else:
             #     trainer.load_final_checkpoint(train=False)
             trainer.load_latest_checkpoint()
+
+        train_completed = batches_applied_train / float(num_train_batches_per_epoch)
+        val_completed = batches_applied_val / float(num_val_batches_per_epoch)
         
-        return batches_applied_train, batches_applied_val
+        return train_completed, val_completed
 
-        # trainer.network.eval()
-
-        # if fold == "all":
-        #     print("--> fold == 'all'")
-        #     print("--> DONE")
-        # else:
-        #     # predict validation
-        #     trainer.validate(
-        #         save_softmax=args.npz,
-        #         validation_folder_name=val_folder,
-        #         run_postprocessing_on_folds=not disable_postprocessing_on_folds,
-        #         overwrite=args.val_disable_overwrite,
-        #     )
-
-        #     if network == "3d_lowres" and not args.disable_next_stage_pred:
-        #         print("predicting segmentations for the next stage of the cascade")
-        #         predict_next_stage(
-        #             trainer,
-        #             join(
-        #                 dataset_directory,
-        #                 trainer.plans["data_identifier"] + "_stage%d" % 1,
-        #             ),
-        #         )
+        
