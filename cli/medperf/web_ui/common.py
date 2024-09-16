@@ -6,6 +6,7 @@ from importlib import resources
 
 from fastapi.requests import Request
 
+from medperf.config_management import config
 from medperf.entities.association import Association
 from medperf.enums import Status
 
@@ -50,3 +51,21 @@ def sort_associations_display(associations: list[Association]) -> list[Associati
         return status_order, date_order
 
     return sorted(associations, key=assoc_sorting_key)
+
+
+def list_profiles() -> list[str]:
+    return list(config.profiles)
+
+
+def get_active_profile() -> str:
+    return config.active_profile_name
+
+
+def get_profiles_context():
+    profiles = list_profiles()
+    active_profile = get_active_profile()
+    context = {
+        "profiles": profiles,
+        "active_profile": active_profile,
+    }
+    return context

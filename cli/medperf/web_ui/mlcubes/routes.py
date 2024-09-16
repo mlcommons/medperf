@@ -8,7 +8,7 @@ from fastapi import Request
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
-from medperf.web_ui.common import templates, sort_associations_display
+from medperf.web_ui.common import templates, sort_associations_display, get_profiles_context
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -29,7 +29,8 @@ def mlcubes_ui(request: Request, mine_only: bool = False):
     mine_cubes = [c for c in mlcubes if c.owner == my_user_id]
     other_cubes = [c for c in mlcubes if c.owner != my_user_id]
     mlcubes = mine_cubes + other_cubes
-    return templates.TemplateResponse("mlcubes.html", {"request": request, "mlcubes": mlcubes})
+    profile_context = get_profiles_context()
+    return templates.TemplateResponse("mlcubes.html", {"request": request, "mlcubes": mlcubes, **profile_context})
 
 
 @router.get("/ui/{mlcube_id}", response_class=HTMLResponse)
@@ -42,6 +43,8 @@ def mlcube_detail_ui(request: Request, mlcube_id: int):
     benchmarks = {assoc.benchmark: Benchmark.get(assoc.benchmark) for assoc in benchmarks_associations if
                   assoc.benchmark}
 
+    profile_context = get_profiles_context()
+
     return templates.TemplateResponse(
         "mlcube_detail.html",
         {
@@ -49,6 +52,7 @@ def mlcube_detail_ui(request: Request, mlcube_id: int):
             "entity": mlcube,
             "entity_name": mlcube.name,
             "benchmarks_associations": benchmarks_associations,
-            "benchmarks": benchmarks
+            "benchmarks": benchmarks,
+            **profile_context,
         }
     )

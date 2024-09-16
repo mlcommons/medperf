@@ -105,6 +105,22 @@
                     <a class="nav-link" href="/datasets/ui">Datasets</a>
                 </li>
             </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Profile: {{ active_profile }}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileDropdown">
+                        {% for profile in profiles %}
+                            {% if profile == active_profile %}
+                                <a class="dropdown-item active" href="#">{{ profile }}</a>
+                            {% else %}
+                                <a class="dropdown-item" href="#" onclick="changeProfile('{{ profile }}')">{{ profile }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </li>
+            </ul>
         </div>
     </nav>
     <div class="page-container">
@@ -118,11 +134,20 @@
         </div>
     </div>
     <!-- https://code.jquery.com/jquery-3.6.0.min.js -->
-    <script src="/static/js/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js -->
     <script src="/static/js/prism-1.23.0.min.js"></script>
     <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js -->
     <script src="/static/js/prism-yaml-1.23.0.min.js"></script>
     <script src="/static/js/common.js?v=1.0"></script>
+    <script>
+        function changeProfile(profile) {
+            $.post("/change-profile", { profile: profile }, function() {
+                location.reload();
+            });
+        }
+    </script>
 </body>
 </html>
