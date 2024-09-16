@@ -6,7 +6,6 @@ Contributors: Micah Sheller, Patrick Foley, Brandon Edwards  - DELETEME?
 
 """
 # TODO: Clean up imports
-# TODO: ask Micah if this has to be changed (most probably no)
 
 import os
 import subprocess
@@ -119,7 +118,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         epoch = checkpoint_dict['epoch']
         new_state = {}
         # grabbing keys from the checkpoint state dict, poping from the tensor_dict
-        # Brandon DEBUGGING
         seen_keys = []
         for k in checkpoint_dict['state_dict']:
             if k not in seen_keys:
