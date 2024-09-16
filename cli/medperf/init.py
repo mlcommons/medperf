@@ -24,4 +24,3 @@ def initialize():
     # Setup logging
     log_file = os.path.join(settings.logs_storage, settings.log_file)
     setup_logging(log_file, settings.loglevel)
-
