@@ -3,7 +3,7 @@ import pytest
 
 import medperf.commands.compatibility_test.utils as utils
 import os
-import medperf.config as config
+from medperf import settings
 
 
 PATCH_UTILS = "medperf.commands.compatibility_test.utils.{}"
@@ -13,7 +13,7 @@ class TestPrepareCube:
     @pytest.fixture(autouse=True)
     def setup(self, fs):
         cube_path = "/path/to/cube"
-        cube_path_config = os.path.join(cube_path, config.cube_filename)
+        cube_path_config = os.path.join(cube_path, settings.cube_filename)
         fs.create_file(cube_path_config, contents="cube mlcube.yaml contents")
 
         self.cube_path = cube_path
@@ -33,7 +33,7 @@ class TestPrepareCube:
         new_uid = utils.prepare_cube(getattr(self, path_attr))
 
         # Assert
-        cube_path = os.path.join(config.cubes_folder, new_uid)
+        cube_path = os.path.join(settings.cubes_folder, new_uid)
         assert os.path.islink(cube_path)
         assert os.path.realpath(cube_path) == os.path.realpath(self.cube_path)
 
@@ -43,16 +43,16 @@ class TestPrepareCube:
 
         # Assert
         metadata_file = os.path.join(
-            config.cubes_folder,
+            settings.cubes_folder,
             new_uid,
-            config.cube_metadata_filename,
+            settings.cube_metadata_filename,
         )
 
         assert os.path.exists(metadata_file)
 
     def test_local_cube_metadata_is_not_created_if_found(self, fs):
         # Arrange
-        metadata_file = os.path.join(self.cube_path, config.cube_metadata_filename)
+        metadata_file = os.path.join(self.cube_path, settings.cube_metadata_filename)
 
         metadata_contents = "meta contents before execution"
 
@@ -63,9 +63,9 @@ class TestPrepareCube:
 
         # Assert
         metadata_file = os.path.join(
-            config.cubes_folder,
+            settings.cubes_folder,
             new_uid,
-            config.cube_metadata_filename,
+            settings.cube_metadata_filename,
         )
         assert open(metadata_file).read() == metadata_contents
 
@@ -77,10 +77,10 @@ class TestPrepareCube:
     def test_cleanup_is_set_up_correctly(self):
         # Act
         uid = utils.prepare_cube(self.cube_path)
-        symlinked_path = os.path.join(config.cubes_folder, uid)
+        symlinked_path = os.path.join(settings.cubes_folder, uid)
         metadata_file = os.path.join(
             self.cube_path,
-            config.cube_metadata_filename,
+            settings.cube_metadata_filename,
         )
         # Assert
-        assert set([symlinked_path, metadata_file]).issubset(config.tmp_paths)
+        assert set([symlinked_path, metadata_file]).issubset(settings.tmp_paths)

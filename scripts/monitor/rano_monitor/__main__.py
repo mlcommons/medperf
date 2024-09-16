@@ -107,11 +107,11 @@ def main(
         return
     elif dataset_uid.isdigit():
         # Only import medperf dependencies if the user intends to use medperf
-        from medperf import config
+        from medperf import settings
         from medperf.init import initialize
 
         initialize()
-        dset_path = os.path.join(config.datasets_folder, dataset_uid)
+        dset_path = os.path.join(settings.datasets_folder, dataset_uid)
     else:
         dset_path = dataset_uid
 

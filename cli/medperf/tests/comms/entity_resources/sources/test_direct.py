@@ -1,6 +1,6 @@
 from medperf.tests.mocks import MockResponse
 from medperf.comms.entity_resources.sources.direct import DirectLinkSource
-import medperf.config as config
+from medperf import settings
 import pytest
 from medperf.exceptions import CommunicationRetrievalError
 
@@ -21,7 +21,7 @@ def test_download_works_as_expected(mocker, fs):
     # Assert
     assert open(filename).read() == "sometext"
     get_spy.assert_called_once_with(url, stream=True)
-    iter_spy.assert_called_once_with(chunk_size=config.ddl_stream_chunk_size)
+    iter_spy.assert_called_once_with(chunk_size=settings.ddl_stream_chunk_size)
 
 
 def test_download_raises_for_failed_request_after_multiple_attempts(mocker):
@@ -34,4 +34,4 @@ def test_download_raises_for_failed_request_after_multiple_attempts(mocker):
     with pytest.raises(CommunicationRetrievalError):
         DirectLinkSource().download(url, filename)
 
-    assert spy.call_count == config.ddl_max_redownload_attempts
+    assert spy.call_count == settings.ddl_max_redownload_attempts

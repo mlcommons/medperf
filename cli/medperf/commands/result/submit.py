@@ -3,7 +3,7 @@ import os
 from medperf.exceptions import CleanExit
 from medperf.utils import remove_path, dict_pretty_print, approval_prompt
 from medperf.entities.result import Result
-from medperf import config
+from medperf.config_management import config
 
 
 class ResultSubmission:

@@ -2,7 +2,8 @@ import logging
 import os
 import pandas as pd
 from medperf.entities.dataset import Dataset
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.exceptions import (
@@ -40,7 +41,7 @@ class ReportHandler(FileSystemEventHandler):
                 #       the latest report contents will be sent anyway, unless
                 #       one of those three finalizing actions were interrupted.
                 #       (Note that this slight chance is not blocking/buggy).
-                wait = config.wait_before_sending_reports
+                wait = settings.wait_before_sending_reports
                 self.timer = Timer(
                     wait, preparation.send_report, args=(report_metadata,)
                 )
@@ -184,7 +185,7 @@ class DataPreparation:
             with self.ui.interactive():
                 self.cube.run(
                     task="prepare",
-                    timeout=config.prepare_timeout,
+                    timeout=settings.prepare_timeout,
                     **prepare_params,
                 )
         except Exception as e:
@@ -200,7 +201,7 @@ class DataPreparation:
         report_sender.stop("finished")
 
     def run_sanity_check(self):
-        sanity_check_timeout = config.sanity_check_timeout
+        sanity_check_timeout = settings.sanity_check_timeout
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
 
@@ -235,7 +236,7 @@ class DataPreparation:
         self.ui.print("> Sanity checks complete")
 
     def run_statistics(self):
-        statistics_timeout = config.statistics_timeout
+        statistics_timeout = settings.statistics_timeout
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
 

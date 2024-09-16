@@ -2,12 +2,12 @@ import os
 import base64
 import logging
 from medperf.utils import remove_path
-from medperf import config
+from medperf import settings
 
 
 class FilesystemTokenStore:
     def __init__(self):
-        self.creds_folder = config.creds_folder
+        self.creds_folder = settings.creds_folder
         os.makedirs(self.creds_folder, mode=0o700, exist_ok=True)
 
     def __get_paths(self, account_id):
@@ -19,9 +19,9 @@ class FilesystemTokenStore:
         account_folder = os.path.join(self.creds_folder, account_id_encoded)
         os.makedirs(account_folder, mode=0o700, exist_ok=True)
 
-        access_token_file = os.path.join(account_folder, config.access_token_storage_id)
+        access_token_file = os.path.join(account_folder, settings.access_token_storage_id)
         refresh_token_file = os.path.join(
-            account_folder, config.refresh_token_storage_id
+            account_folder, settings.refresh_token_storage_id
         )
 
         return access_token_file, refresh_token_file
