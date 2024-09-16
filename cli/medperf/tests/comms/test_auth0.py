@@ -9,7 +9,6 @@ from medperf.exceptions import AuthenticationError
 import sqlite3
 import pytest
 
-
 PATCH_AUTH = "medperf.comms.auth.auth0.{}"
 
 test_auth_config = Auth0Settings(
@@ -24,6 +23,7 @@ test_auth_config = Auth0Settings(
     token_absolute_expiry=settings.token_absolute_expiry,
     refresh_token_expiration_leeway=settings.refresh_token_expiration_leeway,
 )
+
 
 @pytest.fixture
 def setup(mocker):
