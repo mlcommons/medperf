@@ -4,10 +4,8 @@ from dataclasses import dataclass
 from typing import Dict
 
 from fastapi import APIRouter, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi import Request
-from starlette.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel
 
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.dataset.submit import DataCreation
