@@ -13,3 +13,4 @@ class Association(MedperfSchema, ApprovableSchema):
     initiated_by: int
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
+    name: str = "Association"  # The server data doesn't have name, while MedperfSchema requires it
