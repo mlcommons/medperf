@@ -15,7 +15,7 @@ async def fetch_yaml(url: str):
         # Validate YAML content
         try:
             yaml.safe_load(content)
-        except yaml.YAMLError as e:
+        except yaml.YAMLError:
             raise HTTPException(status_code=400, detail="Invalid YAML content")
 
         return {"content": content}

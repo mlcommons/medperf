@@ -82,7 +82,7 @@ class TestReport(Entity):
         Returns:
             TestReport: Report Instance associated to the UID
         """
-        return super().get(uid, local_only=True,  valid_only=valid_only)
+        return super().get(uid, local_only=True, valid_only=valid_only)
 
     def display_dict(self):
         if self.data_path:
