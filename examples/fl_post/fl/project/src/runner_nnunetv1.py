@@ -34,7 +34,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
 
     def __init__(self,
                  train_cutoff=16,
-                 val_cutoff=2,
+                 val_cutoff=1,
                  nnunet_task=None,
                  config_path=None,
                  **kwargs):
@@ -160,7 +160,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       val_cutoff = self.val_cutoff,
                                                       task=self.data_loader.get_task_name())
         
-        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed)*100}% of the val work.")
+        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work.")
 
         
        
