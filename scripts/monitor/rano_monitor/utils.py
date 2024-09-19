@@ -238,6 +238,9 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
             labels_path = to_local_path(row["labels_path"], dset_path)
             brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
             rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
+            if os.path.isfile(labels_path):
+                labels_path = os.path.dirname(labels_path)
+                labels_path = os.path.join(labels_path, "..")
             base_path = os.path.join(labels_path, "..")
 
             # Add tumor segmentations
