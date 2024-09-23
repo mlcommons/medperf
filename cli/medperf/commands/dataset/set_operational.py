@@ -1,6 +1,6 @@
 from medperf.entities.dataset import Dataset
 import medperf.config as config
-from medperf.utils import approval_prompt, dict_pretty_print, get_folders_hash
+from medperf.utils import approval_prompt, dict_pretty_format, get_folders_hash
 from medperf.exceptions import CleanExit, InvalidArgumentError
 import yaml
 
@@ -51,7 +51,7 @@ class DatasetSetOperational:
 
     def update(self):
         body = self.todict()
-        dict_pretty_print(body)
+        self.ui.print(dict_pretty_format(body))
         msg = "Do you approve sending the presented data to MedPerf? [Y/n] "
         self.approved = self.approved or approval_prompt(msg)
 

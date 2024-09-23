@@ -4,7 +4,7 @@ import pandas as pd
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import approval_prompt, dict_pretty_print
+from medperf.utils import approval_prompt, dict_pretty_format
 from medperf.exceptions import (
     CommunicationError,
     ExecutionError,
@@ -272,6 +272,8 @@ class DataPreparation:
             with open(self.report_path, "r") as f:
                 report_dict = yaml.safe_load(f)
 
+            # TODO: this specific logic with status is very tuned to the RANO. Hope we'd
+            #  make it more general once
             report = pd.DataFrame(report_dict)
             if "status" in report.keys():
                 report_status = report.status.value_counts() / len(report)
@@ -283,7 +285,8 @@ class DataPreparation:
 
         return report_status_dict
 
-    def prompt_for_report_sending_approval(self):
+    @staticmethod
+    def _report_sending_approval_msg():
         example = {
             "execution_status": "running",
             "progress": {
@@ -291,7 +294,7 @@ class DataPreparation:
                 "Stage 3": "60%",
             },
         }
-
+        result = []
         msg = (
             "\n=================================================\n"
             + "During preparation, each subject of your dataset will undergo multiple"
@@ -305,8 +308,8 @@ class DataPreparation:
             + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"
             + " have reached Stage 3:"
         )
-        config.ui.print(msg)
-        dict_pretty_print(example)
+        result.append(msg)
+        result.append(dict_pretty_format(example))
 
         msg = (
             "\nYou can decide whether or not to send information about your dataset preparation"
@@ -316,8 +319,11 @@ class DataPreparation:
             + "\nsubmission of summaries similar to the one above to the MedPerf Server throughout"
             + "\nthe preparation process?[Y/n]"
         )
+        result.append(msg)
+        return '\n'.join(result)
 
-        self.allow_sending_reports = approval_prompt(msg)
+    def prompt_for_report_sending_approval(self):
+        self.allow_sending_reports = approval_prompt(self._report_sending_approval_msg())
 
     def send_report(self, report_metadata):
         # Since we don't actually need concurrency, let's have

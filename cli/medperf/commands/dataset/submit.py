@@ -7,7 +7,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     approval_prompt,
-    dict_pretty_print,
+    dict_pretty_format,
     get_folders_hash,
     remove_path,
 )
@@ -44,7 +44,8 @@ class DataCreation:
             for_test,
         )
         submission_dict = preparation.prepare_dict(submit_as_prepared)
-        dict_pretty_print(submission_dict)
+        config.ui.print(dict_pretty_format(submission_dict))
+
         msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
         warning = (
             "Upon submission, your email address will be visible to the Data Preparation"

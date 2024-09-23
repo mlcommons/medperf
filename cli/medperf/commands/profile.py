@@ -2,7 +2,7 @@ import typer
 
 from medperf import config
 from medperf.decorators import configurable, clean_except
-from medperf.utils import dict_pretty_print
+from medperf.utils import dict_pretty_format
 from medperf.config_management import read_config, write_config
 from medperf.exceptions import InvalidArgumentError
 
@@ -86,7 +86,7 @@ def view(profile: str = typer.Argument(None)):
     profile_config.pop(config.credentials_keyword, None)
     profile_name = profile if profile else config_p.active_profile_name
     config.ui.print(f"\nProfile '{profile_name}':")
-    dict_pretty_print(profile_config, skip_none_values=False)
+    config.ui.print(dict_pretty_format(profile_config, skip_none_values=False))
 
 
 @app.command("delete")

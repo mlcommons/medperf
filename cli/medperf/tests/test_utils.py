@@ -269,7 +269,7 @@ def test_dict_pretty_print_passes_clean_dict_to_yaml(mocker, ui, dict_with_nones
     exp_dict = {k: v for k, v in dict_with_nones.items() if v is not None}
 
     # Act
-    utils.dict_pretty_print(dict_with_nones)
+    config.ui.print(utils.dict_pretty_format(dict_with_nones))
 
     # Assert
     spy.assert_called_once_with(exp_dict)

@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from medperf import config
 from medperf.decorators import clean_except
+from medperf.ui.web_ui_proxy import WebUIProxy
 from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets.routes import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
@@ -48,5 +49,6 @@ def run(
         port: int = typer.Option(8100, "--port", help="port to use"),
 ):
     """Runs a local web UI"""
+    config.ui = WebUIProxy()
     import uvicorn
     uvicorn.run(web_app, host="127.0.0.1", port=port, log_level=config.loglevel)
