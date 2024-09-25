@@ -43,10 +43,26 @@
                     </div>
                 </div>
             </div>
-            <a href="/datasets/ui/prepare?dataset_id={{ entity.id }}" class="btn btn-primary">Prepare</a>
-            {% if entity.is_ready() and entity.state == 'DEVELOPMENT' %}
-            <button class="btn btn-warning" id="set-operational-btn">Set To Operational</button>
-            {% endif %}
+            <!-- Prepare button -->
+            <a href="/datasets/ui/prepare?dataset_id={{ entity.id }}" class="btn btn-primary mb-3">Prepare</a>
+
+            <!-- Set Operational button and hint -->
+            <div class="d-flex align-items-center mb-3">
+                <button
+                    class="btn btn-warning"
+                    id="set-operational-btn"
+                    {% if not (entity.is_ready() and entity.state == 'DEVELOPMENT') %}disabled{% endif %}>
+                    Set To Operational
+                </button>
+
+                <!-- Hint icon -->
+                <span
+                    class="ml-2 text-muted"
+                    data-toggle="tooltip"
+                    title="Only prepared datasets in the development state can be put to OPERATIONAL">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </div>
         </div>
     </div>
     <div class="associations-panel">
@@ -59,6 +75,7 @@
     </div>
 </div>
 <!-- Set Operational Modal -->
+
 <div class="modal fade" id="setOperationalModal" tabindex="-1" aria-labelledby="setOperationalModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -74,7 +91,7 @@
                 <p>Do you approve sending the presented data to MedPerf?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" >No</button>
+                <button type="button" class="btn btn-secondary" id="decline-btn">No</button>
                 <button type="button" class="btn btn-danger" id="confirm-set-operational-btn">Yes, Approve</button>
             </div>
         </div>
@@ -82,63 +99,106 @@
 </div>
 
 <script>
-    // Handle the "Set To Operational" button click
-    document.getElementById('set-operational-btn').addEventListener('click', function() {
-        const datasetId = {{ entity.id }};
+    // Ensure that the DOM is fully loaded before initializing tooltips and setting up event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable Bootstrap tooltip
+        $('[data-toggle="tooltip"]').tooltip();
 
-        // Call the generate endpoint to fetch the statistics
-        fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
-            method: 'POST'
-        })
-        .then(response => response.text())  // Expecting YAML or text format
-        .then(statistics => {
-            // Display the statistics in the modal
-            document.getElementById('statistics-content').innerText = statistics;
-            // Show the modal
-            $('#setOperationalModal').modal('show');
-        })
-        .catch(error => console.error('Error generating operational draft:', error));
+        // Handle the "Set To Operational" button click
+        document.getElementById('set-operational-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+
+            // Call the generate endpoint to fetch the statistics
+            fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                // Display the YAML statistics in the modal
+                document.getElementById('statistics-content').textContent = data.yaml_statistics;
+
+                // Apply Prism.js highlighting
+                Prism.highlightElement(document.getElementById('statistics-content'));
+
+                // Show the modal
+                $('#setOperationalModal').modal('show');
+            })
+            .catch(error => console.error('Error generating operational draft:', error));
+        });
+
+        // Handle the "Yes, Approve" button click
+        document.getElementById('confirm-set-operational-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+
+            // Clear any existing alerts
+            clearAlerts();
+
+            // Call the submit endpoint to finalize the process
+            fetch(`/datasets/operational_draft/submit?dataset_id=${datasetId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // If there's an error, show the error notification
+                    displayAlert('danger', data.error);
+                } else {
+                    // If successful, reload the page
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                // Display any other errors
+                displayAlert('danger', 'An unexpected error occurred: ' + error.message);
+            });
+
+            // Close the modal
+            $('#setOperationalModal').modal('hide');
+        });
+
+        // Handle the "No" button click (decline action)
+        document.getElementById('decline-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+
+            // Call the decline endpoint
+            fetch(`/datasets/operational_draft/decline?dataset_id=${datasetId}`, {
+                method: 'GET'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Failed to decline operational draft');
+                }
+            })
+            .catch(error => console.error('Error declining operational draft:', error));
+
+            // Close the modal
+            $('#setOperationalModal').modal('hide');
+        });
     });
 
-    // Handle the "Yes, Approve" button click
-    document.getElementById('confirm-set-operational-btn').addEventListener('click', function() {
-        const datasetId = {{ entity.id }};
+    // Function to display alert notifications
+    function displayAlert(type, message) {
+        const alertContainer = document.createElement('div');
+        alertContainer.className = `alert alert-${type} alert-dismissible fade show`;
+        alertContainer.setAttribute('role', 'alert');
+        alertContainer.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+        document.body.appendChild(alertContainer);
 
-        // Call the submit endpoint to finalize the process
-        fetch(`/datasets/operational_draft/submit?dataset_id=${datasetId}`, {
-            method: 'POST'
-        })
-        .then(response => {
-            if (response.ok) {
-                // Reload the page after success
-                window.location.reload();
-            } else {
-                console.error('Failed to submit operational draft');
-            }
-        })
-        .catch(error => console.error('Error submitting operational draft:', error));
+        // Automatically remove the alert after 5 seconds
+        setTimeout(() => {
+            alertContainer.classList.remove('show');
+            alertContainer.remove();
+        }, 5000);
+    }
 
-        // Close the modal
-        $('#setOperationalModal').modal('hide');
-    });
-
-    // Handle the "No" button click (decline action)
-    document.getElementById('decline-btn').addEventListener('click', function() {
-        const datasetId = {{ entity.id }};
-
-        // Call the decline endpoint
-        fetch(`/datasets/operational_draft/decline?dataset_id=${datasetId}`, {
-            method: 'GET'
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.error('Failed to decline operational draft');
-            }
-        })
-        .catch(error => console.error('Error declining operational draft:', error));
-
-        // Close the modal
-        $('#setOperationalModal').modal('hide');
-    });
+    // Function to clear all alerts
+    function clearAlerts() {
+        document.querySelectorAll('.alert').forEach(alert => alert.remove());
+    }
 </script>
 {% endblock %}

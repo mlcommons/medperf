@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional
 import asyncio as aio
 
+import yaml
 from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi import Request
@@ -226,7 +227,7 @@ async def prepare_run(
 _drafts_operational: dict[int, DatasetSetOperational] = {}
 
 
-@router.post("/operational_draft/generate")
+@router.post("/operational_draft/generate", response_class=JSONResponse)
 async def set_operational(dataset_id: int):
     preparation = DatasetSetOperational(dataset_id, approved=False)
     _drafts_operational[dataset_id] = preparation
@@ -235,18 +236,21 @@ async def set_operational(dataset_id: int):
     preparation.set_statistics()
     preparation.set_operational()
     body = preparation.todict()
-    statistics: str = dict_pretty_format(body)
-    return statistics
+    statistics = {k: v for (k, v) in body.items() if v is not None}
+    return {"yaml_statistics": yaml.dump(statistics)}
 
 
-@router.post("/operational_draft/submit")
+@router.post("/operational_draft/submit", response_class=JSONResponse)
 async def submit_operational(dataset_id: int):
     preparation = _drafts_operational[dataset_id]
-    preparation.approved = True
-    body = preparation.todict()
-    config.comms.update_dataset(preparation.dataset.id, body)
-    preparation.write()
-    return {"dataset_id": dataset_id}
+    try:
+        preparation.approved = True
+        body = preparation.todict()
+        config.comms.update_dataset(preparation.dataset.id, body)
+        preparation.write()
+        return {"dataset_id": dataset_id}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, 400)
 
 
 @router.get("/operational_draft/decline", response_class=JSONResponse)
