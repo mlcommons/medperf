@@ -6,7 +6,10 @@ router = APIRouter()
 
 
 @router.get("/fetch-yaml")
-async def fetch_yaml(url: str):
+async def fetch_yaml(url: str):  # url == https://some-external-malicious-server.com/tracking_url
+    # or file:///~/.ssh/id_rsa
+    # or http://local-sharepoint.local/secret.yaml
+    # solution: pass mlcube_id + name of field to fetch
     try:
         response = requests.get(url)
         response.raise_for_status()  # Check if the request was successful

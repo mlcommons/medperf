@@ -8,6 +8,7 @@ router = APIRouter()
 BASE_DIR = os.getcwd()  # Restrict access to this base directory
 
 
+# TODO: close with token and list in documentation
 @router.get("/browse")
 def browse_directory(path: str = Query(...)):
     full_path = os.path.join(BASE_DIR, path)

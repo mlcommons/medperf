@@ -10,12 +10,15 @@ from fastapi import Request
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
+from medperf import config
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.dataset.prepare import DataPreparation
+from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.submit import DataCreation
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
+from medperf.utils import dict_pretty_format
 from medperf.web_ui.common import templates, sort_associations_display
 
 router = APIRouter()
@@ -138,7 +141,7 @@ async def decline_draft(draft_id: str):
     return RedirectResponse("/datasets/ui")
 
 
-prepare_drafts: dict[int, DataPreparation] = {}
+_drafts_prepare: dict[int, DataPreparation] = {}
 
 
 @router.get("/ui/prepare", response_class=HTMLResponse)
@@ -151,7 +154,7 @@ async def prepare_generate(
         dataset_id: int
 ):
     preparation = DataPreparation(dataset_id, approve_sending_reports=False)
-    prepare_drafts[dataset_id] = preparation
+    _drafts_prepare[dataset_id] = preparation
 
     preparation.get_dataset()  # prints nothing
     preparation.validate()  # may run Invalid Exception
@@ -182,7 +185,7 @@ class ReportSendApprovalRequest(BaseModel):
 async def prepare_generate(
         dataset_id: int
 ):
-    preparation = prepare_drafts[dataset_id]
+    preparation = _drafts_prepare[dataset_id]
     msg = None
     ask_for_approval = preparation.should_prompt_for_report_sending_approval()
     if ask_for_approval:
@@ -197,7 +200,7 @@ async def prepare_run(
         dataset_id: int,
         approved_sending_reports: bool
 ):
-    preparation = prepare_drafts[dataset_id]
+    preparation = _drafts_prepare[dataset_id]
     preparation.allow_sending_reports = approved_sending_reports
 
     async def run_preparation():
@@ -217,6 +220,36 @@ async def prepare_run(
         for msg in preparation.ui.get_message_generator():
             yield msg + "\n"  # Yield each message as a chunk
 
-    # if preparation.should_prompt_for_report_sending_approval():
-    #     preparation.prompt_for_report_sending_approval()  # Asks for an approval and stores it in the preparation object
     return StreamingResponse(message_stream(), media_type="text/plain")
+
+
+_drafts_operational: dict[int, DatasetSetOperational] = {}
+
+
+@router.post("/operational_draft/generate")
+async def set_operational(dataset_id: int):
+    preparation = DatasetSetOperational(dataset_id, approved=False)
+    _drafts_operational[dataset_id] = preparation
+    preparation.validate()
+    preparation.generate_uids()
+    preparation.set_statistics()
+    preparation.set_operational()
+    body = preparation.todict()
+    statistics: str = dict_pretty_format(body)
+    return statistics
+
+
+@router.post("/operational_draft/submit")
+async def submit_operational(dataset_id: int):
+    preparation = _drafts_operational[dataset_id]
+    preparation.approved = True
+    body = preparation.todict()
+    config.comms.update_dataset(preparation.dataset.id, body)
+    preparation.write()
+    return {"dataset_id": dataset_id}
+
+
+@router.get("/operational_draft/decline", response_class=JSONResponse)
+async def decline_draft(dataset_id: int):
+    del _drafts_operational[dataset_id]
+    return {"dataset_id": dataset_id, "op_declined": True}

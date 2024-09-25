@@ -34,7 +34,7 @@
                 <div class="card-body d-flex justify-content-between flex-wrap">
                     <div class="w-50">
                         <p class="card-text"><strong>Is Valid:</strong> <span class="text-muted small">{{ entity.is_valid }}</span></p>
-                        <p class="card-text"><strong>Submitted as Prepared:</strong> <span class="text-muted small">{{ entity.submitted_as_prepared }}</span></p>
+                        <p class="card-text"><strong>Is Prepared:</strong> <span class="text-muted small">{{ entity.is_ready() }}</span></p>
                         <p class="card-text"><strong>Owner:</strong> <i class="fas fa-user"></i> <span class="text-muted small">{{ entity.owner }}</span></p>
                     </div>
                     <div class="text-right w-50">
@@ -44,6 +44,9 @@
                 </div>
             </div>
             <a href="/datasets/ui/prepare?dataset_id={{ entity.id }}" class="btn btn-primary">Prepare</a>
+            {% if entity.is_ready() and entity.state == 'DEVELOPMENT' %}
+            <button class="btn btn-warning" id="set-operational-btn">Set To Operational</button>
+            {% endif %}
         </div>
     </div>
     <div class="associations-panel">
@@ -55,4 +58,87 @@
         </div>
     </div>
 </div>
+<!-- Set Operational Modal -->
+<div class="modal fade" id="setOperationalModal" tabindex="-1" aria-labelledby="setOperationalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setOperationalModalLabel">Approval Required</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <pre id="statistics-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+                <p>Moving dataset to the Operational state would lock it for future edits and mark it as ready for production use.</p>
+                <p>Do you approve sending the presented data to MedPerf?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" >No</button>
+                <button type="button" class="btn btn-danger" id="confirm-set-operational-btn">Yes, Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle the "Set To Operational" button click
+    document.getElementById('set-operational-btn').addEventListener('click', function() {
+        const datasetId = {{ entity.id }};
+
+        // Call the generate endpoint to fetch the statistics
+        fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
+            method: 'POST'
+        })
+        .then(response => response.text())  // Expecting YAML or text format
+        .then(statistics => {
+            // Display the statistics in the modal
+            document.getElementById('statistics-content').innerText = statistics;
+            // Show the modal
+            $('#setOperationalModal').modal('show');
+        })
+        .catch(error => console.error('Error generating operational draft:', error));
+    });
+
+    // Handle the "Yes, Approve" button click
+    document.getElementById('confirm-set-operational-btn').addEventListener('click', function() {
+        const datasetId = {{ entity.id }};
+
+        // Call the submit endpoint to finalize the process
+        fetch(`/datasets/operational_draft/submit?dataset_id=${datasetId}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                // Reload the page after success
+                window.location.reload();
+            } else {
+                console.error('Failed to submit operational draft');
+            }
+        })
+        .catch(error => console.error('Error submitting operational draft:', error));
+
+        // Close the modal
+        $('#setOperationalModal').modal('hide');
+    });
+
+    // Handle the "No" button click (decline action)
+    document.getElementById('decline-btn').addEventListener('click', function() {
+        const datasetId = {{ entity.id }};
+
+        // Call the decline endpoint
+        fetch(`/datasets/operational_draft/decline?dataset_id=${datasetId}`, {
+            method: 'GET'
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error('Failed to decline operational draft');
+            }
+        })
+        .catch(error => console.error('Error declining operational draft:', error));
+
+        // Close the modal
+        $('#setOperationalModal').modal('hide');
+    });
+</script>
 {% endblock %}
