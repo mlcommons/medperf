@@ -54,7 +54,7 @@ def seed_everything(seed=1234):
     torch.backends.cudnn.deterministic = True
 
 
-def train_nnunet(max_num_epochs, 
+def train_nnunet(TOTAL_max_num_epochs, 
                  epochs,
                  current_epoch,
                  train_cutoff=np.inf,
@@ -81,7 +81,8 @@ def train_nnunet(max_num_epochs,
                  pretrained_weights=None):
 
     """
-    epochs (int): Number of epochs to train for on top of current epoch
+    TOTAL_max_num_epochs (int): Provides the total number of epochs intended to be trained (this needs to be held constant outside of individual calls to this function during the course of federated training)
+    epochs (int): Number of epochs to trainon top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
     train_cutoff_part (float): Portion of train_val_cutoff going to training
@@ -206,7 +207,7 @@ def train_nnunet(max_num_epochs,
     trainer = trainer_class(
         plans_file,
         fold,
-        max_num_epochs=max_num_epochs,
+        TOTAL_max_num_epochs=TOTAL_max_num_epochs,
         output_folder=output_folder_name,
         dataset_directory=dataset_directory,
         batch_dice=batch_dice,

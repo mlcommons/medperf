@@ -37,7 +37,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                  val_cutoff=10,
                  nnunet_task=None,
                  config_path=None,
-                 max_num_epochs=2,
+                 TOTAL_max_num_epochs=2,
                  **kwargs):
         """Initialize.
 
@@ -46,6 +46,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             val_cutoff (int)                    : Total time (in seconds) allowed for iterating over val batches (plus or minus one iteration since check willl be once an iteration).
             nnunet_task (str)                   : Task string used to identify the data and model folders
             config_path(str)                    : Path to the configuration file used by the training and validation script.
+            TOTAL_max_num_epochs (int)          : Total number of epochs for which this collaborator's model will be trained, should match the total rounds of federation in which this runner is participating
             kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
             TODO: 
         """ 
@@ -79,7 +80,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.train_cutoff = train_cutoff
         self.val_cutoff = val_cutoff
         self.config_path = config_path
-        self.max_num_epochs=max_num_epochs
+        self.TOTAL_max_num_epochs=TOTAL_max_num_epochs
         
     
     def write_tensors_into_checkpoint(self, tensor_dict, with_opt_vars):
@@ -156,7 +157,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        train_completed, val_completed = train_nnunet(max_num_epochs=self.max_num_epochs, 
+        train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=self.train_cutoff,
