@@ -33,10 +33,11 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 train_cutoff=16,
-                 val_cutoff=1,
+                 train_cutoff=160,
+                 val_cutoff=10,
                  nnunet_task=None,
                  config_path=None,
+                 max_num_epochs=2,
                  **kwargs):
         """Initialize.
 
@@ -78,6 +79,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.train_cutoff = train_cutoff
         self.val_cutoff = val_cutoff
         self.config_path = config_path
+        self.max_num_epochs=max_num_epochs
         
     
     def write_tensors_into_checkpoint(self, tensor_dict, with_opt_vars):
@@ -154,7 +156,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        train_completed, val_completed = train_nnunet(epochs=epochs, 
+        train_completed, val_completed = train_nnunet(max_num_epochs=self.max_num_epochs, 
+                                                      epochs=epochs, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=self.train_cutoff,
                                                       val_cutoff = self.val_cutoff,

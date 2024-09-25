@@ -54,7 +54,8 @@ def seed_everything(seed=1234):
     torch.backends.cudnn.deterministic = True
 
 
-def train_nnunet(epochs,
+def train_nnunet(max_num_epochs, 
+                 epochs,
                  current_epoch,
                  train_cutoff=np.inf,
                  val_cutoff=np.inf,
@@ -205,6 +206,7 @@ def train_nnunet(epochs,
     trainer = trainer_class(
         plans_file,
         fold,
+        max_num_epochs=max_num_epochs,
         output_folder=output_folder_name,
         dataset_directory=dataset_directory,
         batch_dice=batch_dice,
