@@ -5,7 +5,7 @@ aggregator :
     init_state_path : save/fl_post_two_init.pbuf
     best_state_path : save/fl_post_two_best.pbuf
     last_state_path : save/fl_post_two_last.pbuf
-    rounds_to_train : 10
+    rounds_to_train : 300
     admins:
       - col1@example.com
     allowed_admin_endpoints:
@@ -47,17 +47,28 @@ assigner :
       - name       : train_and_validate
         percentage : 1.0
         tasks      :
-          # - aggregated_model_validation
+          - aggregated_model_validation
           - train
-          # - locally_tuned_model_validation
+          - locally_tuned_model_validation
 
 tasks :
   defaults : plan/defaults/tasks_torch.yaml
+  aggregated_model_validation:
+    function : validate
+    kwargs   :
+      metrics     :
+      - val_eval
+      epochs : 1
   train:
     function : train
     kwargs   :
       metrics     :
       - train_loss
+      epochs : 1
+  locally_tuned_model_validation:
+    function : validate
+    kwargs   :
+      metrics     :
       - val_eval
       epochs : 1
 
