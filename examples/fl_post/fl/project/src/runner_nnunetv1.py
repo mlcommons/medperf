@@ -33,11 +33,11 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 train_cutoff=160,
-                 val_cutoff=10,
+                 train_cutoff=np.inf,
+                 val_cutoff=np.inf,
                  nnunet_task=None,
                  config_path=None,
-                 TOTAL_max_num_epochs=2,
+                 TOTAL_max_num_epochs=1000,
                  **kwargs):
         """Initialize.
 
