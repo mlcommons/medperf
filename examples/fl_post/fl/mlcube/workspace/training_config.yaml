@@ -55,11 +55,10 @@ tasks :
   defaults : plan/defaults/tasks_torch.yaml
   aggregated_model_validation:
     function : validate
-    kwargs   :
+    kwargs :
       metrics     :
-      apply  : global
       - val_eval
-      epochs : 1
+      apply : global
   train:
     function : train
     kwargs   :
@@ -72,7 +71,6 @@ tasks :
       metrics     :
       - val_eval
       apply  : local
-      epochs : 1
 
 compression_pipeline :
   defaults : plan/defaults/compression_pipeline.yaml
