@@ -139,6 +139,7 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log(data)
                 if (data.error) {
                     // If there's an error, show the error notification
                     displayAlert('danger', data.error);
@@ -175,30 +176,5 @@
             $('#setOperationalModal').modal('hide');
         });
     });
-
-    // Function to display alert notifications
-    function displayAlert(type, message) {
-        const alertContainer = document.createElement('div');
-        alertContainer.className = `alert alert-${type} alert-dismissible fade show`;
-        alertContainer.setAttribute('role', 'alert');
-        alertContainer.innerHTML = `
-            ${message}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        `;
-        document.body.appendChild(alertContainer);
-
-        // Automatically remove the alert after 5 seconds
-        setTimeout(() => {
-            alertContainer.classList.remove('show');
-            alertContainer.remove();
-        }, 5000);
-    }
-
-    // Function to clear all alerts
-    function clearAlerts() {
-        document.querySelectorAll('.alert').forEach(alert => alert.remove());
-    }
 </script>
 {% endblock %}

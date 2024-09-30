@@ -85,6 +85,16 @@
         pre {
             white-space: pre-wrap;
         }
+
+        /* Floating alert container at the bottom-right corner */
+        .floating-alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050; /* Ensure it appears above other content */
+            width: 300px;
+            max-width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -125,5 +135,25 @@
     <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js -->
     <script src="/static/js/prism-yaml-1.23.0.min.js"></script>
     <script src="/static/js/common.js?v=1.0"></script>
+    <script>
+        // Function to display alert notifications as a floating alert
+        function displayAlert(type, message) {
+            const alertContainer = document.createElement('div');
+            alertContainer.className = `alert alert-${type} alert-dismissible fade show floating-alert`;
+            alertContainer.setAttribute('role', 'alert');
+            alertContainer.innerHTML = `
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `;
+            document.body.appendChild(alertContainer);
+        }
+
+        // Function to clear all alerts
+        function clearAlerts() {
+            document.querySelectorAll('.floating-alert').forEach(alert => alert.remove());
+        }
+    </script>
 </body>
 </html>

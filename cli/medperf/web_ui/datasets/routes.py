@@ -250,7 +250,7 @@ async def submit_operational(dataset_id: int):
         preparation.write()
         return {"dataset_id": dataset_id}
     except Exception as e:
-        return JSONResponse({"error": str(e)}, 400)
+        return JSONResponse({"error": f"Error moving to operational state: {str(e)}"}, 400)
 
 
 @router.get("/operational_draft/decline", response_class=JSONResponse)

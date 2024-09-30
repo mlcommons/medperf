@@ -515,6 +515,7 @@ class REST(Comms):
         res = self.__auth_put(url, json=data)
         if res.status_code != 200:
             log_response_error(res)
+            # TODO: Django returns the error of UNIQUE constraint as a html page
             details = format_errors_dict(res.json())
             raise CommunicationRequestError(f"Could not update dataset: {details}")
         return res.json()
