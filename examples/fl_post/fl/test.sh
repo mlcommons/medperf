@@ -1,6 +1,10 @@
 export HTTPS_PROXY=
 export http_proxy=
 
+HOMEDIR="/raid/edwardsb/projects/RANO/hasan_medperf/examples/fl_post/fl"
+
+cd $HOMEDIR
+
 # generate plan and copy it to each node
 GENERATE_PLAN_PLATFORM="docker"
 AGG_PLATFORM="docker"
