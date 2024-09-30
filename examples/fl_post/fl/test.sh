@@ -8,9 +8,11 @@ cd $HOMEDIR
 # generate plan and copy it to each node
 GENERATE_PLAN_PLATFORM="docker"
 AGG_PLATFORM="docker"
-COL1_PLATFORM="singularity"
+COL1_PLATFORM="docker"
 COL2_PLATFORM="docker"
 COL3_PLATFORM="docker"
+COL4_PLATFORM="docker"
+COL5_PLATFORM="docker"
 
 medperf --platform $GENERATE_PLAN_PLATFORM mlcube run --mlcube ./mlcube_agg --task generate_plan
 mv ./mlcube_agg/workspace/plan/plan.yaml ./mlcube_agg/workspace
@@ -18,6 +20,8 @@ rm -r ./mlcube_agg/workspace/plan
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col1/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col2/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col3/workspace
+cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col4/workspace
+cp ./mlcube_agg/workspace/plan.yaml ./mlcube_col5/workspace
 cp ./mlcube_agg/workspace/plan.yaml ./for_admin
 
 # Run nodes
@@ -25,6 +29,8 @@ AGG="medperf --platform $AGG_PLATFORM mlcube run --mlcube ./mlcube_agg --task st
 COL1="medperf --platform $COL1_PLATFORM --gpus=1 mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com"
 COL2="medperf --platform $COL2_PLATFORM --gpus=device=2 mlcube run --mlcube ./mlcube_col2 --task train -e MEDPERF_PARTICIPANT_LABEL=col2@example.com"
 COL3="medperf --platform $COL3_PLATFORM --gpus=device=1 mlcube run --mlcube ./mlcube_col3 --task train -e MEDPERF_PARTICIPANT_LABEL=col3@example.com"
+COL4="medperf --platform $COL4_PLATFORM --gpus=device=1 mlcube run --mlcube ./mlcube_col4 --task train -e MEDPERF_PARTICIPANT_LABEL=col4@example.com"
+COL5="medperf --platform $COL5_PLATFORM --gpus=device=1 mlcube run --mlcube ./mlcube_col5 --task train -e MEDPERF_PARTICIPANT_LABEL=col5@example.com"
 
 # medperf --gpus=device=2 mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com >>col1.log &
 
@@ -35,13 +41,16 @@ COL3="medperf --platform $COL3_PLATFORM --gpus=device=1 mlcube run --mlcube ./ml
 rm agg.log col1.log col2.log col3.log
 $AGG >>agg.log &
 sleep 6
+$COL1 >>col1.log &
+sleep 6
 $COL2 >>col2.log &
 sleep 6
-$COL3 >>col3.log &
-# sleep 6
-# $COL2 >> col2.log &
-# sleep 6
-# $COL3 >> col3.log &
+$COL3 >> col3.log &
+sleep 6
+$COL4 >> col4.log &
+sleep 6
+$COL5 >> col5.log &
+
 wait
 
 # docker run --env MEDPERF_PARTICIPANT_LABEL=col1@example.com --volume /home/hasan/work/medperf_ws/medperf/examples/fl/fl/mlcube_col1/workspace/data:/mlcube_io0:ro --volume /home/hasan/work/medperf_ws/medperf/examples/fl/fl/mlcube_col1/workspace/labels:/mlcube_io1:ro --volume /home/hasan/work/medperf_ws/medperf/examples/fl/fl/mlcube_col1/workspace/node_cert:/mlcube_io2:ro --volume /home/hasan/work/medperf_ws/medperf/examples/fl/fl/mlcube_col1/workspace/ca_cert:/mlcube_io3:ro --volume /home/hasan/work/medperf_ws/medperf/examples/fl/fl/mlcube_col1/workspace:/mlcube_io4:ro --volume /home/hasan/work/medperf_ws/medperf/examples/fl/fl/mlcube_col1/workspace/logs:/mlcube_io5 -it --entrypoint bash mlcommons/medperf-fl:1.0.0
