@@ -57,6 +57,7 @@ tasks :
     function : validate
     kwargs   :
       metrics     :
+      apply  : global
       - val_eval
       epochs : 1
   train:
@@ -70,6 +71,7 @@ tasks :
     kwargs   :
       metrics     :
       - val_eval
+      apply  : local
       epochs : 1
 
 compression_pipeline :

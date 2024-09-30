@@ -38,7 +38,7 @@ COL5="medperf --platform $COL5_PLATFORM --gpus=device=1 mlcube run --mlcube ./ml
 # gnome-terminal -- bash -c "$COL1; bash"
 # gnome-terminal -- bash -c "$COL2; bash"
 # gnome-terminal -- bash -c "$COL3; bash"
-rm agg.log col1.log col2.log col3.log
+rm agg.log col1.log col2.log col3.log col4.log col5.log
 $AGG >>agg.log &
 sleep 6
 $COL1 >>col1.log &
