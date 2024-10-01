@@ -41,6 +41,7 @@ mkdir mlcube_col5
 
 
 
+cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube
 cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_agg
 cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col1
 cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col2

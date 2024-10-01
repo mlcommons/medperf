@@ -57,19 +57,19 @@ tasks :
     function : validate
     kwargs :
       metrics     :
-      - val_eval
+        - val_eval
       apply : global
   train:
     function : train
     kwargs   :
       metrics     :
-      - train_loss
+        - train_loss
       epochs : 1
   locally_tuned_model_validation:
     function : validate
     kwargs   :
       metrics     :
-      - val_eval
+        - val_eval
       apply  : local
 
 compression_pipeline :
