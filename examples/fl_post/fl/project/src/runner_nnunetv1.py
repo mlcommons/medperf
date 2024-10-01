@@ -196,7 +196,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
         train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
-                                                      epochs=epochs, 
+                                                      epochs=1, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=0,
                                                       val_cutoff = self.val_cutoff,
