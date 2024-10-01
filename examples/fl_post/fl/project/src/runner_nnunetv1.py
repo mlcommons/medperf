@@ -200,7 +200,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=0,
                                                       val_cutoff = self.val_cutoff,
-                                                      task=self.data_loader.get_task_name())
+                                                      task=self.data_loader.get_task_name(), 
+                                                      validation_only=True)
         
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work.")
 
