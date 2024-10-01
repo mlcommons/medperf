@@ -156,20 +156,17 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
+        # TODO: Currently allowing at most 1 second of valiation over one batch in order to avoid NNUnet code throwing exception due 
+        #        to empty val results
         train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=self.train_cutoff,
-                                                      val_cutoff = 0,
+                                                      val_cutoff = 1,
                                                       task=self.data_loader.get_task_name())
         
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work.")
 
-        # double check
-        if val_completed != 0.0:
-            raise ValueError(f"Tried to train only, but got a non-zero amount ({val_completed}) of validation done.")
-
-        
         # 3. Load metrics from checkpoint 
         (all_tr_losses, _, _, _) = self.load_checkpoint()['plot_stuff']
         # these metrics are appended to the checkpoint each call to train_nnunet, so it is critical that we are grabbing this right after the call above
