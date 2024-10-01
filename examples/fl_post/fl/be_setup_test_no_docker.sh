@@ -30,6 +30,8 @@ CODE_CHANGE_DIR="/home/edwardsb/repositories/hasan_medperf/examples/fl_post/fl"
 
 HOMEDIR="/raid/edwardsb/projects/RANO/hasan_medperf/examples/fl_post/fl"
 
+cp -r $CODE_CHANGE_DIR/* $HOMEDIR
+
 cd $HOMEDIR
 
 mkdir mlcube_agg
@@ -41,13 +43,13 @@ mkdir mlcube_col5
 
 
 
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_agg
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col1
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col2
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col3
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col4
-cp -r $CODE_CHANGE_DIR/mlcube/* ./mlcube_col5
+cp -r ./mlcube/* ./mlcube
+cp -r ./mlcube/* ./mlcube_agg
+cp -r ./mlcube/* ./mlcube_col1
+cp -r ./mlcube/* ./mlcube_col2
+cp -r ./mlcube/* ./mlcube_col3
+cp -r ./mlcube/* ./mlcube_col4
+cp -r ./mlcube/* ./mlcube_col5
 
 mkdir ./mlcube_agg/workspace/node_cert ./mlcube_agg/workspace/ca_cert
 mkdir ./mlcube_col1/workspace/node_cert ./mlcube_col1/workspace/ca_cert
