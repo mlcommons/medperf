@@ -30,7 +30,7 @@ CODE_CHANGE_DIR="/home/edwardsb/repositories/hasan_medperf/examples/fl_post/fl"
 
 HOMEDIR="/raid/edwardsb/projects/RANO/hasan_medperf/examples/fl_post/fl"
 
-# cp -r $CODE_CHANGE_DIR/* $HOMEDIR
+cp -r $CODE_CHANGE_DIR/* $HOMEDIR
 
 cd $HOMEDIR
 
