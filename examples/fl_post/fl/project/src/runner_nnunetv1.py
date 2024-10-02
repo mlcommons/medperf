@@ -184,7 +184,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
 
         self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
         # 1. Insert tensor_dict info into checkpoint
-        current_epoch = self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
+        # offseting current_epoch in order that it is set back to where it was in previous checkpoint after the rain call
+        current_epoch = self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False) - 1
         # 2. Train/val function existing externally
         # Some todo inside function below
         # TODO: test for off-by-one error  
@@ -197,8 +198,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=0,
                                                       val_cutoff = self.val_cutoff,
-                                                      task=self.data_loader.get_task_name(), 
-                                                      validation_only=True)
+                                                      task=self.data_loader.get_task_name())
         
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work.")
 

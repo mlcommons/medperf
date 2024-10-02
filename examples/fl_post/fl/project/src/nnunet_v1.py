@@ -240,12 +240,8 @@ def train_nnunet(TOTAL_max_num_epochs,
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
     # point is expected to be seen epochs number of times
 
-    if validation_only:
-        num_train_batches_per_epoch = 0
-        num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
-    else:
-        num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
-        num_val_batches_per_epoch = 0
+    num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
+    num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
 
     # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
@@ -280,12 +276,8 @@ def train_nnunet(TOTAL_max_num_epochs,
             #     trainer.load_final_checkpoint(train=False)
             trainer.load_latest_checkpoint()
 
-        if validation_only:
-            train_completed = batches_applied_train / float(num_train_batches_per_epoch)
-            val_completed = 0
-        else:
-            train_completed = 0
-            val_completed = batches_applied_val / float(num_val_batches_per_epoch)
+        train_completed = batches_applied_train / float(num_train_batches_per_epoch)
+        val_completed = batches_applied_val / float(num_val_batches_per_epoch)
         
         return train_completed, val_completed
 
