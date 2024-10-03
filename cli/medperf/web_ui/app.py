@@ -10,7 +10,7 @@ from medperf import config
 from medperf.decorators import clean_except
 from medperf.ui.web_ui_proxy import WebUIProxy
 from medperf.web_ui.common import custom_exception_handler
-from medperf.web_ui.datasets.routes import router as datasets_router
+from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.mlcubes.routes import router as mlcubes_router
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
