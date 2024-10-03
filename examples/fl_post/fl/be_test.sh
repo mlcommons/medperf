@@ -28,9 +28,9 @@ cp ./mlcube_agg/workspace/plan.yaml ./for_admin
 AGG="medperf --platform $AGG_PLATFORM mlcube run --mlcube ./mlcube_agg --task start_aggregator -P 50273"
 COL1="medperf --platform $COL1_PLATFORM --gpus=1 mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com"
 COL2="medperf --platform $COL2_PLATFORM --gpus=device=2 mlcube run --mlcube ./mlcube_col2 --task train -e MEDPERF_PARTICIPANT_LABEL=col2@example.com"
-COL3="medperf --platform $COL3_PLATFORM --gpus=device=1 mlcube run --mlcube ./mlcube_col3 --task train -e MEDPERF_PARTICIPANT_LABEL=col3@example.com"
-COL4="medperf --platform $COL4_PLATFORM --gpus=device=1 mlcube run --mlcube ./mlcube_col4 --task train -e MEDPERF_PARTICIPANT_LABEL=col4@example.com"
-COL5="medperf --platform $COL5_PLATFORM --gpus=device=1 mlcube run --mlcube ./mlcube_col5 --task train -e MEDPERF_PARTICIPANT_LABEL=col5@example.com"
+COL3="medperf --platform $COL3_PLATFORM --gpus=device=3 mlcube run --mlcube ./mlcube_col3 --task train -e MEDPERF_PARTICIPANT_LABEL=col3@example.com"
+COL4="medperf --platform $COL4_PLATFORM --gpus=device=4 mlcube run --mlcube ./mlcube_col4 --task train -e MEDPERF_PARTICIPANT_LABEL=col4@example.com"
+COL5="medperf --platform $COL5_PLATFORM --gpus=device=5 mlcube run --mlcube ./mlcube_col5 --task train -e MEDPERF_PARTICIPANT_LABEL=col5@example.com"
 
 # medperf --gpus=device=2 mlcube run --mlcube ./mlcube_col1 --task train -e MEDPERF_PARTICIPANT_LABEL=col1@example.com >>col1.log &
 
