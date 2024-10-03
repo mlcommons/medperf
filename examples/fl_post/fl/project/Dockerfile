@@ -2,11 +2,7 @@ FROM local/openfl:local
 
 ENV LANG C.UTF-8
 ENV CUDA_VISIBLE_DEVICES="0"
-# ENV http_proxy="http://proxy-us.intel.com:912"
-# ENV https_proxy="http://proxy-us.intel.com:912"
-ENV no_proxy=localhost,spr-gpu01.jf.intel.com
 
-ENV no_proxy________="http://proxy-us.intel.com:912"
 
 # install project dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y git zlib1g-dev libffi-dev libgl1 libgtk2.0-dev gcc g++
