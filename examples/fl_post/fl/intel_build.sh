@@ -5,6 +5,9 @@ while getopts b flag; do
 done
 BUILD_BASE="${BUILD_BASE:-false}"
 
+# copy over changes from be_Dockerfile to Dockerfile
+cp ./project/be_Dockerfile ./project/Dockerfile
+
 if ${BUILD_BASE}; then
     git clone https://github.com/hasan7n/openfl.git
     cd openfl
