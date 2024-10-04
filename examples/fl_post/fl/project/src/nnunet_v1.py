@@ -57,7 +57,7 @@ def seed_everything(seed=1234):
 def train_nnunet(TOTAL_max_num_epochs, 
                  epochs,
                  current_epoch,
-                 decrement_current_epoch_by_one=False,
+                 val_epoch=False,
                  train_cutoff=np.inf,
                  val_cutoff=np.inf,
                  network='3d_fullres', 
@@ -85,7 +85,7 @@ def train_nnunet(TOTAL_max_num_epochs,
     TOTAL_max_num_epochs (int): Provides the total number of epochs intended to be trained (this needs to be held constant outside of individual calls to this function during the course of federated training)
     epochs (int): Number of epochs to trainon top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
-    decrement_current_epoch_by_one (bool) : Whether or not to reduce the trainer epoch value by one after calling this function in order to offset increment already in function (used in validation only scenario)
+    val_epoch (bool) : Used in validation only scenario, makes lr scheduler not step and epoch to not incement upon saving final checkpoint
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
     train_cutoff_part (float): Portion of train_val_cutoff going to training
     val_cutoff_part (float): Portion of train_val_cutoff going to val
@@ -234,7 +234,6 @@ def train_nnunet(TOTAL_max_num_epochs,
         True  # if false it will not store/overwrite _latest but separate files each
     )
 
-    # we will reset this to old epoch value before saving a new checkpoint within run_training call if decrement_current_epoch_by_one is True
     trainer.max_num_epochs = current_epoch + epochs
     trainer.epoch = current_epoch
 
@@ -278,7 +277,7 @@ def train_nnunet(TOTAL_max_num_epochs,
             print(f"Brandon DEBUG - Calling trainer.run_training, trainer epoch: {trainer.epoch}, trainer max_num_epochs:{trainer.max_num_epochs}")
             print(f"Brandon DEBUG - NOTE: this is where I had just loaded checkpoint.")
             
-            batches_applied_train, batches_applied_val = trainer.run_training(train_cutoff=train_cutoff, val_cutoff=val_cutoff, decrement_current_epoch_by_one=decrement_current_epoch_by_one)
+            batches_applied_train, batches_applied_val = trainer.run_training(train_cutoff=train_cutoff, val_cutoff=val_cutoff, val_epoch=val_epoch)
         else:
             # if valbest:
             #     trainer.load_best_checkpoint(train=False)
