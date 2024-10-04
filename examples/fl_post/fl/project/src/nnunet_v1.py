@@ -271,7 +271,7 @@ def train_nnunet(TOTAL_max_num_epochs,
             else:
                 # new training without pretraine weights, do nothing
                 pass
-
+            print(f"Brandon DEBUG - Calling trainer.run_training, trainer epoch: {trainer.epoch}, trainer max_num_epochs:{trainer.max_num_epochs}")
             batches_applied_train, batches_applied_val = trainer.run_training(train_cutoff=train_cutoff, val_cutoff=val_cutoff, decrement_current_epoch_by_one=decrement_current_epoch_by_one)
         else:
             # if valbest:
