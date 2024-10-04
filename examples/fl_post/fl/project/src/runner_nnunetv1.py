@@ -149,6 +149,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
         # 1. Insert tensor_dict info into checkpoint
         current_epoch = self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
+        self.logger.info(f"In col train method, loaded checkpoint with current epoch: {current_epoch}")
         # 2. Train/val function existing externally
         # Some todo inside function below
         # TODO: test for off-by-one error 
@@ -158,7 +159,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Should we put this in a separate process?
         # TODO: Currently allowing at most 1 second of valiation over one batch in order to avoid NNUnet code throwing exception due 
         #        to empty val results
-        print(f"Brandon DEBUG - about to call train_nnunet with:\nTOTAL_max_num_epochs:{self.TOTAL_max_num_epochs}\ntrain_cutoff:{self.train_cutoff}\nval_cutoff:1")
         train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
                                                       current_epoch=current_epoch, 
@@ -166,7 +166,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       val_cutoff = 1,
                                                       task=self.data_loader.get_task_name())
         
-        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work.")
+        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
         # 3. Load metrics from checkpoint 
         (all_tr_losses, _, _, _) = self.load_checkpoint()['plot_stuff']
@@ -186,6 +186,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
         # 1. Insert tensor_dict info into checkpoint
         current_epoch = self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
+        self.logger.info(f"In col val method, loaded checkpoint with current epoch: {current_epoch}")
         # 2. Train/val function existing externally
         # Some todo inside function below
         # TODO: test for off-by-one error  
@@ -193,8 +194,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        print(f"Brandon DEBUG - about to call train_nnunet with:\nTOTAL_max_num_epochs:{self.TOTAL_max_num_epochs}\ntrain_cutoff:0\nval_cutoff:{self.val_cutoff}")
-        print(f"Recall that you may be getting in trouble here due to train_cutoff exiting without val work being done?")
         train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=1, 
                                                       current_epoch=current_epoch, 
