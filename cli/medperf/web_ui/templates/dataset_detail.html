@@ -44,7 +44,7 @@
                 </div>
             </div>
             <!-- Prepare button -->
-            <a href="/datasets/ui/prepare?dataset_id={{ entity.id }}" class="btn btn-primary mb-3">Prepare</a>
+            <a href="/datasets/prepare_draft/ui?dataset_id={{ entity.id }}" class="btn btn-primary mb-3">Prepare</a>
 
             <!-- Set Operational button and hint -->
             <div class="d-flex align-items-center mb-3">
@@ -62,6 +62,16 @@
                     title="Only prepared datasets in the development state can be put to OPERATIONAL">
                     <i class="fas fa-info-circle"></i>
                 </span>
+            </div>
+
+            <!-- Associate with Benchmark button -->
+            <div class="d-flex align-items-center mb-3">
+                <button
+                    class="btn btn-info"
+                    id="associate-btn"
+                    {% if not (entity.state == 'OPERATION') %}disabled{% endif %}>
+                    Associate with Benchmark
+                </button>
             </div>
         </div>
     </div>
@@ -99,10 +109,15 @@
 </div>
 
 <script>
-    // Ensure that the DOM is fully loaded before initializing tooltips and setting up event listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Enable Bootstrap tooltip
         $('[data-toggle="tooltip"]').tooltip();
+
+        // Handle the "Associate" button click
+        document.getElementById('associate-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+            window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}`;
+        });
 
         // Handle the "Set To Operational" button click
         document.getElementById('set-operational-btn').addEventListener('click', function() {

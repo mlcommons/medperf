@@ -148,7 +148,7 @@
     // Handle draft submission
     document.getElementById('submit-draft-btn').addEventListener('click', function() {
         const formData = new FormData(document.getElementById('dataset-form'));
-        fetch('/datasets/draft/generate', {
+        fetch('/datasets/submit_draft/generate', {
             method: 'POST',
             body: formData
         })
@@ -174,13 +174,13 @@
     // Handle draft cancellation
     document.getElementById('cancel-draft-btn').addEventListener('click', function() {
         const draftId = document.getElementById('review-section').getAttribute('data-draft-id');
-        window.location.href = `/datasets/draft/decline?draft_id=${draftId}`;
+        window.location.href = `/datasets/submit_draft/decline?draft_id=${draftId}`;
     });
 
     // Handle draft submission
     document.getElementById('submit-final-btn').addEventListener('click', function() {
         const draftId = document.getElementById('review-section').getAttribute('data-draft-id');
-        window.location.href = `/datasets/draft/submit?draft_id=${draftId}`;
+        window.location.href = `/datasets/submit_draft/submit?draft_id=${draftId}`;
     });
 
     // Handle editing the draft

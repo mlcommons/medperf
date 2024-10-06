@@ -390,7 +390,7 @@ class REST(Comms):
             raise CommunicationRequestError(f"Could not upload the results: {details}")
         return res.json()
 
-    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}) -> None:
         """Create a Dataset Benchmark association
 
         Args:

@@ -15,7 +15,7 @@ router = APIRouter()
 _drafts_prepare: dict[int, DataPreparation] = {}
 
 
-@router.get("/ui/prepare", response_class=HTMLResponse)
+@router.get("/prepare_draft/ui", response_class=HTMLResponse)
 async def prepare_ui(dataset_id: int, request: Request):
     return templates.TemplateResponse("dataset_prepare.html", {"request": request, "dataset_id": dataset_id})
 

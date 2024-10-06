@@ -23,7 +23,7 @@ router = APIRouter()
 _drafts: Dict[str, _DatasetDraft] = {}
 
 
-@router.post("/draft/generate", response_class=JSONResponse)
+@router.post("/submit_draft/generate", response_class=JSONResponse)
 async def generate_draft(
         benchmark: int = Form(...),
         name: str = Form(...),
@@ -58,7 +58,7 @@ async def generate_draft(
     return {"data": draft.submission_dict, "draft_id": draft.draft_id}
 
 
-@router.get("/draft/submit", response_class=RedirectResponse)
+@router.get("/submit_draft/submit", response_class=RedirectResponse)
 async def submit_draft(
         draft_id: str,
 ):
@@ -73,13 +73,13 @@ async def submit_draft(
     return RedirectResponse(f"/datasets/ui/display/{dataset_id}")
 
 
-@router.get("/draft/decline", response_class=RedirectResponse)
+@router.get("/submit_draft/decline", response_class=RedirectResponse)
 async def decline_draft(draft_id: str):
     del _drafts[draft_id]
     return RedirectResponse("/datasets/ui")
 
 
-@router.get("/ui/create", response_class=HTMLResponse)
+@router.get("/submit_draft/ui", response_class=HTMLResponse)
 def create_dataset_ui(request: Request):
     # Fetch the list of benchmarks to populate the benchmark dropdown
     benchmarks = Benchmark.all()

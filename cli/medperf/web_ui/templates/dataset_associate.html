@@ -1,0 +1,214 @@
+<!-- ./cli/medperf/web-ui/templates/associate.html -->
+{% extends "base.html" %}
+
+{% block title %}Associate Dataset{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Associating Dataset...</h1>
+    <!-- Stage Tracker -->
+    <div class="stages">
+        <ul class="list-group mb-3" id="stages-list"></ul>
+    </div>
+
+    <!-- Real-time log panel -->
+    <div class="card">
+        <div class="card-body">
+            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
+        </div>
+    </div>
+
+    <!-- Association Confirmation Modal -->
+    <div class="modal fade" id="associationModal" tabindex="-1" aria-labelledby="associationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="min-width: 50%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="associationModalLabel">Benchmark Association Approval</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>You are associating dataset <a href="/datasets/ui/display/{{ dataset_id }}" class="text-primary">{{ dataset_name }}</a>
+                    with benchmark <a href="/benchmarks/ui/display/{{ benchmark_id }}" class="text-primary">{{ benchmark_name }}</a>.
+                    These results of compatibility test will be sent along with the association to prove dataset compatibility with the benchmark. They won't be treated as a part of the benchmark itself.</p>
+
+                    <h5>Compatibility Results</h5>
+                    <pre id="compatibility-results" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+
+                    <p><strong>Do you confirm association?</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="decline-btn">No</button>
+                    <button type="button" class="btn btn-primary" id="confirm-association-btn">Yes, Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success button (hidden initially) -->
+    <button class="btn btn-success mt-4" id="complete-btn" style="display:none;">Successfully associated, go back</button>
+</div>
+
+<script>
+    // Fetch and stream logs to the log panel
+    function startAssociation() {
+        const logPanel = document.getElementById('log-panel');
+        const stagesList = document.getElementById('stages-list');
+        const completeBtn = document.getElementById('complete-btn');
+
+        let currentStageElement = null;
+
+        // Start the initial association step
+        fetch(`/datasets/associate_draft/generate?dataset_id={{ dataset_id }}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+
+            function readStream() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        // Association preparation finished, move to results display
+                        fetchCompatibilityResults();
+                        return;
+                    }
+
+                    const messages = decoder.decode(value).split("\n");
+                    messages.forEach(msg => {
+                        if (!msg.trim()) return;
+
+                        try {
+                            const log = JSON.parse(msg);
+                            handleLogMessage(log);
+                        } catch (e) {
+                            // Handle non-JSON messages, like plain logs
+                            appendToLogPanel(msg, 'print');
+                        }
+                    });
+
+                    readStream();
+                });
+            }
+
+            readStream();
+        })
+        .catch(error => console.error('Error fetching logs:', error));
+
+        // Handle log messages and update the UI accordingly
+        function handleLogMessage(log) {
+            // Clean the message from ANSI escape sequences
+            const cleanMessage = log.message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+
+            if (log.type === 'text') {
+                // New stage
+                if (currentStageElement) {
+                    markStageAsComplete(currentStageElement);
+                }
+                addNewStage(cleanMessage);
+            } else if (log.type === 'print') {
+                // Append to log panel
+                appendToLogPanel(cleanMessage, log.type);
+            }
+        }
+
+        function addNewStage(stageText) {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex align-items-center';
+            listItem.innerHTML = `
+                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                <strong>${stageText}</strong>
+            `;
+            stagesList.appendChild(listItem);
+            currentStageElement = listItem;
+        }
+
+        function markStageAsComplete(stageElement) {
+            const spinner = stageElement.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.classList.remove('spinner-border', 'spinner-border-sm');
+                spinner.classList.add('text-success', 'fas', 'fa-check-circle');
+            }
+        }
+
+        function appendToLogPanel(message, type) {
+            if (type === 'text') {
+                logPanel.innerHTML += `<strong>${message}</strong>\n`;
+            } else {
+                logPanel.innerHTML += `${message}\n`;
+            }
+            logPanel.scrollTop = logPanel.scrollHeight;  // Scroll to bottom
+        }
+
+        // Fetch compatibility results after streaming logs
+        function fetchCompatibilityResults() {
+            fetch(`/datasets/associate_draft/get_results?dataset_id={{ dataset_id }}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Show the modal and set the compatibility results
+                    document.getElementById('compatibility-results').textContent = data.compatibility_results;
+
+                    // Apply Prism.js highlighting
+                    Prism.highlightElement(document.getElementById('compatibility-results'));
+
+                    $('#associationModal').modal('show');
+                })
+                .catch(error => console.error('Error fetching compatibility results:', error));
+        }
+
+        // Handle association submission or decline
+        document.getElementById('confirm-association-btn').addEventListener('click', function() {
+            const datasetId = {{ dataset_id }};
+
+            // Call the submit endpoint to finalize the association
+            fetch(`/datasets/associate_draft/submit?dataset_id=${datasetId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Display error alert if submission fails
+                    displayAlert('danger', data.error);
+                } else {
+                    // If successful, reload the page or navigate back to dataset detail page
+                    completeBtn.style.display = 'block';
+                }
+            })
+            .catch(error => console.error('Error submitting association:', error));
+
+            // Close the modal
+            $('#associationModal').modal('hide');
+        });
+
+        document.getElementById('decline-btn').addEventListener('click', function() {
+            const datasetId = {{ dataset_id }};
+
+            // Call the decline endpoint to cancel the association
+            fetch(`/datasets/associate_draft/decline?dataset_id=${datasetId}`, {
+                method: 'GET'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Redirect to the dataset detail page after declining
+                    window.location.href = `/datasets/ui/display/${datasetId}`;
+                } else {
+                    console.error('Failed to decline association');
+                }
+            })
+            .catch(error => console.error('Error declining association:', error));
+
+            // Close the modal
+            $('#associationModal').modal('hide');
+        });
+
+        // Redirect to dataset detailed page after successful association
+        document.getElementById('complete-btn').addEventListener('click', function() {
+            window.location.href = `/datasets/ui/display/{{ dataset_id }}`;
+        });
+    }
+
+    // Start the association process when the page loads
+    window.onload = startAssociation;
+</script>
+{% endblock %}
