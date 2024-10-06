@@ -2,6 +2,7 @@
 {% extends "detail_base.html" %}
 {% import 'association_card_macros.html' as macros %}
 {% import 'mlcube_macros.html' as mlcube_macros %}
+{% import 'benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details{% endblock %}
 
@@ -43,6 +44,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- Prepare button -->
             <a href="/datasets/prepare_draft/ui?dataset_id={{ entity.id }}" class="btn btn-primary mb-3">Prepare</a>
 
@@ -64,14 +66,25 @@
                 </span>
             </div>
 
-            <!-- Associate with Benchmark button -->
-            <div class="d-flex align-items-center mb-3">
+            <!-- Associate with Benchmark dropdown button -->
+            <div class="dropdown mb-3">
                 <button
-                    class="btn btn-info"
-                    id="associate-btn"
+                    class="btn btn-info dropdown-toggle"
+                    type="button"
+                    id="associate-dropdown"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
                     {% if not (entity.state == 'OPERATION') %}disabled{% endif %}>
                     Associate with Benchmark
                 </button>
+                <div class="dropdown-menu" aria-labelledby="associate-dropdown">
+                    {% for benchmark in benchmarks.values() %}
+                        <div class="dropdown-item benchmark-item {% if benchmark.state == 'DEVELOPMENT1' %}disabled{% endif %}" data-benchmark-id="{{ benchmark.id }}">
+                            {{ benchmark_macros.benchmark_card(benchmark) }}
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -84,6 +97,7 @@
         </div>
     </div>
 </div>
+
 <!-- Set Operational Modal -->
 
 <div class="modal fade" id="setOperationalModal" tabindex="-1" aria-labelledby="setOperationalModalLabel" aria-hidden="true">
@@ -113,10 +127,15 @@
         // Enable Bootstrap tooltip
         $('[data-toggle="tooltip"]').tooltip();
 
-        // Handle the "Associate" button click
-        document.getElementById('associate-btn').addEventListener('click', function() {
-            const datasetId = {{ entity.id }};
-            window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}`;
+        // Handle the "Associate" dropdown item click
+        document.querySelectorAll('.benchmark-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (!this.classList.contains('disabled')) {
+                    const datasetId = {{ entity.id }};
+                    const benchmarkId = this.getAttribute('data-benchmark-id');
+                    window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}&benchmark_id=${benchmarkId}`;
+                }
+            });
         });
 
         // Handle the "Set To Operational" button click
@@ -154,7 +173,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
+                console.log(data);
                 if (data.error) {
                     // If there's an error, show the error notification
                     displayAlert('danger', data.error);

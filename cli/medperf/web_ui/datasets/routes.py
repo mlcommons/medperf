@@ -41,8 +41,9 @@ def dataset_detail_ui(request: Request, dataset_id: int):
     benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
     benchmark_associations = sort_associations_display(benchmark_associations)
 
-    benchmarks = {assoc.benchmark: Benchmark.get(assoc.benchmark) for assoc in benchmark_associations if
-                  assoc.benchmark}
+    # Get all relevant benchmarks for association
+    benchmarks = Benchmark.all()
+    valid_benchmarks = {b.id: b for b in benchmarks if b.data_preparation_mlcube == dataset.data_preparation_mlcube}
 
     return templates.TemplateResponse("dataset_detail.html",
                                       {
@@ -51,5 +52,6 @@ def dataset_detail_ui(request: Request, dataset_id: int):
                                           "entity_name": dataset.name,
                                           "prep_cube": prep_cube,
                                           "benchmark_associations": benchmark_associations,
-                                          "benchmarks": benchmarks
-                                      })
+                                          "benchmarks": valid_benchmarks,
+                                      }
+    )

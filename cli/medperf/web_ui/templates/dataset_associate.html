@@ -29,14 +29,14 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>You are associating dataset <a href="/datasets/ui/display/{{ dataset_id }}" class="text-primary">{{ dataset_name }}</a>
-                    with benchmark <a href="/benchmarks/ui/display/{{ benchmark_id }}" class="text-primary">{{ benchmark_name }}</a>.
+                    <p>You are associating dataset <a href="/datasets/ui/display/{{ dataset.id }}" class="text-primary">{{ dataset.name }} target="_blank"</a>
+                    with benchmark <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="text-primary" target="_blank">{{ benchmark.name }}</a>.
                     These results of compatibility test will be sent along with the association to prove dataset compatibility with the benchmark. They won't be treated as a part of the benchmark itself.</p>
 
                     <h5>Compatibility Results</h5>
                     <pre id="compatibility-results" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
 
-                    <p><strong>Do you confirm association?</strong></p>
+                    <p><strong>Do you confirm the association?</strong></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="decline-btn">No</button>
@@ -60,7 +60,7 @@
         let currentStageElement = null;
 
         // Start the initial association step
-        fetch(`/datasets/associate_draft/generate?dataset_id={{ dataset_id }}`, {
+        fetch(`/datasets/associate_draft/generate?draft_id={{ draft_id }}`, {
             method: 'POST'
         })
         .then(response => {
@@ -143,7 +143,7 @@
 
         // Fetch compatibility results after streaming logs
         function fetchCompatibilityResults() {
-            fetch(`/datasets/associate_draft/get_results?dataset_id={{ dataset_id }}`)
+            fetch(`/datasets/associate_draft/get_results?draft_id={{ draft_id }}`)
                 .then(response => response.json())
                 .then(data => {
                     // Show the modal and set the compatibility results
@@ -159,10 +159,8 @@
 
         // Handle association submission or decline
         document.getElementById('confirm-association-btn').addEventListener('click', function() {
-            const datasetId = {{ dataset_id }};
-
             // Call the submit endpoint to finalize the association
-            fetch(`/datasets/associate_draft/submit?dataset_id=${datasetId}`, {
+            fetch(`/datasets/associate_draft/submit?draft_id={{ draft_id }}`, {
                 method: 'POST'
             })
             .then(response => response.json())
@@ -182,16 +180,14 @@
         });
 
         document.getElementById('decline-btn').addEventListener('click', function() {
-            const datasetId = {{ dataset_id }};
-
             // Call the decline endpoint to cancel the association
-            fetch(`/datasets/associate_draft/decline?dataset_id=${datasetId}`, {
+            fetch(`/datasets/associate_draft/decline?draft_id={{ draft_id }}`, {
                 method: 'GET'
             })
             .then(response => {
                 if (response.ok) {
                     // Redirect to the dataset detail page after declining
-                    window.location.href = `/datasets/ui/display/${datasetId}`;
+                    window.location.href = `/datasets/ui/display/{{ dataset.id }}`;
                 } else {
                     console.error('Failed to decline association');
                 }
@@ -204,7 +200,7 @@
 
         // Redirect to dataset detailed page after successful association
         document.getElementById('complete-btn').addEventListener('click', function() {
-            window.location.href = `/datasets/ui/display/{{ dataset_id }}`;
+            window.location.href = `/datasets/ui/display/{{ dataset.id }}`;
         });
     }
 

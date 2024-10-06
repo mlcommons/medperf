@@ -29,7 +29,7 @@ class BenchmarkExecution:
         ignore_failed_experiments=False,
         no_cache=False,
         show_summary=False,
-    ):
+    ) -> list[Result]:
         """Benchmark execution flow.
 
         Args:
@@ -164,7 +164,7 @@ class BenchmarkExecution:
         self.ui.print(f"> {name} cube download complete")
         return cube
 
-    def run_experiments(self):
+    def run_experiments(self) -> list[Result]:
         for model_uid in self.models_uids:
             if model_uid in self.cached_results:
                 self.experiments.append(
