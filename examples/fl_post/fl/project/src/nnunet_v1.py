@@ -262,7 +262,7 @@ def train_nnunet(TOTAL_max_num_epochs,
         return
 
     if find_lr:
-        trainer.find_lr()
+        trainer.find_lr(num_iters=self.TOTAL_max_num_epochs)
     else:
         if not validation_only:
             if args.continue_training:
