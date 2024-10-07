@@ -59,6 +59,7 @@ tasks :
       metrics     :
         - val_eval
       apply : global
+      val_results_to_checkpoint : false
   train:
     function : train
     kwargs   :
@@ -71,6 +72,7 @@ tasks :
       metrics     :
         - val_eval
       apply  : local
+      val_results_to_checkpoint : true
 
 compression_pipeline :
   defaults : plan/defaults/compression_pipeline.yaml

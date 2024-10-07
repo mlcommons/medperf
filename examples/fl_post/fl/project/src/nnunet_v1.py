@@ -58,6 +58,7 @@ def train_nnunet(TOTAL_max_num_epochs,
                  epochs,
                  current_epoch,
                  val_epoch=False,
+                 val_results_to_checkpoint=False,
                  train_cutoff=np.inf,
                  val_cutoff=np.inf,
                  network='3d_fullres', 
@@ -86,6 +87,7 @@ def train_nnunet(TOTAL_max_num_epochs,
     epochs (int): Number of epochs to trainon top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
     val_epoch (bool) : Used in validation only scenario, makes lr scheduler not step and epoch to not incement upon saving final checkpoint
+    val_results_to_checkpoint (bool) : Whether or not to store the val results in a class attribute that will then land in the checkpoint (we will only store local val in checkpoints)
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
     train_cutoff_part (float): Portion of train_val_cutoff going to training
     val_cutoff_part (float): Portion of train_val_cutoff going to val
@@ -277,7 +279,14 @@ def train_nnunet(TOTAL_max_num_epochs,
             print(f"Brandon DEBUG - Calling trainer.run_training, trainer epoch: {trainer.epoch}, trainer max_num_epochs:{trainer.max_num_epochs}")
             print(f"Brandon DEBUG - NOTE: this is where I had just loaded checkpoint.")
             
-            batches_applied_train, batches_applied_val = trainer.run_training(train_cutoff=train_cutoff, val_cutoff=val_cutoff, val_epoch=val_epoch)
+            batches_applied_train, \
+            batches_applied_val, \
+            this_ave_train_loss, \
+            this_ave_val_loss, \
+            this_val_eval_metrics = trainer.run_training(train_cutoff=train_cutoff, 
+                                                         val_cutoff=val_cutoff, 
+                                                         val_epoch=val_epoch, 
+                                                         val_results_to_checkpoint=val_results_to_checkpoint)
         else:
             # if valbest:
             #     trainer.load_best_checkpoint(train=False)
@@ -288,6 +297,6 @@ def train_nnunet(TOTAL_max_num_epochs,
         train_completed = batches_applied_train / float(num_train_batches_per_epoch)
         val_completed = batches_applied_val / float(num_val_batches_per_epoch)
         
-        return train_completed, val_completed
+        return train_completed, val_completed, this_ave_train_loss, this_ave_val_loss, this_val_eval_metrics
 
         

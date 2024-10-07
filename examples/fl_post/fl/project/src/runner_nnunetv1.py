@@ -159,19 +159,26 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Should we put this in a separate process?
         # TODO: Currently allowing at most 1 second of valiation over one batch in order to avoid NNUnet code throwing exception due 
         #        to empty val results
-        train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
+        train_completed, \
+        val_completed, \
+        this_ave_train_loss, \ 
+        this_ave_val_loss, \
+        this_val_eval_metrics = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=self.train_cutoff,
                                                       val_cutoff = 0,
-                                                      task=self.data_loader.get_task_name())
-        
+                                                      task=self.data_loader.get_task_name()
+                                                      val_epoch=False
+                                                      val_results_to_checkpoint=False)
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
-        # 3. Load metrics from checkpoint 
-        (all_tr_losses, _, _, _) = self.load_checkpoint()['plot_stuff']
-        # these metrics are appended to the checkpoint each call to train_nnunet, so it is critical that we are grabbing this right after the call above
-        metrics = {'train_loss': all_tr_losses[-1]}
+        # double check
+        if val_completed != 0.0:
+            raise ValueError(f"Tried to train only, but got a non-zero amount ({val_completed}) of validation done.")
+
+        # 3. Prepare metrics 
+        metrics = {'train_loss': this_ave_train_loss}
 
         ######################################################################################################           
         # TODO:  Provide train_completed to be incorporated into the collab weight computation
@@ -179,7 +186,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
   
 
-    def validate(self, col_name, round_num, input_tensor_dict, **kwargs):
+    def validate(self, col_name, round_num, input_tensor_dict,val_results_to_checkpoint, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform validation."""
 
@@ -194,24 +201,26 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        train_completed, val_completed = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
-                                                      epochs=1, 
-                                                      current_epoch=current_epoch, 
-                                                      train_cutoff=0,
-                                                      val_cutoff = self.val_cutoff,
-                                                      task=self.data_loader.get_task_name(), 
-                                                      val_epoch=True)
-        
+        train_completed, \
+        val_completed, \
+        this_ave_train_loss, \
+        this_ave_val_loss, \
+        this_val_eval_metrics = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
+                                             epochs=1, 
+                                             current_epoch=current_epoch, 
+                                             train_cutoff=0,
+                                             val_cutoff = self.val_cutoff,
+                                             task=self.data_loader.get_task_name(), 
+                                             val_epoch=True,
+                                             val_results_to_checkpoint=val_results_to_checkpoint)
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
         # double check
         if train_completed != 0.0:
             raise ValueError(f"Tried to validate only, but got a non-zero amount ({train_completed}) of training done.")
        
-        # 3. Load metrics from checkpoint 
-        (_, all_val_losses, _, all_val_eval_metrics) = self.load_checkpoint()['plot_stuff']
-        # these metrics are appended to the checkopint each call to train_nnunet, so it is critical that we are grabbing this right after the call above
-        metrics = {'val_eval': all_val_eval_metrics[-1]}
+        # 3. Prepare metrics 
+        metrics = {'val_eval': this_val_eval_metrics}
 
 
         ######################################################################################################           
