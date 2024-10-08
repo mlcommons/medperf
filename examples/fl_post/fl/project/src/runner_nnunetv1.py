@@ -248,9 +248,12 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             # double check
             compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'], tag="checkpoint VS fromOpenFL")
 
-            (all_tr_losses, _, _, _) = checkpoint_dict['plot_stuff']
+            all_tr_losses, \
+                all_val_losses, \
+                all_val_losses_tr_mode, \
+                all_val_eval_metrics = checkpoint_dict['plot_stuff']
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
-            metrics = {'train_loss': all_tr_losses[-1]}
+            metrics = {'val_eval': all_val_eval_metrics[-1]}
 
         ######################################################################################################           
         # TODO:  Provide val_completed to be incorporated into the collab weight computation
