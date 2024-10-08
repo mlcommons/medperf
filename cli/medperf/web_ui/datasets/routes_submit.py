@@ -84,4 +84,4 @@ def create_dataset_ui(request: Request):
     # Fetch the list of benchmarks to populate the benchmark dropdown
     benchmarks = Benchmark.all()
     # Render the dataset creation form with the list of benchmarks
-    return templates.TemplateResponse("create_dataset.html", {"request": request, "benchmarks": benchmarks})
+    return templates.TemplateResponse("dataset_create.html", {"request": request, "benchmarks": benchmarks})
