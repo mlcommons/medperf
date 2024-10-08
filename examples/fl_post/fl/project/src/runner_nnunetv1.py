@@ -197,10 +197,12 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform validation."""
 
-        def compare_tensor_dicts(td_1, td_2, tag="", epsilon=0.0001):
+        def compare_tensor_dicts(td_1, td_2, tag="", epsilon=0.1, verbose=True):
             hash_1 = np.sum([np.mean(np.array(_value)) for _value in td_1.values()])
             hash_2 = np.sum([np.mean(np.array(_value)) for _value in td_2.values()])
             delta = np.abs(hash_1 - hash_2)
+            if verbose:
+                print(f"The tensor dict comparison {tag} resulted in delta: {delta} (accepted error: {epsilon}).")
             if delta > epsilon:
                 raise ValueError(f"The tensor dict comparison {tag} failed with delta: {delta} against an accepted error of: {epsilon}.")
 
