@@ -57,7 +57,8 @@ def seed_everything(seed=1234):
 def train_nnunet(TOTAL_max_num_epochs, 
                  epochs,
                  current_epoch,
-                 val_epoch=False,
+                 val_epoch=True,
+                 train_epoch=True,
                  val_results_to_checkpoint=False,
                  train_cutoff=np.inf,
                  val_cutoff=np.inf,
@@ -86,7 +87,8 @@ def train_nnunet(TOTAL_max_num_epochs,
     TOTAL_max_num_epochs (int): Provides the total number of epochs intended to be trained (this needs to be held constant outside of individual calls to this function during the course of federated training)
     epochs (int): Number of epochs to trainon top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
-    val_epoch (bool) : Used in validation only scenario, makes lr scheduler not step and epoch to not incement upon saving final checkpoint
+    val_epoch (bool) : Will validation be performed
+    train_epoch (bool) : Will training run (rather than val only) makes lr step and epoch increment
     val_results_to_checkpoint (bool) : Whether or not to store the val results in a class attribute that will then land in the checkpoint (we will only store local val in checkpoints)
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
     train_cutoff_part (float): Portion of train_val_cutoff going to training
@@ -285,7 +287,8 @@ def train_nnunet(TOTAL_max_num_epochs,
             this_ave_val_loss, \
             this_val_eval_metrics = trainer.run_training(train_cutoff=train_cutoff, 
                                                          val_cutoff=val_cutoff, 
-                                                         val_epoch=val_epoch, 
+                                                         val_epoch=val_epoch,
+                                                         train_epoch=train_epoch, 
                                                          val_results_to_checkpoint=val_results_to_checkpoint)
         else:
             # if valbest:
