@@ -173,10 +173,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       train_epoch=True)
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
-        # double check
-        if val_completed != 0.0:
-            raise ValueError(f"Tried to train only, but got a non-zero amount ({val_completed}) of validation done.")
-
         # 3. Prepare metrics 
         metrics = {'train_loss': this_ave_train_loss}
 
