@@ -67,12 +67,11 @@ tasks :
         - train_loss
       epochs : 1
   locally_tuned_model_validation:
-    function : validate
+    function : validate_by_reading_checkpoint
     kwargs   :
       metrics     :
         - val_eval
       apply  : local
-      val_results_to_checkpoint : true
 
 compression_pipeline :
   defaults : plan/defaults/compression_pipeline.yaml

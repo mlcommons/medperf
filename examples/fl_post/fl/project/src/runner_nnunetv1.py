@@ -239,3 +239,13 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             metrics = json.load(json_file)
         return metrics
         """
+
+
+    # TODO here, save train_completed and val_completed as class attributes
+    # WORKING HERE
+    
+    def validate_by_reading_checkpoint(self, col_name, round_num, input_tensor_dict, **kwargs):
+        (all_tr_losses, _, _, _) = self.load_checkpoint()['plot_stuff']
+        # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
+        metrics = {'train_loss': all_tr_losses[-1]}
+        return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
