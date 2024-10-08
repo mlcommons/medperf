@@ -81,6 +81,13 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.val_cutoff = val_cutoff
         self.config_path = config_path
         self.TOTAL_max_num_epochs=TOTAL_max_num_epochs
+
+        # self.task_completed is a dictionary of task to amount completed as a float in [0,1]
+        # Values will be dynamically updated
+        # TODO: Tasks are hard coded for now
+        self.task_completed = {'aggregated_model_validation': 1.0, 
+                               'train': 1.0, 
+                               'locally_tuned_model_validation': 1.0}
         
     
     def write_tensors_into_checkpoint(self, tensor_dict, with_opt_vars):
@@ -171,6 +178,10 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       task=self.data_loader.get_task_name(),
                                                       val_epoch=True,
                                                       train_epoch=True)
+        # update amount of task completed
+        self.task_completed['train'] = train_completed
+        self.task_completed['locally_tuned_model_validation'] = val_completed
+
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
         # 3. Prepare metrics 
@@ -187,8 +198,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         """Perform validation."""
 
         def compare_tensor_dicts(td_1, td_2, tag="", epsilon=0.0001):
-            hash_1 = np.sum([torch.mean(_value) for _value in td_1.values()])
-            hash_2 = np.sum([torch.mean(_value) for _value in td_2.values()])
+            hash_1 = np.sum([np.mean(_value) for _value in td_1.values()])
+            hash_2 = np.sum([np.mean(_value) for _value in td_2.values()])
             delta = np.abs(hash_1 - hash_2)
             if delta > epsilon:
                 raise VaueError(f"The tensor dict comparison {tag} failed with delta: {delta} against an accepted error of: {epsilon}.")
@@ -218,12 +229,16 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                 task=self.data_loader.get_task_name(), 
                                                 val_epoch=True,
                                                 train_epoch=False)
-            self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
-
             # double check
             if train_completed != 0.0:
                 raise ValueError(f"Tried to validate only, but got a non-zero amount ({train_completed}) of training done.")
 
+            # update amount of task completed
+            self.task_completed['aggregated_model_validation'] = val_completed
+
+            self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
+
+            
             # 3. Prepare metrics 
             metrics = {'val_eval': this_val_eval_metrics}
         else:
@@ -253,9 +268,23 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         """
 
 
-    # TODO here, save train_completed and val_completed as class attributes
-    # WORKING HERE
+    # TODO to support below, save train_completed and val_completed as class attributes
+    # WORKING HERE, for now turned off due to task_dependent default
     
-    def validate_by_reading_checkpoint(self, col_name, round_num, input_tensor_dict, **kwargs):
-        fjkdls;jafkdls;jfkdsl;
-        return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
+    def get_train_data_size(self, task_dependent=False, task=None):
+        """Get the number of training examples.
+
+        It will be used for weighted averaging in aggregation. 
+        This overrides the parent class method,
+        allowing dynamic weighting by storing recent appropriate weights in class attributes.
+
+        Returns:
+            int: The number of training examples.
+        """
+        if not task_dependent:
+            return self.data_loader.get_train_data_size()
+        elif not task:
+            raise ValueError(f"If using task dependent data size, must provide task.")
+        else:
+            # self.task_completed is a dictionary of task to amount completed as a float in [0,1]
+            return self.task_completed[task] * self.data_loader.get_train_data_size() 
