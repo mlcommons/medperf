@@ -161,7 +161,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         #        to empty val results
         train_completed, \
         val_completed, \
-        this_ave_train_loss, \ 
+        this_ave_train_loss, \
         this_ave_val_loss, \
         this_val_eval_metrics = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
