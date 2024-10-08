@@ -170,8 +170,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       val_cutoff = self.val_cutoff,
                                                       task=self.data_loader.get_task_name(),
                                                       val_epoch=True,
-                                                      train_epoch=True,
-                                                      val_results_to_checkpoint=True)
+                                                      train_epoch=True)
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
         # double check
@@ -187,7 +186,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
   
 
-    def validate(self, col_name, round_num, input_tensor_dict,val_results_to_checkpoint, **kwargs):
+    def validate(self, col_name, round_num, input_tensor_dict, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform validation."""
 
@@ -213,8 +212,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                              val_cutoff = self.val_cutoff,
                                              task=self.data_loader.get_task_name(), 
                                              val_epoch=True,
-                                             train_epoch=False,
-                                             val_results_to_checkpoint=val_results_to_checkpoint)
+                                             train_epoch=False)
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
 
         # double check

@@ -59,7 +59,6 @@ tasks :
       metrics     :
         - val_eval
       apply : global
-      val_results_to_checkpoint : false
   train:
     function : train
     kwargs   :
