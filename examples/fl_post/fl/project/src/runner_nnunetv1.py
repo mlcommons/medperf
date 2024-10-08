@@ -202,7 +202,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             hash_2 = np.sum([np.mean(np.array(_value)) for _value in td_2.values()])
             delta = np.abs(hash_1 - hash_2)
             if delta > epsilon:
-                raise VaueError(f"The tensor dict comparison {tag} failed with delta: {delta} against an accepted error of: {epsilon}.")
+                raise ValueError(f"The tensor dict comparison {tag} failed with delta: {delta} against an accepted error of: {epsilon}.")
 
 
         if not from_checkpoint:
@@ -244,7 +244,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         else:
             checkpoint_dict = self.load_checkpoint()
             # double check
-            compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'])
+            compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'], tag="checkpoint VS fromOpenFL")
 
             (all_tr_losses, _, _, _) = checkpoint_dict['plot_stuff']
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
