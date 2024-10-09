@@ -78,9 +78,9 @@
                 </div>
                 <div class="card mb-3">
                     <div class="card-body">
-                        <p class="card-text"><strong>MLCube:</strong> <a href="{{ entity.git_mlcube_url }}" class="text-primary yaml-link" target="_blank">{{ entity.git_mlcube_url }}</a></p>
+                        <p class="card-text"><strong>MLCube:</strong> <a href="{{ entity.git_mlcube_url }}" data-id="{{ entity.id }}" data-field="git_mlcube_url" class="text-primary yaml-link" target="_blank">{{ entity.git_mlcube_url }}</a></p>
                         <p class="card-text text-muted small">{{ entity.mlcube_hash }}</p>
-                        <p class="card-text"><strong>Parameters:</strong> <a href="{{ entity.git_parameters_url }}" class="text-primary yaml-link" target="_blank">{{ entity.git_parameters_url }}</a></p>
+                        <p class="card-text"><strong>Parameters:</strong> <a href="{{ entity.git_parameters_url }}" data-id="{{ entity.id }}" data-field="git_parameters_url" class="text-primary yaml-link" target="_blank">{{ entity.git_parameters_url }}</a></p>
                         <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>
                         {% if entity.image_tarball_url %}
                             <p class="card-text"><strong>Image Tarball:</strong> <a href="{{ entity.image_tarball_url }}" class="text-primary" target="_blank">{{ entity.image_tarball_url }}</a></p>
@@ -134,12 +134,13 @@
     document.addEventListener('DOMContentLoaded', function() {
         $('.yaml-link').on('click', function(event) {
             event.preventDefault();
-            const url = $(this).attr('href');
+            const id = $(this).data('id');
+            const field = $(this).data('field');
             $('#yaml-panel').show();
             $('.yaml-container').addClass('yaml-panel-visible');
             $('#loading-indicator').show();
             $('#yaml-code').hide();
-            $.get('/fetch-yaml', { url: url }, function(data) {
+            $.get('/fetch-yaml', { mlcube_uid: id, field_to_fetch: field}, function(data) {
                 $('#yaml-code').text(data.content);
                 Prism.highlightElement($('#yaml-code')[0]);
                 $('#loading-indicator').hide();
