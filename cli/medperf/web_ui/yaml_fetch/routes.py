@@ -9,18 +9,20 @@ from medperf.entities.dataset import Dataset
 
 router = APIRouter()
 
+
 class FieldsToFetch(Enum):
-   mlcube_yaml = "git_mlcube_url"
-   param_yaml = "git_parameters_url"
-   dataset_report_path = "report_path"
+    mlcube_yaml = "git_mlcube_url"
+    param_yaml = "git_parameters_url"
+    dataset_report_path = "report_path"
+
 
 class EntityToFetch(Enum):
-   mlcube = "mlcube"
-   dataset = "dataset"
+    mlcube = "mlcube"
+    dataset = "dataset"
 
 
 @router.get("/fetch-yaml")
-async def fetch_yaml(entity: EntityToFetch,  entity_uid: int, field_to_fetch: FieldsToFetch):
+async def fetch_yaml(entity: EntityToFetch, entity_uid: int, field_to_fetch: FieldsToFetch):
     try:
         entity_class = {
             EntityToFetch.mlcube: Cube,
