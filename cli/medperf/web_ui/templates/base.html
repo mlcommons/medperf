@@ -9,92 +9,10 @@
     <link rel="stylesheet" href="/static/css/font-awesome-5.15.4-all.min.css">
     <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css -->
     <link rel="stylesheet" href="/static/css/prism-1.23.0.min.css">
+
+    <link rel="stylesheet" href="/static/css/common.css?v=1.0">
     <style>
-        .badge-state-operational {
-            background-color: lightgreen;
-            color: black;
-        }
-        .badge-state-development {
-            background-color: lightcoral;
-            color: black;
-        }
-        .badge-approval-pending {
-            background-color: coral;
-            color: black;
-        }
-        .badge-approval-approved {
-            background-color: lightgreen;
-            color: black;
-        }
-        .badge-approval-rejected {
-            background-color: red;
-            color: black;
-        }
-        .badge-valid {
-            background-color: lightgreen;
-            color: black;
-        }
-        .badge-invalid {
-            background-color: red;
-            color: black;
-        }
-        .spinner {
-            display: inline-block;
-            width: 80px;
-            height: 80px;
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top-color: #007bff;
-            animation: spin 1s ease-in-out infinite;
-            margin: 0 auto;
-        }
-
-        .invalid-card {
-            background-color: #ffe6e6;
-        }
-
-        .page-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .yaml-content {
-            display: none;
-            flex: 0 0 40%;
-            max-width: 40%;
-            min-width: 300px;
-            height: 100vh;
-            overflow: auto;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        pre {
-            white-space: pre-wrap;
-        }
-
-        /* Floating alert container at the bottom-right corner */
-        .floating-alert {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1050; /* Ensure it appears above other content */
-            width: 300px;
-            max-width: 100%;
-        }
+        {% block optional_styles %}{% endblock %}
     </style>
 </head>
 <body>
@@ -105,15 +23,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="/benchmarks/ui">Benchmarks</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/mlcubes/ui">MLCubes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/datasets/ui">Datasets</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="/benchmarks/ui">Benchmarks</a></li>
+                <li class="nav-item"><a class="nav-link" href="/mlcubes/ui">MLCubes</a></li>
+                <li class="nav-item"><a class="nav-link" href="/datasets/ui">Datasets</a></li>
             </ul>
         </div>
     </nav>
@@ -121,39 +33,15 @@
         <div class="main-content">
             {% block content %}{% endblock %}
         </div>
-        <div class="yaml-content" id="yaml-content">
-            <h5>YAML Content</h5>
-            <div id="loading-indicator" class="spinner" style="display: none;"></div>
-            <pre><code id="yaml-code" class="language-yaml"></code></pre>
-        </div>
     </div>
-    <!-- https://code.jquery.com/jquery-3.6.0.min.js -->
+    <!-- jQuery and Bootstrap JS -->
     <script src="/static/js/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js -->
+    <!-- Prism.js for syntax highlighting -->
     <script src="/static/js/prism-1.23.0.min.js"></script>
     <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js -->
     <script src="/static/js/prism-yaml-1.23.0.min.js"></script>
-    <script src="/static/js/common.js?v=1.0"></script>
-    <script>
-        // Function to display alert notifications as a floating alert
-        function displayAlert(type, message) {
-            const alertContainer = document.createElement('div');
-            alertContainer.className = `alert alert-${type} alert-dismissible fade show floating-alert`;
-            alertContainer.setAttribute('role', 'alert');
-            alertContainer.innerHTML = `
-                ${message}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            `;
-            document.body.appendChild(alertContainer);
-        }
-
-        // Function to clear all alerts
-        function clearAlerts() {
-            document.querySelectorAll('.floating-alert').forEach(alert => alert.remove());
-        }
-    </script>
+    <!-- Common JS -->
+    <script src="/static/js/common.js?v=2.0"></script>
 </body>
 </html>

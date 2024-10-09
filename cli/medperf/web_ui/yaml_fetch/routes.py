@@ -1,25 +1,45 @@
+import os.path
 from enum import Enum
 from fastapi import APIRouter, HTTPException
 from medperf.entities.cube import Cube
 import requests
 import yaml
 
+from medperf.entities.dataset import Dataset
+
 router = APIRouter()
 
 class FieldsToFetch(Enum):
    mlcube_yaml = "git_mlcube_url"
    param_yaml = "git_parameters_url"
+   dataset_report_path = "report_path"
+
+class EntityToFetch(Enum):
+   mlcube = "mlcube"
+   dataset = "dataset"
 
 
 @router.get("/fetch-yaml")
-async def fetch_yaml(mlcube_uid: int, field_to_fetch: FieldsToFetch):
+async def fetch_yaml(entity: EntityToFetch,  entity_uid: int, field_to_fetch: FieldsToFetch):
     try:
-        mlcube = Cube.get(mlcube_uid)
-        url = getattr(mlcube, field_to_fetch.value)
-        response = requests.get(url)
-        response.raise_for_status()  # Check if the request was successful
-        content = response.text
+        entity_class = {
+            EntityToFetch.mlcube: Cube,
+            EntityToFetch.dataset: Dataset,
+        }[entity]
 
+        mlcube = entity_class.get(entity_uid)
+        yaml_uri = getattr(mlcube, field_to_fetch.value)
+        if yaml_uri.startswith("http"):
+            # some URL
+            response = requests.get(yaml_uri)
+            response.raise_for_status()  # Check if the request was successful
+            content = response.text
+        elif os.path.exists(yaml_uri):
+            # local file
+            with open(yaml_uri, "r") as file:
+                content = file.read()
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid YAML URL: {yaml_uri}")
         # Validate YAML content
         try:
             yaml.safe_load(content)

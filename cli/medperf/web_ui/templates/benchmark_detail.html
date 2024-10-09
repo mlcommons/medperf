@@ -6,7 +6,6 @@
 {% block title %}Benchmark Details{% endblock %}
 
 {% block detail_panel %}
-<div class="detail-panel">
     <h1 class="my-4">{{ entity.name }}</h1>
     <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
         <div class="card-body">
@@ -70,5 +69,4 @@
             {% endfor %}
         </div>
     </div>
-</div>
 {% endblock %}

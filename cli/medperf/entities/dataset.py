@@ -134,6 +134,13 @@ class Dataset(Entity, DeployableSchema):
         associations = [a for a in associations if a.dataset == dataset_uid]
         return associations
 
+    def read_report(self):
+        """Reads the report if it exists"""
+        if os.path.exists(self.report_path):
+            with open(self.report_path, "r") as f:
+                self.report = yaml.safe_load(f.read())
+        return self.report
+
     def display_dict(self):
         return {
             "UID": self.identifier,

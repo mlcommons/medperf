@@ -35,6 +35,7 @@ def datasets_ui(request: Request, mine_only: bool = False):
 @router.get("/ui/display/{dataset_id}", response_class=HTMLResponse)
 def dataset_detail_ui(request: Request, dataset_id: int):
     dataset = Dataset.get(dataset_id)
+    dataset.read_report()
 
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
 
