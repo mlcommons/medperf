@@ -11,7 +11,7 @@ cp ./project/be_Dockerfile ./project/Dockerfile
 if ${BUILD_BASE}; then
     git clone https://github.com/hasan7n/openfl.git
     cd openfl
-    git checkout 54f27c61c274f64af3d028f962f62392419cb67e
+    git checkout be_enable_partial_epochs
     docker build \
 	    --build-arg http_proxy="http://proxy-us.intel.com:912"   \
 	    --build-arg https_proxy="http://proxy-us.intel.com:912"  \
