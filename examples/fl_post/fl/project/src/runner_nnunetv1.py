@@ -33,7 +33,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 train_cutoff=np.inf,
+                 train_cutoff=3,
                  val_cutoff=np.inf,
                  nnunet_task=None,
                  config_path=None,
@@ -178,6 +178,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       task=self.data_loader.get_task_name(),
                                                       val_epoch=True,
                                                       train_epoch=True)
+
         # update amount of task completed
         self.task_completed['train'] = train_completed
         self.task_completed['locally_tuned_model_validation'] = val_completed
@@ -187,9 +188,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # 3. Prepare metrics 
         metrics = {'train_loss': this_ave_train_loss}
 
-        ######################################################################################################           
-        # TODO:  Provide train_completed to be incorporated into the collab weight computation
-        ###################################################################################################### 
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
   
 
@@ -255,9 +253,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
             metrics = {'val_eval': all_val_eval_metrics[-1]}
 
-        ######################################################################################################           
-        # TODO:  Provide val_completed to be incorporated into the collab weight computation
-        ###################################################################################################### 
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
 
 
@@ -273,10 +268,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         """
 
 
-    # TODO to support below, save train_completed and val_completed as class attributes
-    # WORKING HERE, for now turned off due to task_dependent default
-    
-    def get_train_data_size(self, task_dependent=False, task=None):
+    def get_train_data_size(self, task_dependent=False, task_name=None):
         """Get the number of training examples.
 
         It will be used for weighted averaging in aggregation. 
@@ -284,12 +276,31 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         allowing dynamic weighting by storing recent appropriate weights in class attributes.
 
         Returns:
-            int: The number of training examples.
+            float: The number of training examples, weighted by how much of the task got completed.
         """
         if not task_dependent:
             return self.data_loader.get_train_data_size()
-        elif not task:
-            raise ValueError(f"If using task dependent data size, must provide task.")
+        elif not task_name:
+            raise ValueError(f"If using task dependent data size, must provide task_name.")
         else:
-            # self.task_completed is a dictionary of task to amount completed as a float in [0,1]
-            return self.task_completed[task] * self.data_loader.get_train_data_size() 
+            # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
+            return self.task_completed[task_name] * self.data_loader.get_train_data_size()
+
+
+    def get_valid_data_size(self, task_dependent=False, task_name=None):
+        """Get the number of training examples.
+
+        It will be used for weighted averaging in aggregation. 
+        This overrides the parent class method,
+        allowing dynamic weighting by storing recent appropriate weights in class attributes.
+
+        Returns:
+            float: The number of training examples, weighted by how much of the task got completed.
+        """
+        if not task_dependent:
+            return self.data_loader.get_valid_data_size()
+        elif not task_name:
+            raise ValueError(f"If using task dependent data size, must provide task_name.")
+        else:
+            # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
+            return self.task_completed[task_name] * self.data_loader.get_valid_data_size()  
