@@ -54,7 +54,7 @@ def collaborator_pre_training_hook(
     # when evan runs, init_model_path, init_model_info_path should be None
     #                   plans_path should also be None (the returned thing will point to where it lives so that it will be synced with others)
 
-    print(f"Brandon DEBUG - postopp_pardir will be pointed to: {workspace_folder} which has data subfolder containing: {os.listdir(os.path.join(workspace_folder, 'data'))}")
+    # print(f"Brandon DEBUG - postopp_pardir will be pointed to: {workspace_folder} which has data subfolder containing: {os.listdir(os.path.join(workspace_folder, 'data'))}")
 
     nnunet_setup.main(postopp_pardir=workspace_folder,
                       three_digit_task_num=537, # FIXME: does this need to be set in any particular way?
