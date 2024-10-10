@@ -276,7 +276,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         allowing dynamic weighting by storing recent appropriate weights in class attributes.
 
         Returns:
-            float: The number of training examples, weighted by how much of the task got completed.
+            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
         """
         if not task_dependent:
             return self.data_loader.get_train_data_size()
@@ -284,7 +284,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             raise ValueError(f"If using task dependent data size, must provide task_name.")
         else:
             # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
-            return self.task_completed[task_name] * self.data_loader.get_train_data_size()
+            return int(np.ceil(self.task_completed[task_name] * self.data_loader.get_train_data_size()))
 
 
     def get_valid_data_size(self, task_dependent=False, task_name=None):
@@ -295,7 +295,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         allowing dynamic weighting by storing recent appropriate weights in class attributes.
 
         Returns:
-            float: The number of training examples, weighted by how much of the task got completed.
+            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
         """
         if not task_dependent:
             return self.data_loader.get_valid_data_size()
@@ -303,4 +303,4 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             raise ValueError(f"If using task dependent data size, must provide task_name.")
         else:
             # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
-            return self.task_completed[task_name] * self.data_loader.get_valid_data_size()  
+            return int(np.ceil(self.task_completed[task_name] * self.data_loader.get_valid_data_size()))  
