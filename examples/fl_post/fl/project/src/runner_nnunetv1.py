@@ -245,8 +245,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             metrics = {'val_eval': this_val_eval_metrics}
         else:
             checkpoint_dict = self.load_checkpoint()
-            # double check
-            compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'], tag="checkpoint VS fromOpenFL")
+            # double check uncomment below for testing
+            # compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'], tag="checkpoint VS fromOpenFL")
 
             all_tr_losses, \
                 all_val_losses, \

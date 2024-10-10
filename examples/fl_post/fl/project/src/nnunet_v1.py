@@ -239,12 +239,7 @@ def train_nnunet(TOTAL_max_num_epochs,
     trainer.max_num_epochs = current_epoch + epochs
     trainer.epoch = current_epoch
 
-    print(f"Brandon DEBUG - about to initialize trainer, currently t.max_num:{trainer.max_num_epochs}, t.epo:{trainer.epoch}")
-
-    # TODO: call validation separately
     trainer.initialize(not validation_only)
-
-    print(f"Brandon DEBUG - after initialize trainer, currently t.max_num:{trainer.max_num_epochs}, t.epo:{trainer.epoch}")
 
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
     # point is expected to be seen epochs number of times
@@ -276,8 +271,6 @@ def train_nnunet(TOTAL_max_num_epochs,
             else:
                 # new training without pretraine weights, do nothing
                 pass
-            print(f"Brandon DEBUG - Calling trainer.run_training, trainer epoch: {trainer.epoch}, trainer max_num_epochs:{trainer.max_num_epochs}")
-            print(f"Brandon DEBUG - NOTE: this is where I had just loaded checkpoint.")
             
             batches_applied_train, \
             batches_applied_val, \
