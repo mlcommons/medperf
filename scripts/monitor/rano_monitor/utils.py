@@ -261,27 +261,36 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
                 tar.add(brainscan, brainscan_target_path)
 
             # Add brain mask
-            brain_mask_filename = "brainMask_fused.nii.gz"
-            brain_mask_path = os.path.join(base_path, brain_mask_filename)
-            brain_mask_tar_path = os.path.join(tar_path, brain_mask_filename)
-            if os.path.exists(brain_mask_path):
-                tar.add(brain_mask_path, brain_mask_tar_path)
+            try:
+                brain_mask_filename = "brainMask_fused.nii.gz"
+                brain_mask_path = os.path.join(base_path, brain_mask_filename)
+                brain_mask_tar_path = os.path.join(tar_path, brain_mask_filename)
+                if os.path.exists(brain_mask_path):
+                    tar.add(brain_mask_path, brain_mask_tar_path)
+            except FileNotFoundError:
+                pass
 
             # Add raw scans
-            rawscan_path = os.path.join("review_cases", id, tp, "raw_scans")
-            for rawscan in rawscans:
-                rawscan_target_path = os.path.join(
-                    rawscan_path, os.path.basename(rawscan)
-                )
-                tar.add(rawscan, rawscan_target_path)
+            try:
+                rawscan_path = os.path.join("review_cases", id, tp, "raw_scans")
+                for rawscan in rawscans:
+                    rawscan_target_path = os.path.join(
+                        rawscan_path, os.path.basename(rawscan)
+                    )
+                    tar.add(rawscan, rawscan_target_path)
+            except FileNotFoundError:
+                pass
 
             # Add summary images
-            for file in os.listdir(base_path):
-                if not file.endswith(".png"):
-                    continue
-                img_path = os.path.join(base_path, file)
-                img_tar_path = os.path.join(tar_path, file)
-                tar.add(img_path, img_tar_path)
+            try:
+                for file in os.listdir(base_path):
+                    if not file.endswith(".png"):
+                        continue
+                    img_path = os.path.join(base_path, file)
+                    img_tar_path = os.path.join(tar_path, file)
+                    tar.add(img_path, img_tar_path)
+            except FileNotFoundError:
+                pass
 
 
 def get_tar_identified_masks(file):
