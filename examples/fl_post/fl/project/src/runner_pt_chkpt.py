@@ -270,7 +270,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
                     metrics[metric_name]
                 ) for metric_name in metrics}
 
-        if include_model:
+        if insert_model:
             # output model tensors (Doesn't include TensorKey)
             output_model_dict = self.get_tensor_dict(with_opt_vars=True)
             global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(logger=self.logger, 
