@@ -170,7 +170,11 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         val_completed, \
         this_ave_train_loss, \
         this_ave_val_loss, \
-        this_val_eval_metrics = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
+        this_val_eval_metrics, \
+        this_val_eval_metrics_C1, \
+        this_val_eval_metrics_C2,  
+        this_val_eval_metrics_C3, \
+        this_val_eval_metrics_C4 = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=self.train_cutoff,
@@ -221,7 +225,11 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             val_completed, \
             this_ave_train_loss, \
             this_ave_val_loss, \
-            this_val_eval_metrics = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
+            this_val_eval_metrics, \
+            this_val_eval_metrics_C1, \
+            this_val_eval_metrics_C2,  
+            this_val_eval_metrics_C3, \
+            this_val_eval_metrics_C4 = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                 epochs=1, 
                                                 current_epoch=current_epoch, 
                                                 train_cutoff=0,
@@ -240,7 +248,11 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
 
             
             # 3. Prepare metrics 
-            metrics = {'val_eval': this_val_eval_metrics}
+            metrics = {'val_eval': this_val_eval_metrics, 
+                       'val_eval_C1': this_val_eval_metrics_C1, 
+                       'val_eval_C2': this_val_eval_metrics_C2, 
+                       'val_eval_C3': this_val_eval_metrics_C3, 
+                       'val_eval_C4': this_val_eval_metrics_C4}
         else:
             checkpoint_dict = self.load_checkpoint()
             # double check uncomment below for testing
@@ -249,9 +261,17 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             all_tr_losses, \
                 all_val_losses, \
                 all_val_losses_tr_mode, \
-                all_val_eval_metrics = checkpoint_dict['plot_stuff']
+                all_val_eval_metrics, \
+                all_val_eval_metrics_C1, \
+                all_val_eval_metrics_C2,  
+                all_val_eval_metrics_C3, \
+                all_val_eval_metrics_C4 = checkpoint_dict['plot_stuff']
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
-            metrics = {'val_eval': all_val_eval_metrics[-1]}
+            metrics = {'val_eval': all_val_eval_metrics[-1], 
+                       'val_eval_C1': this_val_eval_metrics_C1[-1], 
+                       'val_eval_C2': this_val_eval_metrics_C2[-1], 
+                       'val_eval_C3': this_val_eval_metrics_C3[-1], 
+                       'val_eval_C4': this_val_eval_metrics_C4[-1]}
 
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=False)
 

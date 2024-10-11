@@ -58,6 +58,10 @@ tasks :
     kwargs :
       metrics     :
         - val_eval
+        - val_eval_C1
+        - val_eval_C2 
+        - val_eval_C3 
+        - val_eval_C4
       apply : global
   train:
     function : train
@@ -70,6 +74,10 @@ tasks :
     kwargs   :
       metrics     :
         - val_eval
+        - val_eval_C1
+        - val_eval_C2 
+        - val_eval_C3 
+        - val_eval_C4
       apply  : local
       from_checkpoint: true
 
