@@ -255,7 +255,9 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         return derived_opt_state_dict
 
 
-    def convert_results_to_tensorkeys(self, col_name, round_num, metrics):
+    def convert_results_to_tensorkeys(self, col_name, round_num, metrics, insert_model):
+        # insert_model determined whether or not to include the model in the return dictionaries
+        
         # 5. Convert to tensorkeys
 
         # output metric tensors (scalar)
@@ -268,11 +270,14 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
                     metrics[metric_name]
                 ) for metric_name in metrics}
 
-        # output model tensors (Doesn't include TensorKey)
-        output_model_dict = self.get_tensor_dict(with_opt_vars=True)
-        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(logger=self.logger, 
-                                                                             tensor_dict=output_model_dict,
-                                                                             **self.tensor_dict_split_fn_kwargs)
+        if include_model:
+            # output model tensors (Doesn't include TensorKey)
+            output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+            global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(logger=self.logger, 
+                                                                                 tensor_dict=output_model_dict,
+                                                                                 **self.tensor_dict_split_fn_kwargs)
+        else:
+            global_model_dict, local_model_dict = {}, {}
 
         # create global tensorkeys
         global_tensorkey_model_dict = {

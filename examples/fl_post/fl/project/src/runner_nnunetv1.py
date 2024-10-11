@@ -188,7 +188,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # 3. Prepare metrics 
         metrics = {'train_loss': this_ave_train_loss}
 
-        return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
+        return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=True)
   
 
     def validate(self, col_name, round_num, input_tensor_dict, from_checkpoint=False, **kwargs):
@@ -253,7 +253,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
             metrics = {'val_eval': all_val_eval_metrics[-1]}
 
-        return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
+        return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=False)
 
 
     def load_metrics(self, filepath):
