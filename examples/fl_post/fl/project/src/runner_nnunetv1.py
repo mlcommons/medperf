@@ -227,7 +227,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             this_ave_val_loss, \
             this_val_eval_metrics, \
             this_val_eval_metrics_C1, \
-            this_val_eval_metrics_C2,  
+            this_val_eval_metrics_C2, \
             this_val_eval_metrics_C3, \
             this_val_eval_metrics_C4 = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                 epochs=1, 
@@ -263,7 +263,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                 all_val_losses_tr_mode, \
                 all_val_eval_metrics, \
                 all_val_eval_metrics_C1, \
-                all_val_eval_metrics_C2,  
+                all_val_eval_metrics_C2, \
                 all_val_eval_metrics_C3, \
                 all_val_eval_metrics_C4 = checkpoint_dict['plot_stuff']
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
