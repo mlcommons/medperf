@@ -273,10 +273,14 @@ def train_nnunet(TOTAL_max_num_epochs,
                 pass
             
             batches_applied_train, \
-            batches_applied_val, \
-            this_ave_train_loss, \
-            this_ave_val_loss, \
-            this_val_eval_metrics = trainer.run_training(train_cutoff=train_cutoff, 
+                 batches_applied_val, \
+                 this_ave_train_loss, \
+                 this_ave_val_loss, \
+                 this_val_eval_metrics, \
+                 this_val_eval_metrics_C1, \
+                 this_val_eval_metrics_C2, \
+                 this_val_eval_metrics_C3, \
+                 this_val_eval_metrics_C4 = trainer.run_training(train_cutoff=train_cutoff, 
                                                          val_cutoff=val_cutoff, 
                                                          val_epoch=val_epoch,
                                                          train_epoch=train_epoch)
@@ -290,6 +294,14 @@ def train_nnunet(TOTAL_max_num_epochs,
         train_completed = batches_applied_train / float(num_train_batches_per_epoch)
         val_completed = batches_applied_val / float(num_val_batches_per_epoch)
         
-        return train_completed, val_completed, this_ave_train_loss, this_ave_val_loss, this_val_eval_metrics
+        return batches_applied_train, \
+                 batches_applied_val, \
+                 this_ave_train_loss, \
+                 this_ave_val_loss, \
+                 this_val_eval_metrics, \
+                 this_val_eval_metrics_C1, \
+                 this_val_eval_metrics_C2, \
+                 this_val_eval_metrics_C3, \
+                 this_val_eval_metrics_C4
 
         
