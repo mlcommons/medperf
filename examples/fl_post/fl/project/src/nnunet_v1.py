@@ -294,8 +294,8 @@ def train_nnunet(TOTAL_max_num_epochs,
         train_completed = batches_applied_train / float(num_train_batches_per_epoch)
         val_completed = batches_applied_val / float(num_val_batches_per_epoch)
         
-        return batches_applied_train, \
-                 batches_applied_val, \
+        return train_completed, \
+                 val_completed, \
                  this_ave_train_loss, \
                  this_ave_val_loss, \
                  this_val_eval_metrics, \
