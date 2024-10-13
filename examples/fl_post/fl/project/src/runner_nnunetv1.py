@@ -266,10 +266,10 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                 all_val_eval_metrics_C4 = checkpoint_dict['plot_stuff']
             # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
             metrics = {'val_eval': all_val_eval_metrics[-1], 
-                       'val_eval_C1': this_val_eval_metrics_C1[-1], 
-                       'val_eval_C2': this_val_eval_metrics_C2[-1], 
-                       'val_eval_C3': this_val_eval_metrics_C3[-1], 
-                       'val_eval_C4': this_val_eval_metrics_C4[-1]}
+                       'val_eval_C1': all_val_eval_metrics_C1[-1], 
+                       'val_eval_C2': all_val_eval_metrics_C2[-1], 
+                       'val_eval_C3': all_val_eval_metrics_C3[-1], 
+                       'val_eval_C4': all_val_eval_metrics_C4[-1]}
 
         return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=False)
 
