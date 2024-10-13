@@ -164,15 +164,13 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # FIXME: we need to understand how to use round_num instead of current_epoch
         #   this will matter in straggler handling cases
         # TODO: Should we put this in a separate process?
-        # TODO: Currently allowing at most 1 second of valiation over one batch in order to avoid NNUnet code throwing exception due 
-        #        to empty val results
         train_completed, \
         val_completed, \
         this_ave_train_loss, \
         this_ave_val_loss, \
         this_val_eval_metrics, \
         this_val_eval_metrics_C1, \
-        this_val_eval_metrics_C2,  
+        this_val_eval_metrics_C2, \
         this_val_eval_metrics_C3, \
         this_val_eval_metrics_C4 = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
                                                       epochs=epochs, 
