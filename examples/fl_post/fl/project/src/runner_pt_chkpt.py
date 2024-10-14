@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Contributors: Micah Sheller, Patrick Foley, Brandon Edwards  - DELETEME?
+Contributors: Micah Sheller, Patrick Foley, Brandon Edwards
 
 """
 # TODO: Clean up imports
