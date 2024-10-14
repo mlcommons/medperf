@@ -1,7 +1,7 @@
 import json
 import queue
 from contextlib import contextmanager
-from typing import Callable
+from typing import Callable, Generator
 
 import typer
 
@@ -29,7 +29,7 @@ class WebUIProxy(CLI):
         finally:
             self.stop_proxy()
 
-    def get_message_generator(self):
+    def get_message_generator(self) -> Generator[dict, None, None]:
         while True:
             msg = self.message_queue.get()  # Block until a message is available
             if msg is None:
@@ -39,6 +39,7 @@ class WebUIProxy(CLI):
     @property
     def text(self):
         return self.spinner.text
+
     @text.setter
     def text(self, msg: str = ""):
         """Displays a message that overwrites previous messages if they
