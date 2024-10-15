@@ -10,7 +10,7 @@ class MlCube(models.Model):
         ("OPERATION", "OPERATION"),
     )
 
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=64, unique=True)
     git_mlcube_url = models.CharField(max_length=256)
     mlcube_hash = models.CharField(max_length=100)
     git_parameters_url = models.CharField(max_length=256, blank=True)
