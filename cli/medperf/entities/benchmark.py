@@ -1,7 +1,8 @@
 from typing import List, Optional
 from pydantic import HttpUrl, Field
 
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
@@ -36,7 +37,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
     @staticmethod
     def get_storage_path():
-        return config.benchmarks_folder
+        return settings.benchmarks_folder
 
     @staticmethod
     def get_comms_retriever():
@@ -44,7 +45,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
     @staticmethod
     def get_metadata_filename():
-        return config.benchmarks_filename
+        return settings.benchmarks_filename
 
     @staticmethod
     def get_comms_uploader():

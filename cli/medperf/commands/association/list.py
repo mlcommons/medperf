@@ -1,6 +1,6 @@
 from tabulate import tabulate
 
-from medperf import config
+from medperf.config_management import config
 
 
 class ListAssociations:

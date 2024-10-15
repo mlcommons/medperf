@@ -1,7 +1,7 @@
 import os
 from medperf.utils import get_file_hash
 import pytest
-import medperf.config as config
+from medperf import settings
 from medperf.comms.entity_resources import resources
 import yaml
 
@@ -28,12 +28,12 @@ class TestGetCubeImage:
         # Arrange
         cube_path = "cube/1"
         image_name = "some_name"
-        cube_yaml_path = os.path.join(cube_path, config.cube_filename)
+        cube_yaml_path = os.path.join(cube_path, settings.cube_filename)
         fs.create_file(
             cube_yaml_path, contents=yaml.dump({"singularity": {"image": image_name}})
         )
-        exp_file = os.path.join(cube_path, config.image_path, image_name)
-        os.makedirs(config.images_folder, exist_ok=True)
+        exp_file = os.path.join(cube_path, settings.image_path, image_name)
+        os.makedirs(settings.images_folder, exist_ok=True)
 
         # Act
         resources.get_cube_image(url, cube_path)
@@ -50,11 +50,11 @@ class TestGetCubeImage:
         spy = mocker.spy(resources, "download_resource")
         cube_path = "cube/1"
         image_name = "some_name"
-        cube_yaml_path = os.path.join(cube_path, config.cube_filename)
+        cube_yaml_path = os.path.join(cube_path, settings.cube_filename)
         fs.create_file(
             cube_yaml_path, contents=yaml.dump({"singularity": {"image": image_name}})
         )
-        img_path = os.path.join(config.images_folder, "hash")
+        img_path = os.path.join(settings.images_folder, "hash")
         fs.create_file(img_path, contents="img")
 
         # Act
@@ -74,7 +74,7 @@ class TestGetAdditionalFiles:
     ):
         # Arrange
         cube_path = "cube/1"
-        additional_files_folder = os.path.join(cube_path, config.additional_path)
+        additional_files_folder = os.path.join(cube_path, settings.additional_path)
         fs.create_dir(additional_files_folder)
         spy = mocker.spy(resources, "download_resource")
         exp_hash = resources.get_cube_additional(url, cube_path)
@@ -90,7 +90,7 @@ class TestGetAdditionalFiles:
     ):
         # Arrange
         cube_path = "cube/1"
-        additional_files_folder = os.path.join(cube_path, config.additional_path)
+        additional_files_folder = os.path.join(cube_path, settings.additional_path)
         fs.create_dir(additional_files_folder)
         spy = mocker.spy(resources, "download_resource")
         resources.get_cube_additional(url, cube_path)
@@ -106,11 +106,11 @@ class TestGetAdditionalFiles:
     ):  # a test for existing installation before this feature
         # Arrange
         cube_path = "cube/1"
-        additional_files_folder = os.path.join(cube_path, config.additional_path)
+        additional_files_folder = os.path.join(cube_path, settings.additional_path)
         fs.create_dir(additional_files_folder)
         spy = mocker.spy(resources, "download_resource")
         exp_hash = resources.get_cube_additional(url, cube_path)
-        hash_cache_file = os.path.join(cube_path, config.mlcube_cache_file)
+        hash_cache_file = os.path.join(cube_path, settings.mlcube_cache_file)
         os.remove(hash_cache_file)
 
         # Act

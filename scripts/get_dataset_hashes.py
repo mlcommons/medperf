@@ -2,7 +2,7 @@ import hashlib
 import os
 import yaml
 
-from medperf import config
+from medperf import settings
 from medperf.init import initialize
 from typer import Option
 
@@ -36,7 +36,7 @@ def main(
     output_file: str = Option("dataset_hashes.yaml", "-f", "--file"),
 ):
     initialize()
-    dset_path = os.path.join(config.datasets_folder, dataset_uid)
+    dset_path = os.path.join(settings.datasets_folder, dataset_uid)
 
     # Get hashes of tree
     hash_dict = generate_hash_dict(dset_path)

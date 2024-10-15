@@ -4,7 +4,7 @@ wrapped the library's `JwksFetcher` to cache keys in the filesystem storage, and
 library's signature verifier to use this new `JwksFetcher`"""
 
 from typing import Any
-from medperf import config
+from medperf import settings
 import os
 import json
 from auth0.authentication.token_verifier import (
@@ -17,7 +17,7 @@ from auth0.authentication.token_verifier import (
 class JwksFetcherWithDiskCache(JwksFetcher):
     def _init_cache(self, cache_ttl: int) -> None:
         super()._init_cache(cache_ttl)
-        jwks_file = config.auth_jwks_file
+        jwks_file = settings.auth_jwks_file
         if not os.path.exists(jwks_file):
             return
         with open(jwks_file) as f:
@@ -28,7 +28,7 @@ class JwksFetcherWithDiskCache(JwksFetcher):
     def _cache_jwks(self, jwks: dict[str, Any]) -> None:
         super()._cache_jwks(jwks)
         data = {"cache_date": self._cache_date, "jwks": jwks}
-        jwks_file = config.auth_jwks_file
+        jwks_file = settings.auth_jwks_file
         with open(jwks_file, "w") as f:
             json.dump(data, f)
 
@@ -46,11 +46,11 @@ class AsymmetricSignatureVerifierWithDiskCache(AsymmetricSignatureVerifier):
 
 def verify_token(token):
     signature_verifier = AsymmetricSignatureVerifierWithDiskCache(
-        config.auth_jwks_url, cache_ttl=config.auth_jwks_cache_ttl
+        settings.auth_jwks_url, cache_ttl=settings.auth_jwks_cache_ttl
     )
     token_verifier = TokenVerifier(
         signature_verifier=signature_verifier,
-        issuer=config.auth_idtoken_issuer,
-        audience=config.auth_client_id,
+        issuer=settings.auth_idtoken_issuer,
+        audience=settings.auth_client_id,
     )
     return token_verifier.verify(token)

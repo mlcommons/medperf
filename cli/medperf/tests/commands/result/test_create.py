@@ -1,6 +1,6 @@
 import os
 from unittest.mock import ANY, call
-from medperf import config
+from medperf import settings
 from medperf.exceptions import ExecutionError, InvalidArgumentError, InvalidEntityError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.cube import TestCube
@@ -335,9 +335,9 @@ class TestDefaultSetup:
         dset_uid = 2
         bmk_uid = 1
         expected_file = os.path.join(
-            config.results_folder,
+            settings.results_folder,
             f"b{bmk_uid}m{model_uid}d{dset_uid}",
-            config.results_info_file,
+            settings.results_info_file,
         )
         # Act
         BenchmarkExecution.run(bmk_uid, dset_uid, models_uids=[model_uid])

@@ -15,7 +15,8 @@ from medperf.utils import (
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 
@@ -48,7 +49,7 @@ class Cube(Entity, DeployableSchema):
 
     @staticmethod
     def get_storage_path():
-        return config.cubes_folder
+        return settings.cubes_folder
 
     @staticmethod
     def get_comms_retriever():
@@ -56,7 +57,7 @@ class Cube(Entity, DeployableSchema):
 
     @staticmethod
     def get_metadata_filename():
-        return config.cube_metadata_filename
+        return settings.cube_metadata_filename
 
     @staticmethod
     def get_comms_uploader():
@@ -70,10 +71,10 @@ class Cube(Entity, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.cube_path = os.path.join(self.path, config.cube_filename)
+        self.cube_path = os.path.join(self.path, settings.cube_filename)
         self.params_path = None
         if self.git_parameters_url:
-            self.params_path = os.path.join(self.path, config.params_filename)
+            self.params_path = os.path.join(self.path, settings.params_filename)
 
     @property
     def local_id(self):
@@ -144,15 +145,15 @@ class Cube(Entity, DeployableSchema):
             _, local_hash = resources.get_cube_image(url, self.path, tarball_hash)
             self.image_tarball_hash = local_hash
         else:
-            if config.platform == "docker":
+            if settings.platform == "docker":
                 # For docker, image should be pulled before calculating its hash
                 self._get_image_from_registry()
                 self._set_image_hash_from_registry()
-            elif config.platform == "singularity":
+            elif settings.platform == "singularity":
                 # For singularity, we need the hash first before trying to convert
                 self._set_image_hash_from_registry()
 
-                image_folder = os.path.join(config.cubes_folder, config.image_path)
+                image_folder = os.path.join(settings.cubes_folder, settings.image_path)
                 if os.path.exists(image_folder):
                     for file in os.listdir(image_folder):
                         if file == self._converted_singularity_image_name:
@@ -172,10 +173,10 @@ class Cube(Entity, DeployableSchema):
         # Retrieve image hash from MLCube
         logging.debug(f"Retrieving {self.id} image hash")
         tmp_out_yaml = generate_tmp_path()
-        cmd = f"mlcube --log-level {config.loglevel} inspect --mlcube={self.cube_path} --format=yaml"
-        cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
+        cmd = f"mlcube --log-level {settings.loglevel} inspect --mlcube={self.cube_path} --format=yaml"
+        cmd += f" --platform={settings.platform} --output-file {tmp_out_yaml}"
         logging.info(f"Running MLCube command: {cmd}")
-        with spawn_and_kill(cmd, timeout=config.mlcube_inspect_timeout) as proc_wrapper:
+        with spawn_and_kill(cmd, timeout=settings.mlcube_inspect_timeout) as proc_wrapper:
             proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
         if proc.exitstatus != 0:
@@ -193,12 +194,12 @@ class Cube(Entity, DeployableSchema):
     def _get_image_from_registry(self):
         # Retrieve image from image registry
         logging.debug(f"Retrieving {self.id} image")
-        cmd = f"mlcube --log-level {config.loglevel} configure --mlcube={self.cube_path} --platform={config.platform}"
-        if config.platform == "singularity":
+        cmd = f"mlcube --log-level {settings.loglevel} configure --mlcube={self.cube_path} --platform={settings.platform}"
+        if settings.platform == "singularity":
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
         logging.info(f"Running MLCube command: {cmd}")
         with spawn_and_kill(
-            cmd, timeout=config.mlcube_configure_timeout
+            cmd, timeout=settings.mlcube_configure_timeout
         ) as proc_wrapper:
             proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
@@ -247,21 +248,21 @@ class Cube(Entity, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'
-        if config.gpus is not None:
-            cmd += f" --gpus={config.gpus}"
+        cmd = f"mlcube --log-level {settings.loglevel} run"
+        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={settings.platform} --network=none'
+        if settings.gpus is not None:
+            cmd += f" --gpus={settings.gpus}"
         if read_protected_input:
             cmd += " --mount=ro"
         for k, v in kwargs.items():
             cmd_arg = f'{k}="{v}"'
             cmd = " ".join([cmd, cmd_arg])
 
-        container_loglevel = config.container_loglevel
+        container_loglevel = settings.container_loglevel
 
         # TODO: we should override run args instead of what we are doing below
         #       we shouldn't allow arbitrary run args unless our client allows it
-        if config.platform == "docker":
+        if settings.platform == "docker":
             # use current user
             cpu_args = self.get_config("docker.cpu_args") or ""
             gpu_args = self.get_config("docker.gpu_args") or ""
@@ -272,7 +273,7 @@ class Cube(Entity, DeployableSchema):
 
             if container_loglevel:
                 cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
-        elif config.platform == "singularity":
+        elif settings.platform == "singularity":
             # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
             run_args = self.get_config("singularity.run_args") or ""
             run_args = " ".join([run_args, "-eC"]).strip()

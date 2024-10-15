@@ -1,7 +1,7 @@
 import os
 import pytest
 
-import medperf.config as config
+from medperf import settings
 from medperf.tests.mocks.cube import TestCube
 from medperf.commands.mlcube.submit import SubmitCube
 
@@ -25,7 +25,7 @@ def test_submit_prepares_tmp_path_for_cleanup():
     submission = SubmitCube(cube.todict())
 
     # Assert
-    assert submission.cube.path in config.tmp_paths
+    assert submission.cube.path in settings.tmp_paths
 
 
 def test_run_runs_expected_flow(mocker, comms, ui, cube):
@@ -57,8 +57,8 @@ def test_to_permanent_path_renames_correctly(mocker, comms, ui, cube, uid):
     submission.cube = cube
     spy = mocker.patch("os.rename")
     mocker.patch("os.path.exists", return_value=False)
-    old_path = os.path.join(config.cubes_folder, cube.local_id)
-    new_path = os.path.join(config.cubes_folder, str(uid))
+    old_path = os.path.join(settings.cubes_folder, cube.local_id)
+    new_path = os.path.join(settings.cubes_folder, str(uid))
     # Act
     submission.to_permanent_path({**cube.todict(), "id": uid})
 

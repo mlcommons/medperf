@@ -8,7 +8,7 @@ from tabulate import tabulate
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-import medperf.config as config
+from medperf.config_management import config
 from medperf.exceptions import (
     InvalidArgumentError,
     ExecutionError,

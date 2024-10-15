@@ -4,7 +4,7 @@ import logging
 from logging import handlers
 from .filters.redacting_filter import RedactingFilter
 from .formatters.newline_formatter import NewLineFormatter
-from medperf import config
+from medperf import settings
 
 
 def setup_logging(log_file: str, loglevel: str):
@@ -13,7 +13,7 @@ def setup_logging(log_file: str, loglevel: str):
     os.makedirs(log_folder, exist_ok=True)
 
     log_fmt = "%(asctime)s | %(module)s.%(funcName)s | %(levelname)s: %(message)s"
-    handler = handlers.RotatingFileHandler(log_file, backupCount=config.logs_backup_count)
+    handler = handlers.RotatingFileHandler(log_file, backupCount=settings.logs_backup_count)
     handler.setFormatter(NewLineFormatter(log_fmt))
     logging.basicConfig(
         level=loglevel.upper(),

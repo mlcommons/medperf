@@ -2,7 +2,7 @@ from os.path import abspath
 from pathlib import Path
 from cookiecutter.main import cookiecutter
 
-from medperf import config
+from medperf import settings
 from medperf.exceptions import InvalidArgumentError
 
 
@@ -16,7 +16,7 @@ class CreateCube:
             output_path (str, Optional): The desired path for the MLCube. Defaults to current path.
             config_file (str, Optional): Path to a JSON configuration file. If not passed, user is prompted.
         """
-        template_dirs = config.templates
+        template_dirs = settings.templates
         if template_name not in template_dirs:
             templates = list(template_dirs.keys())
             raise InvalidArgumentError(
