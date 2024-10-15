@@ -28,6 +28,9 @@
                 <p class="card-text">
                     <strong>Data Preparation MLCube:</strong> {{ mlcube_macros.mlcube_link(prep_cube) }}
                 </p>
+                {% if entity.generated_metadata %}
+                <p class="card-text"><strong>Statistics:</strong> <a href="#" class="text-primary yaml-link" data-id="{{ entity.id }}" data-field="statistics_path" data-entity="dataset" >View Statistics</a></p>
+                {% endif %}
                 {% if entity.report %}
                 <p class="card-text"><strong>Report:</strong> <a href="#" class="text-primary yaml-link" data-id="{{ entity.id }}" data-field="report_path" data-entity="dataset" >View Report</a></p>
                 {% endif %}
@@ -92,34 +95,39 @@
 </div>
 
 <!-- Display associated models with improved layout and dynamic actions -->
-<div class="card mb-3">
-    <div class="card-body">
-        <h5>Associated Models</h5>
-        {% for assoc in benchmark_associations %}
-            <h6>
-                Benchmark: <a href="/benchmarks/ui/display/{{ benchmarks[assoc.benchmark].id }}">
+{% for assoc in benchmark_associations %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                Benchmark: <a href="/benchmarks/ui/display/{{ benchmarks[assoc.benchmark].id }}" class="text-white">
                     <strong>{{ benchmarks[assoc.benchmark].name }}</strong>
                 </a>
-            </h6>
-            <ul class="list-group mb-3">
-                {% for model in benchmark_models[assoc.benchmark] %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <!-- Display model details using mlcube_macros -->
-                            {{ mlcube_macros.mlcube_link(model) }}
-                        </div>
-                        <div id="status-container-{{ assoc.benchmark }}-{{ model.id }}" class="d-flex align-items-center">
-                            <button class="btn btn-primary run-model-btn" data-benchmark-id="{{ assoc.benchmark }}"
-                                    data-model-id="{{ model.id }}" id="run-btn-{{ assoc.benchmark }}-{{ model.id }}">
-                                ▶️ Run
-                            </button>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endfor %}
+            </h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="benchmark-section mb-4">
+                <ul class="list-group">
+                    {% for model in benchmark_models[assoc.benchmark] %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <!-- Left section: Model info -->
+                            <div class="model-info d-flex flex-column">
+                                {{ mlcube_macros.mlcube_link(model) }}
+                            </div>
+
+                            <!-- Right section: Status or Run button -->
+                            <div id="status-container-{{ assoc.benchmark }}-{{ model.id }}" class="d-flex align-items-center">
+                                <button class="btn btn-primary run-model-btn" data-benchmark-id="{{ assoc.benchmark }}"
+                                        data-model-id="{{ model.id }}" id="run-btn-{{ assoc.benchmark }}-{{ model.id }}">
+                                    ▶️ Run
+                                </button>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
-</div>
+{% endfor %}
 
 
 <!-- Set Operational Modal -->
@@ -242,13 +250,13 @@
 
                 let statusLink = '';
                 if (statusData.status === 'done') {
-                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-success">✅ Done</a>`;
+                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-success">✅ View results</a>`;
                     clearInterval(intervalId);  // Stop polling
                 } else if (statusData.status === 'failed') {
                     statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-danger">❌ Failed</a>`;
                     clearInterval(intervalId);  // Stop polling
                 } else if (statusData.status === 'pending') {
-                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-info">⏳ Pending...</a>`;
+                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-info"><i class="spinner-border spinner-border-sm"></i> Pending...</a>`;
                 }
 
                 if (statusLink) {
@@ -264,6 +272,7 @@
             const benchmarkId = btn.getAttribute('data-benchmark-id');
             const modelId = btn.getAttribute('data-model-id');
             const datasetId = {{ entity.id }};
+            const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
             const statusContainer = document.getElementById(`status-container-${benchmarkId}-${modelId}`);
 
             // Polling to update status
@@ -276,7 +285,7 @@
                         method: 'POST'
                     });
                     // Replace the run button with a pending status immediately
-                    statusContainer.innerHTML = `<a href="#" class="btn btn-info">⏳ Pending...</a>`;
+                    statusContainer.innerHTML = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-info"><i class="spinner-border spinner-border-sm"></i> Pending...</a>`;
                     const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, statusContainer, intervalId), 1000);
                 } catch (error) {
                     console.error('Error running model:', error);

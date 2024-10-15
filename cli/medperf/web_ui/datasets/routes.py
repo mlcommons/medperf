@@ -36,6 +36,7 @@ def datasets_ui(request: Request, mine_only: bool = False):
 def dataset_detail_ui(request: Request, dataset_id: int):
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
+    dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
 
     benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)

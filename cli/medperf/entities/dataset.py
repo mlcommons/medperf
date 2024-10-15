@@ -141,6 +141,13 @@ class Dataset(Entity, DeployableSchema):
                 self.report = yaml.safe_load(f.read())
         return self.report
 
+    def read_statistics(self):
+        """Reads the report if it exists"""
+        if os.path.exists(self.statistics_path):
+            with open(self.statistics_path, "r") as f:
+                self.generated_metadata = yaml.safe_load(f.read())
+        return self.generated_metadata
+
     def display_dict(self):
         return {
             "UID": self.identifier,

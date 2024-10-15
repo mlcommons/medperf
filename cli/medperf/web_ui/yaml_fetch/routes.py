@@ -14,6 +14,7 @@ class FieldsToFetch(Enum):
     mlcube_yaml = "git_mlcube_url"
     param_yaml = "git_parameters_url"
     dataset_report_path = "report_path"
+    dataset_statistics_path = "statistics_path"
 
 
 class EntityToFetch(Enum):
