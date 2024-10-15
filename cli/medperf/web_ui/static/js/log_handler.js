@@ -30,6 +30,9 @@ function addNewStage(stageText, stagesList) {
 
 // Marks a stage as complete by replacing the spinner with a checkmark
 function markStageAsComplete(stageElement) {
+    if (!stageElement) {
+        return;
+    }
     const spinner = stageElement.querySelector('.spinner-border');
     if (spinner) {
         spinner.classList.remove('spinner-border', 'spinner-border-sm');

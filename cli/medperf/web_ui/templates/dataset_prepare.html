@@ -63,6 +63,7 @@
                     reader.read().then(({ done, value }) => {
                         if (done) {
                             // Preparation finished, move to step 2
+                            markStageAsComplete(currentStageElement);
                             checkForReportApproval();
                             return;
                         }

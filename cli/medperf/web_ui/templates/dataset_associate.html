@@ -72,6 +72,7 @@
                 reader.read().then(({ done, value }) => {
                     if (done) {
                         // Association preparation finished, move to results display
+                        markStageAsComplete(currentStageElement);
                         fetchCompatibilityResults();
                         return;
                     }
