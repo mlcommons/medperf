@@ -6,12 +6,14 @@ from threading import Thread
 from typing import Optional, Dict, List
 from queue import Queue
 from fastapi import APIRouter, HTTPException
-from starlette.responses import StreamingResponse
+from starlette.requests import Request
+from starlette.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 
 from medperf.commands.benchmark.benchmark import BenchmarkExecution
 from medperf.entities.result import Result
 from medperf.exceptions import InvalidArgumentError
+from medperf.web_ui.common import templates
 
 router = APIRouter()
 
@@ -31,7 +33,7 @@ class RunDraft(BaseModel):
     result_id: str  # formatted as b{benchmark_id}m{model_id}d{dataset_id}
     status: DraftStatus
     result: Optional[Result]
-    logs: Optional[List[dict]]
+    logs: Optional[List[str]]
 
 
 class RunStatus(BaseModel):
@@ -42,6 +44,27 @@ class RunStatus(BaseModel):
 
 _drafts: Dict[str, RunDraft] = {}
 _task_queue: Queue = Queue()
+
+@router.get("/run_draft/ui/{result_id}", response_class=HTMLResponse)
+async def run_draft_ui(result_id: str, request: Request):
+    # Fetch relevant details like dataset_id, benchmark_id, and model_id from result_id
+    # result_id is in the format "b{benchmark_id}m{model_id}d{dataset_id}"
+    parts = result_id[1:].split('m')
+    benchmark_id = int(parts[0])
+    dataset_part = parts[1].split('d')
+    model_id = int(dataset_part[0])
+    dataset_id = int(dataset_part[1])
+
+    return templates.TemplateResponse(
+        "dataset_run.html",
+        {
+            "request": request,
+            "dataset_id": dataset_id,
+            "benchmark_id": benchmark_id,
+            "model_id": model_id,
+            "result_id": result_id,
+        }
+    )
 
 
 # Worker thread to process tasks in the background
@@ -159,7 +182,7 @@ async def get_run_logs(dataset_id: int, benchmark_id: int, model_id: int):
         while True:
             await aio.sleep(1)  # Simulate real-time log fetching
             while line_id < len(draft.logs):
-                yield json.dumps(draft.logs[line_id]) + "\n"
+                yield draft.logs[line_id] + "\n"
                 line_id += 1
             if draft.status != DraftStatus.pending and line_id >= len(draft.logs):
                 break

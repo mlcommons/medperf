@@ -36,23 +36,31 @@ def datasets_ui(request: Request, mine_only: bool = False):
 def dataset_detail_ui(request: Request, dataset_id: int):
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
-
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
 
     benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
     benchmark_associations = sort_associations_display(benchmark_associations)
 
+    # Fetch models associated with each benchmark
+    benchmark_models = {}
+    for assoc in benchmark_associations:
+        models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
+        benchmark_models[assoc.benchmark] = models_uids  # Only pass the model IDs
+
     # Get all relevant benchmarks for association
     benchmarks = Benchmark.all()
     valid_benchmarks = {b.id: b for b in benchmarks if b.data_preparation_mlcube == dataset.data_preparation_mlcube}
 
-    return templates.TemplateResponse("dataset_detail.html",
-                                      {
-                                          "request": request,
-                                          "entity": dataset,
-                                          "entity_name": dataset.name,
-                                          "prep_cube": prep_cube,
-                                          "benchmark_associations": benchmark_associations,
-                                          "benchmarks": valid_benchmarks,
-                                      }
+    return templates.TemplateResponse(
+        "dataset_detail.html",
+        {
+            "request": request,
+            "entity": dataset,
+            "entity_name": dataset.name,
+            "prep_cube": prep_cube,
+            "benchmark_associations": benchmark_associations,
+            "benchmarks": valid_benchmarks,
+            "benchmark_models": benchmark_models,  # Pass associated models without status
+        }
     )
+

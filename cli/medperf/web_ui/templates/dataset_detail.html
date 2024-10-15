@@ -90,11 +90,21 @@
         </div>
     </div>
 </div>
-<div class="associations-panel">
-    <div class="associations-column">
-        <h2 class="my-4">Associated Benchmarks</h2>
+<!-- Display associated models without status -->
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Associated Models</h5>
         {% for assoc in benchmark_associations %}
-            {{ macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmarks") }}
+            <h6>Benchmark: {{ benchmarks[assoc.benchmark].name }}</h6>
+            <ul>
+                {% for model_uid in benchmark_models[assoc.benchmark] %}
+                    <li>
+                        Model ID: {{ model_uid }}
+                        <span class="model-status" id="status-{{ assoc.benchmark }}-{{ model_uid }}">🔄 Fetching status...</span>
+                        <button class="btn btn-primary run-model-btn" data-benchmark-id="{{ assoc.benchmark }}" data-model-id="{{ model_uid }}">▶️ Run</button>
+                    </li>
+                {% endfor %}
+            </ul>
         {% endfor %}
     </div>
 </div>
@@ -209,6 +219,56 @@
 
             // Close the modal
             $('#setOperationalModal').modal('hide');
+        });
+
+        const fetchStatus = async (datasetId, benchmarkId, modelId, element, intervalId) => {
+            try {
+                const response = await fetch(`/datasets/run_draft/status?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`);
+                const statusData = await response.json();
+                const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
+
+                if (statusData.status === 'done') {
+                    element.innerHTML = `<a href="/datasets/run_draft/ui/${resultId}" class="text-success">✅ Done</a>`;
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'failed') {
+                    element.innerHTML = `<a href="/datasets/run_draft/ui/${resultId}" class="text-danger">❌ Failed</a>`;
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'pending') {
+                    element.innerHTML = `<a href="/datasets/run_draft/ui/${resultId}" class="text-info">⏳ Pending...</a>`;
+                } else {
+                    element.innerHTML = `<span class="text-muted">🔄 Not started</span>`;
+                    clearInterval(intervalId);  // Stop polling if status is N/A
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        };
+
+        // Iterate over all model statuses and fetch them
+        document.querySelectorAll('.model-status').forEach(statusElement => {
+            const [benchmarkId, modelId] = statusElement.id.split('-').slice(1);
+            const datasetId = {{ entity.id }};
+            const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, statusElement, intervalId), 1000);  // Poll status every second
+        });
+
+        // Handle the "Run" button click
+        document.querySelectorAll('.run-model-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                const modelId = this.getAttribute('data-model-id');
+                const datasetId = {{ entity.id }};
+                const statusElement = document.getElementById(`status-${benchmarkId}-${modelId}`);
+
+                try {
+                    await fetch(`/datasets/run_draft/run?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`, {
+                        method: 'POST'
+                    });
+                    statusElement.innerHTML = `<span class="text-info">⏳ Pending...</span>`;
+                    const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, statusElement, intervalId), 1000);  // Poll status every second
+                } catch (error) {
+                    console.error('Error running model:', error);
+                }
+            });
         });
     });
 </script>

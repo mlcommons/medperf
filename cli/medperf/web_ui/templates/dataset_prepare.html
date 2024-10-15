@@ -43,6 +43,7 @@
     <button class="btn btn-success mt-4" id="complete-btn" style="display:none;">Successfully prepared, go back</button>
 </div>
 
+<script src="/static/js/log_handler.js"></script>
 <script>
     // Fetch and stream logs to the log panel
     function startPreparation() {
@@ -72,10 +73,11 @@
 
                             try {
                                 const log = JSON.parse(msg);
-                                handleLogMessage(log);
+                                // Handle log message
+                                currentStageElement = handleLogMessage(log, logPanel, stagesList, currentStageElement);
                             } catch (e) {
                                 // Handle non-JSON messages, like plain logs
-                                appendToLogPanel(msg, 'print');
+                                appendToLogPanel(msg, logPanel);
                             }
                         });
 
@@ -86,51 +88,6 @@
                 readStream();
             })
             .catch(error => console.error('Error fetching logs:', error));
-
-        // Handle log messages and update the UI accordingly
-        function handleLogMessage(log) {
-            // Clean the message from ANSI escape sequences
-            const cleanMessage = log.message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-
-            if (log.type === 'text') {
-                // New stage
-                if (currentStageElement) {
-                    markStageAsComplete(currentStageElement);
-                }
-                addNewStage(cleanMessage);
-            } else if (log.type === 'print') {
-                // Append to log panel
-                appendToLogPanel(cleanMessage, log.type);
-            }
-        }
-
-        function addNewStage(stageText) {
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex align-items-center';
-            listItem.innerHTML = `
-                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
-                <strong>${stageText}</strong>
-            `;
-            stagesList.appendChild(listItem);
-            currentStageElement = listItem;
-        }
-
-        function markStageAsComplete(stageElement) {
-            const spinner = stageElement.querySelector('.spinner-border');
-            if (spinner) {
-                spinner.classList.remove('spinner-border', 'spinner-border-sm');
-                spinner.classList.add('text-success', 'fas', 'fa-check-circle');
-            }
-        }
-
-        function appendToLogPanel(message, type) {
-            if (type === 'text') {
-                logPanel.innerHTML += `<strong>${message}</strong>\n`;
-            } else {
-                logPanel.innerHTML += `${message}\n`;
-            }
-            logPanel.scrollTop = logPanel.scrollHeight;  // Scroll to bottom
-        }
 
         // Check if report approval is needed
         function checkForReportApproval() {
@@ -173,10 +130,11 @@
 
                                 try {
                                     const log = JSON.parse(msg);
-                                    handleLogMessage(log);
+                                    // Handle log message
+                                    currentStageElement = handleLogMessage(log, logPanel, stagesList, currentStageElement);
                                 } catch (e) {
                                     // Handle non-JSON messages, like plain logs
-                                    appendToLogPanel(msg, 'print');
+                                    appendToLogPanel(msg, logPanel);
                                 }
                             });
 

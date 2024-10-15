@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Run Results{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Running Benchmark Model...</h1>
+
+    <!-- Stage Tracker -->
+    <div class="stages">
+        <ul class="list-group mb-3" id="stages-list"></ul>
+    </div>
+    <!-- Real-time log panel -->
+    <div class="card">
+        <div class="card-body">
+            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
+        </div>
+    </div>
+
+    <!-- YAML Result Panel (hidden by default) -->
+    <div class="card mt-4" id="yaml-result-panel" style="display: none;">
+        <div class="card-body">
+            <h5>Run Results (YAML)</h5>
+            <pre><code id="yaml-results" class="language-yaml"></code></pre>
+        </div>
+    </div>
+
+    <!-- Completion Button -->
+    <button class="btn btn-primary mt-4" id="complete-btn" disabled>
+        <span id="complete-btn-text"><i class="fas fa-spinner fa-spin"></i> Running...</span>
+    </button>
+</div>
+
+<script src="/static/js/log_handler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const logPanel = document.getElementById('log-panel');
+        const stagesList = document.getElementById('stages-list');
+        const yamlPanel = document.getElementById('yaml-result-panel');
+        const yamlResults = document.getElementById('yaml-results');
+        const completeBtn = document.getElementById('complete-btn');
+        const completeBtnText = document.getElementById('complete-btn-text');
+        const resultId = "{{ result_id }}";
+
+        let runFinished = false;
+        let currentStageElement = null;
+
+        // Fetch and stream logs to the log panel
+        async function fetchLogs() {
+            try {
+                const response = await fetch(`/datasets/run_draft/logs?dataset_id={{ dataset_id }}&benchmark_id={{ benchmark_id }}&model_id={{ model_id }}`);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+
+                async function readStream() {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        runFinished = true;
+                        checkResult();
+                        return;
+                    }
+
+                    const messages = decoder.decode(value).split("\n");
+                    messages.forEach(msg => {
+                        if (!msg.trim()) return;
+
+                        try {
+                            const log = JSON.parse(msg);
+                            // Use shared log handler function
+                            currentStageElement = handleLogMessage(log, logPanel, stagesList, currentStageElement);
+                        } catch (e) {
+                            appendToLogPanel(msg, logPanel);
+                        }
+                    });
+
+                    readStream();
+                }
+
+                readStream();
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+            }
+        }
+
+        // Check if the run is finished and fetch the result
+        async function checkResult() {
+            try {
+                const response = await fetch(`/datasets/run_draft/status?dataset_id={{ dataset_id }}&benchmark_id={{ benchmark_id }}&model_id={{ model_id }}`);
+                const statusData = await response.json();
+
+                if (statusData.status === 'done') {
+                    displayYamlResult(statusData.result.results);
+                    completeBtnText.innerHTML = '✅ Done';
+                    completeBtn.disabled = false;
+                } else if (statusData.status === 'failed') {
+                    completeBtnText.innerHTML = '❌ Failed';
+                    completeBtn.disabled = false;
+                } else {
+                    completeBtnText.innerHTML = '✅ Done';
+                    completeBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error checking result:', error);
+            }
+        }
+
+        // Display result in YAML format
+        function displayYamlResult(result) {
+            yamlPanel.style.display = 'block';
+            yamlResults.textContent = JSON.stringify(result, null, 2); // Convert JSON to YAML-like formatting
+            Prism.highlightElement(yamlResults);
+        }
+
+        // Redirect to dataset detail page when the button is clicked
+        completeBtn.addEventListener('click', function() {
+            window.location.href = `/datasets/ui/display/{{ dataset_id }}`;
+        });
+
+        // Start fetching logs when the page loads
+        fetchLogs();
+    });
+</script>
+{% endblock %}

@@ -1,7 +1,7 @@
 import json
-import queue
+from queue import Queue
 from contextlib import contextmanager
-from typing import Callable, Generator
+from typing import Callable, Generator, Optional
 
 import typer
 
@@ -11,7 +11,7 @@ from medperf.ui.cli import CLI
 class WebUIProxy(CLI):
     def __init__(self):
         super().__init__()
-        self.message_queue = queue.Queue()
+        self.message_queue: Queue[Optional[str]] = Queue()
         self._is_proxy = False
 
     def start_proxy(self):
@@ -29,7 +29,7 @@ class WebUIProxy(CLI):
         finally:
             self.stop_proxy()
 
-    def get_message_generator(self) -> Generator[dict, None, None]:
+    def get_message_generator(self) -> Generator[str, None, None]:
         while True:
             msg = self.message_queue.get()  # Block until a message is available
             if msg is None:
