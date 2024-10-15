@@ -45,7 +45,8 @@ def dataset_detail_ui(request: Request, dataset_id: int):
     benchmark_models = {}
     for assoc in benchmark_associations:
         models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
-        benchmark_models[assoc.benchmark] = models_uids  # Only pass the model IDs
+        models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
+        benchmark_models[assoc.benchmark] = models
 
     # Get all relevant benchmarks for association
     benchmarks = Benchmark.all()

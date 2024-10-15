@@ -102,16 +102,15 @@
                 </a>
             </h6>
             <ul class="list-group mb-3">
-                {% for model_uid in benchmark_models[assoc.benchmark] %}
+                {% for model in benchmark_models[assoc.benchmark] %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
-                            Model ID: <a href="/models/ui/display/{{ model_uid }}">
-                                <strong>{{ model_uid }}</strong>
-                            </a>
+                            <!-- Display model details using mlcube_macros -->
+                            {{ mlcube_macros.mlcube_link(model) }}
                         </div>
-                        <div id="status-container-{{ assoc.benchmark }}-{{ model_uid }}">
+                        <div id="status-container-{{ assoc.benchmark }}-{{ model.id }}" class="d-flex align-items-center">
                             <button class="btn btn-primary run-model-btn" data-benchmark-id="{{ assoc.benchmark }}"
-                                    data-model-id="{{ model_uid }}" id="run-btn-{{ assoc.benchmark }}-{{ model_uid }}">
+                                    data-model-id="{{ model.id }}" id="run-btn-{{ assoc.benchmark }}-{{ model.id }}">
                                 ▶️ Run
                             </button>
                         </div>
