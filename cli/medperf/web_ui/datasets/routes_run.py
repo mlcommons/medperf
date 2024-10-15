@@ -11,6 +11,9 @@ from starlette.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 
 from medperf.commands.benchmark.benchmark import BenchmarkExecution
+from medperf.entities.benchmark import Benchmark
+from medperf.entities.cube import Cube
+from medperf.entities.dataset import Dataset
 from medperf.entities.result import Result
 from medperf.exceptions import InvalidArgumentError
 from medperf.web_ui.common import templates
@@ -51,17 +54,20 @@ async def run_draft_ui(result_id: str, request: Request):
     # result_id is in the format "b{benchmark_id}m{model_id}d{dataset_id}"
     parts = result_id[1:].split('m')
     benchmark_id = int(parts[0])
+    benchmark = Benchmark.get(benchmark_id)
     dataset_part = parts[1].split('d')
     model_id = int(dataset_part[0])
     dataset_id = int(dataset_part[1])
+    model = Cube.get(model_id)
+    dataset = Dataset.get(dataset_id)
 
     return templates.TemplateResponse(
         "dataset_run.html",
         {
             "request": request,
-            "dataset_id": dataset_id,
-            "benchmark_id": benchmark_id,
-            "model_id": model_id,
+            "dataset": dataset,
+            "benchmark": benchmark,
+            "model": model,
             "result_id": result_id,
         }
     )

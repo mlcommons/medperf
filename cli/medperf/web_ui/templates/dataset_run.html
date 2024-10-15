@@ -4,31 +4,89 @@
 
 {% block content %}
 <div class="container">
-    <h1>Running Benchmark Model...</h1>
+    <div class="row">
+        <!-- Benchmark and Dataset Details Header -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="mb-3">
+                Running Benchmark:
+                <a href="/benchmarks/ui/display/{{ benchmark.id }}"><strong>{{ benchmark.name }}</strong></a>
+            </h1>
+            <p class="lead">
+                Evaluating Model
+                <a href="/mlcubes/ui/display/{{ model.id }}"><strong>{{ model.name }}</strong></a>
+                on Dataset
+                <a href="/datasets/ui/display/{{ dataset.id }}"><strong>{{ dataset.name }}</strong></a>
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Dataset Information Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    Dataset {{ dataset.name }}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ dataset.description }}</p>
+                    <span class="text-muted small" data-date="{{ dataset.created_at }}"></span>
+                </div>
+            </div>
+        </div>
+        <!-- Model Information Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    Model {{ model.name }}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ model.description }}</p>
+                    <span class="text-muted small" data-date="{{ model.created_at }}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Stage Tracker -->
     <div class="stages">
         <ul class="list-group mb-3" id="stages-list"></ul>
     </div>
-    <!-- Real-time log panel -->
-    <div class="card">
-        <div class="card-body">
-            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
+    <!-- Real-time Log Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    Real-time Logs
+                </div>
+                <div class="card-body" id="log-panel" style="height: 300px; overflow-y: auto; white-space: pre-wrap;">
+                    <!-- Logs will be streamed here -->
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- YAML Result Panel (hidden by default) -->
-    <div class="card mt-4" id="yaml-result-panel" style="display: none;">
-        <div class="card-body">
-            <h5>Run Results (YAML)</h5>
-            <pre><code id="yaml-results" class="language-yaml"></code></pre>
+   <!-- YAML Result Panel (Hidden by Default) -->
+    <div class="row mt-4" id="yaml-result-panel" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    Benchmark Results (YAML)
+                </div>
+                <div class="card-body">
+                    <pre id="yaml-results" class="language-yaml"></pre>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Completion Button -->
-    <button class="btn btn-primary mt-4" id="complete-btn" disabled>
-        <span id="complete-btn-text"><i class="fas fa-spinner fa-spin"></i> Running...</span>
-    </button>
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <button id="complete-btn" class="btn btn-lg btn-success" disabled>
+                <span id="complete-btn-text"><i class="spinner-border spinner-border-sm"></i> Running...</span>
+            </button>
+        </div>
+    </div>
 </div>
 
 <script src="/static/js/log_handler.js"></script>
@@ -48,7 +106,7 @@
         // Fetch and stream logs to the log panel
         async function fetchLogs() {
             try {
-                const response = await fetch(`/datasets/run_draft/logs?dataset_id={{ dataset_id }}&benchmark_id={{ benchmark_id }}&model_id={{ model_id }}`);
+                const response = await fetch(`/datasets/run_draft/logs?dataset_id={{ dataset.id }}&benchmark_id={{ benchmark.id }}&model_id={{ model.id }}`);
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
 
@@ -86,19 +144,17 @@
         // Check if the run is finished and fetch the result
         async function checkResult() {
             try {
-                const response = await fetch(`/datasets/run_draft/status?dataset_id={{ dataset_id }}&benchmark_id={{ benchmark_id }}&model_id={{ model_id }}`);
+                const response = await fetch(`/datasets/run_draft/status?dataset_id={{ dataset.id }}&benchmark_id={{ benchmark.id }}&model_id={{ model.id }}`);
                 const statusData = await response.json();
 
+                completeBtn.disabled = false;
                 if (statusData.status === 'done') {
                     displayYamlResult(statusData.result.results);
                     completeBtnText.innerHTML = '✅ Done';
-                    completeBtn.disabled = false;
                 } else if (statusData.status === 'failed') {
                     completeBtnText.innerHTML = '❌ Failed';
-                    completeBtn.disabled = false;
                 } else {
                     completeBtnText.innerHTML = '✅ Done';
-                    completeBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('Error checking result:', error);
