@@ -247,52 +247,7 @@ class Cube(Entity, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'
-        if config.gpus is not None:
-            cmd += f" --gpus={config.gpus}"
-        if read_protected_input:
-            cmd += " --mount=ro"
-        for k, v in kwargs.items():
-            cmd_arg = f'{k}="{v}"'
-            cmd = " ".join([cmd, cmd_arg])
-
-        container_loglevel = config.container_loglevel
-
-        # TODO: we should override run args instead of what we are doing below
-        #       we shouldn't allow arbitrary run args unless our client allows it
-        if config.platform == "docker":
-            # use current user
-            cpu_args = self.get_config("docker.cpu_args") or ""
-            gpu_args = self.get_config("docker.gpu_args") or ""
-            cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
-            gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
-            cmd += f' -Pdocker.cpu_args="{cpu_args}"'
-            cmd += f' -Pdocker.gpu_args="{gpu_args}"'
-
-            if container_loglevel:
-                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
-        elif config.platform == "singularity":
-            # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
-            run_args = self.get_config("singularity.run_args") or ""
-            run_args = " ".join([run_args, "-eC"]).strip()
-            cmd += f' -Psingularity.run_args="{run_args}"'
-
-            # set image name in case of running docker image with singularity
-            # Assuming we only accept mlcube.yamls with either singularity or docker sections
-            # TODO: make checks on submitted mlcubes
-            singularity_config = self.get_config("singularity")
-            if singularity_config is None:
-                cmd += (
-                    f' -Psingularity.image="{self._converted_singularity_image_name}"'
-                )
-            # TODO: pass logging env for singularity also there
-        else:
-            raise InvalidArgumentError("Unsupported platform")
-
-        # set accelerator count to zero to avoid unexpected behaviours and
-        # force mlcube to only use --gpus to figure out GPU config
-        cmd += " -Pplatform.accelerator_count=0"
+        cmd = self._craft_run_cmd(task, extra_params=kwargs, read_protected_input=read_protected_input)
 
         logging.info(f"Running MLCube command: {cmd}")
         with spawn_and_kill(cmd, timeout=timeout) as proc_wrapper:
@@ -307,6 +262,68 @@ class Cube(Entity, DeployableSchema):
 
         log_storage()
         return proc
+
+    def _craft_run_cmd(self,
+            task: str, extra_params: Dict[str, str] = {},
+            read_protected_input: bool = True
+        ):
+        cmd = f"mlcube --log-level {config.loglevel} run"
+        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'
+        if config.gpus is not None:
+            cmd += f" --gpus={config.gpus}"
+        if read_protected_input:
+            cmd += " --mount=ro"
+        for k, v in extra_params.items():
+            cmd_arg = f'{k}="{v}"'
+            cmd = " ".join([cmd, cmd_arg])
+
+        # TODO: we should override run args instead of what we are doing below
+        #       we shouldn't allow arbitrary run args unless our client allows it
+        if config.platform == "docker":
+            cmd = self._add_docker_args(cmd)
+        elif config.platform == "singularity":
+            cmd = self._add_singularity_args(cmd)
+        else:
+            raise InvalidArgumentError("Unsupported platform")
+
+        # set accelerator count to zero to avoid unexpected behaviours and
+        # force mlcube to only use --gpus to figure out GPU config
+        cmd += " -Pplatform.accelerator_count=0"
+
+        return cmd
+
+    def _add_docker_args(self, cmd):
+        container_loglevel = config.container_loglevel
+        # use current user
+        cpu_args = self.get_config("docker.cpu_args") or ""
+        gpu_args = self.get_config("docker.gpu_args") or ""
+        cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
+        gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
+        cmd += f' -Pdocker.cpu_args="{cpu_args}"'
+        cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+
+        if container_loglevel:
+            cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
+
+        return cmd
+
+    def _add_singularity_args(self, cmd):
+        # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
+        run_args = self.get_config("singularity.run_args") or ""
+        run_args = " ".join([run_args, "-eC"]).strip()
+        cmd += f' -Psingularity.run_args="{run_args}"'
+
+        # set image name in case of running docker image with singularity
+        # Assuming we only accept mlcube.yamls with either singularity or docker sections
+        # TODO: make checks on submitted mlcubes
+        singularity_config = self.get_config("singularity")
+        if singularity_config is None:
+            cmd += (
+                f' -Psingularity.image="{self._converted_singularity_image_name}"'
+            )
+        # TODO: pass logging env for singularity also there
+
+        return cmd
 
     def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
         """Returns the output parameter specified in the mlcube.yaml file
