@@ -1,4 +1,4 @@
-import medperf.config as config
+from medperf.config_management import config
 from medperf.account_management import read_user_account
 
 

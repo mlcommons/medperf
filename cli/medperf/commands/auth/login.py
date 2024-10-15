@@ -1,4 +1,4 @@
-import medperf.config as config
+from medperf.config_management import config
 from medperf.account_management import read_user_account
 from medperf.exceptions import InvalidArgumentError, MedperfException
 from email_validator import validate_email, EmailNotValidError

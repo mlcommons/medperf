@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import call
 from typer.testing import CliRunner
 
-from medperf.config_management import read_config
+from medperf.config_management import config
 from medperf.commands.profile import app
 
 runner = CliRunner()
@@ -15,7 +15,7 @@ def test_activate_updates_active_profile(mocker, profile):
     runner.invoke(app, ["activate", profile])
 
     # Assert
-    config_p = read_config()
+    config_p = config.read_config()
     assert config_p.is_profile_active(profile)
 
 
@@ -39,7 +39,7 @@ def test_create_adds_new_profile(mocker, name, args):
     runner.invoke(app, ["create", "-n", name] + in_args)
 
     # Assert
-    config_p = read_config()
+    config_p = config.read_config()
     assert config_p[name] == {**config_p.profiles["default"], **out_cfg}
 
 
@@ -65,7 +65,7 @@ def test_set_updates_profile_parameters(mocker, args):
     runner.invoke(app, ["set"] + in_args)
 
     # Assert
-    config_p = read_config()
+    config_p = config.read_config()
     assert config_p.active_profile == {**config_p.profiles["default"], **out_cfg}
 
 
@@ -73,12 +73,11 @@ def test_ls_prints_profile_names(mocker, ui):
     # Arrange
     spy = mocker.patch.object(ui, "print")
     green_spy = mocker.patch.object(ui, "print_highlight")
-    config_p = read_config()
 
     calls = [
         call("  " + profile)
-        for profile in config_p
-        if not config_p.is_profile_active(profile)
+        for profile in config
+        if not config.is_profile_active(profile)
     ]
 
     # Act
@@ -86,14 +85,14 @@ def test_ls_prints_profile_names(mocker, ui):
 
     # Assert
     spy.assert_has_calls(calls)
-    green_spy.assert_called_once_with("* " + config_p.active_profile_name)
+    green_spy.assert_called_once_with("* " + config.active_profile_name)
 
 
 @pytest.mark.parametrize("profile", ["default", "local"])
 def test_view_prints_profile_contents(mocker, profile):
     # Arrange
     spy = mocker.patch(PATCH_PROFILE.format("dict_pretty_print"))
-    config_p = read_config()
+    config_p = config.read_config()
     cfg = config_p[profile]
 
     # Act

@@ -3,7 +3,7 @@ from medperf.commands.auth.login import Login
 from medperf.commands.auth.logout import Logout
 from medperf.commands.auth.status import Status
 from medperf.decorators import clean_except
-import medperf.config as config
+from medperf.config_management import config
 import typer
 
 app = typer.Typer()

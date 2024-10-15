@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Union
 import requests
 import logging
 
 from medperf.enums import Status
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.comms.interface import Comms
 from medperf.utils import (
     sanitize_json,
@@ -19,9 +20,9 @@ from medperf.exceptions import (
 
 
 class REST(Comms):
-    def __init__(self, source: str):
+    def __init__(self, source: str, cert: Union[str, bool, None]):
         self.server_url = self.parse_url(source)
-        self.cert = config.certificate
+        self.cert = cert
         if self.cert is None:
             # No certificate provided, default to normal verification
             self.cert = True
@@ -38,7 +39,7 @@ class REST(Comms):
             str: parsed URL with protocol and version
         """
         url_sections = url.split("://")
-        api_path = f"/api/v{config.major_version}"
+        api_path = f"/api/v{settings.major_version}"
         # Remove protocol if passed
         if len(url_sections) > 1:
             url = "".join(url_sections[1:])
@@ -78,7 +79,7 @@ class REST(Comms):
         self,
         url,
         num_elements=None,
-        page_size=config.default_page_size,
+        page_size=settings.default_page_size,
         offset=0,
         binary_reduction=False,
     ):
@@ -91,7 +92,7 @@ class REST(Comms):
         Args:
             url (str): The url to retrieve elements from
             num_elements (int, optional): The desired number of elements to be retrieved. Defaults to None.
-            page_size (int, optional): Starting page size. Defaults to config.default_page_size.
+            page_size (int, optional): Starting page size. Defaults to settings.default_page_size.
             start_limit (int, optional): The starting position for element retrieval. Defaults to 0.
             binary_reduction (bool, optional): Wether to handle errors by halfing the page size. Defaults to False.
 

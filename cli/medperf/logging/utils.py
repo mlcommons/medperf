@@ -12,7 +12,7 @@ from importlib import metadata
 import psutil
 import yaml
 
-from medperf import config
+from medperf import settings
 
 
 def get_system_information():
@@ -50,7 +50,7 @@ def get_disk_usage():
         # We are intereseted in home storage, and storage where medperf assets
         # are saved. We currently assume all of them are together always, including
         # the datasets folder.
-        paths_of_interest = [os.environ["HOME"], str(config.datasets_folder)]
+        paths_of_interest = [os.environ["HOME"], str(settings.datasets_folder)]
         disk_usage_dict = {}
         for poi in paths_of_interest:
             try:
@@ -71,9 +71,9 @@ def get_disk_usage():
 
 def get_configuration_variables():
     try:
-        config_vars = vars(config)
+        config_vars = vars(settings)
         config_dict = {}
-        for item in dir(config):
+        for item in dir(settings):
             if item.startswith("__"):
                 continue
             config_dict[item] = config_vars[item]
@@ -104,10 +104,10 @@ def filter_var_dict_for_yaml(unfiltered_dict):
 
 def get_storage_contents():
     try:
-        storage_paths = config.storage.copy()
+        storage_paths = settings.storage.copy()
         storage_paths["credentials_folder"] = {
-            "base": os.path.dirname(config.creds_folder),
-            "name": os.path.basename(config.creds_folder),
+            "base": os.path.dirname(settings.creds_folder),
+            "name": os.path.basename(settings.creds_folder),
         }
         ignore_paths = {"datasets_folder", "predictions_folder", "results_folder"}
         contents = {}
@@ -197,11 +197,11 @@ def log_machine_details():
 
 def package_logs():
     # Handle cases where the folder doesn't exist
-    if not os.path.exists(config.logs_storage):
+    if not os.path.exists(settings.logs_storage):
         return
 
     # Don't create a tarball if there's no logs to be packaged
-    files = os.listdir(config.logs_storage)
+    files = os.listdir(settings.logs_storage)
     if len(files) == 0:
         return
 
@@ -211,9 +211,9 @@ def package_logs():
         if is_logfile:
             logfiles.append(file)
 
-    package_file = os.path.join(config.logs_storage, config.log_package_file)
+    package_file = os.path.join(settings.logs_storage, settings.log_package_file)
 
     with tarfile.open(package_file, "w:gz") as tar:
         for file in logfiles:
-            filepath = os.path.join(config.logs_storage, file)
+            filepath = os.path.join(settings.logs_storage, file)
             tar.add(filepath, arcname=os.path.basename(filepath))

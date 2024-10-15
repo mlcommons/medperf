@@ -20,7 +20,8 @@ from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.exceptions import ExecutionError, MedperfException
 
 
@@ -75,7 +76,7 @@ def remove_path(path):
 
 
 def move_to_trash(path):
-    trash_folder = config.trash_folder
+    trash_folder = settings.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
     os.makedirs(unique_path)
     shutil.move(path, unique_path)
@@ -83,14 +84,14 @@ def move_to_trash(path):
 
 def cleanup():
     """Removes clutter and unused files from the medperf folder structure."""
-    if not config.cleanup:
+    if not settings.cleanup:
         logging.info("Cleanup disabled")
         return
 
-    for path in config.tmp_paths:
+    for path in settings.tmp_paths:
         remove_path(path)
 
-    trash_folder = config.trash_folder
+    trash_folder = settings.trash_folder
     if os.path.exists(trash_folder) and os.listdir(trash_folder):
         msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
         msg += f" '{trash_folder}' manually to avoid unnecessary storage."
@@ -146,8 +147,8 @@ def generate_tmp_path() -> str:
     Returns:
         str: generated temporary path
     """
-    tmp_path = os.path.join(config.tmp_folder, generate_tmp_uid())
-    config.tmp_paths.append(tmp_path)
+    tmp_path = os.path.join(settings.tmp_folder, generate_tmp_uid())
+    settings.tmp_paths.append(tmp_path)
     return tmp_path
 
 
@@ -333,8 +334,8 @@ def list_files(startpath):
 
 
 def log_storage():
-    for folder in config.storage:
-        folder = getattr(config, folder)
+    for folder in settings.storage:
+        folder = getattr(settings, folder)
         logging.debug(list_files(folder))
 
 
@@ -381,7 +382,7 @@ def format_errors_dict(errors_dict: dict):
             error_msg += errors
         elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
-            error_msg += errors[0]
+            error_msg += str(errors[0])
         else:
             # Create a sublist otherwise
             for e_msg in errors:
@@ -392,7 +393,7 @@ def format_errors_dict(errors_dict: dict):
 
 def get_cube_image_name(cube_path: str) -> str:
     """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
-    cube_config_path = os.path.join(cube_path, config.cube_filename)
+    cube_config_path = os.path.join(cube_path, settings.cube_filename)
     with open(cube_config_path, "r") as f:
         cube_config = yaml.safe_load(f)
 
@@ -430,7 +431,7 @@ def filter_latest_associations(associations, entity_key):
 
 def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
-    repo = Repo(config.BASE_DIR)
+    repo = Repo(settings.BASE_DIR)
     if repo.bare:
         logging.debug("Repo is bare")
         return

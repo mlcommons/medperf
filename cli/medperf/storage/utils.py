@@ -1,22 +1,22 @@
-from medperf.config_management import read_config, write_config
+from medperf.config_management import config
 from medperf.exceptions import InvalidArgumentError
-from medperf import config
+from medperf import settings
 import os
 import re
 import shutil
 
 
 def full_folder_path(folder, new_base=None):
-    server_path = config.server.split("//")[1]
+    server_path = settings.server.split("//")[1]
     server_path = re.sub(r"[.:]", "_", server_path)
 
-    if folder in config.root_folders:
-        info = config.storage[folder]
+    if folder in settings.root_folders:
+        info = settings.storage[folder]
         base = new_base or info["base"]
         full_path = os.path.join(base, info["name"])
 
-    elif folder in config.server_folders:
-        info = config.storage[folder]
+    elif folder in settings.server_folders:
+        info = settings.storage[folder]
         base = new_base or info["base"]
         full_path = os.path.join(base, info["name"], server_path)
 
@@ -24,7 +24,7 @@ def full_folder_path(folder, new_base=None):
 
 
 def move_storage(target_base_path: str):
-    config_p = read_config()
+    config_p = config.read_config()
 
     target_base_path = os.path.abspath(target_base_path)
     target_base_path = os.path.normpath(target_base_path)
@@ -38,11 +38,11 @@ def move_storage(target_base_path: str):
     else:
         os.makedirs(target_base_path, 0o700)
 
-    for folder in config.storage:
+    for folder in settings.storage:
         folder_path = os.path.join(
-            config.storage[folder]["base"], config.storage[folder]["name"]
+            settings.storage[folder]["base"], settings.storage[folder]["name"]
         )
-        target_path = os.path.join(target_base_path, config.storage[folder]["name"])
+        target_path = os.path.join(target_base_path, settings.storage[folder]["name"])
 
         folder_path = os.path.normpath(folder_path)
         target_path = os.path.normpath(target_path)
@@ -58,4 +58,4 @@ def move_storage(target_base_path: str):
 
         shutil.move(folder_path, target_path)
         config_p.storage[folder] = target_base_path
-        write_config(config_p)
+        config_p.write_config()

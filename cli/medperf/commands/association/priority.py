@@ -1,4 +1,4 @@
-from medperf import config
+from medperf.config_management import config
 from medperf.exceptions import InvalidArgumentError
 from medperf.entities.benchmark import Benchmark
 

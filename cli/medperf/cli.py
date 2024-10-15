@@ -4,7 +4,8 @@ import logging
 import logging.handlers
 
 from medperf import __version__
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except, add_inline_parameters
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
@@ -17,6 +18,7 @@ import medperf.commands.profile as profile
 import medperf.commands.association.association as association
 import medperf.commands.compatibility_test.compatibility_test as compatibility_test
 import medperf.commands.storage as storage
+import medperf.web_ui.app as web_ui
 from medperf.utils import check_for_updates
 from medperf.logging.utils import log_machine_details
 
@@ -30,6 +32,7 @@ app.add_typer(profile.app, name="profile", help="Manage profiles")
 app.add_typer(compatibility_test.app, name="test", help="Manage compatibility tests")
 app.add_typer(auth.app, name="auth", help="Authentication")
 app.add_typer(storage.app, name="storage", help="Storage management")
+app.add_typer(web_ui.app, name="web-ui", help="local web UI to manage medperf entities")
 
 
 @app.command("run")
@@ -92,10 +95,10 @@ def main(
     # Set inline parameters
     inline_args = ctx.params
     for param in inline_args:
-        setattr(config, param, inline_args[param])
+        setattr(settings, param, inline_args[param])
 
     # Update logging level according to the passed inline params
-    loglevel = config.loglevel.upper()
+    loglevel = settings.loglevel.upper()
     logging.getLogger().setLevel(loglevel)
     logging.getLogger("requests").setLevel(loglevel)
 

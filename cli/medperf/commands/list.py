@@ -3,7 +3,7 @@ from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError
 from tabulate import tabulate
 
-from medperf import config
+from medperf.config_management import config
 from medperf.account_management import get_medperf_user_data
 
 
@@ -19,6 +19,8 @@ class EntityList:
         """Lists all local datasets
 
         Args:
+            entity_class: entity class to instantiate (Dataset, Model, etc.)
+            fields (list[str]): list of fields to display
             unregistered (bool, optional): Display only local unregistered results. Defaults to False.
             mine_only (bool, optional): Display all registered current-user results. Defaults to False.
             kwargs (dict): Additional parameters for filtering entity lists.

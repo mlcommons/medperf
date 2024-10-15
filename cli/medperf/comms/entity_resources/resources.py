@@ -16,7 +16,7 @@ import shutil
 import os
 import logging
 import yaml
-import medperf.config as config
+from medperf import settings
 from medperf.utils import (
     generate_tmp_path,
     get_cube_image_name,
@@ -85,13 +85,13 @@ def _get_regular_file(url: str, output_path: str, expected_hash: str = None) -> 
 
 def get_cube(url: str, cube_path: str, expected_hash: str = None):
     """Downloads and writes a cube mlcube.yaml file"""
-    output_path = os.path.join(cube_path, config.cube_filename)
+    output_path = os.path.join(cube_path, settings.cube_filename)
     return _get_regular_file(url, output_path, expected_hash)
 
 
 def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
     """Downloads and writes a cube parameters.yaml file"""
-    output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
+    output_path = os.path.join(cube_path, settings.workspace_path, settings.params_filename)
     return _get_regular_file(url, output_path, expected_hash)
 
 
@@ -109,7 +109,7 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
         image_cube_file: Location where the image file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
-    image_path = config.image_path
+    image_path = settings.image_path
     image_name = get_cube_image_name(cube_path)
     image_cube_path = os.path.join(cube_path, image_path)
     os.makedirs(image_cube_path, exist_ok=True)
@@ -118,7 +118,7 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
         # Remove existing links
         os.unlink(image_cube_file)
 
-    imgs_storage = config.images_folder
+    imgs_storage = settings.images_folder
     if not hash_value:
         # No hash provided, we need to download the file first
         tmp_output_path = generate_tmp_path()
@@ -153,8 +153,8 @@ def get_cube_additional(
     Returns:
         tarball_hash (str): The hash of the downloaded tarball file
     """
-    additional_files_folder = os.path.join(cube_path, config.additional_path)
-    mlcube_cache_file = os.path.join(cube_path, config.mlcube_cache_file)
+    additional_files_folder = os.path.join(cube_path, settings.additional_path)
+    mlcube_cache_file = os.path.join(cube_path, settings.mlcube_cache_file)
     if not _should_get_cube_additional(
         additional_files_folder, expected_tarball_hash, mlcube_cache_file
     ):
@@ -163,7 +163,7 @@ def get_cube_additional(
     # Download the additional files. Make sure files are extracted in tmp storage
     # to avoid any clutter objects if uncompression fails for some reason.
     tmp_output_folder = generate_tmp_path()
-    output_tarball_path = os.path.join(tmp_output_folder, config.tarball_filename)
+    output_tarball_path = os.path.join(tmp_output_folder, settings.tarball_filename)
     tarball_hash = download_resource(url, output_tarball_path, expected_tarball_hash)
 
     untar(output_tarball_path)
@@ -200,7 +200,7 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
     # the compatibility test command and remove the option of directly passing
     # demo datasets. This would look cleaner.
     # Possible cons: if multiple benchmarks use the same demo dataset.
-    demo_storage = config.demo_datasets_folder
+    demo_storage = settings.demo_datasets_folder
     if expected_hash:
         # If the folder exists, return
         demo_dataset_folder = os.path.join(demo_storage, expected_hash)
@@ -210,7 +210,7 @@ def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:
     # make sure files are uncompressed while in tmp storage, to avoid any clutter
     # objects if uncompression fails for some reason.
     tmp_output_folder = generate_tmp_path()
-    output_tarball_path = os.path.join(tmp_output_folder, config.tarball_filename)
+    output_tarball_path = os.path.join(tmp_output_folder, settings.tarball_filename)
     hash_value = download_resource(url, output_tarball_path, expected_hash)
 
     untar(output_tarball_path)
