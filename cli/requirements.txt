@@ -1,4 +1,4 @@
-typer~=0.6.0
+typer~=0.12.0
 rich~=13.7.0
 PyYAML==6.0.1
 requests>=2.26.0
@@ -26,3 +26,5 @@ numpy==1.26.4
 watchdog==3.0.0
 GitPython==3.1.41
 psutil==5.9.8
+uvicorn==0.30.1
+fastapi==0.111.1

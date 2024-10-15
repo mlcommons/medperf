@@ -195,8 +195,12 @@ def approval_prompt(msg: str) -> bool:
     logging.info(f"User answered approval with {approval}")
     return approval == "y"
 
+# def dict_pretty_format(in_dict: dict, skip_none_values: bool = True) -> str:
+#     if skip_none_values:
+#         in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+#     return yaml.dump(in_dict)
 
-def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
+def dict_pretty_format(in_dict: dict, skip_none_values: bool = True) -> str:
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -204,14 +208,14 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    ui = config.ui
-    ui.print()
-    ui.print("=" * 20)
+    result = [""]
+    result.append("=" * 20)
     if skip_none_values:
         in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
-    ui.print(yaml.dump(in_dict))
+    result.append(yaml.dump(in_dict))
     logging.debug(f"Dictionary printed to the user: {in_dict}")
-    ui.print("=" * 20)
+    result.append("=" * 20)
+    return "\n".join(result)
 
 
 class _MLCubeOutputFilter:

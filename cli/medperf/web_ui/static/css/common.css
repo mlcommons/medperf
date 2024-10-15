@@ -1,0 +1,162 @@
+.badge-state-operational {
+    background-color: lightgreen;
+    color: black;
+}
+.badge-state-development {
+    background-color: lightcoral;
+    color: black;
+}
+.badge-approval-pending {
+    background-color: coral;
+    color: black;
+}
+.badge-approval-approved {
+    background-color: lightgreen;
+    color: black;
+}
+.badge-approval-rejected {
+    background-color: red;
+    color: black;
+}
+.badge-valid {
+    background-color: lightgreen;
+    color: black;
+}
+.badge-invalid {
+    background-color: red;
+    color: black;
+}
+.spinner {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #007bff;
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto;
+}
+
+.invalid-card {
+    background-color: #ffe6e6;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.detail-container {
+    display: flex;
+    justify-content: center; /* Center the detail panel initially */
+    width: 100%;
+    align-items: center;
+}
+
+.detail-panel {
+    flex: 1;
+    max-width: 60%;
+    padding-right: 20px;
+    box-sizing: border-box;
+    transition: max-width 0.3s, margin 0.3s; /* Smooth transition */
+}
+
+.yaml-panel {
+    flex: 0 0 40%;
+    max-width: 40%;
+    min-width: 300px;
+    height: 100vh;
+    overflow: auto;
+    display: none; /* Hidden initially */
+}
+
+.yaml-panel-visible .yaml-panel {
+    justify-content: flex-start; /* Align detail panel to the left when YAML panel is visible */
+}
+
+.yaml-panel-visible .detail-panel {
+    max-width: 60%; /* Adjust to take 60% width when YAML panel is visible */
+    margin-right: 20px;
+}
+
+@media (max-width: 992px) {
+    .detail-panel {
+        max-width: 100%;
+        padding-right: 0;
+    }
+
+    .yaml-panel {
+        display: none;
+    }
+
+    .detail-panel, .associations-panel {
+        max-width: 100%;
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .detail-container {
+        flex-direction: column;
+    }
+}
+
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+/* Floating alert container at the bottom-right corner */
+.floating-alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050; /* Ensure it appears above other content */
+    width: 300px;
+    max-width: 100%;
+}
+
+/*----from detail_base.html*/
+.card-body.d-flex {
+    flex-wrap: wrap;
+}
+
+.card-text {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.association-card {
+    margin-bottom: 20px;
+}
+
+.associations-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.associations-column {
+    flex: 1;
+    min-width: 150px;
+    max-width: 48%;
+    box-sizing: border-box;
+}
