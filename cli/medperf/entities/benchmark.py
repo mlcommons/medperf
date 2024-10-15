@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
+from medperf.entities.association import Association
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
@@ -83,7 +84,6 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
         Args:
             benchmark_uid (int): UID of the benchmark.
-            comms (Comms): Instance of the communications interface.
 
         Returns:
             List[int]: List of mlcube uids
@@ -95,6 +95,36 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
             if assoc["approval_status"] == "APPROVED"
         ]
         return models_uids
+
+    @classmethod
+    def get_models_associations(cls, benchmark_uid: int) -> List[Association]:
+        """Retrieves the list of model associations to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_cubes_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.benchmark == benchmark_uid]
+        return associations
+
+    @classmethod
+    def get_datasets_associations(cls, benchmark_uid: int) -> List[Association]:
+        """Retrieves the list of models associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_datasets_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.benchmark == benchmark_uid]
+        return associations
 
     def display_dict(self):
         return {
