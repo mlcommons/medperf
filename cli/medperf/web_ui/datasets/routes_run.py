@@ -25,6 +25,7 @@ class DraftStatus(Enum):
     pending = "pending"
     done = "done"
     failed = "failed"
+    running = "running"
     n_a = "n/a"
 
 
@@ -89,7 +90,7 @@ def worker_thread():
                 ignore_failed_experiments=False,
             )
             draft.logs = []
-            draft.status = DraftStatus.pending
+            draft.status = DraftStatus.running
 
             def run_with_logs():
                 try:

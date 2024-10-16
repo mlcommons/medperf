@@ -135,7 +135,16 @@
                                        >
                                         View Logs
                                     </a>
-                                    <span class="btn btn-warning"><i class="spinner-border spinner-border-sm"></i> Pending</span>
+                                    <span class="btn btn-warning">⏳ Pending</span>
+                                </div>
+
+                                <!-- Logs + Running Status -->
+                                <div class="logs-and-status d-none" id="running-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <span class="btn btn-info"><i class="spinner-border spinner-border-sm"></i> Running</span>
                                 </div>
 
                                 <!-- Logs + Failed Status -->
@@ -279,7 +288,7 @@
             $('#setOperationalModal').modal('hide');
         });
 
-        const fetchStatus = async (datasetId, benchmarkId, modelId, statusContainer, intervalId) => {
+        const fetchStatus = async (datasetId, benchmarkId, modelId, intervalId) => {
             try {
                 const response = await fetch(`/datasets/run_draft/status?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`);
                 const statusData = await response.json();
@@ -287,6 +296,7 @@
                 const fetchingStatusElem = document.getElementById(`fetching-${benchmarkId}-${modelId}`);
                 const runBtn = document.getElementById(`run-btn-${benchmarkId}-${modelId}`);
                 const pendingElem = document.getElementById(`pending-${benchmarkId}-${modelId}`);
+                const runningElem = document.getElementById(`running-${benchmarkId}-${modelId}`);
                 const failedElem = document.getElementById(`failed-${benchmarkId}-${modelId}`);
                 const doneElem = document.getElementById(`done-${benchmarkId}-${modelId}`);
 
@@ -298,23 +308,33 @@
                 if (statusData.status === 'n/a') {
                     runBtn.classList.remove('d-none');
                     pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
                     failedElem.classList.add('d-none');
                     doneElem.classList.add('d-none');
                     clearInterval(intervalId);  // Stop polling
                 } else if (statusData.status === 'pending') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.remove('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    doneElem.classList.add('d-none');
+                } else if (statusData.status === 'running') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.remove('d-none');
                     failedElem.classList.add('d-none');
                     doneElem.classList.add('d-none');
                 } else if (statusData.status === 'failed') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
                     failedElem.classList.remove('d-none');
                     doneElem.classList.add('d-none');
                     clearInterval(intervalId);  // Stop polling
                 } else if (statusData.status === 'done') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
                     failedElem.classList.add('d-none');
                     doneElem.classList.remove('d-none');
                     clearInterval(intervalId);  // Stop polling
@@ -332,10 +352,9 @@
             const modelId = btn.getAttribute('data-model-id');
             const datasetId = {{ entity.id }};
             const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
-            const statusContainer = document.getElementById(`status-container-${benchmarkId}-${modelId}`);
 
             // Polling to update status
-            const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, statusContainer, intervalId), 1000);
+            const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
 
             // Handle the "Run" button click
             btn.addEventListener('click', async function() {
@@ -343,9 +362,7 @@
                     await fetch(`/datasets/run_draft/run?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`, {
                         method: 'POST'
                     });
-                    // Replace the run button with a pending status immediately
-                    statusContainer.innerHTML = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-info"><i class="spinner-border spinner-border-sm"></i> Pending...</a>`;
-                    const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, statusContainer, intervalId), 1000);
+                    const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
                 } catch (error) {
                     console.error('Error running model:', error);
                 }
