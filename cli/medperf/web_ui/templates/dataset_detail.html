@@ -116,10 +116,47 @@
 
                             <!-- Right section: Status or Run button -->
                             <div id="status-container-{{ assoc.benchmark }}-{{ model.id }}" class="d-flex align-items-center">
-                                <button class="btn btn-primary run-model-btn" data-benchmark-id="{{ assoc.benchmark }}"
-                                        data-model-id="{{ model.id }}" id="run-btn-{{ assoc.benchmark }}-{{ model.id }}">
+                                <!-- Fetching Status Placeholder -->
+                                <div class="fetching-status text-muted" id="fetching-{{ assoc.benchmark }}-{{ model.id }}">
+                                    Fetching status...
+                                </div>
+
+                                <!-- Run Button (for N/A status) -->
+                                <button class="btn btn-primary run-model-btn d-none"
+                                        data-benchmark-id="{{ assoc.benchmark }}"
+                                        data-model-id="{{ model.id }}"
+                                        id="run-btn-{{ assoc.benchmark }}-{{ model.id }}">
                                     ▶️ Run
                                 </button>
+
+                                <!-- Logs + Pending Status -->
+                                <div class="logs-and-status d-none" id="pending-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <span class="btn btn-warning"><i class="spinner-border spinner-border-sm"></i> Pending</span>
+                                </div>
+
+                                <!-- Logs + Failed Status -->
+                                <div class="logs-and-status d-none" id="failed-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <span class="btn btn-danger">❌ Failed</span>
+                                </div>
+
+                                <!-- Logs + Done + Submit Button -->
+                                <div class="logs-and-status d-none" id="done-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <button class="btn btn-primary" id="submit-btn-{{ assoc.benchmark }}-{{ model.id }}">
+                                        ⬆️ Submit
+                                    </button>
+                                </div>
                             </div>
                         </li>
                     {% endfor %}
@@ -247,21 +284,43 @@
                 const response = await fetch(`/datasets/run_draft/status?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`);
                 const statusData = await response.json();
                 const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
+                const fetchingStatusElem = document.getElementById(`fetching-${benchmarkId}-${modelId}`);
+                const runBtn = document.getElementById(`run-btn-${benchmarkId}-${modelId}`);
+                const pendingElem = document.getElementById(`pending-${benchmarkId}-${modelId}`);
+                const failedElem = document.getElementById(`failed-${benchmarkId}-${modelId}`);
+                const doneElem = document.getElementById(`done-${benchmarkId}-${modelId}`);
 
-                let statusLink = '';
-                if (statusData.status === 'done') {
-                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-success">✅ View results</a>`;
-                    clearInterval(intervalId);  // Stop polling
-                } else if (statusData.status === 'failed') {
-                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-danger">❌ Failed</a>`;
+
+                // Hide the "Fetching status..." placeholder
+                fetchingStatusElem.style.display = 'none';
+
+                // Show the correct button based on the status
+                if (statusData.status === 'n/a') {
+                    runBtn.classList.remove('d-none');
+                    pendingElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    doneElem.classList.add('d-none');
                     clearInterval(intervalId);  // Stop polling
                 } else if (statusData.status === 'pending') {
-                    statusLink = `<a href="/datasets/run_draft/ui/${resultId}" class="btn btn-info"><i class="spinner-border spinner-border-sm"></i> Pending...</a>`;
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.remove('d-none');
+                    failedElem.classList.add('d-none');
+                    doneElem.classList.add('d-none');
+                } else if (statusData.status === 'failed') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    failedElem.classList.remove('d-none');
+                    doneElem.classList.add('d-none');
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'done') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    doneElem.classList.remove('d-none');
+                    clearInterval(intervalId);  // Stop polling
                 }
 
-                if (statusLink) {
-                    statusContainer.innerHTML = statusLink;  // Replace run button with status link
-                }
+
             } catch (error) {
                 console.error('Error fetching status:', error);
             }
