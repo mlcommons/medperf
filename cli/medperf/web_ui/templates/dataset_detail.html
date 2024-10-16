@@ -97,12 +97,16 @@
 <!-- Display associated models with improved layout and dynamic actions -->
 {% for assoc in benchmark_associations %}
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">
                 Benchmark: <a href="/benchmarks/ui/display/{{ benchmarks[assoc.benchmark].id }}" class="text-white">
                     <strong>{{ benchmarks[assoc.benchmark].name }}</strong>
                 </a>
             </h4>
+            <!-- Run All button -->
+            <button class="btn btn-secondary run-all-btn" data-benchmark-id="{{ assoc.benchmark }}">
+                ▶️ Run All
+            </button>
         </div>
         <div class="card-body p-4">
             <div class="benchmark-section mb-4">
@@ -174,6 +178,7 @@
         </div>
     </div>
 {% endfor %}
+
 
 
 <!-- Set Operational Modal -->
@@ -346,14 +351,36 @@
             }
         };
 
-        // Iterate over all model statuses and fetch them
+        // Add an event listener to handle the "Run All" button clicks
+        document.querySelectorAll('.run-all-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                // Find all run buttons related to this benchmark
+                        const runButtons = document.querySelectorAll(`[id^="run-btn-${benchmarkId}-"]`);
+                runButtons.forEach(button => {
+                    if (!button.classList.contains('d-none')) {
+                        const modelId = button.getAttribute('data-model-id');
+                        const datasetId = {{ entity.id }};
+                        const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
+
+                        // Trigger run for the model
+                        button.click();
+
+                        // Polling to update status
+                        const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
+                    }
+                });
+            });
+        });
+
+        // Existing logic for fetching model statuses, updating buttons, etc.
         document.querySelectorAll('.run-model-btn').forEach(btn => {
             const benchmarkId = btn.getAttribute('data-benchmark-id');
             const modelId = btn.getAttribute('data-model-id');
             const datasetId = {{ entity.id }};
             const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
 
-            // Polling to update status
+            // Polling to update status initially
             const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
 
             // Handle the "Run" button click
@@ -362,6 +389,7 @@
                     await fetch(`/datasets/run_draft/run?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`, {
                         method: 'POST'
                     });
+                    // Start polling again after the run is triggered
                     const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
                 } catch (error) {
                     console.error('Error running model:', error);
