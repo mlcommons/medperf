@@ -121,6 +121,7 @@ METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
 # FL cubes
 TRAIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/19c80d88deaad27b353d1cb9bc180757534027aa/examples/fl/fl/mlcube/mlcube.yaml"
 TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
+FLADMIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/bc431ffe6c3b761b28674816e6f26511e8b27042/examples/fl/fl_admin/mlcube/mlcube.yaml"
 
 # test users credentials
 MODELOWNER="testmo@example.com"
@@ -129,6 +130,7 @@ BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
 DATAOWNER2="testdo2@example.com"
 AGGOWNER="testao@example.com"
+FLADMIN="testfladmin@example.com"
 
 # local MLCubes for local compatibility tests
 PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator/mlcube"

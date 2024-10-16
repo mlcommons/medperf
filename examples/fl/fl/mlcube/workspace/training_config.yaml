@@ -6,13 +6,10 @@ aggregator:
     last_state_path: save/classification_last.pbuf
     rounds_to_train: 2
     write_logs: true
-    admins:
-      - admin@example.com
-    allowed_admin_endpoints:
-      - GetExperimentStatus
-      - AddCollaborator
-      - RemoveCollaborator
-      - SetStragglerCuttoffTime
+    admins_endpoints_mapping:
+      testfladmin@example.com:
+        - GetExperimentStatus
+        - SetStragglerCuttoffTime
   template: openfl.component.Aggregator
 assigner:
   settings:

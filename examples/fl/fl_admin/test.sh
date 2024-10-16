@@ -27,7 +27,9 @@
 
 # # SET STRAGGLER CUTOFF
 # env_arg1="MEDPERF_ADMIN_PARTICIPANT_CN=admin@example.com"
-# env_arg2="MEDPERF_STRAGGLER_CUTOFF_TIME=1200"
-# env_args="$env_arg1,$env_arg2"
-# medperf mlcube run --mlcube ./mlcube_admin --task set_straggler_cuttoff_time \
+# env_arg2="MEDPERF_UPDATE_FIELD_NAME=straggler_handling_policy.settings.straggler_cutoff_time"
+# env_arg3="MEDPERF_UPDATE_FIELD_VALUE=1200"
+
+# env_args="$env_arg1,$env_arg2,$env_arg3"
+# medperf mlcube run --mlcube ./mlcube_admin --task update_plan \
 #     -e $env_args

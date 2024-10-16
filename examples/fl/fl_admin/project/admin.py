@@ -4,8 +4,10 @@ from utils import (
     get_col_cn_to_add,
     get_col_label_to_remove,
     get_col_cn_to_remove,
-    get_straggler_cutoff_time
+    get_update_field_name,
+    get_update_value_name,
 )
+from update_plan import set_straggler_cutoff_time
 
 
 def get_experiment_status(workspace_folder, admin_cn, output_status_file):
@@ -61,17 +63,10 @@ def remove_collaborator(workspace_folder, admin_cn):
     )
 
 
-def set_straggler_cuttoff_time(workspace_folder, admin_cn):
-    timeout_in_seconds = get_straggler_cutoff_time()
-    check_call(
-        [
-            "fx",
-            "admin",
-            "set_straggler_cuttoff_time",
-            "-n",
-            admin_cn,
-            "--timeout_in_seconds",
-            timeout_in_seconds,
-        ],
-        cwd=workspace_folder,
-    )
+def update_plan(workspace_folder, admin_cn):
+    field_name = get_update_field_name()
+    field_value = get_update_value_name()
+    if field_name == "straggler_handling_policy.settings.straggler_cutoff_time":
+        set_straggler_cutoff_time(workspace_folder, admin_cn, field_value)
+    else:
+        raise ValueError(f"Unsupported field name: {field_name}")

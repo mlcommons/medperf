@@ -20,6 +20,8 @@ print_eval medperf profile create -n testdata1
 checkFailed "testdata1 profile creation failed"
 print_eval medperf profile create -n testdata2
 checkFailed "testdata2 profile creation failed"
+print_eval medperf profile create -n fladmin
+checkFailed "fladmin profile creation failed"
 ##########################################################
 
 echo "\n"
@@ -71,6 +73,13 @@ checkFailed "testdata2 profile activation failed"
 
 print_eval medperf auth login -e $DATAOWNER2
 checkFailed "testdata2 login failed"
+
+print_eval medperf profile activate fladmin
+checkFailed "fladmin profile activation failed"
+
+print_eval medperf auth login -e $FLADMIN
+checkFailed "fladmin login failed"
+
 ##########################################################
 
 echo "\n"
@@ -97,6 +106,11 @@ PREP_UID=$(medperf mlcube ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d '
 print_eval medperf mlcube submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
 checkFailed "traincube submission failed"
 TRAINCUBE_UID=$(medperf mlcube ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
+print_eval medperf mlcube submit --name fladmincube -m $FLADMIN_MLCUBE --operational
+checkFailed "fladmincube submission failed"
+FLADMINCUBE_UID=$(medperf mlcube ls | grep fladmincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+
 ##########################################################
 
 echo "\n"
@@ -105,7 +119,7 @@ echo "\n"
 echo "====================================="
 echo "Submit Training Experiment"
 echo "====================================="
-print_eval medperf training submit -n trainexp -d trainexp -p $PREP_UID -m $TRAINCUBE_UID
+print_eval medperf training submit -n trainexp -d trainexp -p $PREP_UID -m $TRAINCUBE_UID -a $FLADMINCUBE_UID
 checkFailed "Training exp submission failed"
 TRAINING_UID=$(medperf training ls | grep trainexp | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
@@ -399,6 +413,51 @@ sleep 7
 if [ ! -d "/proc/$COL2_PID" ]; then
   checkFailed "data2 training doesn't seem to be running" 1
 fi
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate fladmin profile"
+echo "====================================="
+print_eval medperf profile activate fladmin
+checkFailed "fladmin profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get fladmin certificate"
+echo "====================================="
+print_eval medperf certificate get_client_certificate -t $TRAINING_UID
+checkFailed "Get fladmin cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Check experiment status"
+echo "====================================="
+print_eval medperf training get_experiment_status -t $TRAINING_UID
+checkFailed "Get experiment status failed"
+
+sleep 3 # sleep some time then get status again
+
+print_eval medperf training get_experiment_status -t $TRAINING_UID
+checkFailed "Get experiment status failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Update plan parameter"
+echo "====================================="
+print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
+checkFailed "Update plan failed"
 ##########################################################
 
 echo "\n"

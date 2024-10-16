@@ -47,6 +47,13 @@ if [ -n "$CA_FINGERPRINT" ]; then
 else
     wget -O $pki_assets/root_ca.crt $CA_ADDRESS:$CA_PORT/roots.pem
 fi
+EXITSTATUS="$?"
+if [ $EXITSTATUS -ne "0" ]; then
+    echo "Failed to retrieve the root certificate"
+    # cleanup
+    rm -rf $STEPPATH
+    exit 1
+fi
 
 # cleanup
 rm -rf $STEPPATH

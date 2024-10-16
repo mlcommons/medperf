@@ -40,7 +40,7 @@ tasks:
         plan_path: plan.yaml
       outputs:
         temp_dir: tmp/
-  set_straggler_cuttoff_time:
+  update_plan:
     parameters:
       inputs:
         node_cert_folder: node_cert/

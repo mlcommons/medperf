@@ -1,9 +1,7 @@
 """MLCube handler file"""
 
-import os
-import shutil
 import typer
-from collaborator import start_collaborator
+from collaborator import start_collaborator, check_connectivity
 from aggregator import start_aggregator
 from plan import generate_plan
 from hooks import (
@@ -12,21 +10,10 @@ from hooks import (
     collaborator_pre_training_hook,
     collaborator_post_training_hook,
 )
+from utils import generic_setup, generic_teardown, setup_collaborator, setup_aggregator
 from init_model import train_initial_model
 
 app = typer.Typer()
-
-
-def _setup(output_logs):
-    tmp_folder = os.path.join(output_logs, ".tmp")
-    os.makedirs(tmp_folder, exist_ok=True)
-    # TODO: this should be set before any code imports tempfile
-    os.environ["TMPDIR"] = tmp_folder
-
-
-def _teardown(output_logs):
-    tmp_folder = os.path.join(output_logs, ".tmp")
-    shutil.rmtree(tmp_folder, ignore_errors=True)
 
 
 @app.command("train")
@@ -39,7 +26,17 @@ def train(
     output_logs: str = typer.Option(..., "--output_logs"),
     init_nnunet_directory: str = typer.Option(..., "--init_nnunet_directory"),
 ):
-    _setup(output_logs)
+    workspace_folder = generic_setup(output_logs)
+    setup_collaborator(
+        data_path=data_path,
+        labels_path=labels_path,
+        node_cert_folder=node_cert_folder,
+        ca_cert_folder=ca_cert_folder,
+        plan_path=plan_path,
+        output_logs=output_logs,
+        workspace_folder=workspace_folder,
+    )
+    check_connectivity(workspace_folder)
     collaborator_pre_training_hook(
         data_path=data_path,
         labels_path=labels_path,
@@ -48,16 +45,9 @@ def train(
         plan_path=plan_path,
         output_logs=output_logs,
         init_nnunet_directory=init_nnunet_directory,
+        workspace_folder=workspace_folder,
     )
-    
-    start_collaborator(
-        data_path=data_path,
-        labels_path=labels_path,
-        node_cert_folder=node_cert_folder,
-        ca_cert_folder=ca_cert_folder,
-        plan_path=plan_path,
-        output_logs=output_logs,
-    )
+    start_collaborator(workspace_folder=workspace_folder)
     collaborator_post_training_hook(
         data_path=data_path,
         labels_path=labels_path,
@@ -65,9 +55,9 @@ def train(
         ca_cert_folder=ca_cert_folder,
         plan_path=plan_path,
         output_logs=output_logs,
+        workspace_folder=workspace_folder,
     )
-    
-    _teardown(output_logs)
+    generic_teardown(output_logs)
 
 
 @app.command("start_aggregator")
@@ -81,7 +71,18 @@ def start_aggregator_(
     collaborators: str = typer.Option(..., "--collaborators"),
     report_path: str = typer.Option(..., "--report_path"),
 ):
-    _setup(output_logs)
+    workspace_folder = generic_setup(output_logs)
+    setup_aggregator(
+        input_weights=input_weights,
+        node_cert_folder=node_cert_folder,
+        ca_cert_folder=ca_cert_folder,
+        output_logs=output_logs,
+        output_weights=output_weights,
+        plan_path=plan_path,
+        collaborators=collaborators,
+        report_path=report_path,
+        workspace_folder=workspace_folder,
+    )
     aggregator_pre_training_hook(
         input_weights=input_weights,
         node_cert_folder=node_cert_folder,
@@ -91,15 +92,12 @@ def start_aggregator_(
         plan_path=plan_path,
         collaborators=collaborators,
         report_path=report_path,
+        workspace_folder=workspace_folder,
     )
     start_aggregator(
-        input_weights=input_weights,
-        node_cert_folder=node_cert_folder,
-        ca_cert_folder=ca_cert_folder,
+        workspace_folder=workspace_folder,
         output_logs=output_logs,
         output_weights=output_weights,
-        plan_path=plan_path,
-        collaborators=collaborators,
         report_path=report_path,
     )
     aggregator_post_training_hook(
@@ -111,8 +109,9 @@ def start_aggregator_(
         plan_path=plan_path,
         collaborators=collaborators,
         report_path=report_path,
+        workspace_folder=workspace_folder,
     )
-    _teardown(output_logs)
+    generic_teardown(output_logs)
 
 
 @app.command("generate_plan")
@@ -134,14 +133,14 @@ def train_initial_model_(
     output_logs: str = typer.Option(..., "--output_logs"),
     init_nnunet_directory: str = typer.Option(..., "--init_nnunet_directory"),
 ):
-    _setup(output_logs)
+    workspace_folder = generic_setup(output_logs)
     train_initial_model(
         data_path=data_path,
         labels_path=labels_path,
-        output_logs=output_logs,
         init_nnunet_directory=init_nnunet_directory,
+        workspace_folder=workspace_folder,
     )
-    _teardown(output_logs)
+    generic_teardown(output_logs)
 
 
 if __name__ == "__main__":

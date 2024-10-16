@@ -44,8 +44,12 @@ def get_col_cn_to_remove():
     return os.environ["MEDPERF_COLLABORATOR_CN_TO_REMOVE"]
 
 
-def get_straggler_cutoff_time():
-    return os.environ["MEDPERF_STRAGGLER_CUTOFF_TIME"]
+def get_update_field_name():
+    return os.environ["MEDPERF_UPDATE_FIELD_NAME"]
+
+
+def get_update_value_name():
+    return os.environ["MEDPERF_UPDATE_FIELD_VALUE"]
 
 
 def prepare_plan(plan_path, fl_workspace):

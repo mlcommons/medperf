@@ -98,7 +98,7 @@ echo "$COL2_LABEL: $COL2_CN" >>mlcube_agg/workspace/cols.yaml
 echo "$COL3_LABEL: $COL3_CN" >>mlcube_agg/workspace/cols.yaml
 
 # for admin
-ADMIN_CN="admin@example.com"
+ADMIN_CN="testfladmin@example.com"
 
 mkdir ./for_admin
 mkdir ./for_admin/node_cert
@@ -114,3 +114,40 @@ rm csr.csr
 mkdir ../ca_cert
 cp -r ../../ca/root.crt ../ca_cert/root.crt
 cd ../..
+
+# data setup
+cd mlcube_col1/workspace
+wget https://storage.googleapis.com/medperf-storage/fltest29July/small_test_data1.tar.gz
+tar -xf small_test_data1.tar.gz
+mv small_test_data1/* .
+rm -rf small_test_data1.tar.gz
+rm -rf small_test_data1
+cd ../../
+
+cd mlcube_col2/workspace
+wget https://storage.googleapis.com/medperf-storage/fltest29July/small_test_data2.tar.gz
+tar -xf small_test_data2.tar.gz
+mv small_test_data2/* .
+rm -rf small_test_data2.tar.gz
+rm -rf small_test_data2
+cd ../../
+
+cd mlcube_col3/workspace
+wget https://storage.googleapis.com/medperf-storage/fltest29July/small_test_data3.tar.gz
+tar -xf small_test_data3.tar.gz
+mv small_test_data3/* .
+rm -rf small_test_data3.tar.gz
+rm -rf small_test_data3
+cd ../../
+
+# weights setup
+cd mlcube_agg/workspace
+mkdir additional_files
+cd additional_files
+wget https://storage.googleapis.com/medperf-storage/fltest29July/flpost_add29july.tar.gz
+tar -xf flpost_add29july.tar.gz
+rm flpost_add29july.tar.gz
+cd ../../../
+cp -r mlcube_agg/workspace/additional_files mlcube_col1/workspace/additional_files
+cp -r mlcube_agg/workspace/additional_files mlcube_col2/workspace/additional_files
+cp -r mlcube_agg/workspace/additional_files mlcube_col3/workspace/additional_files
