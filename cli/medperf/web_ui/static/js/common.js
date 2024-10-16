@@ -71,31 +71,3 @@ function displayAlert(type, message) {
 function clearAlerts() {
     document.querySelectorAll('.floating-alert').forEach(alert => alert.remove());
 }
-
-    // function loadYamlContent(yamlData) {
-    //     const yamlPanel = document.getElementById('yaml-content');
-    //     const yamlCode = document.getElementById('yaml-code');
-    //     yamlPanel.style.display = 'block';  // Show the panel
-    //     yamlCode.textContent = yamlData;  // Insert YAML data
-    //     Prism.highlightElement(yamlCode);  // Apply syntax highlighting
-    // }
-    //
-    // // Logic to load YAML from either a URL or directly from template JSON data
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const yamlLinkElements = document.querySelectorAll('.yaml-link');
-    //     yamlLinkElements.forEach(link => {
-    //         link.addEventListener('click', function(event) {
-    //             event.preventDefault();
-    //             const yamlContent = this.getAttribute('data-yaml-content');
-    //             if (yamlContent) {
-    //                 loadYamlContent(yamlContent);
-    //             } else {
-    //                 const url = this.getAttribute('href');
-    //                 fetch(url)
-    //                     .then(response => response.json())
-    //                     .then(data => loadYamlContent(data.content))
-    //                     .catch(error => console.error('Error fetching YAML:', error));
-    //             }
-    //         });
-    //     });
-    // });
