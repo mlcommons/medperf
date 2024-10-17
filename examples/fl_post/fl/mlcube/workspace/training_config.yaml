@@ -30,11 +30,12 @@ task_runner :
   defaults : plan/defaults/task_runner.yaml
   template : src.runner_nnunetv1.PyTorchNNUNetCheckpointTaskRunner
   settings :
-    device          : cuda
-    gpu_num_string  : '0'
-    nnunet_task     : Task537_FLPost
-    train_cutoff    : 100
-    val_cutoff      : 3
+    device                  : cuda
+    gpu_num_string          : '0'
+    nnunet_task             : Task537_FLPost
+    train_cutoff            : 100
+    val_cutoff              : 3
+    actual_max_num_epochs   : 1000
     
 network :
   defaults : plan/defaults/network.yaml

@@ -28,7 +28,7 @@ def main(postopp_pardir,
          plans_path=None, 
          local_plans_identifier=local_plans_identifier,
          shared_plans_identifier=shared_plans_identifier,
-         overwrite_nnunet_datadirs=False, 
+         overwrite_nnunet_datadirs=True, 
          timestamp_selection='all', 
          cuda_device='0', 
          verbose=False):

@@ -37,7 +37,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                  val_cutoff=np.inf,
                  nnunet_task=None,
                  config_path=None,
-                 TOTAL_max_num_epochs=1000,
+                 actual_max_num_epochs=1000,
                  **kwargs):
         """Initialize.
 
@@ -46,7 +46,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             val_cutoff (int)                    : Total time (in seconds) allowed for iterating over val batches (plus or minus one iteration since check willl be once an iteration).
             nnunet_task (str)                   : Task string used to identify the data and model folders
             config_path(str)                    : Path to the configuration file used by the training and validation script.
-            TOTAL_max_num_epochs (int)          : Total number of epochs for which this collaborator's model will be trained, should match the total rounds of federation in which this runner is participating
+            actual_max_num_epochs (int)         : Number of epochs for which this collaborator's model will be trained, should match the total rounds of federation in which this runner is participating
             kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
             TODO: 
         """ 
@@ -80,7 +80,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.train_cutoff = train_cutoff
         self.val_cutoff = val_cutoff
         self.config_path = config_path
-        self.TOTAL_max_num_epochs=TOTAL_max_num_epochs
+        self.actual_max_num_epochs=actual_max_num_epochs
 
         # self.task_completed is a dictionary of task to amount completed as a float in [0,1]
         # Values will be dynamically updated
@@ -172,7 +172,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         this_val_eval_metrics_C1, \
         this_val_eval_metrics_C2, \
         this_val_eval_metrics_C3, \
-        this_val_eval_metrics_C4 = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
+        this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
                                                       epochs=epochs, 
                                                       current_epoch=current_epoch, 
                                                       train_cutoff=self.train_cutoff,
@@ -227,7 +227,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             this_val_eval_metrics_C1, \
             this_val_eval_metrics_C2, \
             this_val_eval_metrics_C3, \
-            this_val_eval_metrics_C4 = train_nnunet(TOTAL_max_num_epochs=self.TOTAL_max_num_epochs, 
+            this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
                                                 epochs=1, 
                                                 current_epoch=current_epoch, 
                                                 train_cutoff=0,
@@ -286,7 +286,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         """
 
 
-    def get_train_data_size(self, task_dependent=False, task_name=None):
+    def get_train_data_size(self, task_name=None):
         """Get the number of training examples.
 
         It will be used for weighted averaging in aggregation. 
@@ -296,16 +296,14 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         Returns:
             int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
         """
-        if not task_dependent:
+        if not task_name:
             return self.data_loader.get_train_data_size()
-        elif not task_name:
-            raise ValueError(f"If using task dependent data size, must provide task_name.")
         else:
             # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
-            return int(np.ceil(self.task_completed[task_name] * self.data_loader.get_train_data_size()))
+            return int(np.ceil(self.task_completed[task_name]**(-1) * self.data_loader.get_train_data_size()))
 
 
-    def get_valid_data_size(self, task_dependent=False, task_name=None):
+    def get_valid_data_size(self, task_name=None):
         """Get the number of training examples.
 
         It will be used for weighted averaging in aggregation. 
@@ -315,10 +313,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         Returns:
             int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
         """
-        if not task_dependent:
+        if not task_name:
             return self.data_loader.get_valid_data_size()
-        elif not task_name:
-            raise ValueError(f"If using task dependent data size, must provide task_name.")
         else:
             # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
-            return int(np.ceil(self.task_completed[task_name] * self.data_loader.get_valid_data_size()))  
+            return int(np.ceil(self.task_completed[task_name]**(-1) * self.data_loader.get_valid_data_size()))  

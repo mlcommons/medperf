@@ -54,7 +54,7 @@ def seed_everything(seed=1234):
     torch.backends.cudnn.deterministic = True
 
 
-def train_nnunet(TOTAL_max_num_epochs, 
+def train_nnunet(actual_max_num_epochs, 
                  epochs,
                  current_epoch,
                  val_epoch=True,
@@ -83,7 +83,8 @@ def train_nnunet(TOTAL_max_num_epochs,
                  pretrained_weights=None):
 
     """
-    TOTAL_max_num_epochs (int): Provides the total number of epochs intended to be trained (this needs to be held constant outside of individual calls to this function during the course of federated training)
+    actual_max_num_epochs (int): Provides the number of epochs intended to be trained 
+    (this needs to be held constant outside of individual calls to this function during with max_num_epochs is set to one more than the current epoch)
     epochs (int): Number of epochs to trainon top of current epoch
     current_epoch (int): Which epoch will be used to grab the model
     val_epoch (bool) : Will validation be performed
@@ -211,7 +212,7 @@ def train_nnunet(TOTAL_max_num_epochs,
     trainer = trainer_class(
         plans_file,
         fold,
-        TOTAL_max_num_epochs=TOTAL_max_num_epochs,
+        actual_max_num_epochs=actual_max_num_epochs,
         output_folder=output_folder_name,
         dataset_directory=dataset_directory,
         batch_dice=batch_dice,
@@ -259,7 +260,7 @@ def train_nnunet(TOTAL_max_num_epochs,
         return
 
     if find_lr:
-        trainer.find_lr(num_iters=self.TOTAL_max_num_epochs)
+        trainer.find_lr(num_iters=self.actual_max_num_epochs)
     else:
         if not validation_only:
             if args.continue_training:

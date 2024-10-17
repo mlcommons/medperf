@@ -6,14 +6,14 @@ ENV CUDA_VISIBLE_DEVICES="0"
 # ENV https_proxy="http://proxy-us.intel.com:912"
 ENV no_proxy=localhost,spr-gpu01.jf.intel.com
 
-ENV no_proxy________________="http://proxy-us.intel.com:912"
+ENV no_proxy_________________________________________________________________________="http://proxy-us.intel.com:912"
 
 # install project dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y git zlib1g-dev libffi-dev libgl1 libgtk2.0-dev gcc g++
 
 RUN pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121
 
-COPY ./requirements.txt /mlcube_project/requirements.txt
+COPY ./be_requirements.txt /mlcube_project/requirements.txt
 RUN pip install --no-cache-dir -r /mlcube_project/requirements.txt
 
 # Create similar env with cuda118
