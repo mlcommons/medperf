@@ -84,7 +84,6 @@ class BenchmarkExecution:
         self.benchmark = Benchmark.get(self.benchmark_uid)
         self.ui.print(f"Benchmark Execution: {self.benchmark.name}")
         self.dataset = Dataset.get(self.data_uid)
-        time.sleep(10)
         evaluator_uid = self.benchmark.data_evaluator_mlcube
         self.evaluator = self.__get_cube(evaluator_uid, "Evaluator")
 

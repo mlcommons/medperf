@@ -65,7 +65,7 @@
         <div class="associations-column">
             <h2 class="my-4">Associated Models</h2>
             {% for assoc in models_associations %}
-                {{ macros.association_card(assoc, models[assoc.model_mlcube], "models") }}
+                {{ macros.association_card(assoc, models[assoc.model_mlcube], "mlcubes") }}
             {% endfor %}
         </div>
     </div>

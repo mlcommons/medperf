@@ -191,7 +191,7 @@ async def get_run_logs(dataset_id: int, benchmark_id: int, model_id: int):
             while line_id < len(draft.logs):
                 yield draft.logs[line_id] + "\n"
                 line_id += 1
-            if draft.status != DraftStatus.pending and line_id >= len(draft.logs):
+            if draft.status not in {DraftStatus.pending, DraftStatus.running} and line_id >= len(draft.logs):
                 break
 
     return StreamingResponse(log_stream(), media_type="text/event-stream")

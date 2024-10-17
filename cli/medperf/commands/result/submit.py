@@ -56,6 +56,8 @@ class ResultSubmission:
         remove_path(new_result_loc)
         os.rename(old_result_loc, new_result_loc)
 
+
+
     def write(self, updated_result_dict):
         result = Result(**updated_result_dict)
         result.write()
