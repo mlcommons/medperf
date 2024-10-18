@@ -186,6 +186,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.task_completed['locally_tuned_model_validation'] = val_completed
 
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
+        WORKING HEREself.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
+
 
         # 3. Prepare metrics 
         metrics = {'train_loss': this_ave_train_loss}
