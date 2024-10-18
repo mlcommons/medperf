@@ -185,14 +185,15 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         self.task_completed['train'] = train_completed
         self.task_completed['locally_tuned_model_validation'] = val_completed
 
-        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
-        self.logger.info(f"Data size right now returns {self.get_train_data_size()} for train and {self.get_valid_data_size()} for val.\n")
-
-
         # 3. Prepare metrics 
         metrics = {'train_loss': this_ave_train_loss}
 
-        return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=True)
+        global_tensor_dict, local_tensor_dict = self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=True)
+
+        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
+        self.logger.info(f"Data size right now returns {self.get_train_data_size()} for train and {self.get_valid_data_size()} for val.\n")
+
+        return global_tensor_dict, local_tensor_dict
   
 
     def validate(self, col_name, round_num, input_tensor_dict, from_checkpoint=False, **kwargs):
