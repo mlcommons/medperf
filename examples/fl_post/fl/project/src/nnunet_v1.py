@@ -55,8 +55,7 @@ def seed_everything(seed=1234):
 
 
 def train_nnunet(actual_max_num_epochs, 
-                 epochs,
-                 current_epoch,
+                 round,
                  val_epoch=True,
                  train_epoch=True,
                  train_cutoff=np.inf,
@@ -85,8 +84,7 @@ def train_nnunet(actual_max_num_epochs,
     """
     actual_max_num_epochs (int): Provides the number of epochs intended to be trained 
     (this needs to be held constant outside of individual calls to this function during with max_num_epochs is set to one more than the current epoch)
-    epochs (int): Number of epochs to trainon top of current epoch
-    current_epoch (int): Which epoch will be used to grab the model
+    round (int): Federated round, equal to the epoch used for the model (lr scheduling)
     val_epoch (bool) : Will validation be performed
     train_epoch (bool) : Will training run (rather than val only) makes lr step and epoch increment
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
@@ -131,6 +129,8 @@ def train_nnunet(actual_max_num_epochs,
         "Optional. Beta. Use with caution."
     disable_next_stage_pred: If True, do not predict next stage
     """  
+    # hard coded, as internal trainer.run_training is currently written to run only one epoch
+    epochs = 1
 
     class Arguments():
         def __init__(self, **kwargs):
@@ -237,8 +237,8 @@ def train_nnunet(actual_max_num_epochs,
         True  # if false it will not store/overwrite _latest but separate files each
     )
 
-    trainer.max_num_epochs = current_epoch + epochs
-    trainer.epoch = current_epoch
+    trainer.max_num_epochs = round + epochs
+    trainer.epoch = round
 
     trainer.initialize(not validation_only)
 
