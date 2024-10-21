@@ -82,7 +82,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         self.replace_checkpoint(self.checkpoint_path_initial)
      
 
-    def load_checkpoint(self, map_location=None, checkpoint_path):
+    def load_checkpoint(self, checkpoint_path, map_location=None):
         """
         Function used to load checkpoint from disk.
         """
