@@ -82,12 +82,10 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         self.replace_checkpoint(self.checkpoint_path_initial)
      
 
-    def load_checkpoint(self, checkpoint_path=None, map_location=None):
+    def load_checkpoint(self, map_location=None, checkpoint_path):
         """
         Function used to load checkpoint from disk.
         """
-        if not checkpoint_path:
-            checkpoint_path = self.checkpoint_path_load
         checkpoint_dict = torch.load(checkpoint_path, map_location=map_location)
         return checkpoint_dict
     
@@ -124,7 +122,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
             return self.required_tensorkeys_for_function[func_name]
 
     def reset_opt_vars(self):
-        current_checkpoint_dict = self.load_checkpoint()
+        current_checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load)
         initial_checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_initial)
         derived_opt_state_dict = self._get_optimizer_state(checkpoint_dict=initial_checkpoint_dict)
         self._set_optimizer_state(derived_opt_state_dict=derived_opt_state_dict, 
@@ -172,7 +170,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
             dict: Tensor dictionary {**dict, **optimizer_dict}
 
         """
-        checkpoint_dict = self.load_checkpoint()
+        checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load)
         state = to_cpu_numpy(checkpoint_dict['state_dict'])
         if with_opt_vars:
             opt_state = self._get_optimizer_state(checkpoint_dict=checkpoint_dict)
