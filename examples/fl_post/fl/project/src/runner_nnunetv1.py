@@ -153,6 +153,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform training for a specified number of epochs."""
 
+        # epochs is not used, inside function is hard coded for epochs=1
+
         self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
         # 1. Insert tensor_dict info into checkpoint
         self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
@@ -166,7 +168,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         this_val_eval_metrics_C2, \
         this_val_eval_metrics_C3, \
         this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
-                                                      epochs=epochs, 
                                                       round=round, 
                                                       train_cutoff=self.train_cutoff,
                                                       val_cutoff = self.val_cutoff,
@@ -219,7 +220,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             this_val_eval_metrics_C2, \
             this_val_eval_metrics_C3, \
             this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
-                                                epochs=1, 
                                                 round=round_num, 
                                                 train_cutoff=0,
                                                 val_cutoff = self.val_cutoff,
@@ -244,7 +244,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                        'val_eval_C4': this_val_eval_metrics_C4}
         else:
             checkpoint_dict = self.load_checkpoint()
-            # double check uncomment below for testing
+            # double check: uncomment below for testing
             # compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'], tag="checkpoint VS fromOpenFL")
 
             all_tr_losses, \
