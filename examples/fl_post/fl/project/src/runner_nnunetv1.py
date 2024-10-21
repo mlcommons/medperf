@@ -124,7 +124,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # get device for correct placement of tensors
         device = self.device
 
-        checkpoint_dict = self.load_checkpoint(map_location=device)
+        checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load, map_location=device)
         epoch = checkpoint_dict['epoch']
         new_state = {}
         # grabbing keys from the checkpoint state dict, poping from the tensor_dict
