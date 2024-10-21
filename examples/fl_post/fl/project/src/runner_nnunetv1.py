@@ -168,7 +168,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         this_val_eval_metrics_C2, \
         this_val_eval_metrics_C3, \
         this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
-                                                      round=round, 
+                                                      fl_round=round_num, 
                                                       train_cutoff=self.train_cutoff,
                                                       val_cutoff = self.val_cutoff,
                                                       task=self.data_loader.get_task_name(),
@@ -220,7 +220,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             this_val_eval_metrics_C2, \
             this_val_eval_metrics_C3, \
             this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
-                                                round=round_num, 
+                                                fl_round=round_num, 
                                                 train_cutoff=0,
                                                 val_cutoff = self.val_cutoff,
                                                 task=self.data_loader.get_task_name(), 
