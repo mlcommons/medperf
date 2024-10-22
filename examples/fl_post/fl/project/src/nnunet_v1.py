@@ -238,7 +238,8 @@ def train_nnunet(actual_max_num_epochs,
     )
 
     trainer.max_num_epochs = fl_round + epochs
-    trainer.epoch = fl_round
+    # previous epoch trained
+    trainer.epoch = fl_round - 1
 
     trainer.initialize(not validation_only)
 
