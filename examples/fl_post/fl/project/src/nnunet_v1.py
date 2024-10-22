@@ -252,8 +252,6 @@ def train_nnunet(actual_max_num_epochs,
             #     trainer.load_final_checkpoint(train=False)
             trainer.load_latest_checkpoint()
 
-    print(f"Brandon DEBUG - after trainer initialization an model load, trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
-
     # we want latest checkoint only (not best or any intermediate) 
     trainer.save_final_checkpoint = (
         True  # whether or not to save the final checkpoint
@@ -284,8 +282,6 @@ def train_nnunet(actual_max_num_epochs,
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
     trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
             
-    print(f"Brandon DEBUG - right before train/val call trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
-
     batches_applied_train, \
             batches_applied_val, \
             this_ave_train_loss, \
