@@ -86,7 +86,7 @@ async def associate_generate(draft_id: str):
 async def associate_get_results(draft_id: str):
     draft = _draft_associate[draft_id]
     return {
-        "compatibility_results": yaml.dump(draft.result.results),
+        "compatibility_results": yaml.dump(draft.get_result().results),
         "draft_id": draft_id
     }
 

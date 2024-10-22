@@ -160,16 +160,23 @@
                                     <span class="btn btn-danger">❌ Failed</span>
                                 </div>
 
-                                <!-- Logs + Done + Submit Button -->
-                                <div class="logs-and-status d-none" id="done-{{ assoc.benchmark }}-{{ model.id }}">
-                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
-                                       >
-                                        View Logs
-                                    </a>
-                                    <button class="btn btn-primary" id="submit-btn-{{ assoc.benchmark }}-{{ model.id }}">
-                                        ⬆️ Submit
-                                    </button>
-                                </div>
+                            <!-- Logs + Done + Submit Button -->
+                            <div class="logs-and-status d-none" id="submit-{{ assoc.benchmark }}-{{ model.id }}">
+                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}">
+                                    View Logs
+                                </a>
+                                <button class="btn btn-primary submit-result-btn" data-benchmark-id="{{ assoc.benchmark }}"
+                                        data-model-id="{{ model.id }}" id="submit-btn-{{ assoc.benchmark }}-{{ model.id }}">
+                                    ⬆️ Submit
+                                </button>
+                            </div>
+
+                            <!-- Logs + Submitted (non-clickable badge) -->
+                            <div class="logs-and-status d-none" id="submitted-{{ assoc.benchmark }}-{{ model.id }}">
+                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}">
+                                    View Logs
+                                </a>
+                                <span class="btn btn-success">✅ Submitted</span>
                             </div>
                         </li>
                     {% endfor %}
@@ -200,6 +207,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="decline-btn">No</button>
                 <button type="button" class="btn btn-danger" id="confirm-set-operational-btn">Yes, Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Submission Modal -->
+<div class="modal fade" id="submitResultModal" tabindex="-1" aria-labelledby="submitResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitResultModalLabel">Approval Required for Result Submission</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <pre id="result-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+                <p>Submitting this result will lock the result and send it to the server. Do you approve submitting the presented data?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="decline-result-btn">No</button>
+                <button type="button" class="btn btn-danger" id="confirm-submit-result-btn">Yes, Approve</button>
             </div>
         </div>
     </div>
@@ -303,8 +332,8 @@
                 const pendingElem = document.getElementById(`pending-${benchmarkId}-${modelId}`);
                 const runningElem = document.getElementById(`running-${benchmarkId}-${modelId}`);
                 const failedElem = document.getElementById(`failed-${benchmarkId}-${modelId}`);
-                const doneElem = document.getElementById(`done-${benchmarkId}-${modelId}`);
-
+                const submitElem = document.getElementById(`submit-${benchmarkId}-${modelId}`);
+                const submittedElem = document.getElementById(`submitted-${benchmarkId}-${modelId}`);
 
                 // Hide the "Fetching status..." placeholder
                 fetchingStatusElem.style.display = 'none';
@@ -315,37 +344,48 @@
                     pendingElem.classList.add('d-none');
                     runningElem.classList.add('d-none');
                     failedElem.classList.add('d-none');
-                    doneElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
                     clearInterval(intervalId);  // Stop polling
                 } else if (statusData.status === 'pending') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.remove('d-none');
                     runningElem.classList.add('d-none');
                     failedElem.classList.add('d-none');
-                    doneElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
                 } else if (statusData.status === 'running') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.add('d-none');
                     runningElem.classList.remove('d-none');
                     failedElem.classList.add('d-none');
-                    doneElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
                 } else if (statusData.status === 'failed') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.add('d-none');
                     runningElem.classList.add('d-none');
                     failedElem.classList.remove('d-none');
-                    doneElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
                     clearInterval(intervalId);  // Stop polling
-                } else if (statusData.status === 'done') {
+                } else if (statusData.status === 'executed') {
                     runBtn.classList.add('d-none');
                     pendingElem.classList.add('d-none');
                     runningElem.classList.add('d-none');
                     failedElem.classList.add('d-none');
-                    doneElem.classList.remove('d-none');
+                    submitElem.classList.remove('d-none');  // Show submit button
+                    submittedElem.classList.add('d-none');
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'submitted') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');  // Hide submit button
+                    submittedElem.classList.remove('d-none');  // Show submitted badge
                     clearInterval(intervalId);  // Stop polling
                 }
-
-
             } catch (error) {
                 console.error('Error fetching status:', error);
             }
@@ -384,7 +424,7 @@
             const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
 
             // Handle the "Run" button click
-            btn.addEventListener('click', async function() {
+            btn.addEventListener('click', async function () {
                 try {
                     await fetch(`/datasets/run_draft/run?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`, {
                         method: 'POST'
@@ -394,6 +434,79 @@
                 } catch (error) {
                     console.error('Error running model:', error);
                 }
+            });
+        });
+
+        // Handle the "Submit" button click (result submission)
+        document.querySelectorAll('.submit-result-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                const modelId = this.getAttribute('data-model-id');
+                const resultId = `b${benchmarkId}m${modelId}d{{ entity.id }}`;  // Calculate result_id
+
+                // Call the generate endpoint to fetch the result data
+                fetch(`/datasets/result_submit_draft/generate?result_id=${resultId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())  // Parse the JSON response
+                .then(data => {
+                    // Display the YAML result in the modal
+                    document.getElementById('result-content').textContent = data.results;
+
+                    // Apply Prism.js highlighting
+                    Prism.highlightElement(document.getElementById('result-content'));
+
+                    // Show the modal for user approval
+                    $('#submitResultModal').modal('show');
+                })
+                .catch(error => console.error('Error generating result draft:', error));
+
+                // Handle the "Yes, Approve" button click in the modal
+                document.getElementById('confirm-submit-result-btn').addEventListener('click', function () {
+                    // Call the submit endpoint to finalize the submission
+                    fetch(`/datasets/result_submit_draft/submit?result_id=${resultId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            // Display an alert with the error message
+                            displayAlert('danger', data.error);
+                            console.error('Error submitting result:', data.error);
+                        } else {
+                            // Hide the submit button and show the "Submitted" span
+                            document.getElementById(`submit-${benchmarkId}-${modelId}`).style.display = 'none';
+                            document.getElementById(`submitted-${benchmarkId}-${modelId}`).classList.remove('d-none');
+                            displayAlert('success', 'Result successfully submitted.');
+                        }
+                    })
+                    .catch(error => {
+                        // Display a generic error message in case of failure
+                        displayAlert('danger', 'An unexpected error occurred during submission: ' + error.message);
+                        console.error('Error submitting result:', error);
+                    });
+
+                    // Close the modal
+                    $('#submitResultModal').modal('hide');
+                });
+
+
+            // Handle the "No" button click (decline result submission)
+            document.getElementById('decline-result-btn').addEventListener('click', function () {
+                fetch(`/datasets/result_submit_draft/decline?result_id=${resultId}`, {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.op_declined) {
+                        console.log(`Submission for result ${data.result_id} was declined.`);
+                    }
+                })
+                .catch(error => console.error('Error declining result submission:', error));
+
+                // Close the modal
+                $('#submitResultModal').modal('hide');
+            });
             });
         });
     });

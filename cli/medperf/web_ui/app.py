@@ -13,6 +13,7 @@ from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.mlcubes.routes import router as mlcubes_router
+from medperf.web_ui.results import fetch_all_results
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
 from medperf.web_ui.api.routes import router as api_router
 
@@ -33,6 +34,8 @@ web_app.mount(
 )
 
 web_app.add_exception_handler(Exception, custom_exception_handler)
+
+fetch_all_results()
 
 
 @web_app.get("/", include_in_schema=False)

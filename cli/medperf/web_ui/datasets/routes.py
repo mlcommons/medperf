@@ -45,6 +45,8 @@ def dataset_detail_ui(request: Request, dataset_id: int):
     # Fetch models associated with each benchmark
     benchmark_models = {}
     for assoc in benchmark_associations:
+        if assoc.approval_status != "APPROVED":
+            continue  # if association is not approved we cannot list its models
         models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
         models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
         benchmark_models[assoc.benchmark] = models

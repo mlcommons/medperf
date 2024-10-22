@@ -148,13 +148,17 @@
                 const statusData = await response.json();
 
                 completeBtn.disabled = false;
-                if (statusData.status === 'done') {
+                if (statusData.status === 'executed') {
                     displayYamlResult(statusData.result.results);
-                    completeBtnText.innerHTML = '✅ Done';
+                    completeBtnText.innerHTML = '✅ Executed';
+                }
+                if (statusData.status === 'submitted') {
+                    displayYamlResult(statusData.result.results);
+                    completeBtnText.innerHTML = '✅ Submitted';
                 } else if (statusData.status === 'failed') {
                     completeBtnText.innerHTML = '❌ Failed';
                 } else {
-                    completeBtnText.innerHTML = '✅ Done';
+                    completeBtnText.innerHTML = '✅ Executed';
 
                 }
             } catch (error) {

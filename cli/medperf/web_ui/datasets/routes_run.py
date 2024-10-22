@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 from enum import Enum
 from threading import Thread
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 from queue import Queue
 from fastapi import APIRouter, HTTPException
 from starlette.requests import Request
@@ -15,17 +15,18 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.result import Result
-from medperf.exceptions import InvalidArgumentError
 from medperf.web_ui.common import templates
+from medperf.web_ui.results import results
 
 router = APIRouter()
 
 
 class DraftStatus(Enum):
     pending = "pending"
-    done = "done"
-    failed = "failed"
     running = "running"
+    failed = "failed"
+    executed = "executed"
+    submitted = "submitted"
     n_a = "n/a"
 
 
@@ -36,8 +37,10 @@ class RunDraft(BaseModel):
     model_id: int
     result_id: str  # formatted as b{benchmark_id}m{model_id}d{dataset_id}
     status: DraftStatus
-    result: Optional[Result]
     logs: Optional[List[str]]
+
+    def get_result(self) -> Optional[Result]:
+        return results.get(self.result_id)
 
 
 class RunStatus(BaseModel):
@@ -48,6 +51,7 @@ class RunStatus(BaseModel):
 
 _drafts: Dict[str, RunDraft] = {}
 _task_queue: Queue = Queue()
+
 
 @router.get("/run_draft/ui/{result_id}", response_class=HTMLResponse)
 async def run_draft_ui(result_id: str, request: Request):
@@ -99,7 +103,7 @@ def worker_thread():
                         execution.validate()
                         execution.prepare_models()
                         results: List[Result] = execution.run_experiments()
-                    return results[0], DraftStatus.done
+                    return results[0], DraftStatus.executed
                 except Exception as e:
                     execution.ui.print_error(f"Execution failed: {str(e)}")
                     return None, DraftStatus.failed
@@ -111,7 +115,6 @@ def worker_thread():
                 for log in execution.ui.get_message_generator():
                     draft.logs.append(log)
                 result, status = future.result()
-                draft.result = result
                 draft.status = status
         finally:
             _task_queue.task_done()
@@ -135,7 +138,6 @@ async def run_benchmark(dataset_id: int, benchmark_id: int, model_id: int):
         model_id=model_id,
         result_id=result_id,
         status=DraftStatus.pending,
-        result=None,
         logs=[]
     )
     _drafts[result_id] = draft
@@ -144,7 +146,7 @@ async def run_benchmark(dataset_id: int, benchmark_id: int, model_id: int):
     return RunStatus(
         model_id=draft.model_id,
         status=draft.status,
-        result=draft.result
+        result=results.get(draft.result_id)
     )
 
 
@@ -156,9 +158,13 @@ async def get_run_status(dataset_id: int, benchmark_id: int, model_id: int):
     if not draft:
         result = _load_result_if_exists(result_id)
         if result:
+            if str(result.id).isdigit():
+                status = DraftStatus.submitted
+            else:
+                status = DraftStatus.executed
             return RunStatus(
                 model_id=model_id,
-                status=DraftStatus.done,
+                status=status,
                 result=result
             )
         else:
@@ -199,9 +205,8 @@ async def get_run_logs(dataset_id: int, benchmark_id: int, model_id: int):
 
 def _load_result_if_exists(result_id: str) -> Optional[Result]:
     # Implement logic to load a result from disk if it exists
-    try:
-        result = Result.get(result_id)
+    if result_id in results:
+        result = results[result_id]
         return result
-    except InvalidArgumentError:
-        # result does not exists
+    else:
         return None
