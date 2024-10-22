@@ -116,6 +116,7 @@ def worker_thread():
                     draft.logs.append(log)
                 result, status = future.result()
                 draft.status = status
+                results[result.local_id] = result
         finally:
             _task_queue.task_done()
 
@@ -146,7 +147,7 @@ async def run_benchmark(dataset_id: int, benchmark_id: int, model_id: int):
     return RunStatus(
         model_id=draft.model_id,
         status=draft.status,
-        result=results.get(draft.result_id)
+        result=draft.get_result()
     )
 
 
@@ -155,30 +156,29 @@ async def get_run_status(dataset_id: int, benchmark_id: int, model_id: int):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     draft = _drafts.get(result_id)
 
-    if not draft:
-        result = _load_result_if_exists(result_id)
-        if result:
-            if str(result.id).isdigit():
-                status = DraftStatus.submitted
-            else:
-                status = DraftStatus.executed
-            return RunStatus(
-                model_id=model_id,
-                status=status,
-                result=result
-            )
+    result = _load_result_if_exists(result_id)
+    if result:
+        if str(result.id).isdigit():
+            status = DraftStatus.submitted
         else:
-            return RunStatus(
-                model_id=model_id,
-                status=DraftStatus.n_a,
-                result=None
+            status = DraftStatus.executed
+        return RunStatus(
+            model_id=model_id,
+            status=status,
+            result=result
+        )
+    elif draft:
+        return RunStatus(
+            model_id=draft.model_id,
+            status=draft.status,
+            result=draft.get_result()
+        )
+    else:
+        return RunStatus(
+            model_id=model_id,
+            status=DraftStatus.n_a,
+            result=None
             )
-
-    return RunStatus(
-        model_id=draft.model_id,
-        status=draft.status,
-        result=draft.result
-    )
 
 
 @router.get("/run_draft/logs", response_class=StreamingResponse)
