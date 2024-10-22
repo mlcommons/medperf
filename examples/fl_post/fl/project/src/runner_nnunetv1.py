@@ -185,8 +185,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         global_tensor_dict, local_tensor_dict = self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=True)
 
         self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
-        self.logger.info(f"Data size right now returns {self.get_train_data_size()} for train and {self.get_valid_data_size()} for val.\n")
-
+        
         return global_tensor_dict, local_tensor_dict
   
 
