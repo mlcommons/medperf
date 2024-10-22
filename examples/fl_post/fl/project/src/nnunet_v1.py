@@ -243,6 +243,8 @@ def train_nnunet(actual_max_num_epochs,
 
     trainer.initialize(not validation_only)
 
+    print(f"Brandon DEBUG - after trainer initialization trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
+
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
     # point is expected to be seen epochs number of times
 
@@ -274,6 +276,8 @@ def train_nnunet(actual_max_num_epochs,
                 # new training without pretraine weights, do nothing
                 pass
             
+            print(f"Brandon DEBUG - right before train/val call trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
+
             batches_applied_train, \
                  batches_applied_val, \
                  this_ave_train_loss, \
