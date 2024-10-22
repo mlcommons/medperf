@@ -269,7 +269,6 @@ def train_nnunet(actual_max_num_epochs,
     )
 
     trainer.max_num_epochs = fl_round + epochs
-    # previous epoch trained
     trainer.epoch = fl_round
 
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data

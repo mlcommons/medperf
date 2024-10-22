@@ -7,12 +7,13 @@ from nnunet.paths import default_plans_identifier
 
 def train_on_task(task, network, network_trainer, fold, cuda_device, plans_identifier, continue_training=False, current_epoch=0):
     os.environ['CUDA_VISIBLE_DEVICES']=cuda_device
-    print(f"###########\nStarting training for task: {task}\n")
-    train_nnunet(epochs=1, 
-                 current_epoch = current_epoch, 
-                 network = network,
+    print(f"###########\nStarting training a single epoch for task: {task}\n")
+    # Function below is now hard coded for a single epoch of training.
+    train_nnunet(actual_max_num_epochs=1000, 
+                 fl_round=current_epoch, 
+                 network=network,
                  task=task, 
-                 network_trainer = network_trainer, 
+                 network_trainer=network_trainer, 
                  fold=fold, 
                  continue_training=continue_training, 
                  p=plans_identifier)
