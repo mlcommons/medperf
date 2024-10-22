@@ -199,14 +199,16 @@ mkdir mlcube_col5/workspace/data
 # this is the one I had success running on
 #DATA_DIRS=test_data_small_from_hasan
 
-SIZE="hundred"
-#SIZE="thousand"
+#SIZE="hundred"
+#SUPPLEMENT="square"
+SUPPLEMENT="thresholdbrainsorted"
+SIZE="thousand"
 
-DATA_DIR_1="test_${SIZE}_BraTS20_3square_0"
-DATA_DIR_2="test_${SIZE}_BraTS20_3square_1"
-DATA_DIR_3="test_${SIZE}_BraTS20_3square_2"
-DATA_DIR_4="test_${SIZE}_BraTS20_3square_3"
-DATA_DIR_5="test_${SIZE}_BraTS20_3square_4"
+DATA_DIR_1="test_${SIZE}_BraTS20_3${SUPPLEMENT}_0"
+DATA_DIR_2="test_${SIZE}_BraTS20_3${SUPPLEMENT}_1"
+DATA_DIR_3="test_${SIZE}_BraTS20_3${SUPPLEMENT}_2"
+DATA_DIR_4="test_${SIZE}_BraTS20_3${SUPPLEMENT}_3"
+DATA_DIR_5="test_${SIZE}_BraTS20_3${SUPPLEMENT}_4"
 
 cp -r /raid/edwardsb/projects/RANO/$DATA_DIR_1/labels/* mlcube_col1/workspace/labels
 cp -r /raid/edwardsb/projects/RANO/$DATA_DIR_1/data/* mlcube_col1/workspace/data
