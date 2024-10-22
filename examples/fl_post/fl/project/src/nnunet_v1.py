@@ -221,39 +221,9 @@ def train_nnunet(actual_max_num_epochs,
         deterministic=deterministic,
         fp16=run_mixed_precision,
     )
-    # we want latest checkoint only (not best or any intermediate) 
-    trainer.save_final_checkpoint = (
-        True  # whether or not to save the final checkpoint
-    )
-    trainer.save_best_checkpoint = (
-        False  # whether or not to save the best checkpoint according to
-    )
-    # self.best_val_eval_criterion_MA
-    trainer.save_intermediate_checkpoints = (
-        False  # whether or not to save checkpoint_latest. We need that in case
-    )
-    # the training chashes
-    trainer.save_latest_only = (
-        True  # if false it will not store/overwrite _latest but separate files each
-    )
-
-    trainer.max_num_epochs = fl_round + epochs
-    # previous epoch trained
-    trainer.epoch = fl_round - 1
+    
 
     trainer.initialize(not validation_only)
-
-    print(f"Brandon DEBUG - after trainer initialization trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
-
-    # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
-    # point is expected to be seen epochs number of times
-
-    num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
-    num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
-
-    # the nnunet trainer attributes have a different naming convention than I am using
-    trainer.num_batches_per_epoch = num_train_batches_per_epoch
-    trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
 
     if os.getenv("PREP_INCREMENT_STEP", None) == "from_dataset_properties":
         trainer.save_checkpoint(
@@ -275,21 +245,6 @@ def train_nnunet(actual_max_num_epochs,
             else:
                 # new training without pretraine weights, do nothing
                 pass
-            
-            print(f"Brandon DEBUG - right before train/val call trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
-
-            batches_applied_train, \
-                 batches_applied_val, \
-                 this_ave_train_loss, \
-                 this_ave_val_loss, \
-                 this_val_eval_metrics, \
-                 this_val_eval_metrics_C1, \
-                 this_val_eval_metrics_C2, \
-                 this_val_eval_metrics_C3, \
-                 this_val_eval_metrics_C4 = trainer.run_training(train_cutoff=train_cutoff, 
-                                                         val_cutoff=val_cutoff, 
-                                                         val_epoch=val_epoch,
-                                                         train_epoch=train_epoch)
         else:
             # if valbest:
             #     trainer.load_best_checkpoint(train=False)
@@ -297,17 +252,64 @@ def train_nnunet(actual_max_num_epochs,
             #     trainer.load_final_checkpoint(train=False)
             trainer.load_latest_checkpoint()
 
-        train_completed = batches_applied_train / float(num_train_batches_per_epoch)
-        val_completed = batches_applied_val / float(num_val_batches_per_epoch)
-        
-        return train_completed, \
-                 val_completed, \
-                 this_ave_train_loss, \
-                 this_ave_val_loss, \
-                 this_val_eval_metrics, \
-                 this_val_eval_metrics_C1, \
-                 this_val_eval_metrics_C2, \
-                 this_val_eval_metrics_C3, \
-                 this_val_eval_metrics_C4
+    print(f"Brandon DEBUG - after trainer initialization an model load, trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
+
+    # we want latest checkoint only (not best or any intermediate) 
+    trainer.save_final_checkpoint = (
+        True  # whether or not to save the final checkpoint
+    )
+    trainer.save_best_checkpoint = (
+        False  # whether or not to save the best checkpoint according to
+    )
+    # self.best_val_eval_criterion_MA
+    trainer.save_intermediate_checkpoints = (
+        False  # whether or not to save checkpoint_latest. We need that in case
+    )
+    # the training chashes
+    trainer.save_latest_only = (
+        True  # if false it will not store/overwrite _latest but separate files each
+    )
+
+    trainer.max_num_epochs = fl_round + epochs
+    # previous epoch trained
+    trainer.epoch = fl_round
+
+    # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
+    # point is expected to be seen epochs number of times
+
+    num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
+    num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
+
+    # the nnunet trainer attributes have a different naming convention than I am using
+    trainer.num_batches_per_epoch = num_train_batches_per_epoch
+    trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
+            
+    print(f"Brandon DEBUG - right before train/val call trainer.epoch:{trainer.epoch}, trainer.max_num_epochs:{trainer.max_num_epochs}")
+
+    batches_applied_train, \
+            batches_applied_val, \
+            this_ave_train_loss, \
+            this_ave_val_loss, \
+            this_val_eval_metrics, \
+            this_val_eval_metrics_C1, \
+            this_val_eval_metrics_C2, \
+            this_val_eval_metrics_C3, \
+            this_val_eval_metrics_C4 = trainer.run_training(train_cutoff=train_cutoff, 
+                                                    val_cutoff=val_cutoff, 
+                                                    val_epoch=val_epoch,
+                                                    train_epoch=train_epoch)
+
+    train_completed = batches_applied_train / float(num_train_batches_per_epoch)
+    val_completed = batches_applied_val / float(num_val_batches_per_epoch)
+    
+    return train_completed, \
+                val_completed, \
+                this_ave_train_loss, \
+                this_ave_val_loss, \
+                this_val_eval_metrics, \
+                this_val_eval_metrics_C1, \
+                this_val_eval_metrics_C2, \
+                this_val_eval_metrics_C3, \
+                this_val_eval_metrics_C4
 
         
