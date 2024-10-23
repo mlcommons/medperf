@@ -201,7 +201,8 @@ mkdir mlcube_col5/workspace/data
 
 #SIZE="hundred"
 #SUPPLEMENT="square"
-SUPPLEMENT="thresholdbrainsorted"
+#SUPPLEMENT="thresholdbrainsorted"
+SUPPLEMENT="thresholdbrainandsquaresorted"
 SIZE="thousand"
 
 DATA_DIR_1="test_${SIZE}_BraTS20_3${SUPPLEMENT}_0"
