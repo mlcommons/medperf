@@ -10,6 +10,26 @@ aggregator :
       testfladmin@example.com:
         - GetExperimentStatus
         - SetStragglerCuttoffTime
+        - SetDynamicTaskArg
+        - GetDynamicTaskArg 
+    dynamictaskargs: &dynamictaskargs
+      train:
+        train_cutoff_time:
+          admin_settable: True
+          min: 10    # 10 seconds
+          max: 86400 # one day
+          value: 86400   # one day
+        val_cutoff_time:
+          admin_settable: True
+          min: 10    # 10 seconds
+          max: 86400 # one day
+          value: 86400   # one day
+      aggregated_model_validation:
+        val_cutoff_time:
+          admin_settable: True
+          min: 10    # 10 seconds
+          max: 86400 # one day
+          value: 86400   # one day
 
 
 collaborator :
@@ -18,6 +38,7 @@ collaborator :
   settings :
     delta_updates    : false
     opt_treatment    : CONTINUE_LOCAL
+    dynamictaskargs: *dynamictaskargs
 
 data_loader :
   defaults : plan/defaults/data_loader.yaml
@@ -33,8 +54,6 @@ task_runner :
     device                  : cuda
     gpu_num_string          : '0'
     nnunet_task             : Task537_FLPost
-    train_cutoff            : 6000
-    val_cutoff              : 6000
     actual_max_num_epochs   : 300
     
 network :

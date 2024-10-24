@@ -33,8 +33,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
        pull model state from a PyTorch checkpoint."""
 
     def __init__(self,
-                 train_cutoff=np.inf,
-                 val_cutoff=np.inf,
                  nnunet_task=None,
                  config_path=None,
                  actual_max_num_epochs=1000,
@@ -42,8 +40,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         """Initialize.
 
         Args:
-            train_cutoff (int)                  : Total time (in seconds) allowed for iterating over train batches (plus or minus one iteration since check willl be once an iteration).
-            val_cutoff (int)                    : Total time (in seconds) allowed for iterating over val batches (plus or minus one iteration since check willl be once an iteration).
             nnunet_task (str)                   : Task string used to identify the data and model folders
             config_path(str)                    : Path to the configuration file used by the training and validation script.
             actual_max_num_epochs (int)         : Number of epochs for which this collaborator's model will be trained, should match the total rounds of federation in which this runner is participating
@@ -77,8 +73,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             **kwargs,
             )
 
-        self.train_cutoff = train_cutoff
-        self.val_cutoff = val_cutoff
         self.config_path = config_path
         self.actual_max_num_epochs=actual_max_num_epochs
 
@@ -149,7 +143,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return epoch
 
         
-    def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, epochs, val_cutoff_time, train_cutoff_time, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform training for a specified number of epochs."""
 
@@ -169,8 +163,8 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         this_val_eval_metrics_C3, \
         this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
                                                       fl_round=round_num, 
-                                                      train_cutoff=self.train_cutoff,
-                                                      val_cutoff = self.val_cutoff,
+                                                      train_cutoff=train_cutoff_time,
+                                                      val_cutoff = val_cutoff_time,
                                                       task=self.data_loader.get_task_name(),
                                                       val_epoch=True,
                                                       train_epoch=True)
@@ -189,7 +183,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return global_tensor_dict, local_tensor_dict
   
 
-    def validate(self, col_name, round_num, input_tensor_dict, from_checkpoint=False, **kwargs):
+    def validate(self, col_name, round_num, input_tensor_dict, val_cutoff_time=np.inf, from_checkpoint=False, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform validation."""
 
@@ -221,7 +215,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
                                                 fl_round=round_num, 
                                                 train_cutoff=0,
-                                                val_cutoff = self.val_cutoff,
+                                                val_cutoff = val_cutoff_time,
                                                 task=self.data_loader.get_task_name(), 
                                                 val_epoch=True,
                                                 train_epoch=False)
