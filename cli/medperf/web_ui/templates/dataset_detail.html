@@ -50,47 +50,75 @@
             </div>
         </div>
 
-        <!-- Prepare button -->
-        <a href="/datasets/prepare_draft/ui?dataset_id={{ entity.id }}" class="btn btn-primary mb-3">Prepare</a>
 
-        <!-- Set Operational button and hint -->
-        <div class="d-flex align-items-center mb-3">
-            <button
-                class="btn btn-warning"
-                id="set-operational-btn"
-                {% if not (entity.is_ready() and entity.state == 'DEVELOPMENT') %}disabled{% endif %}>
-                Set To Operational
-            </button>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb d-flex justify-content-between align-items-center p-3 shadow-sm rounded bg-white step-container">
+        <!-- Step 1: Prepare -->
+        <li class="breadcrumb-item d-flex align-items-center">
+            {% if not entity.is_ready() %}
+                <a href="/datasets/prepare_draft/ui?dataset_id={{ entity.id }}" class="step-btn btn btn-primary">
+                    <i class="fas fa-play-circle mr-2"></i> Prepare
+                </a>
+            {% else %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success mr-2"></i>
+                    <span class="text-success">Prepared</span>
+                </div>
+            {% endif %}
+            <small class="step-label ml-2">Step 1: Prepare</small>
+        </li>
 
-            <!-- Hint icon -->
-            <span
-                class="ml-2 text-muted"
-                data-toggle="tooltip"
-                title="Only prepared datasets in the development state can be put to OPERATIONAL">
-                <i class="fas fa-info-circle"></i>
-            </span>
-        </div>
+        <!-- Step Divider -->
+        <li class="breadcrumb-item step-divider mx-2">
+            <i class="fas fa-chevron-right text-muted"></i>
+        </li>
 
-        <!-- Associate with Benchmark dropdown button -->
-        <div class="dropdown mb-3">
-            <button
-                class="btn btn-info dropdown-toggle"
-                type="button"
-                id="associate-dropdown"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false"
-                {% if not (entity.state == 'OPERATION') %}disabled{% endif %}>
-                Associate with Benchmark
-            </button>
-            <div class="dropdown-menu" aria-labelledby="associate-dropdown">
-                {% for benchmark in benchmarks.values() %}
-                    <div class="dropdown-item benchmark-item {% if benchmark.state == 'DEVELOPMENT1' %}disabled{% endif %}" data-benchmark-id="{{ benchmark.id }}">
-                        {{ benchmark_macros.benchmark_card(benchmark) }}
+        <!-- Step 2: Set to Operational -->
+        <li class="breadcrumb-item d-flex align-items-center">
+            {% if entity.is_ready() and entity.state == 'DEVELOPMENT' %}
+                <button class="step-btn btn btn-warning">
+                    <i class="fas fa-arrow-up mr-2"></i> Set To Operational
+                </button>
+            {% elif entity.state == 'OPERATION' %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success mr-2"></i>
+                    <span class="text-success">Operational</span>
+                </div>
+            {% else %}
+                <button class="step-btn btn btn-warning" disabled>Set To Operational</button>
+            {% endif %}
+            <small class="step-label ml-2">Step 2: Set Operational</small>
+        </li>
+
+        <!-- Step Divider -->
+        <li class="breadcrumb-item step-divider mx-2">
+            <i class="fas fa-chevron-right text-muted"></i>
+        </li>
+
+        <!-- Step 3: Associate with Benchmark -->
+        <li class="breadcrumb-item d-flex align-items-center">
+            {% if entity.state == 'OPERATION' %}
+                <div class="dropdown">
+                    <button class="step-btn btn btn-info dropdown-toggle" type="button" id="associate-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Associate with Benchmark
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="associate-dropdown">
+                        {% for benchmark in benchmarks.values() %}
+                            <div class="dropdown-item benchmark-item" data-benchmark-id="{{ benchmark.id }}">
+                                {{ benchmark_macros.benchmark_card(benchmark) }}
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
-        </div>
+                </div>
+            {% else %}
+                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+            {% endif %}
+            <small class="step-label ml-2">Step 3: Associate</small>
+        </li>
+    </ol>
+</nav>
+
+
     </div>
 </div>
 

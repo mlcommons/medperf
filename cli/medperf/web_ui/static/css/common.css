@@ -160,3 +160,70 @@ pre {
     max-width: 48%;
     box-sizing: border-box;
 }
+
+/* Step container styling */
+.step-container {
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Step buttons */
+.step-btn {
+    padding: 5px 15px;  /* Reduced padding */
+    font-size: 0.9rem;  /* Slightly smaller font for a more compact design */
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.step-btn i {
+    font-size: 1rem;
+}
+
+/* Completed steps */
+.step-complete {
+    display: flex;
+    align-items: center;
+    background-color: #e8f5e9;
+    padding: 5px 15px;  /* Reduced padding */
+    border-radius: 20px;
+}
+
+.step-complete i {
+    font-size: 1.2rem;
+}
+
+/* Step labels */
+.step-label {
+    margin-top: 2px;
+    font-size: 0.85rem;  /* Smaller step labels */
+    color: #6c757d;
+}
+
+/* Step dividers */
+.step-divider i {
+    font-size: 1.2rem;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+/* Consistent button styles */
+.step-btn, .step-complete {
+    min-width: 120px; /* Adjusted width */
+    text-align: center;
+}
+
+.step-btn:disabled {
+    background-color: #e0e0e0;
+    color: #6c757d;
+}
+
+/* Dropdown button adjustments */
+.dropdown-toggle {
+    padding: 5px 15px;
+    border-radius: 20px;
+}

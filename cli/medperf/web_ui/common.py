@@ -72,7 +72,7 @@ async def get_current_user_ui(
 
 
 async def get_current_user_api(
-        token: str = Security(api_key_header),
+        token: str = Security(api_key_cookie),
 ):
     if token == security_token:
         return True
