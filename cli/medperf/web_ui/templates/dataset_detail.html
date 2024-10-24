@@ -1,0 +1,542 @@
+<!-- ./cli/medperf/web-ui/templates/dataset_detail.html -->
+{% extends "detail_base.html" %}
+{% import 'association_card_macros.html' as macros %}
+{% import 'mlcube_macros.html' as mlcube_macros %}
+{% import 'benchmark_macros.html' as benchmark_macros %}
+
+{% block title %}Dataset Details{% endblock %}
+
+{% block detail_panel %}
+<h1 class="my-4">{{ entity.name }}</h1>
+<div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Details</h5>
+            <span class="badge {% if entity.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
+                {{ entity.state }}
+            </span>
+            <span class="badge {% if entity.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
+                {% if entity.is_valid %}Valid{% else %}Invalid{% endif %}
+            </span>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text"><strong>Description:</strong> {{ entity.description }}</p>
+                <p class="card-text"><strong>Location:</strong> {{ entity.location }}</p>
+                <p class="card-text"><strong>Input Data Hash:</strong> {{ entity.input_data_hash }}</p>
+                <p class="card-text"><strong>Generated UID:</strong> {{ entity.generated_uid }}</p>
+                <p class="card-text">
+                    <strong>Data Preparation MLCube:</strong> {{ mlcube_macros.mlcube_link(prep_cube) }}
+                </p>
+                {% if entity.generated_metadata %}
+                <p class="card-text"><strong>Statistics:</strong> <a href="#" class="text-primary yaml-link" data-id="{{ entity.id }}" data-field="statistics_path" data-entity="dataset" >View Statistics</a></p>
+                {% endif %}
+                {% if entity.report %}
+                <p class="card-text"><strong>Report:</strong> <a href="#" class="text-primary yaml-link" data-id="{{ entity.id }}" data-field="report_path" data-entity="dataset" >View Report</a></p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body d-flex justify-content-between flex-wrap">
+                <div class="w-50">
+                    <p class="card-text"><strong>Is Valid:</strong> <span class="text-muted small">{{ entity.is_valid }}</span></p>
+                    <p class="card-text"><strong>Is Prepared:</strong> <span class="text-muted small">{{ entity.is_ready() }}</span></p>
+                    <p class="card-text"><strong>Owner:</strong> <i class="fas fa-user"></i> <span class="text-muted small">{{ entity.owner }}</span></p>
+                </div>
+                <div class="text-right w-50">
+                    <p class="card-text"><strong>Created:</strong> <span class="text-muted small" data-date="{{ entity.created_at }}"></span></p>
+                    <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" data-date="{{ entity.modified_at }}"></span></p>
+                </div>
+            </div>
+        </div>
+
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb d-flex justify-content-between align-items-center p-3 shadow-sm rounded bg-white step-container">
+        <!-- Step 1: Prepare -->
+        <li class="breadcrumb-item d-flex align-items-center">
+            {% if not entity.is_ready() %}
+                <a href="/datasets/prepare_draft/ui?dataset_id={{ entity.id }}" class="step-btn btn btn-primary">
+                    <i class="fas fa-play-circle mr-2"></i> Prepare
+                </a>
+            {% else %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success mr-2"></i>
+                    <span class="text-success">Prepared</span>
+                </div>
+            {% endif %}
+            <small class="step-label ml-2">Step 1: Prepare</small>
+        </li>
+
+        <!-- Step Divider -->
+        <li class="breadcrumb-item step-divider mx-2">
+            <i class="fas fa-chevron-right text-muted"></i>
+        </li>
+
+        <!-- Step 2: Set to Operational -->
+        <li class="breadcrumb-item d-flex align-items-center">
+            {% if entity.is_ready() and entity.state == 'DEVELOPMENT' %}
+                <button class="step-btn btn btn-warning">
+                    <i class="fas fa-arrow-up mr-2"></i> Set To Operational
+                </button>
+            {% elif entity.state == 'OPERATION' %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success mr-2"></i>
+                    <span class="text-success">Operational</span>
+                </div>
+            {% else %}
+                <button class="step-btn btn btn-warning" disabled>Set To Operational</button>
+            {% endif %}
+            <small class="step-label ml-2">Step 2: Set Operational</small>
+        </li>
+
+        <!-- Step Divider -->
+        <li class="breadcrumb-item step-divider mx-2">
+            <i class="fas fa-chevron-right text-muted"></i>
+        </li>
+
+        <!-- Step 3: Associate with Benchmark -->
+        <li class="breadcrumb-item d-flex align-items-center">
+            {% if entity.state == 'OPERATION' %}
+                <div class="dropdown">
+                    <button class="step-btn btn btn-info dropdown-toggle" type="button" id="associate-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Associate with Benchmark
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="associate-dropdown">
+                        {% for benchmark in benchmarks.values() %}
+                            <div class="dropdown-item benchmark-item" data-benchmark-id="{{ benchmark.id }}">
+                                {{ benchmark_macros.benchmark_card(benchmark) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+            {% endif %}
+            <small class="step-label ml-2">Step 3: Associate</small>
+        </li>
+    </ol>
+</nav>
+
+
+    </div>
+</div>
+
+<!-- Display associated models with improved layout and dynamic actions -->
+{% for assoc in benchmark_associations %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                Benchmark: <a href="/benchmarks/ui/display/{{ benchmarks[assoc.benchmark].id }}" class="text-white">
+                    <strong>{{ benchmarks[assoc.benchmark].name }}</strong>
+                </a>
+            </h4>
+            <!-- Run All button -->
+            <button class="btn btn-secondary run-all-btn" data-benchmark-id="{{ assoc.benchmark }}">
+                ▶️ Run All
+            </button>
+        </div>
+        <div class="card-body p-4">
+            <div class="benchmark-section mb-4">
+                <ul class="list-group">
+                    {% for model in benchmark_models[assoc.benchmark] %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <!-- Left section: Model info -->
+                            <div class="model-info d-flex flex-column">
+                                {{ mlcube_macros.mlcube_link(model) }}
+                            </div>
+
+                            <!-- Right section: Status or Run button -->
+                            <div id="status-container-{{ assoc.benchmark }}-{{ model.id }}" class="d-flex align-items-center">
+                                <!-- Fetching Status Placeholder -->
+                                <div class="fetching-status text-muted" id="fetching-{{ assoc.benchmark }}-{{ model.id }}">
+                                    Fetching status...
+                                </div>
+
+                                <!-- Run Button (for N/A status) -->
+                                <button class="btn btn-primary run-model-btn d-none"
+                                        data-benchmark-id="{{ assoc.benchmark }}"
+                                        data-model-id="{{ model.id }}"
+                                        id="run-btn-{{ assoc.benchmark }}-{{ model.id }}">
+                                    ▶️ Run
+                                </button>
+
+                                <!-- Logs + Pending Status -->
+                                <div class="logs-and-status d-none" id="pending-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <span class="btn btn-warning">⏳ Pending</span>
+                                </div>
+
+                                <!-- Logs + Running Status -->
+                                <div class="logs-and-status d-none" id="running-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <span class="btn btn-info"><i class="spinner-border spinner-border-sm"></i> Running</span>
+                                </div>
+
+                                <!-- Logs + Failed Status -->
+                                <div class="logs-and-status d-none" id="failed-{{ assoc.benchmark }}-{{ model.id }}">
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                       >
+                                        View Logs
+                                    </a>
+                                    <span class="btn btn-danger">❌ Failed</span>
+                                </div>
+
+                            <!-- Logs + Done + Submit Button -->
+                            <div class="logs-and-status d-none" id="submit-{{ assoc.benchmark }}-{{ model.id }}">
+                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}">
+                                    View Logs
+                                </a>
+                                <button class="btn btn-primary submit-result-btn" data-benchmark-id="{{ assoc.benchmark }}"
+                                        data-model-id="{{ model.id }}" id="submit-btn-{{ assoc.benchmark }}-{{ model.id }}">
+                                    ⬆️ Submit
+                                </button>
+                            </div>
+
+                            <!-- Logs + Submitted (non-clickable badge) -->
+                            <div class="logs-and-status d-none" id="submitted-{{ assoc.benchmark }}-{{ model.id }}">
+                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}">
+                                    View Logs
+                                </a>
+                                <span class="btn btn-success">✅ Submitted</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+
+
+<!-- Set Operational Modal -->
+
+<div class="modal fade" id="setOperationalModal" tabindex="-1" aria-labelledby="setOperationalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setOperationalModalLabel">Approval Required</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <pre id="statistics-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+                <p>Moving dataset to the Operational state would lock it for future edits and mark it as ready for production use.</p>
+                <p>Do you approve sending the presented data to MedPerf?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="decline-btn">No</button>
+                <button type="button" class="btn btn-danger" id="confirm-set-operational-btn">Yes, Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Submission Modal -->
+<div class="modal fade" id="submitResultModal" tabindex="-1" aria-labelledby="submitResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitResultModalLabel">Approval Required for Result Submission</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <pre id="result-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+                <p>Submitting this result will lock the result and send it to the server. Do you approve submitting the presented data?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="decline-result-btn">No</button>
+                <button type="button" class="btn btn-danger" id="confirm-submit-result-btn">Yes, Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable Bootstrap tooltip
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Handle the "Associate" dropdown item click
+        document.querySelectorAll('.benchmark-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (!this.classList.contains('disabled')) {
+                    const datasetId = {{ entity.id }};
+                    const benchmarkId = this.getAttribute('data-benchmark-id');
+                    window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}&benchmark_id=${benchmarkId}`;
+                }
+            });
+        });
+
+        // Handle the "Set To Operational" button click
+        document.getElementById('set-operational-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+
+            // Call the generate endpoint to fetch the statistics
+            fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                // Display the YAML statistics in the modal
+                document.getElementById('statistics-content').textContent = data.yaml_statistics;
+
+                // Apply Prism.js highlighting
+                Prism.highlightElement(document.getElementById('statistics-content'));
+
+                // Show the modal
+                $('#setOperationalModal').modal('show');
+            })
+            .catch(error => console.error('Error generating operational draft:', error));
+        });
+
+        // Handle the "Yes, Approve" button click
+        document.getElementById('confirm-set-operational-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+
+            // Clear any existing alerts
+            clearAlerts();
+
+            // Call the submit endpoint to finalize the process
+            fetch(`/datasets/operational_draft/submit?dataset_id=${datasetId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.error) {
+                    // If there's an error, show the error notification
+                    displayAlert('danger', data.error);
+                } else {
+                    // If successful, reload the page
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                // Display any other errors
+                displayAlert('danger', 'An unexpected error occurred: ' + error.message);
+            });
+
+            // Close the modal
+            $('#setOperationalModal').modal('hide');
+        });
+
+        // Handle the "No" button click (decline action)
+        document.getElementById('decline-btn').addEventListener('click', function() {
+            const datasetId = {{ entity.id }};
+
+            // Call the decline endpoint
+            fetch(`/datasets/operational_draft/decline?dataset_id=${datasetId}`, {
+                method: 'GET'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Failed to decline operational draft');
+                }
+            })
+            .catch(error => console.error('Error declining operational draft:', error));
+
+            // Close the modal
+            $('#setOperationalModal').modal('hide');
+        });
+
+        const fetchStatus = async (datasetId, benchmarkId, modelId, intervalId) => {
+            try {
+                const response = await fetch(`/datasets/run_draft/status?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`);
+                const statusData = await response.json();
+                const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
+                const fetchingStatusElem = document.getElementById(`fetching-${benchmarkId}-${modelId}`);
+                const runBtn = document.getElementById(`run-btn-${benchmarkId}-${modelId}`);
+                const pendingElem = document.getElementById(`pending-${benchmarkId}-${modelId}`);
+                const runningElem = document.getElementById(`running-${benchmarkId}-${modelId}`);
+                const failedElem = document.getElementById(`failed-${benchmarkId}-${modelId}`);
+                const submitElem = document.getElementById(`submit-${benchmarkId}-${modelId}`);
+                const submittedElem = document.getElementById(`submitted-${benchmarkId}-${modelId}`);
+
+                // Hide the "Fetching status..." placeholder
+                fetchingStatusElem.style.display = 'none';
+
+                // Show the correct button based on the status
+                if (statusData.status === 'n/a') {
+                    runBtn.classList.remove('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'pending') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.remove('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
+                } else if (statusData.status === 'running') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.remove('d-none');
+                    failedElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
+                } else if (statusData.status === 'failed') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.remove('d-none');
+                    submitElem.classList.add('d-none');
+                    submittedElem.classList.add('d-none');
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'executed') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    submitElem.classList.remove('d-none');  // Show submit button
+                    submittedElem.classList.add('d-none');
+                    clearInterval(intervalId);  // Stop polling
+                } else if (statusData.status === 'submitted') {
+                    runBtn.classList.add('d-none');
+                    pendingElem.classList.add('d-none');
+                    runningElem.classList.add('d-none');
+                    failedElem.classList.add('d-none');
+                    submitElem.classList.add('d-none');  // Hide submit button
+                    submittedElem.classList.remove('d-none');  // Show submitted badge
+                    clearInterval(intervalId);  // Stop polling
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        };
+
+        // Add an event listener to handle the "Run All" button clicks
+        document.querySelectorAll('.run-all-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                // Find all run buttons related to this benchmark
+                        const runButtons = document.querySelectorAll(`[id^="run-btn-${benchmarkId}-"]`);
+                runButtons.forEach(button => {
+                    if (!button.classList.contains('d-none')) {
+                        const modelId = button.getAttribute('data-model-id');
+                        const datasetId = {{ entity.id }};
+                        const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
+
+                        // Trigger run for the model
+                        button.click();
+
+                        // Polling to update status
+                        const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
+                    }
+                });
+            });
+        });
+
+        // Existing logic for fetching model statuses, updating buttons, etc.
+        document.querySelectorAll('.run-model-btn').forEach(btn => {
+            const benchmarkId = btn.getAttribute('data-benchmark-id');
+            const modelId = btn.getAttribute('data-model-id');
+            const datasetId = {{ entity.id }};
+            const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
+
+            // Polling to update status initially
+            const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
+
+            // Handle the "Run" button click
+            btn.addEventListener('click', async function () {
+                try {
+                    await fetch(`/datasets/run_draft/run?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`, {
+                        method: 'POST'
+                    });
+                    // Start polling again after the run is triggered
+                    const intervalId = setInterval(() => fetchStatus(datasetId, benchmarkId, modelId, intervalId), 1000);
+                } catch (error) {
+                    console.error('Error running model:', error);
+                }
+            });
+        });
+
+        // Handle the "Submit" button click (result submission)
+        document.querySelectorAll('.submit-result-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                const modelId = this.getAttribute('data-model-id');
+                const resultId = `b${benchmarkId}m${modelId}d{{ entity.id }}`;  // Calculate result_id
+
+                // Call the generate endpoint to fetch the result data
+                fetch(`/datasets/result_submit_draft/generate?result_id=${resultId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())  // Parse the JSON response
+                .then(data => {
+                    // Display the YAML result in the modal
+                    document.getElementById('result-content').textContent = data.results;
+
+                    // Apply Prism.js highlighting
+                    Prism.highlightElement(document.getElementById('result-content'));
+
+                    // Show the modal for user approval
+                    $('#submitResultModal').modal('show');
+                })
+                .catch(error => console.error('Error generating result draft:', error));
+
+                // Handle the "Yes, Approve" button click in the modal
+                document.getElementById('confirm-submit-result-btn').addEventListener('click', function () {
+                    // Call the submit endpoint to finalize the submission
+                    fetch(`/datasets/result_submit_draft/submit?result_id=${resultId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            // Display an alert with the error message
+                            displayAlert('danger', data.error);
+                            console.error('Error submitting result:', data.error);
+                        } else {
+                            // Hide the submit button and show the "Submitted" span
+                            document.getElementById(`submit-${benchmarkId}-${modelId}`).style.display = 'none';
+                            document.getElementById(`submitted-${benchmarkId}-${modelId}`).classList.remove('d-none');
+                            displayAlert('success', 'Result successfully submitted.');
+                        }
+                    })
+                    .catch(error => {
+                        // Display a generic error message in case of failure
+                        displayAlert('danger', 'An unexpected error occurred during submission: ' + error.message);
+                        console.error('Error submitting result:', error);
+                    });
+
+                    // Close the modal
+                    $('#submitResultModal').modal('hide');
+                });
+
+
+            // Handle the "No" button click (decline result submission)
+            document.getElementById('decline-result-btn').addEventListener('click', function () {
+                fetch(`/datasets/result_submit_draft/decline?result_id=${resultId}`, {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.op_declined) {
+                        console.log(`Submission for result ${data.result_id} was declined.`);
+                    }
+                })
+                .catch(error => console.error('Error declining result submission:', error));
+
+                // Close the modal
+                $('#submitResultModal').modal('hide');
+            });
+            });
+        });
+    });
+</script>
+{% endblock %}

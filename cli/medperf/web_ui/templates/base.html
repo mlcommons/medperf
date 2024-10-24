@@ -1,0 +1,47 @@
+<!-- ./cli/medperf/web-ui/templates/base.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}MedPerf{% endblock %}</title>
+    <!-- https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css -->
+    <link href="/static/css/bootstrap-4.5.2.min.css" rel="stylesheet">
+    <!-- https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css -->
+    <link rel="stylesheet" href="/static/css/font-awesome-5.15.4-all.min.css">
+    <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css -->
+    <link rel="stylesheet" href="/static/css/prism-1.23.0.min.css">
+
+    <link rel="stylesheet" href="/static/css/common.css?v=1.0">
+    <style>
+        {% block optional_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
+        <a class="navbar-brand" href="#">MedPerf</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/benchmarks/ui">Benchmarks</a></li>
+                <li class="nav-item"><a class="nav-link" href="/mlcubes/ui">MLCubes</a></li>
+                <li class="nav-item"><a class="nav-link" href="/datasets/ui">Datasets</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="page-container">
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <!-- jQuery and Bootstrap JS -->
+    <script src="/static/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <script src="/static/js/prism-1.23.0.min.js"></script>
+    <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js -->
+    <script src="/static/js/prism-yaml-1.23.0.min.js"></script>
+    <!-- Common JS -->
+    <script src="/static/js/common.js?v=2.0"></script>
+</body>
+</html>
