@@ -1,13 +1,17 @@
 import logging
 from pathlib import Path
 
+from fastapi import HTTPException, Security
+from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.templating import Jinja2Templates
 from importlib import resources
 
 from fastapi.requests import Request
+from starlette.responses import RedirectResponse
 
 from medperf.entities.association import Association
 from medperf.enums import Status
+from medperf.web_ui.auth import security_token, AUTH_COOKIE_NAME, API_KEY_NAME, NotAuthenticatedException
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"  # noqa
 templates = Jinja2Templates(directory=templates_folder_path)
@@ -50,3 +54,27 @@ def sort_associations_display(associations: list[Association]) -> list[Associati
         return status_order, date_order
 
     return sorted(associations, key=assoc_sorting_key)
+
+
+api_key_cookie = APIKeyCookie(name=AUTH_COOKIE_NAME, auto_error=False)
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+
+async def get_current_user_ui(
+        request: Request,
+        token: str = Security(api_key_cookie),
+):
+    if token == security_token:
+        return True
+    else:
+        login_url = f"/login?redirect_url={request.url.path}"
+        raise NotAuthenticatedException(redirect_url=login_url)
+
+
+async def get_current_user_api(
+        token: str = Security(api_key_header),
+):
+    if token == security_token:
+        return True
+    else:
+        raise HTTPException(status_code=401, detail="Not authorized")

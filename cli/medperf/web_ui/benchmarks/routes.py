@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 from fastapi import Request
 
@@ -8,14 +8,18 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
-from medperf.web_ui.common import templates, sort_associations_display
+from medperf.web_ui.common import templates, sort_associations_display, get_current_user_ui
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 @router.get("/ui", response_class=HTMLResponse)
-def benchmarks_ui(request: Request, mine_only: bool = False):
+def benchmarks_ui(
+        request: Request,
+        mine_only: bool = False,
+        current_user: bool = Depends(get_current_user_ui)
+):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
     if mine_only:
@@ -34,7 +38,11 @@ def benchmarks_ui(request: Request, mine_only: bool = False):
 
 
 @router.get("/ui/display/{benchmark_id}", response_class=HTMLResponse)
-def benchmark_detail_ui(request: Request, benchmark_id: int):
+def benchmark_detail_ui(
+        request: Request,
+        benchmark_id: int,
+        current_user: bool = Depends(get_current_user_ui)
+):
     benchmark = Benchmark.get(benchmark_id)
     data_preparation_mlcube = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
     reference_model_mlcube = Cube.get(cube_uid=benchmark.reference_model_mlcube)

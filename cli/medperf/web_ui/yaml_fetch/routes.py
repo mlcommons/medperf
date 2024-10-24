@@ -1,11 +1,12 @@
 import os.path
 from enum import Enum
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from medperf.entities.cube import Cube
 import requests
 import yaml
 
 from medperf.entities.dataset import Dataset
+from medperf.web_ui.common import get_current_user_api
 
 router = APIRouter()
 
@@ -23,7 +24,12 @@ class EntityToFetch(Enum):
 
 
 @router.get("/fetch-yaml")
-async def fetch_yaml(entity: EntityToFetch, entity_uid: int, field_to_fetch: FieldsToFetch):
+async def fetch_yaml(
+        entity: EntityToFetch,
+        entity_uid: int,
+        field_to_fetch: FieldsToFetch,
+        current_user: bool = Depends(get_current_user_api),
+):
     try:
         entity_class = {
             EntityToFetch.mlcube: Cube,

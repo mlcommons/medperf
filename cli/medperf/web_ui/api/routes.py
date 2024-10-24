@@ -1,7 +1,9 @@
 # medperf/web_ui/api/routes.py
 import os
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import JSONResponse
+
+from medperf.web_ui.common import get_current_user_api
 
 router = APIRouter()
 
@@ -10,7 +12,10 @@ BASE_DIR = os.getcwd()  # Restrict access to this base directory
 
 # TODO: close with token and list in documentation
 @router.get("/browse")
-def browse_directory(path: str = Query(...)):
+def browse_directory(
+        path: str = Query(...),
+        current_user: bool = Depends(get_current_user_api),
+):
     full_path = os.path.join(BASE_DIR, path)
     os.path.join(BASE_DIR, path)
 

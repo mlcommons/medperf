@@ -5,7 +5,7 @@ from enum import Enum
 from threading import Thread
 from typing import Optional, Dict, List, Union
 from queue import Queue
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from starlette.requests import Request
 from starlette.responses import StreamingResponse, HTMLResponse
 from pydantic import BaseModel
@@ -15,7 +15,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.result import Result
-from medperf.web_ui.common import templates
+from medperf.web_ui.common import templates, get_current_user_ui, get_current_user_api
 from medperf.web_ui.results import results
 
 router = APIRouter()
@@ -54,7 +54,11 @@ _task_queue: Queue = Queue()
 
 
 @router.get("/run_draft/ui/{result_id}", response_class=HTMLResponse)
-async def run_draft_ui(result_id: str, request: Request):
+async def run_draft_ui(
+        result_id: str,
+        request: Request,
+        current_user: bool = Depends(get_current_user_ui),
+):
     # Fetch relevant details like dataset_id, benchmark_id, and model_id from result_id
     # result_id is in the format "b{benchmark_id}m{model_id}d{dataset_id}"
     parts = result_id[1:].split('m')
@@ -127,7 +131,12 @@ worker.start()
 
 
 @router.post("/run_draft/run", response_model=RunStatus)
-async def run_benchmark(dataset_id: int, benchmark_id: int, model_id: int):
+async def run_benchmark(
+        dataset_id: int,
+        benchmark_id: int,
+        model_id: int,
+        current_user: bool = Depends(get_current_user_api),
+):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     if result_id in _drafts:
         raise HTTPException(status_code=400, detail="Run draft already exists")
@@ -152,7 +161,12 @@ async def run_benchmark(dataset_id: int, benchmark_id: int, model_id: int):
 
 
 @router.get("/run_draft/status", response_model=RunStatus)
-async def get_run_status(dataset_id: int, benchmark_id: int, model_id: int):
+async def get_run_status(
+        dataset_id: int,
+        benchmark_id: int,
+        model_id: int,
+        current_user: bool = Depends(get_current_user_api),
+):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     draft = _drafts.get(result_id)
 
@@ -178,11 +192,16 @@ async def get_run_status(dataset_id: int, benchmark_id: int, model_id: int):
             model_id=model_id,
             status=DraftStatus.n_a,
             result=None
-            )
+        )
 
 
 @router.get("/run_draft/logs", response_class=StreamingResponse)
-async def get_run_logs(dataset_id: int, benchmark_id: int, model_id: int):
+async def get_run_logs(
+        dataset_id: int,
+        benchmark_id: int,
+        model_id: int,
+        current_user: bool = Depends(get_current_user_api),
+):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     draft = _drafts.get(result_id)
 

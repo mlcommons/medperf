@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container min-vh-100 d-flex justify-content-center align-items-center">
+    <div class="row justify-content-center">
+          <div class="card shadow-sm">
+              <div class="card-body">
+                  <h3 class="text-center mb-4">Login</h3>
+
+                  <!-- Error message (if any) -->
+                  {% if error %}
+                      <div class="alert alert-danger text-center" role="alert">
+                          {{ error }}
+                      </div>
+                  {% endif %}
+
+                  <!-- Login form -->
+                  <form action="/login" method="post">
+                      <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+
+                      <div class="mb-3">
+                          <label for="token" class="form-label">Enter your Security Token printed in MedPerf CLI output:</label>
+                          <input type="text" id="token" name="token" class="form-control" placeholder="security token" required>
+                      </div>
+
+                      <div class="text-center">
+                          <button type="submit" class="btn btn-primary">Login</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+    </div>
+</div>
+{% endblock %}

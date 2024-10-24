@@ -2,10 +2,11 @@ from pathlib import Path
 from typing import Dict
 
 import yaml
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
 from medperf.commands.result.submit import ResultSubmission
 from medperf.entities.result import Result
+from medperf.web_ui.common import get_current_user_api
 from medperf.web_ui.results import results
 
 _drafts_result_submit: dict[str, ResultSubmission] = {}
@@ -14,7 +15,10 @@ router = APIRouter()
 
 
 @router.post("/result_submit_draft/generate/", response_class=JSONResponse)
-async def get_submission(result_id: str):
+async def get_submission(
+        result_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     submission = ResultSubmission(result_id, approved=False)
     _drafts_result_submit[result_id] = submission
     submission.get_result()
@@ -22,7 +26,10 @@ async def get_submission(result_id: str):
 
 
 @router.post("/result_submit_draft/submit/", response_class=JSONResponse)
-async def submit_result(result_id: str):
+async def submit_result(
+        result_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     submission = _drafts_result_submit[result_id]
     try:
         submission.approved = True
@@ -38,6 +45,9 @@ async def submit_result(result_id: str):
 
 
 @router.get("/result_submit_draft/decline", response_class=JSONResponse)
-async def decline_result_submit(result_id: str):
+async def decline_result_submit(
+        result_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     del _drafts_result_submit[result_id]
     return {"result_id": result_id, "op_declined": True}

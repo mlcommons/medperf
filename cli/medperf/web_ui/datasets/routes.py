@@ -1,13 +1,13 @@
 import logging
 
 from fastapi.responses import HTMLResponse
-from fastapi import Request, APIRouter
+from fastapi import Request, APIRouter, Depends
 
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.web_ui.common import templates, sort_associations_display
+from medperf.web_ui.common import templates, sort_associations_display, get_current_user_ui
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,11 @@ router = APIRouter()
 
 
 @router.get("/ui", response_class=HTMLResponse)
-def datasets_ui(request: Request, mine_only: bool = False):
+def datasets_ui(
+        request: Request,
+        mine_only: bool = False,
+        current_user: bool = Depends(get_current_user_ui)
+):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
     if mine_only:
@@ -33,7 +37,11 @@ def datasets_ui(request: Request, mine_only: bool = False):
 
 
 @router.get("/ui/display/{dataset_id}", response_class=HTMLResponse)
-def dataset_detail_ui(request: Request, dataset_id: int):
+def dataset_detail_ui(
+        request: Request,
+        dataset_id: int,
+        current_user: bool = Depends(get_current_user_ui),
+):
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
     dataset.read_statistics()
@@ -67,4 +75,3 @@ def dataset_detail_ui(request: Request, dataset_id: int):
             "benchmark_models": benchmark_models,  # Pass associated models without status
         }
     )
-

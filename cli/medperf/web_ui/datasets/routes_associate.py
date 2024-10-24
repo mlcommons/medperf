@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 import asyncio as aio
 import yaml
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
@@ -13,7 +13,7 @@ from medperf.commands.result.create import BenchmarkExecution
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.result import Result
-from medperf.web_ui.common import templates
+from medperf.web_ui.common import templates, get_current_user_ui, get_current_user_api
 
 
 class AssociationDraft(BaseModel):
@@ -28,7 +28,12 @@ router = APIRouter()
 
 
 @router.get("/associate_draft/ui", response_class=HTMLResponse)
-async def associate_ui(request: Request, dataset_id: int, benchmark_id: int):
+async def associate_ui(
+        request: Request,
+        dataset_id: int,
+        benchmark_id: int,
+        current_user: bool = Depends(get_current_user_ui),
+):
     """
     Serve the HTML page for associating a dataset with a benchmark.
     """
@@ -56,7 +61,10 @@ async def associate_ui(request: Request, dataset_id: int, benchmark_id: int):
 
 
 @router.post("/associate_draft/generate", response_class=StreamingResponse)
-async def associate_generate(draft_id: str):
+async def associate_generate(
+        draft_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     draft = _draft_associate[draft_id]
     dataset = draft.dataset
     benchmark = draft.benchmark
@@ -83,7 +91,10 @@ async def associate_generate(draft_id: str):
 
 
 @router.get("/associate_draft/get_results", response_class=JSONResponse)
-async def associate_get_results(draft_id: str):
+async def associate_get_results(
+        draft_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     draft = _draft_associate[draft_id]
     return {
         "compatibility_results": yaml.dump(draft.get_result().results),
@@ -92,7 +103,10 @@ async def associate_get_results(draft_id: str):
 
 
 @router.post("/associate_draft/submit", response_class=JSONResponse)
-async def associate_submit(draft_id: str):
+async def associate_submit(
+        draft_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     draft = _draft_associate[draft_id]
     try:
         metadata = {"test_result": draft.result.results}
@@ -103,7 +117,10 @@ async def associate_submit(draft_id: str):
 
 
 @router.get("/associate_draft/decline", response_class=JSONResponse)
-async def associate_decline(draft_id: str):
+async def associate_decline(
+        draft_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     draft = _draft_associate.pop(draft_id)
     return {
         "dataset_id": draft.dataset.id,

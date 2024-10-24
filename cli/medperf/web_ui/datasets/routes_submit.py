@@ -2,13 +2,13 @@ import uuid
 from dataclasses import dataclass
 from typing import Dict
 
-from fastapi import Form, APIRouter
+from fastapi import Form, APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, HTMLResponse
 
 from medperf.commands.dataset.submit import DataCreation
 from medperf.entities.benchmark import Benchmark
-from medperf.web_ui.common import templates
+from medperf.web_ui.common import templates, get_current_user_ui, get_current_user_api
 
 
 @dataclass
@@ -30,7 +30,8 @@ async def generate_draft(
         description: str = Form(...),
         location: str = Form(...),
         data_path: str = Form(...),
-        labels_path: str = Form(...)
+        labels_path: str = Form(...),
+        current_user: bool = Depends(get_current_user_api),
 ):
     draft_id = str(uuid.uuid4())
     # Run the dataset creation logic using the CLI method
@@ -61,6 +62,7 @@ async def generate_draft(
 @router.get("/submit_draft/submit", response_class=RedirectResponse)
 async def submit_draft(
         draft_id: str,
+        current_user: bool = Depends(get_current_user_api),
 ):
     draft = _drafts[draft_id]
     preparation = draft.preparation
@@ -74,13 +76,19 @@ async def submit_draft(
 
 
 @router.get("/submit_draft/decline", response_class=RedirectResponse)
-async def decline_draft(draft_id: str):
+async def decline_draft(
+        draft_id: str,
+        current_user: bool = Depends(get_current_user_api),
+):
     del _drafts[draft_id]
     return RedirectResponse("/datasets/ui")
 
 
 @router.get("/submit_draft/ui", response_class=HTMLResponse)
-def create_dataset_ui(request: Request):
+def create_dataset_ui(
+        request: Request,
+        current_user: bool = Depends(get_current_user_ui),
+):
     # Fetch the list of benchmarks to populate the benchmark dropdown
     benchmarks = Benchmark.all()
     # Render the dataset creation form with the list of benchmarks

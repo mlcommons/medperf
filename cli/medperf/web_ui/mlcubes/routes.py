@@ -1,21 +1,25 @@
 # medperf/web-ui/mlcubes/routes.py
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 from fastapi import Request
 
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
-from medperf.web_ui.common import templates, sort_associations_display
+from medperf.web_ui.common import templates, sort_associations_display, get_current_user_ui
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 @router.get("/ui", response_class=HTMLResponse)
-def mlcubes_ui(request: Request, mine_only: bool = False):
+def mlcubes_ui(
+        request: Request,
+        mine_only: bool = False,
+        current_user: bool = Depends(get_current_user_ui),
+):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
     if mine_only:
@@ -33,7 +37,11 @@ def mlcubes_ui(request: Request, mine_only: bool = False):
 
 
 @router.get("/ui/display/{mlcube_id}", response_class=HTMLResponse)
-def mlcube_detail_ui(request: Request, mlcube_id: int):
+def mlcube_detail_ui(
+        request: Request,
+        mlcube_id: int,
+        current_user: bool = Depends(get_current_user_ui),
+):
     mlcube = Cube.get(cube_uid=mlcube_id, valid_only=False)
 
     benchmarks_associations = Cube.get_benchmarks_associations(mlcube_uid=mlcube_id)
