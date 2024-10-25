@@ -120,61 +120,36 @@ class TestGetAdditionalFiles:
         assert spy.call_count == 2
 
 
-class TestGetCube:
-    def test_get_cube_does_not_download_if_folder_exists_and_hash_valid(
-        self, mocker, fs
+@pytest.mark.parametrize("method", [
+    resources.get_cube,
+    resources.get_cube_params,
+    resources.get_cube_stages,
+])
+class TestGet:
+    def test_get_does_not_download_if_folder_exists_and_hash_valid(
+        self, mocker, fs, method
     ):
         # Arrange
         cube_path = "cube/1"
         spy = mocker.spy(resources, "download_resource")
-        _, exp_hash = resources.get_cube(url, cube_path)
+        _, exp_hash = method(url, cube_path)
 
         # Act
-        resources.get_cube(url, cube_path, exp_hash)
+        method(url, cube_path, exp_hash)
 
         # Assert
         spy.assert_called_once()  # second time shouldn't download
 
-    def test_get_cube_does_will_download_if_folder_exists_and_hash_outdated(
-        self, mocker, fs
+    def test_get_does_will_download_if_folder_exists_and_hash_outdated(
+        self, mocker, fs, method
     ):
         # Arrange
         cube_path = "cube/1"
         spy = mocker.spy(resources, "download_resource")
-        resources.get_cube(url, cube_path)
+        method(url, cube_path)
 
         # Act
-        resources.get_cube(url, cube_path, "incorrect hash")
-
-        # Assert
-        assert spy.call_count == 2
-
-
-class TestGetCubeParams:
-    def test_get_cube_params_does_not_download_if_folder_exists_and_hash_valid(
-        self, mocker, fs
-    ):
-        # Arrange
-        cube_path = "cube/1"
-        spy = mocker.spy(resources, "download_resource")
-        _, exp_hash = resources.get_cube_params(url, cube_path)
-
-        # Act
-        resources.get_cube_params(url, cube_path, exp_hash)
-
-        # Assert
-        spy.assert_called_once()  # second time shouldn't download
-
-    def test_get_cube_params_does_will_download_if_folder_exists_and_hash_outdated(
-        self, mocker, fs
-    ):
-        # Arrange
-        cube_path = "cube/1"
-        spy = mocker.spy(resources, "download_resource")
-        resources.get_cube_params(url, cube_path)
-
-        # Act
-        resources.get_cube_params(url, cube_path, "incorrect hash")
+        method(url, cube_path, "incorrect hash")
 
         # Assert
         assert spy.call_count == 2
