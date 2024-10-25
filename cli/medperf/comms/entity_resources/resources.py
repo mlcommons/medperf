@@ -97,7 +97,7 @@ def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
 
 def get_cube_stages(url: str, cube_path: str, expected_hash: str = None):
     """Downloads and writes a cube stages.yaml file"""
-    output_path = os.path.join(cube_path, config.workspace_path, config.stages_filename)
+    output_path = os.path.join(cube_path, config.stages_filename)
     return _get_regular_file(url, output_path, expected_hash)
 
 
