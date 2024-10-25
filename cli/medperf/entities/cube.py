@@ -230,6 +230,11 @@ class Cube(Entity, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
+        try:
+            self.download_stages()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} stages file: {e}")
+
     def download_run_files(self):
         try:
             self.download_additional()
