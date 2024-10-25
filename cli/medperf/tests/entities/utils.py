@@ -121,7 +121,6 @@ def setup_cube_comms_downloads(mocker, fs):
     get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
     get_stages_fn = generate_cubefile_fn(fs, stages_path, stages_file)
 
-
     mocker.patch(PATCH_RESOURCES.format("get_cube"), side_effect=get_cube_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_params"), side_effect=get_params_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_additional"), side_effect=get_add_fn)
