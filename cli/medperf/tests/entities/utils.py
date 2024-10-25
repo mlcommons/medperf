@@ -112,16 +112,21 @@ def setup_cube_comms_downloads(mocker, fs):
     add_file = config.tarball_filename
     img_path = config.image_path
     img_file = "img.tar.gz"
+    stages_path = ""
+    stages_file = config.stages_filename
 
     get_cube_fn = generate_cubefile_fn(fs, cube_path, cube_file)
     get_params_fn = generate_cubefile_fn(fs, params_path, params_file)
     get_add_fn = generate_cubefile_fn(fs, add_path, add_file)
     get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
+    get_stages_fn = generate_cubefile_fn(fs, stages_path, stages_file)
+
 
     mocker.patch(PATCH_RESOURCES.format("get_cube"), side_effect=get_cube_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_params"), side_effect=get_params_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_additional"), side_effect=get_add_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_image"), side_effect=get_img_fn)
+    mocker.patch(PATCH_RESOURCES.format("get_cube_stages"), side_effect=get_stages_fn)
 
 
 # Setup Dataset
