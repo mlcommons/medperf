@@ -36,7 +36,6 @@ aggregator :
           min: 10    # 10 seconds
           max: 86400 # one day
           value: 86400   # one day
-        weights_alpha: *weights_alpha
 
 
 collaborator :
