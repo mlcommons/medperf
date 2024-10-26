@@ -24,12 +24,19 @@ aggregator :
           min: 10    # 10 seconds
           max: 86400 # one day
           value: 86400   # one day
+        train_completion_dampener: # train_completed -> (train_completed)**(train_completion_dampener)
+          admin_settable: True
+          min: 1e-2    # shifts non 0.0 completion rates much closer to 1.0
+          max: 1.0 # leaves completion rates as is
+          value: 1.0
+
       aggregated_model_validation:
         val_cutoff_time:
           admin_settable: True
           min: 10    # 10 seconds
           max: 86400 # one day
           value: 86400   # one day
+        weights_alpha: *weights_alpha
 
 
 collaborator :

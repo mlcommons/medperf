@@ -143,7 +143,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return epoch
 
         
-    def train(self, col_name, round_num, input_tensor_dict, epochs, val_cutoff_time, train_cutoff_time, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, epochs, val_cutoff_time, train_cutoff_time, train_completion_dampener, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform training for a specified number of epochs."""
 
@@ -168,6 +168,14 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                                                       task=self.data_loader.get_task_name(),
                                                       val_epoch=True,
                                                       train_epoch=True)
+
+        # dampen the train_completion
+        """
+        values in range: (0, 1] with values near 0.0 making all train_completion rates shift nearer to 1.0, thus making the
+        trained model update weighting during aggregation stay closer to the plain data size weighting
+        specifically, update_weight = train_data_size / train_completed**train_completion_dampener
+        """
+        train_completed = train_completed**train_completion_dampener
 
         # update amount of task completed
         self.task_completed['train'] = train_completed
