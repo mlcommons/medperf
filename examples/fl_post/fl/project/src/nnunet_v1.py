@@ -84,9 +84,9 @@ def train_nnunet(actual_max_num_epochs,
     """
     actual_max_num_epochs (int): Provides the number of epochs intended to be trained 
     (this needs to be held constant outside of individual calls to this function during with max_num_epochs is set to one more than the current epoch)
-    fl_round (int): Federated round, equal to the epoch used for the model (lr scheduling)
+    fl_round (int): Federated round, equal to the epoch used for the model (in lr scheduling)
     val_epoch (bool) : Will validation be performed
-    train_epoch (bool) : Will training run (rather than val only) makes lr step and epoch increment
+    train_epoch (bool) : Will training run (rather than val only)
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
     train_cutoff_part (float): Portion of train_val_cutoff going to training
     val_cutoff_part (float): Portion of train_val_cutoff going to val
