@@ -147,8 +147,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform training for a specified number of epochs."""
 
-        # epochs is not used, inside function is hard coded for epochs=1
-
         self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
         # 1. Insert tensor_dict info into checkpoint
         self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
