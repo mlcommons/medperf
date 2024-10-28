@@ -65,7 +65,6 @@ def train_nnunet(actual_max_num_epochs,
                  task='Task543_FakePostOpp_More', 
                  fold='0', 
                  continue_training=True,
-                 validation_only=False, 
                  c=False, 
                  p=plans_param, 
                  use_compressed_data=False, 
@@ -88,11 +87,8 @@ def train_nnunet(actual_max_num_epochs,
     val_epoch (bool) : Will validation be performed
     train_epoch (bool) : Will training run (rather than val only)
     train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
-    train_cutoff_part (float): Portion of train_val_cutoff going to training
-    val_cutoff_part (float): Portion of train_val_cutoff going to val
     task (int): can be task name or task id
     fold: "0, 1, ..., 5 or 'all'"
-    validation_only: use this if you want to only run the validation
     c: use this if you want to continue a training
     p: plans identifier. Only change this if you created a custom experiment planner
     use_compressed_data: "If you set use_compressed_data, the training cases will not be decompressed. Reading compressed data "
@@ -146,7 +142,6 @@ def train_nnunet(actual_max_num_epochs,
     fold = args.fold
     network = args.network
     network_trainer = args.network_trainer
-    validation_only = args.validation_only
     plans_identifier = args.p
     find_lr = args.find_lr
     disable_postprocessing_on_folds = args.disable_postprocessing_on_folds
@@ -223,7 +218,7 @@ def train_nnunet(actual_max_num_epochs,
     )
     
 
-    trainer.initialize(not validation_only)
+    trainer.initialize(True)
 
     if os.getenv("PREP_INCREMENT_STEP", None) == "from_dataset_properties":
         trainer.save_checkpoint(
@@ -235,22 +230,15 @@ def train_nnunet(actual_max_num_epochs,
     if find_lr:
         trainer.find_lr(num_iters=self.actual_max_num_epochs)
     else:
-        if not validation_only:
-            if args.continue_training:
-                # -c was set, continue a previous training and ignore pretrained weights
-                trainer.load_latest_checkpoint()
-            elif (not args.continue_training) and (args.pretrained_weights is not None):
-                # we start a new training. If pretrained_weights are set, use them
-                load_pretrained_weights(trainer.network, args.pretrained_weights)
-            else:
-                # new training without pretraine weights, do nothing
-                pass
-        else:
-            # if valbest:
-            #     trainer.load_best_checkpoint(train=False)
-            # else:
-            #     trainer.load_final_checkpoint(train=False)
+        if args.continue_training:
+            # -c was set, continue a previous training and ignore pretrained weights
             trainer.load_latest_checkpoint()
+        elif (not args.continue_training) and (args.pretrained_weights is not None):
+            # we start a new training. If pretrained_weights are set, use them
+            load_pretrained_weights(trainer.network, args.pretrained_weights)
+        else:
+            # new training without pretraine weights, do nothing
+            pass
 
     # we want latest checkoint only (not best or any intermediate) 
     trainer.save_final_checkpoint = (
