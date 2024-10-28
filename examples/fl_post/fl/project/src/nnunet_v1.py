@@ -125,8 +125,6 @@ def train_nnunet(actual_max_num_epochs,
         "Optional. Beta. Use with caution."
     disable_next_stage_pred: If True, do not predict next stage
     """  
-    # hard coded, as internal trainer.run_training is currently written to run only one epoch
-    epochs = 1
 
     class Arguments():
         def __init__(self, **kwargs):
@@ -256,7 +254,7 @@ def train_nnunet(actual_max_num_epochs,
         True  # if false it will not store/overwrite _latest but separate files each
     )
 
-    trainer.max_num_epochs = fl_round + epochs
+    trainer.max_num_epochs = fl_round + 1
     trainer.epoch = fl_round
 
     # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
