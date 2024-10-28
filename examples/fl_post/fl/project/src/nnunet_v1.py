@@ -86,7 +86,6 @@ def train_nnunet(actual_max_num_epochs,
     fl_round (int): Federated round, equal to the epoch used for the model (in lr scheduling)
     val_epoch (bool) : Will validation be performed
     train_epoch (bool) : Will training run (rather than val only)
-    train_val_cutoff (int): Total time (in seconds) limit to use in approximating a restriction to training and validation activities.
     task (int): can be task name or task id
     fold: "0, 1, ..., 5 or 'all'"
     c: use this if you want to continue a training

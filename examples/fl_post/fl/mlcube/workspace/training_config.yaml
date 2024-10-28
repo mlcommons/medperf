@@ -5,7 +5,7 @@ aggregator :
     init_state_path : save/fl_post_two_init.pbuf
     best_state_path : save/fl_post_two_best.pbuf
     last_state_path : save/fl_post_two_last.pbuf
-    rounds_to_train : 300
+    rounds_to_train : &rounds_to_train 2
     admins_endpoints_mapping:
       testfladmin@example.com:
         - GetExperimentStatus
@@ -63,7 +63,7 @@ task_runner :
     device                  : cuda
     gpu_num_string          : '0'
     nnunet_task             : Task537_FLPost
-    actual_max_num_epochs   : 300
+    actual_max_num_epochs   : *rounds_to_train
     
 network :
   defaults : plan/defaults/network.yaml
