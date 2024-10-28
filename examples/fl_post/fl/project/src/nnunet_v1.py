@@ -81,8 +81,8 @@ def train_nnunet(actual_max_num_epochs,
                  pretrained_weights=None):
 
     """
-    actual_max_num_epochs (int): Provides the number of epochs intended to be trained 
-    (this needs to be held constant outside of individual calls to this function during with max_num_epochs is set to one more than the current epoch)
+    actual_max_num_epochs (int): Provides the number of epochs intended to be trained over the course of the whole federation (for lr scheduling) 
+    (this needs to be held constant outside of individual calls to this function so that the lr is consistetly scheduled)
     fl_round (int): Federated round, equal to the epoch used for the model (in lr scheduling)
     val_epoch (bool) : Will validation be performed
     train_epoch (bool) : Will training run (rather than val only)
