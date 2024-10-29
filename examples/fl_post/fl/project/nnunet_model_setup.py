@@ -94,7 +94,7 @@ def trim_data_and_setup_model(task, network, network_trainer, plans_identifier, 
         shutil.copyfile(src=col_paths['final_model_path'],dst=col_paths['initial_model_path'])
         shutil.copyfile(src=col_paths['final_model_info_path'],dst=col_paths['initial_model_info_path'])
     else:
-        print(f"\n######### WRITING MODEL, MODEL INFO, and PLANS #########\ncol_paths were: {col_paths}\n\n")
+        print(f"\n######### WRITING MODEL, MODEL INFO, and PLANS #########\n")
         shutil.copy(src=plans_path,dst=col_paths['plans_path'])
         shutil.copyfile(src=init_model_path,dst=col_paths['initial_model_path'])
         shutil.copyfile(src=init_model_info_path,dst=col_paths['initial_model_info_path'])
