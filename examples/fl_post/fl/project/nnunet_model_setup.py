@@ -68,13 +68,6 @@ def trim_data_and_setup_model(task, network, network_trainer, plans_identifier, 
     Note that plans_identifier here is designated from fl_setup.py and is an alternative to the default one due to overwriting of the local plans by a globally distributed one
     """
 
-    # Removing 2D data is not longer needed since we set "-pl2d None during plan and preprocessing call"
-    # TODO: remove this comment once tested
-    """
-    if network != '2d':
-        delete_2d_data(network=network, task=task, plans_identifier=plans_identifier)
-    """
-    
     # get or create architecture info
 
     model_folder = get_model_folder(network=network, 

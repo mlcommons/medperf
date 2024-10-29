@@ -12,8 +12,6 @@ aggregator :
         - SetStragglerCuttoffTime
         - SetDynamicTaskArg
         - GetDynamicTaskArg 
-      col1@example.com:
-        - SetDynamicTaskArg
 
     dynamictaskargs: &dynamictaskargs
       train:
