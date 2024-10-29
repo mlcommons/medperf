@@ -143,7 +143,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return epoch
 
         
-    def train(self, col_name, round_num, input_tensor_dict, epochs, val_cutoff_time, train_cutoff_time, train_completion_dampener, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, epochs, val_cutoff_time=np.inf, train_cutoff_time=np.inf, train_completion_dampener=0.0, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform training for a specified number of epochs."""
 
@@ -193,16 +193,6 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform validation."""
 
-        def compare_tensor_dicts(td_1, td_2, tag="", epsilon=0.1, verbose=True):
-            hash_1 = np.sum([np.mean(np.array(_value)) for _value in td_1.values()])
-            hash_2 = np.sum([np.mean(np.array(_value)) for _value in td_2.values()])
-            delta = np.abs(hash_1 - hash_2)
-            if verbose:
-                print(f"The tensor dict comparison {tag} resulted in delta: {delta} (accepted error: {epsilon}).")
-            if delta > epsilon:
-                raise ValueError(f"The tensor dict comparison {tag} failed with delta: {delta} against an accepted error of: {epsilon}.")
-
-
         if not from_checkpoint:
             self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
             # 1. Insert tensor_dict info into checkpoint
@@ -243,9 +233,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                        'val_eval_C4': this_val_eval_metrics_C4}
         else:
             checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load)
-            # double check: uncomment below for testing
-            # compare_tensor_dicts(td_1=input_tensor_dict,td_2=checkpoint_dict['state_dict'], tag="checkpoint VS fromOpenFL")
-
+            
             all_tr_losses, \
                 all_val_losses, \
                 all_val_losses_tr_mode, \
