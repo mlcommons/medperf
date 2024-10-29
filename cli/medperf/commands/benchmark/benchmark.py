@@ -10,6 +10,8 @@ from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
 from medperf.commands.result.create import BenchmarkExecution
 
+from medperf.utils import parse_institutions_file
+
 app = typer.Typer()
 
 
@@ -56,6 +58,9 @@ def submit(
     evaluator_mlcube: int = typer.Option(
         ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
     ),
+    institutions_file: str = typer.Option(
+        None, "--institutions", "-i", help="CSV file containing the institution and email per expected participant."
+    ),
     skip_data_preparation_step: bool = typer.Option(
         False,
         "--skip-demo-data-preparation",
@@ -68,6 +73,7 @@ def submit(
     ),
 ):
     """Submits a new benchmark to the platform"""
+    institutions = parse_institutions_file(institutions_file)
     benchmark_info = {
         "name": name,
         "description": description,
@@ -77,6 +83,7 @@ def submit(
         "data_preparation_mlcube": data_preparation_mlcube,
         "reference_model_mlcube": reference_model_mlcube,
         "data_evaluator_mlcube": evaluator_mlcube,
+        "institutions": institutions,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitBenchmark.run(
