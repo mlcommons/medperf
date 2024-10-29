@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 from benchmark.models import Benchmark
 from dataset.models import Dataset
 
@@ -75,10 +76,15 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         if approval_status != "PENDING":
             validated_data["approved_at"] = timezone.now()
         else:
-            if (
-                validated_data["dataset"].owner.id
-                == validated_data["benchmark"].owner.id
-            ):
+            dset_owner = validated_data["dataset"].owner.id
+            bmk_owner = validated_data["benchmark"].owner.id
+            expected_emails = validated_data["benchmark"].institutions.keys()
+            User = get_user_model()
+            dset_user = User.objects.get(id=dset_owner)
+
+            is_same_owner = dset_owner == bmk_owner
+            is_expected_participant = dset_user.email in expected_emails
+            if is_same_owner or is_expected_participant:
                 validated_data["approval_status"] = "APPROVED"
                 validated_data["approved_at"] = timezone.now()
         return BenchmarkDataset.objects.create(**validated_data)
