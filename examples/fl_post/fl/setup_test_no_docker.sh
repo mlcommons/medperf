@@ -94,8 +94,8 @@ echo "address: $HOSTNAME_" >>mlcube_agg/workspace/aggregator_config.yaml
 echo "port: 50273" >>mlcube_agg/workspace/aggregator_config.yaml
 
 # cols file
+echo "$COL1_LABEL: $COL1_CN" >>mlcube_agg/workspace/cols.yaml
 echo "$COL2_LABEL: $COL2_CN" >>mlcube_agg/workspace/cols.yaml
-echo "$COL3_LABEL: $COL3_CN" >>mlcube_agg/workspace/cols.yaml
 
 # for admin
 ADMIN_CN="testfladmin@example.com"
@@ -141,13 +141,14 @@ rm -rf small_test_data3
 cd ../../
 
 # weights setup
-cd mlcube_agg/workspace
+cd mlcube/workspace
 mkdir additional_files
 cd additional_files
 wget https://storage.googleapis.com/medperf-storage/fltest29July/flpost_add29july.tar.gz
 tar -xf flpost_add29july.tar.gz
 rm flpost_add29july.tar.gz
 cd ../../../
-cp -r mlcube_agg/workspace/additional_files mlcube_col1/workspace/additional_files
-cp -r mlcube_agg/workspace/additional_files mlcube_col2/workspace/additional_files
-cp -r mlcube_agg/workspace/additional_files mlcube_col3/workspace/additional_files
+cp -r mlcube/workspace/additional_files mlcube_agg/workspace/additional_files
+cp -r mlcube/workspace/additional_files mlcube_col1/workspace/additional_files
+cp -r mlcube/workspace/additional_files mlcube_col2/workspace/additional_files
+cp -r mlcube/workspace/additional_files mlcube_col3/workspace/additional_files

@@ -5,9 +5,9 @@ aggregator :
     init_state_path : save/fl_post_two_init.pbuf
     best_state_path : save/fl_post_two_best.pbuf
     last_state_path : save/fl_post_two_last.pbuf
-    rounds_to_train : &rounds_to_train 2
+    rounds_to_train : &rounds_to_train 20
     admins_endpoints_mapping:
-      testfladmin@example.com:
+      col1@example.com:
         - GetExperimentStatus
         - SetStragglerCuttoffTime
         - SetDynamicTaskArg
@@ -19,7 +19,7 @@ aggregator :
           admin_settable: True
           min: 10    # 10 seconds
           max: 86400 # one day
-          value: 86400   # one day
+          value: 300   # one day
         val_cutoff_time:
           admin_settable: True
           min: 10    # 10 seconds
@@ -115,5 +115,5 @@ compression_pipeline :
 straggler_handling_policy :
     template : openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
     settings :
-        straggler_cutoff_time : 600
-        minimum_reporting : 5
+        straggler_cutoff_time : 1200
+        minimum_reporting : 2
