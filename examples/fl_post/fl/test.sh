@@ -1,12 +1,41 @@
-while getopts d1:l1:d2:l2:d3:l3 flag; do
-    case "${flag}" in
-    d1) COL1_DATA=${OPTARG} ;;
-    l1) COL1_LABELS=${OPTARG} ;;
-    d2) COL2_DATA=${OPTARG} ;;
-    l2) COL2_LABELS=${OPTARG} ;;
-    d3) COL3_DATA=${OPTARG} ;;
-    l3) COL3_LABELS=${OPTARG} ;;
+COL1_DATA=""
+COL1_LABELS=""
+COL2_DATA=""
+COL2_LABELS=""
+COL3_DATA=""
+COL3_LABELS=""
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --d1)
+        COL1_DATA="$2"
+        shift
+        ;;
+    --d2)
+        COL2_DATA="$2"
+        shift
+        ;;
+    --d3)
+        COL3_DATA="$2"
+        shift
+        ;;
+    --l1)
+        COL1_LABELS="$2"
+        shift
+        ;;
+    --l2)
+        COL2_LABELS="$2"
+        shift
+        ;;
+    --l3)
+        COL3_LABELS="$2"
+        shift
+        ;;
+    *)
+        echo "Unknown parameter: $1"
+        exit 1
+        ;;
     esac
+    shift
 done
 
 COL1_DATA="${COL1_DATA:-$PWD/mlcube_col1/workspace/data}"

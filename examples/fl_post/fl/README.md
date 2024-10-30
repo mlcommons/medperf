@@ -1,7 +1,7 @@
 # How to run tests (see next section for a detailed guide)
 
 - Run `setup_test_no_docker.sh` just once to create certs and download required data.
-- Run `test.sh` to start the aggregator and three collaborators.
+- Run `test.sh <params>` to start the aggregator and three collaborators. (requires BASH, see next section)
 - Run `clean.sh` to be able to rerun `test.sh` freshly.
 - Run `setup_clean.sh` to clear what has been generated in step 1.
 
@@ -9,12 +9,12 @@
 
 - Go to your medperf repo and checkout the required branch.
 - Have medperf virtual environment activated (and medperf installed)
-- run: `setup_test_no_docker.sh` to setup the test (you should `setup_clean.sh` if you already ran this before you run it again).
-- run: `test.sh --d1 absolute_path --l2 absolute_path ...` to run the test
+- run: `sh setup_test_no_docker.sh` to setup the test (you should `sh setup_clean.sh` if you already ran this before you run it again).
+- run: `bash test.sh --d1 absolute_path --l2 absolute_path ...` to run the test
   - data paths can be specified in the command. --dn is for data path of collaborator n, --ln is for labels_path of collaborator n.
   - make sure gpu IDs are set as expected in `test.sh` script.
 - to stop: `CTRL+C` in the terminal where you ran `test.sh`, then, `docker container ls`, then take the container IDs, then `docker container stop <ID>`, to stop relevant running containers (to identify containers to stop, they should have an IMAGE field same name as the one configured in docker image field in `mlcube.yaml`). You can at the end use `docker container prune` to delete all stopped containers if you want (not necessary).
-- To rerun: you should first run `sh clean.sh`, then `sh test.sh` again.
+- To rerun: you should first run `sh clean.sh`, then `bash test.sh ...` again.
 
 ## What to do when you want to
 
