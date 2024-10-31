@@ -3,7 +3,12 @@ from medperf import config
 from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
 from medperf.entities.event import TrainingEvent
-from medperf.exceptions import CleanExit, InvalidArgumentError, MedperfException
+from medperf.exceptions import (
+    CleanExit,
+    ExecutionError,
+    InvalidArgumentError,
+    MedperfException,
+)
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
@@ -25,22 +30,36 @@ class TrainingExecution:
         data_uid: int,
         overwrite: bool = False,
         approved: bool = False,
+        restart_on_failure: bool = False,
     ):
         """Starts the aggregation server of a training experiment
 
         Args:
             training_exp_id (int): Training experiment UID.
         """
+        if restart_on_failure:
+            approved = True
+            overwrite = True
         execution = cls(training_exp_id, data_uid, overwrite, approved)
-        execution.prepare()
-        execution.validate()
-        execution.check_existing_outputs()
-        execution.prepare_plan()
-        execution.prepare_pki_assets()
-        execution.confirm_run()
-        with config.ui.interactive():
-            execution.prepare_training_cube()
-            execution.run_experiment()
+        if restart_on_failure:
+            execution.confirm_restart_on_failure()
+
+        while True:
+            execution.prepare()
+            execution.validate()
+            execution.check_existing_outputs()
+            execution.prepare_plan()
+            execution.prepare_pki_assets()
+            execution.confirm_run()
+            with config.ui.interactive():
+                execution.prepare_training_cube()
+                try:
+                    execution.run_experiment()
+                    break
+                except ExecutionError as e:
+                    print(str(e))
+                    if not restart_on_failure:
+                        break
 
     def __init__(
         self, training_exp_id: int, data_uid: int, overwrite: bool, approved: bool
@@ -50,6 +69,17 @@ class TrainingExecution:
         self.overwrite = overwrite
         self.ui = config.ui
         self.approved = approved
+
+    def confirm_restart_on_failure(self):
+        msg = (
+            "You chose to restart on failure. This means that the training process"
+            " will automatically restart, without your approval, even if training configuration"
+            " changes from the server side. Do you confirm? [Y/n] "
+        )
+        if not approval_prompt(msg):
+            raise CleanExit(
+                "Training cancelled. Rerun without the --restart_on_failure flag."
+            )
 
     def prepare(self):
         self.training_exp = TrainingExp.get(self.training_exp_id)
