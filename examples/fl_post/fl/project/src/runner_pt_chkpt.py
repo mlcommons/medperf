@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Contributors: Micah Sheller, Patrick Foley, Brandon Edwards
+Contributors: Micah Sheller, Patrick Foley, Brandon Edwards  - DELETEME?
 
 """
 # TODO: Clean up imports
@@ -82,10 +82,12 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         self.replace_checkpoint(self.checkpoint_path_initial)
      
 
-    def load_checkpoint(self, checkpoint_path, map_location=None):
+    def load_checkpoint(self, checkpoint_path=None, map_location=None):
         """
         Function used to load checkpoint from disk.
         """
+        if not checkpoint_path:
+            checkpoint_path = self.checkpoint_path_load
         checkpoint_dict = torch.load(checkpoint_path, map_location=map_location)
         return checkpoint_dict
     
@@ -122,7 +124,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
             return self.required_tensorkeys_for_function[func_name]
 
     def reset_opt_vars(self):
-        current_checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load)
+        current_checkpoint_dict = self.load_checkpoint()
         initial_checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_initial)
         derived_opt_state_dict = self._get_optimizer_state(checkpoint_dict=initial_checkpoint_dict)
         self._set_optimizer_state(derived_opt_state_dict=derived_opt_state_dict, 
@@ -170,7 +172,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
             dict: Tensor dictionary {**dict, **optimizer_dict}
 
         """
-        checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load)
+        checkpoint_dict = self.load_checkpoint()
         state = to_cpu_numpy(checkpoint_dict['state_dict'])
         if with_opt_vars:
             opt_state = self._get_optimizer_state(checkpoint_dict=checkpoint_dict)
@@ -253,9 +255,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         return derived_opt_state_dict
 
 
-    def convert_results_to_tensorkeys(self, col_name, round_num, metrics, insert_model):
-        # insert_model determined whether or not to include the model in the return dictionaries
-        
+    def convert_results_to_tensorkeys(self, col_name, round_num, metrics):
         # 5. Convert to tensorkeys
 
         # output metric tensors (scalar)
@@ -268,14 +268,11 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
                     metrics[metric_name]
                 ) for metric_name in metrics}
 
-        if insert_model:
-            # output model tensors (Doesn't include TensorKey)
-            output_model_dict = self.get_tensor_dict(with_opt_vars=True)
-            global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(logger=self.logger, 
-                                                                                 tensor_dict=output_model_dict,
-                                                                                 **self.tensor_dict_split_fn_kwargs)
-        else:
-            global_model_dict, local_model_dict = {}, {}
+        # output model tensors (Doesn't include TensorKey)
+        output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(logger=self.logger, 
+                                                                             tensor_dict=output_model_dict,
+                                                                             **self.tensor_dict_split_fn_kwargs)
 
         # create global tensorkeys
         global_tensorkey_model_dict = {

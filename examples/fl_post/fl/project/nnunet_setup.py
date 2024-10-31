@@ -28,7 +28,7 @@ def main(postopp_pardir,
          plans_path=None, 
          local_plans_identifier=local_plans_identifier,
          shared_plans_identifier=shared_plans_identifier,
-         overwrite_nnunet_datadirs=True, 
+         overwrite_nnunet_datadirs=False, 
          timestamp_selection='all', 
          cuda_device='0', 
          verbose=False):
@@ -105,7 +105,7 @@ def main(postopp_pardir,
     fold(str)                       : Fold to train on, can be a sting indicating an int, or can be 'all'
     local_plans_identifier(str)     : Used in the plans file naming for collaborators that will be performing local training to produce a pretrained model.
     shared_plans_identifier(str)    : Used in the plans file naming for the shared plan distributed across the federation.
-    overwrite_nnunet_datadirs(str)  : Allows overwriting NNUnet directories for given task number and name.
+    overwrite_nnunet_datadirs(str)  : Allows overwriting NNUnet directories with task numbers from first_three_digit_task_num to that plus one les than number of insitutions.
     task_name(str)                  : Any string task name.
     timestamp_selection(str)        : Indicates how to determine the timestamp to pick. Only 'earliest', 'latest', or 'all' are supported.
                                       for each subject ID at the source: 'latest' and 'earliest' are the only ones supported so far
@@ -126,7 +126,6 @@ def main(postopp_pardir,
           
     # task_folder_info is a zipped lists indexed over tasks (collaborators)
     #                  zip(task_nums, tasks, nnunet_dst_pardirs, nnunet_images_train_pardirs, nnunet_labels_train_pardirs)
-
     col_paths = setup_fl_data(postopp_pardir=postopp_pardir, 
                              three_digit_task_num=three_digit_task_num, 
                              task_name=task_name,
