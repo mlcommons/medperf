@@ -1,14 +1,14 @@
 from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
 from dataset.serializers import DatasetFullSerializer
-from result.serializers import ModelResultSerializer
+from execution.serializers import ExecutionSerializer
 from benchmark.serializers import BenchmarkSerializer
 from benchmarkdataset.serializers import BenchmarkDatasetListSerializer
 from benchmarkmodel.serializers import BenchmarkModelListSerializer
 from benchmark.models import Benchmark
 from dataset.models import Dataset
 from mlcube.models import MlCube
-from result.models import ModelResult
+from execution.models import Execution
 from benchmarkmodel.models import BenchmarkModel
 from benchmarkdataset.models import BenchmarkDataset
 from django.http import Http404
@@ -94,14 +94,14 @@ class DatasetList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
-class ModelResultList(GenericAPIView):
-    serializer_class = ModelResultSerializer
+class ExecutionList(GenericAPIView):
+    serializer_class = ExecutionSerializer
     queryset = ""
 
     def get_object(self, pk):
         try:
-            return ModelResult.objects.filter(owner__id=pk)
-        except ModelResult.DoesNotExist:
+            return Execution.objects.filter(owner__id=pk)
+        except Execution.DoesNotExist:
             raise Http404
 
     def get(self, request, format=None):
@@ -110,7 +110,7 @@ class ModelResultList(GenericAPIView):
         """
         results = self.get_object(request.user.id)
         results = self.paginate_queryset(results)
-        serializer = ModelResultSerializer(results, many=True)
+        serializer = ExecutionSerializer(results, many=True)
         return self.get_paginated_response(serializer.data)
 
 

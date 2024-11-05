@@ -90,7 +90,7 @@ INSTALLED_APPS = [
     "mlcube",
     "benchmarkmodel",
     "user",
-    "result",
+    "execution",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",

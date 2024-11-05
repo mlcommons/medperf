@@ -2,12 +2,12 @@ from rest_framework import serializers
 from benchmarkdataset.models import BenchmarkDataset
 from benchmarkmodel.models import BenchmarkModel
 
-from .models import ModelResult
+from .models import Execution
 
 
-class ModelResultSerializer(serializers.ModelSerializer):
+class ExecutionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ModelResult
+        model = Execution
         fields = "__all__"
         read_only_fields = ["owner", "approved_at", "approval_status"]
 
@@ -53,9 +53,9 @@ class ModelResultSerializer(serializers.ModelSerializer):
         return data
 
 
-class ModelResultDetailSerializer(serializers.ModelSerializer):
+class ExecutionDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ModelResult
+        model = Execution
         fields = "__all__"
         read_only_fields = [
             "owner",

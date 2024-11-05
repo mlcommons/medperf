@@ -5,7 +5,7 @@ from medperf.tests import MedPerfTest
 from parameterized import parameterized, parameterized_class
 
 
-class ResultsTest(MedPerfTest):
+class ExecutionsTest(MedPerfTest):
     def generic_setup(self):
         # setup users
         data_owner = "data_owner"
@@ -42,11 +42,11 @@ class ResultsTest(MedPerfTest):
         {"actor": "data_owner"},
     ],
 )
-class GenericResultsPostTest(ResultsTest):
+class GenericExecutionsPostTest(ExecutionsTest):
     """Test module for POST /results"""
 
     def setUp(self):
-        super(GenericResultsPostTest, self).setUp()
+        super(GenericExecutionsPostTest, self).setUp()
         self.generic_setup()
 
         # create benchmark
@@ -90,18 +90,18 @@ class GenericResultsPostTest(ResultsTest):
     def test_created_result_fields_are_saved_as_expected(self):
         """Testing the valid scenario"""
         # Arrange
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
 
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         for k, v in response.data.items():
-            if k in testresult:
-                self.assertEqual(testresult[k], v, f"unexpected value for {k}")
+            if k in testexecution:
+                self.assertEqual(testexecution[k], v, f"unexpected value for {k}")
 
     def test_default_values_are_as_expected(self):
         """Testing the model fields rules"""
@@ -115,16 +115,16 @@ class GenericResultsPostTest(ResultsTest):
             "user_metadata": {},
             "is_valid": True,
         }
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
 
         for key in default_values:
-            if key in testresult:
-                del testresult[key]
+            if key in testexecution:
+                del testexecution[key]
 
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -144,14 +144,14 @@ class GenericResultsPostTest(ResultsTest):
             "approved_at": "time3",
             "approval_status": "APPROVED",
         }
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
 
-        testresult.update(readonly)
+        testexecution.update(readonly)
 
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -166,11 +166,11 @@ class GenericResultsPostTest(ResultsTest):
         {"actor": "data_owner"},
     ],
 )
-class SerializersResultsPostTest(ResultsTest):
+class SerializersExecutionsPostTest(ExecutionsTest):
     """Test module for serializers rules of POST /results"""
 
     def setUp(self):
-        super(SerializersResultsPostTest, self).setUp()
+        super(SerializersExecutionsPostTest, self).setUp()
         self.generic_setup()
 
         # create benchmark
@@ -207,11 +207,11 @@ class SerializersResultsPostTest(ResultsTest):
         )
         self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
 
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -223,11 +223,11 @@ class SerializersResultsPostTest(ResultsTest):
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -259,11 +259,11 @@ class SerializersResultsPostTest(ResultsTest):
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         if dataset_status == mlcube_status == "APPROVED":
@@ -292,11 +292,11 @@ class SerializersResultsPostTest(ResultsTest):
             assoc, self.mlcube_owner, self.bmk_owner, set_status_directly=True
         )
 
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -320,11 +320,11 @@ class SerializersResultsPostTest(ResultsTest):
             assoc, self.data_owner, self.bmk_owner, set_status_directly=True
         )
 
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -336,11 +336,11 @@ class SerializersResultsPostTest(ResultsTest):
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        testresult = self.mock_result(
+        testexecution = self.mock_execution(
             self.bmk_id, self.ref_mlcube_id, self.dataset_id, results={"r": 1}
         )
         # Act
-        response = self.client.post(self.url, testresult, format="json")
+        response = self.client.post(self.url, testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -351,11 +351,11 @@ class SerializersResultsPostTest(ResultsTest):
         {"actor": "api_admin"},
     ],
 )
-class GenericResultsGetListTest(ResultsTest):
+class GenericExecutionsGetListTest(ExecutionsTest):
     """Test module for GET /results"""
 
     def setUp(self):
-        super(GenericResultsGetListTest, self).setUp()
+        super(GenericExecutionsGetListTest, self).setUp()
         self.generic_setup()
 
         # create benchmark
@@ -390,19 +390,19 @@ class GenericResultsGetListTest(ResultsTest):
         )
         self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
 
-        # create result
+        # create execution
         self.set_credentials(self.data_owner)
-        result = self.mock_result(
+        execution = self.mock_execution(
             benchmark["id"], mlcube["id"], dataset["id"], results={"r": 1}
         )
-        result = self.create_result(result).data
-        self.testresult = result
+        execution = self.create_execution(execution).data
+        self.testexecution = execution
 
         self.set_credentials(self.actor)
 
     def test_generic_get_result_list(self):
         # Arrange
-        result_id = self.testresult["id"]
+        result_id = self.testexecution["id"]
 
         # Act
         response = self.client.get(self.url)
@@ -413,7 +413,7 @@ class GenericResultsGetListTest(ResultsTest):
         self.assertEqual(response.data["results"][0]["id"], result_id)
 
 
-class PermissionTest(ResultsTest):
+class PermissionTest(ExecutionsTest):
     """Test module for permissions of /results endpoint
     Non-permitted actions:
         POST: for all users except data_owner, and admins
@@ -457,11 +457,11 @@ class PermissionTest(ResultsTest):
         self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
 
         self.set_credentials(self.data_owner)
-        result = self.mock_result(
+        execution = self.mock_execution(
             benchmark["id"], mlcube["id"], dataset["id"], results={"r": 1}
         )
 
-        self.testresult = result
+        self.testexecution = execution
 
         self.set_credentials(None)
 
@@ -481,7 +481,7 @@ class PermissionTest(ResultsTest):
         self.set_credentials(user)
 
         # Act
-        response = self.client.post(self.url, self.testresult, format="json")
+        response = self.client.post(self.url, self.testexecution, format="json")
 
         # Assert
         self.assertEqual(response.status_code, exp_status)
@@ -501,7 +501,7 @@ class PermissionTest(ResultsTest):
     def test_get_permissions(self, user, exp_status):
         # Arrange
         self.set_credentials(self.data_owner)
-        self.create_result(self.testresult)
+        self.create_execution(self.testexecution)
         self.set_credentials(user)
 
         # Act

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-class ModelResult(models.Model):
+class Execution(models.Model):
     MODEL_RESULT_STATUS = (
         ("PENDING", "PENDING"),
         ("APPROVED", "APPROVED"),
