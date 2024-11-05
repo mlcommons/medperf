@@ -23,6 +23,8 @@ class Execution(models.Model):
         choices=MODEL_RESULT_STATUS, max_length=100, default="PENDING"
     )
     is_valid = models.BooleanField(default=True)
+    model_report = models.JSONField(default=dict, blank=True, null=True)
+    evaluation_report = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
