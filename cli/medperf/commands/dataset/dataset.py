@@ -157,10 +157,17 @@ def train(
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite outputs if present"
     ),
+    restart_on_failure: bool = typer.Option(
+        False,
+        "--restart_on_failure",
+        help="Keep restarting failing training processes until Keyboard interrupt",
+    ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs training"""
-    TrainingExecution.run(training_exp_id, data_uid, overwrite, approval)
+    TrainingExecution.run(
+        training_exp_id, data_uid, overwrite, approval, restart_on_failure
+    )
     config.ui.print("✅ Done!")
 
 

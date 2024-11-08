@@ -1,4 +1,4 @@
 onnx==1.13.0
 typer==0.9.0
-git+https://github.com/brandon-edwards/nnUNet_v1.7.1_local.git@main#egg=nnunet
+git+https://github.com/brandon-edwards/nnUNet_v1.7.1_local.git@077f4852c81da1d1e1141547cbd09ac68ade4b5b#egg=nnunet
 numpy==1.26.4
