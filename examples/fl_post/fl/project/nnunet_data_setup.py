@@ -134,7 +134,7 @@ def split_by_subject(subject_to_timestamps, percent_train, split_seed, verbose=F
     return train_subject_to_timestamps, val_subject_to_timestamps
 
 
-def split_by_timed_subjects(subject_to_timestamps, percent_train, random_tries=30, split_seed, verbose=False):
+def split_by_timed_subjects(subject_to_timestamps, percent_train, split_seed, random_tries=30, verbose=False):
     """
     NOTE: An attempt is made to put percent_train of the subject timestamp combinations into train (as opposed to val) regardless of what that does to the subject ratios. 
     No subject is allowed to have samples in both train and val.
@@ -419,4 +419,3 @@ def setup_fl_data(postopp_pardir,
         print(f"\n###   ###   ###   ###   ###   ###   ###\n")
     
     return col_paths
-    
