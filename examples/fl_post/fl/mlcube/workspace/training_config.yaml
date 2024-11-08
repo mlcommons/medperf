@@ -5,7 +5,7 @@ aggregator :
     init_state_path : save/fl_post_two_init.pbuf
     best_state_path : save/fl_post_two_best.pbuf
     last_state_path : save/fl_post_two_last.pbuf
-    rounds_to_train : &rounds_to_train 2
+    rounds_to_train : &rounds_to_train 40
     admins_endpoints_mapping:
       testfladmin@example.com:
         - GetExperimentStatus
@@ -19,12 +19,12 @@ aggregator :
           admin_settable: True
           min: 10    # 10 seconds
           max: 86400 # one day
-          value: 86400   # one day
+          value: 20   # one day
         val_cutoff_time:
           admin_settable: True
           min: 10    # 10 seconds
           max: 86400 # one day
-          value: 86400   # one day
+          value: 20   # one day
         train_completion_dampener: # train_completed -> (train_completed)**(train_completion_dampener)   NOTE: Value close to zero zero shifts non 0.0 completion rates much closer to 1.0
           admin_settable: True
           min: -1.0        # inverts train_comleted, so this would be a way to have checkpoint_weighting = train_completed * data_size (as opposed to data_size / train_completed)
@@ -36,7 +36,7 @@ aggregator :
           admin_settable: True
           min: 10    # 10 seconds
           max: 86400 # one day
-          value: 86400   # one day
+          value: 20   # one day
 
 
 collaborator :
