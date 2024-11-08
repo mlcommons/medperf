@@ -56,11 +56,18 @@ class TrainingEvent(Entity, MedperfSchema):
         self.participants_list_path = os.path.join(
             self.path, config.participants_list_filename
         )
-        self.agg_out_logs = os.path.join(self.path, config.training_out_agg_logs)
+        timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
+        self.agg_out_logs = os.path.join(
+            self.path, config.training_out_agg_logs + timestamp
+        )
         self.col_out_logs = os.path.join(self.path, config.training_out_col_logs)
-        self.out_weights = os.path.join(self.path, config.training_out_weights)
+        self.out_weights = os.path.join(
+            self.path, config.training_out_weights + timestamp
+        )
         self.report_path = os.path.join(
-            self.path, config.training_report_folder, config.training_report_file
+            self.path,
+            config.training_report_folder + timestamp,
+            config.training_report_file,
         )
 
     @classmethod
