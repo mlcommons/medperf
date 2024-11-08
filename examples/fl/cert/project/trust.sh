@@ -45,7 +45,7 @@ if [ -n "$CA_FINGERPRINT" ]; then
     step ca root $pki_assets/root_ca.crt --ca-url $CA_ADDRESS:$CA_PORT \
         --fingerprint $CA_FINGERPRINT
 else
-    wget -O $pki_assets/root_ca.crt $CA_ADDRESS:$CA_PORT/roots.pem
+    curl -o $pki_assets/root_ca.crt $CA_ADDRESS:$CA_PORT/roots.pem
 fi
 EXITSTATUS="$?"
 if [ $EXITSTATUS -ne "0" ]; then
