@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Contributors: Micah Sheller, Patrick Foley, Brandon Edwards  - DELETEME?
+Contributors: Micah Sheller, Patrick Foley, Brandon Edwards
 
 """
 # TODO: Clean up imports
-# TODO: ask Micah if this has to be changed (most probably no)
 
 import os
 import subprocess
@@ -36,12 +35,15 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
     def __init__(self,
                  nnunet_task=None,
                  config_path=None,
+                 actual_max_num_epochs=1000,
                  **kwargs):
         """Initialize.
 
         Args:
-            config_path(str)            : Path to the configuration file used by the training and validation script.
-            kwargs                      : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
+            nnunet_task (str)                   : Task string used to identify the data and model folders
+            config_path(str)                    : Path to the configuration file used by the training and validation script.
+            actual_max_num_epochs (int)         : Number of epochs for which this collaborator's model will be trained, should match the total rounds of federation in which this runner is participating
+            kwargs                              : Additional key work arguments (will be passed to rebuild_model, initialize_tensor_key_functions, TODO: <Fill this in>).
             TODO: 
         """ 
         
@@ -72,6 +74,14 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             )
 
         self.config_path = config_path
+        self.actual_max_num_epochs=actual_max_num_epochs
+
+        # self.task_completed is a dictionary of task to amount completed as a float in [0,1]
+        # Values will be dynamically updated
+        # TODO: Tasks are hard coded for now
+        self.task_completed = {'aggregated_model_validation': 1.0, 
+                               'train': 1.0, 
+                               'locally_tuned_model_validation': 1.0}
         
     
     def write_tensors_into_checkpoint(self, tensor_dict, with_opt_vars):
@@ -108,11 +118,10 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         # get device for correct placement of tensors
         device = self.device
 
-        checkpoint_dict = self.load_checkpoint(map_location=device)
+        checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load, map_location=device)
         epoch = checkpoint_dict['epoch']
         new_state = {}
         # grabbing keys from the checkpoint state dict, poping from the tensor_dict
-        # Brandon DEBUGGING
         seen_keys = []
         for k in checkpoint_dict['state_dict']:
             if k not in seen_keys:
@@ -134,91 +143,113 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         return epoch
 
         
-    def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, epochs, val_cutoff_time=np.inf, train_cutoff_time=np.inf, train_completion_dampener=0.0, **kwargs):
         # TODO: Figure out the right name to use for this method and the default assigner
         """Perform training for a specified number of epochs."""
 
         self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
         # 1. Insert tensor_dict info into checkpoint
-        current_epoch = self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
-        # 2. Train function existing externally
-        # Some todo inside function below
-        # TODO: test for off-by-one error
-        # TODO: we need to disable validation if possible, and separately call validation  
-        
-        # FIXME: we need to understand how to use round_num instead of current_epoch
-        #   this will matter in straggler handling cases
-        # TODO: Should we put this in a separate process?
-        train_nnunet(epochs=epochs, current_epoch=current_epoch, task=self.data_loader.get_task_name())
-       
-        # 3. Load metrics from checkpoint
-        (all_tr_losses, all_val_losses, all_val_losses_tr_mode, all_val_eval_metrics) = self.load_checkpoint()['plot_stuff']
-        # these metrics are appended to the checkopint each epoch, so we select the most recent epoch
-        metrics = {'train_loss': all_tr_losses[-1], 
-                   'val_eval': all_val_eval_metrics[-1]}
+        self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
+        self.logger.info(f"Training for round:{round_num}")
+        train_completed, \
+        val_completed, \
+        this_ave_train_loss, \
+        this_ave_val_loss, \
+        this_val_eval_metrics, \
+        this_val_eval_metrics_C1, \
+        this_val_eval_metrics_C2, \
+        this_val_eval_metrics_C3, \
+        this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
+                                                      fl_round=round_num, 
+                                                      train_cutoff=train_cutoff_time,
+                                                      val_cutoff = val_cutoff_time,
+                                                      task=self.data_loader.get_task_name(),
+                                                      val_epoch=True,
+                                                      train_epoch=True)
 
-        return self.convert_results_to_tensorkeys(col_name, round_num, metrics)
-
-        
-
-    def validate(self, col_name, round_num, input_tensor_dict, **kwargs):
+        # dampen the train_completion
         """
-        Run the trained model on validation data; report results.
-
-        Parameters
-        ----------
-        input_tensor_dict : either the last aggregated or locally trained model
-
-        Returns
-        -------
-        output_tensor_dict : {TensorKey: nparray} (these correspond to acc,
-         precision, f1_score, etc.)
+        values in range: (0, 1] with values near 0.0 making all train_completion rates shift nearer to 1.0, thus making the
+        trained model update weighting during aggregation stay closer to the plain data size weighting
+        specifically, update_weight = train_data_size / train_completed**train_completion_dampener
         """
+        train_completed = train_completed**train_completion_dampener
 
-        raise NotImplementedError()
+        # update amount of task completed
+        self.task_completed['train'] = train_completed
+        self.task_completed['locally_tuned_model_validation'] = val_completed
 
-        """ - TBD - for now commenting out
+        # 3. Prepare metrics 
+        metrics = {'train_loss': this_ave_train_loss}
 
-        self.rebuild_model(round_num, input_tensor_dict, validation=True)
+        global_tensor_dict, local_tensor_dict = self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=True)
 
-        # 1. Save model in native format
-        self.save_native(self.mlcube_model_in_path)
+        self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
+        
+        return global_tensor_dict, local_tensor_dict
+  
 
-        # 2. Call MLCube validate task
-        platform_yaml = os.path.join(self.mlcube_dir, 'platforms', '{}.yaml'.format(self.mlcube_runner_type))
-        task_yaml = os.path.join(self.mlcube_dir, 'run', 'evaluate.yaml')
-        proc = subprocess.run(["mlcube_docker",
-                               "run",
-                               "--mlcube={}".format(self.mlcube_dir),
-                               "--platform={}".format(platform_yaml),
-                               "--task={}".format(task_yaml)])
+    def validate(self, col_name, round_num, input_tensor_dict, val_cutoff_time=np.inf, from_checkpoint=False, **kwargs):
+        # TODO: Figure out the right name to use for this method and the default assigner
+        """Perform validation."""
 
-        # 3. Load any metrics
-        metrics = self.load_metrics(os.path.join(self.mlcube_dir, 'workspace', 'metrics', 'evaluate_metrics.json'))
+        if not from_checkpoint:
+            self.rebuild_model(input_tensor_dict=input_tensor_dict, **kwargs)
+            # 1. Insert tensor_dict info into checkpoint
+            self.set_tensor_dict(tensor_dict=input_tensor_dict, with_opt_vars=False)
+            self.logger.info(f"Validating for round:{round_num}")
+            # 2. Train/val function existing externally
+            # Some todo inside function below
+            train_completed, \
+            val_completed, \
+            this_ave_train_loss, \
+            this_ave_val_loss, \
+            this_val_eval_metrics, \
+            this_val_eval_metrics_C1, \
+            this_val_eval_metrics_C2, \
+            this_val_eval_metrics_C3, \
+            this_val_eval_metrics_C4 = train_nnunet(actual_max_num_epochs=self.actual_max_num_epochs, 
+                                                fl_round=round_num, 
+                                                train_cutoff=0,
+                                                val_cutoff = val_cutoff_time,
+                                                task=self.data_loader.get_task_name(), 
+                                                val_epoch=True,
+                                                train_epoch=False)
+            # double check
+            if train_completed != 0.0:
+                raise ValueError(f"Tried to validate only, but got a non-zero amount ({train_completed}) of training done.")
 
-        # set the validation data size
-        sample_count = int(metrics.pop(self.evaluation_sample_count_key))
-        self.data_loader.set_valid_data_size(sample_count)
+            # update amount of task completed
+            self.task_completed['aggregated_model_validation'] = val_completed
 
-        # 4. Convert to tensorkeys
-    
-        origin = col_name
-        suffix = 'validate'
-        if kwargs['apply'] == 'local':
-            suffix += '_local'
+            self.logger.info(f"Completed train/val with {int(train_completed*100)}% of the train work and {int(val_completed*100)}% of the val work. Exact rates are: {train_completed} and {val_completed}")
+
+            
+            # 3. Prepare metrics 
+            metrics = {'val_eval': this_val_eval_metrics, 
+                       'val_eval_C1': this_val_eval_metrics_C1, 
+                       'val_eval_C2': this_val_eval_metrics_C2, 
+                       'val_eval_C3': this_val_eval_metrics_C3, 
+                       'val_eval_C4': this_val_eval_metrics_C4}
         else:
-            suffix += '_agg'
-        tags = ('metric', suffix)
-        output_tensor_dict = {
-            TensorKey(
-                metric_name, origin, round_num, True, tags
-            ): np.array(metrics[metric_name])
-            for metric_name in metrics
-        }
+            checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load)
+            
+            all_tr_losses, \
+                all_val_losses, \
+                all_val_losses_tr_mode, \
+                all_val_eval_metrics, \
+                all_val_eval_metrics_C1, \
+                all_val_eval_metrics_C2, \
+                all_val_eval_metrics_C3, \
+                all_val_eval_metrics_C4 = checkpoint_dict['plot_stuff']
+            # these metrics are appended to the checkpoint each call to train, so it is critical that we are grabbing this right after
+            metrics = {'val_eval': all_val_eval_metrics[-1], 
+                       'val_eval_C1': all_val_eval_metrics_C1[-1], 
+                       'val_eval_C2': all_val_eval_metrics_C2[-1], 
+                       'val_eval_C3': all_val_eval_metrics_C3[-1], 
+                       'val_eval_C4': all_val_eval_metrics_C4[-1]}
 
-        return output_tensor_dict, {}
-
-        """
+        return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=False)
 
 
     def load_metrics(self, filepath):
@@ -231,3 +262,37 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             metrics = json.load(json_file)
         return metrics
         """
+
+
+    def get_train_data_size(self, task_name=None):
+        """Get the number of training examples.
+
+        It will be used for weighted averaging in aggregation. 
+        This overrides the parent class method,
+        allowing dynamic weighting by storing recent appropriate weights in class attributes.
+
+        Returns:
+            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
+        """
+        if not task_name:
+            return self.data_loader.get_train_data_size()
+        else:
+            # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
+            return int(np.ceil(self.task_completed[task_name]**(-1) * self.data_loader.get_train_data_size()))
+
+
+    def get_valid_data_size(self, task_name=None):
+        """Get the number of training examples.
+
+        It will be used for weighted averaging in aggregation. 
+        This overrides the parent class method,
+        allowing dynamic weighting by storing recent appropriate weights in class attributes.
+
+        Returns:
+            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
+        """
+        if not task_name:
+            return self.data_loader.get_valid_data_size()
+        else:
+            # self.task_completed is a dictionary of task_name to amount completed as a float in [0,1]
+            return int(np.ceil(self.task_completed[task_name]**(-1) * self.data_loader.get_valid_data_size()))  

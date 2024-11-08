@@ -54,14 +54,17 @@ def seed_everything(seed=1234):
     torch.backends.cudnn.deterministic = True
 
 
-def train_nnunet(epochs,
-                 current_epoch, 
+def train_nnunet(actual_max_num_epochs, 
+                 fl_round,
+                 val_epoch=True,
+                 train_epoch=True,
+                 train_cutoff=np.inf,
+                 val_cutoff=np.inf,
                  network='3d_fullres', 
                  network_trainer='nnUNetTrainerV2', 
                  task='Task543_FakePostOpp_More', 
                  fold='0', 
                  continue_training=True,
-                 validation_only=False, 
                  c=False, 
                  p=plans_param, 
                  use_compressed_data=False, 
@@ -78,9 +81,13 @@ def train_nnunet(epochs,
                  pretrained_weights=None):
 
     """
+    actual_max_num_epochs (int): Provides the number of epochs intended to be trained over the course of the whole federation (for lr scheduling) 
+    (this needs to be held constant outside of individual calls to this function so that the lr is consistetly scheduled)
+    fl_round (int): Federated round, equal to the epoch used for the model (in lr scheduling)
+    val_epoch (bool) : Will validation be performed
+    train_epoch (bool) : Will training run (rather than val only)
     task (int): can be task name or task id
     fold: "0, 1, ..., 5 or 'all'"
-    validation_only: use this if you want to only run the validation
     c: use this if you want to continue a training
     p: plans identifier. Only change this if you created a custom experiment planner
     use_compressed_data: "If you set use_compressed_data, the training cases will not be decompressed. Reading compressed data "
@@ -132,7 +139,6 @@ def train_nnunet(epochs,
     fold = args.fold
     network = args.network
     network_trainer = args.network_trainer
-    validation_only = args.validation_only
     plans_identifier = args.p
     find_lr = args.find_lr
     disable_postprocessing_on_folds = args.disable_postprocessing_on_folds
@@ -198,6 +204,7 @@ def train_nnunet(epochs,
     trainer = trainer_class(
         plans_file,
         fold,
+        actual_max_num_epochs=actual_max_num_epochs,
         output_folder=output_folder_name,
         dataset_directory=dataset_directory,
         batch_dice=batch_dice,
@@ -206,6 +213,30 @@ def train_nnunet(epochs,
         deterministic=deterministic,
         fp16=run_mixed_precision,
     )
+    
+
+    trainer.initialize(True)
+
+    if os.getenv("PREP_INCREMENT_STEP", None) == "from_dataset_properties":
+        trainer.save_checkpoint(
+            join(trainer.output_folder, "model_final_checkpoint.model")
+        )
+        print("Preparation round: Model-averaging")
+        return
+
+    if find_lr:
+        trainer.find_lr(num_iters=self.actual_max_num_epochs)
+    else:
+        if args.continue_training:
+            # -c was set, continue a previous training and ignore pretrained weights
+            trainer.load_latest_checkpoint()
+        elif (not args.continue_training) and (args.pretrained_weights is not None):
+            # we start a new training. If pretrained_weights are set, use them
+            load_pretrained_weights(trainer.network, args.pretrained_weights)
+        else:
+            # new training without pretraine weights, do nothing
+            pass
+
     # we want latest checkoint only (not best or any intermediate) 
     trainer.save_final_checkpoint = (
         True  # whether or not to save the final checkpoint
@@ -221,61 +252,44 @@ def train_nnunet(epochs,
     trainer.save_latest_only = (
         True  # if false it will not store/overwrite _latest but separate files each
     )
-    trainer.max_num_epochs = current_epoch + epochs
-    trainer.epoch = current_epoch
 
-    # TODO: call validation separately
-    trainer.initialize(not validation_only)
+    trainer.max_num_epochs = fl_round + 1
+    trainer.epoch = fl_round
 
-    if os.getenv("PREP_INCREMENT_STEP", None) == "from_dataset_properties":
-        trainer.save_checkpoint(
-            join(trainer.output_folder, "model_final_checkpoint.model")
-        )
-        print("Preparation round: Model-averaging")
-        return
+    # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
+    # point is expected to be seen epochs number of times
 
-    if find_lr:
-        trainer.find_lr()
-    else:
-        if not validation_only:
-            if args.continue_training:
-                # -c was set, continue a previous training and ignore pretrained weights
-                trainer.load_latest_checkpoint()
-            elif (not args.continue_training) and (args.pretrained_weights is not None):
-                # we start a new training. If pretrained_weights are set, use them
-                load_pretrained_weights(trainer.network, args.pretrained_weights)
-            else:
-                # new training without pretraine weights, do nothing
-                pass
+    num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
+    num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
 
-            trainer.run_training()
-        else:
-            # if valbest:
-            #     trainer.load_best_checkpoint(train=False)
-            # else:
-            #     trainer.load_final_checkpoint(train=False)
-            trainer.load_latest_checkpoint()
+    # the nnunet trainer attributes have a different naming convention than I am using
+    trainer.num_batches_per_epoch = num_train_batches_per_epoch
+    trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
+            
+    batches_applied_train, \
+            batches_applied_val, \
+            this_ave_train_loss, \
+            this_ave_val_loss, \
+            this_val_eval_metrics, \
+            this_val_eval_metrics_C1, \
+            this_val_eval_metrics_C2, \
+            this_val_eval_metrics_C3, \
+            this_val_eval_metrics_C4 = trainer.run_training(train_cutoff=train_cutoff, 
+                                                    val_cutoff=val_cutoff, 
+                                                    val_epoch=val_epoch,
+                                                    train_epoch=train_epoch)
 
-        trainer.network.eval()
+    train_completed = batches_applied_train / float(num_train_batches_per_epoch)
+    val_completed = batches_applied_val / float(num_val_batches_per_epoch)
+    
+    return train_completed, \
+                val_completed, \
+                this_ave_train_loss, \
+                this_ave_val_loss, \
+                this_val_eval_metrics, \
+                this_val_eval_metrics_C1, \
+                this_val_eval_metrics_C2, \
+                this_val_eval_metrics_C3, \
+                this_val_eval_metrics_C4
 
-        # if fold == "all":
-        #     print("--> fold == 'all'")
-        #     print("--> DONE")
-        # else:
-        #     # predict validation
-        #     trainer.validate(
-        #         save_softmax=args.npz,
-        #         validation_folder_name=val_folder,
-        #         run_postprocessing_on_folds=not disable_postprocessing_on_folds,
-        #         overwrite=args.val_disable_overwrite,
-        #     )
-
-        #     if network == "3d_lowres" and not args.disable_next_stage_pred:
-        #         print("predicting segmentations for the next stage of the cascade")
-        #         predict_next_stage(
-        #             trainer,
-        #             join(
-        #                 dataset_directory,
-        #                 trainer.plans["data_identifier"] + "_stage%d" % 1,
-        #             ),
-        #         )
+        

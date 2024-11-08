@@ -1,69 +1,119 @@
-aggregator:
-  defaults: plan/defaults/aggregator.yaml
-  template: openfl.component.Aggregator
-  settings:
-    init_state_path: save/fl_post_two_init.pbuf
-    best_state_path: save/fl_post_two_best.pbuf
-    last_state_path: save/fl_post_two_last.pbuf
-    rounds_to_train: 2
+aggregator :
+  defaults : plan/defaults/aggregator.yaml
+  template : openfl.component.Aggregator
+  settings :
+    init_state_path : save/fl_post_two_init.pbuf
+    best_state_path : save/fl_post_two_best.pbuf
+    last_state_path : save/fl_post_two_last.pbuf
+    rounds_to_train : &rounds_to_train 20
     admins_endpoints_mapping:
       col1@example.com:
         - GetExperimentStatus
         - SetStragglerCuttoffTime
+        - SetDynamicTaskArg
+        - GetDynamicTaskArg 
 
-collaborator:
-  defaults: plan/defaults/collaborator.yaml
-  template: openfl.component.Collaborator
-  settings:
-    delta_updates: false
-    opt_treatment: CONTINUE_LOCAL
+    dynamictaskargs: &dynamictaskargs
+      train:
+        train_cutoff_time:
+          admin_settable: True
+          min: 10    # 10 seconds
+          max: 86400 # one day
+          value: 300   # one day
+        val_cutoff_time:
+          admin_settable: True
+          min: 10    # 10 seconds
+          max: 86400 # one day
+          value: 86400   # one day
+        train_completion_dampener: # train_completed -> (train_completed)**(train_completion_dampener)   NOTE: Value close to zero zero shifts non 0.0 completion rates much closer to 1.0
+          admin_settable: True
+          min: -1.0        # inverts train_comleted, so this would be a way to have checkpoint_weighting = train_completed * data_size (as opposed to data_size / train_completed)
+          max: 1.0 # leaves completion rates as is
+          value: 1.0
 
-data_loader:
-  defaults: plan/defaults/data_loader.yaml
-  template: src.nnunet_dummy_dataloader.NNUNetDummyDataLoader
-  settings:
-    p_train: 0.8
+      aggregated_model_validation:
+        val_cutoff_time:
+          admin_settable: True
+          min: 10    # 10 seconds
+          max: 86400 # one day
+          value: 86400   # one day
+
+
+collaborator :
+  defaults : plan/defaults/collaborator.yaml
+  template : openfl.component.Collaborator
+  settings :
+    delta_updates    : false
+    opt_treatment    : CONTINUE_LOCAL
+    dynamictaskargs: *dynamictaskargs
+
+data_loader :
+  defaults : plan/defaults/data_loader.yaml
+  template : src.nnunet_dummy_dataloader.NNUNetDummyDataLoader
+  settings :
+    p_train : 0.8
 
 # TODO: make checkpoint-only truly generic and create the task runner within src
-task_runner:
-  defaults: plan/defaults/task_runner.yaml
-  template: src.runner_nnunetv1.PyTorchNNUNetCheckpointTaskRunner
-  settings:
-    device: cuda
-    gpu_num_string: "0"
-    nnunet_task: Task537_FLPost
-
-network:
-  defaults: plan/defaults/network.yaml
+task_runner :
+  defaults : plan/defaults/task_runner.yaml
+  template : src.runner_nnunetv1.PyTorchNNUNetCheckpointTaskRunner
+  settings :
+    device                  : cuda
+    gpu_num_string          : '0'
+    nnunet_task             : Task537_FLPost
+    actual_max_num_epochs   : *rounds_to_train
+    
+network :
+  defaults : plan/defaults/network.yaml
   settings: {}
 
-assigner:
-  defaults: plan/defaults/assigner.yaml
-  template: openfl.component.assigner.DynamicRandomGroupedAssigner
-  settings:
-    task_groups:
-      - name: train_and_validate
-        percentage: 1.0
-        tasks:
-          # - aggregated_model_validation
+assigner :
+  defaults : plan/defaults/assigner.yaml
+  template : openfl.component.assigner.DynamicRandomGroupedAssigner
+  settings :
+    task_groups  :
+      - name       : train_and_validate
+        percentage : 1.0
+        tasks      :
+          - aggregated_model_validation
           - train
-          # - locally_tuned_model_validation
+          - locally_tuned_model_validation
 
-tasks:
-  defaults: plan/defaults/tasks_torch.yaml
-  train:
-    function: train
-    kwargs:
-      metrics:
-        - train_loss
+tasks :
+  defaults : plan/defaults/tasks_torch.yaml
+  aggregated_model_validation:
+    function : validate
+    kwargs :
+      metrics     :
         - val_eval
-      epochs: 1
+        - val_eval_C1
+        - val_eval_C2 
+        - val_eval_C3 
+        - val_eval_C4
+      apply : global
+  train:
+    function : train
+    kwargs   :
+      metrics     :
+        - train_loss
+      epochs : 1
+  locally_tuned_model_validation:
+    function : validate
+    kwargs   :
+      metrics     :
+        - val_eval
+        - val_eval_C1
+        - val_eval_C2 
+        - val_eval_C3 
+        - val_eval_C4
+      apply  : local
+      from_checkpoint: true
 
-compression_pipeline:
-  defaults: plan/defaults/compression_pipeline.yaml
+compression_pipeline :
+  defaults : plan/defaults/compression_pipeline.yaml
 
-straggler_handling_policy:
-  template: openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
-  settings:
-    straggler_cutoff_time: 600
-    minimum_reporting: 2
+straggler_handling_policy :
+    template : openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
+    settings :
+        straggler_cutoff_time : 1200
+        minimum_reporting : 2
