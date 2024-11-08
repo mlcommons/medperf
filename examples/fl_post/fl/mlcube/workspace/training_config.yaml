@@ -29,7 +29,7 @@ aggregator :
           admin_settable: True
           min: -1.0        # inverts train_comleted, so this would be a way to have checkpoint_weighting = train_completed * data_size (as opposed to data_size / train_completed)
           max: 1.0 # leaves completion rates as is
-          value: 1.0
+          value: 0.0
 
       aggregated_model_validation:
         val_cutoff_time:
