@@ -19,7 +19,8 @@ def main(postopp_pardir,
          three_digit_task_num,  
          task_name, 
          percent_train=0.8, 
-         split_logic='by_subject_time_pair', 
+         split_logic='by_subject_time_pair',
+         split_seed=7777777, 
          network='3d_fullres', 
          network_trainer='nnUNetTrainerV2', 
          fold='0',
@@ -100,6 +101,7 @@ def main(postopp_pardir,
     percent_train(float)            : The percentage of samples to split into the train portion for the fold specified below (NNUnet makes its own folds but we overwrite
                                       all with None except the fold indicated below and put in our own split instead determined by a hard coded split logic default)
     split_logic(str)                : Determines how the percent_train is computed. Choices are: 'by_subject' and 'by_subject_time_pair' (see inner function docstring)
+    split_seed(int)                 : base rng seed used in split logic
     network(str)                    : NNUnet network to be used
     network_trainer(str)            : NNUnet network trainer to be used
     fold(str)                       : Fold to train on, can be a sting indicating an int, or can be 'all'
@@ -132,6 +134,7 @@ def main(postopp_pardir,
                              task_name=task_name,
                              percent_train=percent_train,
                              split_logic=split_logic,
+                             split_seed=split_seed,
                              fold=fold, 
                              timestamp_selection=timestamp_selection, 
                              network=network, 
@@ -187,6 +190,11 @@ if __name__ == '__main__':
             type=str,
             default='by_subject_time_pair',
             help="Determines how the percent_train is computed. Choices are: 'by_subject' and 'by_subject_time_pair' (see inner function docstring)")
+        argparser.add_argument(
+          '--split_seed',
+            type=int,
+            default=7777777,
+            help="base rng seed used in split logic") 
         argparser.add_argument(
           '--network',
             type=str,
