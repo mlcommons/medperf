@@ -19,4 +19,4 @@ RUN pip install --no-cache-dir -r /mlcube_project/requirements.txt
 # Copy mlcube workspace
 COPY . /mlcube_project
 
-ENTRYPOINT ["python", "/mlcube_project/mlcube.py"]
+ENTRYPOINT ["sh", "/mlcube_project/entrypoint.sh"]
