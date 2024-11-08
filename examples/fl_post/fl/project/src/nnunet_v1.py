@@ -256,11 +256,10 @@ def train_nnunet(actual_max_num_epochs,
     trainer.max_num_epochs = fl_round + 1
     trainer.epoch = fl_round
 
-    # infer total data size and batch size in order to get how many batches to apply so that over many epochs, each data
-    # point is expected to be seen epochs number of times
-
-    num_val_batches_per_epoch = int(np.ceil(len(trainer.dataset_val)/trainer.batch_size))
-    num_train_batches_per_epoch = int(np.ceil(len(trainer.dataset_tr)/trainer.batch_size))
+    # STAYing WITH NNUNET CONVENTION OF 50 AND 250 VAL AND TRAIN BATCHES RESPECTIVELY
+    # Note: This convention makes sense in combination with a train_completion_dampener of 0.0
+    num_val_batches_per_epoch = 50 
+    num_train_batches_per_epoch = 250 
 
     # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
