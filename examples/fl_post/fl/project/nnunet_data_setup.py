@@ -311,7 +311,7 @@ def setup_fl_data(postopp_pardir,
     init_model_info_path(str)       : Path to the initial model info (pkl) file
     cuda_device(str)                : Device to perform training ('cpu' or 'cuda')
     overwrite_nnunet_datadirs(bool) : Allows for overwriting past instances of NNUnet data directories using the task numbers from first_three_digit_task_num to that plus one less than number of insitutions.
-    split_seed (int)                : Base seed for seeds used for the random number generator within the split logic
+    split_seed (int)                : Base seed for seeds used for the random number generators within the split logic
     plans_path(str)                 : Path to the training plans (pkl)
     percent_train(float)            : What percentage of timestamped subjects to attempt dedicate to train versus val. Will be only approximately acheived in general since
                                       all timestamps associated with the same subject need to land exclusively in either train or val.
