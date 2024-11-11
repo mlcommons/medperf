@@ -8,7 +8,7 @@ BUILD_BASE="${BUILD_BASE:-false}"
 if ${BUILD_BASE}; then
     git clone https://github.com/hasan7n/openfl.git
     cd openfl
-    git checkout 3ed63c9ed24311b4ad581da5b859b04853c08375
+    git checkout 9467f829687b6284a6e380d31f90d31bc9de023f
     docker build -t local/openfl:local -f openfl-docker/Dockerfile.base .
     cd ..
     rm -rf openfl
