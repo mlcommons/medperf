@@ -7,7 +7,7 @@ from utils import (
     get_update_field_name,
     get_update_value_name,
 )
-from update_plan import set_straggler_cutoff_time
+from update_plan import set_straggler_cutoff_time, set_dynamic_task_arg
 
 
 def get_experiment_status(workspace_folder, admin_cn, output_status_file):
@@ -68,5 +68,16 @@ def update_plan(workspace_folder, admin_cn):
     field_value = get_update_value_name()
     if field_name == "straggler_handling_policy.settings.straggler_cutoff_time":
         set_straggler_cutoff_time(workspace_folder, admin_cn, field_value)
+    elif field_name.startswith("dynamictaskargs"):
+        assert field_name in [
+            "dynamictaskargs.train.train_cutoff_time",
+            "dynamictaskargs.train.val_cutoff_time",
+            "dynamictaskargs.train.train_completion_dampener",
+            "dynamictaskargs.aggregated_model_validation.val_cutoff_time",
+        ]
+        _, task_name, arg_name = field_name.strip().split(".")
+        set_dynamic_task_arg(
+            workspace_folder, admin_cn, task_name, arg_name, field_value
+        )
     else:
         raise ValueError(f"Unsupported field name: {field_name}")
