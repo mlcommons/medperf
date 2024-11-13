@@ -93,10 +93,11 @@ def start_event(
 def get_experiment_status(
     training_exp_id: int = typer.Option(
         ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
-    )
+    ),
+    silent: bool = typer.Option(False, "--silent", help="don't print"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    GetExperimentStatus.run(training_exp_id)
+    GetExperimentStatus.run(training_exp_id, silent)
     config.ui.print("✅ Done!")
 
 
