@@ -16,7 +16,7 @@ import os
 
 class GetExperimentStatus:
     @classmethod
-    def run(cls, training_exp_id: int):
+    def run(cls, training_exp_id: int, silent: bool = False):
         """Starts the aggregation server of a training experiment
 
         Args:
@@ -29,7 +29,8 @@ class GetExperimentStatus:
         with config.ui.interactive():
             execution.prepare_admin_cube()
             execution.get_experiment_status()
-        execution.print_experiment_status()
+        if not silent:
+            execution.print_experiment_status()
         execution.store_status()
 
     def __init__(self, training_exp_id: int) -> None:
@@ -80,7 +81,7 @@ class GetExperimentStatus:
     def print_experiment_status(self):
         with open(self.status_output) as f:
             contents = yaml.safe_load(f)
-        dict_pretty_print(contents)
+        dict_pretty_print(contents, skip_none_values=False)
 
     def store_status(self):
         new_status_path = self.training_exp.status_path
