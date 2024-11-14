@@ -12,6 +12,7 @@ from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner
 class ExecutionList(GenericAPIView):
     serializer_class = ExecutionSerializer
     queryset = ""
+    filterset_fields = ('name', 'owner', 'benchmark', 'model', 'dataset', 'is_valid', 'approval_status')
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -23,16 +24,17 @@ class ExecutionList(GenericAPIView):
     @extend_schema(operation_id="results_retrieve_all")
     def get(self, request, format=None):
         """
-        List all results
+        List all executions
         """
-        Executions = Execution.objects.all()
-        Executions = self.paginate_queryset(Executions)
-        serializer = ExecutionSerializer(Executions, many=True)
+        executions = Execution.objects.all()
+        executions = self.filter_queryset(executions)
+        executions = self.paginate_queryset(executions)
+        serializer = ExecutionSerializer(executions, many=True)
         return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """
-        Creates a new result
+        Creates a new execution
         """
         serializer = ExecutionSerializer(data=request.data)
         if serializer.is_valid():
@@ -60,7 +62,7 @@ class ExecutionDetail(GenericAPIView):
 
     def get(self, request, pk, format=None):
         """
-        Retrieve a result instance.
+        Retrieve a execution instance.
         """
         Execution = self.get_object(pk)
         serializer = ExecutionDetailSerializer(Execution)
@@ -68,7 +70,7 @@ class ExecutionDetail(GenericAPIView):
 
     def put(self, request, pk, format=None):
         """
-        Update a result instance.
+        Update a execution instance.
         """
         Execution = self.get_object(pk)
         serializer = ExecutionDetailSerializer(Execution, data=request.data)
@@ -79,7 +81,7 @@ class ExecutionDetail(GenericAPIView):
 
     def delete(self, request, pk, format=None):
         """
-        Delete a result instance.
+        Delete an execution instance.
         """
         Execution = self.get_object(pk)
         Execution.delete()
