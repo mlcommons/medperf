@@ -1,7 +1,7 @@
 from medperf.tests.mocks.benchmark import TestBenchmark
 import pytest
 
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf import config
 

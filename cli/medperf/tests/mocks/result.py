@@ -1,5 +1,5 @@
 from typing import Optional
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 
 
 class TestResult(Result):

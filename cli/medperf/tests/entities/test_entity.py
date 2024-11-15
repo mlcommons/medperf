@@ -3,7 +3,7 @@ import pytest
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.tests.entities.utils import (
     setup_benchmark_fs,
     setup_benchmark_comms,

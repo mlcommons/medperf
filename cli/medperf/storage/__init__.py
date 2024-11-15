@@ -20,15 +20,10 @@ def init_storage():
         os.makedirs(folder, exist_ok=True)
 
 
-def apply_configuration_migrations():
-    if not os.path.exists(config.config_path):
-        return
-
-    config_p = read_config()
-
+def migrate_logs(config_p):
     # Migration for moving the logs folder to a new location
     if "logs_folder" not in config_p.storage:
-        return
+        return config_p
 
     src_dir = os.path.join(config_p.storage["logs_folder"], "logs")
     tgt_dir = config.logs_storage
@@ -37,6 +32,10 @@ def apply_configuration_migrations():
 
     del config_p.storage["logs_folder"]
 
+    return config_p
+
+
+def migrate_login_timestamp(config_p):
     # Migration for tracking the login timestamp (i.e., refresh token issuance timestamp)
     if config.credentials_keyword in config_p.active_profile:
         # So the user is logged in
@@ -48,5 +47,40 @@ def apply_configuration_migrations():
             config_p.active_profile[config.credentials_keyword][
                 "logged_in_at"
             ] = time.time()
+
+    return config_p
+
+
+def migrate_results_to_executions(config_p):
+    if "results_folder" not in config_p.storage:
+        return config_p
+
+    results_base = config_p.storage["results_folder"] 
+    execs_folder = os.path.join(results_base, config.executions_folder)
+
+    # Move old results into the execution path
+    results_folder = os.path.join(results_base, config.results_folder)
+    results_exist = os.path.exists(results_folder) and os.listdir(results_folder)
+    if not results_exist:
+        return config_p
+    
+    # Don't override results
+    shutil.move(results_folder, execs_folder)
+
+    del config_p.storage["results_folder"]
+
+    return config_p
+
+
+def apply_configuration_migrations():
+    if not os.path.exists(config.config_path):
+        return
+
+    config_p = read_config()
+
+    # Migrations
+    config_p = migrate_logs(config_p)
+    config_p = migrate_login_timestamp(config_p)
+    config_p = migrate_results_to_executions(config_p)
 
     write_config(config_p)

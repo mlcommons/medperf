@@ -4,7 +4,7 @@ from typing import Optional
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.commands.list import EntityList
 from medperf.commands.result.create import BenchmarkExecution
 from medperf.commands.result.submit import ResultSubmission

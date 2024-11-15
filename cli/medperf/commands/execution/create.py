@@ -1,8 +1,8 @@
 import os
 from typing import List, Optional
 from medperf.account_management.account_management import get_medperf_user_data
-from medperf.commands.execution import Execution
-from medperf.entities.result import Result
+from medperf.commands.execution.execution import ExecutionFlow
+from medperf.entities.execution import Execution
 from tabulate import tabulate
 
 from medperf.entities.cube import Cube
@@ -52,12 +52,12 @@ class BenchmarkExecution:
         execution.validate()
         execution.prepare_models()
         if not no_cache:
-            execution.load_cached_results()
+            execution.load_cached_executions()
         with execution.ui.interactive():
-            results = execution.run_experiments()
+            executions = execution.run_experiments()
         if show_summary:
             execution.print_summary()
-        return results
+        return executions
 
     def __init__(
         self,
@@ -76,7 +76,7 @@ class BenchmarkExecution:
         self.evaluator = None
         self.ignore_model_errors = ignore_model_errors
         self.ignore_failed_experiments = ignore_failed_experiments
-        self.cached_results = {}
+        self.cached_executions = {}
         self.experiments = []
 
     def prepare(self):
@@ -143,18 +143,18 @@ class BenchmarkExecution:
                 msg = f"Models of UIDs {non_assoc_cubes} are not associated with the specified benchmark."
             raise InvalidArgumentError(msg)
 
-    def load_cached_results(self):
+    def load_cached_executions(self):
         user_id = get_medperf_user_data()["id"]
-        results = Result.all(filters={"owner": user_id})
-        results += Result.all(unregistered=True)
-        benchmark_dset_results = [
-            result
-            for result in results
-            if result.benchmark == self.benchmark_uid
-            and result.dataset == self.data_uid
+        executions = Execution.all(filters={"owner": user_id})
+        executions += Execution.all(unregistered=True)
+        benchmark_dset_executions = [
+            execution
+            for execution in executions
+            if execution.benchmark == self.benchmark_uid
+            and execution.dataset == self.data_uid
         ]
-        self.cached_results = {
-            result.model: result for result in benchmark_dset_results
+        self.cached_executions = {
+            execution.model: execution for execution in benchmark_dset_executions
         }
 
     def __get_cube(self, uid: int, name: str) -> Cube:
@@ -166,11 +166,11 @@ class BenchmarkExecution:
 
     def run_experiments(self):
         for model_uid in self.models_uids:
-            if model_uid in self.cached_results:
+            if model_uid in self.cached_executions:
                 self.experiments.append(
                     {
                         "model_uid": model_uid,
-                        "result": self.cached_results[model_uid],
+                        "executions": self.cached_executions[model_uid],
                         "cached": True,
                         "error": "",
                     }
@@ -179,7 +179,7 @@ class BenchmarkExecution:
 
             try:
                 model_cube = self.__get_cube(model_uid, "Model")
-                execution_summary = Execution.run(
+                execution_summary = ExecutionFlow.run(
                     dataset=self.dataset,
                     model=model_cube,
                     evaluator=self.evaluator,
@@ -190,7 +190,7 @@ class BenchmarkExecution:
                 self.experiments.append(
                     {
                         "model_uid": model_uid,
-                        "result": None,
+                        "execution": None,
                         "cached": False,
                         "error": str(e),
                     }
@@ -198,18 +198,18 @@ class BenchmarkExecution:
                 continue
 
             partial = execution_summary["partial"]
-            results = execution_summary["results"]
-            result = self.__write_result(model_uid, results, partial)
+            executions = execution_summary["executions"]
+            execution = self.__write_execution(model_uid, executions, partial)
 
             self.experiments.append(
                 {
                     "model_uid": model_uid,
-                    "result": result,
+                    "execution": execution,
                     "cached": False,
                     "error": "",
                 }
             )
-        return [experiment["result"] for experiment in self.experiments]
+        return [experiment["execution"] for experiment in self.experiments]
 
     def __handle_experiment_error(self, model_uid, exception):
         if isinstance(exception, InvalidEntityError):
@@ -225,7 +225,7 @@ class BenchmarkExecution:
         if not self.ignore_failed_experiments:
             raise exception
 
-    def __result_dict(self, model_uid, results, partial):
+    def __execution_dict(self, model_uid, executions, partial):
         return {
             "name": f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}",
             "benchmark": self.benchmark_uid,

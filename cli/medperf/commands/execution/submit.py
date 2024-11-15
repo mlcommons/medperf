@@ -2,7 +2,7 @@ import os
 
 from medperf.exceptions import CleanExit
 from medperf.utils import remove_path, dict_pretty_print, approval_prompt
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf import config
 
 

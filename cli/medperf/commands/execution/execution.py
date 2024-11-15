@@ -3,13 +3,14 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
+from medperf.entities.execution import Execution
 from medperf.utils import generate_tmp_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
 
 
-class Execution:
+class ExecutionFlow:
     @classmethod
     def run(
         cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
@@ -21,12 +22,12 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(dataset, model, evaluator, ignore_model_errors)
-        execution.prepare()
-        with execution.ui.interactive():
-            execution.run_inference()
-            execution.run_evaluation()
-        execution_summary = execution.todict()
+        execution_flow = cls(dataset, model, evaluator, ignore_model_errors)
+        execution_flow.prepare()
+        with execution_flow.ui.interactive():
+            execution_flow.run_inference()
+            execution_flow.run_evaluation()
+        execution_summary = execution_flow.todict()
         return execution_summary
 
     def __init__(
@@ -43,6 +44,8 @@ class Execution:
         self.partial = False
         self.preds_path = self.__setup_predictions_path()
         self.model_logs_path, self.metrics_logs_path = self.__setup_logs_path()
+        # Get or create an execution object on the server
+        self.execution = 
         self.results_path = generate_tmp_path()
         logging.debug(f"tmp results output: {self.results_path}")
 
