@@ -81,6 +81,7 @@ class REST(Comms):
         page_size=config.default_page_size,
         offset=0,
         binary_reduction=False,
+        filters={},
     ):
         """Retrieves a list of elements from a URL by iterating over pages until num_elements is obtained.
         If num_elements is None, then iterates until all elements have been retrieved.
@@ -104,7 +105,9 @@ class REST(Comms):
             num_elements = float("inf")
 
         while len(el_list) < num_elements:
-            paginated_url = f"{url}?limit={page_size}&offset={offset}"
+            filters.update({"limit": page_size, "offset": {offset}})
+            query_str = "&".join([f"{k}={v}" for k, v in filters.items()])
+            paginated_url = f"{url}?{query_str}"
             res = self.__auth_get(paginated_url)
             if res.status_code != 200:
                 if not binary_reduction:
@@ -152,13 +155,13 @@ class REST(Comms):
         res = self.__auth_get(f"{self.server_url}/me/")
         return res.json()
 
-    def get_benchmarks(self) -> List[dict]:
+    def get_benchmarks(self, filters={}) -> List[dict]:
         """Retrieves all benchmarks in the platform.
 
         Returns:
             List[dict]: all benchmarks information.
         """
-        bmks = self.__get_list(f"{self.server_url}/benchmarks/")
+        bmks = self.__get_list(f"{self.server_url}/benchmarks/", filters=filters)
         return bmks
 
     def get_benchmark(self, benchmark_uid: int) -> dict:
@@ -179,7 +182,7 @@ class REST(Comms):
             )
         return res.json()
 
-    def get_benchmark_model_associations(self, benchmark_uid: int) -> List[int]:
+    def get_benchmark_model_associations(self, benchmark_uid: int, filters={}) -> List[int]:
         """Retrieves all the model associations of a benchmark.
 
         Args:
@@ -188,25 +191,28 @@ class REST(Comms):
         Returns:
             list[int]: List of benchmark model associations
         """
-        assocs = self.__get_list(f"{self.server_url}/benchmarks/{benchmark_uid}/models")
+        assocs = self.__get_list(
+            f"{self.server_url}/benchmarks/{benchmark_uid}/models",
+            filters=filters,
+        )
         return filter_latest_associations(assocs, "model_mlcube")
 
-    def get_user_benchmarks(self) -> List[dict]:
+    def get_user_benchmarks(self, filters={}) -> List[dict]:
         """Retrieves all benchmarks created by the user
 
         Returns:
             List[dict]: Benchmarks data
         """
-        bmks = self.__get_list(f"{self.server_url}/me/benchmarks/")
+        bmks = self.__get_list(f"{self.server_url}/me/benchmarks/", filters=filters)
         return bmks
 
-    def get_cubes(self) -> List[dict]:
+    def get_cubes(self, filters={}) -> List[dict]:
         """Retrieves all MLCubes in the platform
 
         Returns:
             List[dict]: List containing the data of all MLCubes
         """
-        cubes = self.__get_list(f"{self.server_url}/mlcubes/")
+        cubes = self.__get_list(f"{self.server_url}/mlcubes/", filters=filters)
         return cubes
 
     def get_cube_metadata(self, cube_uid: int) -> dict:
@@ -227,13 +233,13 @@ class REST(Comms):
             )
         return res.json()
 
-    def get_user_cubes(self) -> List[dict]:
+    def get_user_cubes(self, filters={}) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
         Returns:
             List[dict]: List of dictionaries containing the mlcubes registration information
         """
-        cubes = self.__get_list(f"{self.server_url}/me/mlcubes/")
+        cubes = self.__get_list(f"{self.server_url}/me/mlcubes/", filters=filters)
         return cubes
 
     def upload_benchmark(self, benchmark_dict: dict) -> int:
@@ -268,13 +274,13 @@ class REST(Comms):
             raise CommunicationRetrievalError(f"Could not upload the mlcube: {details}")
         return res.json()
 
-    def get_datasets(self) -> List[dict]:
+    def get_datasets(self, filters={}) -> List[dict]:
         """Retrieves all datasets in the platform
 
         Returns:
             List[dict]: List of data from all datasets
         """
-        dsets = self.__get_list(f"{self.server_url}/datasets/")
+        dsets = self.__get_list(f"{self.server_url}/datasets/", filters=filters)
         return dsets
 
     def get_dataset(self, dset_uid: int) -> dict:
@@ -295,13 +301,13 @@ class REST(Comms):
             )
         return res.json()
 
-    def get_user_datasets(self) -> dict:
+    def get_user_datasets(self, filters={}) -> dict:
         """Retrieves all datasets registered by the user
 
         Returns:
             dict: dictionary with the contents of each dataset registration query
         """
-        dsets = self.__get_list(f"{self.server_url}/me/datasets/")
+        dsets = self.__get_list(f"{self.server_url}/me/datasets/", filters=filters)
         return dsets
 
     def upload_dataset(self, reg_dict: dict) -> int:
@@ -320,13 +326,13 @@ class REST(Comms):
             raise CommunicationRequestError(f"Could not upload the dataset: {details}")
         return res.json()
 
-    def get_results(self) -> List[dict]:
+    def get_results(self, filters={}) -> List[dict]:
         """Retrieves all results
 
         Returns:
             List[dict]: List of results
         """
-        res = self.__get_list(f"{self.server_url}/results")
+        res = self.__get_list(f"{self.server_url}/results", filters=filters)
         if res.status_code != 200:
             log_response_error(res)
             details = format_errors_dict(res.json())
@@ -351,16 +357,16 @@ class REST(Comms):
             )
         return res.json()
 
-    def get_user_results(self) -> dict:
+    def get_user_results(self, filters={}) -> dict:
         """Retrieves all results registered by the user
 
         Returns:
             dict: dictionary with the contents of each result registration query
         """
-        results = self.__get_list(f"{self.server_url}/me/results/")
+        results = self.__get_list(f"{self.server_url}/me/results/", filters=filters)
         return results
 
-    def get_benchmark_results(self, benchmark_id: int) -> dict:
+    def get_benchmark_results(self, benchmark_id: int, filters={}) -> dict:
         """Retrieves all results for a given benchmark
 
         Args:
@@ -370,7 +376,8 @@ class REST(Comms):
             dict: dictionary with the contents of each result in the specified benchmark
         """
         results = self.__get_list(
-            f"{self.server_url}/benchmarks/{benchmark_id}/results"
+            f"{self.server_url}/benchmarks/{benchmark_id}/results",
+            filters=filters,
         )
         return results
 
@@ -472,22 +479,28 @@ class REST(Comms):
                 f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}: {details}"
             )
 
-    def get_datasets_associations(self) -> List[dict]:
+    def get_datasets_associations(self, filters={}) -> List[dict]:
         """Get all dataset associations related to the current user
 
         Returns:
             List[dict]: List containing all associations information
         """
-        assocs = self.__get_list(f"{self.server_url}/me/datasets/associations/")
+        assocs = self.__get_list(
+            f"{self.server_url}/me/datasets/associations/",
+            filters=filters,
+        )
         return filter_latest_associations(assocs, "dataset")
 
-    def get_cubes_associations(self) -> List[dict]:
+    def get_cubes_associations(self, filters={}) -> List[dict]:
         """Get all cube associations related to the current user
 
         Returns:
             List[dict]: List containing all associations information
         """
-        assocs = self.__get_list(f"{self.server_url}/me/mlcubes/associations/")
+        assocs = self.__get_list(
+            f"{self.server_url}/me/mlcubes/associations/",
+            filters=filters,
+        )
         return filter_latest_associations(assocs, "model_mlcube")
 
     def set_mlcube_association_priority(
@@ -519,7 +532,7 @@ class REST(Comms):
             raise CommunicationRequestError(f"Could not update dataset: {details}")
         return res.json()
 
-    def get_mlcube_datasets(self, mlcube_id: int) -> dict:
+    def get_mlcube_datasets(self, mlcube_id: int, filters={}) -> dict:
         """Retrieves all datasets that have the specified mlcube as the prep mlcube
 
         Args:
@@ -529,7 +542,10 @@ class REST(Comms):
             dict: dictionary with the contents of each dataset
         """
 
-        datasets = self.__get_list(f"{self.server_url}/mlcubes/{mlcube_id}/datasets/")
+        datasets = self.__get_list(
+            f"{self.server_url}/mlcubes/{mlcube_id}/datasets/",
+            filters=filters,
+        )
         return datasets
 
     def get_user(self, user_id: int) -> dict:
