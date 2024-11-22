@@ -8,12 +8,12 @@ from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.result import TestResult
 import pytest
 
-from medperf.commands.result.create import BenchmarkExecution
-import medperf.commands.result.create as create_module
+from medperf.commands.execution.create import BenchmarkExecution
+import medperf.commands.execution.create as create_module
 import yaml
 
 
-PATCH_EXECUTION = "medperf.commands.result.create.{}"
+PATCH_EXECUTION = "medperf.commands.execution.create.{}"
 
 
 def mock_benchmark(mocker, state_variables):

@@ -6,9 +6,9 @@ import logging.handlers
 from medperf import __version__
 import medperf.config as config
 from medperf.decorators import clean_except, add_inline_parameters
-import medperf.commands.result.result as result
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.execution import execution
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 import medperf.commands.auth.auth as auth
@@ -22,7 +22,7 @@ from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
-app.add_typer(result.app, name="result", help="Manage results")
+app.add_typer(execution.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 app.add_typer(association.app, name="association", help="Manage associations")

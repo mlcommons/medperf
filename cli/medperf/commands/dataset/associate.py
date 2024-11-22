@@ -2,7 +2,7 @@ from medperf import config
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, approval_prompt
-from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.execution.create import BenchmarkExecution
 from medperf.exceptions import InvalidArgumentError
 
 

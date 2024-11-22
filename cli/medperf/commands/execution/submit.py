@@ -22,7 +22,7 @@ class ResultSubmission:
         self.approved = approved
 
     def get_result(self):
-        self.result = Result.get(self.result_uid)
+        self.result = Execution.get(self.result_uid)
 
     def request_approval(self):
         dict_pretty_print(self.result.results)
@@ -51,11 +51,11 @@ class ResultSubmission:
         """
 
         old_result_loc = self.result.path
-        updated_result = Result(**result_dict)
+        updated_result = Execution(**result_dict)
         new_result_loc = updated_result.path
         remove_path(new_result_loc)
         os.rename(old_result_loc, new_result_loc)
 
     def write(self, updated_result_dict):
-        result = Result(**updated_result_dict)
+        result = Execution(**updated_result_dict)
         result.write()

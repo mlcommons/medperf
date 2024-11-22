@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
 from medperf.account_management.account_management import get_medperf_user_data
-from medperf.commands.execution.execution import ExecutionFlow
+from medperf.commands.execution.execution_flow import ExecutionFlow
 from medperf.entities.execution import Execution
 from tabulate import tabulate
 
@@ -179,10 +179,12 @@ class BenchmarkExecution:
 
             try:
                 model_cube = self.__get_cube(model_uid, "Model")
+                execution = self.__get_or_create_execution(model_uid)
                 execution_summary = ExecutionFlow.run(
                     dataset=self.dataset,
                     model=model_cube,
                     evaluator=self.evaluator,
+                    execution=execution,
                     ignore_model_errors=self.ignore_model_errors,
                 )
             except MedperfException as e:
@@ -225,9 +227,30 @@ class BenchmarkExecution:
         if not self.ignore_failed_experiments:
             raise exception
 
-    def __execution_dict(self, model_uid, executions, partial):
+    def __get_or_create_execution(self, model_uid: int) -> Execution:
+        # Get or create an execution object on the server
+        owner = get_medperf_user_data()["id"]
+        query_dict = {
+            "dataset": self.data_uid,
+            "model": model_uid,
+            "benchmark": self.benchmark_uid,
+            "owner": owner,
+        }
+        exec_query = Execution.all(filters=query_dict)
+        if len(exec_query):
+            # Return the first (and pressumably only) execution object
+            return exec_query[0]
+
+        # Create a new execution instance
+        query_dict["name"] = self.__execution_name(model_uid)
+        execution = Execution(**query_dict)
+        print(execution.upload())
+        return execution
+        
+
+    def __execution_dict(self, model_uid, results, partial):
         return {
-            "name": f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}",
+            "name": self.__execution_name(model_uid),
             "benchmark": self.benchmark_uid,
             "model": model_uid,
             "dataset": self.data_uid,
@@ -235,9 +258,12 @@ class BenchmarkExecution:
             "metadata": {"partial": partial},
         }
 
-    def __write_result(self, model_uid, results, partial):
+    def __execution_name(self, model_uid):
+        return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
+
+    def __write_execution(self, model_uid, results, partial):
         results_info = self.__result_dict(model_uid, results, partial)
-        result = Result(**results_info)
+        result = Execution(**results_info)
         result.write()
         return result
 

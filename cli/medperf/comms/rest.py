@@ -326,75 +326,93 @@ class REST(Comms):
             raise CommunicationRequestError(f"Could not upload the dataset: {details}")
         return res.json()
 
-    def get_results(self, filters={}) -> List[dict]:
-        """Retrieves all results
+    def get_executions(self, filters={}) -> List[dict]:
+        """Retrieves all executions
 
         Returns:
-            List[dict]: List of results
+            List[dict]: List of executions
         """
-        res = self.__get_list(f"{self.server_url}/results", filters=filters)
+        res = self.__get_list(f"{self.server_url}/executions", filters=filters)
         if res.status_code != 200:
             log_response_error(res)
             details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(f"Could not retrieve results: {details}")
+            raise CommunicationRetrievalError(f"Could not retrieve executions: {details}")
         return res.json()
 
-    def get_result(self, result_uid: int) -> dict:
-        """Retrieves a specific result data
+    def get_execution(self, execution_uid: int) -> dict:
+        """Retrieves a specific execution data
 
         Args:
-            result_uid (int): Result UID
+            execution_uid (int): execution UID
 
         Returns:
-            dict: Result metadata
+            dict: execution metadata
         """
-        res = self.__auth_get(f"{self.server_url}/results/{result_uid}/")
+        res = self.__auth_get(f"{self.server_url}/executions/{execution_uid}/")
         if res.status_code != 200:
             log_response_error(res)
             details = format_errors_dict(res.json())
             raise CommunicationRetrievalError(
-                f"Could not retrieve the specified result: {details}"
+                f"Could not retrieve the specified execution: {details}"
             )
         return res.json()
 
-    def get_user_results(self, filters={}) -> dict:
-        """Retrieves all results registered by the user
+    def get_user_executions(self, filters={}) -> dict:
+        """Retrieves all executions registered by the user
 
         Returns:
-            dict: dictionary with the contents of each result registration query
+            dict: dictionary with the contents of each execution registration query
         """
-        results = self.__get_list(f"{self.server_url}/me/results/", filters=filters)
-        return results
+        executions = self.__get_list(f"{self.server_url}/me/executions/", filters=filters)
+        return executions
 
-    def get_benchmark_results(self, benchmark_id: int, filters={}) -> dict:
-        """Retrieves all results for a given benchmark
+    def get_benchmark_executions(self, benchmark_id: int, filters={}) -> dict:
+        """Retrieves all executions for a given benchmark
 
         Args:
-            benchmark_id (int): benchmark ID to retrieve results from
+            benchmark_id (int): benchmark ID to retrieve executions from
 
         Returns:
-            dict: dictionary with the contents of each result in the specified benchmark
+            dict: dictionary with the contents of each execution in the specified benchmark
         """
-        results = self.__get_list(
-            f"{self.server_url}/benchmarks/{benchmark_id}/results",
+        executions = self.__get_list(
+            f"{self.server_url}/benchmarks/{benchmark_id}/executions",
             filters=filters,
         )
-        return results
+        return executions
 
-    def upload_result(self, results_dict: dict) -> int:
-        """Uploads result to the server.
+    def upload_execution(self, executions_dict: dict) -> int:
+        """Uploads execution to the server.
 
         Args:
-            results_dict (dict): Dictionary containing results information.
+            executions_dict (dict): Dictionary containing executions information.
 
         Returns:
-            int: id of the generated results entry
+            int: id of the generated executions entry
         """
-        res = self.__auth_post(f"{self.server_url}/results/", json=results_dict)
+        res = self.__auth_post(f"{self.server_url}/executions/", json=executions_dict)
         if res.status_code != 201:
             log_response_error(res)
             details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not upload the results: {details}")
+            raise CommunicationRequestError(f"Could not upload the executions: {details}")
+        return res.json()
+
+    def update_execution(self, execution_id: int, data: dict) -> dict:
+        """Updates an execution object
+
+        Args:
+            execution_id (int): Execution ID
+            data (dict): Execution data. Can be a partial update
+
+        Returns:
+            dict: Updated description of the execution
+        """
+        url = f"{self.server_url}/executions/{execution_id}/"
+        res = self.__auth_put(url, json=data)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"Could not update execution: {details}")
         return res.json()
 
     def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):

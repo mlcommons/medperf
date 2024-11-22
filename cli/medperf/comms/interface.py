@@ -156,52 +156,64 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def get_results(self) -> List[dict]:
-        """Retrieves all results
+    def get_executions(self) -> List[dict]:
+        """Retrieves all executions
 
         Returns:
-            List[dict]: List of results
+            List[dict]: List of executions
         """
 
     @abstractmethod
-    def get_result(self, result_uid: str) -> dict:
-        """Retrieves a specific result data
+    def get_execution(self, execution_uid: str) -> dict:
+        """Retrieves a specific execution data
 
         Args:
-            result_uid (str): Result UID
+            execution_uid (str): execution UID
 
         Returns:
-            dict: Result metadata
+            dict: execution metadata
         """
 
     @abstractmethod
-    def get_user_results(self) -> dict:
-        """Retrieves all results registered by the user
+    def get_user_executions(self) -> dict:
+        """Retrieves all executions registered by the user
 
         Returns:
             dict: dictionary with the contents of each dataset registration query
         """
 
     @abstractmethod
-    def get_benchmark_results(self, benchmark_id: int) -> dict:
-        """Retrieves all results for a given benchmark
+    def get_benchmark_executions(self, benchmark_id: int) -> dict:
+        """Retrieves all executions for a given benchmark
 
         Args:
-            benchmark_id (int): benchmark ID to retrieve results from
+            benchmark_id (int): benchmark ID to retrieve executions from
 
         Returns:
-            dict: dictionary with the contents of each result in the specified benchmark
+            dict: dictionary with the contents of each execution in the specified benchmark
         """
 
     @abstractmethod
-    def upload_result(self, results_dict: dict) -> int:
-        """Uploads result to the server.
+    def upload_execution(self, executions_dict: dict) -> int:
+        """Uploads execution to the server.
 
         Args:
-            results_dict (dict): Dictionary containing results information.
+            executions_dict (dict): Dictionary containing executions information.
 
         Returns:
-            int: id of the generated results entry
+            int: id of the generated executions entry
+        """
+
+    @abstractmethod
+    def update_execution(self, execution_id: int, data: dict) -> dict:
+        """Updates an execution object
+
+        Args:
+            execution_id (int): Execution ID
+            data (dict): Execution data. Can be a partial update
+
+        Returns:
+            dict: Updated description of the execution
         """
 
     @abstractmethod

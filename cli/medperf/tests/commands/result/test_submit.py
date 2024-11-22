@@ -4,10 +4,10 @@ import pytest
 from medperf.tests.mocks.result import TestResult
 from medperf.tests.mocks.dataset import TestDataset
 
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.execution.submit import ResultSubmission
 from medperf.enums import Status
 
-PATCH_SUBMISSION = "medperf.commands.result.submit.{}"
+PATCH_SUBMISSION = "medperf.commands.execution.submit.{}"
 
 
 @pytest.fixture

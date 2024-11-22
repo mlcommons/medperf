@@ -1,130 +1,124 @@
-import os
-import logging
+import typer
+from typing import Optional
 
-from medperf.entities.cube import Cube
-from medperf.entities.dataset import Dataset
-from medperf.entities.execution import Execution
-from medperf.utils import generate_tmp_path
 import medperf.config as config
-from medperf.exceptions import ExecutionError
-import yaml
+from medperf.decorators import clean_except
+from medperf.commands.view import EntityView
+from medperf.entities.execution import Execution
+from medperf.commands.list import EntityList
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.submit import ResultSubmission
+
+app = typer.Typer()
 
 
-class ExecutionFlow:
-    @classmethod
-    def run(
-        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
-    ):
-        """Benchmark execution flow.
+@app.command("create")
+@clean_except
+def create(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+    model_uid: int = typer.Option(
+        ..., "--model_uid", "-m", help="UID of model to execute"
+    ),
+    ignore_model_errors: bool = typer.Option(
+        False,
+        "--ignore-model-errors",
+        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+    ),
+    no_cache: bool = typer.Option(
+        False,
+        "--no-cache",
+        help="Execute even if results already exist",
+    ),
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
+    BenchmarkExecution.run(
+        benchmark_uid,
+        data_uid,
+        [model_uid],
+        no_cache=no_cache,
+        ignore_model_errors=ignore_model_errors,
+    )
+    config.ui.print("✅ Done!")
 
-        Args:
-            benchmark_uid (int): UID of the desired benchmark
-            data_uid (str): Registered Dataset UID
-            model_uid (int): UID of model to execute
-        """
-        execution_flow = cls(dataset, model, evaluator, ignore_model_errors)
-        execution_flow.prepare()
-        with execution_flow.ui.interactive():
-            execution_flow.run_inference()
-            execution_flow.run_evaluation()
-        execution_summary = execution_flow.todict()
-        return execution_summary
 
-    def __init__(
-        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
-    ):
-        self.comms = config.comms
-        self.ui = config.ui
-        self.dataset = dataset
-        self.model = model
-        self.evaluator = evaluator
-        self.ignore_model_errors = ignore_model_errors
+@app.command("submit")
+@clean_except
+def submit(
+    result_uid: str = typer.Option(
+        ..., "--result", "-r", help="Unregistered result UID"
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Submits already obtained results to the server"""
+    ResultSubmission.run(result_uid, approved=approval)
+    config.ui.print("✅ Done!")
 
-    def prepare(self):
-        self.partial = False
-        self.preds_path = self.__setup_predictions_path()
-        self.model_logs_path, self.metrics_logs_path = self.__setup_logs_path()
-        # Get or create an execution object on the server
-        self.execution = 
-        self.results_path = generate_tmp_path()
-        logging.debug(f"tmp results output: {self.results_path}")
 
-    def __setup_logs_path(self):
-        model_uid = self.model.local_id
-        eval_uid = self.evaluator.local_id
-        data_uid = self.dataset.local_id
+@app.command("ls")
+@clean_except
+def list(
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered results"
+    ),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    benchmark: int = typer.Option(
+        None, "--benchmark", "-b", help="Get results for a given benchmark"
+    ),
+    model: int = typer.Option(
+        None, "--owner", "-o", help="Get results for a given model"
+    ),
+    dataset: int = typer.Option(
+        None, "--dataset", "-d", help="Get reuslts for a given dataset"
+    ),
+):
+    """List results"""
+    EntityList.run(
+        Execution,
+        fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
+        unregistered=unregistered,
+        mine_only=mine,
+        benchmark=benchmark,
+        model=model,
+        dataset=dataset,
+    )
 
-        logs_path = os.path.join(
-            config.experiments_logs_folder, str(model_uid), str(data_uid)
-        )
-        os.makedirs(logs_path, exist_ok=True)
-        model_logs_path = os.path.join(logs_path, "model.log")
-        metrics_logs_path = os.path.join(logs_path, f"metrics_{eval_uid}.log")
-        return model_logs_path, metrics_logs_path
 
-    def __setup_predictions_path(self):
-        model_uid = self.model.local_id
-        data_uid = self.dataset.local_id
-        preds_path = os.path.join(
-            config.predictions_folder, str(model_uid), str(data_uid)
-        )
-        if os.path.exists(preds_path):
-            msg = f"Found existing predictions for model {self.model.id} on dataset "
-            msg += f"{self.dataset.id} at {preds_path}. Consider deleting this "
-            msg += "folder if you wish to overwrite the predictions."
-            raise ExecutionError(msg)
-        return preds_path
-
-    def run_inference(self):
-        self.ui.text = "Running model inference on dataset"
-        infer_timeout = config.infer_timeout
-        preds_path = self.preds_path
-        data_path = self.dataset.data_path
-        try:
-            self.model.run(
-                task="infer",
-                output_logs=self.model_logs_path,
-                timeout=infer_timeout,
-                data_path=data_path,
-                output_path=preds_path,
-            )
-            self.ui.print("> Model execution complete")
-
-        except ExecutionError as e:
-            if not self.ignore_model_errors:
-                logging.error(f"Model MLCube Execution failed: {e}")
-                raise ExecutionError(f"Model MLCube failed: {e}")
-            else:
-                self.partial = True
-                logging.warning(f"Model MLCube Execution failed: {e}")
-
-    def run_evaluation(self):
-        self.ui.text = "Running model evaluation on dataset"
-        evaluate_timeout = config.evaluate_timeout
-        preds_path = self.preds_path
-        labels_path = self.dataset.labels_path
-        results_path = self.results_path
-        self.ui.text = "Evaluating results"
-        try:
-            self.evaluator.run(
-                task="evaluate",
-                output_logs=self.metrics_logs_path,
-                timeout=evaluate_timeout,
-                predictions=preds_path,
-                labels=labels_path,
-                output_path=results_path,
-            )
-        except ExecutionError as e:
-            logging.error(f"Metrics MLCube Execution failed: {e}")
-            raise ExecutionError("Metrics MLCube failed")
-
-    def todict(self):
-        return {
-            "results": self.get_results(),
-            "partial": self.partial,
-        }
-
-    def get_results(self):
-        with open(self.results_path, "r") as f:
-            results = yaml.safe_load(f)
-        return results
+@app.command("view")
+@clean_except
+def view(
+    entity_id: Optional[str] = typer.Argument(None, help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    unregistered: bool = typer.Option(
+        False,
+        "--unregistered",
+        help="Display unregistered results if result ID is not provided",
+    ),
+    mine: bool = typer.Option(
+        False,
+        "--mine",
+        help="Display current-user results if result ID is not provided",
+    ),
+    benchmark: int = typer.Option(
+        None, "--benchmark", "-b", help="Get results for a given benchmark"
+    ),
+    output: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file to store contents. If not provided, the output will be displayed",
+    ),
+):
+    """Displays the information of one or more results"""
+    EntityView.run(
+        entity_id, Execution, format, unregistered, mine, output, benchmark=benchmark
+    )

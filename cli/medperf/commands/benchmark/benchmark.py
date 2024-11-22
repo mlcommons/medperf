@@ -8,7 +8,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
-from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.execution.create import BenchmarkExecution
 
 app = typer.Typer()
 
