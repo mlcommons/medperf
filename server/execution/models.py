@@ -16,7 +16,7 @@ class Execution(models.Model):
     benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
     model = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
     dataset = models.ForeignKey("dataset.Dataset", on_delete=models.PROTECT)
-    results = models.JSONField()
+    results = models.JSONField(default=dict)
     metadata = models.JSONField(default=dict)
     user_metadata = models.JSONField(default=dict)
     approval_status = models.CharField(
