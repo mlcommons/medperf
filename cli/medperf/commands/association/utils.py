@@ -98,7 +98,7 @@ def get_associations_list(
             "dataset": {
                 "user": config.comms.get_user_benchmarks_datasets_associations,
             },
-            "mode_mlcube": {
+            "model_mlcube": {
                 "user": config.comms.get_user_benchmarks_models_associations,
                 "experiment": config.comms.get_benchmark_models_associations,
             },
