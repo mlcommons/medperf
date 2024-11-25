@@ -65,8 +65,6 @@ class CA(Entity, MedperfSchema):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = self.name
-
         self.address = self.config["address"]
         self.port = self.config["port"]
         self.fingerprint = self.config["fingerprint"]
@@ -75,6 +73,10 @@ class CA(Entity, MedperfSchema):
 
         self.config_path = os.path.join(self.path, config.ca_config_file)
         self.pki_assets = os.path.join(self.path, config.ca_cert_folder)
+
+    @property
+    def local_id(self):
+        return self.name
 
     @classmethod
     def from_experiment(cls, training_exp_uid: int) -> "CA":

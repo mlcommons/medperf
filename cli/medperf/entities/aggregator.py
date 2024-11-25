@@ -62,12 +62,14 @@ class Aggregator(Entity, MedperfSchema):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = self.name
-
         self.address = self.config["address"]
         self.port = self.config["port"]
 
         self.config_path = os.path.join(self.path, config.agg_config_file)
+
+    @property
+    def local_id(self):
+        return self.name
 
     @classmethod
     def from_experiment(cls, training_exp_uid: int) -> "Aggregator":

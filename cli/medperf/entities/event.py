@@ -52,7 +52,6 @@ class TrainingEvent(Entity, MedperfSchema):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = self.name
         self.participants_list_path = os.path.join(
             self.path, config.participants_list_filename
         )
@@ -69,6 +68,10 @@ class TrainingEvent(Entity, MedperfSchema):
             config.training_report_folder + timestamp,
             config.training_report_file,
         )
+
+    @property
+    def local_id(self):
+        return self.name
 
     @classmethod
     def from_experiment(cls, training_exp_uid: int) -> "TrainingEvent":
