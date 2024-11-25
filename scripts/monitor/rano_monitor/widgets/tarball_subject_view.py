@@ -1,16 +1,13 @@
 import os
 
-from rano_monitor.constants import (
-    BRAINMASK,
-    BRAINMASK_BAK,
-    DEFAULT_SEGMENTATION
-)
+from rano_monitor.constants import BRAINMASK, BRAINMASK_BAK, DEFAULT_SEGMENTATION
 from rano_monitor.utils import (
     finalize,
-    get_hash,
     is_editor_installed,
     review_brain,
     review_tumor,
+    brain_has_been_reviewed,
+    tumor_has_been_finalized,
 )
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -21,16 +18,14 @@ from textual.widgets import Button, Static
 class TarballSubjectView(Static):
     subject = reactive("")
     contents_path = reactive("")
+    review_cmd = None  # This will be assigned after initialized
 
     def compose(self) -> ComposeResult:
         with Horizontal(classes="subject-item"):
             with Container(classes="subject-text"):
                 yield Static(self.subject)
                 yield Static("Brain mask modified", classes="brain-status")
-                yield Static(
-                    "Tumor segmentation reviewed",
-                    classes="tumor-status"
-                )
+                yield Static("Tumor segmentation reviewed", classes="tumor-status")
 
             yield Button("Review Brain Mask", classes="brain-btn")
             yield Button("Review Tumor Segmentation", classes="tumor-btn")
@@ -55,16 +50,22 @@ class TarballSubjectView(Static):
     def update_status(self):
         tumor_status = self.query_one(".tumor-status", Static)
         brain_status = self.query_one(".brain-status", Static)
-        if self.__tumor_has_been_finalized():
+
+        id, tp = self.subject.split("|")
+        finalized_tumor_path = os.path.join(self.contents_path, id, tp, "finalized")
+        brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
+        backup_brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK_BAK)
+
+        if tumor_has_been_finalized(finalized_tumor_path):
             tumor_status.display = "block"
-        if self.__brain_has_been_reviewed():
+        if brain_has_been_reviewed(brainpath, backup_brainpath):
             brain_status.display = "block"
 
     def __update_buttons(self):
         tumor_btn = self.query_one(".tumor-btn", Button)
         finalize_btn = self.query_one(".finalize-btn", Button)
         brain_btn = self.query_one(".brain-btn", Button)
-        if is_editor_installed():
+        if is_editor_installed(self.review_cmd):
             tumor_btn.disabled = False
         if self.__can_finalize():
             finalize_btn.disabled = False
@@ -87,19 +88,19 @@ class TarballSubjectView(Static):
         id, tp = self.subject.split("|")
         filepath = os.path.join(self.contents_path, id, tp, BRAINMASK)
 
-        return os.path.exists(filepath) and is_editor_installed()
+        return os.path.exists(filepath) and is_editor_installed(self.review_cmd)
 
     def __review_tumor(self):
         id, tp = self.subject.split("|")
         data_path = os.path.join(self.contents_path, id, tp, "brain_scans")
         labels_path = os.path.join(self.contents_path, id, tp)
-        review_tumor(self.subject, data_path, labels_path)
+        review_tumor(self.subject, data_path, labels_path, review_cmd=self.review_cmd)
 
     def __review_brainmask(self):
         id, tp = self.subject.split("|")
         data_path = os.path.join(self.contents_path, id, tp, "raw_scans")
         labels_path = os.path.join(self.contents_path, id, tp)
-        review_brain(self.subject, labels_path, data_path)
+        review_brain(self.subject, labels_path, self.review_cmd, data_path)
 
     def __finalize(self):
         id, tp = self.subject.split("|")
@@ -123,12 +124,7 @@ class TarballSubjectView(Static):
     def __brain_has_been_reviewed(self):
         id, tp = self.subject.split("|")
         brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK)
-        backup_brainpath = os.path.join(
-            self.contents_path,
-            id,
-            tp,
-            BRAINMASK_BAK
-        )
+        backup_brainpath = os.path.join(self.contents_path, id, tp, BRAINMASK_BAK)
 
         if not os.path.exists(backup_brainpath):
             return False
@@ -139,12 +135,7 @@ class TarballSubjectView(Static):
 
     def __tumor_has_been_finalized(self):
         id, tp = self.subject.split("|")
-        finalized_tumor_path = os.path.join(
-            self.contents_path,
-            id,
-            tp,
-            "finalized"
-        )
+        finalized_tumor_path = os.path.join(self.contents_path, id, tp, "finalized")
         finalized_files = os.listdir(finalized_tumor_path)
         finalized_files = [file for file in finalized_files if not file.startswith(".")]
 

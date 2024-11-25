@@ -1,48 +1,57 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
 import os
 import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
-from medperf.entities.schemas import MedperfBaseSchema
+from medperf.entities.schemas import MedperfSchema
+from typing import Type, TypeVar
+
+EntityType = TypeVar("EntityType", bound="Entity")
 
 
-class Entity(MedperfBaseSchema, ABC):
+class Entity(MedperfSchema, ABC):
     @staticmethod
-    def get_type():
+    def get_type() -> str:
         raise NotImplementedError()
 
     @staticmethod
-    def get_storage_path():
+    def get_storage_path() -> str:
         raise NotImplementedError()
 
     @staticmethod
-    def get_comms_retriever():
+    def get_comms_retriever() -> Callable[[int], dict]:
         raise NotImplementedError()
 
     @staticmethod
-    def get_metadata_filename():
+    def get_metadata_filename() -> str:
         raise NotImplementedError()
 
     @staticmethod
-    def get_comms_uploader():
+    def get_comms_uploader() -> Callable[[dict], dict]:
         raise NotImplementedError()
 
     @property
-    def identifier(self):
-        return self.id or self.generated_uid
+    def local_id(self) -> str:
+        raise NotImplementedError()
 
     @property
-    def is_registered(self):
+    def identifier(self) -> Union[int, str]:
+        return self.id or self.local_id
+
+    @property
+    def is_registered(self) -> bool:
         return self.id is not None
 
     @property
-    def path(self):
+    def path(self) -> str:
         storage_path = self.get_storage_path()
         return os.path.join(storage_path, str(self.identifier))
 
     @classmethod
-    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["Entity"]:
+    def all(
+        cls: Type[EntityType], unregistered: bool = False, filters: dict = {}
+    ) -> List[EntityType]:
         """Gets a list of all instances of the respective entity.
         Whether the list is local or remote depends on the implementation.
 
@@ -64,14 +73,14 @@ class Entity(MedperfBaseSchema, ABC):
         return cls.__remote_all(filters=filters)
 
     @classmethod
-    def __remote_all(cls, filters: dict) -> List["Entity"]:
-        comms_fn = cls.__remote_prefilter(filters)
+    def __remote_all(cls: Type[EntityType], filters: dict) -> List[EntityType]:
+        comms_fn = cls.remote_prefilter(filters)
         entity_meta = comms_fn()
         entities = [cls(**meta) for meta in entity_meta]
         return entities
 
     @classmethod
-    def __unregistered_all(cls) -> List["Entity"]:
+    def __unregistered_all(cls: Type[EntityType]) -> List[EntityType]:
         entities = []
         storage_path = cls.get_storage_path()
         try:
@@ -84,14 +93,13 @@ class Entity(MedperfBaseSchema, ABC):
         for uid in uids:
             if uid.isdigit():
                 continue
-            meta = cls.__get_local_dict(uid)
-            entity = cls(**meta)
+            entity = cls.__local_get(uid)
             entities.append(entity)
 
         return entities
 
-    @classmethod
-    def __remote_prefilter(cls, filters: dict) -> callable:
+    @staticmethod
+    def remote_prefilter(filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
@@ -103,7 +111,9 @@ class Entity(MedperfBaseSchema, ABC):
         raise NotImplementedError
 
     @classmethod
-    def get(cls, uid: Union[str, int], local_only: bool = False) -> "Entity":
+    def get(
+        cls: Type[EntityType], uid: Union[str, int], local_only: bool = False
+    ) -> EntityType:
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends
         on the implementation.
@@ -121,7 +131,7 @@ class Entity(MedperfBaseSchema, ABC):
         return cls.__remote_get(uid)
 
     @classmethod
-    def __remote_get(cls, uid: int) -> "Entity":
+    def __remote_get(cls: Type[EntityType], uid: int) -> EntityType:
         """Retrieves and creates an entity instance from the comms instance.
 
         Args:
@@ -138,7 +148,7 @@ class Entity(MedperfBaseSchema, ABC):
         return entity
 
     @classmethod
-    def __local_get(cls, uid: Union[str, int]) -> "Entity":
+    def __local_get(cls: Type[EntityType], uid: Union[str, int]) -> EntityType:
         """Retrieves and creates an entity instance from the local storage.
 
         Args:
@@ -153,7 +163,7 @@ class Entity(MedperfBaseSchema, ABC):
         return entity
 
     @classmethod
-    def __get_local_dict(cls, uid: Union[str, int]) -> dict:
+    def __get_local_dict(cls: Type[EntityType], uid: Union[str, int]) -> dict:
         """Retrieves a local entity information
 
         Args:
@@ -165,12 +175,12 @@ class Entity(MedperfBaseSchema, ABC):
         logging.info(f"Retrieving {cls.get_type()} {uid} from local storage")
         storage_path = cls.get_storage_path()
         metadata_filename = cls.get_metadata_filename()
-        bmk_file = os.path.join(storage_path, str(uid), metadata_filename)
-        if not os.path.exists(bmk_file):
+        entity_file = os.path.join(storage_path, str(uid), metadata_filename)
+        if not os.path.exists(entity_file):
             raise InvalidArgumentError(
                 f"No {cls.get_type()} with the given uid could be found"
             )
-        with open(bmk_file, "r") as f:
+        with open(entity_file, "r") as f:
             data = yaml.safe_load(f)
 
         return data

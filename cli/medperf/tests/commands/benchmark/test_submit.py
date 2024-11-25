@@ -94,7 +94,7 @@ def test_run_compatibility_test_uses_expected_default_parameters(mocker, comms, 
 
     # Assert
     comp_spy.assert_called_once_with(
-        benchmark=bmk.generated_uid, no_cache=True, skip_data_preparation_step=False
+        benchmark=bmk.local_id, no_cache=True, skip_data_preparation_step=False
     )
 
 
@@ -117,7 +117,7 @@ def test_run_compatibility_test_with_passed_parameters(mocker, force, skip, comm
 
     # Assert
     comp_spy.assert_called_once_with(
-        benchmark=bmk.generated_uid, no_cache=force, skip_data_preparation_step=skip
+        benchmark=bmk.local_id, no_cache=force, skip_data_preparation_step=skip
     )
 
 

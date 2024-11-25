@@ -1,10 +1,10 @@
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema, ApprovableSchema
+from medperf.entities.schemas import ApprovableSchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 
 
-class Result(Entity, MedperfSchema, ApprovableSchema):
+class Result(Entity, ApprovableSchema):
     """
     Class representing a Result entry
 
@@ -46,10 +46,12 @@ class Result(Entity, MedperfSchema, ApprovableSchema):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
 
-        self.generated_uid = f"b{self.benchmark}m{self.model}d{self.dataset}"
+    @property
+    def local_id(self):
+        return self.name
 
-    @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
+    @staticmethod
+    def remote_prefilter(filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:

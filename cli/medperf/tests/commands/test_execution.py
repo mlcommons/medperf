@@ -102,8 +102,8 @@ class TestFailures:
         # Arrange
         preds_path = os.path.join(
             config.predictions_folder,
-            INPUT_MODEL.generated_uid,
-            INPUT_DATASET.generated_uid,
+            INPUT_MODEL.local_id,
+            INPUT_DATASET.local_id,
         )
 
         fs.create_dir(preds_path)
@@ -149,22 +149,22 @@ def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
     exp_preds_path = os.path.join(
         config.predictions_folder,
-        INPUT_MODEL.generated_uid,
-        INPUT_DATASET.generated_uid,
+        INPUT_MODEL.local_id,
+        INPUT_DATASET.local_id,
     )
 
     exp_model_logs_path = os.path.join(
         config.experiments_logs_folder,
-        INPUT_MODEL.generated_uid,
-        INPUT_DATASET.generated_uid,
+        INPUT_MODEL.local_id,
+        INPUT_DATASET.local_id,
         "model.log",
     )
 
     exp_metrics_logs_path = os.path.join(
         config.experiments_logs_folder,
-        INPUT_MODEL.generated_uid,
-        INPUT_DATASET.generated_uid,
-        f"metrics_{INPUT_EVALUATOR.generated_uid}.log",
+        INPUT_MODEL.local_id,
+        INPUT_DATASET.local_id,
+        f"metrics_{INPUT_EVALUATOR.local_id}.log",
     )
 
     exp_model_call = call(

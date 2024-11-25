@@ -1,6 +1,6 @@
 import yaml
 import json
-from typing import Union
+from typing import Union, Type
 
 from medperf import config
 from medperf.account_management import get_medperf_user_data
@@ -12,7 +12,7 @@ class EntityView:
     @staticmethod
     def run(
         entity_id: Union[int, str],
-        entity_class: Entity,
+        entity_class: Type[Entity],
         format: str = "yaml",
         unregistered: bool = False,
         mine_only: bool = False,
@@ -41,7 +41,14 @@ class EntityView:
             entity_view.store()
 
     def __init__(
-        self, entity_id, entity_class, format, unregistered, mine_only, output, **kwargs
+        self,
+        entity_id: Union[int, str],
+        entity_class: Type[Entity],
+        format: str,
+        unregistered: bool,
+        mine_only: bool,
+        output: str,
+        **kwargs,
     ):
         self.entity_id = entity_id
         self.entity_class = entity_class
