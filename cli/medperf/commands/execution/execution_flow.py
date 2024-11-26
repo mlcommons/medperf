@@ -112,6 +112,7 @@ class ExecutionFlow:
             logging.warning("Model MLCube Execution interrupted by user")
             self.__send_model_report("interrupted")
             raise e
+        self.__send_model_report("finished")
 
     def run_evaluation(self):
         self.ui.text = "Running model evaluation on dataset"
@@ -138,6 +139,7 @@ class ExecutionFlow:
             logging.warning("Metrics MLCube Execution interrupted by user")
             self.__send_evaluator_report("interrupted")
             raise e
+        self.__send_evaluator_report("finished")
 
     def todict(self):
         return {
@@ -154,9 +156,12 @@ class ExecutionFlow:
         self.__send_report("model_report", status)
 
     def __send_evaluator_report(self, status: str):
-        self.__send_report("evaluator_report", status)
+        self.__send_report("evaluation_report", status)
 
     def __send_report(self, field: str, status: str):
+        if self.execution is None:
+            return
+
         execution_id = self.execution.id
         body = {field: {"execution_status": status}}
         try:

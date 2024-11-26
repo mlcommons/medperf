@@ -29,6 +29,7 @@ class BenchmarkExecution:
         ignore_failed_experiments=False,
         no_cache=False,
         show_summary=False,
+        test=False,
     ):
         """Benchmark execution flow.
 
@@ -39,6 +40,7 @@ class BenchmarkExecution:
                                     if None, models_input_file will be used
             models_input_file: filename to read from
             if models_uids and models_input_file are None, use all benchmark models
+            test: Whether this execution represents an association test. Defaults to False.
         """
         execution = cls(
             benchmark_uid,
@@ -47,6 +49,7 @@ class BenchmarkExecution:
             models_input_file,
             ignore_model_errors,
             ignore_failed_experiments,
+            test=test,
         )
         execution.prepare()
         execution.validate()
@@ -67,6 +70,7 @@ class BenchmarkExecution:
         models_input_file: str = None,
         ignore_model_errors=False,
         ignore_failed_experiments=False,
+        test=True,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -78,6 +82,7 @@ class BenchmarkExecution:
         self.ignore_failed_experiments = ignore_failed_experiments
         self.cached_executions = {}
         self.experiments = []
+        self.test = test
 
     def prepare(self):
         self.benchmark = Benchmark.get(self.benchmark_uid)
@@ -177,9 +182,12 @@ class BenchmarkExecution:
                 )
                 continue
 
+            execution = None
+            if not self.test:
+                execution = self.__get_or_create_execution(model_uid)
+
             try:
                 model_cube = self.__get_cube(model_uid, "Model")
-                execution = self.__get_or_create_execution(model_uid)
                 execution_summary = ExecutionFlow.run(
                     dataset=self.dataset,
                     model=model_cube,
@@ -200,18 +208,18 @@ class BenchmarkExecution:
                 continue
 
             partial = execution_summary["partial"]
-            executions = execution_summary["executions"]
-            execution = self.__write_execution(model_uid, executions, partial)
+            results = execution_summary["results"]
+            result = self.__write_result(model_uid, results, partial)
 
             self.experiments.append(
                 {
                     "model_uid": model_uid,
-                    "execution": execution,
+                    "result": result,
                     "cached": False,
                     "error": "",
                 }
             )
-        return [experiment["execution"] for experiment in self.experiments]
+        return [experiment["result"] for experiment in self.experiments]
 
     def __handle_experiment_error(self, model_uid, exception):
         if isinstance(exception, InvalidEntityError):
@@ -244,11 +252,11 @@ class BenchmarkExecution:
         # Create a new execution instance
         query_dict["name"] = self.__execution_name(model_uid)
         execution = Execution(**query_dict)
-        print(execution.upload())
+        execution.upload()
         return execution
         
 
-    def __execution_dict(self, model_uid, results, partial):
+    def __result_dict(self, model_uid, results, partial):
         return {
             "name": self.__execution_name(model_uid),
             "benchmark": self.benchmark_uid,
@@ -261,7 +269,7 @@ class BenchmarkExecution:
     def __execution_name(self, model_uid):
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
 
-    def __write_execution(self, model_uid, results, partial):
+    def __write_result(self, model_uid, results, partial):
         results_info = self.__result_dict(model_uid, results, partial)
         result = Execution(**results_info)
         result.write()
