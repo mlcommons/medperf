@@ -48,7 +48,9 @@ class ExecutionDetail(GenericAPIView):
     queryset = ""
 
     def get_permissions(self):
-        if self.request.method == "PUT" or self.request.method == "DELETE":
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsDatasetOwner]
+        elif self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
         elif self.request.method == "GET":
             self.permission_classes = [IsAdmin | IsDatasetOwner | IsBenchmarkOwner]
@@ -64,16 +66,17 @@ class ExecutionDetail(GenericAPIView):
         """
         Retrieve a execution instance.
         """
-        Execution = self.get_object(pk)
-        serializer = ExecutionDetailSerializer(Execution)
+        execution = self.get_object(pk)
+        serializer = ExecutionDetailSerializer(execution)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
         """
         Update a execution instance.
         """
-        Execution = self.get_object(pk)
-        serializer = ExecutionDetailSerializer(Execution, data=request.data)
+        execution = self.get_object(pk)
+        print(request.data)
+        serializer = ExecutionDetailSerializer(execution, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
