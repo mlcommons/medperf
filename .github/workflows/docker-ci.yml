@@ -51,16 +51,16 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
 
-    - name: Build container image
-      working-directory: ./server
-      run: |
-        cp ../mock_tokens/tokens.json tokens.json
-        docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
-
     - name: Run postgresql server in background
       working-directory: ./server
       run: sh run_dev_postgresql.sh -n postgreserver && sleep 6
       # NOTE: Actually there is no need to publish the database container port
+
+    - name: Build container image
+      working-directory: ./server
+      run: |
+        cp ../mock_tokens/tokens.json tokens.json
+        docker build --network container:postgreserver -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
       working-directory: ./server
