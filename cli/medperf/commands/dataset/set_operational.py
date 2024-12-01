@@ -1,5 +1,5 @@
 from medperf.entities.dataset import Dataset
-import medperf.config as config
+from medperf.config_management import config
 from medperf.utils import approval_prompt, dict_pretty_print, get_folders_hash
 from medperf.exceptions import CleanExit, InvalidArgumentError
 import yaml
@@ -74,7 +74,7 @@ class DatasetSetOperational:
             "state": self.dataset.state,
         }
 
-    def write(self) -> str:
+    def write(self) -> None:
         """Writes the registration into disk
         Args:
             filename (str, optional): name of the file. Defaults to config.reg_file.

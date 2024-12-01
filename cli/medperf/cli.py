@@ -4,7 +4,8 @@ import logging
 import logging.handlers
 
 from medperf import __version__
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except, add_inline_parameters
 import medperf.commands.result.result as result
 from medperf.commands.result.create import BenchmarkExecution
@@ -92,10 +93,10 @@ def main(
     # Set inline parameters
     inline_args = ctx.params
     for param in inline_args:
-        setattr(config, param, inline_args[param])
+        setattr(settings, param, inline_args[param])
 
     # Update logging level according to the passed inline params
-    loglevel = config.loglevel.upper()
+    loglevel = settings.loglevel.upper()
     logging.getLogger().setLevel(loglevel)
     logging.getLogger("requests").setLevel(loglevel)
 

@@ -3,7 +3,7 @@ import pytest
 
 from medperf.entities.result import Result
 from medperf.commands.benchmark.submit import SubmitBenchmark
-from medperf import config
+from medperf import settings
 
 PATCH_BENCHMARK = "medperf.commands.benchmark.submit.{}"
 NAME_MAX_LEN = 20
@@ -34,7 +34,7 @@ def test_submit_prepares_tmp_path_for_cleanup():
     submission = SubmitBenchmark(BENCHMARK_INFO)
 
     # Assert
-    assert submission.bmk.path in config.tmp_paths
+    assert submission.bmk.path in settings.tmp_paths
 
 
 def test_submit_uploads_benchmark_data(mocker, result, comms, ui):

@@ -1,6 +1,7 @@
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.account_management import get_medperf_user_data
 
 
@@ -28,7 +29,7 @@ class Result(Entity, ApprovableSchema):
 
     @staticmethod
     def get_storage_path():
-        return config.results_folder
+        return settings.results_folder
 
     @staticmethod
     def get_comms_retriever():
@@ -36,7 +37,7 @@ class Result(Entity, ApprovableSchema):
 
     @staticmethod
     def get_metadata_filename():
-        return config.results_info_file
+        return settings.results_info_file
 
     @staticmethod
     def get_comms_uploader():

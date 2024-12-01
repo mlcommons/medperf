@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
 from medperf import utils
-import medperf.config as config
+from medperf import settings
 from medperf.tests.mocks import MockTar
 from medperf.exceptions import MedperfException
 import yaml
@@ -59,7 +59,7 @@ def filesystem():
 def test_setup_logging_filters_sensitive_data(text, exp_output):
     # Arrange
     logging.getLogger().setLevel("DEBUG")
-    log_file = os.path.join(config.logs_storage, config.log_file)
+    log_file = os.path.join(settings.logs_storage, settings.log_file)
 
     # Act
     logging.debug(text)
@@ -112,7 +112,7 @@ def test_cleanup_removes_files(mocker, ui, fs):
     # Arrange
     path = "/path/to/garbage.html"
     fs.create_file(path, contents="garbage")
-    config.tmp_paths = [path]
+    settings.tmp_paths = [path]
 
     # Act
     utils.cleanup()
@@ -125,13 +125,13 @@ def test_cleanup_moves_files_to_trash_on_failure(mocker, ui, fs):
     # Arrange
     path = "/path/to/garbage.html"
     fs.create_file(path, contents="garbage")
-    config.tmp_paths = [path]
+    settings.tmp_paths = [path]
 
     def side_effect(*args, **kwargs):
         raise PermissionError
 
     mocker.patch("os.remove", side_effect=side_effect)
-    trash_folder = config.trash_folder
+    trash_folder = settings.trash_folder
 
     # Act
     utils.cleanup()
@@ -146,7 +146,7 @@ def test_cleanup_moves_files_to_trash_on_failure(mocker, ui, fs):
 @pytest.mark.parametrize("datasets", [4, 287], indirect=True)
 def test_get_uids_returns_uids_of_datasets(mocker, datasets, path):
     # Arrange
-    mock_walk_return = iter([(config.datasets_folder, datasets, ())])
+    mock_walk_return = iter([(settings.datasets_folder, datasets, ())])
     spy = mocker.patch("os.walk", return_value=mock_walk_return)
 
     # Act
@@ -368,7 +368,7 @@ def test_get_cube_image_name_retrieves_name(mocker, fs):
     cube_path = "path"
 
     mock_content = {"singularity": {"image": exp_image_name}}
-    target_file = os.path.join(cube_path, config.cube_filename)
+    target_file = os.path.join(cube_path, settings.cube_filename)
     fs.create_file(target_file, contents=yaml.dump(mock_content))
 
     # Act
@@ -384,7 +384,7 @@ def test_get_cube_image_name_fails_if_cube_not_configured(mocker, fs):
     cube_path = "path"
 
     mock_content = {"not singularity": {"image": exp_image_name}}
-    target_file = os.path.join(cube_path, config.cube_filename)
+    target_file = os.path.join(cube_path, settings.cube_filename)
     fs.create_file(target_file, contents=yaml.dump(mock_content))
 
     # Act & Assert

@@ -2,7 +2,7 @@ import yaml
 import json
 from typing import Union, Type
 
-from medperf import config
+from medperf.config_management import config
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.interface import Entity
 from medperf.exceptions import InvalidArgumentError

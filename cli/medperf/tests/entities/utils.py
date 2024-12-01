@@ -1,5 +1,5 @@
 import os
-from medperf import config
+from medperf import settings
 import yaml
 
 from medperf.utils import get_file_hash
@@ -24,7 +24,7 @@ def setup_benchmark_fs(ents, fs):
         else:
             bmk_contents = TestBenchmark(id=None, name=ent)
 
-        bmk_filepath = os.path.join(bmk_contents.path, config.benchmarks_filename)
+        bmk_filepath = os.path.join(bmk_contents.path, settings.benchmarks_filename)
         cubes_ids = []
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
         cubes_ids.append(bmk_contents.reference_model_mlcube)
@@ -62,7 +62,7 @@ def setup_cube_fs(ents, fs):
         else:
             cube = TestCube(id=None, name=ent)
 
-        meta_cube_file = os.path.join(cube.path, config.cube_metadata_filename)
+        meta_cube_file = os.path.join(cube.path, settings.cube_metadata_filename)
         meta = cube.todict()
         try:
             fs.create_file(meta_cube_file, contents=yaml.dump(meta))
@@ -96,7 +96,7 @@ def generate_cubefile_fn(fs, path, filename):
             pass
         hash = get_file_hash(filepath)
         # special case: tarball file
-        if filename == config.tarball_filename:
+        if filename == settings.tarball_filename:
             return hash
         return filepath, hash
 
@@ -105,12 +105,12 @@ def generate_cubefile_fn(fs, path, filename):
 
 def setup_cube_comms_downloads(mocker, fs):
     cube_path = ""
-    cube_file = config.cube_filename
-    params_path = config.workspace_path
-    params_file = config.params_filename
-    add_path = config.additional_path
-    add_file = config.tarball_filename
-    img_path = config.image_path
+    cube_file = settings.cube_filename
+    params_path = settings.workspace_path
+    params_file = settings.params_filename
+    add_path = settings.additional_path
+    add_file = settings.tarball_filename
+    img_path = settings.image_path
     img_file = "img.tar.gz"
 
     get_cube_fn = generate_cubefile_fn(fs, cube_path, cube_file)
@@ -135,7 +135,7 @@ def setup_dset_fs(ents, fs):
         else:
             dset_contents = TestDataset(id=None, generated_uid=ent)
 
-        reg_dset_file = os.path.join(dset_contents.path, config.reg_file)
+        reg_dset_file = os.path.join(dset_contents.path, settings.reg_file)
         cube_id = dset_contents.data_preparation_mlcube
         setup_cube_fs([cube_id], fs)
         try:
@@ -168,7 +168,7 @@ def setup_result_fs(ents, fs):
         else:
             result_contents = TestResult(id=None, name=ent)
 
-        result_file = os.path.join(result_contents.path, config.results_info_file)
+        result_file = os.path.join(result_contents.path, settings.results_info_file)
         bmk_id = result_contents.benchmark
         cube_id = result_contents.model
         dataset_id = result_contents.dataset

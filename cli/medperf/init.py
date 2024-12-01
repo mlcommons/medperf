@@ -1,7 +1,6 @@
 import os
 
-from medperf import config
-from medperf.comms.factory import CommsFactory
+from medperf import settings
 from medperf.config_management import setup_config
 from medperf.logging import setup_logging
 from medperf.storage import (
@@ -9,7 +8,6 @@ from medperf.storage import (
     init_storage,
     override_storage_config_paths,
 )
-from medperf.ui.factory import UIFactory
 
 
 def initialize():
@@ -24,21 +22,5 @@ def initialize():
     init_storage()
 
     # Setup logging
-    log_file = os.path.join(config.logs_storage, config.log_file)
-    setup_logging(log_file, config.loglevel)
-
-    # Setup UI, COMMS
-    config.ui = UIFactory.create_ui(config.ui)
-    config.comms = CommsFactory.create_comms(config.comms, config.server)
-
-    # Setup auth class
-    if config.auth_class == "Auth0":
-        from .comms.auth import Auth0
-
-        config.auth = Auth0()
-    elif config.auth_class == "Local":
-        from .comms.auth import Local
-
-        config.auth = Local()
-    else:
-        raise ValueError(f"Unknown Auth class {config.auth_class}")
+    log_file = os.path.join(settings.logs_storage, settings.log_file)
+    setup_logging(log_file, settings.loglevel)

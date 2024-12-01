@@ -1,6 +1,6 @@
 import synapseclient
 from synapseclient.core.exceptions import SynapseAuthenticationError
-from medperf import config
+from medperf.config_management import config
 from medperf.exceptions import CommunicationAuthenticationError
 
 
