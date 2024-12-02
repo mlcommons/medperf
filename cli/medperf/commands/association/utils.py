@@ -107,6 +107,10 @@ def get_associations_list(
     if experiment_id:
         comms_func = comms_functions[experiment_key][component_key]["experiment"]
         assocs = comms_func(experiment_id)
+        # `assocs` here don't contain the experiment key.
+        # Add it, just to work with filter_latest_associations
+        for assoc in assocs:
+            assoc[experiment_key] = experiment_id
     else:
         comms_func = comms_functions[experiment_key][component_key]["user"]
         assocs = comms_func()
