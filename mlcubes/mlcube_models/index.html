@@ -1,0 +1,1858 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://medperf.com/mlcubes/mlcube_models/">
+      
+      
+        <link rel="prev" href="../mlcube_data/">
+      
+      
+        <link rel="next" href="../mlcube_metrics/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+    
+    
+      
+        <title>Creating Model MLCubes from Scratch - MedPerf</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
+      
+      
+  
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+  
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.752 1.752 0 0 1 1 7.775Zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>');--md-admonition-icon--abstract:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2.5 1.75v11.5c0 .138.112.25.25.25h3.17a.75.75 0 0 1 0 1.5H2.75A1.75 1.75 0 0 1 1 13.25V1.75C1 .784 1.784 0 2.75 0h8.5C12.216 0 13 .784 13 1.75v7.736a.75.75 0 0 1-1.5 0V1.75a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13.274 9.537v-.001l-4.557 4.45a.75.75 0 0 1-1.055-.008l-1.943-1.95a.75.75 0 0 1 1.062-1.058l1.419 1.425 4.026-3.932a.75.75 0 1 1 1.048 1.074ZM4.75 4h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM4 7.75A.75.75 0 0 1 4.75 7h2a.75.75 0 0 1 0 1.5h-2A.75.75 0 0 1 4 7.75Z"/></svg>');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>');--md-admonition-icon--tip:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.499.75a.75.75 0 0 1 1.5 0v.996C5.9 2.903 6.793 3.65 7.662 4.376l.24.202c-.036-.694.055-1.422.426-2.163C9.1.873 10.794-.045 12.622.26 14.408.558 16 1.94 16 4.25c0 1.278-.954 2.575-2.44 2.734l.146.508.065.22c.203.701.412 1.455.476 2.226.142 1.707-.4 3.03-1.487 3.898C11.714 14.671 10.27 15 8.75 15h-6a.75.75 0 0 1 0-1.5h1.376a4.484 4.484 0 0 1-.563-1.191 3.835 3.835 0 0 1-.05-2.063 4.647 4.647 0 0 1-2.025-.293.75.75 0 0 1 .525-1.406c1.357.507 2.376-.006 2.698-.318l.009-.01a.747.747 0 0 1 1.06 0 .748.748 0 0 1-.012 1.074c-.912.92-.992 1.835-.768 2.586.221.74.745 1.337 1.196 1.621H8.75c1.343 0 2.398-.296 3.074-.836.635-.507 1.036-1.31.928-2.602-.05-.603-.216-1.224-.422-1.93l-.064-.221c-.12-.407-.246-.84-.353-1.29a2.425 2.425 0 0 1-.507-.441 3.075 3.075 0 0 1-.633-1.248.75.75 0 0 1 1.455-.364c.046.185.144.436.31.627.146.168.353.305.712.305.738 0 1.25-.615 1.25-1.25 0-1.47-.95-2.315-2.123-2.51-1.172-.196-2.227.387-2.706 1.345-.46.92-.27 1.774.019 3.062l.042.19a.884.884 0 0 1 .01.05c.348.443.666.949.94 1.553a.75.75 0 1 1-1.365.62c-.553-1.217-1.32-1.94-2.3-2.768L6.7 5.527c-.814-.68-1.75-1.462-2.692-2.619a3.737 3.737 0 0 0-1.023.88c-.406.495-.663 1.036-.722 1.508.116.122.306.21.591.239.388.038.797-.06 1.032-.19a.75.75 0 0 1 .728 1.31c-.515.287-1.23.439-1.906.373-.682-.067-1.473-.38-1.879-1.193L.75 5.677V5.5c0-.984.48-1.94 1.077-2.664.46-.559 1.05-1.055 1.673-1.353V.75Z"/></svg>');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>');--md-admonition-icon--question:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.92 6.085h.001a.749.749 0 1 1-1.342-.67c.169-.339.436-.701.849-.977C6.845 4.16 7.369 4 8 4a2.756 2.756 0 0 1 1.637.525c.503.377.863.965.863 1.725 0 .448-.115.83-.329 1.15-.205.307-.47.513-.692.662-.109.072-.22.138-.313.195l-.006.004a6.24 6.24 0 0 0-.26.16.952.952 0 0 0-.276.245.75.75 0 0 1-1.248-.832c.184-.264.42-.489.692-.661.103-.067.207-.132.313-.195l.007-.004c.1-.061.182-.11.258-.161a.969.969 0 0 0 .277-.245C8.96 6.514 9 6.427 9 6.25a.612.612 0 0 0-.262-.525A1.27 1.27 0 0 0 8 5.5c-.369 0-.595.09-.74.187a1.01 1.01 0 0 0-.34.398ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>');--md-admonition-icon--failure:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2.344 2.343h-.001a8 8 0 0 1 11.314 11.314A8.002 8.002 0 0 1 .234 10.089a8 8 0 0 1 2.11-7.746Zm1.06 10.253a6.5 6.5 0 1 0 9.108-9.275 6.5 6.5 0 0 0-9.108 9.275ZM6.03 4.97 8 6.94l1.97-1.97a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l1.97 1.97a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-1.97 1.97a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L6.94 8 4.97 6.03a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018Z"/></svg>');--md-admonition-icon--danger:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z"/></svg>');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M4.72.22a.75.75 0 0 1 1.06 0l1 .999a3.488 3.488 0 0 1 2.441 0l.999-1a.748.748 0 0 1 1.265.332.75.75 0 0 1-.205.729l-.775.776c.616.63.995 1.493.995 2.444v.327c0 .1-.009.197-.025.292.408.14.764.392 1.029.722l1.968-.787a.75.75 0 0 1 .556 1.392L13 7.258V9h2.25a.75.75 0 0 1 0 1.5H13v.5c0 .409-.049.806-.141 1.186l2.17.868a.75.75 0 0 1-.557 1.392l-2.184-.873A4.997 4.997 0 0 1 8 16a4.997 4.997 0 0 1-4.288-2.427l-2.183.873a.75.75 0 0 1-.558-1.392l2.17-.868A5.036 5.036 0 0 1 3 11v-.5H.75a.75.75 0 0 1 0-1.5H3V7.258L.971 6.446a.75.75 0 0 1 .558-1.392l1.967.787c.265-.33.62-.583 1.03-.722a1.677 1.677 0 0 1-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72 1.28a.75.75 0 0 1 0-1.06Zm.53 6.28a.75.75 0 0 0-.75.75V11a3.5 3.5 0 1 0 7 0V7.25a.75.75 0 0 0-.75-.75ZM6.173 5h3.654A.172.172 0 0 0 10 4.827V4.5a2 2 0 1 0-4 0v.327c0 .096.077.173.173.173Z"/></svg>');--md-admonition-icon--example:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M5 5.782V2.5h-.25a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5H11v3.282l3.666 5.76C15.619 13.04 14.543 15 12.767 15H3.233c-1.776 0-2.852-1.96-1.899-3.458Zm-2.4 6.565a.75.75 0 0 0 .633 1.153h9.534a.75.75 0 0 0 .633-1.153L12.225 10.5h-8.45ZM9.5 2.5h-3V6c0 .143-.04.283-.117.403L4.73 9h6.54L9.617 6.403A.746.746 0 0 1 9.5 6Z"/></svg>');--md-admonition-icon--quote:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M1.75 2.5h10.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Zm4 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2.5 7.75v6a.75.75 0 0 1-1.5 0v-6a.75.75 0 0 1 1.5 0Z"/></svg>');}</style>
+
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../styles/styles.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-QNE8JMYY88"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-QNE8JMYY88",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-QNE8JMYY88",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#model-mlcube" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      <!--
+  Copyright (c) 2016-2022 Martin Donath <martin.donath@squidfunk.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to
+  deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  IN THE SOFTWARE.
+-->
+
+<!-- Determine class according to configuration -->
+
+
+
+<!-- Header -->
+<header class="md-header" data-md-component="header">
+  <nav
+    class="md-header__inner md-grid"
+    aria-label=""
+  >
+
+    <!-- Link to home -->
+    <a
+      href="../.."
+      title="MedPerf"
+      class="md-header__button md-logo"
+      aria-label="MedPerf"
+      data-md-component="logo"
+    >
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+
+    <!-- Button to open drawer -->
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+
+    <!-- Header title -->
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MedPerf
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            MedPerf
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color palette -->
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input
+            class="md-option"
+            data-md-color-media="(prefers-color-scheme: light)"
+            data-md-color-scheme="default"
+            data-md-color-primary="teal"
+            data-md-color-accent=""
+            
+              aria-label="Switch to dark mode"
+            
+            type="radio"
+            name="__palette"
+            id="__palette_1"
+          />
+          
+            <label
+              class="md-header__button md-icon"
+              title="Switch to dark mode"
+              for="__palette_2"
+              hidden
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input
+            class="md-option"
+            data-md-color-media="(prefers-color-scheme: dark)"
+            data-md-color-scheme="slate"
+            data-md-color-primary="teal"
+            data-md-color-accent=""
+            
+              aria-label="Switch to light mode"
+            
+            type="radio"
+            name="__palette"
+            id="__palette_2"
+          />
+          
+            <label
+              class="md-header__button md-icon"
+              title="Switch to light mode"
+              for="__palette_1"
+              hidden
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+
+    <!-- Site language selector -->
+    
+
+    <!-- Button to open search modal -->
+    
+
+    <!-- Repository information -->
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mlcommons/medperf" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mlcommons/medperf
+  </div>
+</a>
+      </div>
+    
+  </nav>
+
+  <!-- Navigation tabs (sticky) -->
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MedPerf" class="md-nav__button md-logo" aria-label="MedPerf" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    MedPerf
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mlcommons/medperf" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mlcommons/medperf
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../what_is_medperf/" class="md-nav__link">
+        What is Medperf?
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roles/" class="md-nav__link">
+        Benchmark Roles
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflow/" class="md-nav__link">
+        Benchmark Workflow
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../medperf_components/" class="md-nav__link">
+        Components
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          GETTING STARTED
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          GETTING STARTED
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/signup/" class="md-nav__link">
+        Create an Account
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          TUTORIAL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          TUTORIAL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/tutorials_overview/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/benchmark_owner_demo/" class="md-nav__link">
+        Bechmark Committee
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/model_owner_demo/" class="md-nav__link">
+        Model Owners
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/data_owner_demo/" class="md-nav__link">
+        Data Owners
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          ADVANCED CONCEPTS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          ADVANCED CONCEPTS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+          MedPerf MLCubes
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_1_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_7_1">
+          <span class="md-nav__icon md-icon"></span>
+          MedPerf MLCubes
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mlcubes/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mlcube_data/" class="md-nav__link">
+        Creating Data Preparator MLCubes from Scratch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Creating Model MLCubes from Scratch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Creating Model MLCubes from Scratch
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    Introduction
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about-this-guide" class="md-nav__link">
+    About this Guide
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-building-the-mlcube" class="md-nav__link">
+    Before Building the MLCube
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-an-mlcube-template" class="md-nav__link">
+    Use an MLCube Template
+  </a>
+  
+    <nav class="md-nav" aria-label="Use an MLCube Template">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-project-folder" class="md-nav__link">
+    The project folder
+  </a>
+  
+    <nav class="md-nav" aria-label="The project folder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-will-the-mlcube-identify-your-code" class="md-nav__link">
+    How will the MLCube identify your code?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepare-your-dockerfile" class="md-nav__link">
+    Prepare your Dockerfile
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-mlcube-folder" class="md-nav__link">
+    The mlcube folder
+  </a>
+  
+    <nav class="md-nav" aria-label="The mlcube folder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#include-additional-input-files" class="md-nav__link">
+    Include additional input files
+  </a>
+  
+    <nav class="md-nav" aria-label="Include additional input files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-weights" class="md-nav__link">
+    model weights
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-your-mlcube" class="md-nav__link">
+    Configure your MLCube
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-your-mlcube" class="md-nav__link">
+    Build your MLCube
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-your-mlcube" class="md-nav__link">
+    Run your MLCube
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-working-example" class="md-nav__link">
+    A Working Example
+  </a>
+  
+    <nav class="md-nav" aria-label="A Working Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-building-the-mlcube_1" class="md-nav__link">
+    Before Building the MLCube
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-an-mlcube-template" class="md-nav__link">
+    Create an MLCube Template
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#move-your-codebase" class="md-nav__link">
+    Move your Codebase
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-your-parameters-and-model-weights" class="md-nav__link">
+    Add your parameters and model weights
+  </a>
+  
+    <nav class="md-nav" aria-label="Add your parameters and model weights">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-parameters" class="md-nav__link">
+    Add parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-model-weights" class="md-nav__link">
+    Add model weights
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-mlcubepy" class="md-nav__link">
+    Modify mlcube.py
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepare-the-dockerfile" class="md-nav__link">
+    Prepare the Dockerfile
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-mlcubeyaml" class="md-nav__link">
+    Modify mlcube.yaml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-your-mlcube_1" class="md-nav__link">
+    Build your MLCube
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-your-mlcube_1" class="md-nav__link">
+    Run your MLCube
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-example-with-gpus" class="md-nav__link">
+    Using the Example with GPUs
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mlcube_metrics/" class="md-nav__link">
+        Creating Metrics MLCubes from Scratch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gandlf_mlcube/" class="md-nav__link">
+        Creating Model MLCubes from GaNDLF
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/mlcube_files/" class="md-nav__link">
+        MLCube Components
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/hosting_files/" class="md-nav__link">
+        Hosting Files
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    Introduction
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about-this-guide" class="md-nav__link">
+    About this Guide
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-building-the-mlcube" class="md-nav__link">
+    Before Building the MLCube
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-an-mlcube-template" class="md-nav__link">
+    Use an MLCube Template
+  </a>
+  
+    <nav class="md-nav" aria-label="Use an MLCube Template">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-project-folder" class="md-nav__link">
+    The project folder
+  </a>
+  
+    <nav class="md-nav" aria-label="The project folder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-will-the-mlcube-identify-your-code" class="md-nav__link">
+    How will the MLCube identify your code?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepare-your-dockerfile" class="md-nav__link">
+    Prepare your Dockerfile
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-mlcube-folder" class="md-nav__link">
+    The mlcube folder
+  </a>
+  
+    <nav class="md-nav" aria-label="The mlcube folder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#include-additional-input-files" class="md-nav__link">
+    Include additional input files
+  </a>
+  
+    <nav class="md-nav" aria-label="Include additional input files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-weights" class="md-nav__link">
+    model weights
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-your-mlcube" class="md-nav__link">
+    Configure your MLCube
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-your-mlcube" class="md-nav__link">
+    Build your MLCube
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-your-mlcube" class="md-nav__link">
+    Run your MLCube
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-working-example" class="md-nav__link">
+    A Working Example
+  </a>
+  
+    <nav class="md-nav" aria-label="A Working Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-building-the-mlcube_1" class="md-nav__link">
+    Before Building the MLCube
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-an-mlcube-template" class="md-nav__link">
+    Create an MLCube Template
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#move-your-codebase" class="md-nav__link">
+    Move your Codebase
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-your-parameters-and-model-weights" class="md-nav__link">
+    Add your parameters and model weights
+  </a>
+  
+    <nav class="md-nav" aria-label="Add your parameters and model weights">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-parameters" class="md-nav__link">
+    Add parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-model-weights" class="md-nav__link">
+    Add model weights
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-mlcubepy" class="md-nav__link">
+    Modify mlcube.py
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepare-the-dockerfile" class="md-nav__link">
+    Prepare the Dockerfile
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-mlcubeyaml" class="md-nav__link">
+    Modify mlcube.yaml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-your-mlcube_1" class="md-nav__link">
+    Build your MLCube
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-your-mlcube_1" class="md-nav__link">
+    Run your MLCube
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-example-with-gpus" class="md-nav__link">
+    Using the Example with GPUs
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="model-mlcube">Model MLCube<a class="headerlink" href="#model-mlcube" title="Permanent link">&para;</a></h1>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>This is one of the three guides that help the user build MedPerf-compatible MLCubes. The other two guides are for building a <a href="../mlcube_data/">Data Preparator MLCube</a> and a <a href="../mlcube_metrics/">Metrics MLCube</a>. Together, the three MLCubes examples constitute a complete benchmark workflow for the task of thoracic disease detection from Chest X-rays.</p>
+<h2 id="about-this-guide">About this Guide<a class="headerlink" href="#about-this-guide" title="Permanent link">&para;</a></h2>
+<p>This guide will help users familiarize themselves with the expected interface of the Model MLCube and gain a comprehensive understanding of its components. By following this walkthrough, users will gain insights into the structure and organization of a Model MLCube, allowing them at the end to be able to implement their own MedPerf-compatible Model MLCube.</p>
+<p>The guide will start by providing general advice, steps, and hints on building these MLCubes. Then, an example will be presented through which the provided guidance will be applied step-by-step to build a Chest X-ray classifier MLCube. The final MLCube code can be found <a href="https://github.com/mlcommons/medperf/tree/main/examples/chestxray_tutorial/model_custom_cnn">here</a>.</p>
+<h2 id="before-building-the-mlcube">Before Building the MLCube<a class="headerlink" href="#before-building-the-mlcube" title="Permanent link">&para;</a></h2>
+<p>It is assumed that you already have a working code that runs inference on data and generates predictions, and what you want to accomplish through this guide is to wrap your inference code within an MLCube.</p>
+<ul>
+<li>Make sure you decouple your inference logic from the other machine learning common pipelines (e.g.; training, metrics, ...).</li>
+<li>Your inference logic can be written in any structure, can be split into any number of files, can represent any number of inference stages, etc..., <strong>as long as the following hold</strong>:<ul>
+<li>The whole inference flow can be invoked by a single command/function.</li>
+<li>This command/function has <strong>at least</strong> the following arguments:<ul>
+<li>A string representing a path that points to all input data records</li>
+<li>A string representing a path that points to the desired output directory where the predictions will be stored.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Your inference logic should not alter the input files and folders.</li>
+<li>Your inference logic should expect the input data in a certain structure. This is usually determined by following the specifications of the benchmark you want to participate in.</li>
+<li>Your inference logic should save the predictions in the output directory in a certain structure. This is usually determined by following the specifications of the benchmark you want to participate in.</li>
+</ul>
+<h2 id="use-an-mlcube-template">Use an MLCube Template<a class="headerlink" href="#use-an-mlcube-template" title="Permanent link">&para;</a></h2>
+<p>MedPerf provides MLCube templates. You should start from a template for faster implementation and to build MLCubes that are compatible with MedPerf.</p>
+<p>First, make sure you have <a href="../../getting_started/installation/">MedPerf installed</a>. You can create a model MLCube template by running the following command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>medperf<span class="w"> </span>mlcube<span class="w"> </span>create<span class="w"> </span>model
+</span></code></pre></div>
+<p>You will be prompted to fill in some configuration options through the CLI. Below are the options and their default values:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>project_name<span class="w"> </span><span class="o">[</span>Model<span class="w"> </span>MLCube<span class="o">]</span>:<span class="w"> </span><span class="c1"># (1)!</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>project_slug<span class="w"> </span><span class="o">[</span>model_mlcube<span class="o">]</span>:<span class="w"> </span><span class="c1"># (2)!</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>description<span class="w"> </span><span class="o">[</span>Model<span class="w"> </span>MLCube<span class="w"> </span>Template.<span class="w"> </span>Provided<span class="w"> </span>by<span class="w"> </span>MLCommons<span class="o">]</span>:<span class="w"> </span><span class="c1"># (3)!</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>author_name<span class="w"> </span><span class="o">[</span>John<span class="w"> </span>Smith<span class="o">]</span>:<span class="w"> </span><span class="c1"># (4)!</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>accelerator_count<span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span>:<span class="w"> </span><span class="c1"># (5)!</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>docker_image_name<span class="w"> </span><span class="o">[</span>docker/image:latest<span class="o">]</span>:<span class="w"> </span><span class="c1"># (6)!</span>
+</span></code></pre></div>
+<ol>
+<li>Gives a Human-readable name to the MLCube Project.</li>
+<li>Determines how the MLCube root folder will be named.</li>
+<li>Gives a Human-readable description to the MLCube Project.</li>
+<li>Documents the MLCube implementation by specifying the author.</li>
+<li>Set it to 0. This is now ignored and will be removed in the next release. Please check the last section to learn how to use MLCube with GPUs.</li>
+<li>MLCubes use Docker containers under the hood. Here, you can provide an image tag to the image that will be created by this MLCube. <strong>You should use a valid name that allows you to upload it to a Docker registry.</strong></li>
+</ol>
+<p>After filling the configuration options, the following directory structure will be generated:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>.
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>└──<span class="w"> </span>model_mlcube
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span>├──<span class="w"> </span>mlcube
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span>│<span class="w">   </span>├──<span class="w"> </span>mlcube.yaml
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>│<span class="w">   </span>└──<span class="w"> </span>workspace
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span>│<span class="w">       </span>└──<span class="w"> </span>parameters.yaml
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span>└──<span class="w"> </span>project
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span>├──<span class="w"> </span>Dockerfile
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span>├──<span class="w"> </span>mlcube.py
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span>└──<span class="w"> </span>requirements.txt
+</span></code></pre></div>
+<p>The next sections will go through the contents of this directory in details and customize it.</p>
+<h3 id="the-project-folder">The <code>project</code> folder<a class="headerlink" href="#the-project-folder" title="Permanent link">&para;</a></h3>
+<p>This is where your inference logic will live. This folder initially contains three files as shown above. The upcoming sections will cover their use in details.</p>
+<p>The first thing to do is put your code files in this folder.</p>
+<h4 id="how-will-the-mlcube-identify-your-code">How will the MLCube identify your code?<a class="headerlink" href="#how-will-the-mlcube-identify-your-code" title="Permanent link">&para;</a></h4>
+<p>This is done through the <code>mlcube.py</code> file. This file defines the interface of the MLCube and should be linked to your inference logic.</p>
+<div class="language-python highlight"><span class="filename">mlcube.py</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="sd">&quot;&quot;&quot;MLCube handler file&quot;&quot;&quot;</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span> <span class="nn">typer</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">app</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Typer</span><span class="p">()</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;infer&quot;</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--data_path&quot;</span><span class="p">),</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">parameters_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--parameters_file&quot;</span><span class="p">),</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--output_path&quot;</span><span class="p">),</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="c1"># Provide additional parameters as described in the mlcube.yaml file</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="c1"># e.g. model weights:</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="c1"># weights: str = typer.Option(..., &quot;--weights&quot;),</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">):</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="c1"># Modify the prepare command as needed</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;The evaluate method is not yet implemented&quot;</span><span class="p">)</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;hotfix&quot;</span><span class="p">)</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="k">def</span> <span class="nf">hotfix</span><span class="p">():</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>    <span class="c1"># NOOP command for typer to behave correctly. DO NOT REMOVE OR MODIFY</span>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>    <span class="k">pass</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>    <span class="n">app</span><span class="p">()</span>
+</span></code></pre></div>
+<p>As shown above, this file exposes a command <code>infer</code>. It's basic arguments are the input data path, the output predictions path, and a parameters file path.</p>
+<p>The parameters file, as will be explained in the upcoming sections, gives flexibility to your MLCube. For example, instead of hardcoding the inference batch size in the code, it can be configured by passing a parameters file to your MLCube which contains its value. This way, your same MLCube can be reused with multiple batch sizes by just changing the input parameters file.</p>
+<p>You should ignore the <code>hotfix</code> command as described in the file.</p>
+<p>The <code>infer</code> command will be automatically called by the MLCube when it's built and run. This command should call your inference logic. Make sure you replace its contents with a code that calls your inference logic. This could be by importing a function from your code files and calling it with the necessary arguments.</p>
+<h4 id="prepare-your-dockerfile">Prepare your Dockerfile<a class="headerlink" href="#prepare-your-dockerfile" title="Permanent link">&para;</a></h4>
+<p>The MLCube will execute a docker image whose entrypoint is <code>mlcube.py</code>. The MLCube will first build this image from the <code>Dockerfile</code> specified in the <code>project</code> folder. You can customize the Dockerfile however you want <strong>as long as the entrypoint is runs the <code>mlcube.py</code> file</strong></p>
+<p>Make sure you include in your Dockerfile any system dependency your code depends on. It is also common to have <code>pip</code> dependencies, make sure you install them in the Dockerfile as well.</p>
+<p>Below is the docker file provided in the template:</p>
+<div class="language-dockerfile highlight"><span class="filename">Dockerfile</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.9.16-slim</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">COPY</span><span class="w"> </span>./requirements.txt<span class="w"> </span>/mlcube_project/requirements.txt<span class="w"> </span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">RUN</span><span class="w"> </span>pip3<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>/mlcube_project/requirements.txt
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">ENV</span><span class="w"> </span>LANG<span class="w"> </span>C.UTF-8
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>/mlcube_project
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">ENTRYPOINT</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;python3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;/mlcube_project/mlcube.py&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>As shown above, this docker file makes sure <code>python</code> is available by using the python base image, installs <code>pip</code> dependencies using the <code>requirements.txt</code> file, and sets the entrypoint to run <code>mlcube.py</code>. Note that the MLCube tool will invoke the Docker <code>build</code> command from the <code>project</code> folder, so it will copy all your files found in the <code>project</code> to the Docker image.</p>
+<h3 id="the-mlcube-folder">The <code>mlcube</code> folder<a class="headerlink" href="#the-mlcube-folder" title="Permanent link">&para;</a></h3>
+<p>This folder is mainly for configuring your MLCube and providing additional files the MLCube may interact with, such as parameters or model weights.</p>
+<h4 id="include-additional-input-files">Include additional input files<a class="headerlink" href="#include-additional-input-files" title="Permanent link">&para;</a></h4>
+<h5 id="parameters">parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h5>
+<p>Your inference logic may depend on some parameters (e.g. inference batch size). It is usually a more favorable design to not hardcode such parameters, but instead pass them when running the MLCube. This can be done by having a <code>parameters.yaml</code> file as an input to the MLCube. This file will be available to the <code>infer</code> command described before. You can parse this file in the <code>mlcube.py</code> file and pass its contents to your code.</p>
+<p>This file should be placed in the <code>mlcube/workspace</code> folder.</p>
+<h5 id="model-weights">model weights<a class="headerlink" href="#model-weights" title="Permanent link">&para;</a></h5>
+<p>It is a good practice not to ship your model weights within the docker image to reduce the image size and provide flexibility of running the MLCube with different model weights. To do this, model weights path should be provided as a separate parameter to the MLCube. You should place your model weights in a folder named <code>additional_files</code> inside the <code>mlcube/workspace</code> folder. This is how MedPerf expects any additional input to your MLCube beside the data path and the paramters file.</p>
+<p>After placing your model weights in <code>mlcube/workspace/additional_files</code>, you have to modify two files:</p>
+<ul>
+<li><code>mlcube.py</code>: add an argument to the <code>infer</code> command which will correspond to the path of your model weights. Remember also to pass this argument to your inference logic.</li>
+<li><code>mlcube.yaml</code>: The next section introduces this file and describes it in details. You should add your extra input arguments to this file as well, as described below.</li>
+</ul>
+<h4 id="configure-your-mlcube">Configure your MLCube<a class="headerlink" href="#configure-your-mlcube" title="Permanent link">&para;</a></h4>
+<p>The <code>mlcube.yaml</code> file contains metadata and configuration of your mlcube. This file was already populated with the configuration you provided during the step of creating the template. There is no need to edit anything in this file except if you are specifying extra parameters to the <code>infer</code> command (e.g., model weights as described in the previous section).</p>
+<p>You will be modifying the <code>tasks</code> section of the <code>mlcube.yaml</code> file in order to account for extra additional inputs:</p>
+<div class="language-yaml highlight"><span class="filename">mlcube.yaml</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">infer</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="c1"># Computes predictions on input data</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="nt">          data_path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/</span><span class="p p-Indicator">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="nt">          parameters_file</span><span class="p">:</span><span class="w"> </span><span class="nv">parameters.yaml</span><span class="p p-Indicator">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">          </span><span class="c1"># Feel free to include other files required for inference.</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">          </span><span class="c1"># These files MUST go inside the additional_files path.</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">          </span><span class="c1"># e.g. model weights</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="nt">          # weights</span><span class="p">:</span><span class="w"> </span><span class="nv">additional_files/weights.pt</span><span class="p p-Indicator">,</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">        </span><span class="p p-Indicator">}</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">      </span><span class="nt">outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> output_path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">directory</span><span class="p p-Indicator">,</span><span class="nt"> default</span><span class="p">:</span><span class="w"> </span><span class="nv">predictions</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<p>As hinted by the comments as well, you can add the additional parameters by specifying an extra key-value pair in the <code>inputs</code> dictionary of the <code>infer</code> task.</p>
+<h2 id="build-your-mlcube">Build your MLCube<a class="headerlink" href="#build-your-mlcube" title="Permanent link">&para;</a></h2>
+<p>After you follow the previous sections, the MLCube is ready to be built and run. Run the command below to build the MLCube. Make sure you are in the folder <code>model_mlcube/mlcube</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>mlcube<span class="w"> </span>configure<span class="w"> </span>-Pdocker.build_strategy<span class="o">=</span>always
+</span></code></pre></div>
+<p>This command will build your docker image and make the MLCube ready to use.</p>
+<h2 id="run-your-mlcube">Run your MLCube<a class="headerlink" href="#run-your-mlcube" title="Permanent link">&para;</a></h2>
+<p>MedPerf will take care of running your MLCube. However, it's recommended to test the MLCube alone before using it with MedPerf for better debugging.</p>
+<p>Use the command below to run the MLCube. Make sure you are in the folder <code>model_mlcube/mlcube</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>mlcube<span class="w"> </span>run<span class="w"> </span>--task<span class="w"> </span>infer<span class="w"> </span><span class="nv">data_path</span><span class="o">=</span>&lt;absolute<span class="w"> </span>path<span class="w"> </span>to<span class="w"> </span>input<span class="w"> </span>data&gt;<span class="w"> </span><span class="nv">output_path</span><span class="o">=</span>&lt;absolute<span class="w"> </span>path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>folder<span class="w"> </span>where<span class="w"> </span>predictions<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>saved&gt;
+</span></code></pre></div>
+<h2 id="a-working-example">A Working Example<a class="headerlink" href="#a-working-example" title="Permanent link">&para;</a></h2>
+<p>Assume you have the codebase below. This code can be used to predict thoracic diseases based on Chest X-ray data. The classification task is modeled as a multi-label classification class.</p>
+<details class="note">
+<summary>models.py</summary>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="sd">Taken from MedMNIST/MedMNIST.</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="k">class</span> <span class="nc">SimpleCNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">):</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>        <span class="nb">super</span><span class="p">(</span><span class="n">SimpleCNN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">layer1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>        <span class="p">)</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">layer2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>        <span class="p">)</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">layer3</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>        <span class="p">)</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">layer4</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>        <span class="p">)</span>
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">layer5</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-8-32"><a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-8-33"><a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span>
+</span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+</span><span id="__span-8-35"><a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+</span><span id="__span-8-36"><a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a>        <span class="p">)</span>
+</span><span id="__span-8-37"><a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a>
+</span><span id="__span-8-38"><a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-8-39"><a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+</span><span id="__span-8-40"><a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+</span><span id="__span-8-41"><a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+</span><span id="__span-8-42"><a id="__codelineno-8-42" name="__codelineno-8-42" href="#__codelineno-8-42"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+</span><span id="__span-8-43"><a id="__codelineno-8-43" name="__codelineno-8-43" href="#__codelineno-8-43"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">),</span>
+</span><span id="__span-8-44"><a id="__codelineno-8-44" name="__codelineno-8-44" href="#__codelineno-8-44"></a>        <span class="p">)</span>
+</span><span id="__span-8-45"><a id="__codelineno-8-45" name="__codelineno-8-45" href="#__codelineno-8-45"></a>
+</span><span id="__span-8-46"><a id="__codelineno-8-46" name="__codelineno-8-46" href="#__codelineno-8-46"></a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="__span-8-47"><a id="__codelineno-8-47" name="__codelineno-8-47" href="#__codelineno-8-47"></a>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-8-48"><a id="__codelineno-8-48" name="__codelineno-8-48" href="#__codelineno-8-48"></a>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-8-49"><a id="__codelineno-8-49" name="__codelineno-8-49" href="#__codelineno-8-49"></a>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-8-50"><a id="__codelineno-8-50" name="__codelineno-8-50" href="#__codelineno-8-50"></a>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer4</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-8-51"><a id="__codelineno-8-51" name="__codelineno-8-51" href="#__codelineno-8-51"></a>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer5</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-8-52"><a id="__codelineno-8-52" name="__codelineno-8-52" href="#__codelineno-8-52"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-8-53"><a id="__codelineno-8-53" name="__codelineno-8-53" href="#__codelineno-8-53"></a>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-8-54"><a id="__codelineno-8-54" name="__codelineno-8-54" href="#__codelineno-8-54"></a>        <span class="k">return</span> <span class="n">x</span>
+</span></code></pre></div>
+</details>
+<details class="note">
+<summary>data_loader.py</summary>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">import</span> <span class="nn">torchvision.transforms</span> <span class="k">as</span> <span class="nn">transforms</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="k">class</span> <span class="nc">CustomImageDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_path</span><span class="p">):</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>            <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">])]</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>        <span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_path</span> <span class="o">=</span> <span class="n">data_path</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>        <span class="n">img_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>        <span class="n">file_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;.npy&quot;</span><span class="p">)</span>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">file_id</span>
+</span></code></pre></div>
+</details>
+<details class="note">
+<summary>infer.py</summary>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span> <span class="nn">torch</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span> <span class="nn">models</span> <span class="kn">import</span> <span class="n">SimpleCNN</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kn">from</span> <span class="nn">data_loader</span> <span class="kn">import</span> <span class="n">CustomImageDataset</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">data_path</span> <span class="o">=</span> <span class="s2">&quot;path/to/data/folder&quot;</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="n">weights</span> <span class="o">=</span> <span class="s2">&quot;path/to/weights.pt&quot;</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="n">in_channels</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="n">num_classes</span> <span class="o">=</span> <span class="mi">14</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">5</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="c1"># load model</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="n">model</span> <span class="o">=</span> <span class="n">SimpleCNN</span><span class="p">(</span><span class="n">in_channels</span><span class="o">=</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">)</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="c1"># load prepared data</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="n">dataset</span> <span class="o">=</span> <span class="n">CustomImageDataset</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="c1"># inference</span>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="n">predictions_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>    <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">files_ids</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
+</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>        <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>        <span class="n">outputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()(</span><span class="n">outputs</span><span class="p">)</span>
+</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>        <span class="n">outputs</span> <span class="o">=</span> <span class="n">outputs</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>
+</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>        <span class="k">for</span> <span class="n">file_id</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files_ids</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>            <span class="n">predictions_dict</span><span class="p">[</span><span class="n">file_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+</span><span id="__span-10-34"><a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>
+</span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="n">pprint</span><span class="p">(</span><span class="n">predictions_dict</span><span class="p">)</span>
+</span></code></pre></div>
+</details>
+<p>Throughout the next sections, this code will be wrapped within an MLCube.</p>
+<h3 id="before-building-the-mlcube_1">Before Building the MLCube<a class="headerlink" href="#before-building-the-mlcube_1" title="Permanent link">&para;</a></h3>
+<p>The guidlines listed previously in <a href="#before-building-the-mlcube">this section</a> will now be applied to the given codebase. Assume that you were instructed by the benchmark you are participating with to have your MLCube interface as follows:</p>
+<ul>
+<li>The MLCube should expect the input data folder to contain a list of images as numpy files.</li>
+<li>The MLCube should save the predictions in a single JSON file as key-value pairs of image file ID and its corresponding prediction. A prediction should be a vector of length 14 (number of classes) and has to be the output of the Sigmoid activation layer.</li>
+</ul>
+<p>It is important to make sure that your MLCube will output an expected predictions format and consume a defined data format, since it will be used in a benchmarking pipeline whose data input is fixed and whose metrics calculation logic expects a fixed predictions format.</p>
+<p>Considering the codebase above, here are the things that should be done before proceeding to build the MLCube:</p>
+<ul>
+<li><code>infer.py</code> only prints predictions but doesn't store them. This has to be changed.</li>
+<li><code>infer.py</code> hardcodes some parameters (<code>num_classes</code>, <code>in_channels</code>, <code>batch_size</code>) as well as the path to the trained model weights. Consider making these items configurable parameters. (This is optional but recommended)</li>
+<li>Consider refactoring <code>infer.py</code> to be a function so that is can be easily called by <code>mlcube.py</code>.</li>
+</ul>
+<p>The other files <code>models.py</code> and <code>data_loader.py</code> seem to be good already. The data loader expects a folder containing a list of numpy arrays, as instructed.</p>
+<p>Here is the modified version of <code>infer.py</code> according to the points listed above:</p>
+<details class="note">
+<summary>infer.py (Modified)</summary>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span> <span class="nn">torch</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kn">from</span> <span class="nn">models</span> <span class="kn">import</span> <span class="n">SimpleCNN</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="kn">from</span> <span class="nn">data_loader</span> <span class="kn">import</span> <span class="n">CustomImageDataset</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="kn">import</span> <span class="nn">json</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="hll"><span class="k">def</span> <span class="nf">run_inference</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+</span></span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="hll">    <span class="n">in_channels</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;in_channels&quot;</span><span class="p">]</span>
+</span></span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="hll">    <span class="n">num_classes</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span>
+</span></span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="hll">    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
+</span></span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    <span class="c1"># load model</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SimpleCNN</span><span class="p">(</span><span class="n">in_channels</span><span class="o">=</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">)</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="hll">    <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span>
+</span></span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>    <span class="c1"># load prepared data</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">CustomImageDataset</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>    <span class="c1"># inference</span>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>    <span class="n">predictions_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a>    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>        <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">files_ids</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a>            <span class="n">outputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()(</span><span class="n">outputs</span><span class="p">)</span>
+</span><span id="__span-11-30"><a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>            <span class="n">outputs</span> <span class="o">=</span> <span class="n">outputs</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="__span-11-31"><a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>
+</span><span id="__span-11-32"><a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a>            <span class="k">for</span> <span class="n">file_id</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files_ids</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+</span><span id="__span-11-33"><a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a>                <span class="n">predictions_dict</span><span class="p">[</span><span class="n">file_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+</span><span id="__span-11-34"><a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a>
+</span><span id="__span-11-35"><a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a><span class="hll">    <span class="c1"># save</span>
+</span></span><span id="__span-11-36"><a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a><span class="hll">    <span class="n">preds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;predictions.json&quot;</span><span class="p">)</span>
+</span></span><span id="__span-11-37"><a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="hll">    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">preds_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span></span><span id="__span-11-38"><a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="hll">        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">predictions_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span></span></code></pre></div>
+</details>
+<h3 id="create-an-mlcube-template">Create an MLCube Template<a class="headerlink" href="#create-an-mlcube-template" title="Permanent link">&para;</a></h3>
+<p>Assuming you installed MedPerf, run the following:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>medperf<span class="w"> </span>mlcube<span class="w"> </span>create<span class="w"> </span>model
+</span></code></pre></div>
+<p>You will be prompted to fill in the configuration options. Use the following configuration as a reference:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>project_name<span class="w"> </span><span class="o">[</span>Model<span class="w"> </span>MLCube<span class="o">]</span>:<span class="w"> </span>Custom<span class="w"> </span>CNN<span class="w"> </span>Classification<span class="w"> </span>Model
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>project_slug<span class="w"> </span><span class="o">[</span>model_mlcube<span class="o">]</span>:<span class="w"> </span>model_custom_cnn
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>description<span class="w"> </span><span class="o">[</span>Model<span class="w"> </span>MLCube<span class="w"> </span>Template.<span class="w"> </span>Provided<span class="w"> </span>by<span class="w"> </span>MLCommons<span class="o">]</span>:<span class="w"> </span>MedPerf<span class="w"> </span>Tutorial<span class="w"> </span>-<span class="w"> </span>Model<span class="w"> </span>MLCube.
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>author_name<span class="w"> </span><span class="o">[</span>John<span class="w"> </span>Smith<span class="o">]</span>:<span class="w"> </span>&lt;use<span class="w"> </span>your<span class="w"> </span>name&gt;
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>accelerator_count<span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span>:<span class="w"> </span><span class="m">0</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>docker_image_name<span class="w"> </span><span class="o">[</span>docker/image:latest<span class="o">]</span>:<span class="w"> </span>repository/model-tutorial:0.0.0
+</span></code></pre></div>
+<p>Note that <code>docker_image_name</code> is arbitrarily chosen. Use a valid docker image.</p>
+<h3 id="move-your-codebase">Move your Codebase<a class="headerlink" href="#move-your-codebase" title="Permanent link">&para;</a></h3>
+<p>Move the three files of the codebase to the <code>project</code> folder. The directory tree will then look like this:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>.
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>└──<span class="w"> </span>model_custom_cnn
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span>├──<span class="w"> </span>mlcube
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span>│<span class="w">   </span>├──<span class="w"> </span>mlcube.yaml
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span>│<span class="w">   </span>└──<span class="w"> </span>workspace
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span>│<span class="w">       </span>└──<span class="w"> </span>parameters.yaml
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span>└──<span class="w"> </span>project
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">        </span>├──<span class="w"> </span>Dockerfile
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">        </span>├──<span class="w"> </span>mlcube.py
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="hll"><span class="w">        </span>├──<span class="w"> </span>models.py
+</span></span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="hll"><span class="w">        </span>├──<span class="w"> </span>data_loader.py
+</span></span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="hll"><span class="w">        </span>├──<span class="w"> </span>infer.py
+</span></span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">        </span>└──<span class="w"> </span>requirements.txt
+</span></code></pre></div>
+<h3 id="add-your-parameters-and-model-weights">Add your parameters and model weights<a class="headerlink" href="#add-your-parameters-and-model-weights" title="Permanent link">&para;</a></h3>
+<p>Since <code>num_classes</code>, <code>in_channels</code>, and <code>batch_size</code> are now parametrized, they should be defined in <code>workspace/parameters.yaml</code>. Also, the model weights should be placed inside <code>workspace/additional_files</code>.</p>
+<h4 id="add-parameters">Add parameters<a class="headerlink" href="#add-parameters" title="Permanent link">&para;</a></h4>
+<p>Modify <code>parameters.yaml</code> to include the following:</p>
+<div class="language-yaml highlight"><span class="filename">parameters.yaml</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">in_channels</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nt">num_classes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">14</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+</span></code></pre></div>
+<h4 id="add-model-weights">Add model weights<a class="headerlink" href="#add-model-weights" title="Permanent link">&para;</a></h4>
+<p>Download the following model weights to use in this example: <a href="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz">Click here to Download</a></p>
+<p>Extract the file to <code>workspace/additional_files</code>. The directory tree should look like this:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>.
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>└──<span class="w"> </span>model_custom_cnn
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span>├──<span class="w"> </span>mlcube
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span>│<span class="w">   </span>├──<span class="w"> </span>mlcube.yaml
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span>│<span class="w">   </span>└──<span class="w"> </span>workspace
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="hll"><span class="w">    </span>│<span class="w">       </span>├──<span class="w"> </span>additional_files
+</span></span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="hll"><span class="w">    </span>│<span class="w">       </span>│<span class="w">   </span>└──<span class="w"> </span>cnn_weights.pth
+</span></span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span>│<span class="w">       </span>└──<span class="w"> </span>parameters.yaml
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span>└──<span class="w"> </span>project
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">        </span>├──<span class="w"> </span>Dockerfile
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">        </span>├──<span class="w"> </span>mlcube.py
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">        </span>├──<span class="w"> </span>models.py
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">        </span>├──<span class="w"> </span>data_loader.py
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">        </span>├──<span class="w"> </span>infer.py
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">        </span>└──<span class="w"> </span>requirements.txt
+</span></code></pre></div>
+<h3 id="modify-mlcubepy">Modify <code>mlcube.py</code><a class="headerlink" href="#modify-mlcubepy" title="Permanent link">&para;</a></h3>
+<p>Next, the inference logic should be triggered from <code>mlcube.py</code>. The <code>parameters_file</code> will be read in <code>mlcube.py</code> and passed as a dictionary to the inference logic. Also, an extra parameter <code>weights</code> is added to the function signature which will correspond to the model weights path. See below the modified <code>mlcube.py</code> file.</p>
+<details class="note">
+<summary>mlcube.py (Modified)</summary>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="sd">&quot;&quot;&quot;MLCube handler file&quot;&quot;&quot;</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">import</span> <span class="nn">typer</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="hll"><span class="kn">import</span> <span class="nn">yaml</span>
+</span></span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="hll"><span class="kn">from</span> <span class="nn">infer</span> <span class="kn">import</span> <span class="n">run_inference</span>
+</span></span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">app</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Typer</span><span class="p">()</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;infer&quot;</span><span class="p">)</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>    <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--data_path&quot;</span><span class="p">),</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>    <span class="n">parameters_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--parameters_file&quot;</span><span class="p">),</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--output_path&quot;</span><span class="p">),</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="hll">    <span class="n">weights</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--weights&quot;</span><span class="p">),</span>
+</span></span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="p">):</span>
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="hll">    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">parameters_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span></span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="hll">        <span class="n">parameters</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</span></span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="hll">
+</span></span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a><span class="hll">    <span class="n">run_inference</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+</span></span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a>
+</span><span id="__span-17-22"><a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a>
+</span><span id="__span-17-23"><a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;hotfix&quot;</span><span class="p">)</span>
+</span><span id="__span-17-24"><a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a><span class="k">def</span> <span class="nf">hotfix</span><span class="p">():</span>
+</span><span id="__span-17-25"><a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a>    <span class="c1"># NOOP command for typer to behave correctly. DO NOT REMOVE OR MODIFY</span>
+</span><span id="__span-17-26"><a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a>    <span class="k">pass</span>
+</span><span id="__span-17-27"><a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a>
+</span><span id="__span-17-28"><a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a>
+</span><span id="__span-17-29"><a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-17-30"><a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a>    <span class="n">app</span><span class="p">()</span>
+</span></code></pre></div>
+</details>
+<h3 id="prepare-the-dockerfile">Prepare the Dockerfile<a class="headerlink" href="#prepare-the-dockerfile" title="Permanent link">&para;</a></h3>
+<p>The provided Dockerfile in the template is enough and preconfigured to download <code>pip</code> dependencies from the <code>requirements.txt</code> file. All that is needed is to modify the <code>requirements.txt</code> file to include the project's pip dependencies.</p>
+<div class="language-text highlight"><span class="filename">requirements.txt</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>typer==0.9.0
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>numpy==1.24.3
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>PyYAML==6.0
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>torch==2.0.1
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>torchvision==0.15.2
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>tqdm==4.65.0
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>--extra-index-url https://download.pytorch.org/whl/cpu
+</span></code></pre></div>
+<h3 id="modify-mlcubeyaml">Modify <code>mlcube.yaml</code><a class="headerlink" href="#modify-mlcubeyaml" title="Permanent link">&para;</a></h3>
+<p>Since the extra parameter <code>weights</code> was added to the <code>infer</code> task in <code>mlcube.py</code>, this has to be reflected on the defined MLCube interface in the <code>mlcube.yaml</code> file. Modify the <code>tasks</code> section to include an extra input parameter: <code>weights: additional_files/cnn_weights.pth</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The MLCube tool interprets these paths as relative to the <code>workspace</code>.</p>
+</div>
+<p>The <code>tasks</code> section will then look like this:</p>
+<div class="language-yaml highlight"><span class="filename">mlcube.yaml</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">infer</span><span class="p">:</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="c1"># Computes predictions on input data</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">      </span><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">        </span><span class="p p-Indicator">{</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="nt">          data_path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/</span><span class="p p-Indicator">,</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="nt">          parameters_file</span><span class="p">:</span><span class="w"> </span><span class="nv">parameters.yaml</span><span class="p p-Indicator">,</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="hll"><span class="nt">          weights</span><span class="p">:</span><span class="w"> </span><span class="nv">additional_files/cnn_weights.pth</span><span class="p p-Indicator">,</span>
+</span></span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">        </span><span class="p p-Indicator">}</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">      </span><span class="nt">outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> output_path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">directory</span><span class="p p-Indicator">,</span><span class="nt"> default</span><span class="p">:</span><span class="w"> </span><span class="nv">predictions</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<h3 id="build-your-mlcube_1">Build your MLCube<a class="headerlink" href="#build-your-mlcube_1" title="Permanent link">&para;</a></h3>
+<p>Run the command below to create the MLCube. Make sure you are in the folder <code>model_custom_cnn/mlcube</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>mlcube<span class="w"> </span>configure<span class="w"> </span>-Pdocker.build_strategy<span class="o">=</span>always
+</span></code></pre></div>
+<p>This command will build your docker image and make the MLCube ready to use.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Run <code>docker image ls</code> to see your built Docker image.</p>
+</div>
+<h3 id="run-your-mlcube_1">Run your MLCube<a class="headerlink" href="#run-your-mlcube_1" title="Permanent link">&para;</a></h3>
+<p>Download a sample data to run on: <a href="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_prepared_data.tar.gz">Click here to Download</a></p>
+<p>Extract the data. You will get a folder <code>sample_prepared_data</code> containing a list chest X-ray images as numpy arrays.</p>
+<p>Use the command below to run the MLCube. Make sure you are in the the folder <code>model_custom_cnn/mlcube</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>mlcube<span class="w"> </span>run<span class="w"> </span>--task<span class="w"> </span>infer<span class="w"> </span><span class="nv">data_path</span><span class="o">=</span>&lt;absolute<span class="w"> </span>path<span class="w"> </span>to<span class="w"> </span><span class="sb">`</span>sample_prepared_data<span class="sb">`</span>&gt;<span class="w"> </span><span class="nv">output_path</span><span class="o">=</span>&lt;absolute<span class="w"> </span>path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>folder<span class="w"> </span>where<span class="w"> </span>predictions<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>saved&gt;
+</span></code></pre></div>
+<h2 id="using-the-example-with-gpus">Using the Example with GPUs<a class="headerlink" href="#using-the-example-with-gpus" title="Permanent link">&para;</a></h2>
+<p>The provided example codebase runs only on CPU. You can modify it to have <code>pytorch</code> run inference on a GPU.</p>
+<p>The general instructions for building an MLCube to work with a GPU are the same as the provided instructions, but with the following slight modifications:</p>
+<ul>
+<li>Make sure you install the required GPU dependencies in the docker image. For instance, this may be done by simply modifying the <code>pip</code> dependencies in the <code>requirements.txt</code> file to download <code>pytorch</code> with cuda, or by changing the base image of the dockerfile.</li>
+</ul>
+<p>For testing your MLCube with GPUs using the MLCube tool as in the previous section, make sure you run the <code>mlcube run</code> command with a <code>--gpus</code> argument. Example: <code>mlcube run --gpus=all ...</code></p>
+<p>For testing your MLCube with GPUs using MedPerf, make sure you pass as well the <code>--gpus</code> argument to the MedPerf command. Example: <code>medperf --gpus=all &lt;subcommand&gt; ...</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Run <code>medperf --help</code> to see the possible options you can use for the <code>--gpus</code> argument.</p>
+</div>
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 9v12H1V9h4m4 12a2 2 0 0 1-2-2V9c0-.55.22-1.05.59-1.41L14.17 1l1.06 1.06c.27.27.44.64.44 1.05l-.03.32L14.69 8H21a2 2 0 0 1 2 2v2c0 .26-.05.5-.14.73l-3.02 7.05C19.54 20.5 18.83 21 18 21H9m0-2h9.03L21 12v-2h-8.79l1.13-5.32L9 9.03V19Z"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 15V3h4v12h-4M15 3a2 2 0 0 1 2 2v10c0 .55-.22 1.05-.59 1.41L9.83 23l-1.06-1.06c-.27-.27-.44-.64-.44-1.06l.03-.31.95-4.57H3a2 2 0 0 1-2-2v-2c0-.26.05-.5.14-.73l3.02-7.05C4.46 3.5 5.17 3 6 3h9m0 2H5.97L3 12v2h8.78l-1.13 5.32L15 14.97V5Z"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              Thanks for your feedback! Help us improve this page by using our <a href="https://github.com/mlcommons/medperf/issues/new?title=[Feedback]+Creating%20Model%20MLCubes%20from%20Scratch+-+/mlcubes/mlcube_models/" target="_blank" rel="noopener">feedback form</a>.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "content.code.annotate", "content.code.copy", "navigation.sections"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+        
+          <script src="../../scripts/script.js"></script>
+        
+      
+    
+  </body>
+</html>
