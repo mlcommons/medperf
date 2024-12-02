@@ -132,7 +132,7 @@ class BenchmarkDetail(GenericAPIView):
         Retrieve a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        serializer = BenchmarkSerializer(benchmark)
+        serializer = BenchmarkSerializer(benchmark, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):

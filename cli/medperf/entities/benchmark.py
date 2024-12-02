@@ -28,6 +28,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     data_evaluator_mlcube: int
     metadata: dict = {}
     user_metadata: dict = {}
+    institutions: dict = {}
     is_active: bool = True
 
     @staticmethod

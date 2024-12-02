@@ -9,6 +9,16 @@ class BenchmarkSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["owner", "approved_at", "approval_status"]
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+
+        # Remove institutions field if user is not the owner
+        if request and request.user != instance.owner:
+            representation.pop("institutions", None)
+
+        return representation
+
     def validate(self, data):
         owner = self.context["request"].user
         pending_benchmarks = Benchmark.objects.filter(
