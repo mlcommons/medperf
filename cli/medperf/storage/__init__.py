@@ -3,7 +3,7 @@ import shutil
 import time
 
 from medperf import config
-from medperf.config_management import read_config, write_config
+from medperf.config_management import read_config, write_config, ConfigManager
 
 from .utils import full_folder_path
 
@@ -20,13 +20,7 @@ def init_storage():
         os.makedirs(folder, exist_ok=True)
 
 
-def apply_configuration_migrations():
-    if not os.path.exists(config.config_path):
-        return
-
-    config_p = read_config()
-
-    # Migration for moving the logs folder to a new location
+def __apply_logs_migrations(config_p: ConfigManager):
     if "logs_folder" not in config_p.storage:
         return
 
@@ -37,6 +31,22 @@ def apply_configuration_migrations():
 
     del config_p.storage["logs_folder"]
 
+
+def __apply_training_migrations(config_p: ConfigManager):
+
+    for folder in [
+        "aggregators_folder",
+        "cas_folder",
+        "training_events_folder",
+        "training_folder",
+    ]:
+        if folder not in config_p.storage:
+            # Assuming for now all folders are always moved together
+            # I used here "benchmarks_folder" arbitrarily
+            config_p.storage[folder] = config_p.storage["benchmarks_folder"]
+
+
+def __apply_login_tracking_migrations(config_p: ConfigManager):
     # Migration for tracking the login timestamp (i.e., refresh token issuance timestamp)
     if config.credentials_keyword in config_p.active_profile:
         # So the user is logged in
@@ -48,5 +58,15 @@ def apply_configuration_migrations():
             config_p.active_profile[config.credentials_keyword][
                 "logged_in_at"
             ] = time.time()
+
+
+def apply_configuration_migrations():
+    if not os.path.exists(config.config_path):
+        return
+
+    config_p = read_config()
+    __apply_logs_migrations(config_p)
+    __apply_training_migrations(config_p)
+    __apply_login_tracking_migrations(config_p)
 
     write_config(config_p)

@@ -25,7 +25,7 @@ def test_run_fails_if_invalid_arguments(mocker, comms, ui, dset_uid, mlcube_uid)
 @pytest.mark.parametrize("status", [Status.APPROVED, Status.REJECTED])
 def test_run_calls_comms_dset_approval_with_status(mocker, comms, ui, dset_uid, status):
     # Arrange
-    spy = mocker.patch.object(comms, "set_dataset_association_approval")
+    spy = mocker.patch.object(comms, "update_benchmark_dataset_association")
 
     # Act
     Approval.run(1, status, dataset_uid=dset_uid)
@@ -40,7 +40,7 @@ def test_run_calls_comms_mlcube_approval_with_status(
     mocker, comms, ui, mlcube_uid, status
 ):
     # Arrange
-    spy = mocker.patch.object(comms, "set_mlcube_association_approval")
+    spy = mocker.patch.object(comms, "update_benchmark_model_association")
 
     # Act
     Approval.run(1, status, mlcube_uid=mlcube_uid)

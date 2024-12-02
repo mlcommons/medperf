@@ -169,14 +169,14 @@ def test_cube_run_are_called_properly(mocker, setup):
 
     exp_model_call = call(
         task="infer",
-        output_logs=exp_model_logs_path,
+        output_logs_file=exp_model_logs_path,
         timeout=config.infer_timeout,
         data_path=INPUT_DATASET.data_path,
         output_path=exp_preds_path,
     )
     exp_eval_call = call(
         task="evaluate",
-        output_logs=exp_metrics_logs_path,
+        output_logs_file=exp_metrics_logs_path,
         timeout=config.evaluate_timeout,
         predictions=exp_preds_path,
         labels=INPUT_DATASET.labels_path,

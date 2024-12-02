@@ -130,7 +130,7 @@ This command will first run the benchmark's workflow on your model to ensure you
 #### What Happens After Requesting the Association?
 
 ![Benchmark Committee accepts / rejects models](../tutorial_images/mo-4-bc-accepts-rejects-models.png){class="tutorial-sticky-image-content"}
-When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your MLCube and the benchmark with which you are requesting association.
+When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls -bm`. The association is identified by the server UIDs of your MLCube and the benchmark with which you are requesting association.
 
 ![The end](../tutorial_images/the-end.png){class="tutorial-sticky-image-content"}
 {% include "getting_started/shared/cleanup.md" %}

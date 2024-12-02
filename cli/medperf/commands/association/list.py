@@ -1,47 +1,55 @@
 from tabulate import tabulate
 
 from medperf import config
+from medperf.commands.association.utils import validate_args, get_associations_list
 
 
 class ListAssociations:
     @staticmethod
-    def run(filter: str = None):
-        """Get Pending association requests"""
-        comms = config.comms
-        ui = config.ui
-        dset_assocs = comms.get_datasets_associations()
-        cube_assocs = comms.get_cubes_associations()
+    def run(
+        benchmark,
+        training_exp,
+        dataset,
+        mlcube,
+        aggregator,
+        ca,
+        approval_status,
+    ):
+        """Get user association requests"""
+        validate_args(
+            benchmark, training_exp, dataset, mlcube, aggregator, ca, approval_status
+        )
+        if training_exp:
+            experiment_key = "training_exp"
+        elif benchmark:
+            experiment_key = "benchmark"
 
-        # Might be worth seeing if creating an association class that encapsulates
-        # most of the logic here is useful
-        assocs = dset_assocs + cube_assocs
-        if filter:
-            filter = filter.upper()
-            assocs = [assoc for assoc in assocs if assoc["approval_status"] == filter]
+        if mlcube:
+            component_key = "model_mlcube"
+        elif dataset:
+            component_key = "dataset"
+        elif aggregator:
+            component_key = "aggregator"
+        elif ca:
+            component_key = "ca"
+
+        assocs = get_associations_list(experiment_key, component_key, approval_status)
 
         assocs_info = []
         for assoc in assocs:
             assoc_info = (
-                assoc.get("dataset", None),
-                assoc.get("model_mlcube", None),
-                assoc["benchmark"],
+                assoc[component_key],
+                assoc[experiment_key],
                 assoc["initiated_by"],
                 assoc["approval_status"],
-                assoc.get("priority", None),
-                # NOTE: We should find a better way to show priorities, since a priority
-                # is better shown when listing cube associations only, of a specific
-                # benchmark. Maybe this is resolved after we add a general filtering
-                # feature to list commands.
             )
             assocs_info.append(assoc_info)
 
         headers = [
-            "Dataset UID",
-            "MLCube UID",
-            "Benchmark UID",
+            f"{component_key.replace('_', ' ').title()} UID",
+            f"{experiment_key.replace('_', ' ').title()} UID",
             "Initiated by",
             "Status",
-            "Priority",
         ]
         tab = tabulate(assocs_info, headers=headers)
-        ui.print(tab)
+        config.ui.print(tab)
