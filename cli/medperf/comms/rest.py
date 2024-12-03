@@ -105,7 +105,7 @@ class REST(Comms):
             num_elements = float("inf")
 
         while len(el_list) < num_elements:
-            filters.update({"limit": page_size, "offset": {offset}})
+            filters.update({"limit": page_size, "offset": offset})
             query_str = "&".join([f"{k}={v}" for k, v in filters.items()])
             paginated_url = f"{url}?{query_str}"
             res = self.__auth_get(paginated_url)
