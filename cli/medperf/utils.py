@@ -21,7 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import CleanExit, ExecutionError, MedperfException
 
 
 def get_file_hash(path: str) -> str:
@@ -151,6 +151,25 @@ def generate_tmp_path() -> str:
     return tmp_path
 
 
+def tar(filepath: str, folders_paths: List[str]) -> None:
+    """Tars the tar.gz file
+    Args:
+        filepath (str): Path where the tar.gz file will be saved.
+        folder_path (str): Path of the data should be compressed.
+    """
+    logging.info(f"Compressing tar.gz at {filepath}")
+    if os.path.exists(filepath):
+        if not approval_prompt(
+            f"'{filepath}' already exists, do you want to overwrite it? [Y/n]"
+        ):
+            raise CleanExit("Export cancelled.")
+
+    with tarfile.open(filepath, "w:gz") as tar:
+        for folder in folders_paths:
+            tar.add(folder, arcname=os.path.basename(folder))
+            logging.info(f"Compressing tar.gz at {filepath}: {folder} Added.")
+
+
 def untar(filepath: str, remove: bool = True) -> str:
     """Untars and optionally removes the tar.gz file
 
@@ -176,6 +195,38 @@ def untar(filepath: str, remove: bool = True) -> str:
         logging.info(f"Deleting {filepath}")
         remove_path(filepath)
     return addpath
+
+
+def move_folder(src: str, dest: str) -> None:
+    """Recursively moves a folder from {src} to {dest}
+
+    Args:
+        src (str): Path of the source folder to be moved
+        dest (src): Path of the destination that the folder will be moved to
+    """
+    shutil.move(src, dest)
+    logging.info(f"Folder moved: {src} to {dest}")
+
+
+def copy_file(src: str, dest: str) -> None:
+    """Copy file from {src} to {dest}
+
+    Args:
+        src (str): Path of the source file to be copies
+        dest (src): Path of the destination that the file will be copied to
+    """
+    shutil.copyfile(src, dest)
+    logging.info(f"File copied: {src} to {dest}")
+
+
+def create_folders(path: str) -> None:
+    """Creates folder recursively at {path}
+
+    Args:
+        path (str): path to create the new folder(s)
+    """
+    os.makedirs(path)
+    logging.info(f"Folder(s) created at: {path}")
 
 
 def approval_prompt(msg: str) -> bool:

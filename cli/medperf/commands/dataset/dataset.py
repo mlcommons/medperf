@@ -10,6 +10,7 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.manage import ImportDataset, ExportDataset
 
 app = typer.Typer()
 
@@ -170,3 +171,39 @@ def view(
 ):
     """Displays the information of one or more datasets"""
     EntityView.run(entity_id, Dataset, format, unregistered, mine, output)
+
+
+@app.command("import")
+@clean_except
+def import_dataset(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Dataset UID to be imported"
+    ),
+    input: str = typer.Option(
+        ...,
+        "--input",
+        "-i",
+        help="Input file (.gz) to import the dataset backup.",
+    ),
+):
+    """Imports dataset files from specified tar.gz file."""
+    ImportDataset.run(data_uid, input)
+    config.ui.print("✅ Done!")
+
+
+@app.command("export")
+@clean_except
+def export_dataset(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Dataset UID to be exported"
+    ),
+    output: str = typer.Option(
+        ...,
+        "--output",
+        "-o",
+        help="Output folder to export the dataset backup.",
+    ),
+):
+    """Exports dataset files to a tar.gz file in the specified output folder."""
+    ExportDataset.run(data_uid, output)
+    config.ui.print("✅ Done!")
