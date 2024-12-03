@@ -12,8 +12,8 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
     setup_dset_fs,
     setup_dset_comms,
-    setup_result_fs,
-    setup_result_comms,
+    setup_execution_fs,
+    setup_execution_comms,
 )
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
@@ -49,8 +49,8 @@ def setup(request, mocker, comms, Implementation, fs):
         setup_fs = setup_dset_fs
         setup_comms = setup_dset_comms
     elif Implementation == Execution:
-        setup_fs = setup_result_fs
-        setup_comms = setup_result_comms
+        setup_fs = setup_execution_fs
+        setup_comms = setup_execution_comms
 
     setup_comms(mocker, comms, remote_ids, user_ids, uploaded)
     setup_fs(local_ids, fs)

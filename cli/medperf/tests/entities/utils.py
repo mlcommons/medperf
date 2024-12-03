@@ -168,7 +168,7 @@ def setup_execution_fs(ents, fs):
         else:
             execution_contents = TestExecution(id=None, name=ent)
 
-        execution_file = os.path.join(execution_contents.path, config.executions_info_file)
+        execution_file = os.path.join(execution_contents.path, config.results_info_file)
         bmk_id = execution_contents.benchmark
         cube_id = execution_contents.model
         dataset_id = execution_contents.dataset
