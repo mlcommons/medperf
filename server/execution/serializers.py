@@ -63,5 +63,4 @@ class ExecutionDetailSerializer(serializers.ModelSerializer):
             "benchmark",
             "model",
             "dataset",
-            "results",
         ]

@@ -65,6 +65,7 @@ class Execution(Entity, ApprovableSchema):
         comms_fn = config.comms.get_executions
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_executions
+            del filters["owner"]
         elif "benchmark" in filters and filters["benchmark"] is not None:
             # Only override the communications method if its not related to
             # the current user
@@ -72,6 +73,7 @@ class Execution(Entity, ApprovableSchema):
             # without getting permission errors.
             # Users will still be able to filter by benchmark through query params
             bmk = filters["benchmark"]
+            del filters["benchmark"]
 
             def get_benchmark_executions(*args, **kwargs):
                 # Decorate the benchmark results remote function so it has the same signature

@@ -75,7 +75,6 @@ class ExecutionDetail(GenericAPIView):
         Update a execution instance.
         """
         execution = self.get_object(pk)
-        print(request.data)
         serializer = ExecutionDetailSerializer(execution, data=request.data)
         if serializer.is_valid():
             serializer.save()

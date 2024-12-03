@@ -207,19 +207,19 @@ class BenchmarkExecution:
                 )
                 continue
 
-            partial = execution_summary["partial"]
-            results = execution_summary["results"]
-            result = self.__write_result(model_uid, results, partial)
+            execution.results = execution_summary["results"]
+            execution.metadata = {"partial": execution_summary["partial"]}
+            execution.write()
 
             self.experiments.append(
                 {
                     "model_uid": model_uid,
-                    "result": result,
+                    "execution": execution,
                     "cached": False,
                     "error": "",
                 }
             )
-        return [experiment["result"] for experiment in self.experiments]
+        return [experiment["execution"] for experiment in self.experiments]
 
     def __handle_experiment_error(self, model_uid, exception):
         if isinstance(exception, InvalidEntityError):
@@ -251,29 +251,12 @@ class BenchmarkExecution:
 
         # Create a new execution instance
         query_dict["name"] = self.__execution_name(model_uid)
-        execution = Execution(**query_dict)
-        execution.upload()
+        exec_dict = Execution(**query_dict).upload()
+        execution = Execution(**exec_dict)
         return execution
         
-
-    def __result_dict(self, model_uid, results, partial):
-        return {
-            "name": self.__execution_name(model_uid),
-            "benchmark": self.benchmark_uid,
-            "model": model_uid,
-            "dataset": self.data_uid,
-            "results": results,
-            "metadata": {"partial": partial},
-        }
-
     def __execution_name(self, model_uid):
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
-
-    def __write_result(self, model_uid, results, partial):
-        results_info = self.__result_dict(model_uid, results, partial)
-        result = Execution(**results_info)
-        result.write()
-        return result
 
     def print_summary(self):
         headers = ["model", "local result UID", "partial result", "from cache", "error"]
