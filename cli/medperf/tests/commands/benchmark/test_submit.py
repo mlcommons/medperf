@@ -23,7 +23,7 @@ BENCHMARK_INFO = {
 
 @pytest.fixture
 def result(mocker):
-    result_obj = mocker.create_autospec(spec=Result)
+    result_obj = mocker.create_autospec(spec=Execution)
     # mocker.patch.object(result_obj, "todict", return_value={})
     result_obj.results = {}
     return result_obj

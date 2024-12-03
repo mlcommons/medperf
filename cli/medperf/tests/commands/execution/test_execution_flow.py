@@ -1,6 +1,6 @@
 import os
 from unittest.mock import ANY, call
-from medperf.commands.execution import Execution
+from medperf.commands.execution.execution_flow import ExecutionFlow
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
@@ -77,7 +77,7 @@ class TestFailures:
     def test_failure_with_failing_cubes_and_no_ignore_error(mocker, setup):
         # Act & Assert
         with pytest.raises(ExecutionError):
-            Execution.run(
+            ExecutionFlow.run(
                 INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=False
             )
 
@@ -85,14 +85,14 @@ class TestFailures:
     def test_failure_with_failing_eval_and_ignore_error(mocker, setup):
         # Act & Assert
         with pytest.raises(ExecutionError):
-            Execution.run(
+            ExecutionFlow.run(
                 INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
             )
 
     @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
     def test_no_failure_with_ignore_error(mocker, setup):
         # Act & Assert
-        Execution.run(
+        ExecutionFlow.run(
             INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
         )
 
@@ -109,7 +109,7 @@ class TestFailures:
         fs.create_dir(preds_path)
         # Act & Assert
         with pytest.raises(ExecutionError):
-            Execution.run(
+            ExecutionFlow.run(
                 INPUT_DATASET,
                 INPUT_MODEL,
                 INPUT_EVALUATOR,
@@ -120,7 +120,7 @@ class TestFailures:
 @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
 def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
     # Act
-    execution_summary = Execution.run(
+    execution_summary = ExecutionFlow.run(
         INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
     )
     # Assert
@@ -130,7 +130,7 @@ def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_no_partial_result_by_default(mocker, setup):
     # Act
-    execution_summary = Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    execution_summary = ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
     # Assert
     assert not execution_summary["partial"]
 
@@ -138,7 +138,7 @@ def test_no_partial_result_by_default(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_results_are_returned(mocker, setup):
     # Act
-    execution_summary = Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    execution_summary = ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
     # Assert
     state_variables = setup[0]
     assert execution_summary["results"] == state_variables["execution_results"]
@@ -183,7 +183,7 @@ def test_cube_run_are_called_properly(mocker, setup):
         output_path=ANY,
     )
     # Act
-    Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
     # Assert
     spies = setup[1]
     spies["model_run"].assert_has_calls([exp_model_call])

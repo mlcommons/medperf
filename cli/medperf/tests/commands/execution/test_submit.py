@@ -1,7 +1,7 @@
 from medperf.exceptions import CleanExit
 import pytest
 
-from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.execution import TestExecution
 from medperf.tests.mocks.dataset import TestDataset
 
 from medperf.commands.execution.submit import ResultSubmission
@@ -12,7 +12,7 @@ PATCH_SUBMISSION = "medperf.commands.execution.submit.{}"
 
 @pytest.fixture
 def result():
-    return TestResult(id=None, approval_status=Status.PENDING)
+    return TestExecution(id=None, approval_status=Status.PENDING)
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@ from typing import Optional
 from medperf.entities.execution import Execution
 
 
-class TestResult(Result):
+class TestExecution(Execution):
     id: Optional[int] = 1
     name: str = "name"
     benchmark: int = 1

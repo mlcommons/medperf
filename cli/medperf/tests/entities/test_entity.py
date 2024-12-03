@@ -18,7 +18,7 @@ from medperf.tests.entities.utils import (
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-@pytest.fixture(params=[Benchmark, Cube, Dataset, Result])
+@pytest.fixture(params=[Benchmark, Cube, Dataset, Execution])
 def Implementation(request):
     return request.param
 
@@ -48,7 +48,7 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Dataset:
         setup_fs = setup_dset_fs
         setup_comms = setup_dset_comms
-    elif Implementation == Result:
+    elif Implementation == Execution:
         setup_fs = setup_result_fs
         setup_comms = setup_result_comms
 

@@ -30,6 +30,7 @@ class ExecutionFlow:
         execution_flow = cls(dataset, model, evaluator, execution, ignore_model_errors)
         execution_flow.prepare()
         with execution_flow.ui.interactive():
+            execution_flow.set_pending_status()
             execution_flow.run_inference()
             execution_flow.run_evaluation()
         execution_summary = execution_flow.todict()
@@ -83,6 +84,10 @@ class ExecutionFlow:
             msg += "folder if you wish to overwrite the predictions."
             raise ExecutionError(msg)
         return preds_path
+
+    def set_pending_status(self):
+        self.__send_model_report("pending")
+        self.__send_evaluator_report("pending")
 
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"

@@ -5,7 +5,7 @@ from medperf.exceptions import ExecutionError, InvalidArgumentError, InvalidEnti
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.execution import TestExecution
 import pytest
 
 from medperf.commands.execution.create import BenchmarkExecution
@@ -54,7 +54,7 @@ def mock_dataset(mocker, state_variables):
 def mock_result_all(mocker, state_variables):
     cached_results_triplets = state_variables["cached_results_triplets"]
     results = [
-        TestResult(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
+        TestExecution(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
         for triplet in cached_results_triplets
     ]
     mocker.patch(
