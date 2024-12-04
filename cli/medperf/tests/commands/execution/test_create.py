@@ -60,7 +60,14 @@ def mock_result_all(mocker, state_variables):
     mocker.patch(
         PATCH_EXECUTION.format("get_medperf_user_data", return_value={"id": 1})
     )
-    mocker.patch(PATCH_EXECUTION.format("Result.all"), return_value=results)
+    
+    def __get_side_effect(unregistered: bool = False, filters: dict = {}):
+        return [
+            result for result in results
+            if all(result.todict().get(key) == value for key, value in filters.items())
+        ]
+
+    mocker.patch(PATCH_EXECUTION.format("Execution.all"), side_effect=__get_side_effect)
 
 
 def mock_cube(mocker, state_variables):
@@ -85,13 +92,13 @@ def mock_cube(mocker, state_variables):
 def mock_execution(mocker, state_variables):
     models_props = state_variables["models_props"]
 
-    def __exec_side_effect(dataset, model, evaluator, ignore_model_errors):
+    def __exec_side_effect(dataset, model, evaluator, execution, ignore_model_errors):
         if models_props[model.id] == "exec_error":
             raise ExecutionError
         return models_props[model.id]
 
     return mocker.patch(
-        PATCH_EXECUTION.format("Execution.run"), side_effect=__exec_side_effect
+        PATCH_EXECUTION.format("ExecutionFlow.run"), side_effect=__exec_side_effect
     )
 
 
@@ -286,6 +293,7 @@ class TestDefaultSetup:
                     dataset=ANY,
                     model=ANY,
                     evaluator=ANY,
+                    execution=ANY,
                     ignore_model_errors=ignore_model_errors,
                 )
             ]
