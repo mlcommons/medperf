@@ -20,13 +20,29 @@ def list(
         False, "--unregistered", help="Get unregistered benchmarks"
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
+    name: str = typer.Option(None, "--name", help="Filter by name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner"),
+    state: str = typer.Option(None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"),
+    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Filter by valid status"),
+    is_active: bool = typer.Option(None, "--active/--inactive", help="Filter by active status"),
+    data_prep: int = typer.Option(None, "-d", "--data-preparation-mlcube", help="Filter by Data Preparation MLCube"),
 ):
     """List benchmarks"""
+    filters = {
+        "name": name,
+        "owner": owner,
+        "state": state,
+        "is_valid": is_valid,
+        "is_active": is_active,
+        "data_preparation_mlcube": data_prep
+    }
+
     EntityList.run(
         Benchmark,
-        fields=["UID", "Name", "Description", "State", "Approval Status", "Registered"],
+        fields=["UID", "Name", "Description", "Data Preparation MLCube", "State", "Approval Status", "Registered"],
         unregistered=unregistered,
         mine_only=mine,
+        **filters,
     )
 
 

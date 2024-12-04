@@ -69,6 +69,12 @@ def list(
     benchmark: int = typer.Option(
         None, "--benchmark", "-b", help="Get results for a given benchmark"
     ),
+    model: int = typer.Option(
+        None, "--owner", "-o", help="Get results for a given model"
+    ),
+    dataset: int = typer.Option(
+        None, "--dataset", "-d", help="Get reuslts for a given dataset"
+    ),
 ):
     """List results"""
     EntityList.run(
@@ -77,6 +83,8 @@ def list(
         unregistered=unregistered,
         mine_only=mine,
         benchmark=benchmark,
+        model=model,
+        dataset=dataset,
     )
 
 

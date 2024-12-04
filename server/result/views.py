@@ -12,6 +12,7 @@ from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner
 class ModelResultList(GenericAPIView):
     serializer_class = ModelResultSerializer
     queryset = ""
+    filterset_fields = ('name', 'owner', 'benchmark', 'model', 'dataset', 'is_valid', 'approval_status')
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -26,6 +27,7 @@ class ModelResultList(GenericAPIView):
         List all results
         """
         modelresults = ModelResult.objects.all()
+        modelresults = self.filter_queryset(modelresults)
         modelresults = self.paginate_queryset(modelresults)
         serializer = ModelResultSerializer(modelresults, many=True)
         return self.get_paginated_response(serializer.data)

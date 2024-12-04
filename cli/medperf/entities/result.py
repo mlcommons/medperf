@@ -63,6 +63,7 @@ class Result(Entity, ApprovableSchema):
         comms_fn = config.comms.get_results
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_results
+            del filters["owner"]
         if "benchmark" in filters and filters["benchmark"] is not None:
             bmk = filters["benchmark"]
 
