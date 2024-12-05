@@ -23,9 +23,9 @@ def dataset():
 @pytest.fixture
 def submission(mocker, comms, ui, result, dataset):
     sub = ResultSubmission(1)
-    mocker.patch(PATCH_SUBMISSION.format("Result"), return_value=result)
-    mocker.patch(PATCH_SUBMISSION.format("Result.get"), return_value=result)
-    sub.get_result()
+    mocker.patch(PATCH_SUBMISSION.format("Execution"), return_value=result)
+    mocker.patch(PATCH_SUBMISSION.format("Execution.get"), return_value=result)
+    sub.get_execution()
     return sub
 
 
@@ -49,16 +49,16 @@ def test_upload_results_fails_if_not_approved(mocker, submission, result, approv
 
     # Act & Assert
     if approved:
-        submission.upload_results()
+        submission.update_execution()
     else:
         with pytest.raises(CleanExit):
-            submission.upload_results()
+            submission.update_execution()
 
 
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     # Arrange
     result_uid = 1
-    up_spy = mocker.spy(ResultSubmission, "upload_results")
+    up_spy = mocker.spy(ResultSubmission, "update_execution")
     write_spy = mocker.spy(ResultSubmission, "write")
     mocker.patch.object(ui, "prompt", return_value="y")
     mocker.patch("os.rename")

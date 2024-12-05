@@ -59,10 +59,6 @@ def setup(request, mocker, ui, fs):
     model_run_spy = mock_model(mocker, fs, state_variables)
     eval_run_spy = mock_eval(mocker, fs, state_variables)
 
-    mocker.patch(
-        PATCH_EXECUTION.format("generate_tmp_path"),
-        return_value=state_variables["result_path"],
-    )
     spies = {
         "model_run": model_run_spy,
         "eval_run": eval_run_spy,
