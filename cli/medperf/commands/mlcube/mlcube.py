@@ -20,6 +20,10 @@ def list(
         False, "--unregistered", help="Get unregistered mlcubes"
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
+    name: str = typer.Option(None, "--name", "-n", help="Filter out by MLCube Name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner ID"),
+    state: str = typer.Option(None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"),
+    is_active: bool = typer.Option(None, "--active/--inactive", help="Filter by active status"),
 ):
     """List mlcubes"""
     EntityList.run(
@@ -27,6 +31,10 @@ def list(
         fields=["UID", "Name", "State", "Registered"],
         unregistered=unregistered,
         mine_only=mine,
+        name=name,
+        owner=owner,
+        state=state,
+        is_active=is_active,
     )
 
 

@@ -30,7 +30,7 @@ def server(mocker, ui):
             [1],
             [],
             (f"{full_url}/benchmarks/1/models",),
-            {},
+            {"filters": {}},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{full_url}/mlcubes/1/",), {}),
         (
@@ -43,12 +43,12 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "upload_result",
+            "upload_execution",
             "post",
             201,
             [{}],
             {"id": 1},
-            (f"{full_url}/results/",),
+            (f"{full_url}/executions/",),
             {"json": {}},
         ),
         (
@@ -114,7 +114,7 @@ def test_methods_run_authorized_method(mocker, server, method_params):
         ("get_benchmark", [1], {}, CommunicationRetrievalError),
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
         ("upload_dataset", [{}], {"id": "invalid id"}, CommunicationRequestError),
-        ("upload_result", [{}], {"id": "invalid id"}, CommunicationRequestError),
+        ("upload_execution", [{}], {"id": "invalid id"}, CommunicationRequestError),
         ("associate_dset", [1, 1], {}, CommunicationRequestError),
     ],
 )
@@ -198,7 +198,7 @@ def test__get_list_uses_default_page_size(mocker, server):
     # Arrange
     exp_page_size = config.default_page_size
     exp_url = f"{full_url}?limit={exp_page_size}&offset=0"
-    ret_body = MockResponse({"count": 1, "next": None, "results": []}, 200)
+    ret_body = MockResponse({"count": 1, "next": None, "executions": []}, 200)
     spy = mocker.patch.object(server, "_REST__auth_get", return_value=ret_body)
 
     # Act
@@ -211,8 +211,8 @@ def test__get_list_uses_default_page_size(mocker, server):
 @pytest.mark.parametrize("num_pages", [3, 5, 10])
 def test__get_list_iterates_until_done(mocker, server, num_pages):
     # Arrange
-    ret_body = MockResponse({"count": 1, "next": url, "results": ["element"]}, 200)
-    ret_last = MockResponse({"count": 1, "next": None, "results": ["element"]}, 200)
+    ret_body = MockResponse({"count": 1, "next": url, "executions": ["element"]}, 200)
+    ret_last = MockResponse({"count": 1, "next": None, "executions": ["element"]}, 200)
     ret_bodies = [ret_body] * (num_pages - 1) + [ret_last]
     spy = mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
 
@@ -227,9 +227,9 @@ def test__get_list_iterates_until_done(mocker, server, num_pages):
 def test__get_list_returns_desired_number_of_elements(mocker, server, num_elements):
     # Arrange
     ret_body = MockResponse(
-        {"count": 32, "next": url, "results": ["element"] * 32}, 200
+        {"count": 32, "next": url, "executions": ["element"] * 32}, 200
     )
-    ret_last = MockResponse({"count": 1, "next": None, "results": ["element"]}, 200)
+    ret_last = MockResponse({"count": 1, "next": None, "executions": ["element"]}, 200)
     ret_bodies = [ret_body] * 500 + [ret_last]  # Default to a high number of pages
     mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
 
@@ -244,10 +244,10 @@ def test__get_list_splits_page_size_on_error(mocker, server):
     # Arrange
     failing_body = MockResponse({}, 500)
     reduced_body = MockResponse(
-        {"count": 16, "next": url, "results": ["element"] * 16}, 200
+        {"count": 16, "next": url, "executions": ["element"] * 16}, 200
     )
     next_body = MockResponse(
-        {"count": 32, "next": None, "results": ["element"] * 32}, 200
+        {"count": 32, "next": None, "executions": ["element"] * 32}, 200
     )
     ret_bodies = [failing_body, reduced_body, next_body]
     gen_url = url + "?limit={}&offset={}"
@@ -284,7 +284,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     bmarks = server.get_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/benchmarks/")
+    spy.assert_called_once_with(f"{full_url}/benchmarks/", filters={})
     assert bmarks == [body]
 
 
@@ -319,7 +319,7 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/me/benchmarks/")
+    spy.assert_called_once_with(f"{full_url}/me/benchmarks/", filters={})
 
 
 def test_get_user_benchmarks_returns_benchmarks(mocker, server):
@@ -346,7 +346,7 @@ def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     cubes = server.get_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/mlcubes/")
+    spy.assert_called_once_with(f"{full_url}/mlcubes/", filters={})
     assert cubes == [body]
 
 
@@ -375,7 +375,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/me/mlcubes/")
+    spy.assert_called_once_with(f"{full_url}/me/mlcubes/", filters={})
 
 
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
@@ -387,7 +387,7 @@ def test_get_datasets_calls_datasets_path(mocker, server, body):
     dsets = server.get_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/datasets/")
+    spy.assert_called_once_with(f"{full_url}/datasets/", filters={})
     assert dsets == [body]
 
 
@@ -418,7 +418,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/me/datasets/")
+    spy.assert_called_once_with(f"{full_url}/me/datasets/", filters={})
 
 
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
@@ -447,14 +447,14 @@ def test_upload_dataset_returns_dataset_body(mocker, server, body):
     assert body == exp_body
 
 
-@pytest.mark.parametrize("body", [{"result": 1}, {}, {"test": "test"}])
-def test_upload_results_returns_result_body(mocker, server, body):
+@pytest.mark.parametrize("body", [{"execution": 1}, {}, {"test": "test"}])
+def test_upload_executions_returns_execution_body(mocker, server, body):
     # Arrange
     res = MockResponse(body, 201)
     mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    exp_body = server.upload_result({})
+    exp_body = server.upload_execution({})
 
     # Assert
     assert body == exp_body
@@ -529,7 +529,7 @@ def test_get_datasets_associations_gets_associations(mocker, server):
     server.get_datasets_associations()
 
     # Assert
-    spy.assert_called_once_with(exp_path)
+    spy.assert_called_once_with(exp_path, filters={})
 
 
 def test_get_cubes_associations_gets_associations(mocker, server):
@@ -541,23 +541,23 @@ def test_get_cubes_associations_gets_associations(mocker, server):
     server.get_cubes_associations()
 
     # Assert
-    spy.assert_called_once_with(exp_path)
+    spy.assert_called_once_with(exp_path, filters={})
 
 
 @pytest.mark.parametrize("uid", [448, 53, 312])
 @pytest.mark.parametrize("body", [{"test": "test"}, {"body": "body"}])
-def test_get_result_calls_specified_path(mocker, server, uid, body):
+def test_get_execution_calls_specified_path(mocker, server, uid, body):
     # Arrange
     res = MockResponse(body, 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
-    exp_path = f"{full_url}/results/{uid}/"
+    exp_path = f"{full_url}/executions/{uid}/"
 
     # Act
-    result = server.get_result(uid)
+    execution = server.get_execution(uid)
 
     # Assert
     spy.assert_called_once_with(exp_path)
-    assert result == body
+    assert execution == body
 
 
 @pytest.mark.parametrize("body", [{"benchmark": 1}, {}, {"test": "test"}])
@@ -621,5 +621,5 @@ def test_get_mlcube_datasets_calls_auth_get_for_expected_path(mocker, server):
     exp_datasets = server.get_mlcube_datasets(cube_id)
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/mlcubes/{cube_id}/datasets/")
+    spy.assert_called_once_with(f"{full_url}/mlcubes/{cube_id}/datasets/", filters={})
     assert exp_datasets == datasets
