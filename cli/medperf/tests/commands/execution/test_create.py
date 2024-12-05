@@ -51,11 +51,11 @@ def mock_dataset(mocker, state_variables):
     mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
 
 
-def mock_result_all(mocker, state_variables):
-    cached_results_triplets = state_variables["cached_results_triplets"]
-    results = [
+def mock_execution_all(mocker, state_variables):
+    cached_executions_triplets = state_variables["cached_executions_triplets"]
+    executions = [
         TestExecution(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
-        for triplet in cached_results_triplets
+        for triplet in cached_executions_triplets
     ]
     mocker.patch(
         PATCH_EXECUTION.format("get_medperf_user_data", return_value={"id": 1})
@@ -63,8 +63,8 @@ def mock_result_all(mocker, state_variables):
     
     def __get_side_effect(unregistered: bool = False, filters: dict = {}):
         return [
-            result for result in results
-            if all(result.todict().get(key) == value for key, value in filters.items())
+            execution for execution in executions
+            if all(execution.todict().get(key) == value for key, value in filters.items())
         ]
 
     mocker.patch(PATCH_EXECUTION.format("Execution.all"), side_effect=__get_side_effect)
@@ -109,7 +109,7 @@ def setup(request, mocker, ui, fs):
         "benchmark_prep_cube": 1,
         "benchmark_models": [2, 4, 5, 6, 7],
         "dataset_prep_cube": 1,
-        "cached_results_triplets": [[1, 2, 1], [2, 4, 1]],
+        "cached_executions_triplets": [[1, 2, 1], [2, 4, 1]],
         "models_props": {
             2: {
                 "results": {"res": 41},
@@ -134,7 +134,7 @@ def setup(request, mocker, ui, fs):
     # mocks
     mock_benchmark(mocker, state_variables)
     mock_dataset(mocker, state_variables)
-    mock_result_all(mocker, state_variables)
+    mock_execution_all(mocker, state_variables)
     mock_cube(mocker, state_variables)
     exec_spy = mock_execution(mocker, state_variables)
 
@@ -320,6 +320,7 @@ class TestDefaultSetup:
         headers = ["model", "local result UID", "partial result", "from cache", "error"]
         dset_uid = 2
         bmk_uid = 1
+        mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
         expected_datalist = [
             [
                 model_uid,
@@ -342,9 +343,10 @@ class TestDefaultSetup:
         model_uid = 4
         dset_uid = 2
         bmk_uid = 1
+        mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
         expected_file = os.path.join(
-            config.results_folder,
-            f"b{bmk_uid}m{model_uid}d{dset_uid}",
+            TestExecution.get_storage_path(),
+            "1", # Execution UID mocked from TestExecution.upload
             config.results_info_file,
         )
         # Act

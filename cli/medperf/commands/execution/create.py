@@ -175,7 +175,7 @@ class BenchmarkExecution:
                 self.experiments.append(
                     {
                         "model_uid": model_uid,
-                        "executions": self.cached_executions[model_uid],
+                        "execution": self.cached_executions[model_uid],
                         "cached": True,
                         "error": "",
                     }
@@ -270,12 +270,12 @@ class BenchmarkExecution:
         num_partial_run = 0
         for experiment in self.experiments:
             # populate display data
-            if experiment["result"]:
+            if experiment["execution"]:
                 data_lists_for_display.append(
                     [
                         experiment["model_uid"],
-                        experiment["result"].local_id,
-                        experiment["result"].metadata["partial"],
+                        experiment["execution"].local_id,
+                        experiment["execution"].metadata["partial"],
                         experiment["cached"],
                         experiment["error"],
                     ]
@@ -290,11 +290,11 @@ class BenchmarkExecution:
                 num_failed += 1
             elif experiment["cached"]:
                 num_skipped += 1
-                if experiment["result"].metadata["partial"]:
+                if experiment["execution"].metadata["partial"]:
                     num_partial_skipped += 1
-            elif experiment["result"]:
+            elif experiment["execution"]:
                 num_success_run += 1
-                if experiment["result"].metadata["partial"]:
+                if experiment["execution"].metadata["partial"]:
                     num_partial_run += 1
 
         tab = tabulate(data_lists_for_display, headers=headers)

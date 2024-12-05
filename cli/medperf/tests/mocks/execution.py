@@ -9,3 +9,7 @@ class TestExecution(Execution):
     model: int = 1
     dataset: int = 1
     results: dict = {}
+
+    def upload(self):
+        self.id = 1
+        return self.todict()
