@@ -210,12 +210,13 @@ def test_statistics_unmarks_the_dataset_as_ready_on_failure(
 
 @pytest.mark.parametrize("metadata_specified", [False, True])
 def test_statistics_checks_metadata_path(
-    mocker, data_preparation, metadata_specified, cube
+    mocker, data_preparation, metadata_specified, cube, fs
 ):
     # Arrange
     spy = mocker.patch.object(cube, "run")
     data_preparation.metadata_specified = metadata_specified
-    mocker.patch("builtins.open", mocker.mock_open(read_data=""))
+    data_preparation.out_statistics_path = "test.yaml"
+    fs.create_file(data_preparation.out_statistics_path, contents="")
     mocker.patch("yaml.safe_load", return_value={})
 
     # Act
@@ -228,12 +229,13 @@ def test_statistics_checks_metadata_path(
         assert "metadata_path" not in spy.call_args.kwargs.keys()
 
 
-def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube):
+def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube, fs):
 
     # Arrange
     unmark_spy = mocker.patch.object(data_preparation.dataset, "unmark_as_ready")
     mocker.patch.object(cube, "run")
-    spy_open = mocker.patch("builtins.open", mocker.mock_open(read_data=""))
+    data_preparation.out_statistics_path = "test.yaml"
+    fs.create_file(data_preparation.out_statistics_path, contents="")
     mocker.patch("yaml.safe_load", return_value=None)
 
     # Act
@@ -242,7 +244,6 @@ def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube)
 
     # Assert
     unmark_spy.assert_called_once()
-    spy_open.assert_called_once_with(data_preparation.out_statistics_path)
 
 
 def test_dataset_is_updated_after_report_sending(mocker, data_preparation, comms):
