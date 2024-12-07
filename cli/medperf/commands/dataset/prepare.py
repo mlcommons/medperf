@@ -260,6 +260,13 @@ class DataPreparation:
             self.dataset.unmark_as_ready()
             raise e
 
+        with open(self.out_statistics_path) as f:
+            stats = yaml.safe_load(f)
+
+        if stats is None:
+            self.dataset.unmark_as_ready()
+            raise ExecutionError("Statistics file is empty.")
+
         self.ui.print("> Statistics complete")
 
     def mark_dataset_as_ready(self):
