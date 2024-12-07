@@ -21,7 +21,11 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, MedperfException
+from medperf.exceptions import (
+    ExecutionError,
+    InvalidArgumentError,
+    MedperfException,
+)
 
 
 def get_file_hash(path: str) -> str:
@@ -151,23 +155,27 @@ def generate_tmp_path() -> str:
     return tmp_path
 
 
-def tar(filepath: str, folders_paths: List[str]) -> None:
+def tar(filepath: str, folders_paths: List[str], newfolder: str = "") -> None:
     """Tars the tar.gz file
     Args:
         filepath (str): Path where the tar.gz file will be saved.
         folder_path (str): Path of the data should be compressed.
+        newfolder (str): new folder name that will contain the
+        compressed files in the tar file. (Default="")
     """
-    logging.info(f"Compressing tar.gz at {filepath}")
     if os.path.exists(filepath):
-        if not approval_prompt(
-            f"'{filepath}' already exists, do you want to overwrite it? [Y/n]"
-        ):
-            raise CleanExit("Export cancelled.")
+        raise InvalidArgumentError(f"{filepath} already exists.")
 
-    with tarfile.open(filepath, "w:gz") as tar:
-        for folder in folders_paths:
-            tar.add(folder, arcname=os.path.basename(folder))
-            logging.info(f"Compressing tar.gz at {filepath}: {folder} Added.")
+    logging.info(f"Compressing tar.gz at {filepath}")
+    tar_arc = tarfile.open(filepath, "w:gz")
+    for folder in folders_paths:
+        if newfolder:
+            arcname = os.path.join(newfolder, os.path.basename(folder))
+        else:
+            arcname = os.path.basename(folder)
+        tar_arc.add(folder, arcname=arcname)
+        logging.info(f"Compressing tar.gz at {filepath}: {folder} Added.")
+    tar_arc.close()
 
 
 def untar(filepath: str, remove: bool = True) -> str:
@@ -225,7 +233,10 @@ def create_folders(path: str) -> None:
     Args:
         path (str): path to create the new folder(s)
     """
-    os.makedirs(path)
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        raise ExecutionError(f"Cannot create folder(s) at {path}, " + e.strerror)
     logging.info(f"Folder(s) created at: {path}")
 
 

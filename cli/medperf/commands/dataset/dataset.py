@@ -179,15 +179,20 @@ def import_dataset(
     data_uid: str = typer.Option(
         ..., "--data_uid", "-d", help="Dataset UID to be imported"
     ),
-    input: str = typer.Option(
+    input_path: str = typer.Option(
         ...,
         "--input",
         "-i",
-        help="Input file (.gz) to import the dataset backup.",
+        help="Path of the tar.gz file (dataset backup) to be imported.",
+    ),
+    raw_path: str = typer.Option(
+        "Folder containing the tar.gz file",
+        "--raw_dataset_path",
+        help="New path of the DEVELOPMENT dataset raw data to be saved.",
     ),
 ):
     """Imports dataset files from specified tar.gz file."""
-    ImportDataset.run(data_uid, input)
+    ImportDataset.run(data_uid, input_path, raw_path)
     config.ui.print("✅ Done!")
 
 
@@ -201,7 +206,7 @@ def export_dataset(
         ...,
         "--output",
         "-o",
-        help="Output folder to export the dataset backup.",
+        help="Path of the folder that will contain the tar.gz dataset backup.",
     ),
 ):
     """Exports dataset files to a tar.gz file in the specified output folder."""
