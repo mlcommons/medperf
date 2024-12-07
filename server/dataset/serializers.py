@@ -68,6 +68,6 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         "User cannot update non editable fields in Operation mode"
                     )
-            self._validate_guid(data)
+        self._validate_guid(data)
 
         return data
