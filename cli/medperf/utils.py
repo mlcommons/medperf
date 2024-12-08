@@ -191,8 +191,9 @@ def untar(filepath: str, remove: bool = True) -> str:
     logging.info(f"Uncompressing tar.gz at {filepath}")
     addpath = str(Path(filepath).parent)
     try:
-        with tarfile.open(filepath) as tar:
-            tar.extractall(addpath)
+        tar = tarfile.open(filepath)
+        tar.extractall(addpath)
+        tar.close()
     except tarfile.ReadError as e:
         raise ExecutionError("Cannot extract tar.gz file, " + e.__str__())
 
