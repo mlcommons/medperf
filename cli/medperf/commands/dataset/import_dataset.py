@@ -84,7 +84,6 @@ class ImportDataset:
         self.tarfiles = [os.path.join(self.tarfiles, file) for file in tarfiles_names]
         with open(backup_config) as f:
             self.paths = yaml.safe_load(f)
-        print(self.paths)
         # Checks if yaml file paths are valid
         if self.paths["dataset"] not in tarfiles_names:
             raise ExecutionError("Dataset backup is invalid, dataset folders not found")
