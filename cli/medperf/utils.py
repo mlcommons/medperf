@@ -190,9 +190,11 @@ def untar(filepath: str, remove: bool = True) -> str:
     """
     logging.info(f"Uncompressing tar.gz at {filepath}")
     addpath = str(Path(filepath).parent)
-    tar = tarfile.open(filepath)
-    tar.extractall(addpath)
-    tar.close()
+    try:
+        with tarfile.open(filepath) as tar:
+            tar.extractall(addpath)
+    except tarfile.ReadError as e:
+        raise ExecutionError("Cannot extract tar.gz file, " + e.__str__())
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [

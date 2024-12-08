@@ -10,7 +10,9 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
-from medperf.commands.dataset.manage import ImportDataset, ExportDataset
+from medperf.commands.dataset.import_dataset import ImportDataset
+from medperf.commands.dataset.export_dataset import ExportDataset
+
 
 app = typer.Typer()
 
@@ -186,7 +188,7 @@ def import_dataset(
         help="Path of the tar.gz file (dataset backup) to be imported.",
     ),
     raw_path: str = typer.Option(
-        "Folder containing the tar.gz file",
+        None,
         "--raw_dataset_path",
         help="New path of the DEVELOPMENT dataset raw data to be saved.",
     ),
