@@ -183,8 +183,7 @@ class BenchmarkExecution:
                 continue
 
             execution = None
-            if not self.test:
-                execution = self.__get_or_create_execution(model_uid)
+            execution = self.__get_or_create_execution(model_uid)
 
             try:
                 model_cube = self.__get_cube(model_uid, "Model")
@@ -251,7 +250,12 @@ class BenchmarkExecution:
 
         # Create a new execution instance
         query_dict["name"] = self.__execution_name(model_uid)
-        exec_dict = Execution(**query_dict).upload()
+        execution = Execution(**query_dict)
+        if self.test: 
+            # For tests we don't upload the execution
+            return execution
+
+        exec_dict = execution.upload()
         execution = Execution(**exec_dict)
         return execution
         
