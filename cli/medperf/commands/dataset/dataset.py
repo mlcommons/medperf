@@ -163,10 +163,18 @@ def train(
         help="Keep restarting failing training processes until Keyboard interrupt",
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    skip_restart_on_failure_prompt: bool = typer.Option(
+        False, "--skip_restart_on_failure_prompt", help="Skip restart on failure prompt"
+    ),
 ):
     """Runs training"""
     TrainingExecution.run(
-        training_exp_id, data_uid, overwrite, approval, restart_on_failure
+        training_exp_id,
+        data_uid,
+        overwrite,
+        approval,
+        restart_on_failure,
+        skip_restart_on_failure_prompt,
     )
     config.ui.print("✅ Done!")
 
