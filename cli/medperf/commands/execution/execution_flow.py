@@ -17,7 +17,7 @@ class ExecutionFlow:
         dataset: Dataset,
         model: Cube,
         evaluator: Cube,
-        execution: Execution=None,
+        execution: Execution = None,
         ignore_model_errors=False,
     ):
         """Benchmark execution flow.
@@ -41,7 +41,7 @@ class ExecutionFlow:
         dataset: Dataset,
         model: Cube,
         evaluator: Cube,
-        execution: Execution=None,
+        execution: Execution = None,
         ignore_model_errors=False,
     ):
         self.comms = config.comms
@@ -174,4 +174,3 @@ class ExecutionFlow:
         except CommunicationError as e:
             logging.error(str(e))
             return
-

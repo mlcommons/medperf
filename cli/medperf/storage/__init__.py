@@ -44,9 +44,9 @@ def migrate_login_timestamp(config_p):
             # will make sure they will not be logged out before the actual refresh
             # token expiration (for a better user experience). However, currently logged
             # in users will still face a confusing error when the refresh token expires.
-            config_p.active_profile[config.credentials_keyword][
-                "logged_in_at"
-            ] = time.time()
+            config_p.active_profile[config.credentials_keyword]["logged_in_at"] = (
+                time.time()
+            )
 
     return config_p
 
@@ -55,7 +55,7 @@ def migrate_results_to_executions(config_p):
     if "results_folder" not in config_p.storage:
         return config_p
 
-    results_base = config_p.storage["results_folder"] 
+    results_base = config_p.storage["results_folder"]
     execs_folder = os.path.join(results_base, config.executions_folder)
 
     # Move old results into the execution path
@@ -63,7 +63,7 @@ def migrate_results_to_executions(config_p):
     results_exist = os.path.exists(results_folder) and os.listdir(results_folder)
     if not results_exist:
         return config_p
-    
+
     # Don't override results
     shutil.move(results_folder, execs_folder)
 

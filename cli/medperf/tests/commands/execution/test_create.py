@@ -60,11 +60,14 @@ def mock_execution_all(mocker, state_variables):
     mocker.patch(
         PATCH_EXECUTION.format("get_medperf_user_data", return_value={"id": 1})
     )
-    
+
     def __get_side_effect(unregistered: bool = False, filters: dict = {}):
         return [
-            execution for execution in executions
-            if all(execution.todict().get(key) == value for key, value in filters.items())
+            execution
+            for execution in executions
+            if all(
+                execution.todict().get(key) == value for key, value in filters.items()
+            )
         ]
 
     mocker.patch(PATCH_EXECUTION.format("Execution.all"), side_effect=__get_side_effect)
@@ -346,7 +349,7 @@ class TestDefaultSetup:
         mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
         expected_file = os.path.join(
             TestExecution.get_storage_path(),
-            "1", # Execution UID mocked from TestExecution.upload
+            "1",  # Execution UID mocked from TestExecution.upload
             config.results_info_file,
         )
         # Act

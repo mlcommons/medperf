@@ -251,14 +251,14 @@ class BenchmarkExecution:
         # Create a new execution instance
         query_dict["name"] = self.__execution_name(model_uid)
         execution = Execution(**query_dict)
-        if self.test: 
+        if self.test:
             # For tests we don't upload the execution
             return execution
 
         exec_dict = execution.upload()
         execution = Execution(**exec_dict)
         return execution
-        
+
     def __execution_name(self, model_uid):
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
 

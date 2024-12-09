@@ -38,7 +38,6 @@ class ResultSubmission:
         if not approved:
             raise CleanExit("Results upload operation cancelled")
 
-
         uid = self.execution_uid
         body = self.execution.todict()
         updated_exec_dict = config.comms.update_execution(uid, body)
