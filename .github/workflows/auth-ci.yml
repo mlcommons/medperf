@@ -30,7 +30,7 @@ jobs:
       run: |
         sudo apt-get install -y wget
         wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.126-1_amd64.deb
-        sudo dpkg -i chrome.deb
+        sudo apt update && sudo apt install ./chrome.deb -y --allow-downgrades
         rm chrome.deb
 
     - name: Install dependencies
@@ -45,6 +45,10 @@ jobs:
     - name: Set server environment vars
       working-directory: ./server
       run: cp .env.local.online-auth .env
+
+    - name: Run postgresql server in background
+      working-directory: ./server
+      run: sh run_dev_postgresql.sh && sleep 6
 
     - name: Run django server in background with generated certs
       working-directory: ./server
