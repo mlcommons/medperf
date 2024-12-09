@@ -4,14 +4,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
-from .models import ModelResult
-from .serializers import ModelResultSerializer, ModelResultDetailSerializer
+from .models import Execution
+from .serializers import ExecutionSerializer, ExecutionDetailSerializer
 from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner
 
 
-class ModelResultList(GenericAPIView):
-    serializer_class = ModelResultSerializer
+class ExecutionList(GenericAPIView):
+    serializer_class = ExecutionSerializer
     queryset = ""
+    filterset_fields = ('name', 'owner', 'benchmark', 'model', 'dataset', 'is_valid', 'approval_status')
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -23,30 +24,33 @@ class ModelResultList(GenericAPIView):
     @extend_schema(operation_id="results_retrieve_all")
     def get(self, request, format=None):
         """
-        List all results
+        List all executions
         """
-        modelresults = ModelResult.objects.all()
-        modelresults = self.paginate_queryset(modelresults)
-        serializer = ModelResultSerializer(modelresults, many=True)
+        executions = Execution.objects.all()
+        executions = self.filter_queryset(executions)
+        executions = self.paginate_queryset(executions)
+        serializer = ExecutionSerializer(executions, many=True)
         return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """
-        Creates a new result
+        Creates a new execution
         """
-        serializer = ModelResultSerializer(data=request.data)
+        serializer = ExecutionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ModelResultDetail(GenericAPIView):
-    serializer_class = ModelResultDetailSerializer
+class ExecutionDetail(GenericAPIView):
+    serializer_class = ExecutionDetailSerializer
     queryset = ""
 
     def get_permissions(self):
-        if self.request.method == "PUT" or self.request.method == "DELETE":
+        if self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsDatasetOwner]
+        elif self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
         elif self.request.method == "GET":
             self.permission_classes = [IsAdmin | IsDatasetOwner | IsBenchmarkOwner]
@@ -54,24 +58,24 @@ class ModelResultDetail(GenericAPIView):
 
     def get_object(self, pk):
         try:
-            return ModelResult.objects.get(pk=pk)
-        except ModelResult.DoesNotExist:
+            return Execution.objects.get(pk=pk)
+        except Execution.DoesNotExist:
             raise Http404
 
     def get(self, request, pk, format=None):
         """
-        Retrieve a result instance.
+        Retrieve a execution instance.
         """
-        modelresult = self.get_object(pk)
-        serializer = ModelResultDetailSerializer(modelresult)
+        execution = self.get_object(pk)
+        serializer = ExecutionDetailSerializer(execution)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
         """
-        Update a result instance.
+        Update a execution instance.
         """
-        modelresult = self.get_object(pk)
-        serializer = ModelResultDetailSerializer(modelresult, data=request.data)
+        execution = self.get_object(pk)
+        serializer = ExecutionDetailSerializer(execution, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -79,8 +83,8 @@ class ModelResultDetail(GenericAPIView):
 
     def delete(self, request, pk, format=None):
         """
-        Delete a result instance.
+        Delete an execution instance.
         """
-        modelresult = self.get_object(pk)
-        modelresult.delete()
+        Execution = self.get_object(pk)
+        Execution.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

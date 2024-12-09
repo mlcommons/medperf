@@ -3,16 +3,22 @@ import logging
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
+from medperf.entities.execution import Execution
 from medperf.utils import generate_tmp_path
 import medperf.config as config
-from medperf.exceptions import ExecutionError
+from medperf.exceptions import ExecutionError, CommunicationError
 import yaml
 
 
-class Execution:
+class ExecutionFlow:
     @classmethod
     def run(
-        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
+        cls,
+        dataset: Dataset,
+        model: Cube,
+        evaluator: Cube,
+        execution: Execution = None,
+        ignore_model_errors=False,
     ):
         """Benchmark execution flow.
 
@@ -21,22 +27,29 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        execution = cls(dataset, model, evaluator, ignore_model_errors)
-        execution.prepare()
-        with execution.ui.interactive():
-            execution.run_inference()
-            execution.run_evaluation()
-        execution_summary = execution.todict()
+        execution_flow = cls(dataset, model, evaluator, execution, ignore_model_errors)
+        execution_flow.prepare()
+        with execution_flow.ui.interactive():
+            execution_flow.set_pending_status()
+            execution_flow.run_inference()
+            execution_flow.run_evaluation()
+        execution_summary = execution_flow.todict()
         return execution_summary
 
     def __init__(
-        self, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
+        self,
+        dataset: Dataset,
+        model: Cube,
+        evaluator: Cube,
+        execution: Execution = None,
+        ignore_model_errors=False,
     ):
         self.comms = config.comms
         self.ui = config.ui
         self.dataset = dataset
         self.model = model
         self.evaluator = evaluator
+        self.execution = execution
         self.ignore_model_errors = ignore_model_errors
 
     def prepare(self):
@@ -72,11 +85,16 @@ class Execution:
             raise ExecutionError(msg)
         return preds_path
 
+    def set_pending_status(self):
+        self.__send_model_report("pending")
+        self.__send_evaluator_report("pending")
+
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"
         infer_timeout = config.infer_timeout
         preds_path = self.preds_path
         data_path = self.dataset.data_path
+        self.__send_model_report("started")
         try:
             self.model.run(
                 task="infer",
@@ -94,6 +112,12 @@ class Execution:
             else:
                 self.partial = True
                 logging.warning(f"Model MLCube Execution failed: {e}")
+            self.__send_model_report("failed")
+        except KeyboardInterrupt as e:
+            logging.warning("Model MLCube Execution interrupted by user")
+            self.__send_model_report("interrupted")
+            raise e
+        self.__send_model_report("finished")
 
     def run_evaluation(self):
         self.ui.text = "Running model evaluation on dataset"
@@ -102,6 +126,7 @@ class Execution:
         labels_path = self.dataset.labels_path
         results_path = self.results_path
         self.ui.text = "Evaluating results"
+        self.__send_evaluator_report("started")
         try:
             self.evaluator.run(
                 task="evaluate",
@@ -113,7 +138,13 @@ class Execution:
             )
         except ExecutionError as e:
             logging.error(f"Metrics MLCube Execution failed: {e}")
+            self.__send_evaluator_report("failed")
             raise ExecutionError("Metrics MLCube failed")
+        except KeyboardInterrupt as e:
+            logging.warning("Metrics MLCube Execution interrupted by user")
+            self.__send_evaluator_report("interrupted")
+            raise e
+        self.__send_evaluator_report("finished")
 
     def todict(self):
         return {
@@ -125,3 +156,21 @@ class Execution:
         with open(self.results_path, "r") as f:
             results = yaml.safe_load(f)
         return results
+
+    def __send_model_report(self, status: str):
+        self.__send_report("model_report", status)
+
+    def __send_evaluator_report(self, status: str):
+        self.__send_report("evaluation_report", status)
+
+    def __send_report(self, field: str, status: str):
+        if self.execution.id is None:
+            return
+
+        execution_id = self.execution.id
+        body = {field: {"execution_status": status}}
+        try:
+            config.comms.update_execution(execution_id, body)
+        except CommunicationError as e:
+            logging.error(str(e))
+            return

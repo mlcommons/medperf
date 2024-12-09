@@ -1,6 +1,6 @@
 from benchmarkmodel.serializers import BenchmarkListofModelsSerializer
 from benchmarkdataset.serializers import BenchmarkListofDatasetsSerializer
-from result.serializers import ModelResultSerializer
+from execution.serializers import ExecutionSerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from .permissions import IsAdmin, IsBenchmarkOwner, IsAssociatedDatasetOwner
 class BenchmarkList(GenericAPIView):
     serializer_class = BenchmarkSerializer
     queryset = ""
+    filterset_fields = ('name', 'owner', 'state', 'is_valid', 'is_active', 'approval_status', 'data_preparation_mlcube')
 
     @extend_schema(operation_id="benchmarks_retrieve_all")
     def get(self, request, format=None):
@@ -22,6 +23,7 @@ class BenchmarkList(GenericAPIView):
         List all benchmarks
         """
         benchmarks = Benchmark.objects.all()
+        benchmarks = self.filter_queryset(benchmarks)
         benchmarks = self.paginate_queryset(benchmarks)
         serializer = BenchmarkSerializer(benchmarks, many=True)
         return self.get_paginated_response(serializer.data)
@@ -88,7 +90,7 @@ class BenchmarkDatasetList(GenericAPIView):
 
 class BenchmarkResultList(GenericAPIView):
     permission_classes = [IsAdmin | IsBenchmarkOwner]
-    serializer_class = ModelResultSerializer
+    serializer_class = ExecutionSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -102,9 +104,9 @@ class BenchmarkResultList(GenericAPIView):
         Retrieve results associated with a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        results = benchmark.modelresult_set.all()
+        results = benchmark.Execution_set.all()
         results = self.paginate_queryset(results)
-        serializer = ModelResultSerializer(results, many=True)
+        serializer = ExecutionSerializer(results, many=True)
         return self.get_paginated_response(serializer.data)
 
 

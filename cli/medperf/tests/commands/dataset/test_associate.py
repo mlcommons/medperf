@@ -2,7 +2,7 @@ from medperf.exceptions import InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
-from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.execution import TestExecution
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.commands.dataset.associate import AssociateDataset
@@ -50,7 +50,7 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
@@ -70,7 +70,7 @@ def test_associates_if_approved(
     mocker, comms, ui, dataset, data_uid, benchmark_uid, benchmark
 ):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     assoc_func = "associate_dset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
@@ -89,7 +89,7 @@ def test_associates_if_approved(
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
@@ -107,7 +107,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     data_uid = 1562
     benchmark_uid = 3557
     assoc_func = "associate_dset"
@@ -128,4 +128,5 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
         data_uid,
         [benchmark.reference_model_mlcube],
         no_cache=False,
+        test=True,
     )
