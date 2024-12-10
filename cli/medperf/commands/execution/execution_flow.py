@@ -164,7 +164,7 @@ class ExecutionFlow:
         self.__send_report("evaluation_report", status)
 
     def __send_report(self, field: str, status: str):
-        if self.execution.id is None:
+        if self.execution is None or self.execution.id is None:
             return
 
         execution_id = self.execution.id
