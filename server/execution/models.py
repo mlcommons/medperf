@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-class ModelResult(models.Model):
+class Execution(models.Model):
     MODEL_RESULT_STATUS = (
         ("PENDING", "PENDING"),
         ("APPROVED", "APPROVED"),
@@ -16,13 +16,15 @@ class ModelResult(models.Model):
     benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
     model = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)
     dataset = models.ForeignKey("dataset.Dataset", on_delete=models.PROTECT)
-    results = models.JSONField()
+    results = models.JSONField(default=dict)
     metadata = models.JSONField(default=dict)
     user_metadata = models.JSONField(default=dict)
     approval_status = models.CharField(
         choices=MODEL_RESULT_STATUS, max_length=100, default="PENDING"
     )
     is_valid = models.BooleanField(default=True)
+    model_report = models.JSONField(default=dict, blank=True, null=True)
+    evaluation_report = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
