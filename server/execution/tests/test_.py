@@ -33,7 +33,7 @@ class ExecutionsTest(MedPerfTest):
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
-        self.url = self.api_prefix + "/results/"
+        self.url = self.api_prefix + "/executions/"
         self.set_credentials(None)
 
 
@@ -400,7 +400,7 @@ class GenericExecutionsGetListTest(ExecutionsTest):
 
         self.set_credentials(self.actor)
 
-    def test_generic_get_result_list(self):
+    def test_generic_get_execution_list(self):
         # Arrange
         result_id = self.testexecution["id"]
 

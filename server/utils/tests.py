@@ -169,10 +169,10 @@ class ResultsTest(MedPerfTest):
             self.benchmark["id"], dataset["id"], approval_status="APPROVED"
         )
         self.create_dataset_association(assoc, user, self.bmk_owner)
-        result = self.mock_result(
+        execution = self.mock_execution(
             self.benchmark["id"], self.refmodel["id"], dataset["id"]
         )
-        result = self.create_result(result).data
+        result = self.create_execution(execution).data
         return result
 
     def test_endpoint_returns_current_user_assets(self):
