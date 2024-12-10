@@ -198,7 +198,7 @@ def test__get_list_uses_default_page_size(mocker, server):
     # Arrange
     exp_page_size = config.default_page_size
     exp_url = f"{full_url}?limit={exp_page_size}&offset=0"
-    ret_body = MockResponse({"count": 1, "next": None, "executions": []}, 200)
+    ret_body = MockResponse({"count": 1, "next": None, "results": []}, 200)
     spy = mocker.patch.object(server, "_REST__auth_get", return_value=ret_body)
 
     # Act
@@ -211,8 +211,8 @@ def test__get_list_uses_default_page_size(mocker, server):
 @pytest.mark.parametrize("num_pages", [3, 5, 10])
 def test__get_list_iterates_until_done(mocker, server, num_pages):
     # Arrange
-    ret_body = MockResponse({"count": 1, "next": url, "executions": ["element"]}, 200)
-    ret_last = MockResponse({"count": 1, "next": None, "executions": ["element"]}, 200)
+    ret_body = MockResponse({"count": 1, "next": url, "results": ["element"]}, 200)
+    ret_last = MockResponse({"count": 1, "next": None, "results": ["element"]}, 200)
     ret_bodies = [ret_body] * (num_pages - 1) + [ret_last]
     spy = mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
 
@@ -227,9 +227,9 @@ def test__get_list_iterates_until_done(mocker, server, num_pages):
 def test__get_list_returns_desired_number_of_elements(mocker, server, num_elements):
     # Arrange
     ret_body = MockResponse(
-        {"count": 32, "next": url, "executions": ["element"] * 32}, 200
+        {"count": 32, "next": url, "results": ["element"] * 32}, 200
     )
-    ret_last = MockResponse({"count": 1, "next": None, "executions": ["element"]}, 200)
+    ret_last = MockResponse({"count": 1, "next": None, "results": ["element"]}, 200)
     ret_bodies = [ret_body] * 500 + [ret_last]  # Default to a high number of pages
     mocker.patch.object(server, "_REST__auth_get", side_effect=ret_bodies)
 
@@ -244,10 +244,10 @@ def test__get_list_splits_page_size_on_error(mocker, server):
     # Arrange
     failing_body = MockResponse({}, 500)
     reduced_body = MockResponse(
-        {"count": 16, "next": url, "executions": ["element"] * 16}, 200
+        {"count": 16, "next": url, "results": ["element"] * 16}, 200
     )
     next_body = MockResponse(
-        {"count": 32, "next": None, "executions": ["element"] * 32}, 200
+        {"count": 32, "next": None, "results": ["element"] * 32}, 200
     )
     ret_bodies = [failing_body, reduced_body, next_body]
     gen_url = url + "?limit={}&offset={}"

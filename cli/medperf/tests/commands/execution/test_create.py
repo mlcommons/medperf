@@ -54,7 +54,7 @@ def mock_dataset(mocker, state_variables):
 def mock_execution_all(mocker, state_variables):
     cached_executions_triplets = state_variables["cached_executions_triplets"]
     executions = [
-        TestExecution(benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
+        TestExecution(id=1, benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
         for triplet in cached_executions_triplets
     ]
     mocker.patch(
@@ -100,6 +100,7 @@ def mock_execution(mocker, state_variables):
             raise ExecutionError
         return models_props[model.id]
 
+    mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
     return mocker.patch(
         PATCH_EXECUTION.format("ExecutionFlow.run"), side_effect=__exec_side_effect
     )
@@ -323,7 +324,6 @@ class TestDefaultSetup:
         headers = ["model", "local result UID", "partial result", "from cache", "error"]
         dset_uid = 2
         bmk_uid = 1
-        mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
         expected_datalist = [
             [
                 model_uid,
