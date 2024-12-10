@@ -70,7 +70,7 @@ class BenchmarkExecution:
         models_input_file: str = None,
         ignore_model_errors=False,
         ignore_failed_experiments=False,
-        test=True,
+        test=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -182,7 +182,6 @@ class BenchmarkExecution:
                 )
                 continue
 
-            execution = None
             execution = self.__get_or_create_execution(model_uid)
 
             try:
