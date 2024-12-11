@@ -1,0 +1,12 @@
+*.csv
+*.txt
+*.nii.gz
+*.zip
+*.mat
+*.dcm
+*.png
+*/mlcube/workspace/*
+!requirements.txt
+!*/mlcube/workspace/parameters.yaml
+models
+tmpmodel
