@@ -56,7 +56,7 @@ def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
 
 @pytest.mark.parametrize("dataset_for_test", [False, True])
 def test_prepare_with_test_data_doesnt_send_reports(
-        mocker, data_preparation, dataset_for_test, cube, comms, fs
+    mocker, data_preparation, dataset_for_test, cube, comms, fs
 ):
     # Arrange
     data_preparation.dataset.for_test = dataset_for_test
@@ -86,7 +86,9 @@ def test_prepare_runs_then_stops_report_handler(
     mocker.patch.object(data_preparation.dataset, "write")
     mocked_obs = mocker.create_autospec(spec=Observer)
     mocker.patch(PATCH_REGISTER.format("Observer"), side_effect=mocked_obs)
-    gen_report_spy = mocker.patch(PATCH_REGISTER.format("DataPreparation._DataPreparation__generate_report_dict"))
+    gen_report_spy = mocker.patch(
+        PATCH_REGISTER.format("DataPreparation._DataPreparation__generate_report_dict")
+    )
 
     # Act
     data_preparation.run_prepare()
@@ -208,11 +210,14 @@ def test_statistics_unmarks_the_dataset_as_ready_on_failure(
 
 @pytest.mark.parametrize("metadata_specified", [False, True])
 def test_statistics_checks_metadata_path(
-    mocker, data_preparation, metadata_specified, cube
+    mocker, data_preparation, metadata_specified, cube, fs
 ):
     # Arrange
     spy = mocker.patch.object(cube, "run")
     data_preparation.metadata_specified = metadata_specified
+    data_preparation.out_statistics_path = "test.yaml"
+    fs.create_file(data_preparation.out_statistics_path, contents="")
+    mocker.patch("yaml.safe_load", return_value={})
 
     # Act
     data_preparation.run_statistics()
@@ -222,6 +227,23 @@ def test_statistics_checks_metadata_path(
         assert "metadata_path" in spy.call_args.kwargs.keys()
     else:
         assert "metadata_path" not in spy.call_args.kwargs.keys()
+
+
+def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube, fs):
+
+    # Arrange
+    unmark_spy = mocker.patch.object(data_preparation.dataset, "unmark_as_ready")
+    mocker.patch.object(cube, "run")
+    data_preparation.out_statistics_path = "test.yaml"
+    fs.create_file(data_preparation.out_statistics_path, contents="")
+    mocker.patch("yaml.safe_load", return_value=None)
+
+    # Act
+    with pytest.raises(ExecutionError):
+        data_preparation.run_statistics()
+
+    # Assert
+    unmark_spy.assert_called_once()
 
 
 def test_dataset_is_updated_after_report_sending(mocker, data_preparation, comms):
