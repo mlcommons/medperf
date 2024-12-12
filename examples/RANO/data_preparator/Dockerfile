@@ -1,10 +1,10 @@
-FROM locally-built-fetstool AS data_prep
+FROM local/fets_tool AS data_prep
 
 RUN find /Front-End/bin/install/appdir/usr/bin -type f \( -perm -u=x -o -type l \) -exec cp -P {} /usr/bin \;
 
 WORKDIR /
 
-COPY ./mlcubes/data_preparation/project/requirements.txt /project/requirements.txt 
+COPY ./project/requirements.txt /project/requirements.txt 
 
 RUN pip install --upgrade pip
 
@@ -30,6 +30,6 @@ RUN /nnunet_env/bin/pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnune
 
 ENV CUDA_VISIBLE_DEVICES="0"
 
-COPY ./mlcubes/data_preparation/project /project
+COPY ./project /project
 
 ENTRYPOINT ["python", "/project/mlcube.py"]
