@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import os
+import csv
 import signal
 import yaml
 import random
@@ -21,7 +22,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import ExecutionError, MedperfException, InvalidArgumentError
 
 
 def get_file_hash(path: str) -> str:
@@ -467,6 +468,27 @@ def check_for_updates() -> None:
             " or repo is in detached / non-tracked state?"
         )
         logging.debug(e)
+
+
+def parse_institutions_file(institutions_file):
+    institutions = {}
+    if institutions_file is None:
+        return institutions
+
+    with open(institutions_file, 'r') as f:
+        reader = csv.DictReader(f)
+        fieldnames = set(reader.fieldnames)
+        exp_fieldnames = {'institution', 'email'}
+        if len(exp_fieldnames - fieldnames):
+            raise InvalidArgumentError(
+                'Institutions file must contain an "institution" and "email" columns'
+            )
+        for row in reader:
+            email = row['email']
+            institution = row['institution']
+            institutions[email] = institution
+
+    return institutions
 
 
 class spawn_and_kill:

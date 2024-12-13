@@ -39,6 +39,7 @@ class Benchmark(models.Model):
         related_name="data_evaluator_mlcube",
     )
     metadata = models.JSONField(default=dict, blank=True, null=True)
+    institutions = models.JSONField(default=dict, blank=True, null=True)
     state = models.CharField(
         choices=BENCHMARK_STATE, max_length=100, default="DEVELOPMENT"
     )
