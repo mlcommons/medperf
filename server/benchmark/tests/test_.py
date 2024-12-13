@@ -281,6 +281,30 @@ class BenchmarkGetListTest(BenchmarkTest):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], benchmark_id)
 
+    @parameterized.expand([
+        ({"name": "bmk2"}, 1),
+        ({"name": "string", "owner": 3}, 1),
+        ({"name": "nonexistent"}, 0),
+        ({"is_valid": True}, 2),
+        ({"data_preparation_mlcube": 2}, 1),
+    ])
+    def test_get_with_query_params(self, query_dict, expected_num_results):
+        # Arrange
+        # Create another benchmark
+        benchmark = self.mock_benchmark(
+            self.ref_model["id"], self.prep["id"], self.eval["id"], name="bmk2"
+        )
+        benchmark = self.create_benchmark(benchmark).data
+        query_str = "&".join([f"{k}={v}" for k, v in query_dict.items()])
+
+        # Act
+        query_url = self.url + f"?{query_str}"
+        response = self.client.get(query_url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), expected_num_results)
+
 
 class PermissionTest(BenchmarkTest):
     """Test module for permissions of /benchmarks/ endpoint
