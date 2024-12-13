@@ -4,10 +4,10 @@ from typing import Optional
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.commands.list import EntityList
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.submit import ResultSubmission
 
 app = typer.Typer()
 
@@ -69,14 +69,22 @@ def list(
     benchmark: int = typer.Option(
         None, "--benchmark", "-b", help="Get results for a given benchmark"
     ),
+    model: int = typer.Option(
+        None, "--owner", "-o", help="Get results for a given model"
+    ),
+    dataset: int = typer.Option(
+        None, "--dataset", "-d", help="Get reuslts for a given dataset"
+    ),
 ):
     """List results"""
     EntityList.run(
-        Result,
+        Execution,
         fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
         unregistered=unregistered,
         mine_only=mine,
         benchmark=benchmark,
+        model=model,
+        dataset=dataset,
     )
 
 
@@ -112,5 +120,5 @@ def view(
 ):
     """Displays the information of one or more results"""
     EntityView.run(
-        entity_id, Result, format, unregistered, mine, output, benchmark=benchmark
+        entity_id, Execution, format, unregistered, mine, output, benchmark=benchmark
     )

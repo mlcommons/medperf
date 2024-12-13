@@ -13,3 +13,4 @@ pyOpenSSL==24.1.0
 Werkzeug==3.0.1
 django-extensions==3.2.3
 djangorestframework-simplejwt==5.3.1
+django-filter==24.3

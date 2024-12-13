@@ -89,11 +89,11 @@ class ResultGetTest(ResultsTest):
 
     def test_generic_get_result(self):
         # Arrange
-        result = self.mock_result(
+        execution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_result(result).data
+        result = self.create_execution(execution).data
         self.set_credentials(self.actor)
 
         url = self.url.format(result["id"])
@@ -135,11 +135,11 @@ class ResultPutTest(ResultsTest):
 
     def test_put_does_not_modify_readonly_fields(self):
         # Arrange
-        result = self.mock_result(
+        execution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_result(result).data
+        result = self.create_execution(execution).data
         self.set_credentials(self.actor)
 
         newtestresult = {
@@ -150,7 +150,6 @@ class ResultPutTest(ResultsTest):
             "benchmark": 44,
             "model": 444,
             "dataset": 55,
-            "results": {"new": 111},
         }
         url = self.url.format(result["id"])
 
@@ -178,11 +177,11 @@ class ResultDeleteTest(ResultsTest):
 
     def test_deletion_works_as_expected(self):
         # Arrange
-        result = self.mock_result(
+        execution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_result(result).data
+        result = self.create_execution(execution).data
         self.set_credentials(self.actor)
 
         url = self.url.format(result["id"])
@@ -213,11 +212,11 @@ class PermissionTest(ResultsTest):
     def setUp(self):
         super(PermissionTest, self).setUp()
         self.generic_setup()
-        result = self.mock_result(
+        execution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_result(result).data
+        result = self.create_execution(execution).data
         self.url = self.url.format(result["id"])
 
         self.result = result
@@ -247,7 +246,7 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("data_owner", status.HTTP_403_FORBIDDEN),
+            ("data_owner", status.HTTP_200_OK),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
