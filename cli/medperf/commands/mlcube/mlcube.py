@@ -87,6 +87,13 @@ def submit(
         help="Identifier to download the image file. See the description above",
     ),
     image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
+    stages_file: str = typer.Option(
+        "",
+        "--stages-file",
+        "-s",
+        help="Identifier to download the stages file. See the description above"
+    ),
+    stages_hash: str = typer.Option("", "--stages-hash", help="Hash of the stages file"),
     operational: bool = typer.Option(
         False,
         "--operational",
@@ -99,6 +106,7 @@ def submit(
         - parameters_file\n
         - additional_file\n
         - image_file\n
+        - stages_file\n
     are expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
@@ -117,6 +125,8 @@ def submit(
         "image_tarball_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
+        "stages_url": stages_file,
+        "stages_hash": stages_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitCube.run(mlcube_info)
