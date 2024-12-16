@@ -31,6 +31,7 @@ class TrainingExecution:
         overwrite: bool = False,
         approved: bool = False,
         restart_on_failure: bool = False,
+        skip_restart_on_failure_prompt: bool = False,
     ):
         """Starts the aggregation server of a training experiment
 
@@ -41,7 +42,7 @@ class TrainingExecution:
             approved = True
             overwrite = True
         execution = cls(training_exp_id, data_uid, overwrite, approved)
-        if restart_on_failure:
+        if restart_on_failure and not skip_restart_on_failure_prompt:
             execution.confirm_restart_on_failure()
 
         while True:

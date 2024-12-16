@@ -253,7 +253,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         return derived_opt_state_dict
 
 
-    def convert_results_to_tensorkeys(self, col_name, round_num, metrics, insert_model):
+    def convert_results_to_tensorkeys(self, col_name, round_num, metrics, insert_model, add_metrics_tags=[]):
         # insert_model determined whether or not to include the model in the return dictionaries
         
         # 5. Convert to tensorkeys
@@ -261,9 +261,10 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         # output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
+        metric_dict_tags = tuple(['metric'] + add_metrics_tags)
         output_metric_dict = {
             TensorKey(
-                metric_name, origin, round_num, True, ('metric',)
+                metric_name, origin, round_num, True, metric_dict_tags
             ): np.array(
                     metrics[metric_name]
                 ) for metric_name in metrics}

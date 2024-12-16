@@ -24,9 +24,9 @@ setupWeights() {
     cd mlcube/workspace
     mkdir additional_files
     cd additional_files
-    wget https://storage.googleapis.com/medperf-storage/flpost_add9nov.tar.gz
-    tar -xf flpost_add9nov.tar.gz
-    rm flpost_add9nov.tar.gz
+    wget https://storage.googleapis.com/medperf-storage/flpost_add15dec.tar.gz
+    tar -xf flpost_add15dec.tar.gz
+    rm flpost_add15dec.tar.gz
     cd ../../../
 }
 

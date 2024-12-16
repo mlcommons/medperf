@@ -248,8 +248,10 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
                        'val_eval_C2': all_val_eval_metrics_C2[-1], 
                        'val_eval_C3': all_val_eval_metrics_C3[-1], 
                        'val_eval_C4': all_val_eval_metrics_C4[-1]}
-
-        return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=False)
+        add_metrics_tags = []
+        if "apply" in kwargs:
+            add_metrics_tags = [f"nnunet_{kwargs['apply']}_val"]
+        return self.convert_results_to_tensorkeys(col_name, round_num, metrics, insert_model=False, add_metrics_tags=add_metrics_tags)
 
 
     def load_metrics(self, filepath):
