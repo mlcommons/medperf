@@ -1,10 +1,11 @@
 import os
 import yaml
 import logging
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 from pydantic import Field
 from pathlib import Path
 
+from medperf.entities.association import Association
 from medperf.utils import (
     combine_proc_sp_text,
     log_storage,
@@ -96,11 +97,12 @@ class Cube(Entity, DeployableSchema):
         return comms_fn
 
     @classmethod
-    def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
+    def get(cls, cube_uid: Union[str, int], local_only: bool = False, valid_only: bool = True) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
+            valid_only: if to raise an error in case of invalidated Cube
             cube_uid (str): UID of the cube.
 
         Returns:
@@ -108,7 +110,7 @@ class Cube(Entity, DeployableSchema):
         """
 
         cube = super().get(cube_uid, local_only)
-        if not cube.is_valid:
+        if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested MLCube is marked as INVALID.")
         cube.download_config_files()
         return cube
@@ -152,7 +154,7 @@ class Cube(Entity, DeployableSchema):
                 # For singularity, we need the hash first before trying to convert
                 self._set_image_hash_from_registry()
 
-                image_folder = os.path.join(config.cubes_folder, config.image_path)
+                image_folder: str = os.path.join(config.cubes_folder, config.image_path)
                 if os.path.exists(image_folder):
                     for file in os.listdir(image_folder):
                         if file == self._converted_singularity_image_name:
@@ -198,7 +200,7 @@ class Cube(Entity, DeployableSchema):
             cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
         logging.info(f"Running MLCube command: {cmd}")
         with spawn_and_kill(
-            cmd, timeout=config.mlcube_configure_timeout
+                cmd, timeout=config.mlcube_configure_timeout
         ) as proc_wrapper:
             proc = proc_wrapper.proc
             combine_proc_sp_text(proc)
@@ -228,13 +230,13 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
 
     def run(
-        self,
-        task: str,
-        output_logs: str = None,
-        string_params: Dict[str, str] = {},
-        timeout: int = None,
-        read_protected_input: bool = True,
-        **kwargs,
+            self,
+            task: str,
+            output_logs: str = None,
+            string_params: Dict[str, str] = {},
+            timeout: int = None,
+            read_protected_input: bool = True,
+            **kwargs,
     ):
         """Executes a given task on the cube instance
 
@@ -357,6 +359,22 @@ class Cube(Entity, DeployableSchema):
             cube = cube[key]
 
         return cube
+
+    @classmethod
+    def get_benchmarks_associations(cls, mlcube_uid: int) -> List[Association]:
+        """Retrieves the list of benchmarks model is associated with
+
+        Args:
+            mlcube_uid (int): UID of the cube.
+            comms (Comms): Instance of the communications interface.
+
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_cubes_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.model_mlcube == mlcube_uid]
+        return associations
 
     def display_dict(self):
         return {

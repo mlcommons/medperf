@@ -390,7 +390,7 @@ class REST(Comms):
             raise CommunicationRequestError(f"Could not upload the results: {details}")
         return res.json()
 
-    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}) -> None:
         """Create a Dataset Benchmark association
 
         Args:
@@ -515,6 +515,7 @@ class REST(Comms):
         res = self.__auth_put(url, json=data)
         if res.status_code != 200:
             log_response_error(res)
+            # TODO: Django returns the error of UNIQUE constraint as a html page
             details = format_errors_dict(res.json())
             raise CommunicationRequestError(f"Could not update dataset: {details}")
         return res.json()

@@ -1,0 +1,22 @@
+<!-- ./cli/medperf/web-ui/templates/detail_base.html -->
+{% extends "base.html" %}
+{% import 'association_card_macros.html' as macros %}
+
+{% block title %}Details{% endblock %}
+
+{% block optional_styles %}{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-panel">
+        {% block detail_panel %}{% endblock %}
+    </div>
+    <div class="yaml-panel" id="yaml-panel">
+        <h5>YAML Content</h5>
+        <div id="loading-indicator" class="spinner" style="display: none;"></div>
+        <pre><code id="yaml-code" class="language-yaml"></code></pre>
+    </div>
+</div>
+
+{% block optional_scripts %}{% endblock %}
+{% endblock %}
