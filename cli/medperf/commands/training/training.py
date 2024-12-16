@@ -149,14 +149,16 @@ def cancel_event(
 @app.command("ls")
 @clean_except
 def list(
-    local: bool = typer.Option(False, "--local", help="Get local exps"),
+    unregistered: bool = typer.Option(
+        False, "--unregistered", help="Get unregistered exps"
+    ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user exps"),
 ):
     """List experiments stored locally and remotely from the user"""
     EntityList.run(
         TrainingExp,
         fields=["UID", "Name", "State", "Approval Status", "Registered"],
-        local_only=local,
+        unregistered=unregistered,
         mine_only=mine,
     )
 
@@ -171,10 +173,10 @@ def view(
         "--format",
         help="Format to display contents. Available formats: [yaml, json]",
     ),
-    local: bool = typer.Option(
+    unregistered: bool = typer.Option(
         False,
-        "--local",
-        help="Display local benchmarks if benchmark ID is not provided",
+        "--unregistered",
+        help="Display unregistered benchmarks if benchmark ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
@@ -189,4 +191,4 @@ def view(
     ),
 ):
     """Displays the information of one or more benchmarks"""
-    EntityView.run(entity_id, TrainingExp, format, local, mine, output)
+    EntityView.run(entity_id, TrainingExp, format, unregistered, mine, output)
