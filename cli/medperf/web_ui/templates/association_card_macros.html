@@ -1,0 +1,13 @@
+<!-- ./cli/medperf/web-ui/templates/macros.html -->
+{% macro association_card(assoc, entity, entity_type) %}
+<div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
+    <div class="card-body">
+        <h5 class="card-title">{{ entity_name }}</h5>
+        <h5 class="card-title"><a href="/{{ entity_type }}/ui/{{ entity.id }}" class="text-primary">{{ entity.name }}</a></h5>
+        <p class="card-text"><strong>Approval Status:</strong> {{ assoc.approval_status }}</p>
+        <p class="card-text"><strong>Approved:</strong> <span class="text-muted small" data-date="{{ assoc.approved_at }}"></span></p>
+        <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" data-date="{{ assoc.modified_at }}"></span></p>
+        <p class="card-text"><strong>Initiated By:</strong> <i class="fas fa-user"></i> {{ assoc.initiated_by }}</p>
+    </div>
+</div>
+{% endmacro %}
