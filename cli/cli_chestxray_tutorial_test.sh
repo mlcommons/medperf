@@ -15,7 +15,6 @@ chmod a+w $DIRECTORY/sample_raw_data
 
 ##########################################################
 
-
 echo "=========================================="
 echo "Creating test profiles for each user"
 echo "=========================================="
@@ -84,7 +83,7 @@ echo "====================================="
 print_eval medperf profile activate testbenchmark
 checkFailed "testbenchmark profile activation failed"
 # Get association information
-ASSOC_INFO=$(medperf association ls | head -n 4 | tail -n 1 | tr -s ' ')
+ASSOC_INFO=$(medperf association ls -bd | head -n 4 | tail -n 1 | tr -s ' ')
 ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
 ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
 # Mark dataset-benchmark association as approved
@@ -98,7 +97,7 @@ echo "====================================="
 print_eval medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 # Create results
-print_eval medperf run -b 1 -d $DSET_UID -m 4 -y
+print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
 checkFailed "Benchmark execution step failed"
 
 # Test offline compatibility test

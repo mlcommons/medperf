@@ -36,7 +36,7 @@ def setup_comms(mocker, comms, associations):
     )
     mocker.patch.object(
         comms,
-        "set_mlcube_association_priority",
+        "update_benchmark_model_association",
         side_effect=set_priority_behavior(associations),
     )
 

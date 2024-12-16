@@ -1,5 +1,6 @@
 import yaml
 from medperf import config
+import os
 
 
 class ConfigManager:
@@ -10,7 +11,11 @@ class ConfigManager:
 
     @property
     def active_profile(self):
-        return self.profiles[self.active_profile_name]
+        # TODO: remove this commit
+        active_profile = os.environ.get(
+            "MEDPERF_ACTIVE_PROFILE", self.active_profile_name
+        )
+        return self.profiles[active_profile]
 
     def activate(self, profile_name):
         self.active_profile_name = profile_name
