@@ -47,7 +47,7 @@ if [ "$RESET_DB" -eq 1 ]
 then
   # Clean DB for a fresh start
   echo "Cleaning DB as RESET_DB flag is enabled"
-  rm db.sqlite3
+  sh reset_db.sh
 fi
 
 if [ "$DEPLOY" -eq 0 ]
