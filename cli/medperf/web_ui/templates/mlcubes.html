@@ -1,0 +1,28 @@
+<!-- ./cli/medperf/web-ui/templates/mlcubes.html -->
+{% extends "base.html" %}
+
+{% block title %}MLCubes{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h1 class="my-4">MLCubes</h1>
+</div>
+<div class="container">
+    <div class="row justify-content-center">
+        {% for mlcube in mlcubes %}
+        <div class="col-md-4 mb-4">
+            <div class="{% if mlcube.is_valid %}card{% else %}invalid-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/mlcubes/ui/{{ mlcube.id }}" class="text-primary">{{ mlcube.name }}</a></h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ mlcube.state }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ mlcube.is_valid }}</h6>
+                    <p class="card-text"><a href="{{ mlcube.git_mlcube_url }}" target="_blank" class="text-primary">Config File</a></p>
+                    <p class="card-text"><small class="text-muted" data-date="{{ mlcube.created_at }}"></small></p>
+                    <p class="card-text"><small class="text-muted">Registered: {{ mlcube.is_registered }}</small></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

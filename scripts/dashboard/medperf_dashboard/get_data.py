@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 
 from medperf.entities.dataset import Dataset
-from medperf import config
+from medperf import settings
 
 from .utils import get_institution_from_email, get_reports_path, stage_id2name
 
@@ -14,7 +14,7 @@ def get_dsets(mlcube_id):
     dsets = [dset.todict() for dset in dsets]
     for dset in dsets:
         user_id = dset["owner"]
-        dset["user"] = config.comms.get_user(user_id)
+        dset["user"] = settings.comms.get_user(user_id)
 
     return dsets
 

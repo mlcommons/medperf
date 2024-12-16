@@ -1,6 +1,7 @@
 import typer
 
-from medperf import config
+from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.utils import cleanup
 from medperf.storage.utils import move_storage
@@ -15,8 +16,8 @@ def ls():
     """Show the location of the current medperf assets"""
     headers = ["Asset", "Location"]
     info = []
-    for folder in config.storage:
-        info.append((folder, config.storage[folder]["base"]))
+    for folder in settings.storage:
+        info.append((folder, settings.storage[folder]["base"]))
 
     tab = tabulate(info, headers=headers)
     config.ui.print(tab)
@@ -39,5 +40,5 @@ def clean():
     """Cleans up clutter paths"""
 
     # Force cleanup to be true
-    config.cleanup = True
+    settings.cleanup = True
     cleanup()

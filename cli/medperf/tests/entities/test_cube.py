@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import call
 
 import medperf
-import medperf.config as config
+from medperf import settings
 from medperf.entities.cube import Cube
 from medperf.tests.entities.utils import (
     setup_cube_fs,
@@ -59,15 +59,15 @@ class TestGetFiles:
         self.id = setup["remote"][0]["id"]
 
         # Specify expected path for all downloaded files
-        self.cube_path = os.path.join(config.cubes_folder, str(self.id))
-        self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
+        self.cube_path = os.path.join(settings.cubes_folder, str(self.id))
+        self.manifest_path = os.path.join(self.cube_path, settings.cube_filename)
         self.params_path = os.path.join(
-            self.cube_path, config.workspace_path, config.params_filename
+            self.cube_path, settings.workspace_path, settings.params_filename
         )
         self.add_path = os.path.join(
-            self.cube_path, config.additional_path, config.tarball_filename
+            self.cube_path, settings.additional_path, settings.tarball_filename
         )
-        self.img_path = os.path.join(self.cube_path, config.image_path, "img.tar.gz")
+        self.img_path = os.path.join(self.cube_path, settings.image_path, "img.tar.gz")
         self.config_files_paths = [self.manifest_path, self.params_path]
         self.run_files_paths = [self.add_path, self.img_path]
 
@@ -105,9 +105,9 @@ class TestGetFiles:
         )
         spy = mocker.spy(medperf.entities.cube.spawn_and_kill, "spawn")
         expected_cmds = [
-            f"mlcube --log-level debug configure --mlcube={self.manifest_path} --platform={config.platform}",
+            f"mlcube --log-level debug configure --mlcube={self.manifest_path} --platform={settings.platform}",
             f"mlcube --log-level debug inspect --mlcube={self.manifest_path}"
-            f" --format=yaml --platform={config.platform} --output-file {tmp_path}",
+            f" --format=yaml --platform={settings.platform} --output-file {tmp_path}",
         ]
         expected_cmds = [call(cmd, timeout=None) for cmd in expected_cmds]
 
@@ -173,12 +173,12 @@ class TestRun:
     @pytest.fixture(autouse=True)
     def set_common_attributes(self, setup):
         self.id = setup["remote"][0]["id"]
-        self.platform = config.platform
-        self.gpus = config.gpus
+        self.platform = settings.platform
+        self.gpus = settings.gpus
 
         # Specify expected path for the manifest files
-        self.cube_path = os.path.join(config.cubes_folder, str(self.id))
-        self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
+        self.cube_path = os.path.join(settings.cubes_folder, str(self.id))
+        self.manifest_path = os.path.join(self.cube_path, settings.cube_filename)
 
     @pytest.mark.parametrize("timeout", [847, None])
     def test_cube_runs_command(self, mocker, timeout, setup, task):
@@ -306,15 +306,15 @@ class TestDefaultOutput:
         self.cube_contents = {
             "tasks": {task: {"parameters": {"outputs": {out_key: out_value}}}}
         }
-        self.cube_path = os.path.join(config.cubes_folder, str(self.id))
-        self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
+        self.cube_path = os.path.join(settings.cubes_folder, str(self.id))
+        self.manifest_path = os.path.join(self.cube_path, settings.cube_filename)
         fs.create_file(self.manifest_path, contents=yaml.dump(self.cube_contents))
 
         # Construct the expected output path
         out_val_path = out_value
         if isinstance(out_value, dict):
             out_val_path = out_value["default"]
-        self.output = os.path.join(self.cube_path, config.workspace_path, out_val_path)
+        self.output = os.path.join(self.cube_path, settings.workspace_path, out_val_path)
 
     def test_default_output_returns_expected_path(self, task, out_key):
         # Arrange
@@ -334,7 +334,7 @@ class TestDefaultOutput:
         # Create a params file with minimal content
         params_contents = {param_key: param_val}
         params_path = os.path.join(
-            self.cube_path, config.workspace_path, config.params_filename
+            self.cube_path, settings.workspace_path, settings.params_filename
         )
         fs.create_file(params_path, contents=yaml.dump(params_contents))
 

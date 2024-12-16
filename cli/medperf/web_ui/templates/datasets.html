@@ -1,0 +1,28 @@
+<!-- ./cli/medperf/web-ui/templates/datasets.html -->
+{% extends "base.html" %}
+
+{% block title %}Datasets{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h1 class="my-4">Datasets</h1>
+</div>
+<div class="container">
+    <div class="row justify-content-center">
+        {% for dataset in datasets %}
+        <div class="col-md-4 mb-4">
+            <div class="card {% if not dataset.is_valid %}invalid-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/datasets/ui/{{ dataset.id }}" class="text-primary">{{ dataset.name }}</a></h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ dataset.state }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ dataset.is_valid }}</h6>
+                    <p class="card-text">{{ dataset.description }}</p>
+                    <p class="card-text"><small class="text-muted" data-date="{{ dataset.created_at }}"></small></p>
+                    <p class="card-text"><small class="text-muted">Location: {{ dataset.location }}</small></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

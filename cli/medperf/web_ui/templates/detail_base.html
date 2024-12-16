@@ -1,0 +1,65 @@
+<!-- ./cli/medperf/web-ui/templates/detail_base.html -->
+{% extends "base.html" %}
+{% import 'association_card_macros.html' as macros %}
+
+{% block title %}Details{% endblock %}
+
+{% block content %}
+<style>
+    .card-body.d-flex {
+        flex-wrap: wrap;
+    }
+
+    .card-text {
+        word-wrap: break-word;
+        white-space: normal;
+    }
+
+    .detail-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .association-card {
+        margin-bottom: 20px;
+    }
+
+    .associations-panel {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .associations-column {
+        flex: 1;
+        min-width: 150px;
+        max-width: 48%;
+        box-sizing: border-box;
+    }
+
+    {% block optional_styles %}{% endblock %}
+
+    @media (max-width: 992px) {
+        .detail-panel, .associations-panel {
+            max-width: 100%;
+            padding-right: 0;
+            padding-left: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .detail-container {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="detail-container">
+    {% block detail_panel %}{% endblock %}
+</div>
+{% block optional_scripts %}{% endblock %}
+{% endblock %}

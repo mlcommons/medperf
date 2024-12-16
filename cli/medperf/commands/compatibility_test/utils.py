@@ -5,7 +5,8 @@ from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
 from medperf.entities.cube import Cube
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 import os
 import yaml
 from pathlib import Path
@@ -26,7 +27,7 @@ def download_demo_data(dset_url, dset_hash):
 
     # It is assumed that all demo datasets contain a file
     # which specifies the input of the data preparation step
-    paths_file = os.path.join(demo_dset_path, config.demo_dset_paths_file)
+    paths_file = os.path.join(demo_dset_path, settings.demo_dset_paths_file)
     with open(paths_file, "r") as f:
         paths = yaml.safe_load(f)
 
@@ -41,14 +42,14 @@ def download_demo_data(dset_url, dset_hash):
 
 def prepare_local_cube(path):
     temp_uid = get_folders_hash([path])
-    cubes_folder = config.cubes_folder
+    cubes_folder = settings.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
     os.symlink(path, dst)
     logging.info(f"local cube will be linked to path: {dst}")
-    config.tmp_paths.append(dst)
-    cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
+    settings.tmp_paths.append(dst)
+    cube_metadata_file = os.path.join(path, settings.cube_metadata_filename)
     if not os.path.exists(cube_metadata_file):
-        mlcube_yaml_path = os.path.join(path, config.cube_filename)
+        mlcube_yaml_path = os.path.join(path, settings.cube_filename)
         mlcube_yaml_hash = get_file_hash(mlcube_yaml_path)
         temp_metadata = {
             "id": None,
@@ -63,7 +64,7 @@ def prepare_local_cube(path):
         metadata = Cube(**temp_metadata).todict()
         with open(cube_metadata_file, "w") as f:
             yaml.dump(metadata, f)
-        config.tmp_paths.append(cube_metadata_file)
+        settings.tmp_paths.append(cube_metadata_file)
 
     return temp_uid
 
@@ -90,7 +91,7 @@ def prepare_cube(cube_uid: str):
     path = path.resolve()
 
     if os.path.exists(path):
-        mlcube_yaml_path = os.path.join(path, config.cube_filename)
+        mlcube_yaml_path = os.path.join(path, settings.cube_filename)
         if os.path.exists(mlcube_yaml_path):
             logging.info("local path provided. Creating symbolic link")
             temp_uid = prepare_local_cube(path)
@@ -137,7 +138,7 @@ def create_test_dataset(
     data_creation.create_dataset_object()
     # TODO: existing dataset could make problems
     # make some changes since this is a test dataset
-    config.tmp_paths.remove(data_creation.dataset.path)
+    settings.tmp_paths.remove(data_creation.dataset.path)
     if skip_data_preparation_step:
         data_creation.make_dataset_prepared()
     dataset = data_creation.dataset

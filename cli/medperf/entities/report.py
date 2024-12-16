@@ -1,7 +1,7 @@
 import hashlib
 from typing import List, Union, Optional
 
-import medperf.config as config
+from medperf import settings
 from medperf.entities.interface import Entity
 
 
@@ -44,11 +44,11 @@ class TestReport(Entity):
 
     @staticmethod
     def get_storage_path():
-        return config.tests_folder
+        return settings.tests_folder
 
     @staticmethod
     def get_metadata_filename():
-        return config.test_report_file
+        return settings.test_report_file
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -73,15 +73,16 @@ class TestReport(Entity):
         return super().all(unregistered=True, filters={})
 
     @classmethod
-    def get(cls, uid: str, local_only: bool = False) -> "TestReport":
+    def get(cls, uid: str, local_only: bool = False, valid_only: bool = True) -> "TestReport":
         """Gets an instance of the TestReport. ignores local_only inherited flag as TestReport is always a local entity.
         Args:
             uid (str): Report Unique Identifier
             local_only (bool): ignored. Left for aligning with parent Entity class
+            valid_only: if to raise an error in case of invalidated entity
         Returns:
             TestReport: Report Instance associated to the UID
         """
-        return super().get(uid, local_only=True)
+        return super().get(uid, local_only=True, valid_only=valid_only)
 
     def display_dict(self):
         if self.data_path:

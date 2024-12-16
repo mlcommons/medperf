@@ -1,4 +1,4 @@
-from medperf import config
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, approval_prompt

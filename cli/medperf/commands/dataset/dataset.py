@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 
-import medperf.config as config
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.entities.dataset import Dataset
 from medperf.commands.list import EntityList

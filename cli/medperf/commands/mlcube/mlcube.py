@@ -1,7 +1,8 @@
 import typer
 from typing import Optional
 
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
@@ -35,7 +36,7 @@ def list(
 def create(
     template: str = typer.Argument(
         ...,
-        help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
+        help=f"MLCube template name. Available templates: [{' | '.join(settings.templates.keys())}]",
     ),
     output_path: str = typer.Option(
         ".", "--output", "-o", help="Save the generated MLCube to the specified path"

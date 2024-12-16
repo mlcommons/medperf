@@ -1,6 +1,6 @@
 import pytest
 
-from medperf import config
+from medperf import settings
 from medperf.commands.mlcube.create import CreateCube
 from medperf.exceptions import InvalidArgumentError
 
@@ -14,7 +14,7 @@ def setup(mocker):
 
 
 class TestTemplate:
-    @pytest.mark.parametrize("template,dir", list(config.templates.items()))
+    @pytest.mark.parametrize("template,dir", list(settings.templates.items()))
     def test_valid_template_is_used(mocker, setup, template, dir):
         # Arrange
         spy = setup
@@ -39,7 +39,7 @@ class TestOutputPath:
         # Arrange
         path = "."
         spy = setup
-        template = list(config.templates.keys())[0]
+        template = list(settings.templates.keys())[0]
 
         # Act
         CreateCube.run(template)
@@ -53,7 +53,7 @@ class TestOutputPath:
     def test_output_path_is_used_for_template_creation(mocker, setup, output_path):
         # Arrange
         spy = setup
-        template = list(config.templates.keys())[0]
+        template = list(settings.templates.keys())[0]
 
         # Act
         CreateCube.run(template, output_path=output_path)
@@ -68,7 +68,7 @@ class TestConfigFile:
     def test_config_file_is_disabled_by_default(mocker, setup):
         # Arrange
         spy = setup
-        template = list(config.templates.keys())[0]
+        template = list(settings.templates.keys())[0]
 
         # Act
         CreateCube.run(template)
@@ -82,7 +82,7 @@ class TestConfigFile:
     def test_config_file_is_used_when_passed(mocker, setup, config_file):
         # Arrange
         spy = setup
-        template = list(config.templates.keys())[0]
+        template = list(settings.templates.keys())[0]
 
         # Act
         CreateCube.run(template, config_file=config_file)
@@ -97,7 +97,7 @@ class TestConfigFile:
         # Arrange
         spy = setup
         should_not_input = config_file is not None
-        template = list(config.templates.keys())[0]
+        template = list(settings.templates.keys())[0]
 
         # Act
         CreateCube.run(template, config_file=config_file)

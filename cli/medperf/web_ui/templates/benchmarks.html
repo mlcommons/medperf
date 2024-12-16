@@ -1,0 +1,33 @@
+<!-- ./cli/medperf/web-ui/templates/benchmarks.html -->
+{% extends "base.html" %}
+
+{% block title %}Benchmarks{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h1 class="my-4">Benchmarks</h1>
+</div>
+<div class="container">
+    <div class="row justify-content-center">
+        {% for benchmark in benchmarks %}
+        <div class="col-md-4 mb-4">
+            <div class="card {% if not benchmark.is_valid %}invalid-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/benchmarks/ui/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a></h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ benchmark.is_valid }}</h6>
+                    <p class="card-text"><strong>Description:</strong> {{ benchmark.description }}</p>
+                    {% if benchmark.docs_url %}
+                        <p class="card-text"><a href="{{ benchmark.docs_url }}" target="_blank" class="text-primary">Documentation</a></p>
+                    {% else %}
+                        <p class="card-text text-muted">Documentation: Not Available</p>
+                    {% endif %}
+                    <p class="card-text"><small class="text-muted" data-date="{{ benchmark.created_at }}"></small></p>
+                    <p class="card-text"><small class="text-muted">Approval Status: {{ benchmark.approval_status }}</small></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 import shutil
 from medperf.entities.dataset import Dataset
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
@@ -129,7 +130,7 @@ class DataCreation:
             for_test=self.for_test,
         )
         dataset.write()
-        config.tmp_paths.append(dataset.path)
+        settings.tmp_paths.append(dataset.path)
         dataset.set_raw_paths(
             raw_data_path=self.data_path,
             raw_labels_path=self.labels_path,
