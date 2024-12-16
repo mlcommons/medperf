@@ -1,6 +1,7 @@
 import os
 
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.entities.benchmark import Benchmark
 from medperf.exceptions import InvalidEntityError
 from medperf.utils import remove_path
@@ -53,7 +54,7 @@ class SubmitBenchmark:
         self.no_cache = no_cache
         self.skip_data_preparation_step = skip_data_preparation_step
         self.bmk.metadata["demo_dataset_already_prepared"] = skip_data_preparation_step
-        config.tmp_paths.append(self.bmk.path)
+        settings.tmp_paths.append(self.bmk.path)
 
     def get_extra_information(self):
         """Retrieves information that must be populated automatically,

@@ -1,6 +1,7 @@
 import os
 
-import medperf.config as config
+from medperf import settings
+from medperf.config_management import config
 from medperf.entities.cube import Cube
 from medperf.utils import remove_path
 
@@ -28,7 +29,7 @@ class SubmitCube:
         self.comms = config.comms
         self.ui = config.ui
         self.cube = Cube(**submit_info)
-        config.tmp_paths.append(self.cube.path)
+        settings.tmp_paths.append(self.cube.path)
 
     def download(self):
         self.cube.download_config_files()

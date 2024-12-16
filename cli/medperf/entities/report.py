@@ -1,7 +1,7 @@
 import hashlib
 from typing import List, Union, Optional
 
-import medperf.config as config
+from medperf import settings
 from medperf.entities.interface import Entity
 
 
@@ -44,11 +44,11 @@ class TestReport(Entity):
 
     @staticmethod
     def get_storage_path():
-        return config.tests_folder
+        return settings.tests_folder
 
     @staticmethod
     def get_metadata_filename():
-        return config.test_report_file
+        return settings.test_report_file
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

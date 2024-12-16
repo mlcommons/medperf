@@ -5,7 +5,7 @@ from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
 import pytest
-from medperf import config
+from medperf import settings
 import yaml
 
 
@@ -101,7 +101,7 @@ class TestFailures:
     def test_failure_with_existing_predictions(mocker, setup, ignore_model_errors, fs):
         # Arrange
         preds_path = os.path.join(
-            config.predictions_folder,
+            settings.predictions_folder,
             INPUT_MODEL.local_id,
             INPUT_DATASET.local_id,
         )
@@ -148,20 +148,20 @@ def test_results_are_returned(mocker, setup):
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
     exp_preds_path = os.path.join(
-        config.predictions_folder,
+        settings.predictions_folder,
         INPUT_MODEL.local_id,
         INPUT_DATASET.local_id,
     )
 
     exp_model_logs_path = os.path.join(
-        config.experiments_logs_folder,
+        settings.experiments_logs_folder,
         INPUT_MODEL.local_id,
         INPUT_DATASET.local_id,
         "model.log",
     )
 
     exp_metrics_logs_path = os.path.join(
-        config.experiments_logs_folder,
+        settings.experiments_logs_folder,
         INPUT_MODEL.local_id,
         INPUT_DATASET.local_id,
         f"metrics_{INPUT_EVALUATOR.local_id}.log",
@@ -170,14 +170,14 @@ def test_cube_run_are_called_properly(mocker, setup):
     exp_model_call = call(
         task="infer",
         output_logs=exp_model_logs_path,
-        timeout=config.infer_timeout,
+        timeout=settings.infer_timeout,
         data_path=INPUT_DATASET.data_path,
         output_path=exp_preds_path,
     )
     exp_eval_call = call(
         task="evaluate",
         output_logs=exp_metrics_logs_path,
-        timeout=config.evaluate_timeout,
+        timeout=settings.evaluate_timeout,
         predictions=exp_preds_path,
         labels=INPUT_DATASET.labels_path,
         output_path=ANY,

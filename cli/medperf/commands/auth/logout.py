@@ -1,4 +1,4 @@
-import medperf.config as config
+from medperf.config_management import config
 
 
 class Logout:
