@@ -29,7 +29,7 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["owner"]
 
-    def validate_state(self, state):
+    def _validate_guid(self, data):
         # NOTE: this is checking the uniqueness of generated_uid across
         #       operational datasets. This check relies on the fact that
         #       such a constraint can only be violated by updating the state.
@@ -39,27 +39,38 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
         #       defined in models.py. The reason is that DRF doesn't translate
         #       uniqueness constraint correctly, causing a 500 server error
         #       if the check was left to be done by the database.
-        if state == "OPERATION" and self.instance.state == "DEVELOPMENT":
+        if (
+            data.get("state")
+            and data["state"] == "OPERATION"
+            and self.instance.state == "DEVELOPMENT"
+        ):
             constraint = (
                 Dataset.objects.all()
-                .filter(state="OPERATION", generated_uid=self.instance.generated_uid)
+                .filter(
+                    state="OPERATION",
+                    generated_uid=data.get(
+                        "generated_uid", self.instance.generated_uid
+                    ),
+                )
                 .exists()
             )
             if constraint:
                 raise serializers.ValidationError(
-                    "An Operational dataset with the same generated UID already exists"
+                    "An Operational dataset with the same "
+                    "generated UID already exists"
                 )
-        return state
 
     def validate(self, data):
         if self.instance.state == "OPERATION":
             editable_fields = ["is_valid", "user_metadata"]
             for k, v in data.items():
-                if k not in editable_fields:
-                    if v != getattr(self.instance, k):
-                        raise serializers.ValidationError(
-                            "User cannot update non editable fields in Operation mode"
-                        )
+                value_changed = v != getattr(self.instance, k)
+                if k not in editable_fields and value_changed:
+                    raise serializers.ValidationError(
+                        "User cannot update non editable fields in Operation mode"
+                    )
+        self._validate_guid(data)
+
         return data
 
 
