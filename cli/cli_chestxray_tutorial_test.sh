@@ -97,7 +97,7 @@ echo "====================================="
 print_eval medperf profile activate testdata
 checkFailed "testdata profile activation failed"
 # Create results
-print_eval medperf run -b 1 -d $DSET_UID -m 4 -y
+print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
 checkFailed "Benchmark execution step failed"
 
 # Test offline compatibility test
