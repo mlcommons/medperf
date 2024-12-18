@@ -14,6 +14,7 @@ from dataset.models import Dataset
 class MlCubeList(GenericAPIView):
     serializer_class = MlCubeSerializer
     queryset = ""
+    filterset_fields = ('name', 'owner', 'state', 'is_valid')
 
     @extend_schema(operation_id="mlcubes_retrieve_all")
     def get(self, request, format=None):
@@ -21,6 +22,7 @@ class MlCubeList(GenericAPIView):
         List all mlcubes
         """
         mlcubes = MlCube.objects.all()
+        mlcubes = self.filter_queryset(mlcubes)
         mlcubes = self.paginate_queryset(mlcubes)
         serializer = MlCubeSerializer(mlcubes, many=True)
         return self.get_paginated_response(serializer.data)
