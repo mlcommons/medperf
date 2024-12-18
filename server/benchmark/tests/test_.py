@@ -304,8 +304,6 @@ class BenchmarkGetListTest(BenchmarkTest):
         # Act
         query_url = self.url + f"?{query_str}"
         response = self.client.get(query_url)
-        print(query_url, response.status_code, response.data['results'])
-        print("Unfiltered Query:", self.client.get(self.url).data['results'])
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
