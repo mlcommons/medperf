@@ -205,7 +205,7 @@ class Comms(ABC):
         """
 
     @abstractmethod
-    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
+    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}) -> None:
         """Create a Dataset Benchmark association
 
         Args:
