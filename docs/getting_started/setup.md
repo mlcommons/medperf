@@ -21,7 +21,7 @@ For this tutorial, you should spawn a local MedPerf server for the MedPerf clien
 
     ```bash
     cd server
-    cp .env.local.local-auth .env
+    cp .env.local.local-auth.sqlite .env
     sh setup-dev-server.sh
     ```
 
