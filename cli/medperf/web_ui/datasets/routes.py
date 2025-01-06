@@ -7,7 +7,11 @@ from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.web_ui.common import templates, sort_associations_display, get_current_user_ui
+from medperf.web_ui.common import (
+    templates,
+    sort_associations_display,
+    get_current_user_ui,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +20,9 @@ router = APIRouter()
 
 @router.get("/ui", response_class=HTMLResponse)
 def datasets_ui(
-        request: Request,
-        mine_only: bool = False,
-        current_user: bool = Depends(get_current_user_ui)
+    request: Request,
+    mine_only: bool = False,
+    current_user: bool = Depends(get_current_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
@@ -33,14 +37,16 @@ def datasets_ui(
     mine_datasets = [d for d in datasets if d.owner == my_user_id]
     other_datasets = [d for d in datasets if d.owner != my_user_id]
     datasets = mine_datasets + other_datasets
-    return templates.TemplateResponse("datasets.html", {"request": request, "datasets": datasets})
+    return templates.TemplateResponse(
+        "dataset/datasets.html", {"request": request, "datasets": datasets}
+    )
 
 
 @router.get("/ui/display/{dataset_id}", response_class=HTMLResponse)
 def dataset_detail_ui(
-        request: Request,
-        dataset_id: int,
-        current_user: bool = Depends(get_current_user_ui),
+    request: Request,
+    dataset_id: int,
+    current_user: bool = Depends(get_current_user_ui),
 ):
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
@@ -61,10 +67,14 @@ def dataset_detail_ui(
 
     # Get all relevant benchmarks for association
     benchmarks = Benchmark.all()
-    valid_benchmarks = {b.id: b for b in benchmarks if b.data_preparation_mlcube == dataset.data_preparation_mlcube}
+    valid_benchmarks = {
+        b.id: b
+        for b in benchmarks
+        if b.data_preparation_mlcube == dataset.data_preparation_mlcube
+    }
 
     return templates.TemplateResponse(
-        "dataset_detail.html",
+        "dataset/dataset_detail.html",
         {
             "request": request,
             "entity": dataset,
@@ -73,5 +83,5 @@ def dataset_detail_ui(
             "benchmark_associations": benchmark_associations,
             "benchmarks": valid_benchmarks,
             "benchmark_models": benchmark_models,  # Pass associated models without status
-        }
+        },
     )

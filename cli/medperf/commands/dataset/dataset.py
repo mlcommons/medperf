@@ -1,5 +1,3 @@
-import logging
-
 import typer
 from typing import Optional
 

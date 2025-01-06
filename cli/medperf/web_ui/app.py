@@ -8,7 +8,6 @@ from fastapi.staticfiles import StaticFiles
 
 from medperf import config
 from medperf.decorators import clean_except
-from medperf.ui.web_ui_proxy import WebUIProxy
 from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
@@ -33,7 +32,7 @@ web_app.mount(
     "/static",
     StaticFiles(
         directory=static_folder_path,
-    )
+    ),
 )
 
 web_app.add_exception_handler(Exception, custom_exception_handler)
@@ -54,8 +53,11 @@ async def startup_event():
     print()
     print("=" * 40)
 
+
 @web_app.exception_handler(NotAuthenticatedException)
-async def not_authenticated_exception_handler(request: Request, exc: NotAuthenticatedException):
+async def not_authenticated_exception_handler(
+    request: Request, exc: NotAuthenticatedException
+):
     return RedirectResponse(url=exc.redirect_url)
 
 
@@ -70,9 +72,9 @@ app = typer.Typer()
 @app.command("run")
 @clean_except
 def run(
-        port: int = typer.Option(8100, "--port", help="port to use"),
+    port: int = typer.Option(8100, "--port", help="port to use"),
 ):
     """Runs a local web UI"""
-    config.ui = WebUIProxy()
     import uvicorn
+
     uvicorn.run(web_app, host="127.0.0.1", port=port, log_level=config.loglevel)

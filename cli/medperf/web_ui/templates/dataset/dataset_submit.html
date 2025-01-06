@@ -1,0 +1,355 @@
+<!-- ./cli/medperf/web-ui/templates/dataset/dataset_submit.html -->
+{% extends "base.html" %}
+
+{% block title %}Create Dataset{% endblock %}
+
+{% block content %}
+<style>
+    /* Fullscreen overlay */
+    #loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Faded background */
+        z-index: 9999; /* Ensure it's above everything */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Spinner */
+    .spinner {
+        border: 8px solid rgba(255, 255, 255, 0.3); /* Light gray border */
+        border-top: 8px solid white; /* White border for animation */
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+<div class="container">
+    <h1 class="text-center">Create New Dataset</h1>
+    <form class="mt-5" id="dataset-form" method="POST">
+        <!-- Step 1: Benchmark Selection -->
+        <div id="step-1" class="form-step">
+            <div class="form-group my-3">
+                <label class="h2" for="benchmark">Select Benchmark</label>
+                <select name="benchmark" id="benchmark" class="form-control">
+                    <option value="" disabled selected>Select a benchmark</option>
+                    {% for benchmark in benchmarks %}
+                    <option value="{{ benchmark.id }}">{{ benchmark.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="text-center mt-5">
+                <button type="button" class="btn btn-primary" id="next-step-1" onclick="nextStepTwo()">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Dataset Information -->
+        <div id="step-2" class="form-step" style="display:none;">
+            <h2>Dataset Information</h2>
+            <div class="form-group my-4">
+                <label for="name" class="form-label">Dataset Name:</label>
+                <input type="text" name="name" id="name" class="form-control" required>
+            </div>
+            <div class="form-group my-4">
+                <label for="description" class="form-label">Description:</label>
+                <textarea name="description" id="description" class="form-control" required></textarea>
+            </div>
+            <div class="form-group my-4">
+                <label for="location" class="form-label">Location:</label>
+                <input type="text" name="location" id="location" class="form-control">
+            </div>
+
+            <div class="text-center mt-5">
+                <button type="button" class="btn btn-secondary mx-3" onclick="backStepOne()">Back</button>
+                <button type="button" class="btn btn-primary mx-3" onclick="nextStepThree()">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Folder Selection -->
+        <div id="step-3" class="form-step" style="display:none;">
+            <h2>Select Data and Labels Folders on the Server</h2>
+            <div class="form-group my-4">
+                <label for="data-path" class="form-label">Data Folder:</label>
+                <div class="input-group mb-3">
+                    <input type="text" id="data-path" name="data_path" class="form-control" readonly>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" id="browse-data-btn">Browse</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group my-4">
+                <label for="labels-path" class="form-label">Labels Folder:</label>
+                <div class="input-group mb-3">
+                    <input type="text" id="labels-path" name="labels_path" class="form-control" readonly>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" id="browse-labels-btn">Browse</button>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-secondary mx-3" onclick="backStepTwo()">Back</button>
+                <button type="button" class="btn btn-success mx-3" onclick="submitDataset()">Submit</button>
+            </div>
+        </div>
+    </form>
+    <!-- Modal for folder selection -->
+    <div class="modal fade" id="folderPickerModal" tabindex="-1" aria-labelledby="folderPickerLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="folderPickerLabel">Select Folder</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul id="folder-list" class="list-group">
+                        <!-- Folders will be dynamically loaded here -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for prompt -->
+    <div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="promptTitle"></h5>
+                </div>
+                <div class="modal-body">
+                    <p id="promptText"></p>
+                    <p id="promptWarning" class="text-danger fs-5 fw-bold"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="respond_no();">No</button>
+                    <button type="button" class="btn btn-success" onclick="respond_yes();">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Section (hidden initially) -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+    <div id="response" style="display: none;">
+        <div id="response-data"></div>
+    </div>
+</div>
+
+<script>
+    // Proceed to step 2 (Entering Dataset name, description, and location)
+    function nextStepTwo(){
+        $("#step-1").hide();
+        $("#step-2").show();
+    }
+    // Proceed to step 3 (Entering data and labels paths)
+    function nextStepThree(){
+        $("#step-2").hide();
+        $("#step-3").show();
+    }
+    // Get back to step 1 (Selecting Benchmark)
+    function backStepOne(){
+        $("#step-2").hide();
+        $("#step-1").show();
+    }
+    // Get back to step 2 (Entering Dataset name, description, and location)
+    function backStepTwo(){
+        $("#step-3").hide();
+        $("#step-2").show();
+    }
+    function backStepThree(){
+        $("#review-section").hide();
+        $("step-3").show();
+    }
+
+    // AJAX folder browsing logic
+    let currentPath = '.';  // Start at root directory or a defined base path
+    let activeInput = null;
+
+    function loadFolder(path) {
+        fetch(`/api/browse?path=${encodeURIComponent(path)}`)
+            .then(response => response.json())
+            .then(data => {
+                const folderList = document.getElementById('folder-list');
+                folderList.innerHTML = '';
+                if (data.parent) {
+                    folderList.innerHTML += `<li class="list-group-item folder-item" data-path="${data.parent}">.. (parent)</li>`;
+                }
+                data.folders.forEach(folder => {
+                    folderList.innerHTML += `<li class="list-group-item folder-item" data-path="${folder.path}">${folder.name}</li>`;
+                });
+            });
+    }
+
+    document.getElementById('browse-data-btn').addEventListener('click', function() {
+        activeInput = document.getElementById('data-path');
+        loadFolder(currentPath);
+        $('#folderPickerModal').modal('show');
+    });
+
+    document.getElementById('browse-labels-btn').addEventListener('click', function() {
+        activeInput = document.getElementById('labels-path');
+        loadFolder(currentPath);
+        $('#folderPickerModal').modal('show');
+    });
+
+    document.getElementById('folder-list').addEventListener('click', function(event) {
+        if (event.target.classList.contains('folder-item')) {
+            const newPath = event.target.getAttribute('data-path');
+            currentPath = newPath;
+            loadFolder(newPath);
+        }
+    });
+
+    document.getElementById('select-folder-btn').addEventListener('click', function() {
+        if (activeInput) {
+            activeInput.value = currentPath;
+        }
+        $('#folderPickerModal').modal('hide');
+    });
+    function showPrompt(){
+        const modal = new bootstrap.Modal($('#promptModal')[0]);
+        modal.show();
+    }
+    // Handle draft submission
+    function submitDataset(){
+        const formData = new FormData($('#dataset-form')[0]);
+        $.ajax({
+            url: '/datasets/submit/generate',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            async: true,
+            error: function(xhr, status, error) {
+                console.log("Error occurred:", error);
+            }
+            // success: function(data) {
+            //    // Hide form, show review section
+            //    $('#step-3').hide();
+            //    const reviewSection = $('#review-section');
+            //    reviewSection.show();
+        
+            //    // Display draft data for review
+            //    const reviewDataList = $('#review-data');
+            //    reviewDataList.empty();
+            //    $.each(data.data, function(key, value) {
+            //        reviewDataList.append(`<li><strong>${key}:</strong>${value}</li>`);
+            //    });
+        
+            //    // Set draft_id for submit/cancel
+            //    reviewSection.attr('data-draft-id', data.draft_id);
+            //}
+        });
+        showLoading();
+        getPrompt();
+        //const formData = new FormData(document.getElementById('dataset-form'));
+        //fetch('/datasets/submit_draft/generate', {
+        //    method: 'POST',
+        //    body: formData
+        //})
+        //.then(response => response.json())
+        //.then(data => {
+        //    // Hide form, show review section
+        //    document.getElementById('step-3').style.display = 'none';
+        //    const reviewSection = document.getElementById('review-section');
+        //    reviewSection.style.display = 'block';
+
+        //    // Display draft data for review
+        //    const reviewDataList = document.getElementById('review-data');
+        //    reviewDataList.innerHTML = '';
+        //    for (const key in data.data) {
+        //        reviewDataList.innerHTML += `<li><strong>${key}:</strong> ${data.data[key]}</li>`;
+        //    }
+
+        //    // Set draft_id for submit/cancel
+        //    reviewSection.setAttribute('data-draft-id', data.draft_id);
+        //});
+    }
+    function showLoading(){
+        $("#loading-overlay").css("display", "flex");
+        $("html").css("cursor", "not-allowed");
+    }
+
+    function getPrompt(){
+        $.ajax({
+            url: '/datasets/event',
+            type: 'GET',
+            dataType: 'json',
+            async: true,
+            success: function(response) {
+                $("#loading-overlay").css("display", "none");
+                $("html").css("cursor", "unset");
+                $("#step-3").hide();
+                //$('#response-data').text(JSON.stringify(response, null, 4));
+                response.forEach(function(item, index) {
+                    if(item.type == "text"){
+                        let p = $('<p></p>');
+                        p.text(item.message);
+                        $('#response-data').append(p)
+                    }
+                    else if (item.type == "warning"){
+                        let p = $('<p></p>');
+                        p.text(item.message);
+                        p.css("font-weight", "bold");
+                        p.addClass('text-danger');
+                        p.addClass('fs-5');
+                        $('#response-data').append(p)
+                        $('#promptWarning').text(item.message)
+                    }
+                    else if (item.type == "prompt"){
+                        $('#promptTitle').text(item.message);
+                        $('#promptText').text(item.message);
+                        let b = $('<button class="btn btn-success mt-4" type="button" onclick="showPrompt();">Show Prompt</button>')
+                        $('#response-data').append(b)
+                    }
+                });
+                $("#response").show();
+            },
+            error: function(xhr, status, error) {
+                // Handle errors
+                $("#loading-overlay").css("display", "none");
+                $("html").css("cursor", "unset");
+                $("#step-3").hide();
+                $('#response-data').text(`Error: ${xhr.status} - ${error}`);
+                $("#response").show();
+            }
+        });
+    }
+    function respond_yes(){
+        $.ajax({
+            url: '/datasets/event',
+            type: 'POST',
+            data: { is_approved: true },
+        });
+        window.location.href = "/datasets/ui"
+    }
+
+    function respond_no(){
+        $.ajax({
+            url: '/datasets/event',
+            type: 'POST',
+            data: { is_approved: false },
+        });
+        window.location.href = "/datasets/submit/ui"
+    }
+
+</script>
+{% endblock %}

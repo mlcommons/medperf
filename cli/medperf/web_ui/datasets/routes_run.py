@@ -55,30 +55,30 @@ _task_queue: Queue = Queue()
 
 @router.get("/run_draft/ui/{result_id}", response_class=HTMLResponse)
 async def run_draft_ui(
-        result_id: str,
-        request: Request,
-        current_user: bool = Depends(get_current_user_ui),
+    result_id: str,
+    request: Request,
+    current_user: bool = Depends(get_current_user_ui),
 ):
     # Fetch relevant details like dataset_id, benchmark_id, and model_id from result_id
     # result_id is in the format "b{benchmark_id}m{model_id}d{dataset_id}"
-    parts = result_id[1:].split('m')
+    parts = result_id[1:].split("m")
     benchmark_id = int(parts[0])
     benchmark = Benchmark.get(benchmark_id)
-    dataset_part = parts[1].split('d')
+    dataset_part = parts[1].split("d")
     model_id = int(dataset_part[0])
     dataset_id = int(dataset_part[1])
     model = Cube.get(model_id)
     dataset = Dataset.get(dataset_id)
 
     return templates.TemplateResponse(
-        "dataset_run.html",
+        "dataset/dataset_run.html",
         {
             "request": request,
             "dataset": dataset,
             "benchmark": benchmark,
             "model": model,
             "result_id": result_id,
-        }
+        },
     )
 
 
@@ -132,10 +132,10 @@ worker.start()
 
 @router.post("/run_draft/run", response_model=RunStatus)
 async def run_benchmark(
-        dataset_id: int,
-        benchmark_id: int,
-        model_id: int,
-        current_user: bool = Depends(get_current_user_api),
+    dataset_id: int,
+    benchmark_id: int,
+    model_id: int,
+    current_user: bool = Depends(get_current_user_api),
 ):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     if result_id in _drafts:
@@ -148,24 +148,22 @@ async def run_benchmark(
         model_id=model_id,
         result_id=result_id,
         status=DraftStatus.pending,
-        logs=[]
+        logs=[],
     )
     _drafts[result_id] = draft
     _task_queue.put((benchmark_id, dataset_id, model_id))
 
     return RunStatus(
-        model_id=draft.model_id,
-        status=draft.status,
-        result=draft.get_result()
+        model_id=draft.model_id, status=draft.status, result=draft.get_result()
     )
 
 
 @router.get("/run_draft/status", response_model=RunStatus)
 async def get_run_status(
-        dataset_id: int,
-        benchmark_id: int,
-        model_id: int,
-        current_user: bool = Depends(get_current_user_api),
+    dataset_id: int,
+    benchmark_id: int,
+    model_id: int,
+    current_user: bool = Depends(get_current_user_api),
 ):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     draft = _drafts.get(result_id)
@@ -176,31 +174,21 @@ async def get_run_status(
             status = DraftStatus.submitted
         else:
             status = DraftStatus.executed
-        return RunStatus(
-            model_id=model_id,
-            status=status,
-            result=result
-        )
+        return RunStatus(model_id=model_id, status=status, result=result)
     elif draft:
         return RunStatus(
-            model_id=draft.model_id,
-            status=draft.status,
-            result=draft.get_result()
+            model_id=draft.model_id, status=draft.status, result=draft.get_result()
         )
     else:
-        return RunStatus(
-            model_id=model_id,
-            status=DraftStatus.n_a,
-            result=None
-        )
+        return RunStatus(model_id=model_id, status=DraftStatus.n_a, result=None)
 
 
 @router.get("/run_draft/logs", response_class=StreamingResponse)
 async def get_run_logs(
-        dataset_id: int,
-        benchmark_id: int,
-        model_id: int,
-        current_user: bool = Depends(get_current_user_api),
+    dataset_id: int,
+    benchmark_id: int,
+    model_id: int,
+    current_user: bool = Depends(get_current_user_api),
 ):
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     draft = _drafts.get(result_id)
@@ -216,7 +204,10 @@ async def get_run_logs(
             while line_id < len(draft.logs):
                 yield draft.logs[line_id] + "\n"
                 line_id += 1
-            if draft.status not in {DraftStatus.pending, DraftStatus.running} and line_id >= len(draft.logs):
+            if draft.status not in {
+                DraftStatus.pending,
+                DraftStatus.running,
+            } and line_id >= len(draft.logs):
                 break
 
     return StreamingResponse(log_stream(), media_type="text/event-stream")

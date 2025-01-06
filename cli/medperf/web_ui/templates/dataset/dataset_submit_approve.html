@@ -1,0 +1,34 @@
+<!-- ./cli/medperf/web-ui/templates/dataset/dataset_submit_approve.html -->
+{% extends "base.html" %}
+
+{% block title %}Dataset Approval{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">New Dataset Approval</h1>
+    <div id="review-section">
+        <h2>Do you approve the registration of the presented data to MedPerf?</h2>
+        <ul id="review-data"></ul>
+        <div class="alert alert-warning">
+            Upon submission, your email address will be visible to the Data Preparation Owner for traceability and debugging purposes.
+        </div>
+        <button type="button" class="btn btn-danger" onclick="cancelSubmit()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="approveSubmit()">Submit</button>
+    </div>
+</div>
+
+<script>
+    // Handle cancellation
+    function cancelSubmit(){
+        const draftId = document.getElementById('review-section').getAttribute('data-draft-id');
+        window.location.href = `/datasets/submit_draft/decline?draft_id=${draftId}`;
+    }
+
+    // Handle approval
+    function approveSubmit(){
+        const draftId = document.getElementById('review-section').getAttribute('data-draft-id');
+        window.location.href = `/datasets/submit_draft/submit?draft_id=${draftId}`;
+    }
+
+</script>
+{% endblock %}

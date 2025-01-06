@@ -1,17 +1,21 @@
 import json
 from queue import Queue
 from contextlib import contextmanager
-from typing import Callable, Generator, Optional
+from typing import Generator, Optional
 
 import typer
 
 from medperf.ui.cli import CLI
 
+import asyncio
 
-class WebUIProxy(CLI):
+
+class WebUI(CLI):
     def __init__(self):
         super().__init__()
         self.message_queue: Queue[Optional[str]] = Queue()
+        self.events: asyncio.Queue[dict] = Queue()  # Or just use Queue()
+        self.responses: asyncio.Queue[dict] = Queue()  # Or just use Queue()
         self._is_proxy = False
 
     def start_proxy(self):
@@ -65,3 +69,29 @@ class WebUIProxy(CLI):
 
         if self._is_proxy:
             self.message_queue.put(json.dumps({"type": "print", "message": msg}))
+
+    def set_event(self, dict):
+        self.events.put(dict)
+
+    def get_event(self):
+        return self.events.get()
+
+    def set_response(self, dict):
+        self.responses.put(dict)
+
+    def get_response(self):
+        return self.responses.get()
+
+    def prompt(self, msg):
+        self.set_event({"type": "prompt", "message": msg})
+        self.set_event(None)
+        resp = self.get_response()
+        if resp["value"]:
+            return "y"
+        return "n"
+
+    def print(self, msg=""):
+        self.set_event({"type": "text", "message": msg})
+
+    def print_warning(self, msg):
+        self.set_event({"type": "warning", "message": msg})
