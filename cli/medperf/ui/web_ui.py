@@ -48,9 +48,10 @@ class WebUI(CLI):
             type = "json"
         if self.is_interactive:
             self.spinner.write(msg)
-            self.set_event({"type": "text", "message": msg})
         else:
-            self.set_event({"type": type, "message": msg})
+            typer.echo(msg)
+
+        self.set_event({"type": type, "message": msg, "end": False})
 
     def start_interactive(self):
         """Start an interactive session where messages can be overwritten
@@ -92,10 +93,9 @@ class WebUI(CLI):
         """
         if not self.is_interactive:
             self.print(msg)
-            self.spinner.text = msg  # TODO
-        else:
-            self.spinner.text = msg  # TODO
-            self.set_event({"type": "text", "message": msg})
+
+        self.set_event({"type": "text", "message": msg, "end": False})
+        self.spinner.text = msg  # TODO
 
     def prompt(self, msg: str) -> str:
         """Displays a prompt to the user and waits for an answer
@@ -107,8 +107,7 @@ class WebUI(CLI):
             str: user input
         """
         msg = msg.replace(" [Y/n]", "")
-        self.set_event({"type": "prompt", "message": msg})
-        self.set_event(None)  # TODO
+        self.set_event({"type": "prompt", "message": msg, "end": False})
         resp = self.get_response()
         if resp["value"]:
             return "y"
@@ -144,3 +143,11 @@ class WebUI(CLI):
 
     def get_response(self):
         return self.responses.get()
+
+    def set_success(self):
+        self.events.put({"type": "highlight", "message": "&#x2705; Done", "end": True})
+
+    def set_error(self):
+        self.events.put(
+            {"type": "highlight", "message": "&#x274C; Stopped", "end": True}
+        )

@@ -264,107 +264,107 @@
         $("#loading-overlay").css("display", "flex");
         $("html").css("cursor", "not-allowed");
     }
-    function getPrompt(){
+    function getEvents() { // Recursively get events(logs, prints, etc..)
+        const respDiv = $("#response-data");
         $.ajax({
-            url: "/datasets/event",
+            url: "/datasets/events",
             type: "GET",
             dataType: "json",
-            async: true,
             success: function(response) {
-                $("#loading-overlay").css("display", "none");
-                $("html").css("cursor", "unset");
-                $("#step-3").hide();
-                const respDiv = $("#response-data");
-                response.forEach(function(item, index) {
-                    if(item.type == "text"){
-                        let p = $("<p></p>");
-                        p.addClass("fs-5")
-                        p.text(item.message);
-                        respDiv.append(p)
-                    }
-                    else if (item.type == "warning"){
-                        let p = $("<p></p>");
-                        p.text(item.message);
-                        p.addClass("mt-4")
-                        p.addClass("font-weight-bold")
-                        p.addClass("text-danger");
-                        p.addClass("fs-4");
-                        respDiv.append(p)
-                    }
-                    else if (item.type == "prompt"){
-                        let p = $("<p></p>");
-                        p.text(item.message);
-                        p.addClass("mt-4")
-                        p.addClass("font-weight-bold")
-                        p.addClass("fs-4");
-                        respDiv.append(p)
-                        let buttonsDiv = $("<div></div>");
-                        buttonsDiv.addClass("text-center");
-                        buttonsDiv.addClass("mt-5");
-                        let b1 = $("<button></button>")
-                        let b2 = $("<button></button>")
-                        b1.addClass("btn");
-                        b2.addClass("btn");
-                        b1.addClass("mx-3");
-                        b2.addClass("mx-3");
-                        b1.addClass("btn-success");
-                        b2.addClass("btn-danger");
-                        b1.attr("type", "button");
-                        b2.attr("type", "button");
-                        b1.attr("onclick", "respond_yes();");
-                        b2.attr("onclick", "respond_no();");
-                        b1.text("Yes");
-                        b2.text("No");
-                        buttonsDiv.append(b2);
-                        buttonsDiv.append(b1);
-                        respDiv.append(buttonsDiv);
-                    }
-                    else if (item.type == "json"){
-                        let json_data = item.message.split("\n");
-                        let ul = $("<ul></ul>");
-                        $.each(json_data, function(ind, line) {
-                            if(!line.trim()){
-                                return;
-                            }
-                            let kv = line.split(":");
-                            let k = kv[0].trim();
-                            let v = kv[1].trim();
-                            let li = $("<li></li>");
-                            let keyText = $("<span></span>");
-                            let valText = $("<span></span>");
-                            keyText.addClass("font-weight-bold");
-                            keyText.text(k.trim()+": ");
-                            valText.text(v.trim());
-                            li.append(keyText);
-                            li.append(valText);
-                            ul.append(li);
-                        });
-                        respDiv.append(ul);
-
-                    }
-                });
-                $("#response").show();
+                if (response.end)
+                    return;
+                if(response.type === "print"){
+                    let p = $("<p></p>");
+                    p.addClass("fs-5")
+                    p.text(response.message);
+                    respDiv.append(p)
+                }
+                else if (response.type === "warning"){
+                    let p = $("<p></p>");
+                    p.text(response.message);
+                    p.addClass("mt-4")
+                    p.addClass("font-weight-bold")
+                    p.addClass("text-danger");
+                    p.addClass("fs-4");
+                    respDiv.append(p)
+                }
+                else if (response.type === "prompt"){
+                    let p = $("<p></p>");
+                    p.text(response.message);
+                    p.addClass("mt-4")
+                    p.addClass("font-weight-bold")
+                    p.addClass("fs-4");
+                    respDiv.append(p)
+                    let buttonsDiv = $("<div></div>");
+                    buttonsDiv.addClass("text-center");
+                    buttonsDiv.addClass("mt-5");
+                    let b1 = $("<button></button>")
+                    let b2 = $("<button></button>")
+                    b1.addClass("btn");
+                    b2.addClass("btn");
+                    b1.addClass("mx-3");
+                    b2.addClass("mx-3");
+                    b1.addClass("btn-success");
+                    b2.addClass("btn-danger");
+                    b1.attr("type", "button");
+                    b2.attr("type", "button");
+                    b1.attr("onclick", "respond_yes();");
+                    b2.attr("onclick", "respond_no();");
+                    b1.text("Yes");
+                    b2.text("No");
+                    buttonsDiv.append(b2);
+                    buttonsDiv.append(b1);
+                    respDiv.append(buttonsDiv);
+                }
+                else if (response.type === "json"){
+                    let json_data = response.message.split("\n");
+                    let ul = $("<ul></ul>");
+                    $.each(json_data, function(ind, line) {
+                        if(!line.trim()){
+                            return;
+                        }
+                        let kv = line.split(":");
+                        let k = kv[0].trim();
+                        let v = kv[1].trim();
+                        let li = $("<li></li>");
+                        let keyText = $("<span></span>");
+                        let valText = $("<span></span>");
+                        keyText.addClass("font-weight-bold");
+                        keyText.text(k.trim()+": ");
+                        valText.text(v.trim());
+                        li.append(keyText);
+                        li.append(valText);
+                        ul.append(li);
+                    });
+                    respDiv.append(ul);
+                }
+                getEvents();
             },
             error: function(xhr, status, error) {
-                // Handle errors
-                $("#loading-overlay").css("display", "none");
-                $("html").css("cursor", "unset");
-                $("#step-3").hide();
-                $("#response-data").text(`Error: ${xhr.status} - ${error}`);
-                $("#response").show();
+                console.log("Error");
+                console.log(xhr);
+                console.log(status);
+                console.log(error);
             }
         });
     }
+    function getPrompt(){
+        $("#loading-overlay").css("display", "none");
+        $("html").css("cursor", "unset");
+        $("#step-3").hide();
+        getEvents();
+        $("#response").show();
+    }
     function respond_yes(){
         $.ajax({
-            url: "/datasets/event",
+            url: "/datasets/events",
             type: "POST",
             data: { is_approved: true },
         });
     }
     function respond_no(){
         $.ajax({
-            url: "/datasets/event",
+            url: "/datasets/events",
             type: "POST",
             data: { is_approved: false },
         });

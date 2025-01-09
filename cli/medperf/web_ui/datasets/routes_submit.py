@@ -36,27 +36,22 @@ def generate_draft(
             approved=False,
             submit_as_prepared=False,
         )
+        config.ui.set_success()
         return {"dataset_id": dataset_id}
     except CleanExit:
+        config.ui.set_error()
         return {"dataset_id": None}
 
 
-@router.get("/event", response_class=JSONResponse)
-def get_prompt(
-    request: Request,
+@router.get("/events", response_class=JSONResponse)
+def get_event(
     current_user: bool = Depends(get_current_user_api),
 ):
-    events = []
-    event = config.ui.get_event()
-    while event is not None:
-        events.append(event)
-        event = config.ui.get_event()
-    return events
+    return config.ui.get_event()
 
 
-@router.post("/event")
-def prompt(
-    request: Request,
+@router.post("/events")
+def respond(
     is_approved: bool = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):

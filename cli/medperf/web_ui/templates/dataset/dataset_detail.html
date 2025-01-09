@@ -155,7 +155,7 @@
     </div>
 
     <!-- Real-time log panel -->
-    <div class="card">
+    <div class="card mt-5">
         <div class="card-body">
             <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
         </div>
@@ -305,53 +305,58 @@
 
 <script src="/static/js/log_handler.js"></script>
 <script>
-    function prepare() {
-        const datasetId = {{ id }};
+    let currentStageElement = null;
+    const datasetId = "{{ id }}";
+    const logPanel = document.getElementById('log-panel');
+    const stagesList = document.getElementById('stages-list');
 
+    async function _prepare(){
+        try {
+            const response = await $.ajax({
+                url: "/datasets/prepare/prepare",
+                method: "POST",
+                data: { dataset_id: datasetId },
+            });
+
+            // Mark all stages as completed
+            document.querySelectorAll("#stages-list > li").forEach(el => {
+                markStageAsComplete(el);
+            });
+        } catch (error) {
+            console.error('Error preparing:', error); // TODO
+        }
+    }
+    function getEvents() { // Recursively get events(logs, prints, etc..)
         $.ajax({
-            url: "/datasets/prepare/prepare",
-            type: "POST",
-            data: { dataset_id: datasetId },
-            async: true,
-            success: function (response) {
-                console.log('Server response:', response);
+            url: "/datasets/events",
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+                currentStageElement = handleLogMessage(response, logPanel, stagesList, currentStageElement);
+                if (response.end)
+                    return;
+                getEvents();
             },
-            error: function (xhr, status, error) {
-                console.error('Error sending dataset_id:', error);
+            error: function(xhr, status, error) {
+                console.log("Error");
+                console.log(xhr);
+                console.log(status);
+                console.log(error);
             }
         });
-        $("#prepare-div").removeClass("d-none");
+    }
+    function prepare() {
+        _prepare()
+        $("#prepare-div").removeClass("d-none"); // displays the preparation div
         $("html, body").animate({
             scrollTop: $('#log-panel').offset().top - ($(window).height() / 2) + ($('#log-panel').height() / 2)
-        }, 1000);
-        const logPanel = document.getElementById('log-panel');
-        const stagesList = document.getElementById('stages-list');
-        let currentStageElement = null;
-        function readStream() {
-            $.ajax({
-                url: "/datasets/events",
-                type: "GET",
-                dataType: "json",
-                success: function(response) {
-                    if (response.message === null || !response.message.trim())
-                        return;
-                    currentStageElement = handleLogMessage(response, logPanel, stagesList, currentStageElement);
-                    readStream();
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error");
-                    console.log(xhr);
-                    console.log(status);
-                    console.log(error);
-                    return
-                }
-            });
-        }
-        readStream();
+        }, 1000); // Scrolls down into the logs window
+        
+        getEvents();
     }
 </script>
 
-<script type="text/plain">
+<script>
     
     document.addEventListener('DOMContentLoaded', function() {
         // Enable Bootstrap tooltip
@@ -361,7 +366,7 @@
         document.querySelectorAll('.benchmark-item').forEach(item => {
             item.addEventListener('click', function() {
                 if (!this.classList.contains('disabled')) {
-                    const datasetId = {{ id }};
+                    const datasetId = "{{ id }}";
                     const benchmarkId = this.getAttribute('data-benchmark-id');
                     window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}&benchmark_id=${benchmarkId}`;
                 }
@@ -370,7 +375,7 @@
 
         // Handle the "Set To Operational" button click
         document.getElementById('set-operational-btn').addEventListener('click', function() {
-            const datasetId = {{ id }};
+            const datasetId = "{{ id }}";
 
             // Call the generate endpoint to fetch the statistics
             fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
@@ -392,7 +397,7 @@
 
         // Handle the "Yes, Approve" button click
         document.getElementById('confirm-set-operational-btn').addEventListener('click', function() {
-            const datasetId = {{ id }};
+            const datasetId = "{{ id }}";
 
             // Clear any existing alerts
             clearAlerts();
@@ -423,7 +428,7 @@
 
         // Handle the "No" button click (decline action)
         document.getElementById('decline-btn').addEventListener('click', function() {
-            const datasetId = {{ id }};
+            const datasetId = "{{ id }}";
 
             // Call the decline endpoint
             fetch(`/datasets/operational_draft/decline?dataset_id=${datasetId}`, {
@@ -518,7 +523,7 @@
                 runButtons.forEach(button => {
                     if (!button.classList.contains('d-none')) {
                         const modelId = button.getAttribute('data-model-id');
-                        const datasetId = {{ id }};
+                        const datasetId = "{{ id }}";
                         const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
 
                         // Trigger run for the model
@@ -535,7 +540,7 @@
         document.querySelectorAll('.run-model-btn').forEach(btn => {
             const benchmarkId = btn.getAttribute('data-benchmark-id');
             const modelId = btn.getAttribute('data-model-id');
-            const datasetId = {{ id }};
+            const datasetId = "{{ id }}";
             const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
 
             // Polling to update status initially
