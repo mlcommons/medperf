@@ -46,6 +46,13 @@ class WebUI(CLI):
         if "{" in msg and "}" in msg and ":" in msg:
             msg = msg.replace("=" * 20, "")
             type = "json"
+        if "=" * 20 in msg:
+            msg = msg.replace("=" * 20, "").strip()
+            import yaml
+
+            msg = yaml.dump(msg)
+            type = "json"  # YAML
+
         if self.is_interactive:
             self.spinner.write(msg)
         else:

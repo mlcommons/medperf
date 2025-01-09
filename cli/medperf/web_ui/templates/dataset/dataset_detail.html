@@ -7,6 +7,70 @@
 {% block title %}Dataset Details{% endblock %}
 
 {% block detail_panel %}
+<style>
+    /* Fullscreen overlay */
+    #loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Faded background */
+        z-index: 9999; /* Ensure it's above everything */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Spinner */
+    .spinner {
+        border: 8px solid rgba(255, 255, 255, 0.3); /* Light gray border */
+        border-top: 8px solid white; /* White border for animation */
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .highlighted-text {
+        font-weight: bold;
+        color: #000000; /* Base text color */
+        text-shadow: 
+            0 0 5px #c3ff00,    /* Inner glow */
+            0 0 10px #c3ff00,   /* Middle glow */
+            0 0 20px #c3ff00,   /* Outer glow */
+            0 0 30px #c7ff66,   /* Wider glow */
+            0 0 40px #c7ff66,
+            0 0 50px #c7ff66;
+        animation: glow 1.5s infinite alternate; /* Smooth glowing animation */
+    }
+    
+    /* Animation for glowing effect */
+    @keyframes glow {
+        0% {
+            text-shadow: 
+                0 0 5px #c3ff00,
+                0 0 10px #c3ff00,
+                0 0 20px #c3ff00,
+                0 0 30px #c7ff66,
+                0 0 40px #c7ff66,
+                0 0 50px #c7ff66;
+        }
+        100% {
+            text-shadow: 
+                0 0 10px #c3ff00,
+                0 0 20px #c3ff00,
+                0 0 30px #c3ff00,
+                0 0 40px #c7ff66,
+                0 0 50px #c7ff66,
+                0 0 60px #c7ff66;
+        }
+    }
+</style>
 <h1 class="my-4">{{ name }}</h1>
 <div class="{% if is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
@@ -105,7 +169,7 @@
             </div>
             <div class="col-3 text-center">
                 {% if is_prepared and not is_operational %}
-                    <button id="set-operational-btn" class="step-btn btn btn-warning">
+                    <button class="step-btn btn btn-warning" onclick="setOperation();">
                         <i class="fas fa-arrow-up mr-2"></i> Set To Operational
                     </button>
                     <br>
@@ -115,7 +179,9 @@
                         <span class="text-success">Operational</span>
                     </div>
                 {% else %}
-                    <button id="set-operational-btn" class="step-btn btn btn-warning" disabled>Set To Operational</button>
+                    <button class="step-btn btn btn-warning" disabled onclick="setOperation();">
+                        Set To Operational
+                    </button>
                     <br>
                 {% endif %}
                 <small class="step-label ml-2">Step 2: Set Operational</small>
@@ -162,6 +228,16 @@
     </div>
 </div>
 
+<div id="set-operational-div" class="my-5" style="display: none;">
+    <pre id="statistics-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+    <p class="d-none">Moving dataset to the Operational state would lock it for future edits and mark it as ready for production use.</p>
+    <p class="d-none">Do you approve sending the presented data to MedPerf?</p>
+    <div id="set-operational-response"></div>
+    <div id="buttons" class="text-center mt-5"></div>
+</div>
+<div id="loading-overlay">
+    <div class="spinner"></div>
+</div>
 <!-- Display associated models with improved layout and dynamic actions -->
 {% for assoc in benchmark_associations %}
     <div class="card mb-4 shadow-sm">
@@ -255,31 +331,6 @@
 {% endfor %}
 
 
-
-<!-- Set Operational Modal -->
-
-<div class="modal fade" id="setOperationalModal" tabindex="-1" aria-labelledby="setOperationalModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="setOperationalModalLabel">Approval Required</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <pre id="statistics-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
-                <p>Moving dataset to the Operational state would lock it for future edits and mark it as ready for production use.</p>
-                <p>Do you approve sending the presented data to MedPerf?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="decline-btn">No</button>
-                <button type="button" class="btn btn-danger" id="confirm-set-operational-btn">Yes, Approve</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Result Submission Modal -->
 <div class="modal fade" id="submitResultModal" tabindex="-1" aria-labelledby="submitResultModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -302,6 +353,19 @@
     </div>
 </div>
 
+<!-- Modal for redirection after approve/decline -->
+<div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="promptTitle"></h5>
+            </div>
+            <div class="modal-body">
+                <p id="promptText"></p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="/static/js/log_handler.js"></script>
 <script>
@@ -310,22 +374,6 @@
     const logPanel = document.getElementById('log-panel');
     const stagesList = document.getElementById('stages-list');
 
-    async function _prepare(){
-        try {
-            const response = await $.ajax({
-                url: "/datasets/prepare/prepare",
-                method: "POST",
-                data: { dataset_id: datasetId },
-            });
-
-            // Mark all stages as completed
-            document.querySelectorAll("#stages-list > li").forEach(el => {
-                markStageAsComplete(el);
-            });
-        } catch (error) {
-            console.error('Error preparing:', error); // TODO
-        }
-    }
     function getEvents() { // Recursively get events(logs, prints, etc..)
         $.ajax({
             url: "/datasets/events",
@@ -346,7 +394,22 @@
         });
     }
     function prepare() {
-        _prepare()
+        $.ajax({
+            url: "/datasets/prepare/prepare",
+            type: "POST",
+            data: { dataset_id: datasetId },
+            dataType: "json",
+            async: true,
+            success: function(response) {
+                // Mark all stages as completed
+                document.querySelectorAll("#stages-list > li").forEach(el => {
+                    markStageAsComplete(el);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('Error preparing:', error); // TODO
+            }
+        });
         $("#prepare-div").removeClass("d-none"); // displays the preparation div
         $("html, body").animate({
             scrollTop: $('#log-panel').offset().top - ($(window).height() / 2) + ($('#log-panel').height() / 2)
@@ -357,10 +420,145 @@
 </script>
 
 <script>
+    function showLoading(){
+        $("#loading-overlay").css("display", "flex");
+        $("html").css("cursor", "not-allowed");
+    }
+    function hideLoading(){
+        $("#loading-overlay").hide();
+        $("html").css("cursor", "unset");
+    }
+    function showEvents(){
+        $("#set-operational-div").show();
+        $("html, body").animate({
+            scrollTop: $('#set-operational-div').offset().top - ($(window).height() / 2) + ($('#set-operational-div').height() / 2)
+        }, 1000); // Scrolls down into the logs window
+    }
+    function getEvents1() { // Recursively get events(logs, prints, etc..)
+        const respDiv = $("#set-operational-response");
+        $.ajax({
+            url: "/datasets/events",
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+                hideLoading();
+                if (response.end)
+                    return;
+                if(response.type === "print"){
+                    const p = $("<p></p>");
+                    p.addClass("fs-5")
+                    p.text(response.message);
+                    respDiv.append(p)
+                }
+                else if (response.type === "warning"){
+                    const p = $("<p></p>");
+                    p.text(response.message);
+                    p.addClass("mt-4")
+                    p.addClass("font-weight-bold")
+                    p.addClass("text-danger");
+                    p.addClass("fs-4");
+                    respDiv.append(p)
+                }
+                else if (response.type === "highlight"){
+                    const p = $("<p></p>");
+                    p.text(response.message);
+                    p.addClass("mt-4")
+                    p.addClass("highlighted-text")
+                    p.addClass("fs-4");
+                    respDiv.append(p)
+                }
+                else if (response.type === "prompt"){
+                    const buttonsDiv = $("#buttons")
+                    const p = $("<p></p>");
+                    p.text(response.message);
+                    p.addClass("mt-4")
+                    p.addClass("font-weight-bold")
+                    p.addClass("fs-4");
+                    respDiv.append(p)
+                    let b1 = $("<button type='button' class='btn btn-danger mx-3' onclick='respond_no();'>No</button>")
+                    let b2 = $("<button type='button' class='btn btn-success mx-3' onclick='respond_yes();'>Yes</button>")
+                    buttonsDiv.append(b2);
+                    buttonsDiv.append(b1);
+                }
+                else if (response.type === "json"){ // yaml
+                    // Display the YAML statistics in the <pre> element
+                    $("statistics-content").html(response.message);
+
+                    // Apply Prism.js highlighting
+                    Prism.highlightElement($("statistics-content"));
+                }
+                getEvents1();
+            },
+            error: function(xhr, status, error) {
+                console.log("Error");
+                console.log(xhr);
+                console.log(status);
+                console.log(error);
+            }
+        });
+    }
+    // Handle the "Set To Operational" button click
+    function setOperation(){
+        const datasetId = "{{ id }}";
+        $.ajax({
+            url: "/datasets/set_operational/",
+            type: "POST",
+            data: { dataset_id: datasetId },
+            dataType: "json",
+            async: true,
+            success: function(response) {
+                dataset_id = response.dataset_id
+                if(dataset_id!==null){
+                    $("#promptTitle").text("Successfully Set Dataset Into Operation");
+                }
+                else{
+                    $("#promptTitle").text("Failed Set Dataset Into Operation");
+                }
+                $("#promptText").html("The window will reload in <span id='timer'>3</span> ...");
+                $("#promptModal").modal({
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                let countdown = 3;
+                const timerInterval = setInterval(function() {
+                    countdown--;
+                    $("#timer").text(countdown);
+
+                    if (countdown === 0) {
+                        clearInterval(timerInterval);
+                        window.location.reload(true);
+                    }
+                }, 1000);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error setting operational:', error); // TODO
+            }
+        });
+        showLoading();
+        showEvents();
+        getEvents1();
+    }
+    function respond_yes(){
+        $.ajax({
+            url: "/datasets/events",
+            type: "POST",
+            data: { is_approved: true },
+        });
+    }
+    function respond_no(){
+        $.ajax({
+            url: "/datasets/events",
+            type: "POST",
+            data: { is_approved: false },
+        });
+    }
+</script>
+
+<script type="text/plain">
     
     document.addEventListener('DOMContentLoaded', function() {
         // Enable Bootstrap tooltip
-        $('[data-toggle="tooltip"]').tooltip();
+        // $('[data-toggle="tooltip"]').tooltip(); Not used
 
         // Handle the "Associate" dropdown item click
         document.querySelectorAll('.benchmark-item').forEach(item => {
@@ -371,28 +569,6 @@
                     window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}&benchmark_id=${benchmarkId}`;
                 }
             });
-        });
-
-        // Handle the "Set To Operational" button click
-        document.getElementById('set-operational-btn').addEventListener('click', function() {
-            const datasetId = "{{ id }}";
-
-            // Call the generate endpoint to fetch the statistics
-            fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())  // Parse the JSON response
-            .then(data => {
-                // Display the YAML statistics in the modal
-                document.getElementById('statistics-content').textContent = data.yaml_statistics;
-
-                // Apply Prism.js highlighting
-                Prism.highlightElement(document.getElementById('statistics-content'));
-
-                // Show the modal
-                $('#setOperationalModal').modal('show');
-            })
-            .catch(error => console.error('Error generating operational draft:', error));
         });
 
         // Handle the "Yes, Approve" button click
