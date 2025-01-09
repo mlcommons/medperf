@@ -1,6 +1,3 @@
-from medperf.ui.factory import UIFactory
-from medperf import config
-
 from fastapi import APIRouter
 from .routes_submit import router as submit_router
 from .routes_prepare import router as prepare_router
@@ -10,8 +7,6 @@ from .routes_run import router as run_router
 from .routes_result_submit import router as result_submit_router
 from .routes import router as ui_router
 
-
-config.ui = UIFactory.create_ui(config.webui)
 router = APIRouter()
 
 router.include_router(submit_router)

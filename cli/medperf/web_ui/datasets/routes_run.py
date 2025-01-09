@@ -1,8 +1,8 @@
-import asyncio as aio
 from concurrent.futures import ThreadPoolExecutor
 import json
 from enum import Enum
 from threading import Thread
+from time import sleep
 from typing import Optional, Dict, List, Union
 from queue import Queue
 from fastapi import APIRouter, HTTPException, Depends
@@ -54,7 +54,7 @@ _task_queue: Queue = Queue()
 
 
 @router.get("/run_draft/ui/{result_id}", response_class=HTMLResponse)
-async def run_draft_ui(
+def run_draft_ui(
     result_id: str,
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
@@ -131,7 +131,7 @@ worker.start()
 
 
 @router.post("/run_draft/run", response_model=RunStatus)
-async def run_benchmark(
+def run_benchmark(
     dataset_id: int,
     benchmark_id: int,
     model_id: int,
@@ -159,7 +159,7 @@ async def run_benchmark(
 
 
 @router.get("/run_draft/status", response_model=RunStatus)
-async def get_run_status(
+def get_run_status(
     dataset_id: int,
     benchmark_id: int,
     model_id: int,
@@ -184,7 +184,7 @@ async def get_run_status(
 
 
 @router.get("/run_draft/logs", response_class=StreamingResponse)
-async def get_run_logs(
+def get_run_logs(
     dataset_id: int,
     benchmark_id: int,
     model_id: int,
@@ -193,14 +193,14 @@ async def get_run_logs(
     result_id = f"b{benchmark_id}m{model_id}d{dataset_id}"
     draft = _drafts.get(result_id)
 
-    async def log_stream():
+    def log_stream():
         if not draft:
             yield json.dumps({"type": "print", "message": "No logs available"}) + "\n"
             return
 
         line_id = 0
         while True:
-            await aio.sleep(1)  # Simulate real-time log fetching
+            sleep(1)
             while line_id < len(draft.logs):
                 yield draft.logs[line_id] + "\n"
                 line_id += 1

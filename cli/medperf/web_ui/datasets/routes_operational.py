@@ -12,9 +12,9 @@ router = APIRouter()
 
 
 @router.post("/operational_draft/generate", response_class=JSONResponse)
-async def set_operational(
-        dataset_id: int,
-        current_user: bool = Depends(get_current_user_api),
+def set_operational(
+    dataset_id: int,
+    current_user: bool = Depends(get_current_user_api),
 ):
     preparation = DatasetSetOperational(dataset_id, approved=False)
     _drafts_operational[dataset_id] = preparation
@@ -28,9 +28,9 @@ async def set_operational(
 
 
 @router.post("/operational_draft/submit", response_class=JSONResponse)
-async def submit_operational(
-        dataset_id: int,
-        current_user: bool = Depends(get_current_user_api),
+def submit_operational(
+    dataset_id: int,
+    current_user: bool = Depends(get_current_user_api),
 ):
     preparation = _drafts_operational[dataset_id]
     try:
@@ -40,13 +40,15 @@ async def submit_operational(
         preparation.write()
         return {"dataset_id": dataset_id}
     except Exception as e:
-        return JSONResponse({"error": f"Error moving to operational state: {str(e)}"}, 400)
+        return JSONResponse(
+            {"error": f"Error moving to operational state: {str(e)}"}, 400
+        )
 
 
 @router.get("/operational_draft/decline", response_class=JSONResponse)
-async def decline_operational(
-        dataset_id: int,
-        current_user: bool = Depends(get_current_user_api),
+def decline_operational(
+    dataset_id: int,
+    current_user: bool = Depends(get_current_user_api),
 ):
     del _drafts_operational[dataset_id]
     return {"dataset_id": dataset_id, "op_declined": True}

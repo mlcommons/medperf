@@ -15,9 +15,9 @@ router = APIRouter()
 
 
 @router.post("/result_submit_draft/generate/", response_class=JSONResponse)
-async def get_submission(
-        result_id: str,
-        current_user: bool = Depends(get_current_user_api),
+def get_submission(
+    result_id: str,
+    current_user: bool = Depends(get_current_user_api),
 ):
     submission = ResultSubmission(result_id, approved=False)
     _drafts_result_submit[result_id] = submission
@@ -26,9 +26,9 @@ async def get_submission(
 
 
 @router.post("/result_submit_draft/submit/", response_class=JSONResponse)
-async def submit_result(
-        result_id: str,
-        current_user: bool = Depends(get_current_user_api),
+def submit_result(
+    result_id: str,
+    current_user: bool = Depends(get_current_user_api),
 ):
     submission = _drafts_result_submit[result_id]
     try:
@@ -41,13 +41,15 @@ async def submit_result(
         submission.write(updated_result_dict)
         return {"result_id": result_id}
     except Exception as e:
-        return JSONResponse({"error": f"Error moving to operational state: {str(e)}"}, 400)
+        return JSONResponse(
+            {"error": f"Error moving to operational state: {str(e)}"}, 400
+        )
 
 
 @router.get("/result_submit_draft/decline", response_class=JSONResponse)
-async def decline_result_submit(
-        result_id: str,
-        current_user: bool = Depends(get_current_user_api),
+def decline_result_submit(
+    result_id: str,
+    current_user: bool = Depends(get_current_user_api),
 ):
     del _drafts_result_submit[result_id]
     return {"result_id": result_id, "op_declined": True}

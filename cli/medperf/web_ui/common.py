@@ -11,7 +11,12 @@ from starlette.responses import RedirectResponse
 
 from medperf.entities.association import Association
 from medperf.enums import Status
-from medperf.web_ui.auth import security_token, AUTH_COOKIE_NAME, API_KEY_NAME, NotAuthenticatedException
+from medperf.web_ui.auth import (
+    security_token,
+    AUTH_COOKIE_NAME,
+    API_KEY_NAME,
+    NotAuthenticatedException,
+)
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"  # noqa
 templates = Jinja2Templates(directory=templates_folder_path)
@@ -19,7 +24,7 @@ templates = Jinja2Templates(directory=templates_folder_path)
 logger = logging.getLogger(__name__)
 
 
-async def custom_exception_handler(request: Request, exc: Exception):
+def custom_exception_handler(request: Request, exc: Exception):
     # Log the exception details
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
 
@@ -60,9 +65,9 @@ api_key_cookie = APIKeyCookie(name=AUTH_COOKIE_NAME, auto_error=False)
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
-async def get_current_user_ui(
-        request: Request,
-        token: str = Security(api_key_cookie),
+def get_current_user_ui(
+    request: Request,
+    token: str = Security(api_key_cookie),
 ):
     if token == security_token:
         return True
@@ -71,8 +76,8 @@ async def get_current_user_ui(
         raise NotAuthenticatedException(redirect_url=login_url)
 
 
-async def get_current_user_api(
-        token: str = Security(api_key_cookie),
+def get_current_user_api(
+    token: str = Security(api_key_cookie),
 ):
     if token == security_token:
         return True

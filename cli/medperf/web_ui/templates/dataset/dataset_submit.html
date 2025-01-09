@@ -125,8 +125,8 @@
         </div>
     </div>
 
-    <!-- Modal for prompt -->
-    <div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true" data-backdrop="static">
+    <!-- Modal for prompt interaction -->
+    <div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -134,20 +134,14 @@
                 </div>
                 <div class="modal-body">
                     <p id="promptText"></p>
-                    <p id="promptWarning" class="text-danger fs-5 fw-bold"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="respond_no();">No</button>
-                    <button type="button" class="btn btn-success" onclick="respond_yes();">Yes</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Review Section (hidden initially) -->
     <div id="loading-overlay">
         <div class="spinner"></div>
     </div>
+    <!-- Review Section (hidden initially) -->
     <div id="response" style="display: none;">
         <div id="response-data"></div>
     </div>
@@ -174,151 +168,179 @@
         $("#step-3").hide();
         $("#step-2").show();
     }
-    function backStepThree(){
-        $("#review-section").hide();
-        $("step-3").show();
-    }
 
     // AJAX folder browsing logic
-    let currentPath = '.';  // Start at root directory or a defined base path
+    let currentPath = ".";  // Start at root directory or a defined base path
     let activeInput = null;
 
     function loadFolder(path) {
         fetch(`/api/browse?path=${encodeURIComponent(path)}`)
             .then(response => response.json())
             .then(data => {
-                const folderList = document.getElementById('folder-list');
-                folderList.innerHTML = '';
+                const folderList = document.getElementById("folder-list");
+                folderList.innerHTML = "";
                 if (data.parent) {
-                    folderList.innerHTML += `<li class="list-group-item folder-item" data-path="${data.parent}">.. (parent)</li>`;
+                    folderList.innerHTML += `<li class='list-group-item folder-item' data-path='${data.parent}'>.. (parent)</li>`;
                 }
                 data.folders.forEach(folder => {
-                    folderList.innerHTML += `<li class="list-group-item folder-item" data-path="${folder.path}">${folder.name}</li>`;
+                    folderList.innerHTML += `<li class='list-group-item folder-item' data-path='${folder.path}'>${folder.name}</li>`;
                 });
             });
     }
 
-    document.getElementById('browse-data-btn').addEventListener('click', function() {
-        activeInput = document.getElementById('data-path');
+    document.getElementById("browse-data-btn").addEventListener("click", function() {
+        activeInput = document.getElementById("data-path");
         loadFolder(currentPath);
-        $('#folderPickerModal').modal('show');
+        $("#folderPickerModal").modal("show");
     });
 
-    document.getElementById('browse-labels-btn').addEventListener('click', function() {
-        activeInput = document.getElementById('labels-path');
+    document.getElementById("browse-labels-btn").addEventListener("click", function() {
+        activeInput = document.getElementById("labels-path");
         loadFolder(currentPath);
-        $('#folderPickerModal').modal('show');
+        $("#folderPickerModal").modal("show");
     });
 
-    document.getElementById('folder-list').addEventListener('click', function(event) {
-        if (event.target.classList.contains('folder-item')) {
-            const newPath = event.target.getAttribute('data-path');
+    document.getElementById("folder-list").addEventListener("click", function(event) {
+        if (event.target.classList.contains("folder-item")) {
+            const newPath = event.target.getAttribute("data-path");
             currentPath = newPath;
             loadFolder(newPath);
         }
     });
 
-    document.getElementById('select-folder-btn').addEventListener('click', function() {
+    document.getElementById("select-folder-btn").addEventListener("click", function() {
         if (activeInput) {
             activeInput.value = currentPath;
         }
-        $('#folderPickerModal').modal('hide');
+        $("#folderPickerModal").modal("hide");
     });
-    function showPrompt(){
-        const modal = new bootstrap.Modal($('#promptModal')[0]);
-        modal.show();
-    }
-    // Handle draft submission
+    // Handle submission
     function submitDataset(){
-        const formData = new FormData($('#dataset-form')[0]);
+        const formData = new FormData($("#dataset-form")[0]);
         $.ajax({
-            url: '/datasets/submit/generate',
-            type: 'POST',
+            url: "/datasets/submit/submit",
+            type: "POST",
             data: formData,
             processData: false,
             contentType: false,
             async: true,
+            success: function(response) {
+                dataset_id = response.dataset_id
+                if(dataset_id!==null){
+                    $("#promptTitle").text("Dataset Successfully Submitted.");
+                }
+                else{
+                    $("#promptTitle").text("Dataset Submission Cancelled.");
+                }
+                $("#promptText").html("You'll be redirected in <span id='timer'>3</span> ...");
+                $("#promptModal").modal({
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                let countdown = 3;
+                const timerInterval = setInterval(function() {
+                    countdown--;
+                    $("#timer").text(countdown);
+
+                    if (countdown === 0) {
+                        clearInterval(timerInterval);
+                        if(dataset_id!== null){
+                            window.location.href = "/datasets/ui/display/"+dataset_id;
+                        }
+                        else{
+                            window.location.href = "/datasets/ui";
+                        }
+                    }
+                }, 1000);
+            },
             error: function(xhr, status, error) {
                 console.log("Error occurred:", error);
             }
-            // success: function(data) {
-            //    // Hide form, show review section
-            //    $('#step-3').hide();
-            //    const reviewSection = $('#review-section');
-            //    reviewSection.show();
-        
-            //    // Display draft data for review
-            //    const reviewDataList = $('#review-data');
-            //    reviewDataList.empty();
-            //    $.each(data.data, function(key, value) {
-            //        reviewDataList.append(`<li><strong>${key}:</strong>${value}</li>`);
-            //    });
-        
-            //    // Set draft_id for submit/cancel
-            //    reviewSection.attr('data-draft-id', data.draft_id);
-            //}
         });
         showLoading();
         getPrompt();
-        //const formData = new FormData(document.getElementById('dataset-form'));
-        //fetch('/datasets/submit_draft/generate', {
-        //    method: 'POST',
-        //    body: formData
-        //})
-        //.then(response => response.json())
-        //.then(data => {
-        //    // Hide form, show review section
-        //    document.getElementById('step-3').style.display = 'none';
-        //    const reviewSection = document.getElementById('review-section');
-        //    reviewSection.style.display = 'block';
-
-        //    // Display draft data for review
-        //    const reviewDataList = document.getElementById('review-data');
-        //    reviewDataList.innerHTML = '';
-        //    for (const key in data.data) {
-        //        reviewDataList.innerHTML += `<li><strong>${key}:</strong> ${data.data[key]}</li>`;
-        //    }
-
-        //    // Set draft_id for submit/cancel
-        //    reviewSection.setAttribute('data-draft-id', data.draft_id);
-        //});
     }
     function showLoading(){
         $("#loading-overlay").css("display", "flex");
         $("html").css("cursor", "not-allowed");
     }
-
     function getPrompt(){
         $.ajax({
-            url: '/datasets/event',
-            type: 'GET',
-            dataType: 'json',
+            url: "/datasets/event",
+            type: "GET",
+            dataType: "json",
             async: true,
             success: function(response) {
                 $("#loading-overlay").css("display", "none");
                 $("html").css("cursor", "unset");
                 $("#step-3").hide();
-                //$('#response-data').text(JSON.stringify(response, null, 4));
+                const respDiv = $("#response-data");
                 response.forEach(function(item, index) {
                     if(item.type == "text"){
-                        let p = $('<p></p>');
+                        let p = $("<p></p>");
+                        p.addClass("fs-5")
                         p.text(item.message);
-                        $('#response-data').append(p)
+                        respDiv.append(p)
                     }
                     else if (item.type == "warning"){
-                        let p = $('<p></p>');
+                        let p = $("<p></p>");
                         p.text(item.message);
-                        p.css("font-weight", "bold");
-                        p.addClass('text-danger');
-                        p.addClass('fs-5');
-                        $('#response-data').append(p)
-                        $('#promptWarning').text(item.message)
+                        p.addClass("mt-4")
+                        p.addClass("font-weight-bold")
+                        p.addClass("text-danger");
+                        p.addClass("fs-4");
+                        respDiv.append(p)
                     }
                     else if (item.type == "prompt"){
-                        $('#promptTitle').text(item.message);
-                        $('#promptText').text(item.message);
-                        let b = $('<button class="btn btn-success mt-4" type="button" onclick="showPrompt();">Show Prompt</button>')
-                        $('#response-data').append(b)
+                        let p = $("<p></p>");
+                        p.text(item.message);
+                        p.addClass("mt-4")
+                        p.addClass("font-weight-bold")
+                        p.addClass("fs-4");
+                        respDiv.append(p)
+                        let buttonsDiv = $("<div></div>");
+                        buttonsDiv.addClass("text-center");
+                        buttonsDiv.addClass("mt-5");
+                        let b1 = $("<button></button>")
+                        let b2 = $("<button></button>")
+                        b1.addClass("btn");
+                        b2.addClass("btn");
+                        b1.addClass("mx-3");
+                        b2.addClass("mx-3");
+                        b1.addClass("btn-success");
+                        b2.addClass("btn-danger");
+                        b1.attr("type", "button");
+                        b2.attr("type", "button");
+                        b1.attr("onclick", "respond_yes();");
+                        b2.attr("onclick", "respond_no();");
+                        b1.text("Yes");
+                        b2.text("No");
+                        buttonsDiv.append(b2);
+                        buttonsDiv.append(b1);
+                        respDiv.append(buttonsDiv);
+                    }
+                    else if (item.type == "json"){
+                        let json_data = item.message.split("\n");
+                        let ul = $("<ul></ul>");
+                        $.each(json_data, function(ind, line) {
+                            if(!line.trim()){
+                                return;
+                            }
+                            let kv = line.split(":");
+                            let k = kv[0].trim();
+                            let v = kv[1].trim();
+                            let li = $("<li></li>");
+                            let keyText = $("<span></span>");
+                            let valText = $("<span></span>");
+                            keyText.addClass("font-weight-bold");
+                            keyText.text(k.trim()+": ");
+                            valText.text(v.trim());
+                            li.append(keyText);
+                            li.append(valText);
+                            ul.append(li);
+                        });
+                        respDiv.append(ul);
+
                     }
                 });
                 $("#response").show();
@@ -328,27 +350,24 @@
                 $("#loading-overlay").css("display", "none");
                 $("html").css("cursor", "unset");
                 $("#step-3").hide();
-                $('#response-data').text(`Error: ${xhr.status} - ${error}`);
+                $("#response-data").text(`Error: ${xhr.status} - ${error}`);
                 $("#response").show();
             }
         });
     }
     function respond_yes(){
         $.ajax({
-            url: '/datasets/event',
-            type: 'POST',
+            url: "/datasets/event",
+            type: "POST",
             data: { is_approved: true },
         });
-        window.location.href = "/datasets/ui"
     }
-
     function respond_no(){
         $.ajax({
-            url: '/datasets/event',
-            type: 'POST',
+            url: "/datasets/event",
+            type: "POST",
             data: { is_approved: false },
         });
-        window.location.href = "/datasets/submit/ui"
     }
 
 </script>

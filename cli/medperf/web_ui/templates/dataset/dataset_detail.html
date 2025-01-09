@@ -7,118 +7,158 @@
 {% block title %}Dataset Details{% endblock %}
 
 {% block detail_panel %}
-<h1 class="my-4">{{ entity.name }}</h1>
-<div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
+<h1 class="my-4">{{ name }}</h1>
+<div class="{% if is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title mb-0">Details</h5>
-            <span class="badge {% if entity.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
-                {{ entity.state }}
+            <span class="badge {% if is_operational %}badge-state-operational{% else %}badge-state-development{% endif %}">
+                {{ state }}
             </span>
-            <span class="badge {% if entity.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
-                {% if entity.is_valid %}Valid{% else %}Invalid{% endif %}
+            <span class="badge {% if is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
+                {% if is_valid %}Valid{% else %}Invalid{% endif %}
             </span>
         </div>
         <div class="card mb-3">
             <div class="card-body">
-                <p class="card-text"><strong>Description:</strong> {{ entity.description }}</p>
-                <p class="card-text"><strong>Location:</strong> {{ entity.location }}</p>
-                <p class="card-text"><strong>Input Data Hash:</strong> {{ entity.input_data_hash }}</p>
-                <p class="card-text"><strong>Generated UID:</strong> {{ entity.generated_uid }}</p>
                 <p class="card-text">
-                    <strong>Data Preparation MLCube:</strong> {{ mlcube_macros.mlcube_link(prep_cube) }}
+                    <strong>Description:</strong> 
+                    {{ description }}
                 </p>
-                {% if entity.generated_metadata %}
-                <p class="card-text"><strong>Statistics:</strong> <a href="#" class="text-primary yaml-link" data-id="{{ entity.id }}" data-field="statistics_path" data-entity="dataset" >View Statistics</a></p>
+                <p class="card-text">
+                    <strong>Location:</strong> 
+                    {{ location }}
+                </p>
+                <p class="card-text">
+                    <strong>Input Data Hash:</strong> 
+                    {{ input_data_hash }}
+                </p>
+                <p class="card-text">
+                    <strong>Generated UID:</strong> 
+                    {{ generated_uid }}
+                </p>
+                <p class="card-text">
+                    <strong>Data Preparation MLCube:</strong> 
+                    {{ mlcube_macros.mlcube_link(prep_cube) }}
+                </p>
+                {% if generated_metadata %}
+                <p class="card-text">
+                    <strong>Statistics:</strong> 
+                    <a href="#" class="text-primary yaml-link" data-id="{{ id }}" data-field="statistics_path" data-entity="dataset" >View Statistics</a>
+                </p>
                 {% endif %}
-                {% if entity.report %}
-                <p class="card-text"><strong>Report:</strong> <a href="#" class="text-primary yaml-link" data-id="{{ entity.id }}" data-field="report_path" data-entity="dataset" >View Report</a></p>
+                {% if report %}
+                <p class="card-text">
+                    <strong>Report:</strong> 
+                    <a href="#" class="text-primary yaml-link" data-id="{{ id }}" data-field="report_path" data-entity="dataset" >View Report</a>
+                </p>
                 {% endif %}
             </div>
         </div>
         <div class="card mb-3">
             <div class="card-body d-flex justify-content-between flex-wrap">
                 <div class="w-50">
-                    <p class="card-text"><strong>Is Valid:</strong> <span class="text-muted small">{{ entity.is_valid }}</span></p>
-                    <p class="card-text"><strong>Is Prepared:</strong> <span class="text-muted small">{{ entity.is_ready() }}</span></p>
-                    <p class="card-text"><strong>Owner:</strong> <i class="fas fa-user"></i> <span class="text-muted small">{{ entity.owner }}</span></p>
+                    <p class="card-text">
+                        <strong>Is Valid:</strong> 
+                        <span class="text-muted small">{{ is_valid }}</span>
+                    </p>
+                    <p class="card-text">
+                        <strong>Is Prepared:</strong> 
+                        <span class="text-muted small">{{ is_prepared }}</span>
+                    </p>
+                    <p class="card-text">
+                        <strong>Owner:</strong> 
+                        <i class="fas fa-user"></i> 
+                        <span class="text-muted small">{{ owner }}</span>
+                    </p>
                 </div>
                 <div class="text-right w-50">
-                    <p class="card-text"><strong>Created:</strong> <span class="text-muted small" data-date="{{ entity.created_at }}"></span></p>
-                    <p class="card-text"><strong>Modified:</strong> <span class="text-muted small" data-date="{{ entity.modified_at }}"></span></p>
+                    <p class="card-text">
+                        <strong>Created:</strong> 
+                        <span class="text-muted small" data-date="{{ created_at }}"></span>
+                    </p>
+                    <p class="card-text">
+                        <strong>Modified:</strong> 
+                        <span class="text-muted small" data-date="{{ modified_at }}"></span>
+                    </p>
                 </div>
             </div>
         </div>
-
-
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb d-flex justify-content-between align-items-center p-3 shadow-sm rounded bg-white step-container">
-        <!-- Step 1: Prepare -->
-        <li class="breadcrumb-item d-flex align-items-center">
-            {% if not entity.is_ready() %}
-                <a href="/datasets/prepare_draft/ui?dataset_id={{ entity.id }}" class="step-btn btn btn-primary">
-                    <i class="fas fa-play-circle mr-2"></i> Prepare
-                </a>
-            {% else %}
-                <div class="step-complete d-flex align-items-center">
-                    <i class="fas fa-check-circle text-success mr-2"></i>
-                    <span class="text-success">Prepared</span>
-                </div>
-            {% endif %}
-            <small class="step-label ml-2">Step 1: Prepare</small>
-        </li>
-
-        <!-- Step Divider -->
-        <li class="breadcrumb-item step-divider mx-2">
-            <i class="fas fa-chevron-right text-muted"></i>
-        </li>
-
-        <!-- Step 2: Set to Operational -->
-        <li class="breadcrumb-item d-flex align-items-center">
-            {% if entity.is_ready() and entity.state == 'DEVELOPMENT' %}
-                <button class="step-btn btn btn-warning">
-                    <i class="fas fa-arrow-up mr-2"></i> Set To Operational
-                </button>
-            {% elif entity.state == 'OPERATION' %}
-                <div class="step-complete d-flex align-items-center">
-                    <i class="fas fa-check-circle text-success mr-2"></i>
-                    <span class="text-success">Operational</span>
-                </div>
-            {% else %}
-                <button class="step-btn btn btn-warning" disabled>Set To Operational</button>
-            {% endif %}
-            <small class="step-label ml-2">Step 2: Set Operational</small>
-        </li>
-
-        <!-- Step Divider -->
-        <li class="breadcrumb-item step-divider mx-2">
-            <i class="fas fa-chevron-right text-muted"></i>
-        </li>
-
-        <!-- Step 3: Associate with Benchmark -->
-        <li class="breadcrumb-item d-flex align-items-center">
-            {% if entity.state == 'OPERATION' %}
-                <div class="dropdown">
-                    <button class="step-btn btn btn-info dropdown-toggle" type="button" id="associate-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Associate with Benchmark
+        <div class="card flex-row mt-5 shadow-sm rounded bg-white py-4" style="border:1px solid rgba(0, 0, 0, .125);border-radius:.25rem;">
+            <div class="col-md-3 text-center">
+                {% if not is_prepared %}
+                    <button class="step-btn btn btn-primary" onclick="prepare();">
+                        <i class="fas fa-play-circle mr-2"></i> Prepare
                     </button>
-                    <div class="dropdown-menu" aria-labelledby="associate-dropdown">
-                        {% for benchmark in benchmarks.values() %}
-                            <div class="dropdown-item benchmark-item" data-benchmark-id="{{ benchmark.id }}">
-                                {{ benchmark_macros.benchmark_card(benchmark) }}
-                            </div>
-                        {% endfor %}
+                    <br>
+                    <!-- /datasets/prepare_draft/ui?dataset_id={{ id }}" -->
+                {% else %}
+                    <div class="step-complete d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success mr-2"></i>
+                        <span class="text-success">Prepared</span>
                     </div>
-                </div>
-            {% else %}
-                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
-            {% endif %}
-            <small class="step-label ml-2">Step 3: Associate</small>
-        </li>
-    </ol>
-</nav>
+                {% endif %}
+                <small class="step-label ml-2">Step 1: Prepare</small>
+            </div>
+            <div class="step-divider mx-2 col-1">
+                <i class="fas fa-chevron-right text-muted"></i>
+            </div>
+            <div class="col-3 text-center">
+                {% if is_prepared and not is_operational %}
+                    <button id="set-operational-btn" class="step-btn btn btn-warning">
+                        <i class="fas fa-arrow-up mr-2"></i> Set To Operational
+                    </button>
+                    <br>
+                {% elif is_prepared and is_operational %}
+                    <div class="step-complete d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success mr-2"></i>
+                        <span class="text-success">Operational</span>
+                    </div>
+                {% else %}
+                    <button id="set-operational-btn" class="step-btn btn btn-warning" disabled>Set To Operational</button>
+                    <br>
+                {% endif %}
+                <small class="step-label ml-2">Step 2: Set Operational</small>
+            </div>
+            <div class="step-divider mx-2 col-1">
+                <i class="fas fa-chevron-right text-muted"></i>
+            </div>
+            <div class="col-3 text-center">
+                {% if is_operational %}
+                    <div class="dropdown">
+                        <button class="step-btn btn btn-info dropdown-toggle" type="button" id="associate-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Associate with Benchmark
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="associate-dropdown">
+                            {% for benchmark in benchmarks.values() %}
+                                <div class="dropdown-item benchmark-item" data-benchmark-id="{{ benchmark.id }}">
+                                    {{ benchmark_macros.benchmark_card(benchmark) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+                    <br>
+                {% endif %}
+                <small class="step-label ml-2">Step 3: Associate</small>
+            </div>
+        </div>
+    </div>
+</div>
 
+<div id="prepare-div" class="my-5 d-none">
+    <h2>Preparing Dataset {{name}}...</h1>
+    <!-- Stage Tracker -->
+    <div class="stages">
+        <ul class="list-group mb-3" id="stages-list"></ul>
+    </div>
 
+    <!-- Real-time log panel -->
+    <div class="card">
+        <div class="card-body">
+            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
+        </div>
     </div>
 </div>
 
@@ -163,7 +203,7 @@
 
                                 <!-- Logs + Pending Status -->
                                 <div class="logs-and-status d-none" id="pending-{{ assoc.benchmark }}-{{ model.id }}">
-                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ id }}"
                                        >
                                         View Logs
                                     </a>
@@ -172,7 +212,7 @@
 
                                 <!-- Logs + Running Status -->
                                 <div class="logs-and-status d-none" id="running-{{ assoc.benchmark }}-{{ model.id }}">
-                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ id }}"
                                        >
                                         View Logs
                                     </a>
@@ -181,7 +221,7 @@
 
                                 <!-- Logs + Failed Status -->
                                 <div class="logs-and-status d-none" id="failed-{{ assoc.benchmark }}-{{ model.id }}">
-                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}"
+                                    <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ id }}"
                                        >
                                         View Logs
                                     </a>
@@ -190,7 +230,7 @@
 
                             <!-- Logs + Done + Submit Button -->
                             <div class="logs-and-status d-none" id="submit-{{ assoc.benchmark }}-{{ model.id }}">
-                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}">
+                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ id }}">
                                     View Logs
                                 </a>
                                 <button class="btn btn-primary submit-result-btn" data-benchmark-id="{{ assoc.benchmark }}"
@@ -201,7 +241,7 @@
 
                             <!-- Logs + Submitted (non-clickable badge) -->
                             <div class="logs-and-status d-none" id="submitted-{{ assoc.benchmark }}-{{ model.id }}">
-                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ entity.id }}">
+                                <a href="/datasets/run_draft/ui/b{{ assoc.benchmark }}m{{ model.id }}d{{ id }}">
                                     View Logs
                                 </a>
                                 <span class="btn btn-success">✅ Submitted</span>
@@ -262,7 +302,57 @@
     </div>
 </div>
 
+
+<script src="/static/js/log_handler.js"></script>
 <script>
+    function prepare() {
+        const datasetId = {{ id }};
+
+        $.ajax({
+            url: "/datasets/prepare/prepare",
+            type: "POST",
+            data: { dataset_id: datasetId },
+            async: true,
+            success: function (response) {
+                console.log('Server response:', response);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error sending dataset_id:', error);
+            }
+        });
+        $("#prepare-div").removeClass("d-none");
+        $("html, body").animate({
+            scrollTop: $('#log-panel').offset().top - ($(window).height() / 2) + ($('#log-panel').height() / 2)
+        }, 1000);
+        const logPanel = document.getElementById('log-panel');
+        const stagesList = document.getElementById('stages-list');
+        let currentStageElement = null;
+        function readStream() {
+            $.ajax({
+                url: "/datasets/events",
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    if (response.message === null || !response.message.trim())
+                        return;
+                    currentStageElement = handleLogMessage(response, logPanel, stagesList, currentStageElement);
+                    readStream();
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error");
+                    console.log(xhr);
+                    console.log(status);
+                    console.log(error);
+                    return
+                }
+            });
+        }
+        readStream();
+    }
+</script>
+
+<script type="text/plain">
+    
     document.addEventListener('DOMContentLoaded', function() {
         // Enable Bootstrap tooltip
         $('[data-toggle="tooltip"]').tooltip();
@@ -271,7 +361,7 @@
         document.querySelectorAll('.benchmark-item').forEach(item => {
             item.addEventListener('click', function() {
                 if (!this.classList.contains('disabled')) {
-                    const datasetId = {{ entity.id }};
+                    const datasetId = {{ id }};
                     const benchmarkId = this.getAttribute('data-benchmark-id');
                     window.location.href = `/datasets/associate_draft/ui?dataset_id=${datasetId}&benchmark_id=${benchmarkId}`;
                 }
@@ -280,7 +370,7 @@
 
         // Handle the "Set To Operational" button click
         document.getElementById('set-operational-btn').addEventListener('click', function() {
-            const datasetId = {{ entity.id }};
+            const datasetId = {{ id }};
 
             // Call the generate endpoint to fetch the statistics
             fetch(`/datasets/operational_draft/generate?dataset_id=${datasetId}`, {
@@ -302,7 +392,7 @@
 
         // Handle the "Yes, Approve" button click
         document.getElementById('confirm-set-operational-btn').addEventListener('click', function() {
-            const datasetId = {{ entity.id }};
+            const datasetId = {{ id }};
 
             // Clear any existing alerts
             clearAlerts();
@@ -333,7 +423,7 @@
 
         // Handle the "No" button click (decline action)
         document.getElementById('decline-btn').addEventListener('click', function() {
-            const datasetId = {{ entity.id }};
+            const datasetId = {{ id }};
 
             // Call the decline endpoint
             fetch(`/datasets/operational_draft/decline?dataset_id=${datasetId}`, {
@@ -428,7 +518,7 @@
                 runButtons.forEach(button => {
                     if (!button.classList.contains('d-none')) {
                         const modelId = button.getAttribute('data-model-id');
-                        const datasetId = {{ entity.id }};
+                        const datasetId = {{ id }};
                         const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
 
                         // Trigger run for the model
@@ -445,7 +535,7 @@
         document.querySelectorAll('.run-model-btn').forEach(btn => {
             const benchmarkId = btn.getAttribute('data-benchmark-id');
             const modelId = btn.getAttribute('data-model-id');
-            const datasetId = {{ entity.id }};
+            const datasetId = {{ id }};
             const resultId = `b${benchmarkId}m${modelId}d${datasetId}`;  // Calculate result_id
 
             // Polling to update status initially
@@ -470,7 +560,7 @@
             btn.addEventListener('click', function () {
                 const benchmarkId = this.getAttribute('data-benchmark-id');
                 const modelId = this.getAttribute('data-model-id');
-                const resultId = `b${benchmarkId}m${modelId}d{{ entity.id }}`;  // Calculate result_id
+                const resultId = `b${benchmarkId}m${modelId}d{{ id }}`;  // Calculate result_id
 
                 // Call the generate endpoint to fetch the result data
                 fetch(`/datasets/result_submit_draft/generate?result_id=${resultId}`, {

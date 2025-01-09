@@ -2,7 +2,6 @@
 function handleLogMessage(log, logPanel, stagesList, currentStageElement) {
     // Clean the message from ANSI escape sequences
     const cleanMessage = log.message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-
     if (log.type === 'text') {
         // If it's a new stage, display it in bold and mark the previous stage as complete
         if (currentStageElement) {
@@ -10,6 +9,18 @@ function handleLogMessage(log, logPanel, stagesList, currentStageElement) {
         }
         currentStageElement = addNewStage(cleanMessage, stagesList);
     } else if (log.type === 'print') {
+        // Append standard logs to the log panel
+        appendToLogPanel(cleanMessage, logPanel);
+    } else if (log.type === 'highlight') {
+        // Append standard logs to the log panel
+        appendToLogPanel(cleanMessage, logPanel);
+    } else if (log.type === 'warning') {
+        // Append standard logs to the log panel
+        appendToLogPanel(cleanMessage, logPanel);
+    } else if (log.type === 'error') {
+        // Append standard logs to the log panel
+        appendToLogPanel(cleanMessage, logPanel);
+    } else if (log.type === 'prompt') {
         // Append standard logs to the log panel
         appendToLogPanel(cleanMessage, logPanel);
     }

@@ -24,11 +24,11 @@ class EntityToFetch(Enum):
 
 
 @router.get("/fetch-yaml")
-async def fetch_yaml(
-        entity: EntityToFetch,
-        entity_uid: int,
-        field_to_fetch: FieldsToFetch,
-        current_user: bool = Depends(get_current_user_api),
+def fetch_yaml(
+    entity: EntityToFetch,
+    entity_uid: int,
+    field_to_fetch: FieldsToFetch,
+    current_user: bool = Depends(get_current_user_api),
 ):
     try:
         entity_class = {

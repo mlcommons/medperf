@@ -1,48 +1,84 @@
-import json
 from queue import Queue
 from contextlib import contextmanager
-from typing import Generator, Optional
-
+from yaspin import yaspin
 import typer
 
 from medperf.ui.cli import CLI
-
-import asyncio
 
 
 class WebUI(CLI):
     def __init__(self):
         super().__init__()
-        self.message_queue: Queue[Optional[str]] = Queue()
-        self.events: asyncio.Queue[dict] = Queue()  # Or just use Queue()
-        self.responses: asyncio.Queue[dict] = Queue()  # Or just use Queue()
-        self._is_proxy = False
+        self.events: Queue[dict] = Queue()
+        self.responses: Queue[dict] = Queue()
+        self.is_interactive = False
+        self.spinner = yaspin(color="green")
 
-    def start_proxy(self):
-        self._is_proxy = True
+    def print(self, msg: str = ""):
+        """Display a message on the command line
 
-    def stop_proxy(self):
-        self.message_queue.put(None)
-        self._is_proxy = False
+        Args:
+            msg (str): message to print
+        """
+        self._print(msg, "print")
+
+    def print_error(self, msg: str):
+        """Display an error message on the command line
+
+        Args:
+            msg (str): error message to display
+        """
+        msg = f"❌ {msg}"
+        msg = typer.style(msg, fg=typer.colors.RED, bold=True)
+        self._print(msg, "error")
+
+    def print_warning(self, msg: str):
+        """Display a warning message on the command line
+
+        Args:
+            msg (str): warning message to display
+        """
+        msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
+        self._print(msg, "warning")
+
+    def _print(self, msg: str = "", type: str = "print"):
+        # TODO: Check if there should be a better approach
+        if "{" in msg and "}" in msg and ":" in msg:
+            msg = msg.replace("=" * 20, "")
+            type = "json"
+        if self.is_interactive:
+            self.spinner.write(msg)
+            self.set_event({"type": "text", "message": msg})
+        else:
+            self.set_event({"type": type, "message": msg})
+
+    def start_interactive(self):
+        """Start an interactive session where messages can be overwritten
+        and animations can be displayed"""
+        self.is_interactive = True
+        self.spinner.start()  # TODO
+
+    def stop_interactive(self):
+        """Stop an interactive session"""
+        self.is_interactive = False
+        self.spinner.stop()  # TODO
 
     @contextmanager
-    def proxy(self):
-        self.start_proxy()
+    def interactive(self):
+        """Context managed interactive session.
+
+        Yields:
+            CLI: Yields the current CLI instance with an interactive session initialized
+        """
+        self.start_interactive()
         try:
             yield self
         finally:
-            self.stop_proxy()
-
-    def get_message_generator(self) -> Generator[str, None, None]:
-        while True:
-            msg = self.message_queue.get()  # Block until a message is available
-            if msg is None:
-                break
-            yield msg
+            self.stop_interactive()
 
     @property
     def text(self):
-        return self.spinner.text
+        return self.spinner.text  # TODO
 
     @text.setter
     def text(self, msg: str = ""):
@@ -56,19 +92,46 @@ class WebUI(CLI):
         """
         if not self.is_interactive:
             self.print(msg)
-
-        if self._is_proxy:
-            self.message_queue.put(json.dumps({"type": "text", "message": msg}))
-        self.spinner.text = msg
-
-    def _print(self, msg: str = ""):
-        if self.is_interactive:
-            self.spinner.write(msg)
+            self.spinner.text = msg  # TODO
         else:
-            typer.echo(msg)
+            self.spinner.text = msg  # TODO
+            self.set_event({"type": "text", "message": msg})
 
-        if self._is_proxy:
-            self.message_queue.put(json.dumps({"type": "print", "message": msg}))
+    def prompt(self, msg: str) -> str:
+        """Displays a prompt to the user and waits for an answer
+
+        Args:
+            msg (str): message to use for the prompt
+
+        Returns:
+            str: user input
+        """
+        msg = msg.replace(" [Y/n]", "")
+        self.set_event({"type": "prompt", "message": msg})
+        self.set_event(None)  # TODO
+        resp = self.get_response()
+        if resp["value"]:
+            return "y"
+        return "n"
+
+    def hidden_prompt(self, msg: str) -> str:
+        """Displays a prompt to the user and waits for an aswer. User input is not displayed
+
+        Args:
+            msg (str): message to use for the prompt
+
+        Returns:
+            str: user input
+        """
+        return super().hidden_prompt()
+
+    def print_highlight(self, msg: str = ""):
+        """Display a highlighted message
+
+        Args:
+            msg (str): message to print
+        """
+        self._print(msg, "highlight")
 
     def set_event(self, dict):
         self.events.put(dict)
@@ -81,17 +144,3 @@ class WebUI(CLI):
 
     def get_response(self):
         return self.responses.get()
-
-    def prompt(self, msg):
-        self.set_event({"type": "prompt", "message": msg})
-        self.set_event(None)
-        resp = self.get_response()
-        if resp["value"]:
-            return "y"
-        return "n"
-
-    def print(self, msg=""):
-        self.set_event({"type": "text", "message": msg})
-
-    def print_warning(self, msg):
-        self.set_event({"type": "warning", "message": msg})

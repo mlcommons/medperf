@@ -7,6 +7,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
+from medperf.ui.factory import UIFactory
+
 from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets import router as datasets_router
@@ -41,7 +43,7 @@ web_app.openapi = wrap_openapi(web_app)
 
 
 @web_app.on_event("startup")
-async def startup_event():
+def startup_event():
     # fetch results to store mapping in the memory
     fetch_all_results()
 
@@ -55,7 +57,7 @@ async def startup_event():
 
 
 @web_app.exception_handler(NotAuthenticatedException)
-async def not_authenticated_exception_handler(
+def not_authenticated_exception_handler(
     request: Request, exc: NotAuthenticatedException
 ):
     return RedirectResponse(url=exc.redirect_url)
@@ -77,4 +79,11 @@ def run(
     """Runs a local web UI"""
     import uvicorn
 
-    uvicorn.run(web_app, host="127.0.0.1", port=port, log_level=config.loglevel)
+    config.ui = UIFactory.create_ui(config.webui)
+
+    uvicorn.run(
+        web_app,
+        host="127.0.0.1",
+        port=port,
+        log_level=config.loglevel,
+    )

@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 @router.get("/associate_draft/ui", response_class=HTMLResponse)
-async def associate_ui(
+def associate_ui(
     request: Request,
     dataset_id: int,
     benchmark_id: int,
@@ -61,7 +61,7 @@ async def associate_ui(
 
 
 @router.post("/associate_draft/generate", response_class=StreamingResponse)
-async def associate_generate(
+def associate_generate(
     draft_id: str,
     current_user: bool = Depends(get_current_user_api),
 ):
@@ -69,9 +69,9 @@ async def associate_generate(
     dataset = draft.dataset
     benchmark = draft.benchmark
 
-    async def run_association():
+    def run_association():
         with config.ui.proxy():
-            result = await run_in_threadpool(
+            result = run_in_threadpool(
                 BenchmarkExecution.run,
                 benchmark_uid=benchmark.id,
                 data_uid=dataset.id,
@@ -91,7 +91,7 @@ async def associate_generate(
 
 
 @router.get("/associate_draft/get_results", response_class=JSONResponse)
-async def associate_get_results(
+def associate_get_results(
     draft_id: str,
     current_user: bool = Depends(get_current_user_api),
 ):
@@ -103,7 +103,7 @@ async def associate_get_results(
 
 
 @router.post("/associate_draft/submit", response_class=JSONResponse)
-async def associate_submit(
+def associate_submit(
     draft_id: str,
     current_user: bool = Depends(get_current_user_api),
 ):
@@ -117,7 +117,7 @@ async def associate_submit(
 
 
 @router.get("/associate_draft/decline", response_class=JSONResponse)
-async def associate_decline(
+def associate_decline(
     draft_id: str,
     current_user: bool = Depends(get_current_user_api),
 ):

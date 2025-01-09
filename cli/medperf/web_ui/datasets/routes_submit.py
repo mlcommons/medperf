@@ -1,33 +1,20 @@
 import medperf.config as config
-from dataclasses import dataclass
-
-from typing import Dict
 
 from fastapi import Form, APIRouter, Depends
+from medperf.exceptions import CleanExit
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, HTMLResponse
+from starlette.responses import JSONResponse, HTMLResponse
 
 from medperf.commands.dataset.submit import DataCreation
 from medperf.entities.benchmark import Benchmark
 from medperf.web_ui.common import templates, get_current_user_ui, get_current_user_api
 
-import asyncio  # noqa
-
-
-@dataclass
-class _DatasetDraft:
-    preparation: DataCreation
-    submission_dict: dict
-    draft_id: str
-
 
 router = APIRouter()
 
-_drafts: Dict[str, _DatasetDraft] = {}
 
-
-@router.post("/submit/generate", response_class=JSONResponse)
-async def generate_draft(
+@router.post("/submit/submit", response_class=JSONResponse)
+def generate_draft(
     benchmark: int = Form(...),
     name: str = Form(...),
     description: str = Form(...),
@@ -36,10 +23,8 @@ async def generate_draft(
     labels_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    import threading
-
-    def p():
-        DataCreation.run(
+    try:
+        dataset_id = DataCreation.run(
             benchmark_uid=benchmark,
             prep_cube_uid=None,
             data_path=data_path,
@@ -51,12 +36,13 @@ async def generate_draft(
             approved=False,
             submit_as_prepared=False,
         )
-
-    threading.Thread(target=p).start()
+        return {"dataset_id": dataset_id}
+    except CleanExit:
+        return {"dataset_id": None}
 
 
 @router.get("/event", response_class=JSONResponse)
-async def get_prompt(
+def get_prompt(
     request: Request,
     current_user: bool = Depends(get_current_user_api),
 ):
@@ -69,7 +55,7 @@ async def get_prompt(
 
 
 @router.post("/event")
-async def prompt(
+def prompt(
     request: Request,
     is_approved: bool = Form(...),
     current_user: bool = Depends(get_current_user_api),
@@ -77,33 +63,8 @@ async def prompt(
     config.ui.set_response({"value": is_approved})
 
 
-@router.get("/submit/submit", response_class=RedirectResponse)
-async def submit_draft(
-    draft_id: str,
-    current_user: bool = Depends(get_current_user_api),
-):
-    draft = _drafts[draft_id]
-    preparation = draft.preparation
-    preparation.approved = True
-
-    updated_dataset_dict = preparation.upload()
-    preparation.to_permanent_path(updated_dataset_dict)
-    preparation.write(updated_dataset_dict)
-    dataset_id = updated_dataset_dict["id"]
-    return RedirectResponse(f"/datasets/ui/display/{dataset_id}")
-
-
-@router.get("/submit/decline", response_class=RedirectResponse)
-async def decline_draft(
-    draft_id: str,
-    current_user: bool = Depends(get_current_user_api),
-):
-    del _drafts[draft_id]
-    return RedirectResponse("/datasets/ui")
-
-
 @router.get("/submit/ui", response_class=HTMLResponse)
-async def create_dataset_ui(
+def create_dataset_ui(
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
 ):

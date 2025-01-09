@@ -9,10 +9,8 @@ router = APIRouter()
 
 # Login page GET endpoint
 @router.get("/login", response_class=HTMLResponse)
-async def login_form(
-    request: Request,
-    redirect_url: str = "/",
-    token: str = Security(api_key_cookie)
+def login_form(
+    request: Request, redirect_url: str = "/", token: str = Security(api_key_cookie)
 ):
     # Check if user is already authenticated
     if token == security_token:
@@ -27,10 +25,10 @@ async def login_form(
 
 # Login page POST endpoint
 @router.post("/login")
-async def login(
-        request: Request,
-        token: str = Form(...),
-        redirect_url: str = Form("/"),
+def login(
+    request: Request,
+    token: str = Form(...),
+    redirect_url: str = Form("/"),
 ):
     if token == security_token:
         response = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
@@ -45,5 +43,3 @@ async def login(
                 "error": "Invalid token",
             },
         )
-
-

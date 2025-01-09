@@ -72,13 +72,27 @@ def dataset_detail_ui(
         for b in benchmarks
         if b.data_preparation_mlcube == dataset.data_preparation_mlcube
     }
-
+    is_operational = dataset.state == "OPERATION"
+    is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
             "request": request,
-            "entity": dataset,
-            "entity_name": dataset.name,
+            "id": dataset.id,
+            "name": dataset.name,
+            "is_valid": dataset.is_valid,
+            "state": dataset.state,
+            "description": dataset.description,
+            "location": dataset.location,
+            "input_data_hash": dataset.input_data_hash,
+            "generated_uid": dataset.generated_uid,
+            "generated_metadata": dataset.generated_metadata,
+            "report": dataset.report,
+            "owner": dataset.owner,
+            "created_at": dataset.created_at,
+            "modified_at": dataset.modified_at,
+            "is_prepared": is_prepared,
+            "is_operational": is_operational,
             "prep_cube": prep_cube,
             "benchmark_associations": benchmark_associations,
             "benchmarks": valid_benchmarks,
