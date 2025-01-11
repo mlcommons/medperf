@@ -42,23 +42,19 @@ class WebUI(CLI):
         self._print(msg, "warning")
 
     def _print(self, msg: str = "", type: str = "print"):
-        # TODO: Check if there should be a better approach
-        if "{" in msg and "}" in msg and ":" in msg:
-            msg = msg.replace("=" * 20, "")
-            type = "json"
-        if "=" * 20 in msg:
-            msg = msg.replace("=" * 20, "").strip()
-            import yaml
-
-            msg = yaml.dump(msg)
-            type = "json"  # YAML
-
         if self.is_interactive:
             self.spinner.write(msg)
         else:
             typer.echo(msg)
 
-        self.set_event({"type": type, "message": msg, "end": False})
+        self.set_event(
+            {
+                "type": type,
+                "message": msg,
+                "interactive": self.is_interactive,
+                "end": False,
+            }
+        )
 
     def start_interactive(self):
         """Start an interactive session where messages can be overwritten
@@ -98,10 +94,17 @@ class WebUI(CLI):
         Args:
             msg (str): message to display
         """
-        if not self.is_interactive:
-            self.print(msg)
+        # if not self.is_interactive:
+        #     self.print(msg)
 
-        self.set_event({"type": "text", "message": msg, "end": False})
+        self.set_event(
+            {
+                "type": "text",
+                "message": msg,
+                "interactive": self.is_interactive,
+                "end": False,
+            }
+        )
         self.spinner.text = msg  # TODO
 
     def prompt(self, msg: str) -> str:
@@ -114,7 +117,14 @@ class WebUI(CLI):
             str: user input
         """
         msg = msg.replace(" [Y/n]", "")
-        self.set_event({"type": "prompt", "message": msg, "end": False})
+        self.set_event(
+            {
+                "type": "prompt",
+                "message": msg,
+                "interactive": self.is_interactive,
+                "end": False,
+            }
+        )
         resp = self.get_response()
         if resp["value"]:
             return "y"
@@ -139,6 +149,14 @@ class WebUI(CLI):
         """
         self._print(msg, "highlight")
 
+    def print_yaml(self, msg: str):
+        """Display a yaml object on the command line
+
+        Args:
+            msg (str): message to display
+        """
+        self._print(msg, "yaml")
+
     def set_event(self, dict):
         self.events.put(dict)
 
@@ -152,9 +170,21 @@ class WebUI(CLI):
         return self.responses.get()
 
     def set_success(self):
-        self.events.put({"type": "highlight", "message": "&#x2705; Done", "end": True})
+        self.set_event(
+            {
+                "type": "highlight",
+                "message": "&#x2705; Done",
+                "interactive": self.is_interactive,
+                "end": True,
+            }
+        )
 
     def set_error(self):
-        self.events.put(
-            {"type": "highlight", "message": "&#x274C; Stopped", "end": True}
+        self.set_event(
+            {
+                "type": "highlight",
+                "message": "&#x274C; Stopped",
+                "interactive": self.is_interactive,
+                "end": True,
+            }
         )

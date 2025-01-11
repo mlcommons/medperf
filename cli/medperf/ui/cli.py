@@ -117,3 +117,14 @@ class CLI(UI):
         """
         msg = typer.style(msg, fg=typer.colors.GREEN)
         self._print(msg)
+
+    def print_yaml(self, msg: str):
+        """Display a yaml object on the command line
+
+        Args:
+            msg (str): message to display
+        """
+        self.print()
+        self.print("=" * 20)
+        self.print(msg)
+        self.print("=" * 20)

@@ -1,5 +1,4 @@
 import os
-import time
 from typing import List, Optional
 from medperf.account_management.account_management import get_medperf_user_data
 from medperf.commands.execution import Execution
@@ -49,7 +48,8 @@ class BenchmarkExecution:
             ignore_model_errors,
             ignore_failed_experiments,
         )
-        execution.prepare()
+        with execution.ui.interactive():
+            execution.prepare()
         execution.validate()
         execution.prepare_models()
         if not no_cache:

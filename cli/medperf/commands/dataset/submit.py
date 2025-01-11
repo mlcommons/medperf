@@ -7,7 +7,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import (
     approval_prompt,
-    dict_pretty_format,
+    dict_pretty_print,
     get_folders_hash,
     remove_path,
 )
@@ -44,7 +44,7 @@ class DataCreation:
             for_test,
         )
         submission_dict = preparation.prepare_dict(submit_as_prepared)
-        config.ui.print(dict_pretty_format(submission_dict))
+        dict_pretty_print(submission_dict)
 
         msg = "Do you approve the registration of the presented data to MedPerf? [Y/n] "
         warning = (

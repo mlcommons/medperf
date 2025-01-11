@@ -33,6 +33,12 @@
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
+    .highlighted-text {
+        font-weight: bold;
+        color: #000000;
+        text-shadow: 0 0 5px rgb(255, 8, 0), 0 0 10px rgb(35, 0, 231);
+        animation: glow 2s ease-in-out infinite alternate;
+    }
 </style>
 <div class="container">
     <h1 class="text-center">Create New Dataset</h1>
@@ -142,8 +148,18 @@
         <div class="spinner"></div>
     </div>
     <!-- Review Section (hidden initially) -->
-    <div id="response" style="display: none;">
-        <div id="response-data"></div>
+    <div id="text-content">
+        <div id="content"></div>
+    </div>
+    <div id="yaml-div" style="display: none;">
+        <pre id="yaml-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+    </div>
+    <div id="prompt-div" class="my-5" style="display: none;">
+        <div id="prompt-text"></div>
+        <div class="text-center mt-5">
+            <button type="button" class="btn btn-danger mx-3" onclick="respond_no();">No</button>
+            <button type="button" class="btn btn-success mx-3" onclick="respond_yes();">Yes</button>
+        </div>
     </div>
 </div>
 
@@ -257,8 +273,7 @@
                 console.log("Error occurred:", error);
             }
         });
-        showLoading();
-        showEvents();
+        $("#step-3").hide();
         getEvents();
     }
     function showLoading(){
@@ -269,6 +284,8 @@
         $("#loading-overlay").hide();
         $("html").css("cursor", "unset");
     }
+</script>
+<script type="text/plain">
     function getEvents() { // Recursively get events(logs, prints, etc..)
         const respDiv = $("#response-data");
         $.ajax({
@@ -322,7 +339,7 @@
                     buttonsDiv.append(b1);
                     respDiv.append(buttonsDiv);
                 }
-                else if (response.type === "json"){
+                else if (response.type === "yaml"){
                     let json_data = response.message.split("\n");
                     let ul = $("<ul></ul>");
                     $.each(json_data, function(ind, line) {
@@ -354,10 +371,9 @@
             }
         });
     }
-    function showEvents(){
-        $("#step-3").hide();
-        $("#response").show();
-    }
+</script>
+<script src="/static/js/event_handler.js"></script>
+<script>
     function respond_yes(){
         $.ajax({
             url: "/datasets/events",

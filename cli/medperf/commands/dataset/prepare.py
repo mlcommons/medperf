@@ -4,7 +4,7 @@ import pandas as pd
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import approval_prompt, dict_pretty_format
+from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.exceptions import (
     CommunicationError,
     ExecutionError,
@@ -89,7 +89,8 @@ class DataPreparation:
             preparation.prompt_for_report_sending_approval()
 
         if preparation.should_run_prepare():
-            preparation.run_prepare()
+            with preparation.ui.interactive():
+                preparation.run_prepare()
 
         with preparation.ui.interactive():
             preparation.run_sanity_check()
@@ -181,12 +182,11 @@ class DataPreparation:
 
         self.ui.text = "Running preparation step..."
         try:
-            with self.ui.interactive():
-                self.cube.run(
-                    task="prepare",
-                    timeout=config.prepare_timeout,
-                    **prepare_params,
-                )
+            self.cube.run(
+                task="prepare",
+                timeout=config.prepare_timeout,
+                **prepare_params,
+            )
         except Exception as e:
             # Inform the server that a failure occured
             report_sender.stop("failed")
@@ -293,7 +293,7 @@ class DataPreparation:
         return report_status_dict
 
     @staticmethod
-    def _report_sending_approval_msg():
+    def prompt_for_report_sending_approval(self):
         example = {
             "execution_status": "running",
             "progress": {
@@ -301,7 +301,7 @@ class DataPreparation:
                 "Stage 3": "60%",
             },
         }
-        result = []
+
         msg = (
             "\n=================================================\n"
             + "During preparation, each subject of your dataset will undergo multiple"
@@ -315,8 +315,8 @@ class DataPreparation:
             + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"
             + " have reached Stage 3:"
         )
-        result.append(msg)
-        result.append(dict_pretty_format(example))
+        config.ui.print(msg)
+        dict_pretty_print(example)
 
         msg = (
             "\nYou can decide whether or not to send information about your dataset preparation"
@@ -326,11 +326,8 @@ class DataPreparation:
             + "\nsubmission of summaries similar to the one above to the MedPerf Server throughout"
             + "\nthe preparation process?[Y/n]"
         )
-        result.append(msg)
-        return '\n'.join(result)
 
-    def prompt_for_report_sending_approval(self):
-        self.allow_sending_reports = approval_prompt(self._report_sending_approval_msg())
+        self.allow_sending_reports = approval_prompt(msg)
 
     def send_report(self, report_metadata):
         # Since we don't actually need concurrency, let's have
