@@ -228,18 +228,17 @@
     <div class="spinner"></div>
 </div>
 <!-- Display associated models with improved layout and dynamic actions -->
+<script>console.log("{{ benchmark_associations }}")</script>
+<!-- <script>console.log("{{ benchmarks }}")</script>
+<script>console.log("{{ benchmark_models }}")</script> -->
 {% for assoc in benchmark_associations %}
-    <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm mt-5">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">
-                Benchmark: <a href="/benchmarks/ui/display/{{ benchmarks[assoc.benchmark].id }}" class="text-white">
+                Benchmark: <a href="/benchmarks/ui/display/{{ benchmarks[assoc.benchmark].id }}" class="text-white" style="text-decoration: underline;">
                     <strong>{{ benchmarks[assoc.benchmark].name }}</strong>
                 </a>
             </h4>
-            <!-- Run All button -->
-            <button class="btn btn-secondary run-all-btn" data-benchmark-id="{{ assoc.benchmark }}">
-                ▶️ Run All
-            </button>
         </div>
         <div class="card-body p-4">
             <div class="benchmark-section mb-4">
@@ -357,6 +356,7 @@
 </div>
 
 <script src="/static/js/event_handler.js"></script>
+
 <script>
     currentStageElement = null;
     datasetId = "{{ id }}";
@@ -512,7 +512,11 @@
     });
 </script>
 
-<script type="text/javascript">
+<script>
+
+</script>
+
+<script type="text">
         const fetchStatus = async (datasetId, benchmarkId, modelId, intervalId) => {
             try {
                 const response = await fetch(`/datasets/run_draft/status?dataset_id=${datasetId}&benchmark_id=${benchmarkId}&model_id=${modelId}`);

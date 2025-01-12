@@ -54,24 +54,25 @@ def dataset_detail_ui(
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
 
     benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
-    benchmark_associations = sort_associations_display(benchmark_associations)
+    # benchmark_associations = sort_associations_display(benchmark_associations)
 
     # Fetch models associated with each benchmark
     benchmark_models = {}
     for assoc in benchmark_associations:
-        if assoc.approval_status != "APPROVED":
-            continue  # if association is not approved we cannot list its models
+        # if assoc.approval_status != "APPROVED":
+        #     continue  # if association is not approved we cannot list its models
         models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
         models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
         benchmark_models[assoc.benchmark] = models
 
-    # Get all relevant benchmarks for association
+    # Get all relevant benchmarks for making an association
     benchmarks = Benchmark.all()
     valid_benchmarks = {
         b.id: b
         for b in benchmarks
         if b.data_preparation_mlcube == dataset.data_preparation_mlcube
     }
+
     is_operational = dataset.state == "OPERATION"
     is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
     return templates.TemplateResponse(
@@ -95,7 +96,7 @@ def dataset_detail_ui(
             "is_operational": is_operational,
             "prep_cube": prep_cube,
             "benchmark_associations": benchmark_associations,
-            "benchmarks": valid_benchmarks,
+            "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
             "benchmark_models": benchmark_models,  # Pass associated models without status
         },
     )
