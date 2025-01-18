@@ -114,9 +114,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="folderPickerLabel">Select Folder</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <ul id="folder-list" class="list-group">
@@ -124,7 +122,7 @@
                     </ul>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>
                 </div>
             </div>
@@ -209,7 +207,6 @@
         loadFolder(currentPath);
         $("#folderPickerModal").modal("show");
     });
-
     document.getElementById("browse-labels-btn").addEventListener("click", function() {
         activeInput = document.getElementById("labels-path");
         loadFolder(currentPath);
@@ -230,164 +227,7 @@
         }
         $("#folderPickerModal").modal("hide");
     });
-    // Handle submission
-    function submitDataset(){
-        const formData = new FormData($("#dataset-form")[0]);
-        $.ajax({
-            url: "/datasets/submit/submit",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            async: true,
-            success: function(response) {
-                dataset_id = response.dataset_id
-                if(dataset_id!==null){
-                    $("#promptTitle").text("Dataset Successfully Submitted.");
-                }
-                else{
-                    $("#promptTitle").text("Dataset Submission Cancelled.");
-                }
-                $("#promptText").html("You'll be redirected in <span id='timer'>3</span> ...");
-                $("#promptModal").modal({
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                let countdown = 3;
-                const timerInterval = setInterval(function() {
-                    countdown--;
-                    $("#timer").text(countdown);
-
-                    if (countdown === 0) {
-                        clearInterval(timerInterval);
-                        if(dataset_id!== null){
-                            window.location.href = "/datasets/ui/display/"+dataset_id;
-                        }
-                        else{
-                            window.location.href = "/datasets/ui";
-                        }
-                    }
-                }, 1000);
-            },
-            error: function(xhr, status, error) {
-                console.log("Error occurred:", error);
-            }
-        });
-        $("#step-3").hide();
-        getEvents();
-    }
-    function showLoading(){
-        $("#loading-overlay").css("display", "flex");
-        $("html").css("cursor", "not-allowed");
-    }
-    function hideLoading(){
-        $("#loading-overlay").hide();
-        $("html").css("cursor", "unset");
-    }
-</script>
-<script type="text/plain">
-    function getEvents() { // Recursively get events(logs, prints, etc..)
-        const respDiv = $("#response-data");
-        $.ajax({
-            url: "/datasets/events",
-            type: "GET",
-            dataType: "json",
-            success: function(response) {
-                hideLoading();
-                if (response.end)
-                    return;
-                if(response.type === "print"){
-                    let p = $("<p></p>");
-                    p.addClass("fs-5")
-                    p.text(response.message);
-                    respDiv.append(p)
-                }
-                else if (response.type === "warning"){
-                    let p = $("<p></p>");
-                    p.text(response.message);
-                    p.addClass("mt-4")
-                    p.addClass("font-weight-bold")
-                    p.addClass("text-danger");
-                    p.addClass("fs-4");
-                    respDiv.append(p)
-                }
-                else if (response.type === "prompt"){
-                    let p = $("<p></p>");
-                    p.text(response.message);
-                    p.addClass("mt-4")
-                    p.addClass("font-weight-bold")
-                    p.addClass("fs-4");
-                    respDiv.append(p)
-                    let buttonsDiv = $("<div></div>");
-                    buttonsDiv.addClass("text-center");
-                    buttonsDiv.addClass("mt-5");
-                    let b1 = $("<button></button>")
-                    let b2 = $("<button></button>")
-                    b1.addClass("btn");
-                    b2.addClass("btn");
-                    b1.addClass("mx-3");
-                    b2.addClass("mx-3");
-                    b1.addClass("btn-success");
-                    b2.addClass("btn-danger");
-                    b1.attr("type", "button");
-                    b2.attr("type", "button");
-                    b1.attr("onclick", "respond_yes();");
-                    b2.attr("onclick", "respond_no();");
-                    b1.text("Yes");
-                    b2.text("No");
-                    buttonsDiv.append(b2);
-                    buttonsDiv.append(b1);
-                    respDiv.append(buttonsDiv);
-                }
-                else if (response.type === "yaml"){
-                    let json_data = response.message.split("\n");
-                    let ul = $("<ul></ul>");
-                    $.each(json_data, function(ind, line) {
-                        if(!line.trim()){
-                            return;
-                        }
-                        let kv = line.split(":");
-                        let k = kv[0].trim();
-                        let v = kv[1].trim();
-                        let li = $("<li></li>");
-                        let keyText = $("<span></span>");
-                        let valText = $("<span></span>");
-                        keyText.addClass("font-weight-bold");
-                        keyText.text(k.trim()+": ");
-                        valText.text(v.trim());
-                        li.append(keyText);
-                        li.append(valText);
-                        ul.append(li);
-                    });
-                    respDiv.append(ul);
-                }
-                getEvents();
-            },
-            error: function(xhr, status, error) {
-                console.log("Error");
-                console.log(xhr);
-                console.log(status);
-                console.log(error);
-            }
-        });
-    }
 </script>
 <script src="/static/js/event_handler.js"></script>
-<script>
-    function respond_yes(){
-        $.ajax({
-            url: "/datasets/events",
-            type: "POST",
-            data: { is_approved: true },
-        });
-    }
-    function respond_no(){
-        $.ajax({
-            url: "/datasets/events",
-            type: "POST",
-            data: { is_approved: false },
-        });
-    }
-
-</script>
+<script src="/static/js/app.js"></script>
 {% endblock %}

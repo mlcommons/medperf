@@ -1,16 +1,27 @@
 import logging
+from typing import List
 
-from fastapi.responses import HTMLResponse
-from fastapi import Request, APIRouter, Depends
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import Request, APIRouter, Depends, Form
 
+from medperf import config
 from medperf.account_management import get_medperf_user_data
+from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.prepare import DataPreparation
+from medperf.commands.dataset.set_operational import DatasetSetOperational
+from medperf.commands.dataset.submit import DataCreation
+from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.result.submit import ResultSubmission
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.web_ui.common import (
+from medperf.entities.result import Result
+from medperf.exceptions import CleanExit
+from medperf.web_ui.common import (  # noqa
     templates,
     sort_associations_display,
     get_current_user_ui,
+    get_current_user_api,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,17 +64,41 @@ def dataset_detail_ui(
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
 
-    benchmark_associations = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
+    benchmark_assocs = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
+    benchmark_associations = {}
+    for assoc in benchmark_assocs:
+        benchmark_associations[assoc.benchmark] = assoc
     # benchmark_associations = sort_associations_display(benchmark_associations)
+
+    # Get all results
+    if benchmark_assocs:
+        user_id = get_medperf_user_data()["id"]
+        results = Result.all(filters={"owner": user_id})
+        results += Result.all(unregistered=True)
 
     # Fetch models associated with each benchmark
     benchmark_models = {}
-    for assoc in benchmark_associations:
-        # if assoc.approval_status != "APPROVED":
-        #     continue  # if association is not approved we cannot list its models
+    for assoc in benchmark_assocs:
+        if assoc.approval_status != "APPROVED":
+            continue  # if association is not approved we cannot list its models
         models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
         models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
         benchmark_models[assoc.benchmark] = models
+        for model in models:
+            if results:
+                model.result = [
+                    (
+                        result.todict()
+                        if result.benchmark == assoc.id
+                        and result.dataset == assoc.dataset
+                        and result.model == model.id
+                        else None
+                    )
+                    for result in results
+                ][0]
+                # [0] just to be able to use list comprehension
+            else:
+                model.result = None
 
     # Get all relevant benchmarks for making an association
     benchmarks = Benchmark.all()
@@ -72,31 +107,153 @@ def dataset_detail_ui(
         for b in benchmarks
         if b.data_preparation_mlcube == dataset.data_preparation_mlcube
     }
+    for benchmark in valid_benchmarks:
+        reference_model_mlcube = valid_benchmarks[benchmark].reference_model_mlcube
+        valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(cube_uid=reference_model_mlcube)
 
-    is_operational = dataset.state == "OPERATION"
-    is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
+    dataset_is_operational = dataset.state == "OPERATION"
+    dataset_is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
+    approved_benchmarks = [
+        i
+        for i in benchmark_associations
+        if benchmark_associations[i].approval_status == "APPROVED"
+    ]
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
             "request": request,
-            "id": dataset.id,
-            "name": dataset.name,
-            "is_valid": dataset.is_valid,
-            "state": dataset.state,
-            "description": dataset.description,
-            "location": dataset.location,
-            "input_data_hash": dataset.input_data_hash,
-            "generated_uid": dataset.generated_uid,
-            "generated_metadata": dataset.generated_metadata,
-            "report": dataset.report,
-            "owner": dataset.owner,
-            "created_at": dataset.created_at,
-            "modified_at": dataset.modified_at,
-            "is_prepared": is_prepared,
-            "is_operational": is_operational,
+            "dataset": dataset,
             "prep_cube": prep_cube,
+            "dataset_is_prepared": dataset_is_prepared,
+            "dataset_is_operational": dataset_is_operational,
             "benchmark_associations": benchmark_associations,
             "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
             "benchmark_models": benchmark_models,  # Pass associated models without status
+            "approved_benchmarks": approved_benchmarks,
         },
     )
+
+
+@router.get("/submit/ui", response_class=HTMLResponse)
+def create_dataset_ui(
+    request: Request,
+    current_user: bool = Depends(get_current_user_ui),
+):
+    # Fetch the list of benchmarks to populate the benchmark dropdown
+    benchmarks = Benchmark.all()
+    # Render the dataset creation form with the list of benchmarks
+    return templates.TemplateResponse(
+        "dataset/dataset_submit.html", {"request": request, "benchmarks": benchmarks}
+    )
+
+
+@router.post("/submit/", response_class=JSONResponse)
+def submit_dataset(
+    benchmark: int = Form(...),
+    name: str = Form(...),
+    description: str = Form(...),
+    location: str = Form(...),
+    data_path: str = Form(...),
+    labels_path: str = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    try:
+        dataset_id = DataCreation.run(
+            benchmark_uid=benchmark,
+            prep_cube_uid=None,
+            data_path=data_path,
+            labels_path=labels_path,
+            metadata_path=None,
+            name=name,
+            description=description,
+            location=location,
+            approved=False,
+            submit_as_prepared=False,
+        )
+        config.ui.set_success()
+        return {"dataset_id": dataset_id}
+    except CleanExit:
+        config.ui.set_error()
+        return {"dataset_id": None}
+
+
+@router.post("/prepare", response_class=JSONResponse)
+def prepare(
+    dataset_id: int = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    try:
+        dataset_id = DataPreparation.run(dataset_id)
+        config.ui.set_success()
+        return {"dataset_id": dataset_id}
+    except CleanExit:
+        config.ui.set_error()
+        return {"dataset_id": None}
+
+
+@router.post("/set_operational", response_class=JSONResponse)
+def set_operational(
+    dataset_id: int = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    try:
+        dataset_id = DatasetSetOperational.run(dataset_id)
+        config.ui.set_success()
+        return {"dataset_id": dataset_id}
+    except CleanExit:
+        config.ui.set_error()
+        return {"dataset_id": None}
+
+
+@router.post("/associate", response_class=JSONResponse)
+def associate(
+    dataset_id: int = Form(...),
+    benchmark_id: int = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    try:
+        AssociateDataset.run(data_uid=dataset_id, benchmark_uid=benchmark_id)
+        return config.ui.set_success()
+    except CleanExit:
+        return config.ui.set_error()
+
+
+@router.post("/run", response_class=JSONResponse)
+def run(
+    dataset_id: int = Form(...),
+    benchmark_id: int = Form(...),
+    model_ids: List[int] = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    try:
+        BenchmarkExecution.run(benchmark_id, dataset_id, model_ids)
+        return config.ui.set_success()
+    except CleanExit:
+        return config.ui.set_error()
+
+
+@router.post("/result_submit/", response_class=JSONResponse)
+def submit_result(
+    result_id: str = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    try:
+        ResultSubmission.run(result_id)
+        return config.ui.set_success()
+    except CleanExit:
+        return config.ui.set_error()
+
+
+@router.get("/events", response_class=JSONResponse)
+def get_event(
+    current_user: bool = Depends(get_current_user_api),
+):
+    return config.ui.get_event()
+
+
+@router.post("/events")
+def respond(
+    is_approved: bool = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+    config.ui.set_response({"value": is_approved})

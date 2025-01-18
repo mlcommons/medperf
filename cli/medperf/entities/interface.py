@@ -50,7 +50,7 @@ class Entity(MedperfSchema, ABC):
 
     @classmethod
     def all(
-            cls: Type[EntityType], unregistered: bool = False, filters: dict = {}
+        cls: Type[EntityType], unregistered: bool = False, filters: dict = {}
     ) -> List[EntityType]:
         """Gets a list of all instances of the respective entity.
         Whether the list is local or remote depends on the implementation.
@@ -112,7 +112,10 @@ class Entity(MedperfSchema, ABC):
 
     @classmethod
     def get(
-            cls: Type[EntityType], uid: Union[str, int], local_only: bool = False, valid_only: bool = True
+        cls: Type[EntityType],
+        uid: Union[str, int],
+        local_only: bool = False,
+        valid_only: bool = True,
     ) -> EntityType:
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends

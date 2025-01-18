@@ -178,6 +178,7 @@ class WebUI(CLI):
                 "end": True,
             }
         )
+        return True
 
     def set_error(self):
         self.set_event(
@@ -188,3 +189,4 @@ class WebUI(CLI):
                 "end": True,
             }
         )
+        return False
