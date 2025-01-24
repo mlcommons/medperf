@@ -207,7 +207,7 @@
 						>
                             Associate with Benchmark
                         </button>
-                        <div class="dropdown-menu" aria-labelledby="associate-dropdown">
+                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div">
                             {% for benchmark in benchmarks.values() %}
                                 {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
                                     <div
@@ -486,9 +486,9 @@
             item.addEventListener('click', function() {
                 if (!this.classList.contains('disabled')) {
                     const datasetId = "{{ dataset.id }}";
-										const datasetName = "{{ dataset.name }}"
+					const datasetName = "{{ dataset.name }}"
                     const benchmarkId = this.getAttribute('data-benchmark-id');
-                    associate(datasetId, benchmarkId, datasetName);
+                    associate(datasetId, benchmarkId, datasetName, this);
                 }
             });
         });

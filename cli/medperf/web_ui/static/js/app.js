@@ -149,6 +149,13 @@ function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=nul
 }
 
 function associate(dataset_id, benchmark_id, dataset_name){
+    document.getElementById("dropdown-div").classList.remove("show");
+    const associate_btn = document.getElementById("associate-dropdown");
+    associate_btn.setAttribute("disabled", true);
+    associate_btn.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Associating
+    `;
     $.ajax({
         url: "/datasets/associate",
         type: "POST",
@@ -177,6 +184,11 @@ function associate(dataset_id, benchmark_id, dataset_name){
 
 function setOperation(element){
     const dataset_id = element.getAttribute("data-dataset-id");
+    element.setAttribute("disabled", true);
+    element.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Setting Operational
+    `;
     $.ajax({
         url: "/datasets/set_operational",
         type: "POST",
@@ -204,7 +216,12 @@ function setOperation(element){
 
 function prepare(element) {
     const dataset_id = element.getAttribute("data-dataset-id");
-    const dataset_name = element.getAttribute("data-dataset-name")
+    const dataset_name = element.getAttribute("data-dataset-name");
+    element.setAttribute("disabled", true);
+    element.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Preparing
+    `;
     $.ajax({
         url: "/datasets/prepare",
         type: "POST",

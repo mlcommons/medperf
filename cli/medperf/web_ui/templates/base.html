@@ -12,23 +12,25 @@
 
     <link rel="stylesheet" href="/static/css/common.css?v=1.0">
     <style>
-        {% block optional_styles %}{% endblock %}
+        {% block optional_styles %}{% endblock optional_styles%}
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <a class="navbar-brand" href="#">MedPerf</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="/benchmarks/ui">Benchmarks</a></li>
-                <li class="nav-item"><a class="nav-link" href="/mlcubes/ui">MLCubes</a></li>
-                <li class="nav-item"><a class="nav-link" href="/datasets/ui">Datasets</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-md navbar-light bg-light">
+            <a class="navbar-brand" href="#">MedPerf</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/benchmarks/ui">Benchmarks</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/mlcubes/ui">MLCubes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/datasets/ui">Datasets</a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
     <div class="page-container">
         <div class="main-content">
             {% block content %}{% endblock %}
@@ -38,9 +40,9 @@
     <script src="/static/js/jquery-3.6.0.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script> -->
-    <script src="/static/js/bootstrap.budnle.min.js"></script>
-    <script src="/static/js/bootstrap.budnle.min.js.map"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="/static/js/bootstrap.bundle.min.js.map"></script> -->
     <!-- Prism.js for syntax highlighting -->
     <script src="/static/js/prism-1.23.0.min.js"></script>
     <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js -->
