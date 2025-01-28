@@ -85,6 +85,12 @@ function showPanel(title){
     scroll("log-panel");
 }
 
+function scroll(element_id){
+    $("html, body").animate({
+        scrollTop: $(`#${element_id}`).offset().top
+    }, 1000);
+}
+
 function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=null, dataset_name=null){
     let text;
     var formData = new FormData();
@@ -276,6 +282,177 @@ function submitDataset(){
     });
     $("#step-3").hide();
     getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function testMLCube(){
+    const runBtn = $("#run-test");
+    runBtn.prop("disabled", true);
+    runBtn.html(`
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Running
+    `);
+    const formData = new FormData($("#mlcube-form")[0]);
+    $.ajax({
+        url: "/mlcubes/test",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        async: true,
+        success: function(response) {
+            markAllStagesAsComplete();
+            if(response){
+                const nextModal = new bootstrap.Modal('#nextModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                })
+                nextModal.show();
+            }
+            else{
+                showReloadModal("Model Compatibility Test Failed.");
+                timer(3);
+            }
+            
+        },
+        error: function(xhr, status, error) {
+            console.log("Error occurred:", error);
+        }
+    });
+    showPanel(`Running Compatibility Test...`);
+    getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function checkInput() {
+    // Get elements
+    const benchmark = document.getElementById("benchmark");
+    const formFilePath = document.getElementById("model_path");
+    const runTestButton = document.getElementById("run-test");
+  
+    // Ensure values are being retrieved
+    const benchmarkValue = benchmark ? benchmark.value : "";
+    const filePathValue = formFilePath ? formFilePath.value.trim() : "";
+  
+    // Validate inputs
+    const isBenchmarkSelected = benchmarkValue !== "";
+    const isFilePathValid = filePathValue.length > 0 && filePathValue.endsWith(".yaml");
+  
+    // Enable/disable button
+    runTestButton.disabled = !(isBenchmarkSelected && isFilePathValid);
+}
+
+function submitMLCube(){
+    const runBtn = $("#submit-btn");
+    runBtn.prop("disabled", true);
+    runBtn.html(`
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Submitting
+    `);
+    const formData = new FormData($("#submit-form")[0]);
+    $.ajax({
+        url: "/mlcubes/submit",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        async: true,
+        success: function(response) {
+            markAllStagesAsComplete();
+            if(response){
+                showReloadModal("Successfully submitted MLCube");
+                timer(3, url="/mlcubes/ui/display/"+1); // TODO
+            }
+            else{
+                showReloadModal("Failed to submit MLCube.");
+                timer(3);
+            }
+            
+        },
+        error: function(xhr, status, error) {
+            console.log("Error occurred:", error);
+        }
+    });
+    showPanel(`Submitting MLCube...`);
+    getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function checkSubmit(){
+    // Get elements
+    const mlcube = document.getElementById("mlcube_file");
+    const parameters = document.getElementById("parameters_file");
+    const additional = document.getElementById("additional_file");
+    const submitBtn = document.getElementById("submit-btn");
+    
+    // Ensure values are being retrieved
+    const mlcubeValue = mlcube ? mlcube.value.trim() : "";
+    const parametersValue = parameters ? parameters.value.trim() : "";
+    const additionalValue = additional ? additional.value.trim() : "";
+  
+    // Validate inputs
+    const isMLCubeValid = mlcubeValue.length > 0 && mlcubeValue.endsWith(".yaml");
+    const isParametersValid = parametersValue.length > 0 && parametersValue.endsWith(".yaml");
+    const isadditionalValid = additionalValue.length > 0 && additionalValue.endsWith(".tar.gz");
+  
+    // Enable/disable button
+    submitBtn.disabled = !(isMLCubeValid && isParametersValid && isadditionalValid);
+}
+
+function cancelSubmit(){
+    window.location.reload(true);
+}
+
+function showSubmit(){
+    window.location.href = "/mlcubes/submit/ui";
+}
+
+function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
+    document.getElementById("dropdown-div").classList.remove("show");
+    const associate_btn = document.getElementById("associate-dropdown");
+    associate_btn.setAttribute("disabled", true);
+    associate_btn.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Associating
+    `;
+    $.ajax({
+        url: "/mlcubes/associate",
+        type: "POST",
+        data: { mlcube_id: mlcube_id, benchmark_id: benchmark_id },
+        dataType: "json",
+        async: true,
+        success: function(response) {
+            markAllStagesAsComplete();
+            let title;
+            if(response){
+                title = "Successfully Associated MLCube.";
+            }
+            else{
+                title = "Failed to Associate MLCube.";
+            }
+            showReloadModal(title);
+            timer(3);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error Associating:', error); // TODO
+        }
+    });
+    showPanel(`Associating MLCube '${mlcube_name}'...`);
+    getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function cleanPanel(){
+    $("#panel").hide();
+    $("#panel-title").html("");
+    $("#stages-list").html("");
+    $("#log-panel").html("");
+}
+
+function getMLCubes(){
+    const mine_only = $("#switch").prop("checked");
+    window.location.href = "/mlcubes/ui?mine_only="+mine_only;
+}
+
+function getDatasets(){
+    const mine_only = $("#switch").prop("checked");
+    window.location.href = "/datasets/ui?mine_only="+mine_only;
 }
 
 function respond_yes(){

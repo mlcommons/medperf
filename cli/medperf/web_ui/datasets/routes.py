@@ -49,7 +49,8 @@ def datasets_ui(
     other_datasets = [d for d in datasets if d.owner != my_user_id]
     datasets = mine_datasets + other_datasets
     return templates.TemplateResponse(
-        "dataset/datasets.html", {"request": request, "datasets": datasets}
+        "dataset/datasets.html",
+        {"request": request, "datasets": datasets, "mine_only": mine_only},
     )
 
 
@@ -109,7 +110,9 @@ def dataset_detail_ui(
     }
     for benchmark in valid_benchmarks:
         reference_model_mlcube = valid_benchmarks[benchmark].reference_model_mlcube
-        valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(cube_uid=reference_model_mlcube)
+        valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(
+            cube_uid=reference_model_mlcube
+        )
 
     dataset_is_operational = dataset.state == "OPERATION"
     dataset_is_prepared = dataset.submitted_as_prepared or dataset.is_ready()

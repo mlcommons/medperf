@@ -1,7 +1,7 @@
 <!-- ./cli/medperf/web-ui/templates/dataset/dataset_detail.html -->
 {% extends "detail_base.html" %}
 {% import 'association_card_macros.html' as macros %}
-{% import 'mlcube_macros.html' as mlcube_macros %}
+{% import 'mlcube/mlcube_macros.html' as mlcube_macros %}
 {% import 'benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details{% endblock title %}
@@ -144,9 +144,9 @@
             </div>
         </div>
         <div
-					class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4"
-					style="border:1px solid rgba(0, 0, 0, .125);border-radius:.25rem;"
-				>
+			class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4"
+			style="border:1px solid rgba(0, 0, 0, .125);border-radius:.25rem;"
+			>
             <div class="col-md-3 text-center">
                 {% if not dataset_is_prepared %}
                     <button
@@ -275,7 +275,7 @@
 			<h4 class="mb-0">
 			Benchmark:
 			<a href="/benchmarks/ui/display/{{ assoc }}" class="text-white text-decoration-underline">
-					<strong>{{ benchmarks[assoc].name }}</strong>
+				<strong>{{ benchmarks[assoc].name }}</strong>
 			</a>
 			</h4>
 			<button
@@ -493,54 +493,54 @@
             });
         });
 
-				$("#respond-yes").on("click", respond_yes);
-				$("#respond-no").on("click", respond_no);
-				$("#prepare-dataset").on("click", function() {
-					prepare(this);
-				});
-				$("#set-operational").on("click", function() {
-					setOperation(this);
-				});
-				$("[id^='run-']").on("click", function() {
-					disableAllButtons();
-					runBenchmark(this);
-				});
-				$("[id^='show-']").on("click", function() {
-					showResult(this);
-				});
-				$("[id^='submit-']").on("click", function() {
-					submitResult(this);
-				});
+        $("#respond-yes").on("click", respond_yes);
+        $("#respond-no").on("click", respond_no);
+        $("#prepare-dataset").on("click", function() {
+            prepare(this);
+        });
+        $("#set-operational").on("click", function() {
+            setOperation(this);
+        });
+        $("[id^='run-']").on("click", function() {
+            disableAllButtons();
+            runBenchmark(this);
+        });
+        $("[id^='show-']").on("click", function() {
+            showResult(this);
+        });
+        $("[id^='submit-']").on("click", function() {
+            submitResult(this);
+        });
         // Add an event listener to handle the "Run All" button clicks
         document.querySelectorAll('.run-all-btn').forEach(btn => {
-					btn.addEventListener('click', function() {
-						const benchmarkId = this.getAttribute('data-benchmark-id');
-						const datasetId = this.getAttribute('data-dataset-id');
-						const datasetName = this.getAttribute('data-dataset-name');
-						// Find all run buttons related to this benchmark
-						const runButtons = document.querySelectorAll(`[id^="run-${benchmarkId}-"]`);
-						let model_ids = [];
-						runButtons.forEach(button => {
-							if (!button.classList.contains('d-none')) {
-								disableAllButtons();
-								model_ids.push(
-									{
-										"id": button.getAttribute('data-model-id'),
-										"name": button.getAttribute('data-model-name')
-									}
-								);
-								button.innerHTML = `
-								<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-								Running`;
-							}
-						});
-						if(model_ids){
-							this.innerHTML = `
-							<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-							Running`;
-							runBenchmark(null, benchmarkId, datasetId, model_ids, datasetName);
-						}
-					});
+            btn.addEventListener('click', function() {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                const datasetId = this.getAttribute('data-dataset-id');
+                const datasetName = this.getAttribute('data-dataset-name');
+                // Find all run buttons related to this benchmark
+                const runButtons = document.querySelectorAll(`[id^="run-${benchmarkId}-"]`);
+                let model_ids = [];
+                runButtons.forEach(button => {
+                    if (!button.classList.contains('d-none')) {
+                        disableAllButtons();
+                        model_ids.push(
+                            {
+                                "id": button.getAttribute('data-model-id'),
+                                "name": button.getAttribute('data-model-name')
+                            }
+                        );
+                        button.innerHTML = `
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Running`;
+                    }
+                });
+                if(model_ids){
+                    this.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Running`;
+                    runBenchmark(null, benchmarkId, datasetId, model_ids, datasetName);
+                }
+            });
         });
     });
 </script>

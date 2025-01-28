@@ -23,6 +23,7 @@ class SubmitCube:
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
+        return submission.cube.id
 
     def __init__(self, submit_info: dict):
         self.comms = config.comms

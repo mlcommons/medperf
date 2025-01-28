@@ -1,8 +1,3 @@
-function scroll(element_id){
-    $("html, body").animate({
-        scrollTop: $(`#${element_id}`).offset().top
-    }, 1000);
-}
 function create_p(msg){
     const p = $("<p></p>")
     p.text(msg)

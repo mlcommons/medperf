@@ -1,0 +1,103 @@
+<!-- ./cli/medperf/web-ui/templates/mlcube/mlcube_submit.html -->
+{% extends "base.html" %}
+
+{% block title %}Create Model{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1 class="text-center">Test your MLCube Compatibility</h1>
+    <form class="mt-5" id="mlcube-form">
+        <div class="form-step">
+            <div class="form-group my-5">
+                <label class="form-label h4" for="benchmark">Select Benchmark</label>
+                <select name="benchmark" id="benchmark" class="form-control" onchange="checkInput()">
+                    <option value="" disabled selected>Select a benchmark</option>
+                    {% for benchmark in benchmarks %}
+                    <option value="{{ benchmark.id }}">{{ benchmark.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group my-5">
+                <label for="model_path" class="form-label h4">Locate MLCube</label>
+                <input name="model_path" class="form-control" type="text" id="model_path" onkeyup="checkInput()">
+            </div>
+            <!-- <div class="form-group my-5">
+                <label for="formFile" class="form-label h4">Locate MLCube</label>
+                <input class="form-control" type="file" id="formFile" accept=".yaml" onchange="checkInput()">
+            </div> -->
+            <div class="text-center mt-4">
+                <button id="run-test" type="button" class="btn btn-success mx-3" onclick="testMLCube()" disabled>
+                    Run compatibility test
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal for redirection after approve/decline -->
+    <div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="promptTitle"></h5>
+                </div>
+                <div class="modal-body">
+                    <p id="promptText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for moving to second step -->
+    <div class="modal fade" id="nextModal" tabindex="-1" aria-labelledby="nextTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nextTitle">
+                        Model Compatibility Test Succeeded.
+                    </h5>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="cancelSubmit()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="showSubmit()" data-bs-dismiss="modal">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="panel" class="my-5" style="display: none;">
+        <h2 id="panel-title"></h2>
+    
+        <div class="stages">
+            <ul class="list-group mb-3" id="stages-list"></ul>
+        </div>
+    
+        <div class="card mt-5">
+            <div class="card-body">
+                <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <div id="text-content" style="display: none;">
+        <div id="content"></div>
+    </div>
+    <div id="yaml-div" style="display: none;">
+        <pre id="yaml-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+    </div>
+    <div id="prompt-div" class="my-5" style="display: none;">
+        <div id="prompt-text"></div>
+        <div class="text-center mt-5">
+            <button type="button" class="btn btn-danger mx-3" onclick="respond_no();">No</button>
+            <button type="button" class="btn btn-success mx-3" onclick="respond_yes();">Yes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+</script>
+<script src="/static/js/event_handler.js"></script>
+<script src="/static/js/app.js"></script>
+{% endblock %}
