@@ -1,0 +1,46 @@
+<!-- ./cli/medperf/web-ui/templates/benchmark/benchmarks.html -->
+{% extends "base.html" %}
+{% import 'macros/benchmark_macros.html' as benchmark_macros %}
+
+{% block title %}Benchmarks{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12">
+            <a class="btn btn-primary my-4" href="/benchmarks/submit/ui">
+                Register a New Benchmark
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12 d-flex justify-content-center align-items-center">
+            <h1 class="my-4">Benchmarks</h1>
+            <div class="form-check form-switch ms-5">
+                <input
+                    class="form-check-input fs-5"
+                    type="checkbox"
+                    role="switch"
+                    id="switch"
+                    onchange="getBenchmarks()"
+                    {% if mine_only %}
+                    checked
+                    {% endif %}
+                >
+                <label class="form-check-label fs-5" for="switch">Mine Only</label>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <!-- Benchmark Cards -->
+    <div class="row">
+        {% for benchmark in benchmarks %}
+        <div class="col-md-4 mb-4">
+            {{ benchmark_macros.benchmark_card(benchmark) }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script src="/static/js/app.js"></script>
+{% endblock %}

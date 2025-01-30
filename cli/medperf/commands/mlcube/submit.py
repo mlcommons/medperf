@@ -50,5 +50,5 @@ class SubmitCube:
         os.rename(old_cube_loc, new_cube_loc)
 
     def write(self, updated_cube_dict):
-        cube = Cube(**updated_cube_dict)
-        cube.write()
+        self.cube = Cube(**updated_cube_dict)
+        self.cube.write()

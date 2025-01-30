@@ -1,0 +1,51 @@
+<!-- ./cli/medperf/web-ui/templates/macros/association_card_macros.html -->
+{% macro association_card(assoc, entity, entity_type) %}
+<div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
+    <div class="card-body">
+        <h5 class="card-title">{{ entity_name }}</h5>
+        <h5 class="card-title">
+            <a href="/{{ entity_type }}/ui/display/{{ entity.id }}" class="text-primary">{{ entity.name }}</a>
+        </h5>
+        <p class="card-text">
+            <strong>Approval Status:</strong> 
+            {{ assoc.approval_status }}
+            {% if assoc.approval_status == "PENDING" and entity_type!="benchmarks"%}
+            <br>
+            <button
+                type="button"
+                class="btn btn-danger {{ entity_type }}-btn"
+                data-{{entity_type}}-id="{{ entity.id }}"
+                data-benchmark-id="{{ assoc.benchmark }}"
+                data-status-name="reject"
+                onclick="{{ entity_type }}Confirm(this)"
+            >Reject</button>
+            <button
+                type="button"
+                class="btn btn-success {{ entity_type }}-btn"
+                data-{{entity_type}}-id="{{ entity.id }}"
+                data-benchmark-id="{{ assoc.benchmark }}"
+                data-status-name="approve"
+                onclick="{{ entity_type }}Confirm(this)"
+            >Approve</button>
+            {% endif %}
+        </p>
+        <p class="card-text">
+            <strong>Approved:</strong>
+            {% if assoc.approval_status == "PENDING" %}
+            <span class="text-muted small">N/A</span>
+            {% else %}
+            <span class="text-muted small" data-date="{{ assoc.approved_at }}"></span>
+            {% endif %}
+        </p>
+        <p class="card-text">
+            <strong>Modified:</strong> 
+            <span class="text-muted small" data-date="{{ assoc.modified_at }}"></span>
+        </p>
+        <p class="card-text">
+            <strong>Initiated By:</strong> 
+            <i class="fas fa-user"></i> 
+            {{ assoc.initiated_by }}
+        </p>
+    </div>
+</div>
+{% endmacro %}

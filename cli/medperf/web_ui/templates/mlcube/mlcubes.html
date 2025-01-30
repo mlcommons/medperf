@@ -1,20 +1,20 @@
 <!-- ./cli/medperf/web-ui/templates/mlcube/mlcubes.html -->
 {% extends "base.html" %}
 
-{% block title %}MLCubes{% endblock %}
+{% block title %}Models{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
             <a class="btn btn-primary my-4" href="/mlcubes/submit/ui">
-                Create New Model
+                Register a New Model
             </a>
         </div>
     </div>
     <div class="row mt-5">
         <div class="col-12 d-flex justify-content-center align-items-center">
-            <h1 class="my-4">MLCubes</h1>
+            <h1 class="my-4">Models</h1>
             <div class="form-check form-switch ms-5">
                 <input
                     class="form-check-input fs-5"
@@ -32,7 +32,7 @@
     </div>
 </div>
 <div class="container mt-5">
-    <div class="row justify-content-center">
+    <div class="row">
         {% for mlcube in mlcubes %}
         <div class="col-md-4 mb-4">
             <div class="{% if mlcube.is_valid %}card{% else %}invalid-card{% endif %}">

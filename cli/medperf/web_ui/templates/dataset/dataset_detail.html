@@ -1,8 +1,7 @@
 <!-- ./cli/medperf/web-ui/templates/dataset/dataset_detail.html -->
 {% extends "detail_base.html" %}
-{% import 'association_card_macros.html' as macros %}
-{% import 'mlcube/mlcube_macros.html' as mlcube_macros %}
-{% import 'benchmark_macros.html' as benchmark_macros %}
+{% import 'macros/mlcube_macros.html' as mlcube_macros %}
+{% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details{% endblock title %}
 
@@ -97,6 +96,7 @@
                         data-id="{{ dataset.id }}"
                         data-field="statistics_path"
                         data-entity="dataset"
+                        onclick="viewStatistics()"
                     >View Statistics</a>
                 </p>
                 {% endif %}
@@ -164,7 +164,7 @@
                         <span class="ms-2 text-success">Prepared</span>
                     </div>
                 {% endif %}
-                <small class="step-label ms-2">Step 1: Prepare</small>
+                <small class="step-label ms-2">Step 1: Performs data preprocessing and sanity checks according to the benchmark</small>
             </div>
             <div class="step-divider mx-2 col-1 text-center">
                 <i class="fas fa-chevron-right text-muted mt-2"></i>
@@ -176,7 +176,7 @@
 						id="set-operational"
 						data-dataset-id="{{ dataset.id }}"
 					>
-                      <i class="fas fa-arrow-up me-2"></i> Set To Operational
+                      <i class="fas fa-arrow-up me-2"></i> Set Operational
                     </button>
                     <br>
                 {% elif dataset_is_prepared and dataset_is_operational %}
@@ -186,11 +186,11 @@
                     </div>
                 {% else %}
                     <button class="step-btn btn btn-warning" disabled>
-                        Set To Operational
+                        Set Operational
                     </button>
                     <br>
                 {% endif %}
-                <small class="step-label ms-2">Step 2: Set Operational</small>
+                <small class="step-label ms-2">Step 2: Makes the dataset ready to be used by the benchmark</small>
             </div>
             <div class="step-divider mx-2 col-1 text-center">
                 <i class="fas fa-chevron-right text-muted mt-2"></i>
@@ -207,14 +207,14 @@
 						>
                             Associate with Benchmark
                         </button>
-                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div">
+                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div" style="cursor: pointer;">
                             {% for benchmark in benchmarks.values() %}
                                 {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
                                     <div
 										class="dropdown-item benchmark-item"
 										data-benchmark-id="{{ benchmark.id }}"
 									>
-                                      {{ benchmark_macros.benchmark_card(benchmark) }}
+                                        {{ benchmark_macros.benchmark_card(benchmark) }}
                                     </div>
                                 {% endif %}
                             {% endfor %}
@@ -224,7 +224,7 @@
                     <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
                     <br>
                 {% endif %}
-                <small class="step-label ms-2">Step 3: Associate</small>
+                <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
             </div>
         </div>
     </div>
@@ -293,7 +293,8 @@
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
-								{{ mlcube_macros.mlcube_link(reference_model) }}
+                            <small class="text-muted">&nbsp;Reference Model</small>
+							{{ mlcube_macros.mlcube_link(reference_model) }}
 						</div>
 						<div class="d-flex align-items-center">
 							<div class="mx-2">
@@ -346,7 +347,7 @@
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
-								{{ mlcube_macros.mlcube_link(model) }}
+							{{ mlcube_macros.mlcube_link(model) }}
 						</div>
 						<div class="d-flex align-items-center">
 							<div class="mx-2">

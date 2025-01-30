@@ -50,6 +50,8 @@ class DatasetSetOperational:
         self.dataset.state = "OPERATION"
 
     def update(self):
+        msg = "This is the information that is going to be transmitted to the medperf server"
+        config.ui.print_warning(msg)
         body = self.todict()
         dict_pretty_print(body)
         msg = "Do you approve sending the presented data to MedPerf? [Y/n] "

@@ -1,29 +1,25 @@
 <!-- ./cli/medperf/web-ui/templates/mlcube/mlcube_submit.html -->
 {% extends "base.html" %}
 
-{% block title %}Create Model{% endblock %}
+{% block title %}Register Model{% endblock %}
 
 {% block content %}
 
-<div class="container">
-    <h1 class="text-center">Create New MlCube</h1>
+<div class="container mt-5">
+    <h1 class="text-center">Register a New Model</h1>
     <div class="text-center fs-5 mt-4">
-        To run the compatibility test before submission, 
-        <a href="/mlcubes/submit/compatibility_test">
-            click here
-        </a>
-        <span class="text-muted fs-6">(Recommended)</span>
+        If you are submitting a model for benchmark,<br> It is <strong>recommended</strong>
+        to run the <a href="/mlcubes/submit/compatibility_test">compatibility test</a> before submission.
     </div>
 
     <form class="mt-5" id="submit-form">
-        <h2 class="text-center mt-5">Submit MLCube</h2>
         <div class="form-step">
             <div class="form-group my-5">
-                <label for="name" class="form-label h4">MLCube Name</label>
+                <label for="name" class="form-label h4">Model Name</label>
                 <input name="name" class="form-control" type="text" id="name">
             </div>
             <div class="form-group my-5">
-                <label for="mlcube_file" class="form-label h4">MLCube File</label>
+                <label for="mlcube_file" class="form-label h4">Model File</label>
                 <input name="mlcube_file" class="form-control" type="text" id="mlcube_file" onkeyup="checkSubmit()">
             </div>
             <div class="form-group my-5">
@@ -36,7 +32,7 @@
             </div>
             <div class="text-center mt-4">
                 <button id="submit-btn" type="button" class="btn btn-success mx-3" onclick="submitMLCube()" disabled>
-                    Submit MLCube
+                    Submit
                 </button>
             </div>
         </div>

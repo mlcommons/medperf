@@ -227,3 +227,13 @@ pre {
     padding: 5px 15px;
     border-radius: 20px;
 }
+
+
+label[for="switch"], #switch{
+    cursor: pointer;
+}
+
+button[disabled]{
+    cursor: not-allowed !important;
+    pointer-events: none !important; /* Prevents interaction */
+}

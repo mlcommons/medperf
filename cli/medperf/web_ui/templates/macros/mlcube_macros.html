@@ -1,0 +1,16 @@
+<!-- ./cli/medperf/web-ui/templates/macros/mlcube_macros.html -->
+{% macro mlcube_link(mlcube) %}
+<span class="mlcube-link {% if not mlcube.is_valid %}invalid-card{% endif %} d-inline-flex align-items-center p-1 mb-2 flex-grow-1">
+    <strong>
+        <a href="/mlcubes/ui/display/{{ mlcube.id }}" class="text-primary">{{ mlcube.name }}</a>
+    </strong>
+    <small class="text-muted ms-2" data-date="{{ mlcube.modified_at }}"></small>
+    <span class="ms-2">
+    {% if mlcube.state == 'OPERATION' %}
+        <i class="fas fa-check-circle text-success"></i>
+    {% else %}
+        <i class="fas fa-exclamation-circle text-warning"></i>
+    {% endif %}
+    </span>
+</span>
+{% endmacro %}

@@ -48,7 +48,8 @@ function handleEvents(log, logPanel, stagesList, currentStageElement) {
     
     if(log.type === "print"){
         const p = create_p(cleanMessage);
-        p.html(cleanMessage);
+        p.addClass("fw-bold")
+        p.addClass("fs-5");
         $("#content").append(p);
         $("#text-content").show();
     }

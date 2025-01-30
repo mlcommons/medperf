@@ -29,6 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+    $('#hide-yaml').on('click', function(event){
+        event.preventDefault();
+        $('#yaml-panel').hide();
+        $('#hide-yaml').hide();
+    });
     $('.yaml-link').on('click', function(event) {
         console.log("YAML link clicked");
         console.log($(this));
@@ -41,14 +46,16 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#loading-indicator').show();
         $('#yaml-code').hide();
         $.get('/fetch-yaml', {entity: entity, entity_uid: id, field_to_fetch: field}, function(data) {
-            $('#yaml-code').text(data.content);
+            $('#yaml-code').html(data.content);
             Prism.highlightElement($('#yaml-code')[0]);
             $('#loading-indicator').hide();
             $('#yaml-code').show();
+            $('#hide-yaml').show();
         }).fail(function() {
             $('#yaml-code').text('Failed to load content');
             $('#loading-indicator').hide();
             $('#yaml-code').show();
+            $('#hide-yaml').show();
         });
     });
 });

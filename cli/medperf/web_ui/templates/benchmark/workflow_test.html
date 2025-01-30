@@ -1,31 +1,73 @@
 <!-- ./cli/medperf/web-ui/templates/mlcube/mlcube_submit.html -->
 {% extends "base.html" %}
 
-{% block title %}Model Compatibility Test{% endblock %}
+{% block title %}Create Model{% endblock %}
 
 {% block content %}
 
-<div class="container mt-5">
-    <h1 class="text-center">Test your Model Compatibility</h1>
-    <form class="mt-5" id="mlcube-form">
+<div class="container">
+    <h1 class="text-center">Test your Benchmark Workflow</h1>
+    <form class="mt-5" id="test-form">
         <div class="form-step">
             <div class="form-group my-5">
-                <label class="form-label h4" for="benchmark">Select Benchmark</label>
-                <select name="benchmark" id="benchmark" class="form-control" onchange="checkInput()">
-                    <option value="" disabled selected>Select a benchmark</option>
-                    {% for benchmark in benchmarks %}
-                    <option value="{{ benchmark.id }}">{{ benchmark.name }}</option>
-                    {% endfor %}
-                </select>
+                <label for="data_preparation" class="form-label h4">Locate Data Preparation MLCube</label>
+                <input
+                    name="data_preparation"
+                    class="form-control"
+                    type="text"
+                    id="data_preparation"
+                    onkeyup="checkInputBenchmark()"
+                >
             </div>
             <div class="form-group my-5">
                 <label for="model_path" class="form-label h4">Locate MLCube</label>
-                <input name="model_path" class="form-control" type="text" id="model_path" onkeyup="checkInput()">
+                <input
+                    name="model_path"
+                    class="form-control"
+                    type="text"
+                    id="model_path"
+                    onkeyup="checkInputBenchmark()"
+                >
             </div>
-
+            <div class="form-group my-5">
+                <label for="evaluator_path" class="form-label h4">Locate Evaluator MLCube</label>
+                <input
+                    name="evaluator_path"
+                    class="form-control"
+                    type="text"
+                    id="evaluator_path"
+                    onkeyup="checkInputBenchmark()"
+                >
+            </div>
+            <div class="form-group my-5">
+                <label for="data_path" class="form-label h4">Locate Data Path</label>
+                <input
+                    name="data_path"
+                    class="form-control"
+                    type="text"
+                    id="data_path"
+                    onkeyup="checkInputBenchmark()"
+                >
+            </div>
+            <div class="form-group my-5">
+                <label for="labels_path" class="form-label h4">Locate Labels Path</label>
+                <input
+                    name="labels_path"
+                    class="form-control"
+                    type="text"
+                    id="labels_path"
+                    onkeyup="checkInputBenchmark()"
+                >
+            </div>
             <div class="text-center mt-4">
-                <button id="run-test" type="button" class="btn btn-success mx-3" onclick="testMLCube()" disabled>
-                    Run compatibility test
+                <button
+                    id="run-test"
+                    type="button"
+                    class="btn btn-success mx-3"
+                    onclick="testBenchmark()"
+                    disabled
+                >
+                    Run workflow test
                 </button>
             </div>
         </div>
@@ -51,14 +93,14 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="nextTitle">
-                        Model Compatibility Test Successful
+                        Benchmark Workflow Test Successful
                     </h5>
                 </div>
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="cancelSubmit()">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="showSubmit()" data-bs-dismiss="modal">Continue</button>
+                    <button type="button" class="btn btn-danger" onclick="cancelSubmitBenchmark()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="showSubmitBenchmark()" data-bs-dismiss="modal">Continue</button>
                 </div>
             </div>
         </div>

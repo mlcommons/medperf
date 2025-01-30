@@ -44,7 +44,7 @@ function showResult(element){
     const benchmark_name = element.getAttribute("data-benchmark-name");
     const model_name = element.getAttribute("data-model-name");
     $("#result-content").html(JSON.stringify(result, null, 2));
-    $("#resultModalLabel").html(`Result for Benchmark '${benchmark_name}' - Dataset '${dataset_name}' - Model '${model_name}'`);
+    $("#resultModalLabel").html(`Benchmark Results`);
     const resultModal = new bootstrap.Modal('#resultModal', {
         keyboard: false,
         backdrop: "static"
@@ -64,10 +64,10 @@ function submitResult(element){
         success: function(response) {
             let title;
             if(response){
-                title = "Successfully Submitted Results";
+                title = "Results Successfully Submitted";
             }
             else{
-                title = "Failed to Submit Results";
+                title = "Results Submission Failed";
             }
             showReloadModal(title);
             timer(3);
@@ -121,14 +121,9 @@ function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=nul
     formData.append("dataset_id", dataset_id);
     formData.append("benchmark_id", benchmark_id);
     
-    // Append each model_id individually to the FormData object
-    //model_ids.forEach((model_id) => {
-    //    formData.append("model_ids", model_id);
-    //});
     $.ajax({
         url: "/datasets/run",
         type: "POST",
-        data: formData,
         data: formData,
         processData: false,
         contentType: false,
@@ -137,10 +132,10 @@ function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=nul
             markAllStagesAsComplete();
             let title;
             if(response){
-                title = "Successfully Ran Execution.";
+                title = "Execution Ran Successfully";
             }
             else{
-                title = "Failed to Run Execution.";
+                title = "Execution Failed";
             }
             showReloadModal(title);
             timer(3);
@@ -160,7 +155,7 @@ function associate(dataset_id, benchmark_id, dataset_name){
     associate_btn.setAttribute("disabled", true);
     associate_btn.innerHTML = `
     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-    Associating
+    Requesting Association
     `;
     $.ajax({
         url: "/datasets/associate",
@@ -172,10 +167,10 @@ function associate(dataset_id, benchmark_id, dataset_name){
             markAllStagesAsComplete();
             let title;
             if(response){
-                title = "Successfully Associated Dataset.";
+                title = "Association Requested Successfully";
             }
             else{
-                title = "Failed to Associate Dataset.";
+                title = "Association Request Failed";
             }
             showReloadModal(title);
             timer(3);
@@ -184,7 +179,7 @@ function associate(dataset_id, benchmark_id, dataset_name){
             console.error('Error Associating:', error); // TODO
         }
     });
-    showPanel(`Associating dataset '${dataset_name}'...`);
+    showPanel(`Requesting Association...`);
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
@@ -205,10 +200,10 @@ function setOperation(element){
             markAllStagesAsComplete();
             let title;
             if(response.dataset_id){
-                title = "Successfully Set Dataset Into Operation";
+                title = "Dataset Set to Operation Successfully";
             }
             else{
-                title = "Failed Set Dataset Into Operation";
+                title = "Failed to Set Dataset to Operation";
             }
             showReloadModal(title);
             timer(3);
@@ -238,10 +233,10 @@ function prepare(element) {
             let title;
             markAllStagesAsComplete();
             if(response.dataset_id!==null){
-                title = "Successfully Prepared Dataset.";
+                title = "Dataset Prepared Successfully";
             }
             else{
-                title = "Failed to Prepare Dataset.";
+                title = "Failed to Prepare Dataset";
             }
             showReloadModal(title);
             timer(3);
@@ -251,7 +246,7 @@ function prepare(element) {
             console.error('Error preparing:', error); // TODO
         }
     });
-    showPanel(`Preparing dataset '${dataset_name}'...`);
+    showPanel(`Preparing Dataset...`);
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
@@ -267,11 +262,11 @@ function submitDataset(){
         success: function(response) {
             markAllStagesAsComplete();
             if(response.dataset_id!==null){
-                showReloadModal("Dataset Successfully Submitted.");
+                showReloadModal("Dataset Registered Successfully");
                 timer(3, url="/datasets/ui/display/"+response.dataset_id);
             }
             else{
-                showReloadModal("Dataset Submission Cancelled.");
+                showReloadModal("Dataset Registration Canceled");
                 timer(3);
             }
             
@@ -312,7 +307,6 @@ function testMLCube(){
                 showReloadModal("Model Compatibility Test Failed.");
                 timer(3);
             }
-            
         },
         error: function(xhr, status, error) {
             console.log("Error occurred:", error);
@@ -340,12 +334,42 @@ function checkInput() {
     runTestButton.disabled = !(isBenchmarkSelected && isFilePathValid);
 }
 
+function checkInputBenchmark() {
+    // Get elements
+    const data_preparation = document.getElementById("data_preparation");
+    const model_path = document.getElementById("model_path");
+    const evaluator_path = document.getElementById("evaluator_path");
+    const data_path = document.getElementById("data_path");
+    const labels_path = document.getElementById("labels_path");
+    const runTestButton = document.getElementById("run-test");
+  
+    // Ensure values are being retrieved
+    const dataPreparationValue = data_preparation ? data_preparation.value : "";
+    const modelPathValue = model_path ? model_path.value.trim() : "";
+    const evaluatorPathValue = evaluator_path ? evaluator_path.value : "";
+    const dataPathValue = data_path ? data_path.value.trim() : "";
+    const labelsPathValue = labels_path ? labels_path.value : "";
+  
+    // Validate inputs
+    const dataPreparationValid = dataPreparationValue.length > 0 && dataPreparationValue.endsWith(".yaml");
+    const modelPathValid = modelPathValue.length > 0 && modelPathValue.endsWith(".yaml");
+    const evaluatorPathValid = evaluatorPathValue.length > 0 && evaluatorPathValue.endsWith(".yaml");
+    const dataPathValid = dataPathValue.length > 0;
+    const labelsPathValid = labelsPathValue.length > 0;
+
+  
+    // Enable/disable button
+    runTestButton.disabled = !(
+        dataPreparationValid && modelPathValid && evaluatorPathValid && dataPathValid && labelsPathValid
+    );
+}
+
 function submitMLCube(){
     const runBtn = $("#submit-btn");
     runBtn.prop("disabled", true);
     runBtn.html(`
         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        Submitting
+        Registering
     `);
     const formData = new FormData($("#submit-form")[0]);
     $.ajax({
@@ -357,12 +381,12 @@ function submitMLCube(){
         async: true,
         success: function(response) {
             markAllStagesAsComplete();
-            if(response){
-                showReloadModal("Successfully submitted MLCube");
-                timer(3, url="/mlcubes/ui/display/"+1); // TODO
+            if(response.mlcube_id!==null){
+                showReloadModal("Model Registered Successfully");
+                timer(3, url="/mlcubes/ui/display/"+response.mlcube_id);
             }
             else{
-                showReloadModal("Failed to submit MLCube.");
+                showReloadModal("Failed to Register Model");
                 timer(3);
             }
             
@@ -371,7 +395,7 @@ function submitMLCube(){
             console.log("Error occurred:", error);
         }
     });
-    showPanel(`Submitting MLCube...`);
+    showPanel(`Registering Model...`);
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
@@ -396,6 +420,38 @@ function checkSubmit(){
     submitBtn.disabled = !(isMLCubeValid && isParametersValid && isadditionalValid);
 }
 
+function checkSubmitBenchmark(){
+    // Get elements
+    const name = document.getElementById("name");
+    const description = document.getElementById("description");
+    const demo_url = document.getElementById("demo_url");
+    const data_preparation_mlcube = document.getElementById("data_preparation_mlcube");
+    const reference_model_mlcube = document.getElementById("reference_model_mlcube");
+    const evaluator_mlcube = document.getElementById("evaluator_mlcube");
+    const submitBtn = document.getElementById("submit-btn");
+    
+    // Ensure values are being retrieved
+    const nameValue = name ? name.value.trim() : "";
+    const descriptionValue = description ? description.value.trim() : "";
+    const demoUrlValue = demo_url ? demo_url.value.trim() : "";
+    const dataPreparationMLCubeValue = data_preparation_mlcube ? Number(data_preparation_mlcube.value.trim()) : 0;
+    const referenceModelMLCubeValue = reference_model_mlcube ? Number(reference_model_mlcube.value.trim()) : 0;
+    const evaluatorMLCubeValue = evaluator_mlcube ? Number(evaluator_mlcube.value.trim()) : 0;
+  
+    // Validate inputs
+    const isNameValid = nameValue.length > 0;
+    const isDescriptionValid = descriptionValue.length > 0;
+    const isDemoUrlValid = demoUrlValue.length > 0 && demoUrlValue.endsWith(".tar.gz");
+    const isDataPreparationMLCubeValid = dataPreparationMLCubeValue > 0;
+    const isReferenceModelMLCubeValid = referenceModelMLCubeValue > 0;
+    const isEvaluatorMLCubeValid = evaluatorMLCubeValue > 0;
+  
+    // Enable/disable button
+    submitBtn.disabled = !(
+        isNameValid && isDescriptionValid && isDemoUrlValid && isDataPreparationMLCubeValid && isReferenceModelMLCubeValid && isEvaluatorMLCubeValid
+    );
+}
+
 function cancelSubmit(){
     window.location.reload(true);
 }
@@ -410,7 +466,7 @@ function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
     associate_btn.setAttribute("disabled", true);
     associate_btn.innerHTML = `
     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-    Associating
+    Requesting Association
     `;
     $.ajax({
         url: "/mlcubes/associate",
@@ -422,10 +478,10 @@ function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
             markAllStagesAsComplete();
             let title;
             if(response){
-                title = "Successfully Associated MLCube.";
+                title = "Model Associated Successfully";
             }
             else{
-                title = "Failed to Associate MLCube.";
+                title = "Failed to Associate Model";
             }
             showReloadModal(title);
             timer(3);
@@ -434,8 +490,89 @@ function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
             console.error('Error Associating:', error); // TODO
         }
     });
-    showPanel(`Associating MLCube '${mlcube_name}'...`);
+    showPanel(`Requesting Model Association...`);
     getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function testBenchmark(){
+    const runBtn = $("#run-test");
+    runBtn.prop("disabled", true);
+    runBtn.html(`
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Running
+    `);
+    const formData = new FormData($("#test-form")[0]);
+    $.ajax({
+        url: "/benchmarks/test",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        async: true,
+        success: function(response) {
+            markAllStagesAsComplete();
+            if(response){
+                const nextModal = new bootstrap.Modal('#nextModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                })
+                nextModal.show();
+            }
+            else{
+                showReloadModal("Benchmark Workflow Test Failed");
+                timer(3);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.log("Error occurred:", error);
+        }
+    });
+    showPanel(`Running Workflow Test...`);
+    getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function submitBenchmark(){
+    const runBtn = $("#submit-btn");
+    runBtn.prop("disabled", true);
+    runBtn.html(`
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Registering
+    `);
+    const formData = new FormData($("#submit-form")[0]);
+    $.ajax({
+        url: "/benchmarks/submit",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        async: true,
+        success: function(response) {
+            let title;
+            markAllStagesAsComplete();
+            if(response.benchmark_id!==null){
+                showReloadModal("Benchmark Successfully Registered");
+                timer(3, url="/benchmarks/ui/display/"+response.benchmark_id);
+            }
+            else{
+                showReloadModal("Benchmark Registration Failed");
+                timer(3);
+            }
+            
+        },
+        error: function(xhr, status, error) {
+            console.log("Error occurred:", error);
+        }
+    });
+    showPanel(`Registering Benchmark...`);
+    getEvents(logPanel, stagesList, currentStageElement);
+}
+
+function cancelSubmitBenchmark(){
+    window.location.reload(true);
+}
+
+function showSubmitBenchmark(){
+    window.location.href = "/benchmarks/submit/ui";
 }
 
 function cleanPanel(){
@@ -453,6 +590,104 @@ function getMLCubes(){
 function getDatasets(){
     const mine_only = $("#switch").prop("checked");
     window.location.href = "/datasets/ui?mine_only="+mine_only;
+}
+
+function getBenchmarks(){
+    const mine_only = $("#switch").prop("checked");
+    window.location.href = "/benchmarks/ui?mine_only="+mine_only;
+}
+
+function mlcubesConfirm(element){
+    const confirmBtn = document.getElementById("approve-reject");
+    const benchmark_id = element.getAttribute("data-benchmark-id");
+    const mlcube_id = element.getAttribute("data-mlcubes-id");
+    const dataset_id = element.getAttribute("data-datasets-id");
+    const type = element.getAttribute("data-status-name");
+    confirmBtn.setAttribute("onclick", `mlcubesApproveReject('${type}', ${benchmark_id}, ${mlcube_id}, ${dataset_id})`)
+    if(type=="approve"){
+        $("#confirmTitle").text("Approval Confirmation");
+        $("#confirmText").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
+    }
+    else{
+        $("#confirmTitle").text("Rejection Confirmation");
+        $("#confirmText").html("Are you sure you want to reject this association?<br><span class='text-danger fw-bold'>This action cannot be undone.</span>");
+    }
+    const modal = new bootstrap.Modal('#confirmModal', {
+        keyboard: false,
+        backdrop: "static"
+    })
+    modal.show();
+}
+
+function datasetsConfirm(element){
+    const confirmBtn = document.getElementById("approve-reject");
+    const benchmark_id = element.getAttribute("data-benchmark-id");
+    const mlcube_id = element.getAttribute("data-mlcubes-id");
+    const dataset_id = element.getAttribute("data-datasets-id");
+    const type = element.getAttribute("data-status-name");
+    confirmBtn.setAttribute("onclick", `mlcubesApproveReject('${type}', ${benchmark_id}, ${mlcube_id}, ${dataset_id})`)
+    if(type=="approve"){
+        $("#confirmTitle").text("Approval Confirmation");
+        $("#confirmText").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
+    }
+    else{
+        $("#confirmTitle").text("Rejection Confirmation");
+        $("#confirmText").html("Are you sure you want to reject this association?<br><span class='text-danger fw-bold'>This action cannot be undone.</span>");
+    }
+    const modal = new bootstrap.Modal('#confirmModal', {
+        keyboard: false,
+        backdrop: "static"
+    })
+    modal.show();
+}
+
+function mlcubesApproveReject(type, benchmark_id, mlcube_id, dataset_id){
+    showLoading();
+    const mlcubesBtns = document.querySelectorAll(".mlcubes-btn");
+    const datasetsBtns = document.querySelectorAll(".datasets-btn");
+    mlcubesBtns.forEach(e => {
+        e.disabled = true;
+    });
+    datasetsBtns.forEach(e => {
+        e.disabled = true;
+    });
+    const formData = new FormData;
+    formData.append("benchmark_id", benchmark_id);
+    if (mlcube_id)
+        formData.append("mlcube_id", mlcube_id);
+    if (dataset_id)
+        formData.append("dataset_id", dataset_id);
+
+    $.ajax({
+        url: `/benchmarks/${type}`,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        async: true,
+        success: function(response) {
+            hideLoading();
+            let title;
+            if(response){
+                if(type == "approve")
+                    title = "Association Approved Successfully";
+                else
+                    title = "Association Rejected Successfully";
+            }
+            else{
+                if(type == "approve")
+                    title = "Failed to Approve Association";
+                else
+                    title = "Failed to Reject Association";
+            }
+            showReloadModal(title);
+            timer(3);
+            
+        },
+        error: function(xhr, status, error) {
+            console.log("Error occurred:", error);
+        }
+    });
 }
 
 function respond_yes(){

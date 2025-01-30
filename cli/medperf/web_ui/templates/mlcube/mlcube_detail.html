@@ -1,7 +1,7 @@
 <!-- ./cli/medperf/web-ui/templates/mlcube/mlcube_detail.html -->
 {% extends "detail_base.html" %}
-{% import 'association_card_macros.html' as macros %}
-{% import 'benchmark_macros.html' as benchmark_macros %}
+{% import 'macros/association_card_macros.html' as association_card_macros %}
+{% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}MLCube Details{% endblock %}
 
@@ -22,18 +22,35 @@
             <div class="card-body">
                 <p class="card-text">
                     <strong>MLCube:</strong> 
-                    <a href="{{ entity.git_mlcube_url }}" data-id="{{ entity.id }}" data-field="git_mlcube_url" data-entity="mlcube" class="text-primary yaml-link">{{ entity.git_mlcube_url }}</a>
+                    <a
+                        href="{{ entity.git_mlcube_url }}"
+                        data-id="{{ entity.id }}"
+                        data-field="git_mlcube_url"
+                        data-entity="mlcube"
+                        class="text-primary yaml-link">{{ entity.git_mlcube_url }}
+                    </a>
                 </p>
                 <p class="card-text text-muted small">{{ entity.mlcube_hash }}</p>
                 <p class="card-text">
                     <strong>Parameters:</strong> 
-                    <a href="{{ entity.git_parameters_url }}" data-id="{{ entity.id }}" data-field="git_parameters_url" data-entity="mlcube" class="text-primary yaml-link">{{ entity.git_parameters_url }}</a>
+                    <a
+                        href="{{ entity.git_parameters_url }}"
+                        data-id="{{ entity.id }}"
+                        data-field="git_parameters_url"
+                        data-entity="mlcube"
+                        class="text-primary yaml-link">
+                        {{ entity.git_parameters_url }}
+                    </a>
                 </p>
                 <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>
                 {% if entity.image_tarball_url %}
                     <p class="card-text">
                         <strong>Image Tarball:</strong> 
-                        <a href="{{ entity.image_tarball_url }}" class="text-primary" target="_blank">{{ entity.image_tarball_url }}</a>
+                        <a
+                            href="{{ entity.image_tarball_url }}"
+                            class="text-primary"
+                            target="_blank">{{ entity.image_tarball_url }}
+                        </a>
                     </p>
                     <p class="card-text text-muted small">{{ entity.image_tarball_hash }}</p>
                 {% else %}
@@ -45,7 +62,11 @@
                 {% if entity.additional_files_tarball_url %}
                     <p class="card-text">
                         <strong>Additional Files:</strong> 
-                        <a href="{{ entity.additional_files_tarball_url }}" class="text-primary" target="_blank">{{ entity.additional_files_tarball_url }}</a>
+                        <a
+                            href="{{ entity.additional_files_tarball_url }}"
+                            class="text-primary"
+                            target="_blank">{{ entity.additional_files_tarball_url }}
+                        </a>
                     </p>
                     <p class="card-text text-muted small">{{ entity.additional_files_tarball_hash }}</p>
                 {% else %}
@@ -113,7 +134,7 @@
                     <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
                     <br>
                 {% endif %}
-                <small class="step-label ms-2">Associate</small>
+                <small class="step-label ms-2">Make a request to the benchmark owner to associate your model with the benchmark</small>
             </div>
         </div>
     </div>
@@ -122,7 +143,7 @@
     <div class="associations-column">
         <h2 class="my-4">Associated Benchmarks</h2>
         {% for assoc in benchmarks_associations.values() %}
-            {{ macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmarks") }}
+            {{ association_card_macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmarks") }}
         {% endfor %}
     </div>
 </div>
@@ -156,6 +177,20 @@
         <button type="button" class="btn btn-success mx-3" id="respond-yes">Yes</button>
     </div>
 </div>
+
+<div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="promptTitle"></h5>
+            </div>
+            <div class="modal-body">
+                <p id="promptText"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="/static/js/event_handler.js"></script>
 <script src="/static/js/app.js"></script>
 
@@ -172,6 +207,8 @@
                 }
             });
         });
+        $("#respond-yes").on("click", respond_yes);
+        $("#respond-no").on("click", respond_no);
     });
 </script>
 {% endblock %}
