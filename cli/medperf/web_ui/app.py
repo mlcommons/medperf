@@ -21,6 +21,7 @@ from medperf.web_ui.api.routes import router as api_router
 from medperf.web_ui.login import router as login_router
 from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
+from medperf.web_ui.profiles import router as profiles_router
 from medperf.web_ui.auth import security_token, wrap_openapi, NotAuthenticatedException
 
 web_app = FastAPI()
@@ -33,6 +34,7 @@ web_app.include_router(api_router, prefix="/api")
 web_app.include_router(login_router)
 web_app.include_router(events_router)
 web_app.include_router(medperf_login)
+web_app.include_router(profiles_router)
 
 static_folder_path = Path(resources.files("medperf.web_ui")) / "static"
 web_app.mount(
