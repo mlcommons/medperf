@@ -157,6 +157,12 @@ class WebUI(CLI):
         """
         self._print(msg, "yaml")
 
+    def print_url(self, msg: str):
+        self._print(msg, "url")
+
+    def print_code(self, msg: str):
+        self._print(msg, "code")
+
     def set_event(self, dict):
         self.events.put(dict)
 

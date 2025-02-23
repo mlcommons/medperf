@@ -38,6 +38,12 @@ class CLI(UI):
         msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
         self._print(msg)
 
+    def print_url(self, msg: str):
+        self._print(msg)
+
+    def print_code(self, msg: str):
+        self._print(msg)
+
     def _print(self, msg: str = ""):
         if self.is_interactive:
             self.spinner.write(msg)

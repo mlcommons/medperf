@@ -792,3 +792,67 @@ function hideLoading(){
     $("#loading-overlay").hide();
     $("html").css("cursor", "unset");
 }
+
+function login(event){
+    event.preventDefault();
+    const formData = new FormData($("#medperf-login")[0]);
+    $.ajax({
+        url: "/medperf_login",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        async: true,
+        success: function(response) {
+            if(response.status === "success"){
+                showReloadModal("Successfully Logged In");
+                timer(3, url="/");
+            }
+            else{
+                $("#errorModalLabel").html("Login Failed");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+            
+        },
+        error: function(xhr, status, error) {
+            console.log("Error occurred:", error);
+        }
+    });
+    $("#medperf-login").hide();
+    processLogin();
+}
+
+function processLogin(){
+    $.ajax({
+        url: "/events",
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            if (response.end)
+                return;
+            if(response.type === "url"){
+                $("#login-response").show();
+                $("#link-text").show();
+                document.getElementById("link").setAttribute("href", response.message);
+                document.getElementById("link").innerHTML = response.message;
+            }
+            else if (response.type === "code"){
+                $("#code-text").show();
+                $("#code").html(response.message)
+                $("#warning").show();
+            }
+            processLogin();
+        },
+        error: function(xhr, status, error) {
+            console.log("Error getEvents");
+            console.log(xhr);
+            console.log(status);
+            console.log(error);
+        }
+    });
+}

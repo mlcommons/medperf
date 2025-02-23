@@ -29,6 +29,17 @@
                     <li class="nav-item"><a class="nav-link" href="/mlcubes/ui">Models</a></li>
                     <li class="nav-item"><a class="nav-link" href="/datasets/ui">Datasets</a></li>
                 </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if not logged_in %}
+                    <li class="nav-item">
+                      <a class="nav-link" href="/medperf_login">Login</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                      <button type="button" class="btn btn-default nav-link" onclick="logout()">Logout</button>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
         </nav>
     </div>
@@ -81,5 +92,34 @@
     <script src="/static/js/prism-yaml-1.23.0.min.js"></script>
     <!-- Common JS -->
     <script src="/static/js/common.js?v=2.0"></script>
+    <script>
+        function logout(){
+            $.ajax({
+                url: "/logout",
+                type: "POST",
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if(response.status === "success"){
+                        showReloadModal("Successfully Logged Out");
+                        timer(3, url="/medperf_login");
+                    }
+                    else{
+                        $("#errorModalLabel").html("Logout Failed");
+                        $("#errorText").html(response.error);
+                        const errorModal = new bootstrap.Modal('#errorModal', {
+                            keyboard: false,
+                            backdrop: "static"
+                        });
+                        errorModal.show();
+                    }
+                    
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error occurred:", error);
+                }
+            });
+        }
+    </script>
 </body>
 </html>

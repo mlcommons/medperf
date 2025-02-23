@@ -31,6 +31,9 @@ def custom_exception_handler(request: Request, exc: Exception):
     # Prepare the context for the error page
     context = {"request": request, "exception": exc}
 
+    if "You are not logged in" in str(exc):
+        return RedirectResponse("/medperf_login?redirect=true")
+
     # Return a detailed error page
     return templates.TemplateResponse("error.html", context, status_code=500)
 
