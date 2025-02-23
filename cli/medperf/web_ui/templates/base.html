@@ -37,6 +37,38 @@
             {% block content %}{% endblock %}
         </div>
     </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h1 class="modal-title fs-5" id="errorModalLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorText" class="fs-5 text-danger fw-bold"></p>
+                    <p class="text-end mt-3"><button type="button" class="btn" onclick="window.location.reload(true);">Click here to reload</button></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal for redirection -->
+    <div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="promptTitle"></h5>
+                </div>
+                <div class="modal-body">
+                    <p id="promptText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- jQuery and Bootstrap JS -->
     <script src="/static/js/jquery-3.6.0.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
