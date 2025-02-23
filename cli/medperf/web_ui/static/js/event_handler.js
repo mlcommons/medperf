@@ -5,7 +5,7 @@ function create_p(msg){
 }
 function getEvents(logPanel, stagesList, currentStageElement) { // Recursively get events(logs, prints, etc..)
     $.ajax({
-        url: "/datasets/events",
+        url: "/events",
         type: "GET",
         dataType: "json",
         success: function(response) {

@@ -16,10 +16,9 @@ from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.result import Result
-from medperf.exceptions import CleanExit
-from medperf.web_ui.common import (  # noqa
+from medperf.exceptions import MedperfException
+from medperf.web_ui.common import (
     templates,
-    sort_associations_display,
     get_current_user_ui,
     get_current_user_api,
 )
@@ -174,10 +173,10 @@ def submit_dataset(
             submit_as_prepared=False,
         )
         config.ui.set_success()
-        return {"dataset_id": dataset_id}
-    except CleanExit:
+        return {"status": "success", "dataset_id": dataset_id, "error": ""}
+    except MedperfException as exp:
         config.ui.set_error()
-        return {"dataset_id": None}
+        return {"status": "failed", "dataset_id": None, "error": str(exp)}
 
 
 @router.post("/prepare", response_class=JSONResponse)
@@ -188,10 +187,10 @@ def prepare(
     try:
         dataset_id = DataPreparation.run(dataset_id)
         config.ui.set_success()
-        return {"dataset_id": dataset_id}
-    except CleanExit:
+        return {"status": "success", "dataset_id": dataset_id, "error": ""}
+    except MedperfException as exp:
         config.ui.set_error()
-        return {"dataset_id": None}
+        return {"status": "failed", "dataset_id": None, "error": str(exp)}
 
 
 @router.post("/set_operational", response_class=JSONResponse)
@@ -202,10 +201,10 @@ def set_operational(
     try:
         dataset_id = DatasetSetOperational.run(dataset_id)
         config.ui.set_success()
-        return {"dataset_id": dataset_id}
-    except CleanExit:
+        return {"status": "success", "dataset_id": dataset_id, "error": ""}
+    except MedperfException as exp:
         config.ui.set_error()
-        return {"dataset_id": None}
+        return {"status": "failed", "dataset_id": None, "error": str(exp)}
 
 
 @router.post("/associate", response_class=JSONResponse)
@@ -216,9 +215,11 @@ def associate(
 ):
     try:
         AssociateDataset.run(data_uid=dataset_id, benchmark_uid=benchmark_id)
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_error()
+        config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        config.ui.set_error()
+        return {"status": "failed", "error": str(exp)}
 
 
 @router.post("/run", response_class=JSONResponse)
@@ -230,33 +231,22 @@ def run(
 ):
     try:
         BenchmarkExecution.run(benchmark_id, dataset_id, model_ids)
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_error()
+        config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        config.ui.set_error()
+        return {"status": "failed", "error": str(exp)}
 
 
-@router.post("/result_submit/", response_class=JSONResponse)
+@router.post("/result_submit", response_class=JSONResponse)
 def submit_result(
     result_id: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
     try:
         ResultSubmission.run(result_id)
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_error()
-
-
-@router.get("/events", response_class=JSONResponse)
-def get_event(
-    current_user: bool = Depends(get_current_user_api),
-):
-    return config.ui.get_event()
-
-
-@router.post("/events")
-def respond(
-    is_approved: bool = Form(...),
-    current_user: bool = Depends(get_current_user_api),
-):
-    config.ui.set_response({"value": is_approved})
+        config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        config.ui.set_error()
+        return {"status": "failed", "error": str(exp)}

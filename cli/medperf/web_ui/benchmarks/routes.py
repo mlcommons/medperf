@@ -12,7 +12,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
-from medperf.exceptions import CleanExit
+from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     get_current_user_api,
     templates,
@@ -138,9 +138,11 @@ def test_benchmark(
             data_path=data_path,
             labels_path=labels_path,
         )
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_error()
+        config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        config.ui.set_error()
+        return {"status": "failed", "error": str(exp)}
 
 
 @router.post("/submit", response_class=JSONResponse)
@@ -168,10 +170,10 @@ def submit_benchmark(
     try:
         benchmark_id = SubmitBenchmark.run(benchmark_info)
         config.ui.set_success()
-        return {"benchmark_id": benchmark_id}
-    except CleanExit:
+        return {"status": "success", "benchmark_id": benchmark_id, "error": ""}
+    except MedperfException as exp:
         config.ui.set_error()
-        return {"benchmark_id": None}
+        return {"status": "failed", "benchmark_id": None, "error": str(exp)}
 
 
 @router.post("/approve", response_class=JSONResponse)
@@ -189,9 +191,9 @@ def approve(
             dataset_uid=dataset_id,
             mlcube_uid=mlcube_id,
         )
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        return {"status": "failed", "error": str(exp)}
 
 
 @router.post("/reject", response_class=JSONResponse)
@@ -209,6 +211,6 @@ def reject(
             dataset_uid=dataset_id,
             mlcube_uid=mlcube_id,
         )
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        return {"status": "failed", "error": str(exp)}

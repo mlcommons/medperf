@@ -117,12 +117,13 @@
                         >
                             Associate with Benchmark
                         </button>
-                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div">
+                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div" style="cursor: pointer;">
                             {% for benchmark in benchmarks.values() %}
                                 {% if benchmark.id not in benchmarks_associations or (benchmark.id in benchmarks_associations and benchmarks_associations[benchmark.id].approval_status == "REJECTED" ) %}
                                     <div
                                         class="dropdown-item benchmark-item"
                                         data-benchmark-id="{{ benchmark.id }}"
+                                        style="cursor: pointer;width:550px;"
                                     >
                                     {{ benchmark_macros.benchmark_card(benchmark) }}
                                     </div>

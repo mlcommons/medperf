@@ -11,11 +11,10 @@ import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
-from medperf.exceptions import CleanExit
-from medperf.web_ui.common import (  # noqa
+from medperf.exceptions import MedperfException
+from medperf.web_ui.common import (
     get_current_user_api,
     templates,
-    sort_associations_display,
     get_current_user_ui,
 )
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
@@ -130,10 +129,10 @@ def submit_mlcube(
     try:
         mlcube_id = SubmitCube.run(mlcube_info)
         config.ui.set_success()
-        return {"mlcube_id": mlcube_id}
-    except CleanExit:
+        return {"status": "success", "mlcube_id": mlcube_id, "error": ""}
+    except MedperfException as exp:
         config.ui.set_error()
-        return {"mlcube_id": None}
+        return {"status": "failed", "mlcube_id": None, "error": str(exp)}
 
 
 @router.post("/test", response_class=JSONResponse)
@@ -144,9 +143,11 @@ def test_mlcube(
 ):
     try:
         CompatibilityTestExecution.run(benchmark=benchmark, model=model_path)
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_error()
+        config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        config.ui.set_error()
+        return {"status": "failed", "error": str(exp)}
 
 
 @router.post("/associate", response_class=JSONResponse)
@@ -157,6 +158,8 @@ def associate(
 ):
     try:
         AssociateCube.run(cube_uid=mlcube_id, benchmark_uid=benchmark_id)
-        return config.ui.set_success()
-    except CleanExit:
-        return config.ui.set_error()
+        config.ui.set_success()
+        return {"status": "success", "error": ""}
+    except MedperfException as exp:
+        config.ui.set_error()
+        return {"status": "failed", "error": str(exp)}

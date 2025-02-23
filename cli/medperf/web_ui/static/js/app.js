@@ -63,14 +63,21 @@ function submitResult(element){
         async: true,
         success: function(response) {
             let title;
-            if(response){
+            if(response.status === "success"){
                 title = "Results Successfully Submitted";
+                showReloadModal(title);
+                timer(3);
             }
             else{
                 title = "Results Submission Failed";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
-            showReloadModal(title);
-            timer(3);
         },
         error: function(xhr, status, error) {
             console.error('Error preparing:', error); // TODO
@@ -131,14 +138,21 @@ function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=nul
         success: function(response) {
             markAllStagesAsComplete();
             let title;
-            if(response){
+            if(response.status === "success"){
                 title = "Execution Ran Successfully";
+                showReloadModal(title);
+                timer(3);
             }
             else{
                 title = "Execution Failed";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
-            showReloadModal(title);
-            timer(3);
         },
         error: function(xhr, status, error) {
             console.error('Error preparing:', error); // TODO
@@ -168,12 +182,19 @@ function associate(dataset_id, benchmark_id, dataset_name){
             let title;
             if(response){
                 title = "Association Requested Successfully";
+                showReloadModal(title);
+                timer(3);
             }
             else{
                 title = "Association Request Failed";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
-            showReloadModal(title);
-            timer(3);
         },
         error: function(xhr, status, error) {
             console.error('Error Associating:', error); // TODO
@@ -197,16 +218,24 @@ function setOperation(element){
         dataType: "json",
         async: true,
         success: function(response) {
+            console.log(response.error);
             markAllStagesAsComplete();
             let title;
-            if(response.dataset_id){
-                title = "Dataset Set to Operation Successfully";
+            if(response.status === "success"){
+                title = "Dataset Set to Operation Successfully"
+                showReloadModal(title);
+                timer(3);
             }
             else{
-                title = "Failed to Set Dataset to Operation";
+                title = "Failed to Set Dataset to Operation"
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
-            showReloadModal(title);
-            timer(3);
         },
         error: function(xhr, status, error) {
             console.error('Error setting operational:', error); // TODO
@@ -232,11 +261,20 @@ function prepare(element) {
         success: function(response) {
             let title;
             markAllStagesAsComplete();
-            if(response.dataset_id!==null){
+            if(response.status === "success"){
                 title = "Dataset Prepared Successfully";
+                showReloadModal(title);
+                timer(3);
             }
             else{
                 title = "Failed to Prepare Dataset";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
             showReloadModal(title);
             timer(3);
@@ -260,14 +298,22 @@ function submitDataset(){
         contentType: false,
         async: true,
         success: function(response) {
+            let title;
             markAllStagesAsComplete();
-            if(response.dataset_id!==null){
-                showReloadModal("Dataset Registered Successfully");
+            if(response.status === "success"){
+                title = "Dataset Registered Successfully";
+                showReloadModal(title);
                 timer(3, url="/datasets/ui/display/"+response.dataset_id);
             }
             else{
-                showReloadModal("Dataset Registration Canceled");
-                timer(3);
+                title = "Dataset Registration Canceled";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
             
         },
@@ -296,7 +342,7 @@ function testMLCube(){
         async: true,
         success: function(response) {
             markAllStagesAsComplete();
-            if(response){
+            if(response.status === "success"){
                 const nextModal = new bootstrap.Modal('#nextModal', {
                     keyboard: false,
                     backdrop: "static"
@@ -304,8 +350,13 @@ function testMLCube(){
                 nextModal.show();
             }
             else{
-                showReloadModal("Model Compatibility Test Failed.");
-                timer(3);
+                $("#errorModalLabel").html("Model Compatibility Test Failed");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
         },
         error: function(xhr, status, error) {
@@ -381,13 +432,18 @@ function submitMLCube(){
         async: true,
         success: function(response) {
             markAllStagesAsComplete();
-            if(response.mlcube_id!==null){
+            if(response.status === "success"){
                 showReloadModal("Model Registered Successfully");
                 timer(3, url="/mlcubes/ui/display/"+response.mlcube_id);
             }
             else{
-                showReloadModal("Failed to Register Model");
-                timer(3);
+                $("#errorModalLabel").html("Failed to Register Model");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
             
         },
@@ -477,14 +533,21 @@ function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
         success: function(response) {
             markAllStagesAsComplete();
             let title;
-            if(response){
-                title = "Model Associated Successfully";
+            if(response.status === "success"){
+                title = "Association Requested Successfully";
+                showReloadModal(title);
+                timer(3);
             }
             else{
-                title = "Failed to Associate Model";
+                title = "Association Request Failed";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
-            showReloadModal(title);
-            timer(3);
         },
         error: function(xhr, status, error) {
             console.error('Error Associating:', error); // TODO
@@ -511,7 +574,7 @@ function testBenchmark(){
         async: true,
         success: function(response) {
             markAllStagesAsComplete();
-            if(response){
+            if(response.status === "success"){
                 const nextModal = new bootstrap.Modal('#nextModal', {
                     keyboard: false,
                     backdrop: "static"
@@ -519,8 +582,13 @@ function testBenchmark(){
                 nextModal.show();
             }
             else{
-                showReloadModal("Benchmark Workflow Test Failed");
-                timer(3);
+                $("#errorModalLabel").html("Benchmark Workflow Test Failed");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
         },
         error: function(xhr, status, error) {
@@ -549,13 +617,18 @@ function submitBenchmark(){
         success: function(response) {
             let title;
             markAllStagesAsComplete();
-            if(response.benchmark_id!==null){
+            if(response.status === "success"){
                 showReloadModal("Benchmark Successfully Registered");
                 timer(3, url="/benchmarks/ui/display/"+response.benchmark_id);
             }
             else{
-                showReloadModal("Benchmark Registration Failed");
-                timer(3);
+                $("#errorModalLabel").html("Benchmark Registration Failed");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
             
         },
@@ -668,20 +741,27 @@ function mlcubesApproveReject(type, benchmark_id, mlcube_id, dataset_id){
         success: function(response) {
             hideLoading();
             let title;
-            if(response){
+            if(response.status === "success"){
                 if(type == "approve")
                     title = "Association Approved Successfully";
                 else
                     title = "Association Rejected Successfully";
+                showReloadModal(title);
+                timer(3);
             }
             else{
                 if(type == "approve")
                     title = "Failed to Approve Association";
                 else
                     title = "Failed to Reject Association";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
             }
-            showReloadModal(title);
-            timer(3);
             
         },
         error: function(xhr, status, error) {
@@ -692,14 +772,14 @@ function mlcubesApproveReject(type, benchmark_id, mlcube_id, dataset_id){
 
 function respond_yes(){
     $.ajax({
-        url: "/datasets/events",
+        url: "/events",
         type: "POST",
         data: { is_approved: true },
     });
 }
 function respond_no(){
     $.ajax({
-        url: "/datasets/events",
+        url: "/events",
         type: "POST",
         data: { is_approved: false },
     });
