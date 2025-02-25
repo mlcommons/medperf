@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Security Check{% endblock %}
 
 {% block content %}
 <div class="container min-vh-100 d-flex justify-content-center align-items-center">
     <div class="row justify-content-center">
           <div class="card shadow-sm">
               <div class="card-body">
-                  <h3 class="text-center mb-4">Login</h3>
+                  <h3 class="text-center mb-4">Security Check</h3>
 
                   <!-- Error message (if any) -->
                   {% if error %}
@@ -17,7 +17,7 @@
                   {% endif %}
 
                   <!-- Login form -->
-                  <form action="/login" method="post">
+                  <form action="/security_check" method="post">
                       <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
 
                       <div class="mb-3">

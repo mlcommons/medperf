@@ -57,7 +57,7 @@ def startup_event():
     # print security token to CLI (avoid logging to file)
     print("=" * 40)
     print()
-    print("Use security token for login to web-UI:")
+    print("Use security token to view the web-UI:")
     print(security_token)
     print()
     print("=" * 40)

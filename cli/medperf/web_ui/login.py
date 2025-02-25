@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 # Login page GET endpoint
-@router.get("/login", response_class=HTMLResponse)
+@router.get("/security_check", response_class=HTMLResponse)
 def login_form(
     request: Request, redirect_url: str = "/", token: str = Security(api_key_cookie)
 ):
@@ -24,7 +24,7 @@ def login_form(
 
 
 # Login page POST endpoint
-@router.post("/login")
+@router.post("/security_check")
 def login(
     request: Request,
     token: str = Form(...),

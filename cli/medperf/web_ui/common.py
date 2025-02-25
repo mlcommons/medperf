@@ -75,7 +75,7 @@ def get_current_user_ui(
     if token == security_token:
         return True
     else:
-        login_url = f"/login?redirect_url={request.url.path}"
+        login_url = f"/security_check?redirect_url={request.url.path}"
         raise NotAuthenticatedException(redirect_url=login_url)
 
 
