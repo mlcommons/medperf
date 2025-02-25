@@ -15,7 +15,6 @@ from medperf.web_ui.common import custom_exception_handler, templates
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.mlcubes.routes import router as mlcubes_router
-from medperf.web_ui.results import fetch_all_results
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
 from medperf.web_ui.api.routes import router as api_router
 from medperf.web_ui.login import router as login_router
@@ -51,8 +50,6 @@ web_app.openapi = wrap_openapi(web_app)
 
 @web_app.on_event("startup")
 def startup_event():
-    # fetch results to store mapping in the memory
-    fetch_all_results()
 
     # print security token to CLI (avoid logging to file)
     print("=" * 40)
