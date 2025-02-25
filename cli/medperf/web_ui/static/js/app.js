@@ -457,23 +457,20 @@ function submitMLCube(){
 
 function checkSubmit(){
     // Get elements
+    const name = document.getElementById("name");
     const mlcube = document.getElementById("mlcube_file");
-    const parameters = document.getElementById("parameters_file");
-    const additional = document.getElementById("additional_file");
     const submitBtn = document.getElementById("submit-btn");
     
     // Ensure values are being retrieved
     const mlcubeValue = mlcube ? mlcube.value.trim() : "";
-    const parametersValue = parameters ? parameters.value.trim() : "";
-    const additionalValue = additional ? additional.value.trim() : "";
+    const nameValue = name ? name.value.trim() : "";
   
     // Validate inputs
     const isMLCubeValid = mlcubeValue.length > 0 && mlcubeValue.endsWith(".yaml");
-    const isParametersValid = parametersValue.length > 0 && parametersValue.endsWith(".yaml");
-    const isadditionalValid = additionalValue.length > 0 && additionalValue.endsWith(".tar.gz");
-  
+    const isNameValid = nameValue.length > 0;
+
     // Enable/disable button
-    submitBtn.disabled = !(isMLCubeValid && isParametersValid && isadditionalValid);
+    submitBtn.disabled = !(isMLCubeValid && isNameValid);
 }
 
 function checkSubmitBenchmark(){

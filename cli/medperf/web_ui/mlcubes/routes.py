@@ -110,8 +110,8 @@ def compatibilty_test_ui(
 def submit_mlcube(
     name: str = Form(...),
     mlcube_file: str = Form(...),
-    parameters_file: str = Form(...),
-    additional_file: str = Form(...),
+    parameters_file: str = Form(""),
+    additional_file: str = Form(""),
     current_user: bool = Depends(get_current_user_api),
 ):
     mlcube_info = {
