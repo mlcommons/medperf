@@ -21,7 +21,11 @@
         <div class="card mb-3">
             <div class="card-body">
                 <p class="card-text">
-                    <strong>MLCube:</strong> 
+                    <strong>MLCube ID:</strong> 
+                    {{ entity.id }}
+                </p>
+                <p class="card-text">
+                    <strong>MLCube Manifest:</strong> 
                     <a
                         href="{{ entity.git_mlcube_url }}"
                         data-id="{{ entity.id }}"
