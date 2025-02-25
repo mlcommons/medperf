@@ -63,24 +63,30 @@ def benchmark_detail_ui(
     data_preparation_mlcube = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
     reference_model_mlcube = Cube.get(cube_uid=benchmark.reference_model_mlcube)
     metrics_mlcube = Cube.get(cube_uid=benchmark.data_evaluator_mlcube)
-    datasets_associations = Benchmark.get_datasets_associations(
-        benchmark_uid=benchmark_id
-    )
-    models_associations = Benchmark.get_models_associations(benchmark_uid=benchmark_id)
+    datasets_associations = []
+    models_associations = []
+    datasets = {}
+    models = {}
+    current_user_is_benchmark_owner = benchmark.owner == get_medperf_user_data()["id"]
+    if current_user_is_benchmark_owner:
+        datasets_associations = Benchmark.get_datasets_associations(
+            benchmark_uid=benchmark_id
+        )
+        models_associations = Benchmark.get_models_associations(benchmark_uid=benchmark_id)
 
-    datasets_associations = sort_associations_display(datasets_associations)
-    models_associations = sort_associations_display(models_associations)
+        datasets_associations = sort_associations_display(datasets_associations)
+        models_associations = sort_associations_display(models_associations)
 
-    datasets = {
-        assoc.dataset: Dataset.get(assoc.dataset)
-        for assoc in datasets_associations
-        if assoc.dataset
-    }
-    models = {
-        assoc.model_mlcube: Cube.get(assoc.model_mlcube)
-        for assoc in models_associations
-        if assoc.model_mlcube
-    }
+        datasets = {
+            assoc.dataset: Dataset.get(assoc.dataset)
+            for assoc in datasets_associations
+            if assoc.dataset
+        }
+        models = {
+            assoc.model_mlcube: Cube.get(assoc.model_mlcube)
+            for assoc in models_associations
+            if assoc.model_mlcube
+        }
 
     return templates.TemplateResponse(
         "benchmark/benchmark_detail.html",
@@ -95,6 +101,7 @@ def benchmark_detail_ui(
             "models_associations": models_associations,
             "datasets": datasets,
             "models": models,
+            "current_user_is_benchmark_owner": current_user_is_benchmark_owner
         },
     )
 

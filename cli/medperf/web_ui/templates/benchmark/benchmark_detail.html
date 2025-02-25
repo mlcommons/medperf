@@ -95,20 +95,23 @@
         </div>
     </div>
 </div>
+
+{% if current_user_is_benchmark_owner %}
 <div class="associations-panel">
     <div class="associations-column">
-        <h2 class="my-4">Associated Datasets</h2>
+        <h2 class="my-4">Datasets Associations</h2>
         {% for assoc in datasets_associations %}
         {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "datasets") }}
         {% endfor %}
     </div>
     <div class="associations-column">
-        <h2 class="my-4">Associated Models</h2>
+        <h2 class="my-4">Models Associations</h2>
         {% for assoc in models_associations %}
         {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "mlcubes") }}
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
 <!-- Modal for confirmation approve/reject -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true">
