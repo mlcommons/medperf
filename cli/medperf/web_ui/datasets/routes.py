@@ -71,6 +71,7 @@ def dataset_detail_ui(
     # benchmark_associations = sort_associations_display(benchmark_associations)
 
     # Get all results
+    results = []
     if benchmark_assocs:
         user_id = get_medperf_user_data()["id"]
         results = Result.all(filters={"owner": user_id})
@@ -85,20 +86,14 @@ def dataset_detail_ui(
         models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
         benchmark_models[assoc.benchmark] = models
         for model in models:
-            if results:
-                model.result = [
-                    (
-                        result.todict()
-                        if result.benchmark == assoc.id
-                        and result.dataset == assoc.dataset
-                        and result.model == model.id
-                        else None
-                    )
-                    for result in results
-                ][0]
-                # [0] just to be able to use list comprehension
-            else:
-                model.result = None
+            model.result = None
+            for result in results:
+                if (
+                    result.benchmark == assoc.benchmark
+                    and result.dataset == dataset_id
+                    and result.model == model.id
+                ):
+                    model.result = result.todict()
 
     # Get all relevant benchmarks for making an association
     benchmarks = Benchmark.all()
