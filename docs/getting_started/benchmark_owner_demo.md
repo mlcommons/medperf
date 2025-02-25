@@ -3,6 +3,7 @@ demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
 assets_url: https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/
 tutorial_id: benchmark
+email: testbo@example.com
 hide:
   - toc
 ---

@@ -10,5 +10,5 @@ cd model_mobilenetv2/mlcube/workspace/additional_files
 sh download.sh
 rm download.sh
 
-## Login locally as model owner
-medperf auth login -e testmo@example.com
+# ## Login locally as model owner
+# medperf auth login -e testmo@example.com
