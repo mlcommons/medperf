@@ -1,20 +1,25 @@
 <!-- ./cli/medperf/web-ui/templates/mlcube/mlcubes.html -->
 {% extends "base.html" %}
 
-{% block title %}Models{% endblock %}
+{% block title %}MLCubes{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
+            <a class="btn btn-primary my-4" href="/mlcubes/submit/compatibility_test">
+                Test a Model Compatibility
+            </a>
+        </div>
+        <div class="col-12">
             <a class="btn btn-primary my-4" href="/mlcubes/submit/ui">
-                Register a New Model
+                Register a New MLCube
             </a>
         </div>
     </div>
     <div class="row mt-5">
         <div class="col-12 d-flex justify-content-center align-items-center">
-            <h1 class="my-4">Models</h1>
+            <h1 class="my-4">MLCubes</h1>
             <div class="form-check form-switch ms-5">
                 <input
                     class="form-check-input fs-5"
