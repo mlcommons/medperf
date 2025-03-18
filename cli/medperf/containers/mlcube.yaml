@@ -1,0 +1,12 @@
+container_type: DockerImage
+image: mlcommons/chestxray-tutorial-cnn:0.0.0
+tasks:
+  infer:
+    run_args:
+      shm_size: 12g
+    input_volumes:
+      data_path: /medperf_input_data_path
+      parameters_file: /medperf_parameters/parameters.yaml
+      additional_files: /medperf_additional_files
+    output_volumes:
+      predictions: /medperf_predictions
