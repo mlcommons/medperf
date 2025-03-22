@@ -333,6 +333,14 @@ function testMLCube(){
         Running
     `);
     const formData = new FormData($("#mlcube-form")[0]);
+    const input_elements = document.querySelectorAll("input");
+    input_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const select_elements = document.querySelectorAll("select");
+    select_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/mlcubes/test",
         type: "POST",
@@ -347,6 +355,8 @@ function testMLCube(){
                     keyboard: false,
                     backdrop: "static"
                 })
+                $("#yaml-content").html(JSON.stringify(response.results, null, 2));
+                Prism.highlightElement(document.getElementById("yaml-content"));
                 nextModal.show();
             }
             else{
@@ -562,6 +572,14 @@ function testBenchmark(){
         Running
     `);
     const formData = new FormData($("#test-form")[0]);
+    const input_elements = document.querySelectorAll("input");
+    input_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const select_elements = document.querySelectorAll("select");
+    select_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/benchmarks/test",
         type: "POST",
@@ -576,6 +594,8 @@ function testBenchmark(){
                     keyboard: false,
                     backdrop: "static"
                 })
+                $("#yaml-content").html(JSON.stringify(response.results, null, 2));
+                Prism.highlightElement(document.getElementById("yaml-content"));
                 nextModal.show();
             }
             else{

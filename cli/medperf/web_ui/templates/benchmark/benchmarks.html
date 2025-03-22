@@ -8,11 +8,6 @@
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
-            <a class="btn btn-primary my-4" href="/benchmarks/submit/workflow_test">
-                Test a Benchmark Workflow
-            </a>
-        </div>
-        <div class="col-12">
             <a class="btn btn-primary my-4" href="/benchmarks/submit/ui">
                 Create a New Benchmark
             </a>
@@ -32,7 +27,7 @@
                     checked
                     {% endif %}
                 >
-                <label class="form-check-label fs-5" for="switch">Show my benchmarks</label>
+                <label class="form-check-label fs-5" for="switch">Show only my benchmarks</label>
             </div>
         </div>
     </div>
@@ -40,11 +35,17 @@
 <div class="container mt-5">
     <!-- Benchmark Cards -->
     <div class="row">
+        {% if benchmarks %}
         {% for benchmark in benchmarks %}
         <div class="col-md-4 mb-4">
             {{ benchmark_macros.benchmark_card(benchmark) }}
         </div>
         {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5">
+            No benchmarks yet
+        </h3>
+        {% endif %}
     </div>
 </div>
 <script src="/static/js/app.js"></script>

@@ -142,12 +142,14 @@ def test_mlcube(
     current_user: bool = Depends(get_current_user_api),
 ):
     try:
-        CompatibilityTestExecution.run(benchmark=benchmark, model=model_path)
+        _, results = CompatibilityTestExecution.run(
+            benchmark=benchmark, model=model_path
+        )
         config.ui.set_success()
-        return {"status": "success", "error": ""}
+        return {"status": "success", "error": "", "results": results}
     except MedperfException as exp:
         config.ui.set_error()
-        return {"status": "failed", "error": str(exp)}
+        return {"status": "failed", "error": str(exp), "results": ""}
 
 
 @router.post("/associate", response_class=JSONResponse)

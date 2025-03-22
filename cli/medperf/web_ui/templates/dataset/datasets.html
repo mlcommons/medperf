@@ -26,7 +26,7 @@
                     checked
                     {% endif %}
                 >
-                <label class="form-check-label fs-5" for="switch">Mine Only</label>
+                <label class="form-check-label fs-5" for="switch">Show only my datasets</label>
             </div>
         </div>
     </div>
@@ -34,6 +34,7 @@
 <div class="container mt-5">
     <!-- Dataset Cards -->
     <div class="row">
+        {% if datasets %}
         {% for dataset in datasets %}
         <div class="col-md-4 mb-4">
             <div class="card {% if not dataset.is_valid %}invalid-card{% endif %}">
@@ -62,6 +63,11 @@
             </div>
         </div>
         {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5">
+            No datasets yet
+        </h3>
+        {% endif %}
     </div>
 </div>
 <script src="/static/js/app.js"></script>

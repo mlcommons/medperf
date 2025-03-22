@@ -237,3 +237,9 @@ button[disabled]{
     cursor: not-allowed !important;
     pointer-events: none !important; /* Prevents interaction */
 }
+
+.modal-body {
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
+    white-space: normal;
+}

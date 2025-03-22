@@ -7,11 +7,6 @@
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
-            <a class="btn btn-primary my-4" href="/mlcubes/submit/compatibility_test">
-                Test a Model Compatibility
-            </a>
-        </div>
-        <div class="col-12">
             <a class="btn btn-primary my-4" href="/mlcubes/submit/ui">
                 Register a New MLCube
             </a>
@@ -31,13 +26,14 @@
                     checked
                     {% endif %}
                 >
-                <label class="form-check-label fs-5" for="switch">Mine Only</label>
+                <label class="form-check-label fs-5" for="switch">Show only my MLCubes</label>
             </div>
         </div>
     </div>
 </div>
 <div class="container mt-5">
     <div class="row">
+        {% if mlcubes %}
         {% for mlcube in mlcubes %}
         <div class="col-md-4 mb-4">
             <div class="{% if mlcube.is_valid %}card{% else %}invalid-card{% endif %}">
@@ -60,6 +56,11 @@
             </div>
         </div>
         {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5">
+            No MLCubes yet
+        </h3>
+        {% endif %}
     </div>
 </div>
 <script src="/static/js/app.js"></script>

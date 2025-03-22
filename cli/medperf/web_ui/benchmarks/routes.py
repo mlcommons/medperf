@@ -72,7 +72,9 @@ def benchmark_detail_ui(
         datasets_associations = Benchmark.get_datasets_associations(
             benchmark_uid=benchmark_id
         )
-        models_associations = Benchmark.get_models_associations(benchmark_uid=benchmark_id)
+        models_associations = Benchmark.get_models_associations(
+            benchmark_uid=benchmark_id
+        )
 
         datasets_associations = sort_associations_display(datasets_associations)
         models_associations = sort_associations_display(models_associations)
@@ -101,7 +103,7 @@ def benchmark_detail_ui(
             "models_associations": models_associations,
             "datasets": datasets,
             "models": models,
-            "current_user_is_benchmark_owner": current_user_is_benchmark_owner
+            "current_user_is_benchmark_owner": current_user_is_benchmark_owner,
         },
     )
 
@@ -138,7 +140,7 @@ def test_benchmark(
     current_user: bool = Depends(get_current_user_api),
 ):
     try:
-        CompatibilityTestExecution.run(
+        _, results = CompatibilityTestExecution.run(
             data_prep=data_preparation,
             model=model_path,
             evaluator=evaluator_path,
@@ -146,10 +148,10 @@ def test_benchmark(
             labels_path=labels_path,
         )
         config.ui.set_success()
-        return {"status": "success", "error": ""}
+        return {"status": "success", "error": "", "results": results}
     except MedperfException as exp:
         config.ui.set_error()
-        return {"status": "failed", "error": str(exp)}
+        return {"status": "failed", "error": str(exp), "results": ""}
 
 
 @router.post("/submit", response_class=JSONResponse)
