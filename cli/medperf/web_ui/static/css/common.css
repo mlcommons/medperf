@@ -243,3 +243,8 @@ button[disabled]{
     overflow-wrap: break-word; 
     white-space: normal;
 }
+
+.benchmarks-dropdown li:active{
+    background-color: unset;
+    color: unset;
+}

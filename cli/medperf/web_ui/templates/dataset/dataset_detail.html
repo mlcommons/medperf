@@ -149,20 +149,20 @@
 			>
             <div class="col-md-3 text-center">
                 {% if not dataset_is_prepared %}
-                    <button
-						class="step-btn btn btn-primary"
-						id="prepare-dataset"
-						data-dataset-id="{{ dataset.id }}"
-						data-dataset-name="{{ dataset.name }}"
-					>
-                      <i class="fas fa-play-circle me-2"></i> Prepare
-                    </button>
-                    <br>
+                <button
+                    class="step-btn btn btn-primary"
+                    id="prepare-dataset"
+                    data-dataset-id="{{ dataset.id }}"
+                    data-dataset-name="{{ dataset.name }}"
+                >
+                    <i class="fas fa-play-circle me-2"></i> Prepare
+                </button>
+                <br>
                 {% else %}
-                    <div class="step-complete d-flex align-items-center">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="ms-2 text-success">Prepared</span>
-                    </div>
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="ms-2 text-success">Prepared</span>
+                </div>
                 {% endif %}
                 <small class="step-label ms-2">Step 1: Performs data preprocessing and sanity checks according to the benchmark</small>
             </div>
@@ -171,24 +171,24 @@
             </div>
             <div class="col-3 text-center">
                 {% if dataset_is_prepared and not dataset_is_operational %}
-                    <button
-						class="step-btn btn btn-warning"
-						id="set-operational"
-						data-dataset-id="{{ dataset.id }}"
-					>
-                      <i class="fas fa-arrow-up me-2"></i> Set Operational
-                    </button>
-                    <br>
+                <button
+                    class="step-btn btn btn-warning"
+                    id="set-operational"
+                    data-dataset-id="{{ dataset.id }}"
+                >
+                    <i class="fas fa-arrow-up me-2"></i> Set Operational
+                </button>
+                <br>
                 {% elif dataset_is_prepared and dataset_is_operational %}
-                    <div class="step-complete d-flex align-items-center">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span class="ms-2 text-success">Operational</span>
-                    </div>
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="ms-2 text-success">Operational</span>
+                </div>
                 {% else %}
-                    <button class="step-btn btn btn-warning" disabled>
-                        Set Operational
-                    </button>
-                    <br>
+                <button class="step-btn btn btn-warning" disabled>
+                    Set Operational
+                </button>
+                <br>
                 {% endif %}
                 <small class="step-label ms-2">Step 2: Makes the dataset ready to be used by the benchmark</small>
             </div>
@@ -197,33 +197,38 @@
             </div>
             <div class="col-3 text-center">
                 {% if dataset_is_operational %}
-                    <div class="dropdown">
-                        <button
-							class="step-btn btn btn-info dropdown-toggle"
-							type="button"
-							id="associate-dropdown"
-							data-bs-toggle="dropdown"
-							aria-expanded="false"
-						>
-                            Associate with Benchmark
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div" style="cursor: pointer;">
-                            {% for benchmark in benchmarks.values() %}
-                                {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
-                                    <div
-										class="dropdown-item benchmark-item"
-										data-benchmark-id="{{ benchmark.id }}"
-                                        style="cursor: pointer;width:550px;"
-									>
-                                        {{ benchmark_macros.benchmark_card(benchmark) }}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
+                <div class="dropdown">
+                    <button
+                        class="step-btn btn btn-info dropdown-toggle"
+                        type="button"
+                        id="associate-dropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Associate with Benchmark
+                    </button>
+                    {% set available_benchmarks = [] %}
+                    {% for benchmark in benchmarks.values() %}
+                    {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
+                    {% set _ = available_benchmarks.append(benchmark) %}
+                    {% endif %}
+                    {% endfor %}
+                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown" id="dropdown-div">
+                        {% for benchmark in available_benchmarks %}
+                        <li class="dropdown-item">
+                            <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
+                            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
+                            <button type="button" class="btn btn-primary benchmark-item" data-benchmark-id="{{ benchmark.id }}">Request Association</button>
+                        </li>
+                        {% endfor %}
+                        {% if not available_benchmarks %}
+                        <li class="dropdown-item text-muted">No benchmarks available for association</li>
+                        {% endif %}
+                    </ul>
+                </div>
                 {% else %}
-                    <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
-                    <br>
+                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+                <br>
                 {% endif %}
                 <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
             </div>
@@ -428,7 +433,7 @@
 </div>
 
 <div id="yaml-div" style="display: none;">
-    <pre id="yaml-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+    <pre id="yaml-content" class="language-yaml" style="padding: 15px; border-radius: 4px;"></pre>
 </div>
 
 <div id="prompt-div" class="my-5" style="display: none;">

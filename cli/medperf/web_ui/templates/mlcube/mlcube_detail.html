@@ -48,36 +48,36 @@
                 </p>
                 <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>
                 {% if entity.image_tarball_url %}
-                    <p class="card-text">
-                        <strong>Image Tarball:</strong> 
-                        <a
-                            href="{{ entity.image_tarball_url }}"
-                            class="text-primary"
-                            target="_blank">{{ entity.image_tarball_url }}
-                        </a>
-                    </p>
-                    <p class="card-text text-muted small">{{ entity.image_tarball_hash }}</p>
+                <p class="card-text">
+                    <strong>Image Tarball:</strong> 
+                    <a
+                        href="{{ entity.image_tarball_url }}"
+                        class="text-primary"
+                        target="_blank">{{ entity.image_tarball_url }}
+                    </a>
+                </p>
+                <p class="card-text text-muted small">{{ entity.image_tarball_hash }}</p>
                 {% else %}
-                    <p class="card-text">
-                        <strong>Image Tarball:</strong> 
-                        Not Available</p>
-                    <p class="card-text text-muted small">N/A</p>
+                <p class="card-text">
+                    <strong>Image Tarball:</strong> 
+                    Not Available</p>
+                <p class="card-text text-muted small">N/A</p>
                 {% endif %}
                 {% if entity.additional_files_tarball_url %}
-                    <p class="card-text">
-                        <strong>Additional Files:</strong> 
-                        <a
-                            href="{{ entity.additional_files_tarball_url }}"
-                            class="text-primary"
-                            target="_blank">{{ entity.additional_files_tarball_url }}
-                        </a>
-                    </p>
-                    <p class="card-text text-muted small">{{ entity.additional_files_tarball_hash }}</p>
+                <p class="card-text">
+                    <strong>Additional Files:</strong> 
+                    <a
+                        href="{{ entity.additional_files_tarball_url }}"
+                        class="text-primary"
+                        target="_blank">{{ entity.additional_files_tarball_url }}
+                    </a>
+                </p>
+                <p class="card-text text-muted small">{{ entity.additional_files_tarball_hash }}</p>
                 {% else %}
-                    <p class="card-text">
-                        <strong>Additional Files:</strong> 
-                        Not Available</p>
-                    <p class="card-text text-muted small">N/A</p>
+                <p class="card-text">
+                    <strong>Additional Files:</strong> 
+                    Not Available</p>
+                <p class="card-text text-muted small">N/A</p>
                 {% endif %}
             </div>
         </div>
@@ -111,33 +111,38 @@
         >
             <div class="col-12 text-center">
                 {% if entity.state=="OPERATION" %}
-                    <div class="dropdown">
-                        <button
-                            class="step-btn btn btn-info dropdown-toggle"
-                            type="button"
-                            id="associate-dropdown"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                        >
-                            Associate with Benchmark
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="associate-dropdown" id="dropdown-div" style="cursor: pointer;">
-                            {% for benchmark in benchmarks.values() %}
-                                {% if benchmark.id not in benchmarks_associations or (benchmark.id in benchmarks_associations and benchmarks_associations[benchmark.id].approval_status == "REJECTED" ) %}
-                                    <div
-                                        class="dropdown-item benchmark-item"
-                                        data-benchmark-id="{{ benchmark.id }}"
-                                        style="cursor: pointer;width:550px;"
-                                    >
-                                    {{ benchmark_macros.benchmark_card(benchmark) }}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
+                <div class="dropdown">
+                    <button
+                        class="step-btn btn btn-info dropdown-toggle"
+                        type="button"
+                        id="associate-dropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Associate with Benchmark
+                    </button>
+                    {% set available_benchmarks = [] %}
+                    {% for benchmark in benchmarks.values() %}
+                    {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
+                    {% set _ = available_benchmarks.append(benchmark) %}
+                    {% endif %}
+                    {% endfor %}
+                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown" id="dropdown-div">
+                    {% for benchmark in available_benchmarks %}
+                    <li class="dropdown-item">
+                        <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
+                        <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
+                        <button type="button" class="btn btn-primary benchmark-item" data-benchmark-id="{{ benchmark.id }}">Request Association</button>
+                    </li>
+                    {% endfor %}
+                    {% if not available_benchmarks %}
+                    <li class="dropdown-item text-muted">No benchmarks available for association</li>
+                    {% endif %}
+                </ul>
+                </div>
                 {% else %}
-                    <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
-                    <br>
+                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+                <br>
                 {% endif %}
                 <small class="step-label ms-2">If this is a model MLCube, make a request to the benchmark owner to associate your model with the benchmark</small>
             </div>
