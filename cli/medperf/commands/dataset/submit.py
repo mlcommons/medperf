@@ -29,6 +29,7 @@ class DataCreation:
         approved: bool = False,
         submit_as_prepared: bool = False,
         for_test: bool = False,
+        kbs: int = None
     ):
         preparation = cls(
             benchmark_uid,
@@ -42,6 +43,7 @@ class DataCreation:
             approved,
             submit_as_prepared,
             for_test,
+            kbs
         )
         preparation.validate()
         preparation.validate_prep_cube()
@@ -67,6 +69,7 @@ class DataCreation:
         approved: bool,
         submit_as_prepared: bool,
         for_test: bool,
+        kbs: int
     ):
         self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())
@@ -80,6 +83,7 @@ class DataCreation:
         self.approved = approved
         self.submit_as_prepared = submit_as_prepared
         self.for_test = for_test
+        self.kbs = kbs
 
     def validate(self):
         if not os.path.exists(self.data_path):
@@ -115,6 +119,9 @@ class DataCreation:
     def create_dataset_object(self):
         """generates dataset UIDs for both input path"""
         in_uid = get_folders_hash([self.data_path, self.labels_path])
+        user_metadata = {}
+        if self.kbs is not None:
+            user_metadata = {"kbs": self.kbs}
         dataset = Dataset(
             name=self.name,
             description=self.description,
@@ -127,6 +134,7 @@ class DataCreation:
             state="DEVELOPMENT",
             submitted_as_prepared=self.submit_as_prepared,
             for_test=self.for_test,
+            user_metadata=user_metadata
         )
         dataset.write()
         config.tmp_paths.append(dataset.path)

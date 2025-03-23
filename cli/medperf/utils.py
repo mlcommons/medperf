@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import ExecutionError, MedperfException
-
+import base64
 
 def get_file_hash(path: str) -> str:
     """Calculates the sha256 hash for a given file.
@@ -506,3 +506,28 @@ class spawn_and_kill:
         self.proc.wait()
         # Return False to propagate exceptions, if any
         return False
+
+
+def create_init_data(
+    as_address,
+    as_port,
+    as_kbs_port,
+    model_kbs_address,
+    model_kbs_port,
+    as_kbs_cert,
+    model_kbs_cert,
+):
+
+    # NOTE: this should have a reproducable has across platforms
+    with open(config.init_data_template_path) as f:
+        contents = f.read()
+    contents = contents.format(
+        as_address=as_address,
+        as_port=as_port,
+        as_kbs_port=as_kbs_port,
+        model_kbs_address=model_kbs_address,
+        model_kbs_port=model_kbs_port,
+        as_kbs_cert=as_kbs_cert.strip(),
+        model_kbs_cert=model_kbs_cert.strip(),
+    )
+    return base64.b64encode(contents.encode()).decode()

@@ -1,0 +1,19 @@
+[http_server]
+sockets = ["0.0.0.0:{kbs_port}"]
+insecure_http = false
+private_key = "/etc/key.pem"
+certificate = "/etc/cert.pem"
+
+[attestation_token]
+
+[attestation_service]
+type = "coco_as_grpc"
+as_addr = "http://{as_url}:{as_port}"
+
+[admin]
+auth_public_key = "/opt/confidential-containers/kbs/user-keys/public.pub"
+
+[[plugins]]
+name = "resource"
+type = "LocalFs"
+dir_path = "/opt/confidential-containers/kbs/repository"

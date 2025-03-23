@@ -1,0 +1,27 @@
+name: Custom CNN Classification Model
+description: MedPerf Tutorial - Model MLCube.
+authors:
+  - { name: MLCommons Medical Working Group }
+
+platform:
+  accelerator_count: 0
+
+docker:
+  # Image name
+  image: mlcommons/chestxray-tutorial-cnn:0.0.0
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  infer:
+    # Computes predictions on input data
+    parameters:
+      inputs:
+        {
+          data_path: data/,
+          parameters_file: parameters.yaml,
+          weights: additional_files/cnn_weights.pth,
+        }
+      outputs: { output_path: { type: directory, default: predictions } }

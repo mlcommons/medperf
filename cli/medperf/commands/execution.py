@@ -7,6 +7,7 @@ from medperf.utils import generate_tmp_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError
 import yaml
+from medperf.commands.trusted_execution import TrustedExecution
 
 
 class Execution:
@@ -21,6 +22,8 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
+        if model.is_confidential():
+            return TrustedExecution(dataset, model, evaluator).run()
         execution = cls(dataset, model, evaluator, ignore_model_errors)
         execution.prepare()
         with execution.ui.interactive():

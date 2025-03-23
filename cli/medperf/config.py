@@ -51,6 +51,8 @@ config_path = getenv("MEDPERF_CONFIG_PATH", str(config_storage / "config.yaml"))
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
+kbs_storage = str(config_storage / ".kbs_storage")
+kbs_keys_path = str(config_storage / ".kbs_keys")
 
 images_folder = ".images"
 trash_folder = ".trash"
@@ -64,6 +66,7 @@ experiments_logs_folder = "experiments_logs"
 results_folder = "results"
 predictions_folder = "predictions"
 tests_folder = "tests"
+kbss_folder = "kbss"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
@@ -112,6 +115,10 @@ storage = {
         "base": default_base_storage,
         "name": tests_folder,
     },
+    "kbss_folder": {
+        "base": default_base_storage,
+        "name": kbss_folder,
+    },
 }
 
 root_folders = [
@@ -128,6 +135,7 @@ server_folders = [
     "results_folder",
     "predictions_folder",
     "tests_folder",
+    "kbss_folder",
 ]
 
 # MedPerf filenames conventions
@@ -146,6 +154,8 @@ metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"
 dataset_raw_paths_file = "raw.yaml"
 ready_flag_file = ".ready"
+kbs_info_file = "kbs-info.yaml"
+
 
 # MLCube assets conventions
 cube_filename = "mlcube.yaml"
@@ -215,3 +225,14 @@ templates = {
 
 # Temporary paths to cleanup
 tmp_paths = []
+
+
+as_config_template_path = BASE_DIR / "templates" / "as_config.json"
+as_kbs_config_template_path = BASE_DIR / "templates" / "as_kbs_config.toml"
+kbs_default_policy_template_path = BASE_DIR / "templates" / "default_policy.rego"
+kbs_config_template_path = BASE_DIR / "templates" / "kbs_config.toml"
+rvps_config_template_path = BASE_DIR / "templates" / "rvps.json"
+qcnl_template_path = BASE_DIR / "templates" / "sgx_default_qcnl.conf"
+kbs_policy_template_path = BASE_DIR / "templates" / "policy.rego"
+init_data_template_path = BASE_DIR / "templates" / "initdata.toml"
+pod_template_path = BASE_DIR / "templates" / "pod.yaml"

@@ -79,6 +79,12 @@ class Cube(Entity, DeployableSchema):
     def local_id(self):
         return self.name
 
+    def get_image(self):
+        return self.get_config("docker.image")
+
+    def is_confidential(self):
+        return self.user_metadata.get("kbs", None) is not None
+
     @staticmethod
     def remote_prefilter(filters: dict):
         """Applies filtering logic that must be done before retrieving remote entities
@@ -217,6 +223,9 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
     def download_run_files(self):
+        if self.is_confidential():
+            logging.debug("skipping download additional_files and image")
+            return
         try:
             self.download_additional()
         except InvalidEntityError as e:
@@ -246,6 +255,8 @@ class Cube(Entity, DeployableSchema):
             read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
+        if self.is_confidential():
+            return
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
         cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'

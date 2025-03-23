@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     "benchmarkmodel",
     "user",
     "result",
+    "kbs",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",

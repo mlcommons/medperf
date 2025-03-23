@@ -69,6 +69,9 @@ def submit(
         "--submit-as-prepared",
         help="Use this flag if the dataset is already prepared",
     ),
+    kbs: int = typer.Option(
+        None, "--kbs", "-k", help="KBS"
+    ),
 ):
     """Submits a Dataset instance to the backend"""
     ui = config.ui
@@ -83,6 +86,7 @@ def submit(
         location=location,
         approved=approval,
         submit_as_prepared=submit_as_prepared,
+        kbs=kbs
     )
     ui.print("✅ Done!")
 

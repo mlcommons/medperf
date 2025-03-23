@@ -551,3 +551,37 @@ class REST(Comms):
             details = format_errors_dict(res.json())
             raise CommunicationRequestError(f"Could not retrieve user: {details}")
         return res.json()
+
+    def get_kbs(self, kbs_uid: int) -> dict:
+        """Retrieves a specific dataset
+
+        Args:
+            dset_uid (int): Dataset UID
+
+        Returns:
+            dict: Dataset metadata
+        """
+        res = self.__auth_get(f"{self.server_url}/kbss/{kbs_uid}/")
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(
+                f"Could not retrieve the specified kbs from server: {details}"
+            )
+        return res.json()
+
+    def upload_kbs(self, kbs_dict: dict) -> int:
+        """Uploads registration data to the server, under the sha name of the file.
+
+        Args:
+            reg_dict (dict): Dictionary containing registration information.
+
+        Returns:
+            int: id of the created kbs registration.
+        """
+        res = self.__auth_post(f"{self.server_url}/kbss/", json=kbs_dict)
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"Could not upload the kbs: {details}")
+        return res.json()

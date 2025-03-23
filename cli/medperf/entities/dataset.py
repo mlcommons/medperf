@@ -67,6 +67,7 @@ class Dataset(Entity, DeployableSchema):
         self.report_path = os.path.join(self.path, config.report_file)
         self.metadata_path = os.path.join(self.path, config.metadata_folder)
         self.statistics_path = os.path.join(self.path, config.statistics_filename)
+        self.secret_id = f"default/{self.id}/data.json"
 
     @property
     def local_id(self):

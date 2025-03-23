@@ -92,6 +92,9 @@ def submit(
         "--operational",
         help="Submit the MLCube as OPERATIONAL",
     ),
+    kbs: int = typer.Option(
+        None, "--kbs", "-k", help="KBS"
+    ),
 ):
     """Submits a new cube to the platform.\n
     The following assets:\n
@@ -119,6 +122,8 @@ def submit(
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
+    if kbs is not None:
+        mlcube_info["user_metadata"] = {"kbs": kbs}
     SubmitCube.run(mlcube_info)
     config.ui.print("✅ Done!")
 

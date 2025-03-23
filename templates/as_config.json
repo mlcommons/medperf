@@ -1,0 +1,16 @@
+{
+    "work_dir": "/opt/confidential-containers/attestation-service",
+    "policy_engine": "opa",
+    "rvps_config": {
+        "type": "GrpcRemote",
+        "address": "http://{rvps_url}:{rvps_port}"
+    },
+    "attestation_token_broker": {
+        "type": "Ear",
+        "duration_min": 5,
+        "signer": {
+            "key_path": "/etc/as-key.pem",
+            "cert_path": "/etc/as-cert.pem"
+        }
+    }
+}
