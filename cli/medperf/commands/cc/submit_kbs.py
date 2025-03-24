@@ -1,23 +1,28 @@
 import os
 from medperf import config
-from medperf.utils import generate_tmp_path
 from medperf.entities.kbs import KBS
+import shutil
 
 
 class SubmitKbs:
     @classmethod
-    def run(cls, address, port, attestation_service):
-        key_path = generate_tmp_path()
-        crt_path = generate_tmp_path()
-        script = os.path.join(os.path.dirname(__file__), "scripts/generate_cert.sh")
-        os.system(f"bash {script} -a {address} -c {crt_path} -k {key_path}")
-
+    def run(
+        cls,
+        address,
+        port,
+        attestation_service,
+        key_path,
+        crt_path,
+        admin_private_key_path,
+        admin_public_key_path,
+    ):
+        name = address.replace(".", "_") + str(port)
         with open(crt_path) as f:
             cert_txt = f.read()
 
         kbs_dict = config.comms.upload_kbs(
             {
-                "name": address,
+                "name": name,
                 "kbs_type": "kbs",
                 "config": {
                     "address": address,
@@ -30,5 +35,9 @@ class SubmitKbs:
         kbs_obj = KBS(**kbs_dict)
         kbs_obj.write()
 
-        os.rename(key_path, kbs_obj.key_path)
-        os.rename(crt_path, kbs_obj.cert_path)
+        os.makedirs(os.path.dirname(kbs_obj.key_path), exist_ok=True)
+        os.makedirs(os.path.dirname(kbs_obj.cert_path), exist_ok=True)
+        shutil.copyfile(key_path, kbs_obj.key_path)
+        shutil.copyfile(crt_path, kbs_obj.cert_path)
+        shutil.copyfile(admin_private_key_path, kbs_obj.admin_private_key_path)
+        shutil.copyfile(admin_public_key_path, kbs_obj.admin_public_key_path)

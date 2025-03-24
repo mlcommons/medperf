@@ -69,7 +69,7 @@ class DataCreation:
         approved: bool,
         submit_as_prepared: bool,
         for_test: bool,
-        kbs: int
+        kbs: int = None
     ):
         self.ui = config.ui
         self.data_path = str(Path(data_path).resolve())

@@ -1,0 +1,56 @@
+services:
+  kbs:
+    image: ghcr.io/confidential-containers/staged-images/kbs-grpc-as:68e2a8d25dbfa012b422ff464f31d18f3afa6677
+    command: [
+        "/usr/local/bin/kbs",
+        "--config-file",
+        "/etc/kbs-config.toml",
+      ]
+    ports:
+      - "{kbs_port}:{kbs_port}"
+    environment:
+      RUST_LOG: debug
+    volumes:
+      - {kbs_storage}:/opt/confidential-containers/kbs/repository:rw
+      - {admin_public_key_path}:/opt/confidential-containers/kbs/user-keys/public.pub
+      - {kbs_config_path}:/etc/kbs-config.toml
+      - {policy_path}:/opt/confidential-containers/kbs/policy.rego
+      - {cert_path}:/etc/cert.pem
+      - {key_path}:/etc/key.pem
+    depends_on:
+    - as
+
+  as:
+    image: ghcr.io/confidential-containers/staged-images/coco-as-grpc:68e2a8d25dbfa012b422ff464f31d18f3afa6677
+    environment:
+      RUST_LOG: debug
+    ports:
+      - "{as_port}:{as_port}"
+    volumes:
+    - {attestation_service_folder}:/opt/confidential-containers/attestation-service:rw
+    - {as_config_path}:/etc/as-config.json:rw
+    - {qcnl_config_path}:/etc/sgx_default_qcnl.conf:rw
+    - {verification_cert_path}:/etc/as-cert.pem
+    - {verification_key_path}:/etc/as-key.pem
+    command: [
+      "grpc-as",
+      "--socket",
+      "0.0.0.0:{as_port}",
+      "--config-file",
+      "/etc/as-config.json"
+    ]
+    depends_on:
+    - rvps
+
+  rvps:
+    image: ghcr.io/confidential-containers/staged-images/rvps:68e2a8d25dbfa012b422ff464f31d18f3afa6677
+    environment:
+      RUST_LOG: debug
+    volumes:
+      - {reference_values_folder}:/opt/confidential-containers/attestation-service/reference_values:rw
+      - {rvps_config_path}:/etc/rvps.json:rw
+    command: [
+      "rvps",
+      "--address",
+      "0.0.0.0:{rvps_port}"
+    ]

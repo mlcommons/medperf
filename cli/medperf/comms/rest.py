@@ -519,6 +519,15 @@ class REST(Comms):
             raise CommunicationRequestError(f"Could not update dataset: {details}")
         return res.json()
 
+    def update_cube(self, mlcube_id: int, data: dict):
+        url = f"{self.server_url}/mlcubes/{mlcube_id}/"
+        res = self.__auth_put(url, json=data)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"Could not update mlcube: {details}")
+        return res.json()
+
     def get_mlcube_datasets(self, mlcube_id: int) -> dict:
         """Retrieves all datasets that have the specified mlcube as the prep mlcube
 

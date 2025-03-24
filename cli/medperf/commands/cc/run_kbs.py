@@ -9,10 +9,6 @@ class RunKbs:
         port = kbs.config["port"]
         kbs_as: KBS = KBS.get(kbs.config["as"])
 
-        # create admin key
-        script = os.path.join(os.path.dirname(__file__), "scripts/generate_cert.sh")
-        os.system(f"bash {script} -c {kbs.admin_public_key_path} -k {kbs.admin_private_key_path}")
-
         docker_args = [
             "docker",
             "run",

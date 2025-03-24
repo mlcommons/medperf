@@ -66,6 +66,11 @@ def submit(
         "--operational",
         help="Submit the Benchmark as OPERATIONAL",
     ),
+    attestation_service: int = typer.Option(
+        None, "--attestation_service", "-a", help="attestation_service"
+    ),
+    crt_path: str = typer.Option(None, "--crt_path", help="Source image to encrypt and push."),
+    result_upload_url: str = typer.Option(None, "--result_upload_url", help="Source image to encrypt and push."),
 ):
     """Submits a new benchmark to the platform"""
     benchmark_info = {
@@ -79,6 +84,13 @@ def submit(
         "data_evaluator_mlcube": evaluator_mlcube,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
+    if attestation_service is not None:
+        benchmark_info["user_metadata"] = {
+            "as": attestation_service,
+            "cert": open(crt_path).read(),
+            "result_upload_url": result_upload_url,
+        }
+
     SubmitBenchmark.run(
         benchmark_info,
         skip_data_preparation_step=skip_data_preparation_step,

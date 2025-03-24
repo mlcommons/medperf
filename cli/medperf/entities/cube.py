@@ -82,8 +82,14 @@ class Cube(Entity, DeployableSchema):
     def get_image(self):
         return self.get_config("docker.image")
 
+    def get_encrypted_image(self):
+        return self.user_metadata["encrypted_image"]
+
     def is_confidential(self):
         return self.user_metadata.get("kbs", None) is not None
+
+    def should_run_in_tee(self):
+        return self.is_confidential() and get_medperf_user_data()["id"] != self.owner
 
     @staticmethod
     def remote_prefilter(filters: dict):
@@ -119,6 +125,10 @@ class Cube(Entity, DeployableSchema):
         cube.download_config_files()
         return cube
 
+    def update_metadata(self, metadata):
+        user_metadata = {**self.user_metadata, **metadata}
+        config.comms.update_cube(self.id, {"user_metadata": user_metadata})
+
     def download_mlcube(self):
         url = self.git_mlcube_url
         path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
@@ -152,7 +162,8 @@ class Cube(Entity, DeployableSchema):
         else:
             if config.platform == "docker":
                 # For docker, image should be pulled before calculating its hash
-                self._get_image_from_registry()
+                if not self.is_confidential():
+                    self._get_image_from_registry()
                 self._set_image_hash_from_registry()
             elif config.platform == "singularity":
                 # For singularity, we need the hash first before trying to convert
@@ -223,9 +234,6 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
     def download_run_files(self):
-        if self.is_confidential():
-            logging.debug("skipping download additional_files and image")
-            return
         try:
             self.download_additional()
         except InvalidEntityError as e:
@@ -255,8 +263,6 @@ class Cube(Entity, DeployableSchema):
             read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
-        if self.is_confidential():
-            return
         kwargs.update(string_params)
         cmd = f"mlcube --log-level {config.loglevel} run"
         cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'

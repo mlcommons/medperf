@@ -1,15 +1,16 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {pod_name}
+  name: "{pod_name}"
   annotations:
     io.katacontainers.config.runtime.cc_init_data: "{initdata}"
     io.containerd.cri.runtime-handler: kata-remote
 spec:
   runtimeClassName: kata-remote
+  restartPolicy: OnFailure
   containers:
-    - name: {model_container_name}
-      image: {model_container_image}
+    - name: "{model_container_name}"
+      image: "{model_container_image}"
       env:
       - name: DATASET_KBS_CERT
         value: "{kbs_cert}"
@@ -17,15 +18,29 @@ spec:
         value: "https://{kbs_address}:{kbs_port}"
       - name: DATASET_SECRET_ID
         value: "{secret_id}"
+      - name: CONFIDENTIAL_MODE
+        value: "true"
       securityContext:
         privileged: false
         seccompProfile:
           type: RuntimeDefault
 
-    - name: {metrics_container_name}
-      image: {metrics_container_image}
+    - name: "{metrics_container_name}"
+      image: "{metrics_container_image}"
+      env:
+      - name: DATASET_KBS_CERT
+        value: "{kbs_cert}"
+      - name: DATASET_KBS_URL
+        value: "https://{kbs_address}:{kbs_port}"
+      - name: DATASET_SECRET_ID
+        value: "{secret_id}"
+      - name: CONFIDENTIAL_MODE
+        value: "true"
+      - name: BENCHMARK_CERT
+        value: "{benchmark_cert}"
+      - name: RESULT_UPLOAD_URL
+        value: "{result_upload_url}"
       securityContext:
         privileged: false
         seccompProfile:
           type: RuntimeDefault
-EOF

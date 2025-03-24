@@ -184,6 +184,7 @@ class BenchmarkExecution:
                     model=model_cube,
                     evaluator=self.evaluator,
                     ignore_model_errors=self.ignore_model_errors,
+                    benchmark=self.benchmark,
                 )
             except MedperfException as e:
                 self.__handle_experiment_error(model_uid, e)
@@ -199,16 +200,26 @@ class BenchmarkExecution:
 
             partial = execution_summary["partial"]
             results = execution_summary["results"]
-            result = self.__write_result(model_uid, results, partial)
-
-            self.experiments.append(
-                {
-                    "model_uid": model_uid,
-                    "result": result,
-                    "cached": False,
-                    "error": "",
-                }
-            )
+            confidential = execution_summary.pop("confidential", False)
+            if not confidential:
+                result = self.__write_result(model_uid, results, partial)
+                self.experiments.append(
+                    {
+                        "model_uid": model_uid,
+                        "result": result,
+                        "cached": False,
+                        "error": "",
+                    }
+                )
+            else:
+                self.experiments.append(
+                    {
+                        "model_uid": model_uid,
+                        "result": None,
+                        "cached": False,
+                        "error": "Confidential",
+                    }
+                )
         return [experiment["result"] for experiment in self.experiments]
 
     def __handle_experiment_error(self, model_uid, exception):
@@ -251,6 +262,7 @@ class BenchmarkExecution:
         num_skipped = 0
         num_partial_skipped = 0
         num_partial_run = 0
+        num_conf = 0
         for experiment in self.experiments:
             # populate display data
             if experiment["result"]:
@@ -264,13 +276,20 @@ class BenchmarkExecution:
                     ]
                 )
             else:
-                data_lists_for_display.append(
-                    [experiment["model_uid"], "", "", "", experiment["error"]]
-                )
+                if experiment["error"] == "Confidential":
+                    data_lists_for_display.append([experiment["model_uid"], "Confidential", "", "", ""])
+
+                else:
+                    data_lists_for_display.append(
+                        [experiment["model_uid"], "", "", "", experiment["error"]]
+                    )
 
             # statistics
             if experiment["error"]:
-                num_failed += 1
+                if experiment["error"] == "Confidential":
+                    num_conf += 1
+                else:
+                    num_failed += 1
             elif experiment["cached"]:
                 num_skipped += 1
                 if experiment["result"].metadata["partial"]:
@@ -288,6 +307,7 @@ class BenchmarkExecution:
         msg += f"\t{num_failed} failed\n"
         msg += f"\t{num_success_run} ran successfully, "
         msg += f"of which {num_partial_run} have partial results\n"
+        msg += f"\t{num_conf} are running in Confidential Mode\n"
 
         config.ui.print(tab)
         config.ui.print(msg)

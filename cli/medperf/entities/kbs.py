@@ -24,7 +24,7 @@ class KBS(Entity):
 
     @staticmethod
     def get_storage_path():
-        return config.kbs_folder
+        return config.kbss_folder
 
     @staticmethod
     def get_comms_retriever():
@@ -42,6 +42,8 @@ class KBS(Entity):
         """Creates a new result instance"""
         super().__init__(*args, **kwargs)
         self.private_path = os.path.join(config.kbs_keys_path, str(self.id))
+        os.makedirs(self.private_path, exist_ok=True)
+
         self.cert_path = os.path.join(self.path, "kbs.crt")
         self.key_path = os.path.join(self.private_path, "kbs.key")
 
@@ -58,12 +60,18 @@ class KBS(Entity):
         self.qcnl_config_path = os.path.join(self.path, "qcnl.conf")
 
         self.kbs_storage = os.path.join(config.kbs_storage, str(self.id))
+        os.makedirs(self.kbs_storage, exist_ok=True)
+
         self.container_name = f"kbs_{self.id}"
         self.as_container_name = f"as_{self.id}"
         self.rvps_container_name = f"rvps_{self.id}"
 
         self.attestation_service_folder = os.path.join(self.path, "attestation_service")
         self.reference_values_folder = os.path.join(self.path, "reference_values")
+        os.makedirs(self.attestation_service_folder, exist_ok=True)
+        os.makedirs(self.reference_values_folder, exist_ok=True)
+
+        self.compose_path = os.path.join(self.path, "docker-compose.yaml")
 
     @classmethod
     def get(cls, uid, local_only=False):
@@ -72,6 +80,7 @@ class KBS(Entity):
         kbs.write_verification_cert()
         kbs.write_default_policy()
         kbs.write_config()
+        return kbs
 
     @property
     def local_id(self):
@@ -120,7 +129,7 @@ class KBS(Entity):
             contents = f.read()
         contents = contents.format(
             kbs_port=self.config["kbs_port"],
-            as_url=self.config["address"],
+            as_url="as",
             as_port=self.config["port"],
         )
         with open(self.kbs_config_path, "w") as f:
@@ -131,7 +140,7 @@ class KBS(Entity):
         with open(config.as_config_template_path) as f:
             contents = f.read()
         contents = contents.format(
-            rvps_url=self.config["address"],
+            rvps_url="rvps",
             rvps_port=self.config["rvps_port"],
         )
         with open(self.as_config_path, "w") as f:

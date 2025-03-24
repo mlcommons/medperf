@@ -13,7 +13,7 @@ from medperf.commands.trusted_execution import TrustedExecution
 class Execution:
     @classmethod
     def run(
-        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False
+        cls, dataset: Dataset, model: Cube, evaluator: Cube, ignore_model_errors=False, benchmark=None
     ):
         """Benchmark execution flow.
 
@@ -22,8 +22,14 @@ class Execution:
             data_uid (str): Registered Dataset UID
             model_uid (int): UID of model to execute
         """
-        if model.is_confidential():
-            return TrustedExecution(dataset, model, evaluator).run()
+        if model.should_run_in_tee():
+            logging.info("Detected a confidential model. Switching to Confidential Mode.")
+            TrustedExecution.run(dataset, model, evaluator, benchmark)
+            return {
+                "results": {},
+                "partial": False,
+                "confidential": True
+            }
         execution = cls(dataset, model, evaluator, ignore_model_errors)
         execution.prepare()
         with execution.ui.interactive():
