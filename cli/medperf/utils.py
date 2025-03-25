@@ -24,6 +24,7 @@ import medperf.config as config
 from medperf.exceptions import ExecutionError, MedperfException
 import base64
 
+
 def get_file_hash(path: str) -> str:
     """Calculates the sha256 hash for a given file.
 
@@ -516,6 +517,8 @@ def create_init_data(
     model_kbs_port,
     as_kbs_cert,
     model_kbs_cert,
+    metrics_image,
+    model_image,
 ):
 
     # NOTE: this should have a reproducable has across platforms
@@ -529,5 +532,22 @@ def create_init_data(
         model_kbs_port=model_kbs_port,
         as_kbs_cert=as_kbs_cert.strip(),
         model_kbs_cert=model_kbs_cert.strip(),
+        metrics_image=metrics_image,
+        model_image=model_image,
     )
+
+    # for debugging
+    initdata_path = generate_tmp_path()
+    config.tmp_paths.remove(initdata_path)
+    config.ui.print(f"Path to initdata: {initdata_path}")
+    with open(initdata_path, "w") as f:
+        f.write(contents)
     return base64.b64encode(contents.encode()).decode()
+
+
+def get_digest(image):
+    script = os.path.join(os.path.dirname(__file__), "get_hash.sh")
+    digest_file = generate_tmp_path()
+    os.system(f"bash {script} -i {image} -o {digest_file}")
+    with open(digest_file) as f:
+        return f.read().strip()

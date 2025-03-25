@@ -38,7 +38,7 @@ import input
 
 # Default values, returned by OPA when rules cannot be evaluated to true.
 default CopyFileRequest := true
-default CreateContainerRequest := true
+default CreateContainerRequest := false
 default CreateSandboxRequest := true
 default DestroySandboxRequest := true
 default ExecProcessRequest := true
@@ -58,4 +58,18 @@ default UpdateInterfaceRequest := true
 default UpdateRoutesRequest := true
 default WaitProcessRequest := true
 default WriteStreamRequest := true
+
+CreateContainerRequest if {{
+	every storage in input.storages {{
+        some allowed_image in policy_data.allowed_images
+        storage.source == allowed_image
+    }}
+}}
+
+policy_data := {{
+	"allowed_images": [
+		"{metrics_image}",
+		"{model_image}",
+	],
+}}
 '''

@@ -1,5 +1,5 @@
 import os
-from medperf.utils import generate_tmp_uid, generate_tmp_path, remove_path
+from medperf.utils import generate_tmp_uid, generate_tmp_path, remove_path, get_digest
 from medperf.entities.kbs import KBS
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
@@ -18,7 +18,11 @@ class ImageEncryption:
         key_id = f"default/image-kek/{generate_tmp_uid()}"
         script = os.path.join(os.path.dirname(__file__), "scripts/encrypt_image.sh")
         os.system(f"bash {script} -s {source_image} -t {target} -i {key_id} -k {kbs.kbs_storage}")
-        model.update_metadata({"encrypted_image": target})
+
+        # get digest
+        digest = get_digest(target)
+
+        model.update_metadata({"encrypted_image": target, "encrypted_digest": digest})
 
 
 class DataEncryption:

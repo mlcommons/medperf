@@ -14,6 +14,7 @@ def upload_file():
     with open(f"{file.filename}") as f:
         results = yaml.safe_load(f)
     pprint(results)
+    return "success", 200
 
 
 if __name__ == "__main__":

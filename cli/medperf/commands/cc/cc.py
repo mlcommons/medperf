@@ -59,9 +59,9 @@ def submit_kbs(
     config.ui.print("✅ Done!")
 
 
-@app.command("submit_as")
+@app.command("submit_attestation_service")
 @clean_except
-def submit_as(
+def submit_attestation_service(
     address: str = typer.Option(..., "--address", "-a", help="Source image to encrypt and push."),
     port: int = typer.Option(..., "--port", "-p", help="Where to push the encrypted image."),
     kbs_port: int = typer.Option(..., "--kbs_port", "-k", help="Where to push the encrypted image."),

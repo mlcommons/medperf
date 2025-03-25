@@ -10,6 +10,7 @@ from medperf.utils import (
     log_storage,
     remove_path,
     generate_tmp_path,
+    get_digest,
     spawn_and_kill,
 )
 from medperf.entities.interface import Entity
@@ -164,6 +165,9 @@ class Cube(Entity, DeployableSchema):
                 # For docker, image should be pulled before calculating its hash
                 if not self.is_confidential():
                     self._get_image_from_registry()
+                    if "digest" not in self.user_metadata:
+                        digest = get_digest(self.get_image())
+                        self.user_metadata["digest"] = digest
                 self._set_image_hash_from_registry()
             elif config.platform == "singularity":
                 # For singularity, we need the hash first before trying to convert
