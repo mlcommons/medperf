@@ -542,7 +542,7 @@ def create_init_data(
     config.ui.print(f"Path to initdata: {initdata_path}")
     with open(initdata_path, "w") as f:
         f.write(contents)
-    return base64.b64encode(contents.encode()).decode()
+    return base64.b64encode(contents.encode()).decode(), initdata_path
 
 
 def get_digest(image):
@@ -551,3 +551,24 @@ def get_digest(image):
     os.system(f"bash {script} -i {image} -o {digest_file}")
     with open(digest_file) as f:
         return f.read().strip()
+
+
+def create_initdata_util(model, evaluator, model_kbs, attest_service):
+    model_container_image = model.get_encrypted_image()
+    model_container_image = model_container_image + "@" + model.user_metadata["encrypted_digest"]
+
+    metrics_container_image = evaluator.get_image()
+    metrics_container_image = metrics_container_image + "@" + evaluator.user_metadata["digest"]
+
+    initdata, initpath = create_init_data(
+        attest_service.config["address"],
+        attest_service.config["port"],
+        attest_service.config["kbs_port"],
+        model_kbs.config["address"],
+        model_kbs.config["port"],
+        attest_service.config["cert"],
+        model_kbs.config["cert"],
+        metrics_image=metrics_container_image,
+        model_image=model_container_image,
+    )
+    return initdata, initpath

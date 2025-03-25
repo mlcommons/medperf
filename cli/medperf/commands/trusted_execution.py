@@ -27,7 +27,7 @@ class TrustedExecution:
         metrics_container_image = evaluator.get_image()
         metrics_container_image = metrics_container_image + "@" + evaluator.user_metadata["digest"]
 
-        initdata = create_init_data(
+        initdata, _ = create_init_data(
             attest_service.config["address"],
             attest_service.config["port"],
             attest_service.config["kbs_port"],
@@ -36,7 +36,7 @@ class TrustedExecution:
             attest_service.config["cert"],
             model_kbs.config["cert"],
             metrics_image=metrics_container_image,
-            model_image=model_container_image
+            model_image=model_container_image,
         )
 
         random_uid = generate_tmp_uid()[:8]

@@ -114,7 +114,8 @@ def run_attestation_service(
 def update_kbs_policy(
     dataset_id: int = typer.Option(None, "--dataset_id", "-d", help="Where to push the encrypted image."),
     model_id: int = typer.Option(None, "--model_id", "-m", help="Where to push the encrypted image."),
+    benchmark_id: int = typer.Option(None, "--benchmark_id", "-b", help="Where to push the encrypted image."),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    UpdatePolicy.run(dataset_id, model_id)
+    UpdatePolicy.run(dataset_id, model_id, benchmark_id)
     config.ui.print("✅ Done!")
