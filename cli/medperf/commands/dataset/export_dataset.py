@@ -72,4 +72,5 @@ class ExportDataset:
             raise MedperfException("Some folders to be archived have same basenames.")
 
         # create the archive
+        os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
         tar(self.output_path, self.folders_paths)

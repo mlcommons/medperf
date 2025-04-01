@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from medperf.entities.dataset import Dataset
 from medperf.utils import generate_tmp_path, untar, move_folder, remove_path
 import medperf.config as config
@@ -28,7 +29,7 @@ class ImportDataset:
         if not os.path.isfile(self.input_path):
             raise InvalidArgumentError(f"{self.input_path} is not a file.")
 
-        # raw_data_path should be an existing folder if the imported dataset is in dev
+        # raw_data_path should be provided if the imported dataset is in dev
         if self.dataset.state == "DEVELOPMENT" and (
             self.raw_data_path is None or os.path.exists(self.raw_data_path)
         ):
@@ -137,6 +138,7 @@ class ImportDataset:
 
         # For development datasets, move raw data as well
         os.makedirs(self.raw_data_path, exist_ok=True)
+        self.raw_data_path = str(Path(self.raw_data_path).resolve())
         new_raw_data_path = os.path.join(
             self.raw_data_path, os.path.basename(self.archive_raw_data_path)
         )
@@ -144,10 +146,11 @@ class ImportDataset:
             self.raw_data_path, os.path.basename(self.archive_raw_labels_path)
         )
 
-        move_folder(self.archive_raw_data_path, new_raw_data_path)
-        if not os.path.samefile(
+        same_raw_data_and_labels = os.path.samefile(
             self.archive_raw_data_path, self.archive_raw_labels_path
-        ):
+        )
+        move_folder(self.archive_raw_data_path, new_raw_data_path)
+        if not same_raw_data_and_labels:
             move_folder(self.archive_raw_labels_path, new_raw_labels_path)
 
         self.dataset.set_raw_paths(new_raw_data_path, new_raw_labels_path)
