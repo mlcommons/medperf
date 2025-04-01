@@ -218,8 +218,5 @@ templates = {
 # Temporary paths to cleanup
 tmp_paths = []
 
-# Backup(Import/Export) config
-backup_config_filename = "paths.yaml"
-
-# Name of the folder that will contain the dataset backup
-dataset_backup_foldername = "medperf_exported_dataset_"
+# Data Import/Export config
+archive_config_filename = "config.yaml"

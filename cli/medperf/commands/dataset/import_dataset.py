@@ -1,12 +1,6 @@
 import os
 from medperf.entities.dataset import Dataset
-from medperf.utils import (
-    untar,
-    move_folder,
-    copy_file,
-    remove_path,
-    create_folders,
-)
+from medperf.utils import generate_tmp_path, untar, move_folder, remove_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
 import yaml
@@ -14,139 +8,146 @@ import yaml
 
 class ImportDataset:
     @classmethod
-    def run(cls, dataset_id: str, input_path: str, raw_data_path):
+    def run(cls, dataset_id: str, input_path: str, raw_data_path: str):
         import_dataset = cls(dataset_id, input_path, raw_data_path)
         import_dataset.validate_input()
         import_dataset.untar_files()
         import_dataset.validate()
-        import_dataset.prepare()
-        import_dataset.prepare_tarfiles()
         import_dataset.process_tarfiles()
 
-    def __init__(self, dataset_id: str, input_path: str, raw_data_path):
+    def __init__(self, dataset_id: str, input_path: str, raw_data_path: str):
         self.dataset_id = dataset_id
         self.input_path = input_path
         self.dataset = Dataset.get(self.dataset_id)
-        self.dataset_storage = self.dataset.get_storage_path()
-        self.dataset_path = os.path.join(self.dataset_storage, self.dataset_id)
         self.raw_data_path = raw_data_path
 
-    def prepare(self):
-        if self.dataset.state == "DEVELOPMENT":
-            self.raw_data_path = os.path.join(
-                self.raw_data_path, config.dataset_backup_foldername + self.dataset_id
-            )
-            create_folders(self.raw_data_path)
-
     def validate_input(self):
+        # The input archive file should exist and be a file
         if not os.path.exists(self.input_path):
             raise InvalidArgumentError(f"File {self.input_path} doesn't exist.")
         if not os.path.isfile(self.input_path):
             raise InvalidArgumentError(f"{self.input_path} is not a file.")
-        if self.dataset.state == "DEVELOPMENT" and (
-            self.raw_data_path is None
-            or not os.path.exists(self.raw_data_path)
-            or os.path.isfile(self.raw_data_path)
-        ):
-            raise InvalidArgumentError(f"Folder {self.raw_data_path} doesn't exist.")
 
-    def _validate_dataset(self):
-        # Helper function to check if the dataset's files already exist
-        dataset_folders = os.listdir(self.dataset_path)
-        for folder in dataset_folders:
-            if folder in [
-                os.path.basename(self.dataset.data_path),
-                os.path.basename(self.dataset.labels_path),
-            ] and (
-                os.listdir(self.dataset.data_path)
-                or os.listdir(self.dataset.labels_path)
-            ):
-                raise ExecutionError(f"Dataset '{self.dataset_id}' already exists.")
+        # raw_data_path should be an existing folder if the imported dataset is in dev
+        if self.dataset.state == "DEVELOPMENT" and (
+            self.raw_data_path is None or os.path.exists(self.raw_data_path)
+        ):
+            raise InvalidArgumentError(
+                "Output raw data path must be specified and shouldn't exist."
+            )
+
+    def untar_files(self):
+        extracted_path = generate_tmp_path()
+        os.makedirs(extracted_path, exist_ok=True)
+        self.tarfiles = untar(self.input_path, remove=False, extract_to=extracted_path)
+
+    def _validate_archive_config(self, archive_config):
+        archive_dataset_id = archive_config.get("dataset")
+        archive_server = archive_config.get("server")
+        archive_raw_data = archive_config.get("raw_data")
+        archive_raw_labels = archive_config.get("raw_labels")
+
+        if archive_dataset_id is None:
+            raise InvalidArgumentError("Invalid archive config: dataset key not found")
+
+        if archive_server is None:
+            raise InvalidArgumentError("Invalid archive config: server key not found")
+
+        if self.dataset.state == "DEVELOPMENT" and (
+            archive_raw_data is None or archive_raw_labels is None
+        ):
+            raise InvalidArgumentError(
+                "Invalid archive config: raw data keys not found"
+            )
+
+        # Check if the dataset's ID being imported matches the one in the archive
+        if str(self.dataset_id) != str(archive_dataset_id):
+            msg = "The archive dataset is '{}' while specified dataset is '{}'"
+            msg = msg.format(archive_dataset_id, self.dataset_id)
+            raise InvalidArgumentError(msg)
+
+        # Check if the current profile's server matches the one in the archive
+        if archive_server != config.server:
+            raise InvalidArgumentError("Dataset export was done for a different server")
 
     def validate(self):
-        # Dataset backup will be invalid if:
-        # - yaml file that defines backup folders, doesn't exist in the tar file.
+        # Dataset archive will be invalid if:
+        # - yaml file that defines archive folders, doesn't exist in the tar file.
         # - The user is trying to import a local dataset into the server (and vice versa)
         # - The dataset already exists (checking labels and data paths if already exists)
         # It'll also compare the imported dataset and the original dataset (IDs)
-
-        # Checking main backup folder existance
-        if config.dataset_backup_foldername not in self.tarfiles:
-            raise ExecutionError("Dataset backup is invalid")
-
-        backup_config = os.path.join(self.tarfiles, config.backup_config_filename)
-        tarfiles_names = os.listdir(self.tarfiles)
+        root_archive_folder = self.tarfiles
 
         # Checking yaml file existance
-        if not os.path.exists(backup_config):
-            raise ExecutionError("Dataset backup is invalid, config file doesn't exist")
+        archive_config = os.path.join(
+            root_archive_folder, config.archive_config_filename
+        )
+        if not os.path.exists(archive_config):
+            raise ExecutionError(
+                "Dataset archive is invalid, config file doesn't exist"
+            )
+        with open(archive_config) as f:
+            archive_config = yaml.safe_load(f)
 
-        self.tarfiles = [os.path.join(self.tarfiles, file) for file in tarfiles_names]
-        with open(backup_config) as f:
-            self.paths = yaml.safe_load(f)
-        # Checks if yaml file paths are valid
-        if self.paths["dataset"] not in tarfiles_names:
-            raise ExecutionError("Dataset backup is invalid, dataset folders not found")
+        # validate config
+        self._validate_archive_config(archive_config)
 
-        # Checks if yaml file paths are valid for development datasets
-        if self.dataset.state == "DEVELOPMENT" and (
-            self.paths["data"] not in tarfiles_names
-            or self.paths["labels"] not in tarfiles_names
+        # validate files/folders existence
+        archive_prepared_dataset_path = os.path.join(
+            root_archive_folder, str(self.dataset_id)
+        )
+        if not os.path.exists(archive_prepared_dataset_path):
+            raise ExecutionError("No prepared dataset in archive")
+
+        if os.path.exists(self.dataset.data_path) or os.path.exists(
+            self.dataset.labels_path
         ):
-            raise ExecutionError("Dataset backup is invalid, config file is invalid")
+            raise ExecutionError(f"Dataset '{self.dataset_id}' already exists locally.")
 
-        self._validate_dataset()
+        archive_raw_data_path = None
+        archive_raw_labels_path = None
+        if self.dataset.state == "DEVELOPMENT":
+            archive_raw_data_path = os.path.join(
+                root_archive_folder, archive_config["raw_data"]
+            )
+            archive_raw_labels_path = os.path.join(
+                root_archive_folder, archive_config["raw_labels"]
+            )
+            if not os.path.exists(archive_raw_data_path) or not os.path.exists(
+                archive_raw_labels_path
+            ):
+                raise ExecutionError("No raw data in archive")
 
-        # Check if the dataset's ID being imported matches the one in the backup
-        if self.dataset_id != self.paths["dataset"]:
-            msg = "Cannot import dataset '{}' data to dataset '{}'"
-            msg = msg.format(self.paths["dataset"], self.dataset_id)
-            raise InvalidArgumentError(msg)
+        # TODO: Add more checks (later) comparing dataset generated_uid and so
 
-        # Check if the current profile's server matches the one in the backup
-        if self.paths["server"] != config.server:
-            if self.paths["server"] == "localhost_8000":
-                raise ExecutionError(
-                    "Cannot import local dataset backup to remote server!"
-                )
-            raise ExecutionError("Cannot remote dataset backup to local server!")
-
-        # TODO: Add more checks (later) compraing dataset generated_uid and so
-
-    def prepare_tarfiles(self):
-        for file in self.tarfiles:
-            if ".yaml" in os.path.basename(file):
-                self.yaml_file = file
-            elif os.path.basename(file) == self.dataset_id:
-                self.dataset_folder = file
-                self.tarfiles.remove(file)
+        self.archive_prepared_dataset_path = archive_prepared_dataset_path
+        self.archive_raw_data_path = archive_raw_data_path
+        self.archive_raw_labels_path = archive_raw_labels_path
 
     def process_tarfiles(self):
         # Moves extarcted folders from medperf tmp path into the right destinations.
         # Moves raw data paths only if the dataset is in development.
 
-        remove_path(self.dataset_path)
-        remove_path(self.yaml_file)
-
-        move_folder(self.dataset_folder, self.dataset_storage)
+        remove_path(self.dataset.path)
+        move_folder(self.archive_prepared_dataset_path, self.dataset.path)
         self.dataset.set_raw_paths("", "")
-        if self.dataset.state == "DEVELOPMENT":
-            for folder in self.tarfiles:
-                if os.path.basename(folder) == self.paths["data"]:
-                    move_folder(folder, self.raw_data_path)
-                elif os.path.basename(folder) == self.paths["labels"]:
-                    move_folder(folder, self.raw_data_path)
-            raw_data_path = os.path.join(self.raw_data_path, self.paths["data"])
-            raw_labels_path = os.path.join(self.raw_data_path, self.paths["labels"])
-            self.dataset.set_raw_paths(raw_data_path, raw_labels_path)
 
-    def untar_files(self):
-        input_filename = os.path.basename(self.input_path)
-        tmp_input_path = os.path.join(config.tmp_folder, input_filename)
-        copy_file(self.input_path, tmp_input_path)
-        config.tmp_paths.append(tmp_input_path)
-        self.tarfiles = untar(tmp_input_path, remove=False)
-        self.tarfiles = os.path.join(
-            self.tarfiles, config.dataset_backup_foldername + self.dataset_id
+        if self.dataset.state == "OPERATION":
+            return
+
+        # For development datasets, move raw data as well
+        os.makedirs(self.raw_data_path, exist_ok=True)
+        new_raw_data_path = os.path.join(
+            self.raw_data_path, os.path.basename(self.archive_raw_data_path)
         )
-        config.tmp_paths.append(self.tarfiles)
+        new_raw_labels_path = os.path.join(
+            self.raw_data_path, os.path.basename(self.archive_raw_labels_path)
+        )
+
+        move_folder(self.archive_raw_data_path, new_raw_data_path)
+        if not os.path.samefile(
+            self.archive_raw_data_path, self.archive_raw_labels_path
+        ):
+            move_folder(self.archive_raw_labels_path, new_raw_labels_path)
+
+        self.dataset.set_raw_paths(new_raw_data_path, new_raw_labels_path)

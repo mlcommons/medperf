@@ -155,12 +155,12 @@ def generate_tmp_path() -> str:
     return tmp_path
 
 
-def tar(filepath: str, folders_paths: List[str], newfolder: str = "") -> None:
+def tar(filepath: str, folders_paths: List[str], folder_prefix: str = None) -> None:
     """Tars the tar.gz file
     Args:
         filepath (str): Path where the tar.gz file will be saved.
         folder_path (str): Path of the data should be compressed.
-        newfolder (str): new folder name that will contain the
+        folder_prefix (str): new folder name that will contain the
         compressed files in the tar file. (Default="")
     """
     if os.path.exists(filepath):
@@ -169,8 +169,8 @@ def tar(filepath: str, folders_paths: List[str], newfolder: str = "") -> None:
     logging.info(f"Compressing tar.gz at {filepath}")
     tar_arc = tarfile.open(filepath, "w:gz")
     for folder in folders_paths:
-        if newfolder:
-            arcname = os.path.join(newfolder, os.path.basename(folder))
+        if folder_prefix:
+            arcname = os.path.join(folder_prefix, os.path.basename(folder))
         else:
             arcname = os.path.basename(folder)
         tar_arc.add(folder, arcname=arcname)
@@ -178,18 +178,19 @@ def tar(filepath: str, folders_paths: List[str], newfolder: str = "") -> None:
     tar_arc.close()
 
 
-def untar(filepath: str, remove: bool = True) -> str:
+def untar(filepath: str, remove: bool = True, extract_to: str = None) -> str:
     """Untars and optionally removes the tar.gz file
 
     Args:
         filepath (str): Path where the tar.gz file can be found.
-        remove (bool): Wether to delete the tar.gz file. Defaults to True.
+        remove (bool): Whether to delete the tar.gz file. Defaults to True.
+        extract_to (str): Where to extract the tar.gz file. Defaults to parent directory
 
     Returns:
         str: location where the untared files can be found.
     """
     logging.info(f"Uncompressing tar.gz at {filepath}")
-    addpath = str(Path(filepath).parent)
+    addpath = extract_to or str(Path(filepath).parent)
     try:
         tar = tarfile.open(filepath)
         tar.extractall(addpath)
@@ -217,30 +218,6 @@ def move_folder(src: str, dest: str) -> None:
     """
     shutil.move(src, dest)
     logging.info(f"Folder moved: {src} to {dest}")
-
-
-def copy_file(src: str, dest: str) -> None:
-    """Copy file from {src} to {dest}
-
-    Args:
-        src (str): Path of the source file to be copies
-        dest (src): Path of the destination that the file will be copied to
-    """
-    shutil.copyfile(src, dest)
-    logging.info(f"File copied: {src} to {dest}")
-
-
-def create_folders(path: str) -> None:
-    """Creates folder recursively at {path}
-
-    Args:
-        path (str): path to create the new folder(s)
-    """
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        raise ExecutionError(f"Cannot create folder(s) at {path}, " + e.strerror)
-    logging.info(f"Folder(s) created at: {path}")
 
 
 def approval_prompt(msg: str) -> bool:

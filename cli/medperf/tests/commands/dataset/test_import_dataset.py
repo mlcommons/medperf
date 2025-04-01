@@ -5,7 +5,7 @@ import pytest
 
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.commands.dataset.import_dataset import ImportDataset
-
+import yaml
 
 PATCH_IMPORT = "medperf.commands.dataset.import_dataset.{}"
 
@@ -85,143 +85,170 @@ def test_import_dataset_with_non_tar_file(import_dataset, fs):
         import_dataset.untar_files()
 
 
-def test_import_extracts_files_show_folder(mocker, import_dataset, fs):
+def test_import_fails_if_archive_config_does_not_exist(import_dataset):
 
     # Arrange
-    untar_files_spy = mocker.patch(PATCH_IMPORT.format("untar"), return_value="")
-    import_dataset.input_path = "/testfile"
-    fs.create_file(import_dataset.input_path)
-    copy_tar_file_spy = mocker.patch(PATCH_IMPORT.format("copy_file"))
-
-    # Act
-    import_dataset.untar_files()
-
-    # Assert
-    assert config.dataset_backup_foldername in import_dataset.tarfiles
-    copy_tar_file_spy.assert_called_once()
-    untar_files_spy.assert_called_once()
-
-
-def test_import_fails_if_yaml_file_does_not_exist(import_dataset):
-
-    # Arrange
-    import_dataset.tarfiles = config.dataset_backup_foldername
+    import_dataset.tarfiles = "/some_empty_folder"
     os.makedirs(import_dataset.tarfiles)
 
     # Act & Assert
     with pytest.raises(
-        ExecutionError, match="Dataset backup is invalid, config file doesn't exist"
+        ExecutionError, match="Dataset archive is invalid, config file doesn't exist"
     ):
         import_dataset.validate()
 
 
-def test_import_fails_if_dataset_folder_not_found(mocker, import_dataset, fs):
+def test_import_fails_if_archive_config_has_no_dataset_key(mocker, fs, import_dataset):
 
     # Arrange
-    import_dataset.tarfiles = config.dataset_backup_foldername
-    os.makedirs(os.path.join(import_dataset.tarfiles, "test"))
-    fs.create_file(os.path.join(import_dataset.tarfiles, config.backup_config_filename))
-    mocker.patch("yaml.safe_load", return_value={"dataset": "not_test"})
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs(import_dataset.tarfiles)
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump({})
+    fs.create_file(config_file, contents=contents)
 
     # Act & Assert
     with pytest.raises(
-        ExecutionError, match="Dataset backup is invalid, dataset folders not found"
+        InvalidArgumentError, match="Invalid archive config: dataset key not found"
     ):
         import_dataset.validate()
 
 
-def test_import_fails_if_development_dataset_raw_folders_does_not_exist(
-    mocker, import_dataset, fs
-):
+def test_import_fails_if_archive_config_has_no_server_key(mocker, fs, import_dataset):
 
     # Arrange
-    import_dataset.tarfiles = config.dataset_backup_foldername
-    os.makedirs(os.path.join(import_dataset.tarfiles, "test"))
-    os.makedirs(os.path.join(import_dataset.tarfiles, "data"))
-    os.makedirs(os.path.join(import_dataset.tarfiles, "labels"))
-    fs.create_file(os.path.join(import_dataset.tarfiles, config.backup_config_filename))
-    mocker.patch(
-        "yaml.safe_load", return_value={"dataset": "test", "data": "", "labels": ""}
-    )
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs(import_dataset.tarfiles)
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump({"dataset": 1})
+    fs.create_file(config_file, contents=contents)
 
     # Act & Assert
     with pytest.raises(
-        ExecutionError, match="Dataset backup is invalid, config file is invalid"
+        InvalidArgumentError, match="Invalid archive config: server key not found"
     ):
         import_dataset.validate()
 
 
-def test_import_fails_if_dataset_already_exist(mocker, import_dataset, fs):
-
-    # Arrange
-    import_dataset.dataset_path = "/test"
-    import_dataset.dataset.data_path = "/test/data"
-    os.makedirs(import_dataset.dataset.data_path)
-    fs.create_file(
-        os.path.join(import_dataset.dataset.data_path, "testfile")
-    )  # Create a fake file to stimulate that dataset folders contains data
-
-    # Act & Assert
-    with pytest.raises(ExecutionError, match=r"Dataset '.*' already exists."):
-        import_dataset._validate_dataset()
-
-
-def test_import_fails_if_imported_dataset_id_does_not_match_the_id_in_backup(
-    mocker, import_dataset, fs
+def test_import_fails_if_archive_config_has_no_raw_data_keys(
+    mocker, fs, import_dataset
 ):
 
     # Arrange
-    import_dataset.tarfiles = config.dataset_backup_foldername
-    os.makedirs(os.path.join(import_dataset.tarfiles, "test"))
-    os.makedirs(os.path.join(import_dataset.tarfiles, "data"))
-    os.makedirs(os.path.join(import_dataset.tarfiles, "labels"))
-    fs.create_file(os.path.join(import_dataset.tarfiles, config.backup_config_filename))
-    mocker.patch(
-        "yaml.safe_load",
-        return_value={"dataset": "test", "data": "data", "labels": "labels"},
+    import_dataset.dataset.state = "DEVELOPMENT"
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs(import_dataset.tarfiles)
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump({"dataset": 1, "server": "some_server"})
+    fs.create_file(config_file, contents=contents)
+
+    # Act & Assert
+    with pytest.raises(
+        InvalidArgumentError, match="Invalid archive config: raw data keys not found"
+    ):
+        import_dataset.validate()
+
+
+def test_import_fails_if_archive_config_has_incorrect_data_id(
+    mocker, fs, import_dataset
+):
+
+    # Arrange
+    import_dataset.dataset.state = "DEVELOPMENT"
+    import_dataset.dataset_id = 2
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs(import_dataset.tarfiles)
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump(
+        {
+            "dataset": 1,
+            "server": "some_server",
+            "raw_data": "rawdata",
+            "raw_labels": "rawlabels",
+        }
     )
-    import_dataset.dataset_id = "test1"
-    import_dataset.dataset_path = "/test"
-    import_dataset.dataset.data_path = "/test/data"
-    import_dataset.dataset.labels_path = "/test/labels"
+    fs.create_file(config_file, contents=contents)
+
+    # Act & Assert
+    with pytest.raises(
+        InvalidArgumentError,
+        match="The archive dataset is '1' while specified dataset is '2'",
+    ):
+        import_dataset.validate()
+
+
+def test_import_fails_if_archive_config_has_incorrect_server(
+    mocker, fs, import_dataset
+):
+
+    # Arrange
+    import_dataset.dataset.state = "OPERATION"
+    import_dataset.dataset_id = 1
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs(import_dataset.tarfiles)
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump({"dataset": 1, "server": "some_server_not_like_config.server"})
+    fs.create_file(config_file, contents=contents)
+
+    # Act & Assert
+    with pytest.raises(
+        InvalidArgumentError, match="Dataset export was done for a different server"
+    ):
+        import_dataset.validate()
+
+
+def test_import_fails_if_prepared_data_not_found_in_archive(mocker, fs, import_dataset):
+
+    # Arrange
+    import_dataset.dataset.state = "OPERATION"
+    import_dataset.dataset_id = 1
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs(import_dataset.tarfiles)
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump({"dataset": 1, "server": config.server})
+    fs.create_file(config_file, contents=contents)
+
+    # Act & Assert
+    with pytest.raises(ExecutionError, match="No prepared dataset in archive"):
+        import_dataset.validate()
+
+
+def test_import_fails_if_data_already_exists(mocker, fs, import_dataset):
+
+    # Arrange
+    import_dataset.dataset.state = "OPERATION"
+    import_dataset.dataset_id = 1
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs("/some_empty_folder/1")
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump({"dataset": 1, "server": config.server})
+    fs.create_file(config_file, contents=contents)
     os.makedirs(import_dataset.dataset.data_path)
     os.makedirs(import_dataset.dataset.labels_path)
+
     # Act & Assert
-    with pytest.raises(
-        InvalidArgumentError, match="Cannot import dataset '.*' data to dataset '.*'"
-    ):
+    with pytest.raises(ExecutionError, match="Dataset '1' already exists locally."):
         import_dataset.validate()
 
 
-def test_import_fails_if_imported_dataset_server_does_not_match_profile_server(
-    mocker, import_dataset, fs
-):
+def test_import_fails_if_raw_data_not_found_in_archive(mocker, fs, import_dataset):
 
     # Arrange
-    import_dataset.tarfiles = config.dataset_backup_foldername
-    os.makedirs(os.path.join(import_dataset.tarfiles, "test"))
-    os.makedirs(os.path.join(import_dataset.tarfiles, "data"))
-    os.makedirs(os.path.join(import_dataset.tarfiles, "labels"))
-    fs.create_file(os.path.join(import_dataset.tarfiles, config.backup_config_filename))
-    mocker.patch(
-        "yaml.safe_load",
-        return_value={
-            "dataset": "test",
-            "data": "data",
-            "labels": "labels",
-            "server": "localhost_8000",
-        },
+    import_dataset.dataset.state = "DEVELOPMENT"
+    import_dataset.dataset_id = 1
+    import_dataset.tarfiles = "/some_empty_folder"
+    os.makedirs("/some_empty_folder/1")
+    config_file = os.path.join(import_dataset.tarfiles, config.archive_config_filename)
+    contents = yaml.dump(
+        {
+            "dataset": 1,
+            "server": config.server,
+            "raw_data": "rawdata",
+            "raw_labels": "rawlabels",
+        }
     )
-    import_dataset.dataset_id = "test"
-    import_dataset.dataset_path = "/test"
-    import_dataset.dataset.data_path = "/test/data"
-    import_dataset.dataset.labels_path = "/test/labels"
-    os.makedirs(import_dataset.dataset.data_path)
-    os.makedirs(import_dataset.dataset.labels_path)
-    config.server = "api_medperf_org"
+    fs.create_file(config_file, contents=contents)
 
     # Act & Assert
-    with pytest.raises(
-        ExecutionError, match="Cannot import .+ dataset backup to .+ server!"
-    ):
+    with pytest.raises(ExecutionError, match="No raw data in archive"):
         import_dataset.validate()

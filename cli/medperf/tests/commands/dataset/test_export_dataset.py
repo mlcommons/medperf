@@ -36,20 +36,6 @@ def test_export_fail_if_development_dataset_raw_paths_does_not_exist(
         export_dataset.prepare()
 
 
-def test_export_fail_if_development_dataset_raw_paths_are_empty(mocker, export_dataset):
-
-    # Arrange
-    mocker.patch(
-        PATCH_EXPORT.format("Dataset.get_raw_paths"), return_value=["/test", "/test1"]
-    )
-    os.makedirs("/test")
-    os.makedirs("/test1")
-
-    # Act & Assert
-    with pytest.raises(ExecutionError):
-        export_dataset.prepare()
-
-
 def test_export_if_development_dataset_length_of_yaml_paths_keys_equal_4(
     mocker, export_dataset, fs
 ):
@@ -67,7 +53,7 @@ def test_export_if_development_dataset_length_of_yaml_paths_keys_equal_4(
     export_dataset.prepare()
 
     # Assert
-    assert len(export_dataset.paths.keys()) == 4
+    assert len(export_dataset.archive_config.keys()) == 4
 
 
 def test_export_if_operation_dataset_length_of_yaml_paths_keys_equal_2(export_dataset):
@@ -79,7 +65,60 @@ def test_export_if_operation_dataset_length_of_yaml_paths_keys_equal_2(export_da
     export_dataset.prepare()
 
     # Assert
-    assert len(export_dataset.paths.keys()) == 2
+    assert len(export_dataset.archive_config.keys()) == 2
+
+
+def test_export_if_operation_dataset_number_of_folders_to_archive(export_dataset):
+
+    # Arrange
+    export_dataset.dataset.state = "OPERATION"
+
+    # Act
+    export_dataset.prepare()
+
+    # Assert
+    assert len(export_dataset.folders_paths) == 2
+
+
+def test_export_if_development_dataset_number_of_folders_to_archive(
+    mocker, fs, export_dataset
+):
+
+    # Arrange
+    mocker.patch(
+        PATCH_EXPORT.format("Dataset.get_raw_paths"), return_value=["/test", "/test1"]
+    )
+    os.makedirs("/test")
+    os.makedirs("/test1")
+    fs.create_file("/test/testfile")
+    fs.create_file("/test1/testfile")
+
+    export_dataset.dataset.state = "DEVELOPMENT"
+
+    # Act
+    export_dataset.prepare()
+
+    # Assert
+    assert len(export_dataset.folders_paths) == 4
+
+
+def test_export_if_development_dataset_with_same_raw_paths_number_of_folders_to_archive(
+    mocker, fs, export_dataset
+):
+
+    # Arrange
+    mocker.patch(
+        PATCH_EXPORT.format("Dataset.get_raw_paths"), return_value=["/test", "/test"]
+    )
+    os.makedirs("/test")
+    fs.create_file("/test/testfile")
+    export_dataset.dataset.state = "DEVELOPMENT"
+
+    # Act
+    export_dataset.prepare()
+
+    # Assert
+    assert len(export_dataset.folders_paths) == 3
 
 
 def test_export_if_tar_gz_file_is_created_at_output_path(export_dataset):
