@@ -1,7 +1,7 @@
 <!-- ./cli/medperf/web-ui/templates/benchmark/benchmark_detail.html -->
 {% extends "detail_base.html" %}
 {% import 'macros/association_card_macros.html' as association_card_macros %}
-{% import 'macros/mlcube_macros.html' as mlcube_macros %}
+{% import 'macros/container_macros.html' as container_macros %}
 
 {% block title %}Benchmark Details{% endblock %}
 
@@ -54,7 +54,7 @@
                 </p>
                 {% endif %}
                 <p class="card-text">
-                    <strong>Demo Dataset Tarball:</strong> 
+                    <strong>Referebce Dataset Tarball:</strong> 
                     <a href="{{ entity.demo_dataset_tarball_url }}" class="text-primary" target="_blank">{{ entity.demo_dataset_tarball_url }}</a>
                 </p>
                 <p class="card-text text-muted small">{{ entity.demo_dataset_tarball_hash }}</p>
@@ -65,15 +65,15 @@
                 <div class="w-50 d-flex flex-column">
                     <p class="card-text">
                         <strong>Data Preparation Container:</strong> 
-                        {{ mlcube_macros.mlcube_link(data_preparation_mlcube) }}
+                        {{ container_macros.container_link(data_preparation_container) }}
                     </p>
                     <p class="card-text">
                         <strong>Reference Model Container:</strong> 
-                        {{ mlcube_macros.mlcube_link(reference_model_mlcube) }}
+                        {{ container_macros.container_link(reference_model_container) }}
                     </p>
                     <p class="card-text">
                         <strong>Metrics Container:</strong> 
-                        {{ mlcube_macros.mlcube_link(metrics_mlcube) }}
+                        {{ container_macros.container_link(metrics_container) }}
                     </p>
                     <p class="card-text">
                         <strong>Owner:</strong> 
@@ -107,7 +107,7 @@
     <div class="associations-column">
         <h2 class="my-4">Models Associations</h2>
         {% for assoc in models_associations %}
-        {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "mlcubes") }}
+        {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "containers") }}
         {% endfor %}
     </div>
 </div>
@@ -129,7 +129,7 @@
                     id="approve-reject"
                     type="button"
                     class="btn btn-success"
-                    onclick="mlcubesApproveReject(this)"
+                    onclick="containersApproveReject(this)"
                     data-bs-dismiss="modal"
                 >Confirm</button>
             </div>

@@ -13,6 +13,7 @@ class NotAuthenticatedException(Exception):
     def __init__(self, redirect_url: str):
         self.redirect_url = redirect_url
 
+
 def wrap_openapi(app: FastAPI) -> Callable:
     def _custom_openapi():
         if app.openapi_schema:
@@ -24,7 +25,9 @@ def wrap_openapi(app: FastAPI) -> Callable:
             routes=app.routes,
         )
         api_key_scheme = {"type": "apiKey", "name": API_KEY_NAME, "in": "header"}
-        openapi_schema["components"]["securitySchemes"] = {"APIKeyHeader": api_key_scheme}
+        openapi_schema["components"]["securitySchemes"] = {
+            "APIKeyHeader": api_key_scheme
+        }
         for path in openapi_schema["paths"]:
             for method in openapi_schema["paths"][path]:
                 if "security" in openapi_schema["paths"][path][method]:

@@ -1,6 +1,6 @@
 <!-- ./cli/medperf/web-ui/templates/dataset/dataset_detail.html -->
 {% extends "detail_base.html" %}
-{% import 'macros/mlcube_macros.html' as mlcube_macros %}
+{% import 'macros/container_macros.html' as container_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details{% endblock title %}
@@ -84,8 +84,8 @@
                     {{ dataset.generated_uid }}
                 </p>
                 <p class="card-text">
-                    <strong>Data Preparation MLCube:</strong> 
-                    {{ mlcube_macros.mlcube_link(prep_cube) }}
+                    <strong>Data Preparation Container:</strong> 
+                    {{ container_macros.container_link(prep_cube) }}
                 </p>
                 {% if dataset.generated_metadata %}
                 <p class="card-text">
@@ -300,7 +300,7 @@
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
                             <small class="text-muted">&nbsp;Reference Model</small>
-							{{ mlcube_macros.mlcube_link(reference_model) }}
+							{{ container_macros.container_link(reference_model) }}
 						</div>
 						<div class="d-flex align-items-center">
 							<div class="mx-2">
@@ -326,13 +326,13 @@
 										id="show-{{ assoc }}-{{ reference_model.id }}"
 										data-result='{{ reference_model.result|tojson }}'
 									>
-										⬆️ Show Result
+                                        🔍 View Result
 									</button>
 								</div>
 								<!-- any cleaner way? -->
 								{% if reference_model.result.id %}
 								<div class="mx-2">
-										<span class="btn btn-success">✅ Submitted</span>
+									<span class="btn btn-success">✅ Submitted</span>
 								</div>
 								{% else %}
 								<div class="mx-2">
@@ -353,7 +353,7 @@
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
-							{{ mlcube_macros.mlcube_link(model) }}
+							{{ container_macros.container_link(model) }}
 						</div>
 						<div class="d-flex align-items-center">
 							<div class="mx-2">
@@ -372,14 +372,14 @@
 							{% if model.result %}
 								<div class="mx-2">
 									<button
-										class="btn btn-primary submit-result-btn"
+										class="btn btn-primary show-result-btn"
 										data-benchmark-name="{{ benchmarks[assoc].name }}"
 										data-model-name="{{ model.name }}"
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ model.id }}"
 										data-result='{{ model.result|tojson }}'
 									>
-										⬆️ Show Result
+                                        🔍 View Result
 									</button>
 								</div>
 								<!-- any cleaner way? -->

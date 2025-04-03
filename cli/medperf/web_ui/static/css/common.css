@@ -248,3 +248,7 @@ button[disabled]{
     background-color: unset;
     color: unset;
 }
+
+.tooltip-info:hover{
+    cursor: help;
+}

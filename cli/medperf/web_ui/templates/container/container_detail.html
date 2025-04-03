@@ -1,9 +1,9 @@
-<!-- ./cli/medperf/web-ui/templates/mlcube/mlcube_detail.html -->
+<!-- ./cli/medperf/web-ui/templates/container/container_detail.html -->
 {% extends "detail_base.html" %}
 {% import 'macros/association_card_macros.html' as association_card_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
-{% block title %}MLCube Details{% endblock %}
+{% block title %}Container Details{% endblock %}
 
 {% block detail_panel %}
 <h1 class="my-4">{{ entity.name }}</h1>
@@ -21,16 +21,16 @@
         <div class="card mb-3">
             <div class="card-body">
                 <p class="card-text">
-                    <strong>MLCube ID:</strong> 
+                    <strong>Container ID:</strong> 
                     {{ entity.id }}
                 </p>
                 <p class="card-text">
-                    <strong>MLCube Manifest:</strong> 
+                    <strong>Container Manifest:</strong> 
                     <a
                         href="{{ entity.git_mlcube_url }}"
                         data-id="{{ entity.id }}"
                         data-field="git_mlcube_url"
-                        data-entity="mlcube"
+                        data-entity="container"
                         class="text-primary yaml-link">{{ entity.git_mlcube_url }}
                     </a>
                 </p>
@@ -41,7 +41,7 @@
                         href="{{ entity.git_parameters_url }}"
                         data-id="{{ entity.id }}"
                         data-field="git_parameters_url"
-                        data-entity="mlcube"
+                        data-entity="container"
                         class="text-primary yaml-link">
                         {{ entity.git_parameters_url }}
                     </a>
@@ -144,7 +144,7 @@
                 <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
                 <br>
                 {% endif %}
-                <small class="step-label ms-2">If this is a model MLCube, make a request to the benchmark owner to associate your model with the benchmark</small>
+                <small class="step-label ms-2">If this is a model container, make a request to the benchmark owner to associate your model with the benchmark</small>
             </div>
         </div>
     </div>
@@ -200,7 +200,7 @@
                     const modelId = "{{ entity.id }}";
 					const modelName = "{{ entity.name }}"
                     const benchmarkId = this.getAttribute('data-benchmark-id');
-                    associateMLCube(modelId, benchmarkId, modelName, this);
+                    associateContainer(modelId, benchmarkId, modelName, this);
                 }
             });
         });

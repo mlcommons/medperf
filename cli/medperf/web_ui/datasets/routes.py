@@ -103,9 +103,9 @@ def dataset_detail_ui(
         if b.data_preparation_mlcube == dataset.data_preparation_mlcube
     }
     for benchmark in valid_benchmarks:
-        reference_model_mlcube = valid_benchmarks[benchmark].reference_model_mlcube
+        reference_model_container = valid_benchmarks[benchmark].reference_model_mlcube
         valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(
-            cube_uid=reference_model_mlcube
+            cube_uid=reference_model_container
         )
 
     dataset_is_operational = dataset.state == "OPERATION"
@@ -131,7 +131,7 @@ def dataset_detail_ui(
     )
 
 
-@router.get("/submit/ui", response_class=HTMLResponse)
+@router.get("/register/ui", response_class=HTMLResponse)
 def create_dataset_ui(
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
@@ -140,12 +140,12 @@ def create_dataset_ui(
     benchmarks = Benchmark.all()
     # Render the dataset creation form with the list of benchmarks
     return templates.TemplateResponse(
-        "dataset/dataset_submit.html", {"request": request, "benchmarks": benchmarks}
+        "dataset/register_dataset.html", {"request": request, "benchmarks": benchmarks}
     )
 
 
-@router.post("/submit/", response_class=JSONResponse)
-def submit_dataset(
+@router.post("/register/", response_class=JSONResponse)
+def register_dataset(
     benchmark: int = Form(...),
     name: str = Form(...),
     description: str = Form(...),
@@ -233,7 +233,7 @@ def run(
         return {"status": "failed", "error": str(exp)}
 
 
-@router.post("/result_submit", response_class=JSONResponse)
+@router.post("/submit_result", response_class=JSONResponse)
 def submit_result(
     result_id: str = Form(...),
     current_user: bool = Depends(get_current_user_api),

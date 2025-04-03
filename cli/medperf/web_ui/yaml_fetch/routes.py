@@ -12,14 +12,14 @@ router = APIRouter()
 
 
 class FieldsToFetch(Enum):
-    mlcube_yaml = "git_mlcube_url"
+    container_yaml = "git_mlcube_url"
     param_yaml = "git_parameters_url"
     dataset_report_path = "report_path"
     dataset_statistics_path = "statistics_path"
 
 
 class EntityToFetch(Enum):
-    mlcube = "mlcube"
+    container = "container"
     dataset = "dataset"
 
 
@@ -32,12 +32,12 @@ def fetch_yaml(
 ):
     try:
         entity_class = {
-            EntityToFetch.mlcube: Cube,
+            EntityToFetch.container: Cube,
             EntityToFetch.dataset: Dataset,
         }[entity]
 
-        mlcube = entity_class.get(entity_uid)
-        yaml_uri = getattr(mlcube, field_to_fetch.value)
+        container = entity_class.get(entity_uid)
+        yaml_uri = getattr(container, field_to_fetch.value)
         if yaml_uri.startswith("http"):
             # some URL
             response = requests.get(yaml_uri)

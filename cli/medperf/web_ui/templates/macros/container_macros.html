@@ -1,0 +1,16 @@
+<!-- ./cli/medperf/web-ui/templates/macros/container_macros.html -->
+{% macro container_link(container) %}
+<span class="container-link {% if not container.is_valid %}invalid-card{% endif %} d-inline-flex align-items-center p-1 mb-2 flex-grow-1">
+    <strong>
+        <a href="/containers/ui/display/{{ container.id }}" class="text-primary">{{ container.name }}</a>
+    </strong>
+    <small class="text-muted ms-2" data-date="{{ container.modified_at }}"></small>
+    <span class="ms-2">
+    {% if container.state == 'OPERATION' %}
+        <i class="fas fa-check-circle text-success"></i>
+    {% else %}
+        <i class="fas fa-exclamation-circle text-warning"></i>
+    {% endif %}
+    </span>
+</span>
+{% endmacro %}

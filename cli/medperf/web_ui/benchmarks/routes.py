@@ -60,9 +60,9 @@ def benchmark_detail_ui(
     current_user: bool = Depends(get_current_user_ui),
 ):
     benchmark = Benchmark.get(benchmark_id)
-    data_preparation_mlcube = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
-    reference_model_mlcube = Cube.get(cube_uid=benchmark.reference_model_mlcube)
-    metrics_mlcube = Cube.get(cube_uid=benchmark.data_evaluator_mlcube)
+    data_preparation_container = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
+    reference_model_container = Cube.get(cube_uid=benchmark.reference_model_mlcube)
+    metrics_container = Cube.get(cube_uid=benchmark.data_evaluator_mlcube)
     datasets_associations = []
     models_associations = []
     datasets = {}
@@ -96,9 +96,9 @@ def benchmark_detail_ui(
             "request": request,
             "entity": benchmark,
             "entity_name": benchmark.name,
-            "data_preparation_mlcube": data_preparation_mlcube,
-            "reference_model_mlcube": reference_model_mlcube,
-            "metrics_mlcube": metrics_mlcube,
+            "data_preparation_container": data_preparation_container,
+            "reference_model_container": reference_model_container,
+            "metrics_container": metrics_container,
             "datasets_associations": datasets_associations,
             "models_associations": models_associations,
             "datasets": datasets,
@@ -108,18 +108,18 @@ def benchmark_detail_ui(
     )
 
 
-@router.get("/submit/ui", response_class=HTMLResponse)
+@router.get("/register/ui", response_class=HTMLResponse)
 def create_benchmark_ui(
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
 ):
 
     return templates.TemplateResponse(
-        "benchmark/benchmark_submit.html", {"request": request}
+        "benchmark/register_benchmark.html", {"request": request}
     )
 
 
-@router.get("/submit/workflow_test", response_class=HTMLResponse)
+@router.get("/register/workflow_test", response_class=HTMLResponse)
 def workflow_test_ui(
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
@@ -154,14 +154,14 @@ def test_benchmark(
         return {"status": "failed", "error": str(exp), "results": ""}
 
 
-@router.post("/submit", response_class=JSONResponse)
-def submit_benchmark(
+@router.post("/register", response_class=JSONResponse)
+def register_benchmark(
     name: str = Form(...),
     description: str = Form(...),
-    demo_url: str = Form(...),
-    data_preparation_mlcube: str = Form(...),
-    reference_model_mlcube: str = Form(...),
-    evaluator_mlcube: str = Form(...),
+    reference_dataset_tarball_url: str = Form(...),
+    data_preparation_container: str = Form(...),
+    reference_model_container: str = Form(...),
+    evaluator_container: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
 
@@ -169,11 +169,11 @@ def submit_benchmark(
         "name": name,
         "description": description,
         "docs_url": "",
-        "demo_dataset_tarball_url": demo_url,
+        "demo_dataset_tarball_url": reference_dataset_tarball_url,
         "demo_dataset_tarball_hash": "",
-        "data_preparation_mlcube": data_preparation_mlcube,
-        "reference_model_mlcube": reference_model_mlcube,
-        "data_evaluator_mlcube": evaluator_mlcube,
+        "data_preparation_mlcube": data_preparation_container,
+        "reference_model_mlcube": reference_model_container,
+        "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
     try:
@@ -189,7 +189,7 @@ def submit_benchmark(
 def approve(
     request: Request,
     benchmark_id: int = Form(...),
-    mlcube_id: Optional[int] = Form(None),
+    container_id: Optional[int] = Form(None),
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(get_current_user_api),
 ):
@@ -198,7 +198,7 @@ def approve(
             benchmark_uid=benchmark_id,
             approval_status=Status.APPROVED,
             dataset_uid=dataset_id,
-            mlcube_uid=mlcube_id,
+            mlcube_uid=container_id,
         )
         return {"status": "success", "error": ""}
     except MedperfException as exp:
@@ -209,7 +209,7 @@ def approve(
 def reject(
     request: Request,
     benchmark_id: int = Form(...),
-    mlcube_id: Optional[int] = Form(None),
+    container_id: Optional[int] = Form(None),
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(get_current_user_api),
 ):
@@ -218,7 +218,7 @@ def reject(
             benchmark_uid=benchmark_id,
             approval_status=Status.REJECTED,
             dataset_uid=dataset_id,
-            mlcube_uid=mlcube_id,
+            mlcube_uid=container_id,
         )
         return {"status": "success", "error": ""}
     except MedperfException as exp:

@@ -1,4 +1,4 @@
-# medperf/web-ui/mlcubes/routes.py
+# medperf/web-ui/containers/routes.py
 import logging
 
 from fastapi import APIRouter, Depends, Form
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/ui", response_class=HTMLResponse)
-def mlcubes_ui(
+def containers_ui(
     request: Request,
     mine_only: bool = False,
     current_user: bool = Depends(get_current_user_ui),
@@ -34,29 +34,29 @@ def mlcubes_ui(
     if mine_only:
         filters["owner"] = my_user_id
 
-    mlcubes = Cube.all(
+    containers = Cube.all(
         filters=filters,
     )
-    mlcubes = sorted(mlcubes, key=lambda x: x.created_at, reverse=True)
+    containers = sorted(containers, key=lambda x: x.created_at, reverse=True)
     # sort by (mine recent) (mine oldish), (other recent), (other oldish)
-    mine_cubes = [c for c in mlcubes if c.owner == my_user_id]
-    other_cubes = [c for c in mlcubes if c.owner != my_user_id]
-    mlcubes = mine_cubes + other_cubes
+    mine_containers = [c for c in containers if c.owner == my_user_id]
+    other_containers = [c for c in containers if c.owner != my_user_id]
+    containers = mine_containers + other_containers
     return templates.TemplateResponse(
-        "mlcube/mlcubes.html",
-        {"request": request, "mlcubes": mlcubes, "mine_only": mine_only},
+        "container/containers.html",
+        {"request": request, "containers": containers, "mine_only": mine_only},
     )
 
 
-@router.get("/ui/display/{mlcube_id}", response_class=HTMLResponse)
-def mlcube_detail_ui(
+@router.get("/ui/display/{container_id}", response_class=HTMLResponse)
+def container_detail_ui(
     request: Request,
-    mlcube_id: int,
+    container_id: int,
     current_user: bool = Depends(get_current_user_ui),
 ):
-    mlcube = Cube.get(cube_uid=mlcube_id, valid_only=False)
+    container = Cube.get(cube_uid=container_id, valid_only=False)
 
-    benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=mlcube_id)
+    benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=container_id)
 
     benchmark_associations = {}
     for assoc in benchmark_assocs:
@@ -65,14 +65,14 @@ def mlcube_detail_ui(
     benchmarks = Benchmark.all()
     benchmarks = {b.id: b for b in benchmarks}
     # benchmarks_associations = sort_associations_display(benchmarks_associations)
-    is_owner = mlcube.owner == get_medperf_user_data()["id"]
+    is_owner = container.owner == get_medperf_user_data()["id"]
 
     return templates.TemplateResponse(
-        "mlcube/mlcube_detail.html",
+        "container/container_detail.html",
         {
             "request": request,
-            "entity": mlcube,
-            "entity_name": mlcube.name,
+            "entity": container,
+            "entity_name": container.name,
             "is_owner": is_owner,
             "benchmarks_associations": benchmark_associations,
             "benchmarks": benchmarks,
@@ -80,8 +80,8 @@ def mlcube_detail_ui(
     )
 
 
-@router.get("/submit/ui", response_class=HTMLResponse)
-def create_mlcube_ui(
+@router.get("/register/ui", response_class=HTMLResponse)
+def create_container_ui(
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
 ):
@@ -89,11 +89,12 @@ def create_mlcube_ui(
     benchmarks = Benchmark.all()
     # Render the dataset creation form with the list of benchmarks
     return templates.TemplateResponse(
-        "mlcube/mlcube_submit.html", {"request": request, "benchmarks": benchmarks}
+        "container/register_container.html",
+        {"request": request, "benchmarks": benchmarks},
     )
 
 
-@router.get("/submit/compatibility_test", response_class=HTMLResponse)
+@router.get("/register/compatibility_test", response_class=HTMLResponse)
 def compatibilty_test_ui(
     request: Request,
     current_user: bool = Depends(get_current_user_ui),
@@ -102,21 +103,22 @@ def compatibilty_test_ui(
     benchmarks = Benchmark.all()
     # Render the dataset creation form with the list of benchmarks
     return templates.TemplateResponse(
-        "mlcube/compatibility_test.html", {"request": request, "benchmarks": benchmarks}
+        "container/compatibility_test.html",
+        {"request": request, "benchmarks": benchmarks},
     )
 
 
-@router.post("/submit", response_class=JSONResponse)
-def submit_mlcube(
+@router.post("/register", response_class=JSONResponse)
+def register_container(
     name: str = Form(...),
-    mlcube_file: str = Form(...),
+    container_file: str = Form(...),
     parameters_file: str = Form(""),
     additional_file: str = Form(""),
     current_user: bool = Depends(get_current_user_api),
 ):
-    mlcube_info = {
+    container_info = {
         "name": name,
-        "git_mlcube_url": mlcube_file,
+        "git_mlcube_url": container_file,
         "git_mlcube_hash": "",
         "git_parameters_url": parameters_file,
         "parameters_hash": "",
@@ -127,23 +129,23 @@ def submit_mlcube(
         "state": "OPERATION",
     }
     try:
-        mlcube_id = SubmitCube.run(mlcube_info)
+        container_id = SubmitCube.run(container_info)
         config.ui.set_success()
-        return {"status": "success", "mlcube_id": mlcube_id, "error": ""}
+        return {"status": "success", "container_id": container_id, "error": ""}
     except MedperfException as exp:
         config.ui.set_error()
-        return {"status": "failed", "mlcube_id": None, "error": str(exp)}
+        return {"status": "failed", "container_id": None, "error": str(exp)}
 
 
 @router.post("/test", response_class=JSONResponse)
-def test_mlcube(
+def test_container(
     benchmark: int = Form(...),
-    model_path: str = Form(...),
+    container_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
     try:
         _, results = CompatibilityTestExecution.run(
-            benchmark=benchmark, model=model_path
+            benchmark=benchmark, model=container_path
         )
         config.ui.set_success()
         return {"status": "success", "error": "", "results": results}
@@ -154,12 +156,12 @@ def test_mlcube(
 
 @router.post("/associate", response_class=JSONResponse)
 def associate(
-    mlcube_id: int = Form(...),
+    container_id: int = Form(...),
     benchmark_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
     try:
-        AssociateCube.run(cube_uid=mlcube_id, benchmark_uid=benchmark_id)
+        AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)
         config.ui.set_success()
         return {"status": "success", "error": ""}
     except MedperfException as exp:

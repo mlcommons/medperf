@@ -56,7 +56,7 @@ function showResult(element){
 function submitResult(element){
     const result_name = element.getAttribute("data-result-name");
     $.ajax({
-        url: "/datasets/result_submit",
+        url: "/datasets/submit_result",
         type: "POST",
         data: { result_id: result_name },
         dataType: "json",
@@ -288,10 +288,10 @@ function prepare(element) {
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
-function submitDataset(){
+function registerDataset(){
     const formData = new FormData($("#dataset-form")[0]);
     $.ajax({
-        url: "/datasets/submit",
+        url: "/datasets/register",
         type: "POST",
         data: formData,
         processData: false,
@@ -325,14 +325,14 @@ function submitDataset(){
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
-function testMLCube(){
+function testContainer(){
     const runBtn = $("#run-test");
     runBtn.prop("disabled", true);
     runBtn.html(`
         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         Running
     `);
-    const formData = new FormData($("#mlcube-form")[0]);
+    const formData = new FormData($("#container-form")[0]);
     const input_elements = document.querySelectorAll("input");
     input_elements.forEach(element => {
         element.setAttribute("disabled", true);
@@ -342,7 +342,7 @@ function testMLCube(){
         element.setAttribute("disabled", true);
     });
     $.ajax({
-        url: "/mlcubes/test",
+        url: "/containers/test",
         type: "POST",
         data: formData,
         processData: false,
@@ -380,7 +380,7 @@ function testMLCube(){
 function checkInput() {
     // Get elements
     const benchmark = document.getElementById("benchmark");
-    const formFilePath = document.getElementById("model_path");
+    const formFilePath = document.getElementById("container_path");
     const runTestButton = document.getElementById("run-test");
   
     // Ensure values are being retrieved
@@ -425,16 +425,16 @@ function checkInputBenchmark() {
     );
 }
 
-function submitMLCube(){
-    const runBtn = $("#submit-btn");
+function registerContainer(){
+    const runBtn = $("#register-btn");
     runBtn.prop("disabled", true);
     runBtn.html(`
         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         Registering
     `);
-    const formData = new FormData($("#submit-form")[0]);
+    const formData = new FormData($("#register-form")[0]);
     $.ajax({
-        url: "/mlcubes/submit",
+        url: "/containers/register",
         type: "POST",
         data: formData,
         processData: false,
@@ -444,7 +444,7 @@ function submitMLCube(){
             markAllStagesAsComplete();
             if(response.status === "success"){
                 showReloadModal("Model Registered Successfully");
-                timer(3, url="/mlcubes/ui/display/"+response.mlcube_id);
+                timer(3, url="/containers/ui/display/"+response.container_id);
             }
             else{
                 $("#errorModalLabel").html("Failed to Register Model");
@@ -465,65 +465,65 @@ function submitMLCube(){
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
-function checkSubmit(){
+function checkRegister(){
     // Get elements
     const name = document.getElementById("name");
-    const mlcube = document.getElementById("mlcube_file");
-    const submitBtn = document.getElementById("submit-btn");
+    const container = document.getElementById("container_file");
+    const registerBtn = document.getElementById("register-btn");
     
     // Ensure values are being retrieved
-    const mlcubeValue = mlcube ? mlcube.value.trim() : "";
+    const containerValue = container ? container.value.trim() : "";
     const nameValue = name ? name.value.trim() : "";
   
     // Validate inputs
-    const isMLCubeValid = mlcubeValue.length > 0 && mlcubeValue.endsWith(".yaml");
+    const isContainerValid = containerValue.length > 0 && containerValue.endsWith(".yaml");
     const isNameValid = nameValue.length > 0;
 
     // Enable/disable button
-    submitBtn.disabled = !(isMLCubeValid && isNameValid);
+    registerBtn.disabled = !(isContainerValid && isNameValid);
 }
 
-function checkSubmitBenchmark(){
+function checkRegisterBenchmark(){
     // Get elements
     const name = document.getElementById("name");
     const description = document.getElementById("description");
-    const demo_url = document.getElementById("demo_url");
-    const data_preparation_mlcube = document.getElementById("data_preparation_mlcube");
-    const reference_model_mlcube = document.getElementById("reference_model_mlcube");
-    const evaluator_mlcube = document.getElementById("evaluator_mlcube");
-    const submitBtn = document.getElementById("submit-btn");
+    const reference_dataset_tarball_url = document.getElementById("reference_dataset_tarball_url");
+    const data_preparation_container = document.getElementById("data_preparation_container");
+    const reference_model_container = document.getElementById("reference_model_container");
+    const evaluator_container = document.getElementById("evaluator_container");
+    const registerBtn = document.getElementById("register-btn");
     
     // Ensure values are being retrieved
     const nameValue = name ? name.value.trim() : "";
     const descriptionValue = description ? description.value.trim() : "";
-    const demoUrlValue = demo_url ? demo_url.value.trim() : "";
-    const dataPreparationMLCubeValue = data_preparation_mlcube ? Number(data_preparation_mlcube.value.trim()) : 0;
-    const referenceModelMLCubeValue = reference_model_mlcube ? Number(reference_model_mlcube.value.trim()) : 0;
-    const evaluatorMLCubeValue = evaluator_mlcube ? Number(evaluator_mlcube.value.trim()) : 0;
+    const referenceDatasetTarballUrlValue = reference_dataset_tarball_url ? reference_dataset_tarball_url.value.trim() : "";
+    const dataPreparationContainerValue = data_preparation_container ? Number(data_preparation_container.value.trim()) : 0;
+    const referenceModelContainerValue = reference_model_container ? Number(reference_model_container.value.trim()) : 0;
+    const evaluatorContainerValue = evaluator_container ? Number(evaluator_container.value.trim()) : 0;
   
     // Validate inputs
     const isNameValid = nameValue.length > 0;
     const isDescriptionValid = descriptionValue.length > 0;
-    const isDemoUrlValid = demoUrlValue.length > 0 && demoUrlValue.endsWith(".tar.gz");
-    const isDataPreparationMLCubeValid = dataPreparationMLCubeValue > 0;
-    const isReferenceModelMLCubeValid = referenceModelMLCubeValue > 0;
-    const isEvaluatorMLCubeValid = evaluatorMLCubeValue > 0;
+    const isReferenceUrlValid = referenceDatasetTarballUrlValue.length > 0 && referenceDatasetTarballUrlValue.endsWith(".tar.gz");
+    const isDataPreparationContainerValid = dataPreparationContainerValue > 0;
+    const isReferenceModelContainerValid = referenceModelContainerValue > 0;
+    const isEvaluatorContainerValid = evaluatorContainerValue > 0;
   
     // Enable/disable button
-    submitBtn.disabled = !(
-        isNameValid && isDescriptionValid && isDemoUrlValid && isDataPreparationMLCubeValid && isReferenceModelMLCubeValid && isEvaluatorMLCubeValid
+    registerBtn.disabled = !(
+        isNameValid && isDescriptionValid && isReferenceUrlValid && isDataPreparationContainerValid && isReferenceModelContainerValid && isEvaluatorContainerValid
     );
 }
 
-function cancelSubmit(){
+function cancelRegister(){
     window.location.reload(true);
 }
 
-function showSubmit(){
-    window.location.href = "/mlcubes/submit/ui";
+function showRegister(){
+    window.location.href = "/containers/register/ui";
 }
 
-function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
+function associateContainer(container_id, benchmark_id, contianer_name){
     document.getElementById("dropdown-div").classList.remove("show");
     const associate_btn = document.getElementById("associate-dropdown");
     associate_btn.setAttribute("disabled", true);
@@ -532,9 +532,9 @@ function associateMLCube(mlcube_id, benchmark_id, mlcube_name){
     Requesting Association
     `;
     $.ajax({
-        url: "/mlcubes/associate",
+        url: "/containers/associate",
         type: "POST",
-        data: { mlcube_id: mlcube_id, benchmark_id: benchmark_id },
+        data: { container_id: container_id, benchmark_id: benchmark_id },
         dataType: "json",
         async: true,
         success: function(response) {
@@ -616,16 +616,16 @@ function testBenchmark(){
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
-function submitBenchmark(){
-    const runBtn = $("#submit-btn");
+function registerBenchmark(){
+    const runBtn = $("#register-btn");
     runBtn.prop("disabled", true);
     runBtn.html(`
         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         Registering
     `);
-    const formData = new FormData($("#submit-form")[0]);
+    const formData = new FormData($("#register-form")[0]);
     $.ajax({
-        url: "/benchmarks/submit",
+        url: "/benchmarks/register",
         type: "POST",
         data: formData,
         processData: false,
@@ -657,12 +657,12 @@ function submitBenchmark(){
     getEvents(logPanel, stagesList, currentStageElement);
 }
 
-function cancelSubmitBenchmark(){
+function cancelRegisterBenchmark(){
     window.location.reload(true);
 }
 
-function showSubmitBenchmark(){
-    window.location.href = "/benchmarks/submit/ui";
+function showRegisterBenchmark(){
+    window.location.href = "/benchmarks/register/ui";
 }
 
 function cleanPanel(){
@@ -672,9 +672,9 @@ function cleanPanel(){
     $("#log-panel").html("");
 }
 
-function getMLCubes(){
+function getContainers(){
     const mine_only = $("#switch").prop("checked");
-    window.location.href = "/mlcubes/ui?mine_only="+mine_only;
+    window.location.href = "/containers/ui?mine_only="+mine_only;
 }
 
 function getDatasets(){
@@ -687,13 +687,13 @@ function getBenchmarks(){
     window.location.href = "/benchmarks/ui?mine_only="+mine_only;
 }
 
-function mlcubesConfirm(element){
+function containersConfirm(element){
     const confirmBtn = document.getElementById("approve-reject");
     const benchmark_id = element.getAttribute("data-benchmark-id");
-    const mlcube_id = element.getAttribute("data-mlcubes-id");
+    const container_id = element.getAttribute("data-containers-id");
     const dataset_id = element.getAttribute("data-datasets-id");
     const type = element.getAttribute("data-status-name");
-    confirmBtn.setAttribute("onclick", `mlcubesApproveReject('${type}', ${benchmark_id}, ${mlcube_id}, ${dataset_id})`)
+    confirmBtn.setAttribute("onclick", `containersApproveReject('${type}', ${benchmark_id}, ${container_id}, ${dataset_id})`)
     if(type=="approve"){
         $("#confirmTitle").text("Approval Confirmation");
         $("#confirmText").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
@@ -712,10 +712,10 @@ function mlcubesConfirm(element){
 function datasetsConfirm(element){
     const confirmBtn = document.getElementById("approve-reject");
     const benchmark_id = element.getAttribute("data-benchmark-id");
-    const mlcube_id = element.getAttribute("data-mlcubes-id");
+    const container_id = element.getAttribute("data-containers-id");
     const dataset_id = element.getAttribute("data-datasets-id");
     const type = element.getAttribute("data-status-name");
-    confirmBtn.setAttribute("onclick", `mlcubesApproveReject('${type}', ${benchmark_id}, ${mlcube_id}, ${dataset_id})`)
+    confirmBtn.setAttribute("onclick", `containersApproveReject('${type}', ${benchmark_id}, ${container_id}, ${dataset_id})`)
     if(type=="approve"){
         $("#confirmTitle").text("Approval Confirmation");
         $("#confirmText").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
@@ -731,11 +731,11 @@ function datasetsConfirm(element){
     modal.show();
 }
 
-function mlcubesApproveReject(type, benchmark_id, mlcube_id, dataset_id){
+function containersApproveReject(type, benchmark_id, container_id, dataset_id){
     showLoading();
-    const mlcubesBtns = document.querySelectorAll(".mlcubes-btn");
+    const containersBtns = document.querySelectorAll(".containers-btn");
     const datasetsBtns = document.querySelectorAll(".datasets-btn");
-    mlcubesBtns.forEach(e => {
+    containersBtns.forEach(e => {
         e.disabled = true;
     });
     datasetsBtns.forEach(e => {
@@ -743,8 +743,8 @@ function mlcubesApproveReject(type, benchmark_id, mlcube_id, dataset_id){
     });
     const formData = new FormData;
     formData.append("benchmark_id", benchmark_id);
-    if (mlcube_id)
-        formData.append("mlcube_id", mlcube_id);
+    if (container_id)
+        formData.append("container_id", container_id);
     if (dataset_id)
         formData.append("dataset_id", dataset_id);
 

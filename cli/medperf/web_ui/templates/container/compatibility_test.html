@@ -1,13 +1,16 @@
-<!-- ./cli/medperf/web-ui/templates/mlcube/mlcube_submit.html -->
+<!-- ./cli/medperf/web-ui/templates/container/compatibility_test.html -->
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
 {% extends "base.html" %}
 
-{% block title %}Model Compatibility Test{% endblock %}
+{% block title %}Container Compatibility Test{% endblock %}
 
 {% block content %}
 
 <div class="container mt-5">
-    <h1 class="text-center">Test your Model Compatibility</h1>
-    <form class="mt-5" id="mlcube-form">
+    <h1 class="text-center">Test your Container Compatibility</h1>
+    <form class="mt-5" id="container-form">
         <div class="form-step">
             <div class="form-group my-5">
                 <label class="form-label h4" for="benchmark">Select Benchmark</label>
@@ -19,12 +22,27 @@
                 </select>
             </div>
             <div class="form-group my-5">
-                <label for="model_path" class="form-label h4">Locate Model</label>
-                <input name="model_path" class="form-control" type="text" id="model_path" onkeyup="checkInput()">
+                <label for="container_path" class="form-label h4">Locate Container</label>
+                <div class="input-group">
+                    <input
+                        name="container_path"
+                        class="form-control"
+                        type="text"
+                        id="container_path"
+                        onkeyup="checkInput()"
+                        placeholder="{{ placeholders.compatibility_test_container_path }}"
+                    >
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.compatibility_test_container_path }}"
+                    ></i>
+                </div>
             </div>
 
             <div class="text-center mt-4">
-                <button id="run-test" type="button" class="btn btn-success mx-3" onclick="testMLCube()" disabled>
+                <button id="run-test" type="button" class="btn btn-success mx-3" onclick="testContainer()" disabled>
                     Run compatibility test
                 </button>
             </div>
@@ -47,8 +65,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="cancelSubmit()">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="showSubmit()" data-bs-dismiss="modal">Continue to MLCube registration</button>
+                    <button type="button" class="btn btn-danger" onclick="cancelRegister()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="showRegister()" data-bs-dismiss="modal">Continue to container registration</button>
                 </div>
             </div>
         </div>

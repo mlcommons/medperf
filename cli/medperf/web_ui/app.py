@@ -14,7 +14,7 @@ from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler, templates
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
-from medperf.web_ui.mlcubes.routes import router as mlcubes_router
+from medperf.web_ui.containers.routes import router as containers_router
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
 from medperf.web_ui.api.routes import router as api_router
 from medperf.web_ui.login import router as login_router
@@ -27,7 +27,7 @@ web_app = FastAPI()
 
 web_app.include_router(datasets_router, prefix="/datasets")
 web_app.include_router(benchmarks_router, prefix="/benchmarks")
-web_app.include_router(mlcubes_router, prefix="/mlcubes")
+web_app.include_router(containers_router, prefix="/containers")
 web_app.include_router(yaml_fetch_router)
 web_app.include_router(api_router, prefix="/api")
 web_app.include_router(login_router)

@@ -1,4 +1,7 @@
-<!-- ./cli/medperf/web-ui/templates/dataset/dataset_submit.html -->
+<!-- ./cli/medperf/web-ui/templates/dataset/register_dataset.html -->
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
 {% extends "base.html" %}
 
 {% block title %}Register Dataset{% endblock %}
@@ -64,15 +67,39 @@
             <h2>Dataset Information</h2>
             <div class="form-group my-4">
                 <label for="name" class="form-label">Dataset Name:</label>
-                <input type="text" name="name" id="name" class="form-control" required>
+                <div class="input-group">
+                    <input type="text" name="name" id="name" class="form-control" placeholder="{{ placeholders.register_dataset_name }}" required>
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_dataset_name }}"
+                    ></i>
+                </div>
             </div>
             <div class="form-group my-4">
                 <label for="description" class="form-label">Description:</label>
-                <textarea name="description" id="description" class="form-control" required></textarea>
+                <div class="input-group">
+                    <textarea name="description" id="description" class="form-control" placeholder="{{ placeholders.register_dataset_description }}" required></textarea>
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_dataset_description }}"
+                    ></i>
+                </div>
             </div>
             <div class="form-group my-4">
                 <label for="location" class="form-label">Location:</label>
-                <input type="text" name="location" id="location" class="form-control">
+                <div class="input-group">
+                    <input type="text" name="location" id="location" class="form-control" placeholder="{{ placeholders.register_dataset_location }}" >
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_dataset_location }}"
+                    ></i>
+                </div>
             </div>
 
             <div class="text-center mt-5">
@@ -104,7 +131,7 @@
             </div>
             <div class="text-center mt-4">
                 <button type="button" class="btn btn-secondary mx-3" onclick="backStepTwo()">Back</button>
-                <button type="button" class="btn btn-success mx-3" onclick="submitDataset()">Submit</button>
+                <button type="button" class="btn btn-success mx-3" onclick="registerDataset()">Register</button>
             </div>
         </div>
     </form>
