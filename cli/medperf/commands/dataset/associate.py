@@ -28,7 +28,6 @@ class AssociateDataset:
             raise InvalidArgumentError(
                 "The specified dataset wasn't prepared for this benchmark"
             )
-
         result = BenchmarkExecution.run(
             benchmark_uid,
             data_uid,

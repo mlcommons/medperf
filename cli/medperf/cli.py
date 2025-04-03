@@ -17,6 +17,7 @@ import medperf.commands.profile as profile
 import medperf.commands.association.association as association
 import medperf.commands.compatibility_test.compatibility_test as compatibility_test
 import medperf.commands.storage as storage
+import medperf.web_ui.app as web_ui
 from medperf.utils import check_for_updates
 from medperf.logging.utils import log_machine_details
 
@@ -30,6 +31,7 @@ app.add_typer(profile.app, name="profile", help="Manage profiles")
 app.add_typer(compatibility_test.app, name="test", help="Manage compatibility tests")
 app.add_typer(auth.app, name="auth", help="Authentication")
 app.add_typer(storage.app, name="storage", help="Storage management")
+app.add_typer(web_ui.app, name="web-ui", help="local web UI to manage medperf entities")
 
 
 @app.command("run")

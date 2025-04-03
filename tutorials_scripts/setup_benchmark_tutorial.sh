@@ -6,7 +6,7 @@ cd medperf_tutorial
 url=https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
 filename=$(basename $url)
 
-if [ -x "$(which wget)" ] ; then
+if [ -x "$(which wget)" ]; then
     wget $url
 elif [ -x "$(which curl)" ]; then
     curl -o $filename $url
@@ -25,5 +25,5 @@ cd model_custom_cnn/mlcube/workspace/additional_files
 sh download.sh
 rm download.sh
 
-## Login locally as benchmark owner
-medperf auth login -e testbo@example.com
+# ## Login locally as benchmark owner
+# medperf auth login -e testbo@example.com

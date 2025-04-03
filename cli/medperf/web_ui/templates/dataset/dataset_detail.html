@@ -1,0 +1,540 @@
+<!-- ./cli/medperf/web-ui/templates/dataset/dataset_detail.html -->
+{% extends "detail_base.html" %}
+{% import 'macros/container_macros.html' as container_macros %}
+{% import 'macros/benchmark_macros.html' as benchmark_macros %}
+
+{% block title %}Dataset Details{% endblock title %}
+
+{% block detail_panel %}
+{% block optional_styles %}
+<style>
+    /* Fullscreen overlay */
+    #loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Faded background */
+        z-index: 9999; /* Ensure it's above everything */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Spinner */
+    .spinner {
+        border: 8px solid rgba(255, 255, 255, 0.3); /* Light gray border */
+        border-top: 8px solid white; /* White border for animation */
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .highlighted-text {
+        font-weight: bold;
+        color: #000000;
+        text-shadow: 0 0 5px rgb(255, 8, 0), 0 0 10px rgb(35, 0, 231);
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+        0% {
+            text-shadow: 0 0 5px rgb(255, 8, 0);
+        }
+        100% {
+            text-shadow: 0 0 15px rgb(35, 0, 231);
+        }
+    }
+</style>
+{% endblock optional_styles %}
+<h1 class="my-4">{{ dataset.name }}</h1>
+<div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Details</h5>
+            <span class="badge {% if dataset_is_operational %}badge-state-operational{% else %}badge-state-development{% endif %}">
+                {{ dataset.state }}
+            </span>
+            <span class="badge {% if dataset.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
+                {% if dataset.is_valid %}Valid{% else %}Invalid{% endif %}
+            </span>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text">
+                    <strong>Description:</strong> 
+                    {{ dataset.description }}
+                </p>
+                <p class="card-text">
+                    <strong>Location:</strong> 
+                    {{ dataset.location }}
+                </p>
+                <p class="card-text">
+                    <strong>Input Data Hash:</strong> 
+                    {{ dataset.input_data_hash }}
+                </p>
+                <p class="card-text">
+                    <strong>Generated UID:</strong> 
+                    {{ dataset.generated_uid }}
+                </p>
+                <p class="card-text">
+                    <strong>Data Preparation Container:</strong> 
+                    {{ container_macros.container_link(prep_cube) }}
+                </p>
+                {% if dataset.generated_metadata %}
+                <p class="card-text">
+                    <strong>Statistics:</strong> 
+                    <a
+                        href="#"
+                        class="text-primary yaml-link"
+                        data-id="{{ dataset.id }}"
+                        data-field="statistics_path"
+                        data-entity="dataset"
+                        onclick="viewStatistics()"
+                    >View Statistics</a>
+                </p>
+                {% endif %}
+                {% if dataset.report %}
+                <p class="card-text">
+                    <strong>Report:</strong> 
+                    <a
+                        href="#"
+                        class="text-primary yaml-link"
+                        data-id="{{ dataset.id }}"
+                        data-field="report_path"
+                        data-entity="dataset"
+                    >View Report</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body d-flex justify-content-between flex-wrap">
+                <div class="w-50">
+                    <p class="card-text">
+                        <strong>Is Valid:</strong> 
+                        <span class="text-muted small">{{ dataset.is_valid }}</span>
+                    </p>
+                    <p class="card-text">
+                        <strong>Is Prepared:</strong> 
+                        <span class="text-muted small">{{ dataset_is_prepared }}</span>
+                    </p>
+                    <p class="card-text">
+                        <strong>Owner:</strong> 
+                        <i class="fas fa-user"></i> 
+                        <span class="text-muted small">{{ dataset.owner }}</span>
+                    </p>
+                </div>
+                <div class="text-right w-50">
+                    <p class="card-text">
+                        <strong>Created:</strong> 
+                        <span class="text-muted small" data-date="{{ dataset.created_at }}"></span>
+                    </p>
+                    <p class="card-text">
+                        <strong>Modified:</strong> 
+                        <span class="text-muted small" data-date="{{ dataset.modified_at }}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div
+			class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4"
+			style="border:1px solid rgba(0, 0, 0, .125);border-radius:.25rem;"
+			>
+            <div class="col-md-3 text-center">
+                {% if not dataset_is_prepared %}
+                <button
+                    class="step-btn btn btn-primary"
+                    id="prepare-dataset"
+                    data-dataset-id="{{ dataset.id }}"
+                    data-dataset-name="{{ dataset.name }}"
+                >
+                    <i class="fas fa-play-circle me-2"></i> Prepare
+                </button>
+                <br>
+                {% else %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="ms-2 text-success">Prepared</span>
+                </div>
+                {% endif %}
+                <small class="step-label ms-2">Step 1: Performs data preprocessing and sanity checks according to the benchmark</small>
+            </div>
+            <div class="step-divider mx-2 col-1 text-center">
+                <i class="fas fa-chevron-right text-muted mt-2"></i>
+            </div>
+            <div class="col-3 text-center">
+                {% if dataset_is_prepared and not dataset_is_operational %}
+                <button
+                    class="step-btn btn btn-warning"
+                    id="set-operational"
+                    data-dataset-id="{{ dataset.id }}"
+                >
+                    <i class="fas fa-arrow-up me-2"></i> Set Operational
+                </button>
+                <br>
+                {% elif dataset_is_prepared and dataset_is_operational %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="ms-2 text-success">Operational</span>
+                </div>
+                {% else %}
+                <button class="step-btn btn btn-warning" disabled>
+                    Set Operational
+                </button>
+                <br>
+                {% endif %}
+                <small class="step-label ms-2">Step 2: Makes the dataset ready to be used by the benchmark</small>
+            </div>
+            <div class="step-divider mx-2 col-1 text-center">
+                <i class="fas fa-chevron-right text-muted mt-2"></i>
+            </div>
+            <div class="col-3 text-center">
+                {% if dataset_is_operational %}
+                <div class="dropdown">
+                    <button
+                        class="step-btn btn btn-info dropdown-toggle"
+                        type="button"
+                        id="associate-dropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Associate with Benchmark
+                    </button>
+                    {% set available_benchmarks = [] %}
+                    {% for benchmark in benchmarks.values() %}
+                    {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
+                    {% set _ = available_benchmarks.append(benchmark) %}
+                    {% endif %}
+                    {% endfor %}
+                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown" id="dropdown-div">
+                        {% for benchmark in available_benchmarks %}
+                        <li class="dropdown-item">
+                            <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
+                            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
+                            <button type="button" class="btn btn-primary benchmark-item" data-benchmark-id="{{ benchmark.id }}">Request Association</button>
+                        </li>
+                        {% endfor %}
+                        {% if not available_benchmarks %}
+                        <li class="dropdown-item text-muted">No benchmarks available for association</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% else %}
+                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+                <br>
+                {% endif %}
+                <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+</div>
+{% if benchmark_associations and not approved_benchmarks %}
+<!-- Display associations between the dataset and the benchmarks -->
+<div class="card mb-4 shadow-sm mt-5">
+    <div class="card-header bg-secondary text-white">
+        <h4 class="mb-0">
+            Benchmarks Associations
+        </h4>
+    </div>
+    {% for assoc in benchmark_associations %}
+    <div class="card-body p-4">
+        <div class="benchmark-section mb-4">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <!-- Left section: Benchmark info -->
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <div>
+                            Benchmark:
+                            <a href="/benchmarks/ui/display/{{ assoc }}" style="text-decoration: underline;">
+                                <strong>{{ benchmarks[assoc].name }}</strong>
+                            </a>
+                        </div>
+                        <div>
+                            Status: <strong>{{ benchmark_associations[assoc].approval_status }}</strong>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Display associated models with improved layout and dynamic actions -->
+{% for assoc in benchmark_associations %}
+	{% if assoc in approved_benchmarks %}
+	{% set reference_model = benchmarks[assoc].reference_model_mlcube %}
+	<div class="card mb-4 shadow-sm mt-5">
+		<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+			<h4 class="mb-0">
+			Benchmark:
+			<a href="/benchmarks/ui/display/{{ assoc }}" class="text-white text-decoration-underline">
+				<strong>{{ benchmarks[assoc].name }}</strong>
+			</a>
+			</h4>
+			<button
+				class="btn btn-secondary run-all-btn"
+				data-benchmark-id="{{ assoc }}"
+				data-dataset-id="{{ dataset.id }}"
+				data-dataset-name="{{ dataset.name }}"
+				>
+					▶️ Run All
+			</button>
+    	</div>
+    	<div class="card-body p-4">
+      		<div class="benchmark-section mb-4">
+        		<ul class="list-group">
+					<li class="list-group-item d-flex justify-content-between align-items-center">
+						<!-- Left section: Model info -->
+						<div class="model-info d-flex flex-column">
+                            <small class="text-muted">&nbsp;Reference Model</small>
+							{{ container_macros.container_link(reference_model) }}
+						</div>
+						<div class="d-flex align-items-center">
+							<div class="mx-2">
+								<button
+									class="btn btn-primary mx-2"
+									data-benchmark-id="{{ assoc }}"
+									data-model-id="{{ reference_model.id }}"
+									data-dataset-name="{{ dataset.name }}"
+									data-dataset-id="{{ dataset.id }}"
+									data-model-name="{{ reference_model.name }}"
+									id="run-{{ assoc }}-{{ reference_model.id }}"
+								>
+									▶️ Run
+								</button>
+							</div>
+							{% if reference_model.result %}
+								<div class="mx-2">
+									<button
+										class="btn btn-primary submit-result-btn"
+										data-benchmark-name="{{ benchmarks[assoc].name }}"
+										data-model-name="{{ reference_model.name }}"
+										data-dataset-name="{{ dataset.name }}"
+										id="show-{{ assoc }}-{{ reference_model.id }}"
+										data-result='{{ reference_model.result|tojson }}'
+									>
+                                        🔍 View Result
+									</button>
+								</div>
+								<!-- any cleaner way? -->
+								{% if reference_model.result.id %}
+								<div class="mx-2">
+									<span class="btn btn-success">✅ Submitted</span>
+								</div>
+								{% else %}
+								<div class="mx-2">
+									<button
+										class="btn btn-primary"
+										id="submit-{{ reference_model.result.name }}"
+										data-result-name="{{ reference_model.result.name }}"
+									>
+										⬆️ Submit
+									</button>
+								</div>
+								{% endif %}
+							{% endif %}
+						</div>
+					</li>
+					{% if benchmark_models[assoc] %}
+                    {% for model in benchmark_models[assoc] %}
+					<li class="list-group-item d-flex justify-content-between align-items-center">
+						<!-- Left section: Model info -->
+						<div class="model-info d-flex flex-column">
+							{{ container_macros.container_link(model) }}
+						</div>
+						<div class="d-flex align-items-center">
+							<div class="mx-2">
+								<button
+									class="btn btn-primary mx-2"
+									data-benchmark-id="{{ assoc }}"
+									data-model-id="{{ model.id }}"
+									data-dataset-name="{{ dataset.name }}"
+									data-dataset-id="{{ dataset.id }}"
+									data-model-name="{{ model.name }}"
+									id="run-{{ assoc }}-{{ model.id }}"
+								>
+										▶️ Run
+								</button>
+							</div>
+							{% if model.result %}
+								<div class="mx-2">
+									<button
+										class="btn btn-primary show-result-btn"
+										data-benchmark-name="{{ benchmarks[assoc].name }}"
+										data-model-name="{{ model.name }}"
+										data-dataset-name="{{ dataset.name }}"
+										id="show-{{ assoc }}-{{ model.id }}"
+										data-result='{{ model.result|tojson }}'
+									>
+                                        🔍 View Result
+									</button>
+								</div>
+								<!-- any cleaner way? -->
+								{% if model.result.id %}
+								<div class="mx-2">
+										<span class="btn btn-success">✅ Submitted</span>
+								</div>
+								{% else %}
+								<div class="mx-2">
+										<button
+											class="btn btn-primary"
+											id="submit-{{ model.result.name }}"
+											data-result-name="{{ model.result.name }}"
+										>
+											⬆️ Submit
+										</button>
+								</div>
+								{% endif %}
+							{% endif %}
+						</div>
+					</li>
+                    {% endfor %}
+                    {% else %}
+					<li class="list-group-item d-flex justify-content-between align-items-center">
+							No models yet
+					</li>
+                    {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+	{% endif %}
+{% endfor %}
+
+<div id="panel" class="my-5" style="display: none;">
+    <h2 id="panel-title"></h2>
+
+    <div class="stages">
+        <ul class="list-group mb-3" id="stages-list"></ul>
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-body">
+            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
+        </div>
+    </div>
+</div>
+
+<div id="text-content" style="display: none;" class="mt-5">
+    <div id="content"></div>
+</div>
+
+<div id="yaml-div" style="display: none;">
+    <pre id="yaml-content" class="language-yaml" style="padding: 15px; border-radius: 4px;"></pre>
+</div>
+
+<div id="prompt-div" class="my-5" style="display: none;">
+    <div id="prompt-text"></div>
+    <div class="text-center mt-5">
+        <button type="button" class="btn btn-danger mx-3" id="respond-no">No</button>
+        <button type="button" class="btn btn-success mx-3" id="respond-yes">Yes</button>
+    </div>
+</div>
+
+<!-- Result View Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultModalLabel"></h5>
+            </div>
+            <div class="modal-body">
+                <pre id="result-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/event_handler.js"></script>
+<script src="/static/js/app.js"></script>
+
+<script>
+	function disableAllButtons(){
+		document.querySelectorAll('.run-all-btn').forEach(btn => {
+			btn.setAttribute("disabled", true);
+		});
+		document.querySelectorAll('[id^="run-"]').forEach(btn => {
+			btn.setAttribute("disabled", true);
+		});
+	}
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle the "Associate" dropdown item click
+        document.querySelectorAll('.benchmark-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (!this.classList.contains('disabled')) {
+                    const datasetId = "{{ dataset.id }}";
+					const datasetName = "{{ dataset.name }}"
+                    const benchmarkId = this.getAttribute('data-benchmark-id');
+                    associate(datasetId, benchmarkId, datasetName, this);
+                }
+            });
+        });
+
+        $("#respond-yes").on("click", respond_yes);
+        $("#respond-no").on("click", respond_no);
+        $("#prepare-dataset").on("click", function() {
+            prepare(this);
+        });
+        $("#set-operational").on("click", function() {
+            setOperation(this);
+        });
+        $("[id^='run-']").on("click", function() {
+            disableAllButtons();
+            runBenchmark(this);
+        });
+        $("[id^='show-']").on("click", function() {
+            showResult(this);
+        });
+        $("[id^='submit-']").on("click", function() {
+            submitResult(this);
+        });
+        // Add an event listener to handle the "Run All" button clicks
+        document.querySelectorAll('.run-all-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const benchmarkId = this.getAttribute('data-benchmark-id');
+                const datasetId = this.getAttribute('data-dataset-id');
+                const datasetName = this.getAttribute('data-dataset-name');
+                // Find all run buttons related to this benchmark
+                const runButtons = document.querySelectorAll(`[id^="run-${benchmarkId}-"]`);
+                let model_ids = [];
+                runButtons.forEach(button => {
+                    if (!button.classList.contains('d-none')) {
+                        disableAllButtons();
+                        model_ids.push(
+                            {
+                                "id": button.getAttribute('data-model-id'),
+                                "name": button.getAttribute('data-model-name')
+                            }
+                        );
+                        button.innerHTML = `
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Running`;
+                    }
+                });
+                if(model_ids){
+                    this.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Running`;
+                    runBenchmark(null, benchmarkId, datasetId, model_ids, datasetName);
+                }
+            });
+        });
+    });
+</script>
+{% endblock detail_panel %}

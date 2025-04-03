@@ -1,8 +1,9 @@
 import os
 import yaml
 from pydantic import Field, validator
-from typing import Optional, Union
+from typing import Optional, Union, List
 
+from medperf.entities.association import Association
 from medperf.utils import remove_path
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -112,13 +113,40 @@ class Dataset(Entity, DeployableSchema):
             comms_fn = config.comms.get_user_datasets
 
         if "mlcube" in filters and filters["mlcube"] is not None:
-
             def func():
                 return config.comms.get_mlcube_datasets(filters["mlcube"])
 
             comms_fn = func
 
         return comms_fn
+
+    @classmethod
+    def get_benchmarks_associations(cls, dataset_uid: int) -> List[Association]:
+        """Retrieves the list of benchmarks dataset is associated with
+
+        Args:
+            dataset_uid (int): UID of the dataset.
+        Returns:
+            List[Association]: List of associations
+        """
+        associations = config.comms.get_datasets_associations()
+        associations = [Association(**assoc) for assoc in associations]
+        associations = [a for a in associations if a.dataset == dataset_uid]
+        return associations
+
+    def read_report(self):
+        """Reads the report if it exists"""
+        if os.path.exists(self.report_path):
+            with open(self.report_path, "r") as f:
+                self.report = yaml.safe_load(f.read())
+        return self.report
+
+    def read_statistics(self):
+        """Reads the report if it exists"""
+        if os.path.exists(self.statistics_path):
+            with open(self.statistics_path, "r") as f:
+                self.generated_metadata = yaml.safe_load(f.read())
+        return self.generated_metadata
 
     def display_dict(self):
         return {

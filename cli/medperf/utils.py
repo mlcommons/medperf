@@ -204,14 +204,10 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    ui = config.ui
-    ui.print()
-    ui.print("=" * 20)
     if skip_none_values:
         in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
-    ui.print(yaml.dump(in_dict))
+    config.ui.print_yaml(yaml.dump(in_dict))
     logging.debug(f"Dictionary printed to the user: {in_dict}")
-    ui.print("=" * 20)
 
 
 class _MLCubeOutputFilter:
