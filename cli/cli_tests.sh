@@ -212,12 +212,54 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Running exporting data while it's in development"
+echo "====================================="
+print_eval medperf dataset export -d $DSET_A_UID -o $TEST_ROOT/exported_dev_dataset
+checkFailed "Dev Data export step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running importing development data after removing it from storage"
+echo "====================================="
+print_eval rm -rf $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID
+print_eval medperf dataset import -d $DSET_A_UID -i $TEST_ROOT/exported_dev_dataset/$DSET_A_UID.gz --raw_dataset_path $TEST_ROOT/imported_raw_data
+checkFailed "Dev Data import step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Running data set operational step"
 echo "====================================="
 print_eval medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data set operational step failed"
 DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d " " -f 2)
 echo "DSET_A_GENUID=$DSET_A_GENUID"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running exporting data while it's in operation"
+echo "====================================="
+print_eval medperf dataset export -d $DSET_A_UID -o $TEST_ROOT/exported_op_dataset
+checkFailed "Operational Data export step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running importing operational data after removing it from storage"
+echo "====================================="
+print_eval rm -rf $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID
+print_eval medperf dataset import -d $DSET_A_UID -i $TEST_ROOT/exported_op_dataset/$DSET_A_UID.gz
+checkFailed "Op Data import step failed"
 ##########################################################
 
 echo "\n"
