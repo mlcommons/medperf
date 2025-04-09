@@ -21,7 +21,11 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import (
+    ExecutionError,
+    InvalidArgumentError,
+    MedperfException,
+)
 
 
 def get_file_hash(path: str) -> str:
@@ -151,21 +155,48 @@ def generate_tmp_path() -> str:
     return tmp_path
 
 
-def untar(filepath: str, remove: bool = True) -> str:
+def tar(filepath: str, folders_paths: List[str], folder_prefix: str = None) -> None:
+    """Tars the tar.gz file
+    Args:
+        filepath (str): Path where the tar.gz file will be saved.
+        folder_path (str): Path of the data should be compressed.
+        folder_prefix (str): new folder name that will contain the
+        compressed files in the tar file. (Default="")
+    """
+    if os.path.exists(filepath):
+        raise InvalidArgumentError(f"{filepath} already exists.")
+
+    logging.info(f"Compressing tar.gz at {filepath}")
+    tar_arc = tarfile.open(filepath, "w:gz")
+    for folder in folders_paths:
+        if folder_prefix:
+            arcname = os.path.join(folder_prefix, os.path.basename(folder))
+        else:
+            arcname = os.path.basename(folder)
+        tar_arc.add(folder, arcname=arcname)
+        logging.info(f"Compressing tar.gz at {filepath}: {folder} Added.")
+    tar_arc.close()
+
+
+def untar(filepath: str, remove: bool = True, extract_to: str = None) -> str:
     """Untars and optionally removes the tar.gz file
 
     Args:
         filepath (str): Path where the tar.gz file can be found.
-        remove (bool): Wether to delete the tar.gz file. Defaults to True.
+        remove (bool): Whether to delete the tar.gz file. Defaults to True.
+        extract_to (str): Where to extract the tar.gz file. Defaults to parent directory
 
     Returns:
         str: location where the untared files can be found.
     """
     logging.info(f"Uncompressing tar.gz at {filepath}")
-    addpath = str(Path(filepath).parent)
-    tar = tarfile.open(filepath)
-    tar.extractall(addpath)
-    tar.close()
+    addpath = extract_to or str(Path(filepath).parent)
+    try:
+        tar = tarfile.open(filepath)
+        tar.extractall(addpath)
+        tar.close()
+    except tarfile.ReadError as e:
+        raise ExecutionError("Cannot extract tar.gz file, " + e.__str__())
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [
@@ -176,6 +207,17 @@ def untar(filepath: str, remove: bool = True) -> str:
         logging.info(f"Deleting {filepath}")
         remove_path(filepath)
     return addpath
+
+
+def move_folder(src: str, dest: str) -> None:
+    """Recursively moves a folder from {src} to {dest}
+
+    Args:
+        src (str): Path of the source folder to be moved
+        dest (src): Path of the destination that the folder will be moved to
+    """
+    shutil.move(src, dest)
+    logging.info(f"Folder moved: {src} to {dest}")
 
 
 def approval_prompt(msg: str) -> bool:
