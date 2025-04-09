@@ -101,7 +101,7 @@ def main(
 
     logging.info(f"Running MedPerf v{__version__} on {loglevel} logging level")
     logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
-    log_machine_details()
-    check_for_updates()
+    # log_machine_details()
+    # check_for_updates()
 
     config.ui.print(f"MedPerf {__version__}")

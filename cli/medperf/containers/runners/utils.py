@@ -1,0 +1,69 @@
+from typing import Optional
+from medperf.exceptions import InvalidContainerSpec, ExecutionError
+from medperf.utils import spawn_and_kill, combine_proc_sp_text
+from medperf import config
+
+
+def run_command(cmd, timeout=None, output_logs=None):
+    with spawn_and_kill(cmd, timeout=timeout) as proc_wrapper:
+        proc = proc_wrapper.proc
+        proc_out = combine_proc_sp_text(proc)
+
+    if output_logs is not None:
+        with open(output_logs, "w") as f:
+            f.write(proc_out)
+
+    if proc.exitstatus != 0:
+        raise ExecutionError("There was an error while executing the container")
+
+    return proc_out
+
+
+def check_allowed_run_args(run_args):
+    allowed_keys = {"shm_size", "gpus", "command", "entrypoint"}
+    given_keys = set(run_args.keys())
+    not_allowed_keys = given_keys.difference(allowed_keys)
+    if not_allowed_keys:
+        raise InvalidContainerSpec(
+            f"Run args {', '.join(not_allowed_keys)} are not allowed."
+        )
+
+
+def add_medperf_run_args(run_args):
+    run_args["user"] = "$(id -u):$(id -g)"
+    run_args["network"] = "none"
+
+
+def add_user_defined_run_args(run_args):
+    # shm_size
+    if config.shm_size is not None:
+        run_args["shm_size"] = config.shm_size
+
+    # gpus
+    gpus = run_args.get("gpus")
+    if config.gpus is not None:
+        gpus = config.gpus
+    run_args["gpus"] = _normalize_gpu_arg(gpus)
+
+
+def _normalize_gpu_arg(gpus: Optional[str]):
+    if gpus is None or gpus == "":
+        return
+
+    if gpus == "all":
+        return "all"
+
+    if isinstance(gpus, int):
+        if gpus == 0:
+            return
+        return gpus
+
+    if isinstance(gpus, str):
+        if gpus.is_numeric():
+            if gpus == "0":
+                return
+            return int(gpus)
+        if gpus.starts_with("device="):
+            ids = gpus.replace("device=", "").split(",")
+            return ids
+    raise InvalidContainerSpec("Invalid gpus argument")
