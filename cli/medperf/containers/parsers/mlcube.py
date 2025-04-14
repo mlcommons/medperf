@@ -46,6 +46,24 @@ class MLCubeParser(Parser):
         _, _, run_args = _parse_task(self.container_config, task, medperf_mounts)
         return run_args
 
+    def is_report_specified(self):
+        try:
+            return (
+                "report_file"
+                in self.container_config["tasks"]["prepare"]["parameters"]["outputs"]
+            )
+        except KeyError:
+            return False
+
+    def is_metadata_specified(self):
+        try:
+            return (
+                "metadata_path"
+                in self.container_config["tasks"]["prepare"]["parameters"]["outputs"]
+            )
+        except KeyError:
+            return False
+
 
 def _parse_task(container_config: dict, task: str, medperf_mounts: dict):
     workspace_path = container_config.get("workspace_path")

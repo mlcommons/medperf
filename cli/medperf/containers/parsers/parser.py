@@ -21,3 +21,11 @@ class Parser(ABC):
     @abstractmethod
     def get_run_args(self, task: str, medperf_mounts: dict):
         pass
+
+    @abstractmethod
+    def is_report_specified(self):
+        pass
+
+    @abstractmethod
+    def is_metadata_specified(self):
+        pass

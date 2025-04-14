@@ -1,7 +1,0 @@
-
-prepare:
-  inputs:
-    - data_path
-    - labels_path
-    - parameters_file
-    - report_path

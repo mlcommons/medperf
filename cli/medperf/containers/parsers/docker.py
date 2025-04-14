@@ -43,3 +43,21 @@ class DockerParser(Parser):
     def get_run_args(self, task: str, medperf_mounts: dict):
         task_info = self.container_config["tasks"][task]
         return task_info.get("run_args", {})
+
+    def is_report_specified(self):
+        try:
+            return (
+                "report_file"
+                in self.container_config["tasks"]["prepare"]["output_volumes"]
+            )
+        except KeyError:
+            return False
+
+    def is_metadata_specified(self):
+        try:
+            return (
+                "metadata_path"
+                in self.container_config["tasks"]["prepare"]["output_volumes"]
+            )
+        except KeyError:
+            return False

@@ -20,7 +20,7 @@ def run_command(cmd, timeout=None, output_logs=None):
 
 
 def check_allowed_run_args(run_args):
-    allowed_keys = {"shm_size", "gpus", "command", "entrypoint"}
+    allowed_keys = {"shm_size", "gpus", "command", "entrypoint", "environment"}
     given_keys = set(run_args.keys())
     not_allowed_keys = given_keys.difference(allowed_keys)
     if not_allowed_keys:
@@ -64,6 +64,14 @@ def _normalize_gpu_arg(gpus: Optional[str]):
                 return
             return int(gpus)
         if gpus.starts_with("device="):
-            ids = gpus.replace("device=", "").split(",")
-            return ids
+            gpus = gpus[len("device=") :]  # noqa
+            if gpus:
+                ids = gpus.split(",")
+                return ids
     raise InvalidContainerSpec("Invalid gpus argument")
+
+
+def add_medperf_environment_variables(run_args, medperf_env):
+    env_dict: dict = run_args.get("environment", {})
+    env_dict.update(medperf_env)
+    run_args["environment"] = env_dict

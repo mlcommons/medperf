@@ -75,15 +75,16 @@ class Execution:
     def run_inference(self):
         self.ui.text = "Running model inference on dataset"
         infer_timeout = config.infer_timeout
-        preds_path = self.preds_path
-        data_path = self.dataset.data_path
+        inference_mounts = {
+            "data_path": self.dataset.data_path,
+            "preds_path": self.preds_path,
+        }
         try:
             self.model.run(
                 task="infer",
                 output_logs=self.model_logs_path,
                 timeout=infer_timeout,
-                data_path=data_path,
-                output_path=preds_path,
+                mounts=inference_mounts,
             )
             self.ui.print("> Model execution complete")
 
@@ -98,18 +99,18 @@ class Execution:
     def run_evaluation(self):
         self.ui.text = "Running model evaluation on dataset"
         evaluate_timeout = config.evaluate_timeout
-        preds_path = self.preds_path
-        labels_path = self.dataset.labels_path
-        results_path = self.results_path
+        evaluator_mounts = {
+            "predictions": self.preds_path,
+            "labels": self.dataset.labels_path,
+            "output_path": self.results_path,
+        }
         self.ui.text = "Evaluating results"
         try:
             self.evaluator.run(
                 task="evaluate",
                 output_logs=self.metrics_logs_path,
                 timeout=evaluate_timeout,
-                predictions=preds_path,
-                labels=labels_path,
-                output_path=results_path,
+                mounts=evaluator_mounts,
             )
         except ExecutionError as e:
             logging.error(f"Metrics MLCube Execution failed: {e}")

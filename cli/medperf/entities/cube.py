@@ -1,24 +1,15 @@
 import os
-import yaml
-import logging
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 from pydantic import Field
-from pathlib import Path
 
-from medperf.utils import (
-    combine_proc_sp_text,
-    log_storage,
-    remove_path,
-    generate_tmp_path,
-    spawn_and_kill,
-)
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
-from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
+from medperf.exceptions import InvalidEntityError
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
-from medperf.containers.container import load_runner
+from medperf.containers.runners import load_runner
+from medperf.containers.parsers import load_parser
 
 
 class Cube(Entity, DeployableSchema):
@@ -73,14 +64,26 @@ class Cube(Entity, DeployableSchema):
 
         self.cube_path = os.path.join(self.path, config.cube_filename)
         self.params_path = None
+        self.additiona_files_folder_path = None
         if self.git_parameters_url:
             self.params_path = os.path.join(self.path, config.params_filename)
+        if self.additional_files_tarball_url:
+            self.additiona_files_folder_path = os.path.join(
+                self.path, config.additional_path
+            )
+        self._parser = None
         self._runner = None
+
+    @property
+    def parser(self):
+        if self._parser is None:
+            self._parser = load_parser(self.cube_path)
+        return self._parser
 
     @property
     def runner(self):
         if self._runner is None:
-            return load_runner(self.cube_path)
+            self._runner = load_runner(self.parser, self.path)
         return self._runner
 
     @property
@@ -139,14 +142,11 @@ class Cube(Entity, DeployableSchema):
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            file_hash = resources.get_cube_additional(
+            path, file_hash = resources.get_cube_additional(
                 url, self.path, self.additional_files_tarball_hash
             )
+            self.additiona_files_folder_path = path
             self.additional_files_tarball_hash = file_hash
-
-    @property
-    def _converted_singularity_image_name(self):
-        return f"{self.image_hash}.sif"
 
     def download_config_files(self):
         try:
@@ -166,7 +166,11 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError(f"MLCube {self.name} additional files: {e}")
 
         try:
-            self.image_hash = self.runner.download()
+            self.image_hash = self.runner.download(
+                expected_image_hash=self.image_hash,
+                download_timeout=config.mlcube_configure_timeout,
+                get_hash_timeout=config.mlcube_inspect_timeout,
+            )
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
 
@@ -175,59 +179,32 @@ class Cube(Entity, DeployableSchema):
         task: str,
         output_logs: str = None,
         timeout: int = None,
-        **kwargs,
+        mounts: dict = {},
+        env: dict = {},
     ):
-        self.runner.run(task, output_logs, timeout, kwargs)
+        extra_mounts = {}
+        if self.git_parameters_url:
+            extra_mounts["parameters_file"] = self.params_path
+        if self.additional_files_tarball_url:
+            extra_mounts["additional_files"] = self.additiona_files_folder_path
 
-    def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
-        """Returns the output parameter specified in the mlcube.yaml file
+        extra_env = {}
+        if config.container_loglevel is not None:
+            extra_env["MEDPERF_LOGLEVEL"] = config.container_loglevel.upper()
 
-        Args:
-            task (str): the task of interest
-            out_key (str): key used to identify the desired output in the yaml file
-            param_key (str): key inside the parameters file that completes the output path. Defaults to None.
+        self.runner.run(
+            task,
+            output_logs,
+            timeout,
+            {**mounts, **extra_mounts},
+            {**env, **extra_env},
+        )
 
-        Returns:
-            str: the path as specified in the mlcube.yaml file for the desired
-                output for the desired task. Defaults to None if out_key not found
-        """
-        out_path = self.get_config(f"tasks.{task}.parameters.outputs.{out_key}")
-        if out_path is None:
-            return
+    def is_report_specified(self):
+        return self.parser.is_report_specified()
 
-        if isinstance(out_path, dict):
-            # output is specified as a dict with type and default values
-            out_path = out_path["default"]
-        cube_loc = str(Path(self.cube_path).parent)
-        out_path = os.path.join(cube_loc, "workspace", out_path)
-
-        if self.params_path is not None and param_key is not None:
-            with open(self.params_path, "r") as f:
-                params = yaml.safe_load(f)
-
-            out_path = os.path.join(out_path, params[param_key])
-
-        return out_path
-
-    def get_config(self, identifier):
-        """
-        Returns the output parameter specified in the mlcube.yaml file
-
-        Args:
-            identifier (str): `.` separated keys to traverse the mlcube dict
-        Returns:
-            str: the parameter value, None if not found
-        """
-        with open(self.cube_path, "r") as f:
-            cube = yaml.safe_load(f)
-
-        keys = identifier.split(".")
-        for key in keys:
-            if key not in cube:
-                return
-            cube = cube[key]
-
-        return cube
+    def is_metadata_specified(self):
+        return self.parser.is_metadata_specified()
 
     def display_dict(self):
         return {

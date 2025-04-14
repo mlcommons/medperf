@@ -180,7 +180,7 @@ def get_cube_additional(
         contents = {"additional_files_cached_hash": tarball_hash}
         yaml.dump(contents, f)
 
-    return tarball_hash
+    return additional_files_folder, tarball_hash
 
 
 def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:

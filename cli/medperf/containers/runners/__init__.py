@@ -1,2 +1,3 @@
-from .docker_runner import DockerRunner
-from .singularity_runner import SingularityRunner
+from .factory import load_runner
+
+__all__ = [load_runner]
