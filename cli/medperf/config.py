@@ -64,6 +64,7 @@ cubes_folder = "cubes"
 datasets_folder = "data"
 experiments_logs_folder = "experiments_logs"
 results_folder = "results"
+executions_folder = "executions"
 predictions_folder = "predictions"
 tests_folder = "tests"
 
@@ -102,9 +103,9 @@ storage = {
         "base": default_base_storage,
         "name": experiments_logs_folder,
     },
-    "results_folder": {
+    "executions_folder": {
         "base": default_base_storage,
-        "name": results_folder,
+        "name": executions_folder,
     },
     "predictions_folder": {
         "base": default_base_storage,
@@ -127,7 +128,7 @@ server_folders = [
     "cubes_folder",
     "datasets_folder",
     "experiments_logs_folder",
-    "results_folder",
+    "executions_folder",
     "predictions_folder",
     "tests_folder",
 ]
