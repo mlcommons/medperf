@@ -8,6 +8,7 @@ from .utils import (
     add_medperf_environment_variables,
 )
 from .runner import Runner
+import logging
 
 
 class DockerRunner(Runner):
@@ -66,6 +67,7 @@ class DockerRunner(Runner):
 
         # Run
         command = _craft_docker_run_command(run_args)
+        logging.debug(f"Running command: {command}")
         run_command(command, timeout, output_logs)
 
 

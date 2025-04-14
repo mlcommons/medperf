@@ -77,7 +77,7 @@ class Execution:
         infer_timeout = config.infer_timeout
         inference_mounts = {
             "data_path": self.dataset.data_path,
-            "preds_path": self.preds_path,
+            "output_path": self.preds_path,
         }
         try:
             self.model.run(
