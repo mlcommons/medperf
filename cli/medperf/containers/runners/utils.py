@@ -2,10 +2,11 @@ from typing import Optional
 from medperf.exceptions import InvalidContainerSpec, ExecutionError
 from medperf.utils import spawn_and_kill, combine_proc_sp_text
 from medperf import config
+import shlex
 
 
 def run_command(cmd, timeout=None, output_logs=None):
-    with spawn_and_kill(cmd, timeout=timeout) as proc_wrapper:
+    with spawn_and_kill(shlex.join(cmd), timeout=timeout) as proc_wrapper:
         proc = proc_wrapper.proc
         proc_out = combine_proc_sp_text(proc)
 
