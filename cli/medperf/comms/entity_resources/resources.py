@@ -158,7 +158,7 @@ def get_cube_additional(
     if not _should_get_cube_additional(
         additional_files_folder, expected_tarball_hash, mlcube_cache_file
     ):
-        return expected_tarball_hash
+        return additional_files_folder, expected_tarball_hash
 
     # Download the additional files. Make sure files are extracted in tmp storage
     # to avoid any clutter objects if uncompression fails for some reason.
