@@ -17,13 +17,7 @@ import os
 import logging
 import yaml
 import medperf.config as config
-from medperf.utils import (
-    generate_tmp_path,
-    get_cube_image_name,
-    remove_path,
-    untar,
-    get_file_hash,
-)
+from medperf.utils import generate_tmp_path, remove_path, untar, get_file_hash
 from .utils import download_resource
 
 
@@ -95,7 +89,7 @@ def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
     return _get_regular_file(url, output_path, expected_hash)
 
 
-def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
+def get_cube_image(url: str, hash_value: str = None) -> str:
     """Retrieves and stores the image file from the server. Stores images
     on a shared location, and retrieves a cached image by hash if found locally.
     Creates a symbolic link to the cube storage.
@@ -109,31 +103,16 @@ def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
         image_cube_file: Location where the image file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
-    image_path = config.image_path
-    image_name = get_cube_image_name(cube_path)
-    image_cube_path = os.path.join(cube_path, image_path)
-    os.makedirs(image_cube_path, exist_ok=True)
-    image_cube_file = os.path.join(image_cube_path, image_name)
-    if os.path.islink(image_cube_file):  # could be a broken link
-        # Remove existing links
-        os.unlink(image_cube_file)
+    if hash_value:
+        output_path = os.path.join(config.images_folder, hash_value)
+        return _get_regular_file(url, output_path, hash_value)
 
-    imgs_storage = config.images_folder
-    if not hash_value:
-        # No hash provided, we need to download the file first
-        tmp_output_path = generate_tmp_path()
-        hash_value = download_resource(url, tmp_output_path)
-        img_storage = os.path.join(imgs_storage, hash_value)
-        shutil.move(tmp_output_path, img_storage)
-    else:
-        img_storage = os.path.join(imgs_storage, hash_value)
-        if not os.path.exists(img_storage):
-            # If image doesn't exist locally, download it normally
-            download_resource(url, img_storage, hash_value)
-
-    # Create a symbolic link to individual cube storage
-    os.symlink(img_storage, image_cube_file)
-    return image_cube_file, hash_value
+    # No hash provided, we need to download the file
+    tmp_output_path = generate_tmp_path()
+    hash_value = download_resource(url, tmp_output_path)
+    image_path = os.path.join(config.images_folder, hash_value)
+    shutil.move(tmp_output_path, image_path)
+    return image_path, hash_value
 
 
 def get_cube_additional(

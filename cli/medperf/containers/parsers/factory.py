@@ -3,7 +3,7 @@ from .parser import Parser
 import os
 import yaml
 from .mlcube import MLCubeParser
-from .docker import DockerParser
+from .simple_container import SimpleContainerParser
 
 
 def _is_mlcube_yaml_file(container_config: dict):
@@ -34,7 +34,9 @@ def load_parser(container_config_path: str) -> Parser:
             os.path.dirname(container_config_path), "workspace"
         )
         container_config["workspace_path"] = workspace_path
-        parser = MLCubeParser(container_config)
+        parser = MLCubeParser(
+            container_config, allowed_runners=["docker", "singularity"]
+        )
         parser.check_schema()
         return parser
 
@@ -45,7 +47,16 @@ def load_parser(container_config_path: str) -> Parser:
 
     container_type = container_config["container_type"]
     if container_type == "DockerImage":
-        parser = DockerParser(container_config)
+        parser = SimpleContainerParser(
+            container_config, allowed_runners=["docker", "singularity"]
+        )
+        parser.check_schema()
+        return parser
+
+    if container_type == "SingularityFile":
+        parser = SimpleContainerParser(
+            container_config, allowed_runners=["singularity"]
+        )
         parser.check_schema()
         return parser
 

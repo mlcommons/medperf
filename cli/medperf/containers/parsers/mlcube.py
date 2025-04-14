@@ -7,8 +7,10 @@ from medperf.containers.parsers.parser import Parser
 
 
 class MLCubeParser(Parser):
-    def __init__(self, container_config: dict):
+    def __init__(self, container_config: dict, allowed_runners: list):
         self.container_config = container_config
+        self.allowed_runners = allowed_runners
+        self.container_type = "mlcube"
 
     def check_schema(self):
         container_config = self.container_config
