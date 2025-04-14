@@ -13,6 +13,22 @@ class DockerParser(Parser):
         if "tasks" not in self.container_config:
             raise InvalidContainerSpec("Container config should have a 'tasks' field.")
 
+        for task in self.container_config["tasks"]:
+            task_info = self.container_config["tasks"][task]
+            volumes = {
+                **task_info.get("input_volumes", {}),
+                **task_info.get("output_volumes", {}),
+            }
+            for volume in volumes:
+                if "type" not in volume or "mount_path" not in volume:
+                    raise InvalidContainerSpec(
+                        "Container config task volumes should have a 'type' and 'mount_path' fields."
+                    )
+                if volume["type"] not in ["file", "directory"]:
+                    raise InvalidContainerSpec(
+                        "Mount type should be either a file or a directory."
+                    )
+
     def check_task_schema(self, task: str) -> str:
         tasks = self.container_config["tasks"]
         if task not in tasks:
@@ -29,14 +45,12 @@ class DockerParser(Parser):
         if "input_volumes" in task_info:
             for key in task_info["input_volumes"]:
                 host_path = medperf_mounts[key]
-                bind_path = task_info["input_volumes"][key]
-                input_volumes[host_path] = bind_path
+                input_volumes[host_path] = task_info["input_volumes"][key]
 
         if "output_volumes" in task_info:
             for key in task_info["output_volumes"]:
                 host_path = medperf_mounts[key]
-                bind_path = task_info["output_volumes"][key]
-                output_volumes[host_path] = bind_path
+                output_volumes[host_path] = task_info["output_volumes"][key]
 
         return input_volumes, output_volumes
 

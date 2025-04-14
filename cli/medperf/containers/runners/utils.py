@@ -3,6 +3,7 @@ from medperf.exceptions import InvalidContainerSpec, ExecutionError
 from medperf.utils import spawn_and_kill, combine_proc_sp_text
 from medperf import config
 import shlex
+import os
 
 
 def run_command(cmd, timeout=None, output_logs=None):
@@ -31,7 +32,7 @@ def check_allowed_run_args(run_args):
 
 
 def add_medperf_run_args(run_args):
-    run_args["user"] = "$(id -u):$(id -g)"
+    run_args["user"] = f"{os.getuid()}:{os.getgid()}"
     run_args["network"] = "none"
 
 

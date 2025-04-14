@@ -164,6 +164,7 @@ wait_before_sending_reports = 30  # In seconds
 
 # Container config
 gpus = None
+shm_size = None
 platform = "docker"
 prepare_timeout = None
 sanity_check_timeout = None

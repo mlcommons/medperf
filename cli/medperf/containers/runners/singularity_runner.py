@@ -158,7 +158,7 @@ class SingularityRunner(Runner):
         medperf_env: dict[str, str] = {},
     ):
         self.parser.check_task_schema(task)
-        run_args = self.parser.get_run_args()
+        run_args = self.parser.get_run_args(task, medperf_mounts)
         check_allowed_run_args(run_args)
 
         add_medperf_run_args(run_args)
@@ -176,12 +176,8 @@ class SingularityRunner(Runner):
 
         # Add volumes
         input_volumes, output_volumes = self.parser.get_volumes(task, medperf_mounts)
-        volumes = {}
-        for host_path, bind_path in input_volumes.items():
-            volumes[host_path] = {"bind": bind_path, "mode": "ro"}
-        for host_path, bind_path in output_volumes.items():
-            volumes[host_path] = {"bind": bind_path, "mode": "rw"}
-        run_args["volumes"] = volumes
+        run_args["input_volumes"] = input_volumes
+        run_args["output_volumes"] = output_volumes
 
         # Add env vars
         run_args["env"] = medperf_env
@@ -198,12 +194,34 @@ class SingularityRunner(Runner):
 
 def _volumes_to_cli_args(input_volumes: dict, output_volumes: dict):
     args = []
-    for host_path, bind_path in input_volumes.items():
-        args.append("--bind")
-        args.append(f"'{host_path}:{bind_path}:ro'")
-    for host_path, bind_path in output_volumes.items():
-        args.append("--bind")
-        args.append(f"'{host_path}:{bind_path}:rw'")
+
+    for host_path, mount_info in input_volumes.items():
+        mount_path = mount_info["mount_path"]
+        mount_type = mount_info["type"]
+        if mount_type == "directory":
+            os.makedirs(host_path, exist_ok=True)
+        else:
+            dirname = os.path.dirname(host_path)
+            os.makedirs(dirname, exist_ok=True)
+            if not os.path.exists(host_path):
+                with open(host_path, "w"):
+                    pass
+        args.append("--volume")
+        args.append(f"{host_path}:{mount_path}:ro")
+    for host_path, mount_info in output_volumes.items():
+        mount_path = mount_info["mount_path"]
+        mount_type = mount_info["type"]
+        if mount_type == "directory":
+            os.makedirs(host_path, exist_ok=True)
+        else:
+            dirname = os.path.dirname(host_path)
+            os.makedirs(dirname, exist_ok=True)
+            if not os.path.exists(host_path):
+                with open(host_path, "w"):
+                    pass
+        args.append("--volume")
+        args.append(f"{host_path}:{mount_path}:rw")
+    return args
 
 
 def _craft_singularity_run_command(run_args: dict, executable: str):
@@ -212,8 +230,8 @@ def _craft_singularity_run_command(run_args: dict, executable: str):
     # By default, current user is used.
     _ = run_args.pop("user", None)
 
-    input_volumes = run_args.pop(input_volumes, {})
-    output_volumes = run_args.pop(output_volumes, {})
+    input_volumes = run_args.pop("input_volumes", {})
+    output_volumes = run_args.pop("output_volumes", {})
     volumes_args = _volumes_to_cli_args(input_volumes, output_volumes)
     command.extend(volumes_args)
 
@@ -234,9 +252,8 @@ def _craft_singularity_run_command(run_args: dict, executable: str):
     # https://github.com/ratt-ru/Stimela-classic/issues/394
 
     env_dict = run_args.pop("environment", {})
-    env_arg = ",".join([f"{key}='{val}'" for key, val in env_dict.items()])
-    command.append("--env")
-    command.append(env_arg)
+    for key, val in env_dict.items():
+        os.environ[f"SINGULARITYENV_{key}"] = val
 
     image = run_args.pop("image")
     command.append(image)
@@ -244,7 +261,7 @@ def _craft_singularity_run_command(run_args: dict, executable: str):
     entrypoint = run_args.pop("entrypoint", None)
     if entrypoint is not None:
         command[1] = "exec"
-        command.append(f"'{entrypoint}'")
+        command.append(f"{entrypoint}")
 
     extra_command = run_args.pop("command", [])
     command.extend(extra_command)

@@ -7,8 +7,16 @@ tasks:
       environment:
         mmm: "kkkkkkkkkkkk"
     input_volumes:
-      data_path: /medperf_input_data_path
-      parameters_file: /medperf_parameters/parameters.yaml
-      additional_files: /medperf_additional_files
+      data_path:
+        type: directory
+        mount_path: /medperf_input_data_path
+      parameters_file:
+        type: file
+        mount_path: /medperf_parameters/parameters.yaml
+      additional_files:
+        type: directory
+        mount_path: /medperf_additional_files
     output_volumes:
-      predictions: /medperf_predictions
+      predictions:
+        type: directory
+        mount_path: /medperf_predictions

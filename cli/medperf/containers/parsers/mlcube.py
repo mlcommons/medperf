@@ -104,10 +104,14 @@ def _parse_task(container_config: dict, task: str, medperf_mounts: dict):
     input_volumes = {}
     output_volumes = {}
     for host_path in volumes:
+        volume_info = {
+            "mount_path": volumes[host_path]["path"],
+            "type": volumes[host_path]["type"],
+        }
         if volumes[host_path]["io_type"] == "input":
-            input_volumes[host_path] = volumes[host_path]["path"]
+            input_volumes[host_path] = volume_info
         else:
-            output_volumes[host_path] = volumes[host_path]["path"]
+            output_volumes[host_path] = volume_info
     shm_size = _parse_shm_size(container_config)
     extra_args = {
         "shm_size": shm_size,
@@ -172,11 +176,15 @@ def _parse_parameters(
         if mount_info is None:
             # same way mlcube indexes them, to avoid problems
             # if a user has hardcoded mlcubeio*
-            mount_info = {"path": f"/mlcube_io{mount_index}", "io_type": io_type}
+            mount_info = {
+                "path": f"/mlcube_io{mount_index}",
+                "io_type": io_type,
+                "type": param_type,
+            }
             volumes[host_path] = mount_info
             mount_index += 1
         param_arg = os.path.join(mount_info["path"], file_name)
-        args.append(f'--{param_name}="{param_arg}"')
+        args.append(f"--{param_name}={param_arg}")
     return args, mount_index
 
 
