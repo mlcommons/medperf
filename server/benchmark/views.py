@@ -15,6 +15,7 @@ from .permissions import IsAdmin, IsBenchmarkOwner, IsAssociatedDatasetOwner
 class BenchmarkList(GenericAPIView):
     serializer_class = BenchmarkSerializer
     queryset = ""
+    filterset_fields = ('name', 'owner', 'state', 'is_valid', 'is_active', 'approval_status', 'data_preparation_mlcube')
 
     @extend_schema(operation_id="benchmarks_retrieve_all")
     def get(self, request, format=None):
@@ -22,6 +23,7 @@ class BenchmarkList(GenericAPIView):
         List all benchmarks
         """
         benchmarks = Benchmark.objects.all()
+        benchmarks = self.filter_queryset(benchmarks)
         benchmarks = self.paginate_queryset(benchmarks)
         serializer = BenchmarkSerializer(benchmarks, many=True)
         return self.get_paginated_response(serializer.data)
