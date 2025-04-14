@@ -7,7 +7,6 @@ from .utils import (
     add_medperf_environment_variables,
 )
 from .runner import Runner
-import json
 
 
 class DockerRunner(Runner):
@@ -16,17 +15,12 @@ class DockerRunner(Runner):
 
     def _get_image_hash(self, timeout: int = None):
         docker_image = self.parser.get_setup_args()
-        command = ["docker", "inspect", docker_image]
-        output = run_command(command, timeout=timeout)
-        image_info = json.loads(output)
-        if (
-            not isinstance(image_info, list)
-            or len(image_info) != 1
-            or not isinstance(image_info[0], dict)
-        ):
-            raise InvalidContainerSpec("invalid hash output")
-        image_id = image_info[0].get("Id", None)
-        if image_id and image_id.startswith("sha256:"):
+        command = ["docker", "inspect", "--format", "{{.Id}}", docker_image]
+        image_id = run_command(command, timeout=timeout)
+        image_id = image_id.strip()
+        # docker_client = docker.APIClient()
+        # image_info = docker_client.inspect_image(docker_image)
+        if image_id.startswith("sha256:"):
             image_id = image_id[len("sha256:") :]  # noqa
             return image_id
         raise InvalidContainerSpec("Invalid inspect output:", image_id)
