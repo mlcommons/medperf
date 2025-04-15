@@ -102,7 +102,7 @@ class BenchmarkExecution:
             msg = "The provided dataset is not compatible with the specified benchmark."
             raise InvalidArgumentError(msg)
         # TODO: there is no check if dataset is associated with the benchmark
-        #       Note that if it is present, this will break dataset association logic
+        #       Note that if it is present, this will break dataset association creation logic
 
     def prepare_models(self):
         if self.models_input_file:
