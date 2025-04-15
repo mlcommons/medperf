@@ -176,4 +176,45 @@
 </script>
 <script src="/static/js/event_handler.js"></script>
 <script src="/static/js/app.js"></script>
+
+{% if task_running and request.app.state.task["name"] == "benchmark_register" %}
+<script>
+    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
+        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
+            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
+        });
+        return currentStageElement;
+    }
+    task_id = "{{ request.app.state.task['id'] }}";
+    document.addEventListener("DOMContentLoaded", () => {
+        const input_elements = document.querySelectorAll("#register-form input");
+        input_elements.forEach(element => {
+            element.setAttribute("disabled", true);
+        });
+        const textareas = document.querySelectorAll("#register-form textarea");
+        textareas.forEach(element => {
+            element.setAttribute("disabled", true);
+        });
+        showPanel(`Registering Benchmark...`);
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+            let response = last_log.response;
+            markAllStagesAsComplete();
+            if(response.status === "success"){
+                showReloadModal("Benchmark Successfully Registered");
+                timer(3, url="/benchmarks/ui/display/"+response.benchmark_id);
+            }
+            else{
+                $("#errorModalLabel").html("Failed to Register Benchmark");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}

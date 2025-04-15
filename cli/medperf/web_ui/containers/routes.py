@@ -13,7 +13,10 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
+    add_notification,
     get_current_user_api,
+    initialize_state_task,
+    reset_state_task,
     templates,
     get_current_user_ui,
 )
@@ -110,12 +113,16 @@ def compatibilty_test_ui(
 
 @router.post("/register", response_class=JSONResponse)
 def register_container(
+    request: Request,
     name: str = Form(...),
     container_file: str = Form(...),
     parameters_file: str = Form(""),
     additional_file: str = Form(""),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="container_register")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
         "name": name,
         "git_mlcube_url": container_file,
@@ -128,42 +135,86 @@ def register_container(
         "additional_files_tarball_hash": "",
         "state": "OPERATION",
     }
+    container_id = None
     try:
         container_id = SubmitCube.run(container_info)
-        config.ui.set_success()
-        return {"status": "success", "container_id": container_id, "error": ""}
+        return_response["status"] = "success"
+        return_response["container_id"] = container_id
+        notification_message = "Container successfully registered"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "container_id": None, "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to register container"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/containers/ui/display/{container_id}" if container_id else "",
+    )
+    return return_response
 
 
 @router.post("/test", response_class=JSONResponse)
 def test_container(
+    request: Request,
     benchmark: int = Form(...),
     container_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="container_compatibility_test")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": "", "results": None}
     try:
         _, results = CompatibilityTestExecution.run(
             benchmark=benchmark, model=container_path
         )
-        config.ui.set_success()
-        return {"status": "success", "error": "", "results": results}
+        return_response["status"] = "success"
+        return_response["results"] = results
+        notification_message = "Container compatibility test succeeded!"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "error": str(exp), "results": ""}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Container compatibility test failed"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url="/containers/register/ui",
+    )
+    return return_response
 
 
 @router.post("/associate", response_class=JSONResponse)
 def associate(
+    request: Request,
     container_id: int = Form(...),
     benchmark_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="container_association")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": ""}
     try:
         AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)
-        config.ui.set_success()
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Successfully requested model association!"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to request model association"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/containers/ui/display/{container_id}",
+    )
+    return return_response

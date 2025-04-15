@@ -17,11 +17,53 @@ from medperf.web_ui.auth import (
     API_KEY_NAME,
     NotAuthenticatedException,
 )
+import uuid
+import time
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"  # noqa
 templates = Jinja2Templates(directory=templates_folder_path)
 
 logger = logging.getLogger(__name__)
+
+
+def generate_uuid():
+    return str(uuid.uuid4())
+
+
+def initialize_state_task(request: Request, task_name: str) -> str:
+    new_task_id = generate_uuid()
+    request.app.state.task = {
+        "id": new_task_id,
+        "name": task_name,
+        "running": True,
+        "logs": [],
+    }
+    request.app.state.task_running = True
+
+    return new_task_id
+
+
+def reset_state_task(request: Request):
+    current_task = request.app.state.task
+    current_task["running"] = False
+    if len(request.app.state.old_tasks) == 10:
+        request.app.state.old_tasks.pop(0)
+    request.app.state.old_tasks.append(current_task)
+    request.app.state.task = {"id": "", "name": "", "running": False, "logs": []}
+    request.app.state.task_running = False
+
+
+def add_notification(request: Request, message: str, type: str, url: str = ""):
+    request.app.state.new_notifications.append(
+        {
+            "id": generate_uuid(),
+            "message": message,
+            "type": type,
+            "read": False,
+            "timestamp": time.time(),
+            "url": url,
+        }
+    )
 
 
 def custom_exception_handler(request: Request, exc: Exception):

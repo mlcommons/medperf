@@ -1,5 +1,7 @@
 let currentStageElement, datasetId, logPanel, stagesList;
-    
+let task_id;
+let prompt_received = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     currentStageElement = null;
     logPanel = document.getElementById('log-panel');
@@ -53,7 +55,11 @@ function showResult(element){
     Prism.highlightElement(document.getElementById("result-content"));
 }
 
-function submitResult(element){
+async function submitResult(element){
+    const buttons = document.querySelectorAll(".card button");
+    buttons.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     const result_name = element.getAttribute("data-result-name");
     $.ajax({
         url: "/datasets/submit_result",
@@ -83,7 +89,8 @@ function submitResult(element){
             console.error('Error preparing:', error); // TODO
         }
     });
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
 function showPanel(title){
@@ -98,7 +105,7 @@ function scroll(element_id){
     }, 1000);
 }
 
-function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=null, dataset_name=null){
+async function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=null, dataset_name=null){
     let text;
     var formData = new FormData();
     if(benchmark_id){
@@ -127,7 +134,14 @@ function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=nul
     }
     formData.append("dataset_id", dataset_id);
     formData.append("benchmark_id", benchmark_id);
-    
+    const select_elements = document.querySelectorAll(".card select");
+    select_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const buttons = document.querySelectorAll(".card button");
+    buttons.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/datasets/run",
         type: "POST",
@@ -160,10 +174,11 @@ function runBenchmark(element, benchmark_id=null, dataset_id=null, model_ids=nul
     });
     
     showPanel(text);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
-function associate(dataset_id, benchmark_id, dataset_name){
+async function associate(dataset_id, benchmark_id, dataset_name){
     document.getElementById("dropdown-div").classList.remove("show");
     const associate_btn = document.getElementById("associate-dropdown");
     associate_btn.setAttribute("disabled", true);
@@ -171,6 +186,10 @@ function associate(dataset_id, benchmark_id, dataset_name){
     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
     Requesting Association
     `;
+    const buttons = document.querySelectorAll(".card button");
+    buttons.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/datasets/associate",
         type: "POST",
@@ -180,7 +199,7 @@ function associate(dataset_id, benchmark_id, dataset_name){
         success: function(response) {
             markAllStagesAsComplete();
             let title;
-            if(response){
+            if(response.status === "success"){
                 title = "Association Requested Successfully";
                 showReloadModal(title);
                 timer(3);
@@ -201,10 +220,11 @@ function associate(dataset_id, benchmark_id, dataset_name){
         }
     });
     showPanel(`Requesting Association...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
-function setOperation(element){
+async function setOperation(element){
     const dataset_id = element.getAttribute("data-dataset-id");
     element.setAttribute("disabled", true);
     element.innerHTML = `
@@ -241,10 +261,11 @@ function setOperation(element){
             console.error('Error setting operational:', error); // TODO
         }
     });
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
-function prepare(element) {
+async function prepare(element) {
     const dataset_id = element.getAttribute("data-dataset-id");
     const dataset_name = element.getAttribute("data-dataset-name");
     element.setAttribute("disabled", true);
@@ -263,8 +284,6 @@ function prepare(element) {
             markAllStagesAsComplete();
             if(response.status === "success"){
                 title = "Dataset Prepared Successfully";
-                showReloadModal(title);
-                timer(3);
             }
             else{
                 title = "Failed to Prepare Dataset";
@@ -284,12 +303,34 @@ function prepare(element) {
             console.error('Error preparing:', error); // TODO
         }
     });
+    task_id = await getTaskId();
     showPanel(`Preparing Dataset...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
-function registerDataset(){
+async function registerDataset(element){
+    element.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Registering
+    `;
     const formData = new FormData($("#dataset-form")[0]);
+
+    const input_elements = document.querySelectorAll("#dataset-form input");
+    input_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const select_elements = document.querySelectorAll("#dataset-form select");
+    select_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const buttons = document.querySelectorAll("#dataset-form button");
+    buttons.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const textareas = document.querySelectorAll("#dataset-form textarea");
+    textareas.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/datasets/register",
         type: "POST",
@@ -319,13 +360,16 @@ function registerDataset(){
         },
         error: function(xhr, status, error) {
             console.log("Error occurred:", error);
+            console.error("📦 Response Text:", xhr.responseText);
         }
     });
-    $("#step-3").hide();
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
+    $("#respond-no").on("click", respond_no);
+    $("#respond-yes").on("click", respond_yes);
 }
 
-function testContainer(){
+async function testContainer(){
     const runBtn = $("#run-test");
     runBtn.prop("disabled", true);
     runBtn.html(`
@@ -333,11 +377,11 @@ function testContainer(){
         Running
     `);
     const formData = new FormData($("#container-form")[0]);
-    const input_elements = document.querySelectorAll("input");
+    const input_elements = document.querySelectorAll("#container-form input");
     input_elements.forEach(element => {
         element.setAttribute("disabled", true);
     });
-    const select_elements = document.querySelectorAll("select");
+    const select_elements = document.querySelectorAll("#container-form select");
     select_elements.forEach(element => {
         element.setAttribute("disabled", true);
     });
@@ -374,7 +418,8 @@ function testContainer(){
         }
     });
     showPanel(`Running Compatibility Test...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId()
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
 function checkInput() {
@@ -425,7 +470,7 @@ function checkInputBenchmark() {
     );
 }
 
-function registerContainer(){
+async function registerContainer(){
     const runBtn = $("#register-btn");
     runBtn.prop("disabled", true);
     runBtn.html(`
@@ -433,6 +478,10 @@ function registerContainer(){
         Registering
     `);
     const formData = new FormData($("#register-form")[0]);
+    const input_elements = document.querySelectorAll("#register-form input");
+    input_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/containers/register",
         type: "POST",
@@ -462,7 +511,8 @@ function registerContainer(){
         }
     });
     showPanel(`Registering Model...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
 function checkRegister(){
@@ -523,7 +573,7 @@ function showRegister(){
     window.location.href = "/containers/register/ui";
 }
 
-function associateContainer(container_id, benchmark_id, contianer_name){
+async function associateContainer(container_id, benchmark_id, contianer_name){
     document.getElementById("dropdown-div").classList.remove("show");
     const associate_btn = document.getElementById("associate-dropdown");
     associate_btn.setAttribute("disabled", true);
@@ -561,10 +611,11 @@ function associateContainer(container_id, benchmark_id, contianer_name){
         }
     });
     showPanel(`Requesting Model Association...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
-function testBenchmark(){
+async function testBenchmark(){
     const runBtn = $("#run-test");
     runBtn.prop("disabled", true);
     runBtn.html(`
@@ -572,12 +623,12 @@ function testBenchmark(){
         Running
     `);
     const formData = new FormData($("#test-form")[0]);
-    const input_elements = document.querySelectorAll("input");
+    const input_elements = document.querySelectorAll("#test-form input");
     input_elements.forEach(element => {
         element.setAttribute("disabled", true);
     });
-    const select_elements = document.querySelectorAll("select");
-    select_elements.forEach(element => {
+    const textareas = document.querySelectorAll("#test-form textarea");
+    textareas.forEach(element => {
         element.setAttribute("disabled", true);
     });
     $.ajax({
@@ -613,10 +664,11 @@ function testBenchmark(){
         }
     });
     showPanel(`Running Workflow Test...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
-function registerBenchmark(){
+async function registerBenchmark(){
     const runBtn = $("#register-btn");
     runBtn.prop("disabled", true);
     runBtn.html(`
@@ -624,6 +676,14 @@ function registerBenchmark(){
         Registering
     `);
     const formData = new FormData($("#register-form")[0]);
+    const input_elements = document.querySelectorAll("#register-form input");
+    input_elements.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
+    const textareas = document.querySelectorAll("#register-form textarea");
+    textareas.forEach(element => {
+        element.setAttribute("disabled", true);
+    });
     $.ajax({
         url: "/benchmarks/register",
         type: "POST",
@@ -654,7 +714,8 @@ function registerBenchmark(){
         }
     });
     showPanel(`Registering Benchmark...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    task_id = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
 
 function cancelRegisterBenchmark(){
@@ -793,18 +854,25 @@ function respond_yes(){
         type: "POST",
         data: { is_approved: true },
     });
+    prompt_received = false;
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
+
 function respond_no(){
     $.ajax({
         url: "/events",
         type: "POST",
         data: { is_approved: false },
     });
+    prompt_received = false;
+    getEvents(logPanel, stagesList, currentStageElement, task_id);
 }
+
 function showLoading(){
     $("#loading-overlay").css("display", "flex");
     $("html").css("cursor", "not-allowed");
 }
+
 function hideLoading(){
     $("#loading-overlay").hide();
     $("html").css("cursor", "unset");
@@ -873,3 +941,203 @@ function processLogin(){
         }
     });
 }
+
+function getNotifications() {
+    $.ajax({
+        url: "/notifications",
+        type: "GET",
+        dataType: "json",
+        async: true,
+        success: function(response) {
+            if (Array.isArray(response)) {
+                response.forEach(function(notification) {
+                    let bg = "text-bg-primary";
+                    if (notification.type === "success")
+                        bg = "text-bg-success";
+                    else if (notification.type === "failed")
+                        bg = "text-bg-danger";
+
+                    showToast(notification.message, bg);
+                    addNotification(notification);
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching notifications:', error);
+        }
+    });
+}
+
+function showToast(message, bgClass) {
+    const toastHTML = `
+      <div class="toast align-items-center ${bgClass} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body fw-bold">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    `;
+
+    const $toast = $(toastHTML);
+    $("#toastContainer").append($toast);
+
+    const bsToast = new bootstrap.Toast($toast[0], {
+        animation: true,
+        delay: 3000
+    });
+
+    bsToast.show();
+
+    $toast.on("hidden.bs.toast", function () {
+        $(this).remove();
+    });
+}
+
+function addNotification(notification){
+    const notifications_list = $("#notifications-list");
+    let bgClass, borderClass
+    if(!$(".notification-text").length){
+        notifications_list.html("");
+    }
+    if (notification.type === "success"){
+        bgClass = "bg-light text-success";
+        borderClass = "border-success";
+    }
+    else if (notification.type === "info"){
+        bgClass = "bg-light text-info";
+        borderClass = "border-info";
+    }
+    else{
+        bgClass = "bg-light text-danger";
+        borderClass = "border-danger";
+    }
+
+    const fontWeight = !notification.read ? "fw-bold" : "";
+    const mark_read_btn = $(`<button class="btn btn-sm btn-outline-secondary" data-id="${notification.id}" type="button">Mark as Read</button>`);
+    const delete_btn = $(`<button class="btn btn-sm btn-outline-danger" data-id="${notification.id}" type="button">Delete</button>`);
+    const new_notification = $(`
+        <li class="dropdown-item" data-id=${notification.id} data-read=${notification.read}>
+            <div class="d-flex flex-column mb-2 p-2 ${bgClass} border-2 border-bottom ${borderClass}">
+                <div class="${fontWeight} notification-text" data-id=${notification.id}>${notification.message}</div>
+                <div class="small text-muted">${timeAgo(notification.timestamp)}</div>
+                <div class="mt-1 d-flex gap-2">
+                </div>
+            </div>
+        </li>
+    `);
+    const buttonContainer = new_notification.find("div.mt-1.d-flex.gap-2");
+    if (!notification.read) {
+        buttonContainer.append(mark_read_btn);
+    }
+    buttonContainer.append(`<a href="${notification.url}" class="btn btn-sm btn-outline-primary">Open</a>`);
+    buttonContainer.append(delete_btn);
+    
+    notifications_list.prepend(new_notification);
+    if(!notification.read){
+        incrementNotificationCount();
+        $(mark_read_btn).on("click", function(e) {
+            const id = e.target.getAttribute("data-id");
+            const current_button = e.target;
+            $.ajax({
+                url: "/notifications/mark_read",
+                method: "post",
+                data: { notification_id: id },
+                async: true,
+                success: function () {
+                    const element = document.querySelector(`.notification-text[data-id="${id}"]`);
+                    if(element)
+                        element.classList.remove("fw-bold");
+                    current_button.remove();
+                    incrementNotificationCount(false);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Failed to mark as read:", error);
+                }
+            });
+        });
+    }
+    $(delete_btn).on("click", function(e) {
+        const id = e.target.getAttribute("data-id");
+        $.ajax({
+            url: "/notifications/delete",
+            method: "post",
+            data: { notification_id: id },
+            async: true,
+            success: function () {
+                deleteNotification(id);
+            },
+            error: function (xhr, status, error) {
+                console.error("Failed to delete:", error);
+            }
+        });
+    });
+}
+
+function incrementNotificationCount(inc=true){
+    const notification_count_element = $("#notifications-count");
+    var notification_count = Number(notification_count_element.text());
+    if (inc)
+        notification_count += 1;
+    else
+        notification_count -= 1;
+    notification_count_element.html(notification_count);
+    if(notification_count > 0){
+        if (notification_count_element.hasClass("d-none"))
+            notification_count_element.removeClass("d-none");
+    }
+    else{
+        if (!notification_count_element.hasClass("d-none"))
+            notification_count_element.addClass("d-none");
+    }
+}
+
+function deleteNotification(notification_id){
+    const element = document.querySelector(`.dropdown-item[data-id="${notification_id}"]`);
+    if(element){
+        element.remove();
+        if(element.getAttribute("data-read") == "false")
+            incrementNotificationCount(false);
+    }
+    if(!$("#notifications-list > li").length){
+        $("#notifications-list").append("<li class='dropdown-item'>No notifications yet</li>");
+    }
+}
+
+function timeAgo(timestamp) {
+    timestamp = timestamp * 1000;
+    const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
+    if (seconds < 5)
+        return "Just now";
+    else if (seconds < 60)
+        return `${seconds} seconds ago`
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60)
+        return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+        return `${hours} hr${hours > 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+function getTaskId(){
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: "/current_task",
+            method: "get",
+            success: function (response) {
+                resolve(response.task_id);
+            },
+            error: function (xhr, status, error) {
+                console.error("Failed to get task id:", error);
+                reject(error);
+            }
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    notifications.forEach(notification => {
+        addNotification(notification);
+    });
+});

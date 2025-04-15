@@ -3,28 +3,39 @@ function create_p(msg){
     p.text(msg)
     return p
 }
-function getEvents(logPanel, stagesList, currentStageElement) { // Recursively get events(logs, prints, etc..)
-    $.ajax({
-        url: "/events",
-        type: "GET",
-        dataType: "json",
-        success: function(response) {
-            if (response.end)
-                return;
-            currentStageElement = handleEvents(response, logPanel, stagesList, currentStageElement);
-            getEvents(logPanel, stagesList, currentStageElement);
-        },
-        error: function(xhr, status, error) {
-            console.log("Error getEvents");
-            console.log(xhr);
-            console.log(status);
-            console.log(error);
-        }
+function getEvents(logPanel, stagesList, currentStageElement, task_id=null) { // Recursively get events(logs, prints, etc..)
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: "/events",
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+                if (response.task_id === task_id){
+                    if (response.end){
+                        resolve(response);
+                        return;
+                    }
+                }
+                currentStageElement = handleEvents(response, logPanel, stagesList, currentStageElement, task_id);
+                if(!prompt_received)
+                    getEvents(logPanel, stagesList, currentStageElement, task_id).then(resolve).catch(reject);
+            },
+            error: function(xhr, status, error) {
+                console.log("Error getEvents");
+                console.log(xhr);
+                console.log(status);
+                console.log(error);
+                reject(error);
+            }
+        });
     });
 }
 
 // This function handles Events
-function handleEvents(log, logPanel, stagesList, currentStageElement) {
+function handleEvents(log, logPanel, stagesList, currentStageElement, task_id) {
+    if (log.task_id !== task_id){
+        return currentStageElement;
+    }
     // Clean the message from ANSI escape sequences
     var cleanMessage = log.message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
     if(log.interactive){
@@ -87,6 +98,7 @@ function handleEvents(log, logPanel, stagesList, currentStageElement) {
         $("#prompt-text").html(p);
         $("#prompt-div").show()
         scroll("prompt-div");
+        prompt_received = true;
     }
     else if (log.type === "yaml"){
         // Display the YAML statistics in the <code> element

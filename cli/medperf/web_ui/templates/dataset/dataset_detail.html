@@ -53,6 +53,7 @@
     }
 </style>
 {% endblock optional_styles %}
+
 <h1 class="my-4">{{ dataset.name }}</h1>
 <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
@@ -154,6 +155,7 @@
                     id="prepare-dataset"
                     data-dataset-id="{{ dataset.id }}"
                     data-dataset-name="{{ dataset.name }}"
+                    {% if task_running %} disabled {% endif %}
                 >
                     <i class="fas fa-play-circle me-2"></i> Prepare
                 </button>
@@ -175,6 +177,7 @@
                     class="step-btn btn btn-warning"
                     id="set-operational"
                     data-dataset-id="{{ dataset.id }}"
+                    {% if task_running %} disabled {% endif %}
                 >
                     <i class="fas fa-arrow-up me-2"></i> Set Operational
                 </button>
@@ -204,6 +207,7 @@
                         id="associate-dropdown"
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
+                        {% if task_running %} disabled {% endif %}
                     >
                         Associate with Benchmark
                     </button>
@@ -289,8 +293,9 @@
 				data-benchmark-id="{{ assoc }}"
 				data-dataset-id="{{ dataset.id }}"
 				data-dataset-name="{{ dataset.name }}"
-				>
-					▶️ Run All
+                {% if task_running %} disabled {% endif %}
+			>
+				▶️ Run All
 			</button>
     	</div>
     	<div class="card-body p-4">
@@ -312,6 +317,7 @@
 									data-dataset-id="{{ dataset.id }}"
 									data-model-name="{{ reference_model.name }}"
 									id="run-{{ assoc }}-{{ reference_model.id }}"
+                                    {% if task_running %} disabled {% endif %}
 								>
 									▶️ Run
 								</button>
@@ -325,6 +331,7 @@
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ reference_model.id }}"
 										data-result='{{ reference_model.result|tojson }}'
+                                        {% if task_running %} disabled {% endif %}
 									>
                                         🔍 View Result
 									</button>
@@ -340,6 +347,7 @@
 										class="btn btn-primary"
 										id="submit-{{ reference_model.result.name }}"
 										data-result-name="{{ reference_model.result.name }}"
+                                        {% if task_running %} disabled {% endif %}
 									>
 										⬆️ Submit
 									</button>
@@ -365,8 +373,9 @@
 									data-dataset-id="{{ dataset.id }}"
 									data-model-name="{{ model.name }}"
 									id="run-{{ assoc }}-{{ model.id }}"
+                                    {% if task_running %} disabled {% endif %}
 								>
-										▶️ Run
+									▶️ Run
 								</button>
 							</div>
 							{% if model.result %}
@@ -378,6 +387,7 @@
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ model.id }}"
 										data-result='{{ model.result|tojson }}'
+                                        {% if task_running %} disabled {% endif %}
 									>
                                         🔍 View Result
 									</button>
@@ -385,7 +395,7 @@
 								<!-- any cleaner way? -->
 								{% if model.result.id %}
 								<div class="mx-2">
-										<span class="btn btn-success">✅ Submitted</span>
+									<span class="btn btn-success">✅ Submitted</span>
 								</div>
 								{% else %}
 								<div class="mx-2">
@@ -393,6 +403,7 @@
 											class="btn btn-primary"
 											id="submit-{{ model.result.name }}"
 											data-result-name="{{ model.result.name }}"
+                                            {% if task_running %} disabled {% endif %}
 										>
 											⬆️ Submit
 										</button>
@@ -404,7 +415,7 @@
                     {% endfor %}
                     {% else %}
 					<li class="list-group-item d-flex justify-content-between align-items-center">
-							No models yet
+						No models yet
 					</li>
                     {% endif %}
                     </ul>
@@ -537,4 +548,312 @@
         });
     });
 </script>
+
+{% if task_running %}
+<script>
+    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
+        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
+            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
+        });
+        return currentStageElement;
+    }
+    task_id = "{{ request.app.state.task['id'] }}";
+    document.addEventListener("DOMContentLoaded", () => {
+    {% if request.app.state.task["name"] == "dataset_preparation" %}
+        showPanel(`Preparing Dataset...`);
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+            let response = last_log.response;
+            let title;
+            markAllStagesAsComplete();
+            if(response.status === "success"){
+                title = "Dataset Prepared Successfully";
+                showReloadModal(title);
+                timer(3);
+            }
+            else{
+                title = "Failed to Prepare Dataset";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+        });
+    {% elif request.app.state.task["name"] == "dataset_set_operational" %}
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        if(!prompt_received){
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Dataset Set to Operation Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Failed to Set Dataset to Operation"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_yes = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: true },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Dataset Set to Operation Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Failed to Set Dataset to Operation"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_no = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: false },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Dataset Set to Operation Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Failed to Set Dataset to Operation"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        };
+        $("#respond-no").off("click").on("click", respond_no);
+        $("#respond-yes").off("click").on("click", respond_yes);
+    {% elif request.app.state.task["name"] == "dataset_association" %}
+        showPanel(`Requesting Association...`);
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        if (!prompt_received){
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Association Requested Successfully";
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Association Request Failed";
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_yes = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: true },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Association Requested Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Association Request Failed"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_no = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: false },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Association Requested Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Association Request Failed"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        };
+        $("#respond-no").off("click").on("click", respond_no);
+        $("#respond-yes").off("click").on("click", respond_yes);
+        {% elif request.app.state.task["name"] == "benchmark_run" %}
+        showPanel(`Running Benchmark Execution...`);
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+            let response = last_log.response;
+            let title;
+            markAllStagesAsComplete();
+            if(response.status === "success"){
+                title = "Execution Ran Successfully";
+                showReloadModal(title);
+                timer(3);
+            }
+            else{
+                title = "Execution Failed";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+        });
+        {% elif request.app.state.task["name"] == "result_submit" %}
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        if (!prompt_received){
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                let title;
+                markAllStagesAsComplete();
+                if(response.status === "success"){
+                    title = "Results Successfully Submitted";
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Results Submission Failed";
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_yes = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: true },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Results Successfully Submitted"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Results Submission Failed"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_no = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: false },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Results Successfully Submitted"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Results Submission Failed"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        };
+        $("#respond-no").off("click").on("click", respond_no);
+        $("#respond-yes").off("click").on("click", respond_yes);
+    {% endif %}
+    });
+</script>
+{% endif %}
 {% endblock detail_panel %}

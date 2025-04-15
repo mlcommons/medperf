@@ -208,4 +208,102 @@
         $("#respond-no").on("click", respond_no);
     });
 </script>
+
+{% if task_running and request.app.state.task["name"] == "container_association" %}
+<script>
+    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
+        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
+            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
+        });
+        return currentStageElement;
+    }
+    task_id = "{{ request.app.state.task['id'] }}";
+    document.addEventListener("DOMContentLoaded", () => {
+        const associate_btn = document.getElementById("associate-dropdown");
+        associate_btn.setAttribute("disabled", true);
+        showPanel(`Requesting Model Association...`);
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        if (!prompt_received){
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Association Requested Successfully";
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Association Request Failed";
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_yes = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: true },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Association Requested Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Association Request Failed"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        }
+        respond_no = function(){
+            $.ajax({
+                url: "/events",
+                type: "POST",
+                data: { is_approved: false },
+            });
+            prompt_received = false;
+            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+                let response = last_log.response;
+                markAllStagesAsComplete();
+                let title;
+                if(response.status === "success"){
+                    title = "Association Requested Successfully"
+                    showReloadModal(title);
+                    timer(3);
+                }
+                else{
+                    title = "Association Request Failed"
+                    $("#errorModalLabel").html(title);
+                    $("#errorText").html(response.error);
+                    const errorModal = new bootstrap.Modal('#errorModal', {
+                        keyboard: false,
+                        backdrop: "static"
+                    });
+                    errorModal.show();
+                }
+            });
+        };
+        $("#respond-no").off("click").on("click", respond_no);
+        $("#respond-yes").off("click").on("click", respond_yes);
+    });
+</script>
+{% endif %}
 {% endblock %}

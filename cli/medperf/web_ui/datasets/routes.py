@@ -21,6 +21,9 @@ from medperf.web_ui.common import (
     templates,
     get_current_user_ui,
     get_current_user_api,
+    initialize_state_task,
+    reset_state_task,
+    add_notification,
 )
 
 logger = logging.getLogger(__name__)
@@ -146,6 +149,7 @@ def create_dataset_ui(
 
 @router.post("/register/", response_class=JSONResponse)
 def register_dataset(
+    request: Request,
     benchmark: int = Form(...),
     name: str = Form(...),
     description: str = Form(...),
@@ -154,6 +158,10 @@ def register_dataset(
     labels_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="dataset_registration")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "dataset_id": None, "error": ""}
+    dataset_id = None
     try:
         dataset_id = DataCreation.run(
             benchmark_uid=benchmark,
@@ -167,81 +175,178 @@ def register_dataset(
             approved=False,
             submit_as_prepared=False,
         )
-        config.ui.set_success()
-        return {"status": "success", "dataset_id": dataset_id, "error": ""}
+        return_response["status"] = "success"
+        return_response["dataset_id"] = dataset_id
+        notification_message = "Dataset successfully registered"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "dataset_id": None, "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to register dataset"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=(
+            f"/datasets/ui/display/{dataset_id}"
+            if dataset_id
+            else "/datasets/register/ui"
+        ),
+    )
+    return return_response
 
 
 @router.post("/prepare", response_class=JSONResponse)
 def prepare(
+    request: Request,
     dataset_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="dataset_preparation")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "dataset_id": None, "error": ""}
+
     try:
         dataset_id = DataPreparation.run(dataset_id)
-        config.ui.set_success()
-        return {"status": "success", "dataset_id": dataset_id, "error": ""}
+        return_response["status"] = "success"
+        return_response["dataset_id"] = dataset_id
+        notification_message = "Dataset successfully prepared"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "dataset_id": None, "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to prepare dataset"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/datasets/ui/display/{dataset_id}",
+    )
+    return return_response
 
 
 @router.post("/set_operational", response_class=JSONResponse)
 def set_operational(
+    request: Request,
     dataset_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="dataset_set_operational")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "dataset_id": None, "error": ""}
+
     try:
         dataset_id = DatasetSetOperational.run(dataset_id)
-        config.ui.set_success()
-        return {"status": "success", "dataset_id": dataset_id, "error": ""}
+        return_response["status"] = "success"
+        return_response["dataset_id"] = dataset_id
+        notification_message = "Dataset successfully set to operational"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "dataset_id": None, "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to set dataset to operational"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/datasets/ui/display/{dataset_id}",
+    )
+    return return_response
 
 
 @router.post("/associate", response_class=JSONResponse)
 def associate(
+    request: Request,
     dataset_id: int = Form(...),
     benchmark_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="dataset_association")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": ""}
+
     try:
         AssociateDataset.run(data_uid=dataset_id, benchmark_uid=benchmark_id)
-        config.ui.set_success()
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Successfully requested dataset association"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to request dataset association"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/datasets/ui/display/{dataset_id}",
+    )
+    return return_response
 
 
 @router.post("/run", response_class=JSONResponse)
 def run(
+    request: Request,
     dataset_id: int = Form(...),
     benchmark_id: int = Form(...),
     model_ids: List[int] = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="benchmark_run")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": ""}
+
     try:
         BenchmarkExecution.run(benchmark_id, dataset_id, model_ids)
-        config.ui.set_success()
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Execution ran successfully"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Error during execution"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/datasets/ui/display/{dataset_id}",
+    )
+    return return_response
 
 
 @router.post("/submit_result", response_class=JSONResponse)
 def submit_result(
+    request: Request,
     result_id: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="result_submit")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": ""}
+
     try:
         ResultSubmission.run(result_id)
-        config.ui.set_success()
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Result successfully submitted"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to submit results"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+    )
+    return return_response

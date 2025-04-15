@@ -14,7 +14,10 @@ from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
+    add_notification,
     get_current_user_api,
+    initialize_state_task,
+    reset_state_task,
     templates,
     sort_associations_display,
     get_current_user_ui,
@@ -132,6 +135,7 @@ def workflow_test_ui(
 
 @router.post("/test", response_class=JSONResponse)
 def test_benchmark(
+    request: Request,
     data_preparation: str = Form(...),
     model_path: str = Form(...),
     evaluator_path: str = Form(...),
@@ -139,6 +143,9 @@ def test_benchmark(
     labels_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="benchmark_workflow_test")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": "", "results": None}
     try:
         _, results = CompatibilityTestExecution.run(
             data_prep=data_preparation,
@@ -147,15 +154,28 @@ def test_benchmark(
             data_path=data_path,
             labels_path=labels_path,
         )
-        config.ui.set_success()
-        return {"status": "success", "error": "", "results": results}
+        return_response["status"] = "success"
+        return_response["results"] = results
+        notification_message = "Benchmark workflow test succeeded"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "error": str(exp), "results": ""}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Benchmark workflow test failed"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url="/benchmarks/register/ui",
+    )
+    return return_response
 
 
 @router.post("/register", response_class=JSONResponse)
 def register_benchmark(
+    request: Request,
     name: str = Form(...),
     description: str = Form(...),
     reference_dataset_tarball_url: str = Form(...),
@@ -176,13 +196,29 @@ def register_benchmark(
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
+    task_id = initialize_state_task(request, task_name="benchmark_register")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": "", "benchmark_id": None}
+    benchmark_id = None
     try:
         benchmark_id = SubmitBenchmark.run(benchmark_info)
-        config.ui.set_success()
-        return {"status": "success", "benchmark_id": benchmark_id, "error": ""}
+        return_response["status"] = "success"
+        return_response["benchmark_id"] = benchmark_id
+        notification_message = "Benchmark successfully registered!"
     except MedperfException as exp:
-        config.ui.set_error()
-        return {"status": "failed", "benchmark_id": None, "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to register benchmark"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/benchmarks/ui/display/{benchmark_id}" if benchmark_id else "",
+    )
+    return return_response
 
 
 @router.post("/approve", response_class=JSONResponse)
@@ -193,6 +229,9 @@ def approve(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="approve_association")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": ""}
     try:
         Approval.run(
             benchmark_uid=benchmark_id,
@@ -200,9 +239,22 @@ def approve(
             dataset_uid=dataset_id,
             mlcube_uid=container_id,
         )
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Association successfully approved"
     except MedperfException as exp:
-        return {"status": "failed", "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["status"] = str(exp)
+        notification_message = "Failed to approve association"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/benchmarks/ui/display/{benchmark_id}",
+    )
+    return return_response
 
 
 @router.post("/reject", response_class=JSONResponse)
@@ -213,6 +265,9 @@ def reject(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(get_current_user_api),
 ):
+    task_id = initialize_state_task(request, task_name="reject_association")
+    config.ui.set_task_id(task_id)
+    return_response = {"status": "", "error": ""}
     try:
         Approval.run(
             benchmark_uid=benchmark_id,
@@ -220,6 +275,19 @@ def reject(
             dataset_uid=dataset_id,
             mlcube_uid=container_id,
         )
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Association successfully rejected"
     except MedperfException as exp:
-        return {"status": "failed", "error": str(exp)}
+        return_response["status"] = "failed"
+        return_response["status"] = str(exp)
+        notification_message = "Failed to reject association"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/benchmarks/ui/display/{benchmark_id}",
+    )
+    return return_response

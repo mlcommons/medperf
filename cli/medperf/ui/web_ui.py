@@ -13,6 +13,7 @@ class WebUI(CLI):
         self.responses: Queue[dict] = Queue()
         self.is_interactive = False
         self.spinner = yaspin(color="green")
+        self.task_id = None
 
     def print(self, msg: str = ""):
         """Display a message on the command line
@@ -163,36 +164,33 @@ class WebUI(CLI):
     def print_code(self, msg: str):
         self._print(msg, "code")
 
-    def set_event(self, dict):
-        self.events.put(dict)
+    def set_event(self, event):
+        event["task_id"] = self.task_id
+        self.events.put(event)
 
     def get_event(self):
         return self.events.get()
 
-    def set_response(self, dict):
-        self.responses.put(dict)
+    def set_response(self, event):
+        self.responses.put(event)
 
     def get_response(self):
         return self.responses.get()
 
-    def set_success(self):
+    def end_task(self, response=None):
         self.set_event(
             {
                 "type": "highlight",
-                "message": "&#x2705; Done",
+                "message": "",
                 "interactive": self.is_interactive,
                 "end": True,
+                "response": response,
             }
         )
-        return True
+        self.unset_task_id()
 
-    def set_error(self):
-        self.set_event(
-            {
-                "type": "highlight",
-                "message": "&#x274C; Stopped",
-                "interactive": self.is_interactive,
-                "end": True,
-            }
-        )
-        return False
+    def set_task_id(self, task_id):
+        self.task_id = task_id
+
+    def unset_task_id(self):
+        self.task_id = None

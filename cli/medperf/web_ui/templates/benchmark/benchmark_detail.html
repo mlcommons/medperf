@@ -140,4 +140,63 @@
     <div class="spinner"></div>
 </div>
 <script src="/static/js/app.js"></script>
+{% if task_running %}
+<script>
+    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
+        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
+            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
+        });
+        return currentStageElement;
+    }
+    task_id = "{{ request.app.state.task['id'] }}";
+    document.addEventListener("DOMContentLoaded", () => {
+    {% if request.app.state.task["name"] == "approve_association" %}
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+            let response = last_log.response;
+            let title;
+            markAllStagesAsComplete();
+            if(response.status === "success"){
+                title = "Association Approved Successfully";
+                showReloadModal(title);
+                timer(3);
+            }
+            else{
+                title = "Failed to Approve Association";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+        });
+    {% elif request.app.state.task["name"] == "reject_association"  %}
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+            let response = last_log.response;
+            let title;
+            markAllStagesAsComplete();
+            if(response.status === "success"){
+                title = "Association Rejected Successfully";
+                showReloadModal(title);
+                timer(3);
+            }
+            else{
+                title = "Failed to Reject Association";
+                $("#errorModalLabel").html(title);
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+            
+        });
+    {% endif %}
+    });
+</script>
+{% endif %}
 {% endblock %}

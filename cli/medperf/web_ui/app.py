@@ -50,6 +50,26 @@ web_app.openapi = wrap_openapi(web_app)
 
 @web_app.on_event("startup")
 def startup_event():
+    # Initialize state variales for:
+    # Showing logs/prompts
+    # Checking if a CLI function is running
+    # Notify user about a finished or a running task / pending prompt-confirmation
+    web_app.state.task = {"id": "", "name": "", "running": False, "logs": []}
+    web_app.state.old_tasks = []
+    web_app.state.task_running = False
+    # Will be shown in the notifications tab in the navbar
+    web_app.state.notifications = []
+    # notifications to be sent will be in state.new_notifications. unpon sending, they'll be moved to state.notifications
+    web_app.state.new_notifications = []
+    # A notifications will be a list of dictionaries as follows:
+    # {
+    # "id": "Unique id for each notification",
+    # "message": "Task X is finished / Failed to do task X",
+    # "type": "success/error/info(for prompt)".
+    # "url": "to navigate to the finished task page",
+    # "read": bool,
+    # "time": "timestamp"
+    # }
 
     # print security token to CLI (avoid logging to file)
     print("=" * 40)

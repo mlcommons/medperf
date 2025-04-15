@@ -174,4 +174,51 @@
 </script>
 <script src="/static/js/event_handler.js"></script>
 <script src="/static/js/app.js"></script>
+
+{% if task_running and request.app.state.task["name"] == "benchmark_workflow_test" %}
+<script>
+    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
+        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
+            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
+        });
+        return currentStageElement;
+    }
+    task_id = "{{ request.app.state.task['id'] }}";
+    document.addEventListener("DOMContentLoaded", () => {
+        const input_elements = document.querySelectorAll("#test-form input");
+        input_elements.forEach(element => {
+            element.setAttribute("disabled", true);
+        });
+        const textareas = document.querySelectorAll("#test-form textarea");
+        textareas.forEach(element => {
+            element.setAttribute("disabled", true);
+        });
+        showPanel(`Running Workflow Test...`);
+        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
+        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
+            let response = last_log.response;
+            let title;
+            markAllStagesAsComplete();
+            if(response.status === "success"){
+                const nextModal = new bootstrap.Modal('#nextModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                })
+                $("#yaml-content").html(JSON.stringify(response.results, null, 2));
+                Prism.highlightElement(document.getElementById("yaml-content"));
+                nextModal.show();
+            }
+            else{
+                $("#errorModalLabel").html("Benchmark Workflow Test Failed");
+                $("#errorText").html(response.error);
+                const errorModal = new bootstrap.Modal('#errorModal', {
+                    keyboard: false,
+                    backdrop: "static"
+                });
+                errorModal.show();
+            }
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}
