@@ -11,6 +11,9 @@ from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.train import TrainingExecution
+from medperf.commands.dataset.import_dataset import ImportDataset
+from medperf.commands.dataset.export_dataset import ExportDataset
+
 
 app = typer.Typer()
 
@@ -208,3 +211,44 @@ def view(
 ):
     """Displays the information of one or more datasets"""
     EntityView.run(entity_id, Dataset, format, unregistered, mine, output)
+
+
+@app.command("import")
+@clean_except
+def import_dataset(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Dataset UID to be imported"
+    ),
+    input_path: str = typer.Option(
+        ...,
+        "--input",
+        "-i",
+        help="Path of the tar.gz file (dataset backup) to be imported.",
+    ),
+    raw_path: str = typer.Option(
+        None,
+        "--raw_dataset_path",
+        help="New path of the DEVELOPMENT dataset raw data to be saved.",
+    ),
+):
+    """Imports dataset files from specified tar.gz file."""
+    ImportDataset.run(data_uid, input_path, raw_path)
+    config.ui.print("✅ Done!")
+
+
+@app.command("export")
+@clean_except
+def export_dataset(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Dataset UID to be exported"
+    ),
+    output: str = typer.Option(
+        ...,
+        "--output",
+        "-o",
+        help="Path of the folder that will contain the tar.gz dataset backup.",
+    ),
+):
+    """Exports dataset files to a tar.gz file in the specified output folder."""
+    ExportDataset.run(data_uid, output)
+    config.ui.print("✅ Done!")
