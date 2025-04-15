@@ -179,6 +179,7 @@ loglevel = "debug"
 logs_backup_count = 100
 cleanup = True
 ui = "CLI"
+webui = "WEBUI"
 
 default_profile_name = "default"
 testauth_profile_name = "testauth"

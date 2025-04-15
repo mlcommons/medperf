@@ -1,6 +1,7 @@
 from .cli import CLI
 from .interface import UI
 from .stdin import StdIn
+from .web_ui import WebUI
 from medperf.exceptions import InvalidArgumentError
 
 
@@ -10,6 +11,8 @@ class UIFactory:
         name = name.lower()
         if name == "cli":
             return CLI()
+        elif name == "webui":
+            return WebUI()
         elif name == "stdin":
             return StdIn()
         else:

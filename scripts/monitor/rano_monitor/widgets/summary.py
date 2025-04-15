@@ -1,6 +1,11 @@
 import os
 import pandas as pd
-from rano_monitor.constants import REVIEW_FILENAME, REVIEWED_FILENAME, MANUAL_REVIEW_STAGE, DONE_STAGE
+from rano_monitor.constants import (
+    REVIEW_FILENAME,
+    REVIEWED_FILENAME,
+    MANUAL_REVIEW_STAGE,
+    DONE_STAGE,
+)
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
 from rano_monitor.messages import AnnotationsLoaded
@@ -67,8 +72,8 @@ class Summary(Static):
             status_percents["DONE"] = 0.0
 
         abs_status = display_report_df["status"].abs()
-        is_beyond_manual_review = (abs_status >= MANUAL_REVIEW_STAGE)
-        is_not_done = (abs_status < DONE_STAGE)
+        is_beyond_manual_review = abs_status >= MANUAL_REVIEW_STAGE
+        is_not_done = abs_status < DONE_STAGE
         package_btns.display = any(is_beyond_manual_review & is_not_done)
 
         widgets = []
@@ -89,7 +94,7 @@ class Summary(Static):
 
         content.mount(*widgets)
 
-    async def _package_review_cases(self):
+    def _package_review_cases(self):
         pkg_btn = self.query_one("#package-btn", Button)
         label = pkg_btn.label
         pkg_btn.disabled = True
@@ -100,7 +105,7 @@ class Summary(Static):
         pkg_btn.label = label
         pkg_btn.disabled = False
 
-    async def _unpackage_reviews(self):
+    def _unpackage_reviews(self):
         unpkg_btn = self.query_one("#unpackage-btn", Button)
         label = unpkg_btn.label
         unpkg_btn.disabled = True
@@ -112,7 +117,7 @@ class Summary(Static):
         unpkg_btn.disabled = False
         self.post_message(AnnotationsLoaded())
 
-    async def on_button_pressed(self, event: Button.Pressed) -> None:
+    def on_button_pressed(self, event: Button.Pressed) -> None:
         event.stop()
         pkg_btn = self.query_one("#package-btn", Button)
         unpkg_btn = self.query_one("#unpackage-btn", Button)
