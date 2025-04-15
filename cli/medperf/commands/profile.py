@@ -1,5 +1,5 @@
 import typer
-import os
+
 from medperf import config
 from medperf.decorators import configurable, clean_except
 from medperf.utils import dict_pretty_print
@@ -85,9 +85,6 @@ def view(profile: str = typer.Argument(None)):
 
     profile_config.pop(config.credentials_keyword, None)
     profile_name = profile if profile else config_p.active_profile_name
-    # for consistency with env variable:
-    profile_name = os.environ.get("MEDPERF_ACTIVE_PROFILE", profile_name)
-
     config.ui.print(f"\nProfile '{profile_name}':")
     dict_pretty_print(profile_config, skip_none_values=False)
 
