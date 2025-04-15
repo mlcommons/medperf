@@ -80,7 +80,7 @@ def _parse_task(container_config: dict, task: str, medperf_mounts: dict):
         # MLCube's logic
         command.append(task)
 
-    volumes = {}
+    volumes = []
     mount_index = 0
     if "inputs" in task_info["parameters"]:
         args, mount_index = _parse_parameters(
@@ -103,17 +103,14 @@ def _parse_task(container_config: dict, task: str, medperf_mounts: dict):
         )
         command += args
 
-    input_volumes = {}
-    output_volumes = {}
-    for host_path in volumes:
-        volume_info = {
-            "mount_path": volumes[host_path]["path"],
-            "type": volumes[host_path]["type"],
-        }
-        if volumes[host_path]["io_type"] == "input":
-            input_volumes[host_path] = volume_info
+    input_volumes = []
+    output_volumes = []
+    for volume in volumes:
+        io_type = volume.pop("io_type")
+        if io_type == "input":
+            input_volumes.append(volume)
         else:
-            output_volumes[host_path] = volume_info
+            output_volumes.append(volume)
     shm_size = _parse_shm_size(container_config)
     extra_args = {
         "shm_size": shm_size,
@@ -151,7 +148,7 @@ def _parse_parameters(
     parameters: dict,
     mlcube_workspace_path: str,
     mount_index: int,
-    volumes: dict,
+    volumes: list,
     medperf_mounts: dict,
     io_type: str,
 ):
@@ -174,18 +171,23 @@ def _parse_parameters(
         else:
             host_path, file_name = param_val, ""
 
-        mount_info = volumes.get(host_path)
+        mount_info = None
+        for v in volumes:
+            if v["host_path"] == host_path:
+                mount_info = v
+                break
         if mount_info is None:
             # same way mlcube indexes them, to avoid problems
             # if a user has hardcoded mlcubeio*
             mount_info = {
-                "path": f"/mlcube_io{mount_index}",
+                "host_path": host_path,
+                "mount_path": f"/mlcube_io{mount_index}",
                 "io_type": io_type,
                 "type": param_type,
             }
-            volumes[host_path] = mount_info
+            volumes.append(mount_info)
             mount_index += 1
-        param_arg = os.path.join(mount_info["path"], file_name)
+        param_arg = os.path.join(mount_info["mount_path"], file_name)
         args.append(f"--{param_name}={param_arg}")
     return args, mount_index
 

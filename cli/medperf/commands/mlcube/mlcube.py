@@ -58,12 +58,6 @@ def submit(
     additional_hash: str = typer.Option(
         "", "--additional-hash", help="hash of additional file"
     ),
-    image_file: str = typer.Option(
-        "",
-        "--image-file",
-        "-i",
-        help="Identifier to download the image file. See the description above",
-    ),
     image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
     operational: bool = typer.Option(
         False,
@@ -91,8 +85,7 @@ def submit(
         "git_mlcube_hash": mlcube_hash,
         "git_parameters_url": parameters_file,
         "parameters_hash": parameters_hash,
-        "image_tarball_url": image_file,
-        "image_tarball_hash": image_hash,
+        "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",

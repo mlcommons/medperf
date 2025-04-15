@@ -4,6 +4,7 @@ import os
 import requests
 import semver
 from .docker_utils import volumes_to_cli_args as docker_volumes_to_cli_args
+import shlex
 
 
 def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
@@ -93,8 +94,8 @@ def craft_singularity_run_command(run_args: dict, executable: str):
     # By default, current user is used.
     _ = run_args.pop("user", None)
 
-    input_volumes = run_args.pop("input_volumes", {})
-    output_volumes = run_args.pop("output_volumes", {})
+    input_volumes = run_args.pop("input_volumes", [])
+    output_volumes = run_args.pop("output_volumes", [])
     volumes_args = volumes_to_cli_args(input_volumes, output_volumes)
     command.extend(volumes_args)
 
@@ -127,5 +128,7 @@ def craft_singularity_run_command(run_args: dict, executable: str):
         command.append(f"{entrypoint}")
 
     extra_command = run_args.pop("command", [])
+    if isinstance(extra_command, str):
+        extra_command = shlex.split(extra_command)
     command.extend(extra_command)
     return command

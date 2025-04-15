@@ -21,7 +21,7 @@ class SimpleContainerParser(Parser):
                 **task_info.get("input_volumes", {}),
                 **task_info.get("output_volumes", {}),
             }
-            for volume in volumes:
+            for volume_label, volume in volumes.items():
                 if "type" not in volume or "mount_path" not in volume:
                     raise InvalidContainerSpec(
                         "Container config task volumes should have a 'type' and 'mount_path' fields."
@@ -41,19 +41,22 @@ class SimpleContainerParser(Parser):
 
     def get_volumes(self, task: str, medperf_mounts: dict):
         task_info = self.container_config["tasks"][task]
-        input_volumes = {}
-        output_volumes = {}
+        input_volumes = []
+        output_volumes = []
 
         if "input_volumes" in task_info:
             for key in task_info["input_volumes"]:
                 host_path = medperf_mounts[key]
-                input_volumes[host_path] = task_info["input_volumes"][key]
+                input_volumes.append(
+                    {"host_path": host_path, **task_info["input_volumes"][key]}
+                )
 
         if "output_volumes" in task_info:
             for key in task_info["output_volumes"]:
                 host_path = medperf_mounts[key]
-                output_volumes[host_path] = task_info["output_volumes"][key]
-
+                output_volumes.append(
+                    {"host_path": host_path, **task_info["output_volumes"][key]}
+                )
         return input_volumes, output_volumes
 
     def get_run_args(self, task: str, medperf_mounts: dict):

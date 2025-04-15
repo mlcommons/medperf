@@ -2,6 +2,7 @@ import os
 
 from medperf.exceptions import InvalidContainerSpec
 from .utils import run_command
+import shlex
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
@@ -16,35 +17,24 @@ def get_docker_image_hash(docker_image, timeout: int = None):
     raise InvalidContainerSpec("Invalid inspect output:", image_id)
 
 
-def volumes_to_cli_args(input_volumes: dict, output_volumes: dict):
+def volumes_to_cli_args(input_volumes: list, output_volumes: list):
     args = []
+    for io_type, volumes_list in [("ro", input_volumes), ("rw", output_volumes)]:
+        for volume in volumes_list:
+            host_path = volume["host_path"]
+            mount_path = volume["mount_path"]
+            mount_type = volume["type"]
+            if mount_type == "directory":
+                os.makedirs(host_path, exist_ok=True)
+            else:
+                dirname = os.path.dirname(host_path)
+                os.makedirs(dirname, exist_ok=True)
+                if not os.path.exists(host_path):
+                    with open(host_path, "w"):
+                        pass
+            args.append("--volume")
+            args.append(f"{host_path}:{mount_path}:{io_type}")
 
-    for host_path, mount_info in input_volumes.items():
-        mount_path = mount_info["mount_path"]
-        mount_type = mount_info["type"]
-        if mount_type == "directory":
-            os.makedirs(host_path, exist_ok=True)
-        else:
-            dirname = os.path.dirname(host_path)
-            os.makedirs(dirname, exist_ok=True)
-            if not os.path.exists(host_path):
-                with open(host_path, "w"):
-                    pass
-        args.append("--volume")
-        args.append(f"{host_path}:{mount_path}:ro")
-    for host_path, mount_info in output_volumes.items():
-        mount_path = mount_info["mount_path"]
-        mount_type = mount_info["type"]
-        if mount_type == "directory":
-            os.makedirs(host_path, exist_ok=True)
-        else:
-            dirname = os.path.dirname(host_path)
-            os.makedirs(dirname, exist_ok=True)
-            if not os.path.exists(host_path):
-                with open(host_path, "w"):
-                    pass
-        args.append("--volume")
-        args.append(f"{host_path}:{mount_path}:rw")
     return args
 
 
@@ -55,8 +45,8 @@ def craft_docker_run_command(run_args: dict):
         command.append("-u")
         command.append(user)
 
-    input_volumes = run_args.pop("input_volumes", {})
-    output_volumes = run_args.pop("output_volumes", {})
+    input_volumes = run_args.pop("input_volumes", [])
+    output_volumes = run_args.pop("output_volumes", [])
     volumes_args = volumes_to_cli_args(input_volumes, output_volumes)
     command.extend(volumes_args)
 
@@ -93,5 +83,7 @@ def craft_docker_run_command(run_args: dict):
     image = run_args.pop("image")
     command.append(image)
     extra_command = run_args.pop("command", [])
+    if isinstance(extra_command, str):
+        extra_command = shlex.split(extra_command)
     command.extend(extra_command)
     return command

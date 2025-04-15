@@ -119,7 +119,7 @@ MODEL2_UID=$(medperf mlcube ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' 
 echo "MODEL2_UID=$MODEL2_UID"
 
 # MLCube with singularity section
-print_eval medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE --operational
+print_eval medperf --platform singularity mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf mlcube ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL3_UID=$MODEL3_UID"
