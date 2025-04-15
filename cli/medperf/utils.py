@@ -21,11 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import (
-    ExecutionError,
-    InvalidArgumentError,
-    MedperfException,
-)
+from medperf.exceptions import ExecutionError, InvalidArgumentError
 
 
 def get_file_hash(path: str) -> str:
@@ -430,20 +426,6 @@ def format_errors_dict(errors_dict: dict):
                 error_msg += "\n"
                 error_msg += f"\t- {e_msg}"
     return error_msg
-
-
-def get_cube_image_name(cube_path: str) -> str:
-    """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
-    cube_config_path = os.path.join(cube_path, config.cube_filename)
-    with open(cube_config_path, "r") as f:
-        cube_config = yaml.safe_load(f)
-
-    try:
-        # TODO: Why do we check singularity only there? Why not docker?
-        return cube_config["singularity"]["image"]
-    except KeyError:
-        msg = "The provided mlcube doesn't seem to be configured for singularity"
-        raise MedperfException(msg)
 
 
 def filter_latest_associations(associations, entity_key):

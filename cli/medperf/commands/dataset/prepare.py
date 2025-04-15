@@ -153,13 +153,11 @@ class DataPreparation:
         self.raw_data_path, self.raw_labels_path = self.dataset.get_raw_paths()
 
         # Backwards compatibility. Run a cube as before if no report is specified
-        self.report_specified = (
-            self.cube.get_default_output("prepare", "report_file") is not None
-        )
+        self.report_specified = self.cube.is_report_specified()
+
         # Backwards compatibility. Run a cube as before if no metadata is specified
-        self.metadata_specified = (
-            self.cube.get_default_output("prepare", "metadata_path") is not None
-        )
+        self.metadata_specified = self.cube.is_metadata_specified()
+
         if not self.report_specified:
             self.allow_sending_reports = False
 
@@ -167,17 +165,17 @@ class DataPreparation:
         report_sender = ReportSender(self)
         report_sender.start()
 
-        prepare_params = {
+        prepare_mounts = {
             "data_path": self.raw_data_path,
             "labels_path": self.raw_labels_path,
             "output_path": self.out_datapath,
             "output_labels_path": self.out_labelspath,
         }
         if self.metadata_specified:
-            prepare_params["metadata_path"] = self.metadata_path
+            prepare_mounts["metadata_path"] = self.metadata_path
 
         if self.report_specified:
-            prepare_params["report_file"] = self.report_path
+            prepare_mounts["report_file"] = self.report_path
 
         self.ui.text = "Running preparation step..."
         try:
@@ -185,7 +183,7 @@ class DataPreparation:
                 self.cube.run(
                     task="prepare",
                     timeout=config.prepare_timeout,
-                    **prepare_params,
+                    mounts=prepare_mounts,
                 )
         except Exception as e:
             # Inform the server that a failure occured
@@ -205,7 +203,7 @@ class DataPreparation:
         out_labelspath = self.out_labelspath
 
         # Specify parameters for the tasks
-        sanity_params = {
+        sanity_check_mounts = {
             "data_path": out_datapath,
             "labels_path": out_labelspath,
         }
@@ -215,7 +213,7 @@ class DataPreparation:
             self.cube.run(
                 task="sanity_check",
                 timeout=sanity_check_timeout,
-                **sanity_params,
+                mounts=sanity_check_mounts,
             )
         except ExecutionError:
             self.dataset.unmark_as_ready()
@@ -239,14 +237,14 @@ class DataPreparation:
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
 
-        statistics_params = {
+        statistics_mounts = {
             "data_path": out_datapath,
             "labels_path": out_labelspath,
             "output_path": self.out_statistics_path,
         }
 
         if self.metadata_specified:
-            statistics_params["metadata_path"] = self.metadata_path
+            statistics_mounts["metadata_path"] = self.metadata_path
 
         self.ui.text = "Generating statistics..."
 
@@ -254,7 +252,7 @@ class DataPreparation:
             self.cube.run(
                 task="statistics",
                 timeout=statistics_timeout,
-                **statistics_params,
+                mounts=statistics_mounts,
             )
         except ExecutionError as e:
             self.dataset.unmark_as_ready()

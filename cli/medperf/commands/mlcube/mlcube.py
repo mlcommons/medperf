@@ -6,7 +6,6 @@ from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
-from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 
@@ -28,27 +27,6 @@ def list(
         unregistered=unregistered,
         mine_only=mine,
     )
-
-
-@app.command("create")
-@clean_except
-def create(
-    template: str = typer.Argument(
-        ...,
-        help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
-    ),
-    output_path: str = typer.Option(
-        ".", "--output", "-o", help="Save the generated MLCube to the specified path"
-    ),
-    config_file: str = typer.Option(
-        None,
-        "--config-file",
-        "-c",
-        help="JSON Configuration file. If not present then user is prompted for configuration",
-    ),
-):
-    """Creates an MLCube based on one of the specified templates"""
-    CreateCube.run(template, output_path, config_file)
 
 
 @app.command("submit")
@@ -80,12 +58,6 @@ def submit(
     additional_hash: str = typer.Option(
         "", "--additional-hash", help="hash of additional file"
     ),
-    image_file: str = typer.Option(
-        "",
-        "--image-file",
-        "-i",
-        help="Identifier to download the image file. See the description above",
-    ),
     image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
     operational: bool = typer.Option(
         False,
@@ -113,8 +85,7 @@ def submit(
         "git_mlcube_hash": mlcube_hash,
         "git_parameters_url": parameters_file,
         "parameters_hash": parameters_hash,
-        "image_tarball_url": image_file,
-        "image_tarball_hash": image_hash,
+        "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
