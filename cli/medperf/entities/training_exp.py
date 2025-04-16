@@ -69,7 +69,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         return self.name
 
     @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
+    def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:

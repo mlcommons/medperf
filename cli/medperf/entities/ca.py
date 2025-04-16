@@ -86,7 +86,7 @@ class CA(Entity, MedperfSchema):
         return ca
 
     @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
+    def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
@@ -108,7 +108,6 @@ class CA(Entity, MedperfSchema):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Generated Hash": self.generated_uid,
             "Address": self.address,
             "fingerprint": self.fingerprint,
             "Port": self.port,

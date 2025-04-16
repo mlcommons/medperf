@@ -79,7 +79,7 @@ class Aggregator(Entity, MedperfSchema):
         return agg
 
     @classmethod
-    def _Entity__remote_prefilter(cls, filters: dict) -> callable:
+    def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
         Args:
@@ -101,7 +101,6 @@ class Aggregator(Entity, MedperfSchema):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Generated Hash": self.generated_uid,
             "Address": self.address,
             "MLCube": int(self.aggregation_mlcube),
             "Port": self.port,

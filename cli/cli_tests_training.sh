@@ -136,7 +136,7 @@ echo "\n"
 echo "====================================="
 echo "Associate with ca"
 echo "====================================="
-CA_UID=$(medperf ca ls | grep "MedPerf CA" | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+CA_UID=$(medperf ca ls | grep "MedPerf CA" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 print_eval medperf ca associate -t $TRAINING_UID -c $CA_UID -y
 checkFailed "ca association failed"
 ##########################################################
@@ -161,7 +161,7 @@ HOSTNAME_=$(hostname -I | cut -d " " -f 1)
 # HOSTNAME_=$(hostname -A | cut -d " " -f 1)  # fqdn on github CI runner doesn't resolve from inside containers
 print_eval medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 -m $TRAINCUBE_UID
 checkFailed "aggregator submission step failed"
-AGG_UID=$(medperf aggregator ls | grep aggreg | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+AGG_UID=$(medperf aggregator ls | grep aggreg | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -275,7 +275,7 @@ echo "Running data1 submission step"
 echo "====================================="
 print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col1 -l $DIRECTORY/col1 --name="col1" --description="col1data" --location="col1location" -y
 checkFailed "Data1 submission step failed"
-DSET_1_UID=$(medperf dataset ls | grep col1 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+DSET_1_UID=$(medperf dataset ls | grep col1 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -354,7 +354,7 @@ echo "Running data2 submission step"
 echo "====================================="
 print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col2 -l $DIRECTORY/col2 --name="col2" --description="col2data" --location="col2location" -y
 checkFailed "Data2 submission step failed"
-DSET_2_UID=$(medperf dataset ls | grep col2 | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+DSET_2_UID=$(medperf dataset ls | grep col2 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
