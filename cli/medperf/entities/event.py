@@ -95,6 +95,23 @@ class TrainingEvent(Entity, MedperfSchema):
             comms_fn = config.comms.get_user_training_events
         return comms_fn
 
+    def get_latest_report_path(self):
+        latest_timestamp = None
+        latest_report_path = None
+        for subpath in os.listdir(self.path):
+            if subpath.startswith(config.training_report_folder) and os.path.isdir(
+                os.path.join(self.path, subpath)
+            ):
+                timestamp = subpath[len(config.training_report_folder) :]  # noqa
+                timestamp = datetime.strptime(timestamp, "%Y_%m_%d_%H_%M_%S_%f")
+                if latest_timestamp is None or timestamp > latest_timestamp:
+                    latest_timestamp = timestamp
+                    latest_report_path = os.path.join(
+                        self.path, subpath, config.training_report_file
+                    )
+
+        return latest_report_path
+
     def prepare_participants_list(self):
         with open(self.participants_list_path, "w") as f:
             yaml.dump(self.participants, f)

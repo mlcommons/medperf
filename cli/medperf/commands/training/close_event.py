@@ -28,7 +28,7 @@ class CloseEvent:
     def prepare(self):
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.event = TrainingEvent.from_experiment(self.training_exp_id)
-        self.report_path = self.report_path or self.event.report_path
+        self.report_path = self.report_path or self.event.get_latest_report_path()
 
     def validate(self):
         if self.event.finished:
