@@ -69,7 +69,8 @@ class TestGetFiles:
             self.cube_path, config.additional_path, config.tarball_filename
         )
         self.img_path = os.path.join(self.cube_path, config.image_path, "img.tar.gz")
-        self.config_files_paths = [self.manifest_path, self.params_path]
+        self.stages_path = os.path.join(self.cube_path, config.stages_filename)
+        self.config_files_paths = [self.manifest_path, self.params_path, self.stages_path]
         self.run_files_paths = [self.add_path, self.img_path]
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)

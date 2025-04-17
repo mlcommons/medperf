@@ -40,6 +40,8 @@ class Cube(Entity, DeployableSchema):
     image_hash: Optional[str]
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
+    stages_url: Optional[str]
+    stages_hash: Optional[str]
     metadata: dict = {}
     user_metadata: dict = {}
 
@@ -75,6 +77,9 @@ class Cube(Entity, DeployableSchema):
         self.params_path = None
         if self.git_parameters_url:
             self.params_path = os.path.join(self.path, config.params_filename)
+        self.stages_path = None
+        if self.stages_url:
+            self.stages_path = os.path.join(self.path, config.stages_filename)
 
     @property
     def local_id(self):
@@ -136,6 +141,15 @@ class Cube(Entity, DeployableSchema):
                 url, self.path, self.additional_files_tarball_hash
             )
             self.additional_files_tarball_hash = file_hash
+
+    def download_stages(self):
+        url = self.stages_url
+        if url:
+            path, file_hash = resources.get_cube_stages(
+                url, self.path, self.stages_hash
+            )
+            self.stages_path = path
+            self.stages_hash = file_hash
 
     def download_image(self):
         url = self.image_tarball_url
@@ -216,6 +230,11 @@ class Cube(Entity, DeployableSchema):
             self.download_parameters()
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
+
+        try:
+            self.download_stages()
+        except InvalidEntityError as e:
+            raise InvalidEntityError(f"MLCube {self.name} stages file: {e}")
 
     def download_run_files(self):
         try:

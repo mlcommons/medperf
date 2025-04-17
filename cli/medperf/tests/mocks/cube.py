@@ -18,5 +18,7 @@ class TestCube(Cube):
         "https://test.com/additional_files.tar.gz"
     )
     additional_files_tarball_hash: Optional[str] = EMPTY_FILE_HASH
+    stages_url: Optional[str] = "https://test.com/stages.yaml"
+    stages_hash: Optional[str] = EMPTY_FILE_HASH
     state: str = "OPERATION"
     is_valid = True

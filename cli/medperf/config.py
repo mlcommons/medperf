@@ -192,6 +192,7 @@ ready_flag_file = ".ready"
 # MLCube assets conventions
 cube_filename = "mlcube.yaml"
 params_filename = "parameters.yaml"
+stages_filename = "stages.yaml"
 workspace_path = "workspace"
 additional_path = "workspace/additional_files"
 image_path = "workspace/.image"
