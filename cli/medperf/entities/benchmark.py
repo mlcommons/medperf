@@ -1,5 +1,5 @@
 from typing import List, Optional
-from medperf.commands.association.utils import get_associations_list
+from medperf.commands.association.utils import get_experiment_associations
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
@@ -89,8 +89,11 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         Returns:
             List[int]: List of mlcube uids
         """
-        associations = get_associations_list(
-            "benchmark", "model_mlcube", "APPROVED", experiment_id=benchmark_uid
+        associations = get_experiment_associations(
+            experiment_id=benchmark_uid,
+            experiment_type="benchmark",
+            component_type="model_mlcube",
+            approval_status="APPROVED",
         )
         models_uids = [assoc["model_mlcube"] for assoc in associations]
         return models_uids

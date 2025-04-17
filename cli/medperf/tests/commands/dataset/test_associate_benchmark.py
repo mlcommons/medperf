@@ -7,7 +7,7 @@ from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.commands.dataset.associate import AssociateDataset
 
-PATCH_ASSOC = "medperf.commands.dataset.associate.{}"
+PATCH_ASSOC = "medperf.commands.dataset.associate_benchmark.{}"
 
 
 @pytest.fixture

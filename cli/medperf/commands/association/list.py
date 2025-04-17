@@ -1,53 +1,53 @@
 from tabulate import tabulate
 
 from medperf import config
-from medperf.commands.association.utils import validate_args, get_associations_list
+from medperf.commands.association.utils import validate_args, get_user_associations
 
 
 class ListAssociations:
     @staticmethod
     def run(
-        benchmark,
-        training_exp,
-        dataset,
-        mlcube,
-        aggregator,
-        ca,
         approval_status,
+        benchmark=False,
+        training_exp=False,
+        dataset=False,
+        mlcube=False,
+        aggregator=False,
+        ca=False,
     ):
         """Get user association requests"""
         validate_args(
             benchmark, training_exp, dataset, mlcube, aggregator, ca, approval_status
         )
         if training_exp:
-            experiment_key = "training_exp"
+            experiment_type = "training_exp"
         elif benchmark:
-            experiment_key = "benchmark"
+            experiment_type = "benchmark"
 
         if mlcube:
-            component_key = "model_mlcube"
+            component_type = "model_mlcube"
         elif dataset:
-            component_key = "dataset"
+            component_type = "dataset"
         elif aggregator:
-            component_key = "aggregator"
+            component_type = "aggregator"
         elif ca:
-            component_key = "ca"
+            component_type = "ca"
 
-        assocs = get_associations_list(experiment_key, component_key, approval_status)
+        assocs = get_user_associations(experiment_type, component_type, approval_status)
 
         assocs_info = []
         for assoc in assocs:
             assoc_info = (
-                assoc[component_key],
-                assoc[experiment_key],
+                assoc[component_type],
+                assoc[experiment_type],
                 assoc["initiated_by"],
                 assoc["approval_status"],
             )
             assocs_info.append(assoc_info)
 
         headers = [
-            f"{component_key.replace('_', ' ').title()} UID",
-            f"{experiment_key.replace('_', ' ').title()} UID",
+            f"{component_type.replace('_', ' ').title()} UID",
+            f"{experiment_type.replace('_', ' ').title()} UID",
             "Initiated by",
             "Status",
         ]

@@ -30,13 +30,13 @@ def list(
             Defaults to displaying all user associations.
     """
     ListAssociations.run(
+        approval_status,
         benchmark,
         training_exp,
         dataset,
         mlcube,
         aggregator,
         ca,
-        approval_status,
     )
 
 

@@ -1,4 +1,4 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf import config
 from pydantic.datetime_parse import parse_datetime
 
@@ -75,50 +75,78 @@ def get_last_component(associations, experiment_key):
     return experiments_component
 
 
-def get_associations_list(
-    experiment_key: str,
-    component_key: str,
+def get_experiment_associations(
+    experiment_id: int,
+    experiment_type: str,
+    component_type: str,
     approval_status: str = None,
-    experiment_id: int = None,
 ):
     comms_functions = {
         "training_exp": {
-            "dataset": {
-                "user": config.comms.get_user_training_datasets_associations,
-                "experiment": config.comms.get_training_datasets_associations,
-            },
-            "aggregator": {
-                "user": config.comms.get_user_training_aggregators_associations,
-            },
-            "ca": {
-                "user": config.comms.get_user_training_cas_associations,
-            },
+            "dataset": config.comms.get_training_datasets_associations,
         },
         "benchmark": {
-            "dataset": {
-                "user": config.comms.get_user_benchmarks_datasets_associations,
-            },
-            "model_mlcube": {
-                "user": config.comms.get_user_benchmarks_models_associations,
-                "experiment": config.comms.get_benchmark_models_associations,
-            },
+            "model_mlcube": config.comms.get_benchmark_models_associations,
         },
     }
-    if experiment_id:
-        comms_func = comms_functions[experiment_key][component_key]["experiment"]
-        assocs = comms_func(experiment_id)
-        # `assocs` here don't contain the experiment key.
-        # Add it, just to work with filter_latest_associations
-        for assoc in assocs:
-            assoc[experiment_key] = experiment_id
-    else:
-        comms_func = comms_functions[experiment_key][component_key]["user"]
-        assocs = comms_func()
+    try:
+        comms_func = comms_functions[experiment_type][component_type]
+    except KeyError:
+        raise MedperfException(
+            f"Internal error: Getting associations list between {experiment_type}"
+            f" and {component_type} is not implemented"
+        )
 
-    assocs = filter_latest_associations(assocs, experiment_key, component_key)
-    if component_key in ["aggregator", "ca"]:
+    assocs = comms_func(experiment_id)
+    # `assocs` here doesn't contain the experiment key.
+    # Add it, just to work with other utils
+    for assoc in assocs:
+        assoc[experiment_type] = experiment_id
+    return _post_process_associtations(
+        assocs, experiment_type, component_type, approval_status
+    )
+
+
+def get_user_associations(
+    experiment_type: str,
+    component_type: str,
+    approval_status: str = None,
+):
+    comms_functions = {
+        "training_exp": {
+            "dataset": config.comms.get_user_training_datasets_associations,
+            "aggregator": config.comms.get_user_training_aggregators_associations,
+            "ca": config.comms.get_user_training_cas_associations,
+        },
+        "benchmark": {
+            "dataset": config.comms.get_user_benchmarks_datasets_associations,
+            "model_mlcube": config.comms.get_user_benchmarks_models_associations,
+        },
+    }
+    try:
+        comms_func = comms_functions[experiment_type][component_type]
+    except KeyError:
+        raise MedperfException(
+            f"Internal error: Getting associations list between {experiment_type}"
+            f" and {component_type} is not implemented"
+        )
+    assocs = comms_func()
+    return _post_process_associtations(
+        assocs, experiment_type, component_type, approval_status
+    )
+
+
+def _post_process_associtations(
+    associations: list[dict],
+    experiment_type: str,
+    component_type: str,
+    approval_status: str,
+):
+
+    assocs = filter_latest_associations(associations, experiment_type, component_type)
+    if component_type in ["aggregator", "ca"]:
         # an experiment should only have one aggregator and/or one CA
-        assocs = get_last_component(assocs, experiment_key)
+        assocs = get_last_component(assocs, experiment_type)
 
     if approval_status:
         approval_status = approval_status.upper()

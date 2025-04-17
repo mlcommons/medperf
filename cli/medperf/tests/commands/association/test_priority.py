@@ -13,10 +13,10 @@ TEST_ASSOCIATIONS = [
 
 
 def set_priority_behavior(associations):
-    def func(benchmark_uid, mlcube_uid, priority):
+    def func(benchmark_uid, mlcube_uid, update_dict):
         for assoc in associations:
             if assoc["model_mlcube"] == mlcube_uid:
-                assoc["priority"] = priority
+                assoc.update(update_dict)
 
     return func
 
@@ -31,7 +31,7 @@ def get_benchmark_model_associations_behavior(associations):
 def setup_comms(mocker, comms, associations):
     mocker.patch.object(
         comms,
-        "get_benchmark_model_associations",
+        "get_benchmark_models_associations",
         side_effect=get_benchmark_model_associations_behavior(associations),
     )
     mocker.patch.object(
@@ -74,7 +74,7 @@ class TestRun:
         # Assert
         assert expected_associations == self.associations
 
-    @pytest.mark.parametrize("model_uid", [(55)])
+    @pytest.mark.parametrize("model_uid", [55])
     def test_run_fails_if_cube_not_associated(self, model_uid):
         # Arrange
         original_assocs = deepcopy(self.associations)

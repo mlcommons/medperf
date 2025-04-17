@@ -1,5 +1,5 @@
 import os
-from medperf.commands.association.utils import get_associations_list
+from medperf.commands.association.utils import get_experiment_associations
 import yaml
 from typing import List, Optional
 from pydantic import HttpUrl, Field
@@ -24,8 +24,8 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     description: Optional[str] = Field(None, max_length=20)
     docs_url: Optional[HttpUrl]
     demo_dataset_tarball_url: str
-    demo_dataset_tarball_hash: str
-    demo_dataset_generated_uid: str
+    demo_dataset_tarball_hash: Optional[str]
+    demo_dataset_generated_uid: Optional[str]
     data_preparation_mlcube: int
     fl_mlcube: int
     fl_admin_mlcube: Optional[int]
@@ -94,8 +94,11 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
         Returns:
             List[int]: List of mlcube uids
         """
-        associations = get_associations_list(
-            "training_exp", "dataset", "APPROVED", experiment_id=training_exp_uid
+        associations = get_experiment_associations(
+            experiment_id=training_exp_uid,
+            experiment_type="training_exp",
+            component_type="dataset",
+            approval_status="APPROVED",
         )
         datasets_uids = [assoc["dataset"] for assoc in associations]
         return datasets_uids
