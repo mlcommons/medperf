@@ -50,8 +50,12 @@ clean() {
   rm -fr $TEST_ROOT
 }
 checkFailed() {
-  if [ "$?" -ne "0" ]; then
-    if [ "$?" -eq 124 ]; then
+  EXITSTATUS="$?"
+  if [ -n "$2" ]; then
+    EXITSTATUS="1"
+  fi
+  if [ $EXITSTATUS -ne "0" ]; then
+    if [ $EXITSTATUS -eq 124 ]; then
       echo "Process timed out"
     fi
     echo $1
@@ -72,7 +76,7 @@ checkSucceeded() {
   if [ "$?" -eq 0 ]; then
     i_am_a_command_that_does_not_exist_and_hence_changes_the_last_exit_status_to_nonzero
   fi
-  checkFailed $1
+  checkFailed "$1"
 }
 
 if ${FRESH}; then
@@ -92,6 +96,7 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 # prep cubes
 PREP_MLCUBE="$ASSETS_URL/prep-sep/container_config.yaml"
 PREP_PARAMS="$ASSETS_URL/prep-sep/workspace/parameters.yaml"
+PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
@@ -112,17 +117,26 @@ MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/paramet
 METRIC_MLCUBE="$ASSETS_URL/metrics/container_config.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/workspace/parameters.yaml"
 
+# FL cubes
+TRAIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/19c80d88deaad27b353d1cb9bc180757534027aa/examples/fl/fl/mlcube/mlcube.yaml"
+TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
+FLADMIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/bc431ffe6c3b761b28674816e6f26511e8b27042/examples/fl/fl_admin/mlcube/mlcube.yaml"
+
 # test users credentials
 MODELOWNER="testmo@example.com"
 DATAOWNER="testdo@example.com"
 BENCHMARKOWNER="testbo@example.com"
 ADMIN="testadmin@example.com"
+DATAOWNER2="testdo2@example.com"
+AGGOWNER="testao@example.com"
+FLADMIN="testfladmin@example.com"
 
 # local MLCubes for local compatibility tests
 PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator/mlcube"
 MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn/mlcube"
 METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics/mlcube"
 
+TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
 # create storage folders
 mkdir -p "$TEST_ROOT"
 mkdir -p "$MEDPERF_STORAGE"

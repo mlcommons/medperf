@@ -1,14 +1,17 @@
 from medperf import config
-from medperf.exceptions import InvalidArgumentError
+from medperf.commands.association.utils import validate_args
 
 
 class Approval:
     @staticmethod
     def run(
-        benchmark_uid: int,
         approval_status: str,
+        benchmark_uid: int = None,
+        training_exp_uid: int = None,
         dataset_uid: int = None,
         mlcube_uid: int = None,
+        aggregator_uid: int = None,
+        ca_uid: int = None,
     ):
         """Sets approval status for an association between a benchmark and a dataset or mlcube
 
@@ -21,17 +24,34 @@ class Approval:
             mlcube_uid (int, optional): MLCube UID. Defaults to None.
         """
         comms = config.comms
-        too_many_resources = dataset_uid and mlcube_uid
-        no_resource = dataset_uid is None and mlcube_uid is None
-        if no_resource or too_many_resources:
-            raise InvalidArgumentError("Must provide either a dataset or mlcube")
+        validate_args(
+            benchmark_uid,
+            training_exp_uid,
+            dataset_uid,
+            mlcube_uid,
+            aggregator_uid,
+            ca_uid,
+            approval_status.value,
+        )
+        update = {"approval_status": approval_status.value}
+        if benchmark_uid:
+            if dataset_uid:
+                comms.update_benchmark_dataset_association(
+                    benchmark_uid, dataset_uid, update
+                )
 
-        if dataset_uid:
-            comms.set_dataset_association_approval(
-                benchmark_uid, dataset_uid, approval_status.value
-            )
-
-        if mlcube_uid:
-            comms.set_mlcube_association_approval(
-                benchmark_uid, mlcube_uid, approval_status.value
-            )
+            if mlcube_uid:
+                comms.update_benchmark_model_association(
+                    benchmark_uid, mlcube_uid, update
+                )
+        if training_exp_uid:
+            if dataset_uid:
+                comms.update_training_dataset_association(
+                    training_exp_uid, dataset_uid, update
+                )
+            if aggregator_uid:
+                comms.update_training_aggregator_association(
+                    training_exp_uid, aggregator_uid, update
+                )
+            if ca_uid:
+                comms.update_training_ca_association(training_exp_uid, ca_uid, update)

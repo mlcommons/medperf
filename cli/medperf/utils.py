@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import re
 import os
 import signal
@@ -15,7 +16,6 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
@@ -428,30 +428,6 @@ def format_errors_dict(errors_dict: dict):
     return error_msg
 
 
-def filter_latest_associations(associations, entity_key):
-    """Given a list of entity-benchmark associations, this function
-    retrieves a list containing the latest association of each
-    entity instance.
-
-    Args:
-        associations (list[dict]): the list of associations
-        entity_key (str): either "dataset" or "model_mlcube"
-
-    Returns:
-        list[dict]: the list containing the latest association of each
-                    entity instance.
-    """
-
-    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
-    latest_associations = {}
-    for assoc in associations:
-        entity_id = assoc[entity_key]
-        latest_associations[entity_id] = assoc
-
-    latest_associations = list(latest_associations.values())
-    return latest_associations
-
-
 def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
     repo = Repo(config.BASE_DIR)
@@ -530,3 +506,16 @@ class spawn_and_kill:
         self.proc.wait()
         # Return False to propagate exceptions, if any
         return False
+
+
+def get_pki_assets_path(common_name: str, ca_name: str):
+    # Base64 encoding is used just to avoid special characters used in emails
+    # and server domains/ipaddresses.
+    cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
+    cn_encoded = cn_encoded.rstrip("=")
+    return os.path.join(config.pki_assets, cn_encoded, ca_name)
+
+
+def get_participant_label(email, data_id):
+    # return f"d{data_id}"
+    return f"{email}"

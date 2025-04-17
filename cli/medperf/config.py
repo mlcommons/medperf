@@ -53,6 +53,7 @@ config_path = getenv("MEDPERF_CONFIG_PATH", str(config_storage / "config.yaml"))
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
+pki_assets = str(config_storage / ".pki_assets")
 
 images_folder = ".images"
 trash_folder = ".trash"
@@ -66,6 +67,10 @@ experiments_logs_folder = "experiments_logs"
 results_folder = "results"
 predictions_folder = "predictions"
 tests_folder = "tests"
+training_folder = "training"
+aggregators_folder = "aggregators"
+cas_folder = "cas"
+training_events_folder = "training_events"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
@@ -114,6 +119,22 @@ storage = {
         "base": default_base_storage,
         "name": tests_folder,
     },
+    "training_folder": {
+        "base": default_base_storage,
+        "name": training_folder,
+    },
+    "aggregators_folder": {
+        "base": default_base_storage,
+        "name": aggregators_folder,
+    },
+    "cas_folder": {
+        "base": default_base_storage,
+        "name": cas_folder,
+    },
+    "training_events_folder": {
+        "base": default_base_storage,
+        "name": training_events_folder,
+    },
 }
 
 root_folders = [
@@ -130,6 +151,10 @@ server_folders = [
     "results_folder",
     "predictions_folder",
     "tests_folder",
+    "training_folder",
+    "aggregators_folder",
+    "cas_folder",
+    "training_events_folder",
 ]
 
 # MedPerf filenames conventions
@@ -137,12 +162,27 @@ results_info_file = "result-info.yaml"
 benchmarks_filename = "benchmark.yaml"
 test_report_file = "test_report.yaml"
 reg_file = "registration-info.yaml"
+agg_file = "agg-info.yaml"
+ca_file = "ca-info.yaml"
+training_event_file = "event.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 log_file = "medperf.log"
 log_package_file = "medperf_logs.tar.gz"
 tarball_filename = "tmp.tar.gz"
 demo_dset_paths_file = "paths.yaml"
 mlcube_cache_file = ".cache_metadata.yaml"
+training_exps_filename = "training-info.yaml"
+participants_list_filename = "cols.yaml"
+training_exp_plan_filename = "plan.yaml"
+training_exp_status_filename = "status.yaml"
+training_report_file = "report.yaml"
+training_report_folder = "report"
+training_out_agg_logs = "agg_logs"
+training_out_col_logs = "col_logs"
+training_out_weights = "weights"
+ca_cert_folder = "ca_cert"
+ca_config_file = "ca_config.json"
+agg_config_file = "aggregator_config.yaml"
 report_file = "report.yaml"
 metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"

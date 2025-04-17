@@ -7,7 +7,7 @@ from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.commands.dataset.associate import AssociateDataset
 
-PATCH_ASSOC = "medperf.commands.dataset.associate.{}"
+PATCH_ASSOC = "medperf.commands.dataset.associate_benchmark.{}"
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def test_associates_if_approved(
 ):
     # Arrange
     result = TestResult()
-    assoc_func = "associate_dset"
+    assoc_func = "associate_benchmark_dataset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
@@ -93,7 +93,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
-    assoc_spy = mocker.patch.object(comms, "associate_dset")
+    assoc_spy = mocker.patch.object(comms, "associate_benchmark_dataset")
 
     # Act
     AssociateDataset.run(1, 1)
@@ -110,7 +110,7 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
     result = TestResult()
     data_uid = 1562
     benchmark_uid = 3557
-    assoc_func = "associate_dset"
+    assoc_func = "associate_benchmark_dataset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     spy = mocker.patch(

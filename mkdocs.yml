@@ -29,6 +29,7 @@ nav:
   #  - Client Configuration: concepts/profiles.md
   - MLCube Components: concepts/mlcube_files.md
   - Hosting Files: concepts/hosting_files.md
+  - Transferring to another Machine: concepts/import_export_data.md
   #  - Benchmark Associations: concepts/associations.md
   #  - Model Priority: concepts/priorities.md
   #  - Running Specific Models: concepts/single_run.md

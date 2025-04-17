@@ -122,7 +122,7 @@ This command will first run the benchmark's reference model on your dataset to e
 #### How to proceed after requesting association
 
 ![Benchmark Committee accepts / rejects datasets](../tutorial_images/do-4-bc-accepts-rejects-datasets.png){class="tutorial-sticky-image-content"}
-When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your dataset and the benchmark with which you are requesting association.
+When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls -bd`. The association is identified by the server UIDs of your dataset and the benchmark with which you are requesting association.
 
 _For the sake of continuing the tutorial only_, run the following to simulate the benchmark committee approving your association (make sure you are in the MedPerf's root directory):
 
@@ -130,7 +130,7 @@ _For the sake of continuing the tutorial only_, run the following to simulate th
 sh tutorials_scripts/simulate_data_association_approval.sh
 ```
 
-You can verify if your association request has been approved by running `medperf association ls`.
+You can verify if your association request has been approved by running `medperf association ls -bd`.
 
 ## 5. Execute the Benchmark
 

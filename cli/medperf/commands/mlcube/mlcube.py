@@ -8,8 +8,33 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.mlcube.run import run_mlcube
 
 app = typer.Typer()
+
+
+@app.command("run")
+@clean_except
+def run(
+    mlcube_path: str = typer.Option(
+        ..., "--mlcube", "-m", help="path to mlcube folder"
+    ),
+    task: str = typer.Option(..., "--task", "-t", help="mlcube task to run"),
+    out_logs: str = typer.Option(
+        None, "--output-logs", "-o", help="where to store stdout"
+    ),
+    port: str = typer.Option(None, "--port", "-P", help="port to expose"),
+    env: str = typer.Option(
+        "", "--env", "-e", help="comma separated list of key=value pairs"
+    ),
+    params: str = typer.Option(
+        "", "--params", "-p", help="comma separated list of key=value pairs"
+    ),
+):
+    """List mlcubes stored locally and remotely from the user"""
+    params = dict([p.split("=") for p in params.strip().strip(",").split(",") if p])
+    env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
+    run_mlcube(mlcube_path, task, out_logs, params, port, env)
 
 
 @app.command("ls")
