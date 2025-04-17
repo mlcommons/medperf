@@ -373,12 +373,16 @@ class BenchmarkApproveTest(BenchmarkTest):
 
     @parameterized.expand(
         [
-            ("PENDING", "APPROVED"),
-            ("PENDING", "REJECTED"),
+            ("PENDING", "APPROVED", status.HTTP_200_OK),
+            ("PENDING", "REJECTED", status.HTTP_200_OK),
+            ("APPROVED", "REJECTED", status.HTTP_200_OK),
+            ("APPROVED", "PENDING", status.HTTP_400_BAD_REQUEST),
+            ("REJECTED", "PENDING", status.HTTP_400_BAD_REQUEST),
+            ("REJECTED", "APPROVED", status.HTTP_400_BAD_REQUEST),
         ]
     )
-    def test_approval_status_cannot_be_changed_in_development(
-        self, prev_approval_status, new_approval_status
+    def test_approval_status_change_in_development(
+        self, prev_approval_status, new_approval_status, exp_status_code
     ):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
@@ -397,7 +401,7 @@ class BenchmarkApproveTest(BenchmarkTest):
         )
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, exp_status_code)
 
     @parameterized.expand(
         [

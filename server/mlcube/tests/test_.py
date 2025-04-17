@@ -294,9 +294,11 @@ class MlCubeGetListTest(MlCubeTest):
         response = self.client.get(self.url)
 
         # Assert
+
+        # First mlcube is already created on migrations: MedPerf CA
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], mlcube_id)
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(response.data["results"][1]["id"], mlcube_id)
 
 
 class PermissionTest(MlCubeTest):

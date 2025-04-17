@@ -1,0 +1,22 @@
+FROM python:3.11.9-alpine
+
+ENV USE_PROXY=1
+
+# update openssl to fix https://avd.aquasec.com/nvd/cve-2024-2511 
+RUN apk update && apk add openssl=3.1.4-r6 tar curl && if [[ -n "${USE_PROXY}" ]]; then apk add nginx; fi
+
+ARG VERSION=0.26.1
+RUN curl -LO https://dl.smallstep.com/gh-release/cli/gh-release-header/v${VERSION}/step_linux_${VERSION}_amd64.tar.gz \
+    && tar -xf step_linux_${VERSION}_amd64.tar.gz \
+    && cp step_${VERSION}/bin/step /usr/bin
+RUN curl -LO https://dl.smallstep.com/gh-release/certificates/gh-release-header/v${VERSION}/step-ca_linux_${VERSION}_amd64.tar.gz \
+    && tar -xf step-ca_linux_${VERSION}_amd64.tar.gz \
+    && cp step-ca /usr/bin
+
+
+COPY ./dev_utils.py /utils.py
+
+COPY ./setup.py /setup.py
+COPY ./entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]

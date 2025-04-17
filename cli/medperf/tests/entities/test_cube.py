@@ -15,6 +15,7 @@ from medperf.tests.mocks.pexpect import MockPexpect
 from medperf.exceptions import ExecutionError, InvalidEntityError
 
 PATCH_CUBE = "medperf.entities.cube.{}"
+PATCH_CUBE_UTILS = "medperf.entities.cube_utils.{}"
 DEFAULT_CUBE = {"id": 37}
 NO_IMG_CUBE = {
     "id": 345,
@@ -187,9 +188,10 @@ class TestRun:
         spy = mocker.patch(
             PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
         )
-        mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
+        mocker.patch(PATCH_CUBE.format("get_config"), return_value="")
+        mocker.patch(PATCH_CUBE_UTILS.format("get_config"), return_value="")
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
+            f'mlcube --log-level debug run --mlcube="{self.manifest_path}" --task={task} '
             + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
@@ -209,12 +211,10 @@ class TestRun:
         spy = mocker.patch(
             PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
         )
-        mocker.patch(
-            PATCH_CUBE.format("Cube.get_config"),
-            side_effect=["", ""],
-        )
+        mocker.patch(PATCH_CUBE.format("get_config"), return_value="")
+        mocker.patch(PATCH_CUBE_UTILS.format("get_config"), return_value="")
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
+            f'mlcube --log-level debug run --mlcube="{self.manifest_path}" --task={task} '
             + f"--platform={self.platform} --network=none"
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
@@ -234,9 +234,10 @@ class TestRun:
         spy = mocker.patch(
             PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
         )
-        mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
+        mocker.patch(PATCH_CUBE.format("get_config"), return_value="")
+        mocker.patch(PATCH_CUBE_UTILS.format("get_config"), return_value="")
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
+            f'mlcube --log-level debug run --mlcube="{self.manifest_path}" --task={task} '
             + f'--platform={self.platform} --network=none --mount=ro test="test"'
             + ' -Pdocker.cpu_args="-u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="-u $(id -u):$(id -g)"'
@@ -257,11 +258,15 @@ class TestRun:
             PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
         )
         mocker.patch(
-            PATCH_CUBE.format("Cube.get_config"),
+            PATCH_CUBE.format("get_config"),
+            side_effect=["cpuarg cpuval", "gpuarg gpuval"],
+        )
+        mocker.patch(
+            PATCH_CUBE_UTILS.format("get_config"),
             side_effect=["cpuarg cpuval", "gpuarg gpuval"],
         )
         expected_cmd = (
-            f"mlcube --log-level debug run --mlcube=\"{self.manifest_path}\" --task={task} "
+            f'mlcube --log-level debug run --mlcube="{self.manifest_path}" --task={task} '
             + f"--platform={self.platform} --network=none --mount=ro"
             + ' -Pdocker.cpu_args="cpuarg cpuval -u $(id -u):$(id -g)"'
             + ' -Pdocker.gpu_args="gpuarg gpuval -u $(id -u):$(id -g)"'
@@ -281,7 +286,8 @@ class TestRun:
         mocker.patch(
             PATCH_CUBE.format("spawn_and_kill.spawn"), side_effect=mpexpect.spawn
         )
-        mocker.patch(PATCH_CUBE.format("Cube.get_config"), side_effect=["", ""])
+        mocker.patch(PATCH_CUBE.format("get_config"), return_value="")
+        mocker.patch(PATCH_CUBE_UTILS.format("get_config"), return_value="")
 
         # Act & Assert
         cube = Cube.get(self.id)

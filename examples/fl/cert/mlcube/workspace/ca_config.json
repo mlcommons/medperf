@@ -1,0 +1,7 @@
+{
+  "address": "https://flcerts.medperf.org",
+  "port": 443,
+  "fingerprint": "",
+  "client_provisioner": "auth0",
+  "server_provisioner": "acme"
+}

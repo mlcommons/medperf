@@ -30,7 +30,7 @@ def test_run_associates_cube_with_comms(
     mocker, cube, benchmark, cube_uid, benchmark_uid, comms, ui
 ):
     # Arrange
-    spy = mocker.patch.object(comms, "associate_cube")
+    spy = mocker.patch.object(comms, "associate_benchmark_model")
     comp_ret = ("", {})
     mocker.patch.object(ui, "prompt", return_value="y")
     mocker.patch(
@@ -70,7 +70,7 @@ def test_stops_if_not_approved(mocker, comms, ui, cube, benchmark):
         PATCH_ASSOC.format("CompatibilityTestExecution.run"), return_value=comp_ret
     )
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
-    assoc_spy = mocker.patch.object(comms, "associate_cube")
+    assoc_spy = mocker.patch.object(comms, "associate_benchmark_model")
 
     # Act
     AssociateCube.run(1, 1)
