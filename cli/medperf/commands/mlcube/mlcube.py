@@ -8,33 +8,63 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
-from medperf.commands.mlcube.run import run_mlcube
+from medperf.commands.mlcube.run_test import run_mlcube
 
 app = typer.Typer()
 
 
-@app.command("run")
+@app.command("run_test")
 @clean_except
-def run(
+def run_test(
     mlcube_path: str = typer.Option(
-        ..., "--mlcube", "-m", help="path to mlcube folder"
+        ..., "--mlcube", "-m", help="path to mlcube config"
     ),
     task: str = typer.Option(..., "--task", "-t", help="mlcube task to run"),
-    out_logs: str = typer.Option(
-        None, "--output-logs", "-o", help="where to store stdout"
+    parameters_file_path: str = typer.Option(
+        None, "--parameters_file_path", help="path to mlcube config"
     ),
-    port: str = typer.Option(None, "--port", "-P", help="port to expose"),
+    additional_files_path: str = typer.Option(
+        None, "--additional_files_path", help="path to mlcube config"
+    ),
+    output_logs: str = typer.Option(
+        None, "--output_logs", "-o", help="where to store stdout"
+    ),
+    timeout: int = typer.Option(
+        None, "--timeout", help="comma separated list of key=value pairs"
+    ),
+    mounts: str = typer.Option(
+        "", "--mounts", "-m", help="comma separated list of key=value pairs"
+    ),
     env: str = typer.Option(
         "", "--env", "-e", help="comma separated list of key=value pairs"
     ),
-    params: str = typer.Option(
-        "", "--params", "-p", help="comma separated list of key=value pairs"
+    ports: str = typer.Option(
+        "", "--ports", "-P", help="comma separated list of ports to expose"
+    ),
+    allow_network: bool = typer.Option(
+        False, "--allow_network", help="comma separated list of key=value pairs"
+    ),
+    download: int = typer.Option(
+        False, "--download", help="comma separated list of key=value pairs"
     ),
 ):
     """List mlcubes stored locally and remotely from the user"""
-    params = dict([p.split("=") for p in params.strip().strip(",").split(",") if p])
+    mounts = dict([p.split("=") for p in mounts.strip().strip(",").split(",") if p])
     env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
-    run_mlcube(mlcube_path, task, out_logs, params, port, env)
+    ports = ports.split(",")
+    run_mlcube(
+        mlcube_path,
+        task,
+        parameters_file_path,
+        additional_files_path,
+        output_logs,
+        timeout,
+        mounts,
+        env,
+        ports,
+        not allow_network,
+        download,
+    )
 
 
 @app.command("ls")

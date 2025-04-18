@@ -174,7 +174,6 @@ class Cube(Entity, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
 
-    # TODO
     def run(
         self,
         task: str,
@@ -186,9 +185,9 @@ class Cube(Entity, DeployableSchema):
         disable_network: bool = True,
     ):
         extra_mounts = {}
-        if self.git_parameters_url:
+        if self.params_path is not None:
             extra_mounts["parameters_file"] = self.params_path
-        if self.additional_files_tarball_url:
+        if self.additiona_files_folder_path is not None:
             extra_mounts["additional_files"] = self.additiona_files_folder_path
 
         extra_env = {}
