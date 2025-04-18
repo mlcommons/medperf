@@ -99,9 +99,11 @@ class StartAggregator:
         }
 
         self.ui.text = "Running Aggregator"
+        port = self.aggregator.port
+        publish_on = publish_on or "0.0.0.0"
         self.cube.run(
             task="start_aggregator",
             mounts=mounts,
-            port=self.aggregator.port,
-            publish_on=self.publish_on,
+            ports=[f"{publish_on}:{port}:{port}"],
+            disable_network=False,
         )

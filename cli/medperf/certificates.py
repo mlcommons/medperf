@@ -14,8 +14,7 @@ def get_client_cert(ca: CA, email: str, output_path: str):
 
     mlcube = Cube.get(ca.client_mlcube)
     mlcube.download_run_files()
-    mlube_task = "get_client_cert"
-    mlcube.run(task=mlube_task, mounts=mounts, env=env)
+    mlcube.run(task="get_client_cert", mounts=mounts, env=env, disable_network=False)
 
 
 def get_server_cert(ca: CA, address: str, output_path: str):
@@ -30,8 +29,13 @@ def get_server_cert(ca: CA, address: str, output_path: str):
 
     mlcube = Cube.get(ca.server_mlcube)
     mlcube.download_run_files()
-    mlube_task = "get_server_cert"
-    mlcube.run(task=mlube_task, mounts=mounts, env=env, port=80)
+    mlcube.run(
+        task="get_server_cert",
+        mounts=mounts,
+        env=env,
+        ports=["0.0.0.0:80:80"],
+        disable_network=False,
+    )
 
 
 def trust(ca: CA):
@@ -46,5 +50,4 @@ def trust(ca: CA):
     }
     mlcube = Cube.get(ca.ca_mlcube)
     mlcube.download_run_files()
-    mlube_task = "trust"
-    mlcube.run(task=mlube_task, mounts=mounts)
+    mlcube.run(task="trust", mounts=mounts, disable_network=False)

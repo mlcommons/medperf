@@ -12,4 +12,4 @@ def run_mlcube(mlcube_path, task, out_logs, params, port, env):
     )
     if config.platform == "singularity":
         c._set_image_hash_from_registry()
-    c.run(task, out_logs, port=port, env_dict=env, **params)
+    c.run(task, out_logs, mounts=params, env=env, ports=[f"0.0.0.0:{port}:{port}"])

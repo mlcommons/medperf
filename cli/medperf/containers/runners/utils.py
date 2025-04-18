@@ -1,5 +1,5 @@
 from typing import Optional
-from medperf.exceptions import InvalidContainerSpec, ExecutionError
+from medperf.exceptions import InvalidContainerSpec, ExecutionError, MedperfException
 from medperf.utils import spawn_and_kill, combine_proc_sp_text
 from medperf import config
 import shlex
@@ -77,3 +77,23 @@ def add_medperf_environment_variables(run_args, medperf_env):
     env_dict: dict = run_args.get("environment", {})
     env_dict.update(medperf_env)
     run_args["environment"] = env_dict
+
+
+def add_network_config(run_args, disable_network, ports):
+    if disable_network and ports:
+        raise MedperfException(
+            "Internal error: ports is specified but disable_network is True"
+        )
+    if disable_network:
+        run_args["network"] = "none"
+        return
+
+    for port in ports:
+        if not isinstance(port, str) or port.count(":") != 2:
+            raise MedperfException(
+                "Internal error: Port should be in the format"
+                " {interface}:{host_port}:{container_port}."
+                f" Got {port}."
+            )
+
+    run_args["ports"] = ports

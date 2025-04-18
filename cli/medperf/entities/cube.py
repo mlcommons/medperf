@@ -182,8 +182,8 @@ class Cube(Entity, DeployableSchema):
         timeout: int = None,
         mounts: dict = {},
         env: dict = {},
-        port=None,
-        publish_on=None,
+        ports: list = [],
+        disable_network: bool = True,
     ):
         extra_mounts = {}
         if self.git_parameters_url:
@@ -199,8 +199,10 @@ class Cube(Entity, DeployableSchema):
             task,
             output_logs,
             timeout,
-            {**mounts, **extra_mounts},
-            {**env, **extra_env},
+            medperf_mounts={**mounts, **extra_mounts},
+            medperf_env={**env, **extra_env},
+            ports=ports,
+            disable_network=disable_network,
         )
 
     def is_report_specified(self):

@@ -19,5 +19,7 @@ class Runner(ABC):
         timeout: int = None,
         medperf_mounts: dict[str, str] = {},
         medperf_env: dict[str, str] = {},
+        ports: list = [],
+        disable_network: bool = True,
     ):
         pass

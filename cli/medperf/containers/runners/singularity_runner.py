@@ -11,6 +11,7 @@ from .utils import (
     add_medperf_run_args,
     add_user_defined_run_args,
     add_medperf_environment_variables,
+    add_network_config,
 )
 from .singularity_utils import (
     get_docker_image_hash_from_dockerhub,
@@ -120,6 +121,8 @@ class SingularityRunner(Runner):
         timeout: int = None,
         medperf_mounts: dict[str, str] = {},
         medperf_env: dict[str, str] = {},
+        ports: list = [],
+        disable_network: bool = True,
     ):
         self.parser.check_task_schema(task)
         run_args = self.parser.get_run_args(task, medperf_mounts)
@@ -142,6 +145,9 @@ class SingularityRunner(Runner):
         input_volumes, output_volumes = self.parser.get_volumes(task, medperf_mounts)
         run_args["input_volumes"] = input_volumes
         run_args["output_volumes"] = output_volumes
+
+        # Add network config
+        add_network_config(run_args, disable_network, ports)
 
         # Add env vars
         run_args["env"] = medperf_env

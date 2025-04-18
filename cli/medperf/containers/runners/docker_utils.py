@@ -38,7 +38,7 @@ def volumes_to_cli_args(input_volumes: list, output_volumes: list):
     return args
 
 
-def craft_docker_run_command(run_args: dict):
+def craft_docker_run_command(run_args: dict):  # noqa: C901
     command = ["docker", "run"]
     user = run_args.pop("user", None)
     if user is not None:
@@ -79,6 +79,16 @@ def craft_docker_run_command(run_args: dict):
     if entrypoint is not None:
         command.append("--entrypoint")
         command.append(f"{entrypoint}")
+
+    network = run_args.pop("network", None)
+    if network is not None:
+        command.append("--network")
+        command.append(network)
+
+    ports = run_args.pop("ports", [])
+    for port in ports:
+        command.append("-p")
+        command.append(port)
 
     image = run_args.pop("image")
     command.append(image)

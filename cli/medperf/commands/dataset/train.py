@@ -160,4 +160,4 @@ class TrainingExecution:
         }
 
         self.ui.text = "Running Training"
-        self.cube.run(task="train", mounts=mounts, env=env)
+        self.cube.run(task="train", mounts=mounts, env=env, disable_network=False)

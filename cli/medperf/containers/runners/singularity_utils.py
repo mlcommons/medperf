@@ -99,12 +99,6 @@ def craft_singularity_run_command(run_args: dict, executable: str):
     volumes_args = volumes_to_cli_args(input_volumes, output_volumes)
     command.extend(volumes_args)
 
-    network = run_args.pop("network", None)
-    if network is not None:
-        command.append("--net")
-        command.append("--network")
-        command.append(network)
-
     gpus = run_args.pop("gpus", None)
     if gpus is not None:
         command.append("--nv")
@@ -112,12 +106,22 @@ def craft_singularity_run_command(run_args: dict, executable: str):
             command.extend(["--nvccli", "-c", "--writable-tmpfs"])
             os.environ["NVIDIA_VISIBLE_DEVICES"] = ",".join(gpus)
 
+    run_args.pop("shm_size", None)
     # NOTE: No shm size config for singularity:
     # https://github.com/ratt-ru/Stimela-classic/issues/394
 
     env_dict = run_args.pop("environment", {})
     for key, val in env_dict.items():
         os.environ[f"SINGULARITYENV_{key}"] = val
+
+    network = run_args.pop("network", None)
+    if network == "none":
+        command.append("--net")
+        command.append("--network")
+        command.append(network)
+
+    run_args.pop("ports", [])
+    # Singularity will use host network
 
     image = run_args.pop("image")
     command.append(image)

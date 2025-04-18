@@ -76,7 +76,9 @@ class GetExperimentStatus:
         }
 
         self.ui.text = "Getting training experiment status"
-        self.cube.run(task="get_experiment_status", mounts=mounts, env=env)
+        self.cube.run(
+            task="get_experiment_status", mounts=mounts, env=env, disable_network=False
+        )
 
     def print_experiment_status(self):
         with open(self.status_output) as f:

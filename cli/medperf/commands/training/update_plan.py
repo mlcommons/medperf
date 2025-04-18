@@ -71,4 +71,4 @@ class UpdatePlan:
         }
 
         self.ui.text = "Updating plan"
-        self.cube.run(task="update_plan", mounts=mounts, env=env)
+        self.cube.run(task="update_plan", mounts=mounts, env=env, disable_network=False)
