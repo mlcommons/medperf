@@ -4,11 +4,11 @@ Here we introduce user roles at MedPerf. Depending on the objectives and expecta
 
 ## Benchmark Committee
 
-May include healthcare stakeholders (e.g., hospitals, clinicians, patient advocacy groups, payors, etc.), regulatory bodies, data providers and model owners wishing to drive the evaluation of AI models on real world data. While the *Benchmark Committee* does not have admin privileges on MedPerf, they have elevated permissions regarding benchmark assets (e.g., task, evaluation metrics, etc.) and policies (e.g., participation of model owners, data providers, anonymizations)
+May include healthcare stakeholders (e.g., hospitals, clinicians, patient advocacy groups, payors, etc.), regulatory bodies, data owners and model owners wishing to drive the evaluation of AI models on real world data. While the *Benchmark Committee* does not have admin privileges on MedPerf, they have elevated permissions regarding benchmark assets (e.g., task, evaluation metrics, etc.) and policies (e.g., participation of model owners, data owners, anonymizations)
 
 ![](./images/benchmark_committee.png)
 
-## Data Providers
+## Data Owners
 
 May include hospitals, medical practices, research organizations, and healthcare payors that own medical data, register medical data, and execute benchmarks.
 

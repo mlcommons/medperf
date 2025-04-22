@@ -4,7 +4,7 @@
 
 <!-- ## Creating a User
 
-Currently, the MedPerf administration is the only one able to create users, controlling access to the system and permissions to own a benchmark. For example, if a hospital (Data Provider), a model owner, or a benchmark committee wants to have access to MedPerf, they need to contact the MedPerf administrator to add a user. -->
+Currently, the MedPerf administration is the only one able to create users, controlling access to the system and permissions to own a benchmark. For example, if a hospital (Data Owner), a model owner, or a benchmark committee wants to have access to MedPerf, they need to contact the MedPerf administrator to add a user. -->
 
 
 <style>
@@ -14,7 +14,7 @@ td, th {
 </style>
 
 
-A benchmark in MedPerf is a collection of assets that are developed by the benchmark committee that aims to evaluate medical ML on decentralized data providers.
+A benchmark in MedPerf is a collection of assets that are developed by the benchmark committee that aims to evaluate medical ML on decentralized data owners.
 
 The process is simple yet effective enabling scalability.
 
@@ -24,7 +24,7 @@ The benchmarking process starts with establishing a benchmark committee of healt
 
 <!-- ## Step 2. Recruit Data and Model Owners
 
-The benchmark committee recruits Data Providers and Model Owners either by inviting trusted parties or by making an open call for participation. A higher number of dataset providers recruited can maximize diversity on a global scale. -->
+The benchmark committee recruits Data Owners and Model Owners either by inviting trusted parties or by making an open call for participation. A higher number of dataset providers recruited can maximize diversity on a global scale. -->
 
 ## Step 2. Register Benchmark
 
@@ -32,14 +32,14 @@ The benchmark committee recruits Data Providers and Model Owners either by invit
 
 ## Step 3. Register Dataset
 
-Data Providers that want to be part of the benchmark can [register their own datasets, prepare them, and associate them](getting_started/data_owner_demo.md) with the benchmark. A dataset will be prepared using the benchmark's Data Preparator MLCube and the dataset's **metadata** is registered within the MedPerf server.
+Data Owners that want to be part of the benchmark can [register their own datasets, prepare them, and associate them](getting_started/data_owner_demo.md) with the benchmark. A dataset will be prepared using the benchmark's Data Preparator MLCube and the dataset's **metadata** is registered within the MedPerf server.
 
 | ![flow_preparation.gif](images/flow_preparation_association_folders.PNG) | 
 |:--:| 
 | *Data Preparation* |
 
 
-The data provider then can request to participate in the benchmark with their dataset. Requesting the association will run the benchmark's reference workflow to assure the compatibility of the prepared dataset structure with the workflow. Once the association request is approved by the Benchmark Committee, then the dataset becomes a part of the benchmark.
+The data owner then can request to participate in the benchmark with their dataset. Requesting the association will run the benchmark's reference workflow to assure the compatibility of the prepared dataset structure with the workflow. Once the association request is approved by the Benchmark Committee, then the dataset becomes a part of the benchmark.
 
 ![](./images/dataset_preparation_association.png)
 
@@ -51,9 +51,9 @@ Once a benchmark is submitted by the Benchmark Committee, any user can [submit t
 
 ## Step 5. Execute Benchmark
 
-The Benchmark Committee may notify Data Providers that models are available for benchmarking. Data Providers can then [run the benchmark models](getting_started/data_owner_demo.md#5-execute-the-benchmark) locally on their data.
+The Benchmark Committee may notify Data Owners that models are available for benchmarking. Data Owners can then [run the benchmark models](getting_started/data_owner_demo.md#5-execute-the-benchmark) locally on their data.
 
-This procedure retrieves the model MLCubes associated with the benchmark and runs them on the indicated prepared dataset to generate predictions. The Metrics MLCube of the benchmark is then retrieved to evaluate the predictions. Once the evaluation results are generated, the data provider can [submit them](getting_started/data_owner_demo.md#6-submit-a-result) to the platform.
+This procedure retrieves the model MLCubes associated with the benchmark and runs them on the indicated prepared dataset to generate predictions. The Metrics MLCube of the benchmark is then retrieved to evaluate the predictions. Once the evaluation results are generated, the data owner can [submit them](getting_started/data_owner_demo.md#6-submit-a-result) to the platform.
 
 ![](./images/execution_flow_folders.PNG)
 

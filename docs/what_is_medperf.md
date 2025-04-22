@@ -4,7 +4,7 @@ td, th {
    border: none!important;
 }
 </style>
-MedPerf is an open-source framework for benchmarking medical ML models. It uses *Federated Evaluation* a method in which medical ML models are securely distributed to multiple global facilities for evaluation prioritizing patient privacy to mitigate legal and regulatory risks. The goal of *Federated Evaluation* is to make it simple and reliable to share ML models with many data providers, evaluate those ML models against their data in controlled settings, then aggregate and analyze the findings. 
+MedPerf is an open-source framework for benchmarking medical ML models. It uses *Federated Evaluation* a method in which medical ML models are securely distributed to multiple global facilities for evaluation prioritizing patient privacy to mitigate legal and regulatory risks. The goal of *Federated Evaluation* is to make it simple and reliable to share ML models with many data owners, evaluate those ML models against their data in controlled settings, then aggregate and analyze the findings. 
 
 The MedPerf approach empowers healthcare stakeholders through neutral governance to assess and verify the performance of ML models in an efficient and human-supervised process without sharing any patient data across facilities during the process.
 
@@ -19,7 +19,7 @@ The MedPerf approach empowers healthcare stakeholders through neutral governance
 
 MedPerf aims to identify bias and generalizability issues of medical ML models by evaluating them on diverse medical data across the world. This process allows developers of medical ML to efficiently identify performance and reliability issues on their models while healthcare stakeholders (e.g., hospitals, practices, etc.) can validate such models against clinical efficacy.
 
-Importantly, MedPerf supports technology for **neutral governance** in order to enable **full trust** and **transparency** among participating parties (e.g., AI vendor, data provider, regulatory body, etc.). This is all encapsulated in the benchmark committee which is the overseeing body on a benchmark.
+Importantly, MedPerf supports technology for **neutral governance** in order to enable **full trust** and **transparency** among participating parties (e.g., AI vendor, data owner, regulatory body, etc.). This is all encapsulated in the benchmark committee which is the overseeing body on a benchmark.
 
 | ![benchmark_committee.gif](images/benchmark_committee.gif) | 
 |:--:| 
