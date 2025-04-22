@@ -149,4 +149,4 @@ cython_debug/
 .venv
 
 # Medperf Tutorials
-medperf_tutorials/
+medperf_tutorial/
