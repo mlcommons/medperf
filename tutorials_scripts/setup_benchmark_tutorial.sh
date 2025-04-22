@@ -1,4 +1,5 @@
 # Create a workspace
+original_dir=$(echo $PWD)
 mkdir -p medperf_tutorial
 cd medperf_tutorial
 
@@ -26,4 +27,5 @@ sh download.sh
 rm download.sh
 
 ## Login locally as benchmark owner
-medperf auth login -e testbo@example.com
+cd $original_dir
+sh tutorials_scripts/medperf_login.sh testbo@example.com

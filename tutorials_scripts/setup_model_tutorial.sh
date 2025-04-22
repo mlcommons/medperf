@@ -11,4 +11,5 @@ sh download.sh
 rm download.sh
 
 ## Login locally as model owner
-medperf auth login -e testmo@example.com
+cd ..
+sh tutorials_scripts/medperf_login.sh testdo@example.com

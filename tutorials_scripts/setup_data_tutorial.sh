@@ -15,4 +15,5 @@ tar -xf $filename
 rm $filename
 
 ## Login locally as data owner
-medperf auth login -e testdo@example.com
+cd ..
+sh tutorials_scripts/medperf_login.sh testdo@example.com
