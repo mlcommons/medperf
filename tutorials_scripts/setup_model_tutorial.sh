@@ -1,4 +1,5 @@
 # Create a workspace
+original_dir=$(echo $PWD)
 mkdir -p medperf_tutorial
 cd medperf_tutorial
 
@@ -11,5 +12,5 @@ sh download.sh
 rm download.sh
 
 ## Login locally as model owner
-cd ..
+cd $original_dir
 sh tutorials_scripts/medperf_login.sh testdo@example.com
