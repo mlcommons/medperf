@@ -15,7 +15,7 @@ docker:
   build_file: "Dockerfile"
 
 tasks:
-  infer:
+  evaluate:
     # Computes predictions on input data
     parameters:
       inputs:
