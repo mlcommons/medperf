@@ -3,6 +3,7 @@
 {% block title %}Medperf Login{% endblock %}
 
 {% block content %}
+{% set login_running = (task_running and request.app.state.task["name"] == "medperf_login") %}
 <div class="container min-vh-100 justify-content-center align-items-center">
     <div class="row mt-5">
         {% if redirect %}
@@ -14,15 +15,29 @@
         {% endif %}
         <div class="col-12 mt-5">
             <h3 class="text-center mb-4">Login</h3>
-            <!-- Login form -->
             <form id="medperf-login" action="/medperf_login" method="post" class="mt-5">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email:</label>
-                    <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com" required>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="name@example.com"
+                        {% if task_running %} disabled {% endif %}
+                        {% if login_running %}
+                        value="{{ task_formData.get('email', '') }}"
+                        {% endif %}
+                    >
                 </div>
 
-                <div class="text-center">
-                    <button type="button" class="btn btn-primary" onclick="login(event);">Login</button>
+                <div class="text-center mt-5">
+                    <button
+                        id="medperf-login-btn"
+                        type="button"
+                        class="btn btn-primary"
+                        {% if task_running %} disabled {% endif %}
+                    >Login</button>
                 </div>
             </form>
             <div id="login-response" class="mt-5 text-center" style="display: none;">
@@ -41,5 +56,18 @@
         </div>
     </div>
 </div>
-<script src="/static/js/app.js"></script>
-{% endblock %}
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/medperf_auth.js') }}"></script>
+{% if task_running and request.app.state.task["name"] == "medperf_login"  %}
+<script>
+    $(document).ready(() => {
+        resumeLogin(
+            "#medperf-login-btn",
+            onMedperfLoginSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

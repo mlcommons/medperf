@@ -23,7 +23,7 @@
                     type="checkbox"
                     role="switch"
                     id="switch"
-                    onchange="getBenchmarks()"
+                    data-entity-name="benchmarks"
                     {% if mine_only %}
                     checked
                     {% endif %}
@@ -49,5 +49,12 @@
         {% endif %}
     </div>
 </div>
-<script src="/static/js/app.js"></script>
-{% endblock %}
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $("#switch").on("change", (e) => {
+        getEntities(e.currentTarget);
+    });
+</script>
+{% endblock extra_js %}

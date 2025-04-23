@@ -252,3 +252,50 @@ button[disabled]{
 .tooltip-info:hover{
     cursor: help;
 }
+
+
+/* Fullscreen overlay */
+#loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Faded background */
+    z-index: 9999; /* Ensure it's above everything */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Spinner */
+.spinner {
+    border: 8px solid rgba(255, 255, 255, 0.3); /* Light gray border */
+    border-top: 8px solid white; /* White border for animation */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.dropdown-item:active{
+    background-color: initial;
+    color: initial;
+}
+
+.floating-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1055; /* above most things */
+    width: fit-content;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    height: fit-content;
+}

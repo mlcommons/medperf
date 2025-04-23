@@ -7,30 +7,38 @@
 {% block title %}Container Compatibility Test{% endblock %}
 
 {% block content %}
-
+{% set comp_test_running = (task_running and request.app.state.task["name"] == "container_compatibility_test") %}
 <div class="container mt-5">
     <h1 class="text-center">Test your Container Compatibility</h1>
-    <form class="mt-5" id="container-form">
+    <form class="mt-5" id="container-comp-test-form">
         <div class="form-step">
             <div class="form-group my-5">
                 <label class="form-label h4" for="benchmark">Select Benchmark</label>
-                <select name="benchmark" id="benchmark" class="form-control" onchange="checkInput()">
+                <select name="benchmark" id="benchmark" class="form-control" {% if task_running %} disabled {% endif %}>
                     <option value="" disabled selected>Select a benchmark</option>
                     {% for benchmark in benchmarks %}
-                    <option value="{{ benchmark.id }}">{{ benchmark.name }}</option>
+                    <option
+                        value="{{ benchmark.id }}"
+                        {% if comp_test_running %}
+                        {% if task_formData.get("benchmark") == benchmark.id|string %} selected {% endif %}
+                        {% endif %}
+                    >{{ benchmark.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group my-5">
-                <label for="container_path" class="form-label h4">Locate Container</label>
+                <label for="container-path" class="form-label h4">Locate Container</label>
                 <div class="input-group">
                     <input
                         name="container_path"
                         class="form-control"
                         type="text"
-                        id="container_path"
-                        onkeyup="checkInput()"
+                        id="container-path"
                         placeholder="{{ placeholders.compatibility_test_container_path }}"
+                        {% if comp_test_running %}
+                        value="{{ task_formData.get('container_path', '') }}"
+                        disabled
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -42,7 +50,7 @@
             </div>
 
             <div class="text-center mt-4">
-                <button id="run-test" type="button" class="btn btn-success mx-3" onclick="testContainer()" disabled>
+                <button id="run-comp-test-btn" type="button" class="btn btn-success mx-3" disabled>
                     Run compatibility test
                 </button>
             </div>
@@ -65,90 +73,33 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="cancelRegister()">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="showRegister()" data-bs-dismiss="modal">Continue to container registration</button>
+                    <button type="button" class="btn btn-danger" onclick="reloadPage()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="showRegisterContainer()" data-bs-dismiss="modal">Continue to container registration</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="panel" class="my-5" style="display: none;">
-        <h2 id="panel-title"></h2>
-    
-        <div class="stages">
-            <ul class="list-group mb-3" id="stages-list"></ul>
-        </div>
-    
-        <div class="card mt-5">
-            <div class="card-body">
-                <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
-            </div>
-        </div>
-    </div>
-    
-    <div id="text-content" style="display: none;">
-        <div id="content"></div>
-    </div>
-
-    <div id="prompt-div" class="my-5" style="display: none;">
-        <div id="prompt-text"></div>
-        <div class="text-center mt-5">
-            <button type="button" class="btn btn-danger mx-3" onclick="respond_no();">No</button>
-            <button type="button" class="btn btn-success mx-3" onclick="respond_yes();">Yes</button>
-        </div>
-    </div>
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/prompt_container.html" %}
 </div>
+{% endblock content %}
 
-<script>
-</script>
-<script src="/static/js/event_handler.js"></script>
-<script src="/static/js/app.js"></script>
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/containers/container_compatibility_test.js') }}"></script>
 
 {% if task_running and request.app.state.task["name"] == "container_compatibility_test" %}
 <script>
-    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
-        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
-            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
-        });
-        return currentStageElement;
-    }
-    task_id = "{{ request.app.state.task['id'] }}";
-    document.addEventListener("DOMContentLoaded", () => {
-        const input_elements = document.querySelectorAll("#container-form input");
-        input_elements.forEach(element => {
-            element.setAttribute("disabled", true);
-        });
-        const select_elements = document.querySelectorAll("#container-form select");
-        select_elements.forEach(element => {
-            element.setAttribute("disabled", true);
-        });
-        showPanel(`Running Compatibility Test...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            let title;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                const nextModal = new bootstrap.Modal('#nextModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                })
-                $("#yaml-content").html(JSON.stringify(response.results, null, 2));
-                Prism.highlightElement(document.getElementById("yaml-content"));
-                nextModal.show();
-            }
-            else{
-                title = "Model Compatibility Test Failed";
-                $("#errorModalLabel").html(title);
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-        });
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#run-comp-test-btn",
+            `Running Compatibility Test...`,
+            onContainerCompatibilityTestSuccess
+        );
     });
+
 </script>
 {% endif %}
-{% endblock %}
+{% endblock extra_js %}

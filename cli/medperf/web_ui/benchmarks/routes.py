@@ -133,7 +133,7 @@ def workflow_test_ui(
     )
 
 
-@router.post("/test", response_class=JSONResponse)
+@router.post("/run_workflow_test", response_class=JSONResponse)
 def test_benchmark(
     request: Request,
     data_preparation: str = Form(...),
@@ -196,7 +196,7 @@ def register_benchmark(
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
-    task_id = initialize_state_task(request, task_name="benchmark_register")
+    task_id = initialize_state_task(request, task_name="benchmark_registration")
     config.ui.set_task_id(task_id)
     return_response = {"status": "", "error": "", "benchmark_id": None}
     benchmark_id = None

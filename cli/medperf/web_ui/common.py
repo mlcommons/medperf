@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+import anyio
 from fastapi import HTTPException, Security
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.templating import Jinja2Templates
@@ -20,7 +21,7 @@ from medperf.web_ui.auth import (
 import uuid
 import time
 
-templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"  # noqa
+templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
 
 logger = logging.getLogger(__name__)
@@ -31,12 +32,14 @@ def generate_uuid():
 
 
 def initialize_state_task(request: Request, task_name: str) -> str:
+    form_data = dict(anyio.run(lambda: request.form()))
     new_task_id = generate_uuid()
     request.app.state.task = {
         "id": new_task_id,
         "name": task_name,
         "running": True,
         "logs": [],
+        "formData": form_data,
     }
     request.app.state.task_running = True
 
@@ -49,7 +52,13 @@ def reset_state_task(request: Request):
     if len(request.app.state.old_tasks) == 10:
         request.app.state.old_tasks.pop(0)
     request.app.state.old_tasks.append(current_task)
-    request.app.state.task = {"id": "", "name": "", "running": False, "logs": []}
+    request.app.state.task = {
+        "id": "",
+        "name": "",
+        "running": False,
+        "logs": [],
+        "formData": {},
+    }
     request.app.state.task_running = False
 
 

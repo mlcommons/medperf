@@ -7,21 +7,24 @@
 {% block title %}Benchmark Workflow Test{% endblock %}
 
 {% block content %}
-
+{% set benchmark_workflow_test_running = (task_running and request.app.state.task["name"] == "benchmark_workflow_test") %}
 <div class="container">
     <h1 class="text-center">Test your Benchmark Workflow</h1>
-    <form class="mt-5" id="test-form">
+    <form class="mt-5" id="workflow-test-form">
         <div class="form-step">
             <div class="form-group my-5">
-                <label for="data_preparation" class="form-label h4">Locate Data Preparation Container Path</label>
+                <label for="data-preparation" class="form-label h4">Locate Data Preparation Container Path</label>
                 <div class="input-group">
                     <input
                         name="data_preparation"
                         class="form-control"
                         type="text"
-                        id="data_preparation"
-                        onkeyup="checkInputBenchmark()"
+                        id="data-preparation"
                         placeholder="{{ placeholders.workflow_test_data_preparation_container }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_workflow_test_running %}
+                        value="{{ task_formData.get('data_preparation', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -32,15 +35,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="model_path" class="form-label h4">Locate Reference Model Path</label>
+                <label for="model-path" class="form-label h4">Locate Reference Model Path</label>
                 <div class="input-group">
                     <input
                         name="model_path"
                         class="form-control"
                         type="text"
-                        id="model_path"
-                        onkeyup="checkInputBenchmark()"
+                        id="model-path"
                         placeholder="{{ placeholders.workflow_test_reference_model_path }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_workflow_test_running %}
+                        value="{{ task_formData.get('model_path', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -51,15 +57,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="evaluator_path" class="form-label h4">Locate Metrics Container Path</label>
+                <label for="evaluator-path" class="form-label h4">Locate Metrics Container Path</label>
                 <div class="input-group">
                     <input
                         name="evaluator_path"
                         class="form-control"
                         type="text"
-                        id="evaluator_path"
-                        onkeyup="checkInputBenchmark()"
+                        id="evaluator-path"
                         placeholder="{{ placeholders.workflow_test_metrics_container_path }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_workflow_test_running %}
+                        value="{{ task_formData.get('evaluator_path', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -70,15 +79,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="data_path" class="form-label h4">Locate Reference Dataset's Data Path</label>
+                <label for="data-path" class="form-label h4">Locate Reference Dataset's Data Path</label>
                 <div class="input-group">
                     <input
                         name="data_path"
                         class="form-control"
                         type="text"
-                        id="data_path"
-                        onkeyup="checkInputBenchmark()"
+                        id="data-path"
                         placeholder="{{ placeholders.workflow_test_reference_dataset_data_path }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_workflow_test_running %}
+                        value="{{ task_formData.get('data_path', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -89,15 +101,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="labels_path" class="form-label h4">Locate Reference Dataset's Labels Path</label>
+                <label for="labels-path" class="form-label h4">Locate Reference Dataset's Labels Path</label>
                 <div class="input-group">
                     <input
                         name="labels_path"
                         class="form-control"
                         type="text"
-                        id="labels_path"
-                        onkeyup="checkInputBenchmark()"
+                        id="labels-path"
                         placeholder="{{ placeholders.workflow_test_reference_dataset_labels_path }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_workflow_test_running %}
+                        value="{{ task_formData.get('labels_path', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -109,10 +124,9 @@
             </div>
             <div class="text-center mt-4">
                 <button
-                    id="run-test"
+                    id="run-workflow-test-btn"
                     type="button"
                     class="btn btn-success mx-3"
-                    onclick="testBenchmark()"
                     disabled
                 >
                     Run workflow test
@@ -127,98 +141,41 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="nextTitle">
-                        Benchmark Workflow Test Successful
+                        Model Compatibility Test Successful
                     </h5>
                 </div>
                 <div class="modal-body">
-                    <h5>Results generated by the workflow test</h5>
+                    <h5>Results generated by the compatibility test</h5>
                     <div class="mt-3">
                         <pre id="yaml-content" class="language-yaml" style="padding: 15px; border-radius: 4px;"></pre>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="cancelRegisterBenchmark()">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="showRegisterBenchmark()" data-bs-dismiss="modal">Continue to benchmark registration</button>
+                    <button type="button" class="btn btn-danger" onclick="reloadPage()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="showRegisterBenchmark()" data-bs-dismiss="modal">Continue to container registration</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <div id="panel" class="my-5" style="display: none;">
-        <h2 id="panel-title"></h2>
-    
-        <div class="stages">
-            <ul class="list-group mb-3" id="stages-list"></ul>
-        </div>
-    
-        <div class="card mt-5">
-            <div class="card-body">
-                <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
-            </div>
-        </div>
-    </div>
-    
-    <div id="text-content" style="display: none;">
-        <div id="content"></div>
-    </div>
-    <div id="prompt-div" class="my-5" style="display: none;">
-        <div id="prompt-text"></div>
-        <div class="text-center mt-5">
-            <button type="button" class="btn btn-danger mx-3" onclick="respond_no();">No</button>
-            <button type="button" class="btn btn-success mx-3" onclick="respond_yes();">Yes</button>
-        </div>
-    </div>
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/prompt_container.html" %}
 </div>
+{% endblock content %}
 
-<script>
-</script>
-<script src="/static/js/event_handler.js"></script>
-<script src="/static/js/app.js"></script>
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/benchmarks/benchmark_workflow_test.js') }}"></script>
 
 {% if task_running and request.app.state.task["name"] == "benchmark_workflow_test" %}
 <script>
-    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
-        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
-            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
-        });
-        return currentStageElement;
-    }
-    task_id = "{{ request.app.state.task['id'] }}";
-    document.addEventListener("DOMContentLoaded", () => {
-        const input_elements = document.querySelectorAll("#test-form input");
-        input_elements.forEach(element => {
-            element.setAttribute("disabled", true);
-        });
-        const textareas = document.querySelectorAll("#test-form textarea");
-        textareas.forEach(element => {
-            element.setAttribute("disabled", true);
-        });
-        showPanel(`Running Workflow Test...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            let title;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                const nextModal = new bootstrap.Modal('#nextModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                })
-                $("#yaml-content").html(JSON.stringify(response.results, null, 2));
-                Prism.highlightElement(document.getElementById("yaml-content"));
-                nextModal.show();
-            }
-            else{
-                $("#errorModalLabel").html("Benchmark Workflow Test Failed");
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-        });
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#run-workflow-test-btn",
+            `Running Workflow Test...`,
+            onBenchmarkWorkflowTestSuccess
+        );
     });
 </script>
 {% endif %}
-{% endblock %}
+{% endblock extra_js %}

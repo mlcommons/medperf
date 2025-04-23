@@ -6,21 +6,6 @@
 {% block title %}Benchmark Details{% endblock %}
 
 {% block detail_panel %}
-<style>
-    /* Fullscreen overlay */
-    #loading-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5); /* Faded background */
-        z-index: 9999; /* Ensure it's above everything */
-        justify-content: center;
-        align-items: center;
-    }
-</style>
 <h1 class="my-4">{{ entity.name }}</h1>
 <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
@@ -101,102 +86,23 @@
     <div class="associations-column">
         <h2 class="my-4">Datasets Associations</h2>
         {% for assoc in datasets_associations %}
-        {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "datasets") }}
+        {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "dataset") }}
         {% endfor %}
     </div>
     <div class="associations-column">
         <h2 class="my-4">Models Associations</h2>
         {% for assoc in models_associations %}
-        {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "containers") }}
+        {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
         {% endfor %}
     </div>
 </div>
 {% endif %}
 
-<!-- Modal for confirmation approve/reject -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmTitle"></h5>
-            </div>
-            <div class="modal-body">
-                <p id="confirmText" class="fs-5"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" onclick="window.location.reload(true);">Cancel</button>
-                <button
-                    id="approve-reject"
-                    type="button"
-                    class="btn btn-success"
-                    onclick="containersApproveReject(this)"
-                    data-bs-dismiss="modal"
-                >Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div id="loading-overlay">
-    <div class="spinner"></div>
-</div>
-<script src="/static/js/app.js"></script>
-{% if task_running %}
-<script>
-    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
-        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
-            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
-        });
-        return currentStageElement;
-    }
-    task_id = "{{ request.app.state.task['id'] }}";
-    document.addEventListener("DOMContentLoaded", () => {
-    {% if request.app.state.task["name"] == "approve_association" %}
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            let title;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                title = "Association Approved Successfully";
-                showReloadModal(title);
-                timer(3);
-            }
-            else{
-                title = "Failed to Approve Association";
-                $("#errorModalLabel").html(title);
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-        });
-    {% elif request.app.state.task["name"] == "reject_association"  %}
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            let title;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                title = "Association Rejected Successfully";
-                showReloadModal(title);
-                timer(3);
-            }
-            else{
-                title = "Failed to Reject Association";
-                $("#errorModalLabel").html(title);
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-            
-        });
-    {% endif %}
-    });
-</script>
-{% endif %}
-{% endblock %}
+{% include "partials/approve_reject_confirmation_modal.html" %}
+{% endblock detail_panel %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/benchmarks/benchmark_detail.js') }}"></script>
+{% endblock extra_js %}

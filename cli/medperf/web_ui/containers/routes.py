@@ -120,7 +120,7 @@ def register_container(
     additional_file: str = Form(""),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="container_register")
+    task_id = initialize_state_task(request, task_name="container_registration")
     config.ui.set_task_id(task_id)
     return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
@@ -157,7 +157,7 @@ def register_container(
     return return_response
 
 
-@router.post("/test", response_class=JSONResponse)
+@router.post("/run_compatibility_test", response_class=JSONResponse)
 def test_container(
     request: Request,
     benchmark: int = Form(...),
@@ -203,11 +203,11 @@ def associate(
     try:
         AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"
-        notification_message = "Successfully requested model association!"
+        notification_message = "Successfully requested container association!"
     except MedperfException as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
-        notification_message = "Failed to request model association"
+        notification_message = "Failed to request container association"
 
     config.ui.end_task(return_response)
     reset_state_task(request)

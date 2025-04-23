@@ -7,14 +7,14 @@
 {% block title %}Create Benchmark{% endblock %}
 
 {% block content %}
-
+{% set benchmark_register_running = (task_running and request.app.state.task["name"] == "benchmark_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Benchmark</h1>
     <div class="text-center fs-5 mt-4">
         It is <strong>recommended</strong> to test the benchmark workflow <a href="/benchmarks/register/workflow_test">here</a> before registration.
     </div>
 
-    <form class="mt-5" id="register-form">
+    <form class="mt-5" id="benchmark-register-form">
         <div class="form-step">
             <div class="form-group my-5">
                 <label for="name" class="form-label h4">Benchmark Name</label>
@@ -24,8 +24,11 @@
                         class="form-control"
                         type="text"
                         id="name"
-                        onkeyup="checkRegisterBenchmark()"
                         placeholder="{{ placeholders.register_benchmark_name }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_register_running %}
+                        value="{{ task_formData.get('name', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -42,9 +45,9 @@
                         name="description"
                         id="description"
                         class="form-control"
-                        onkeyup="checkRegisterBenchmark()"
                         placeholder="{{ placeholders.register_benchmark_description }}"
-                    ></textarea>
+                        {% if task_running %} disabled {% endif %}
+                    >{% if benchmark_register_running %} {{ task_formData.get('description', '') }} {% endif %}</textarea>
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
                         data-bs-toggle="tooltip"
@@ -54,15 +57,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="reference_dataset_tarball_url" class="form-label h4">Reference Dataset Tarball URL</label>
+                <label for="reference-dataset-tarball-url" class="form-label h4">Reference Dataset Tarball URL</label>
                 <div class="input-group">
                     <input
                         name="reference_dataset_tarball_url"
                         class="form-control"
                         type="text"
-                        id="reference_dataset_tarball_url"
-                        onkeyup="checkRegisterBenchmark()"
+                        id="reference-dataset-tarball-url"
                         placeholder="{{ placeholders.register_benchmark_reference_dataset_tarball_url }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_register_running %}
+                        value="{{ task_formData.get('reference_dataset_tarball_url', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -73,15 +79,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="data_preparation_container" class="form-label h4">Data Preparation Container ID</label>
+                <label for="data-preparation-container" class="form-label h4">Data Preparation Container ID</label>
                 <div class="input-group">
                     <input
                         name="data_preparation_container"
                         class="form-control"
                         type="number"
-                        id="data_preparation_container"
-                        onkeyup="checkRegisterBenchmark()"
+                        id="data-preparation-container"
                         placeholder="{{ placeholders.register_benchmark_data_preparation_container_id }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_register_running %}
+                        value="{{ task_formData.get('data_preparation_container', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -92,15 +101,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="reference_model_container" class="form-label h4">Reference Model ID</label>
+                <label for="reference-model-container" class="form-label h4">Reference Model ID</label>
                 <div class="input-group">
                     <input
                         name="reference_model_container"
                         class="form-control"
                         type="number"
-                        id="reference_model_container"
-                        onkeyup="checkRegisterBenchmark()"
+                        id="reference-model-container"
                         placeholder="{{ placeholders.register_benchmark_reference_model_id }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_register_running %}
+                        value="{{ task_formData.get('reference_model_container', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -111,15 +123,18 @@
                 </div>
             </div>
             <div class="form-group my-5">
-                <label for="evaluator_container" class="form-label h4">Metrics Container ID</label>
+                <label for="evaluator-container" class="form-label h4">Metrics Container ID</label>
                 <div class="input-group">
                     <input
                         name="evaluator_container"
                         class="form-control"
                         type="number"
-                        id="evaluator_container"
-                        onkeyup="checkRegisterBenchmark()"
+                        id="evaluator-container"
                         placeholder="{{ placeholders.register_benchmark_metrics_container_id }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if benchmark_register_running %}
+                        value="{{ task_formData.get('evaluator_container', '') }}"
+                        {% endif %}
                     >
                     <i
                         class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -131,10 +146,9 @@
             </div>
             <div class="text-center mt-4">
                 <button
-                    id="register-btn"
+                    id="register-benchmark-btn"
                     type="button"
                     class="btn btn-success mx-3"
-                    onclick="registerBenchmark()"
                     disabled
                 >
                     Register
@@ -143,78 +157,26 @@
         </div>
     </form>
 
-    <div id="panel" class="my-5" style="display: none;">
-        <h2 id="panel-title"></h2>
-    
-        <div class="stages">
-            <ul class="list-group mb-3" id="stages-list"></ul>
-        </div>
-    
-        <div class="card mt-5">
-            <div class="card-body">
-                <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
-            </div>
-        </div>
-    </div>
-    
-    <div id="text-content" style="display: none;">
-        <div id="content"></div>
-    </div>
-    <div id="yaml-div" style="display: none;">
-        <pre id="yaml-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
-    </div>
-    <div id="prompt-div" class="my-5" style="display: none;">
-        <div id="prompt-text"></div>
-        <div class="text-center mt-5">
-            <button type="button" class="btn btn-danger mx-3" onclick="respond_no();">No</button>
-            <button type="button" class="btn btn-success mx-3" onclick="respond_yes();">Yes</button>
-        </div>
-    </div>
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
 </div>
+{% endblock content %}
 
-<script>
-</script>
-<script src="/static/js/event_handler.js"></script>
-<script src="/static/js/app.js"></script>
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/benchmarks/benchmark_register.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "benchmark_register" %}
+{% if task_running and request.app.state.task["name"] == "benchmark_registration" %}
 <script>
-    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
-        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
-            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
-        });
-        return currentStageElement;
-    }
-    task_id = "{{ request.app.state.task['id'] }}";
-    document.addEventListener("DOMContentLoaded", () => {
-        const input_elements = document.querySelectorAll("#register-form input");
-        input_elements.forEach(element => {
-            element.setAttribute("disabled", true);
-        });
-        const textareas = document.querySelectorAll("#register-form textarea");
-        textareas.forEach(element => {
-            element.setAttribute("disabled", true);
-        });
-        showPanel(`Registering Benchmark...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                showReloadModal("Benchmark Successfully Registered");
-                timer(3, url="/benchmarks/ui/display/"+response.benchmark_id);
-            }
-            else{
-                $("#errorModalLabel").html("Failed to Register Benchmark");
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-        });
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#register-benchmark-btn",
+            `Registering Benchmark...`,
+            onBenchmarkRegisterSuccess
+        );
     });
 </script>
 {% endif %}
-{% endblock %}
+{% endblock extra_js %}

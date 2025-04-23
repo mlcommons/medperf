@@ -6,53 +6,6 @@
 {% block title %}Dataset Details{% endblock title %}
 
 {% block detail_panel %}
-{% block optional_styles %}
-<style>
-    /* Fullscreen overlay */
-    #loading-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5); /* Faded background */
-        z-index: 9999; /* Ensure it's above everything */
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* Spinner */
-    .spinner {
-        border: 8px solid rgba(255, 255, 255, 0.3); /* Light gray border */
-        border-top: 8px solid white; /* White border for animation */
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    .highlighted-text {
-        font-weight: bold;
-        color: #000000;
-        text-shadow: 0 0 5px rgb(255, 8, 0), 0 0 10px rgb(35, 0, 231);
-        animation: glow 2s ease-in-out infinite alternate;
-    }
-    
-    @keyframes glow {
-        0% {
-            text-shadow: 0 0 5px rgb(255, 8, 0);
-        }
-        100% {
-            text-shadow: 0 0 15px rgb(35, 0, 231);
-        }
-    }
-</style>
-{% endblock optional_styles %}
 
 <h1 class="my-4">{{ dataset.name }}</h1>
 <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
@@ -97,7 +50,6 @@
                         data-id="{{ dataset.id }}"
                         data-field="statistics_path"
                         data-entity="dataset"
-                        onclick="viewStatistics()"
                     >View Statistics</a>
                 </p>
                 {% endif %}
@@ -149,9 +101,14 @@
 			style="border:1px solid rgba(0, 0, 0, .125);border-radius:.25rem;"
 			>
             <div class="col-md-3 text-center">
-                {% if not dataset_is_prepared %}
+                {% if dataset_is_prepared %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="ms-2 text-success">Prepared</span>
+                </div>
+                {% else %}
                 <button
-                    class="step-btn btn btn-primary"
+                    class="step-btn btn btn-primary mb-2"
                     id="prepare-dataset"
                     data-dataset-id="{{ dataset.id }}"
                     data-dataset-name="{{ dataset.name }}"
@@ -160,11 +117,6 @@
                     <i class="fas fa-play-circle me-2"></i> Prepare
                 </button>
                 <br>
-                {% else %}
-                <div class="step-complete d-flex align-items-center">
-                    <i class="fas fa-check-circle text-success me-2"></i>
-                    <span class="ms-2 text-success">Prepared</span>
-                </div>
                 {% endif %}
                 <small class="step-label ms-2">Step 1: Performs data preprocessing and sanity checks according to the benchmark</small>
             </div>
@@ -172,9 +124,14 @@
                 <i class="fas fa-chevron-right text-muted mt-2"></i>
             </div>
             <div class="col-3 text-center">
-                {% if dataset_is_prepared and not dataset_is_operational %}
+                {% if dataset_is_operational %}
+                <div class="step-complete d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="ms-2 text-success">Operational</span>
+                </div>
+                {% elif dataset_is_prepared and not dataset_is_operational %}
                 <button
-                    class="step-btn btn btn-warning"
+                    class="step-btn btn btn-warning mb-2"
                     id="set-operational"
                     data-dataset-id="{{ dataset.id }}"
                     {% if task_running %} disabled {% endif %}
@@ -182,13 +139,8 @@
                     <i class="fas fa-arrow-up me-2"></i> Set Operational
                 </button>
                 <br>
-                {% elif dataset_is_prepared and dataset_is_operational %}
-                <div class="step-complete d-flex align-items-center">
-                    <i class="fas fa-check-circle text-success me-2"></i>
-                    <span class="ms-2 text-success">Operational</span>
-                </div>
                 {% else %}
-                <button class="step-btn btn btn-warning" disabled>
+                <button class="step-btn btn btn-warning mb-2" disabled>
                     Set Operational
                 </button>
                 <br>
@@ -202,9 +154,9 @@
                 {% if dataset_is_operational %}
                 <div class="dropdown">
                     <button
-                        class="step-btn btn btn-info dropdown-toggle"
+                        class="step-btn btn btn-info dropdown-toggle mb-2"
                         type="button"
-                        id="associate-dropdown"
+                        id="associate-dropdown-btn"
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
                         {% if task_running %} disabled {% endif %}
@@ -217,21 +169,28 @@
                     {% set _ = available_benchmarks.append(benchmark) %}
                     {% endif %}
                     {% endfor %}
-                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown" id="dropdown-div">
+                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown-btn" id="dropdown-div">
+                        {% if available_benchmarks %}
                         {% for benchmark in available_benchmarks %}
                         <li class="dropdown-item">
                             <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
                             <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
-                            <button type="button" class="btn btn-primary benchmark-item" data-benchmark-id="{{ benchmark.id }}">Request Association</button>
+                            <button
+                                type="button"
+                                class="btn btn-primary request-association-btn"
+                                data-benchmark-id="{{ benchmark.id }}"
+                                data-dataset-id="{{ dataset.id }}"
+                                {% if task_running %} disabled {% endif %}
+                            >Request Association</button>
                         </li>
                         {% endfor %}
-                        {% if not available_benchmarks %}
+                        {% else %}
                         <li class="dropdown-item text-muted">No benchmarks available for association</li>
                         {% endif %}
                     </ul>
                 </div>
                 {% else %}
-                <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
+                <button class="step-btn btn btn-info mb-2" disabled>Associate with Benchmark</button>
                 <br>
                 {% endif %}
                 <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
@@ -240,9 +199,6 @@
     </div>
 </div>
 
-<div id="loading-overlay">
-    <div class="spinner"></div>
-</div>
 {% if benchmark_associations and not approved_benchmarks %}
 <!-- Display associations between the dataset and the benchmarks -->
 <div class="card mb-4 shadow-sm mt-5">
@@ -289,6 +245,7 @@
 			</a>
 			</h4>
 			<button
+                id="run-all-{{ assoc }}"
 				class="btn btn-secondary run-all-btn"
 				data-benchmark-id="{{ assoc }}"
 				data-dataset-id="{{ dataset.id }}"
@@ -325,7 +282,7 @@
 							{% if reference_model.result %}
 								<div class="mx-2">
 									<button
-										class="btn btn-primary submit-result-btn"
+										class="btn btn-primary view-result-btn"
 										data-benchmark-name="{{ benchmarks[assoc].name }}"
 										data-model-name="{{ reference_model.name }}"
 										data-dataset-name="{{ dataset.name }}"
@@ -345,8 +302,9 @@
 								<div class="mx-2">
 									<button
 										class="btn btn-primary"
-										id="submit-{{ reference_model.result.name }}"
-										data-result-name="{{ reference_model.result.name }}"
+                                        id="submit-{{ assoc }}-{{ reference_model.result.name }}"
+										data-result-id="{{ reference_model.result.name }}"
+                                        data-benchmark-id="{{ assoc }}"
                                         {% if task_running %} disabled {% endif %}
 									>
 										⬆️ Submit
@@ -399,14 +357,15 @@
 								</div>
 								{% else %}
 								<div class="mx-2">
-										<button
-											class="btn btn-primary"
-											id="submit-{{ model.result.name }}"
-											data-result-name="{{ model.result.name }}"
-                                            {% if task_running %} disabled {% endif %}
-										>
-											⬆️ Submit
-										</button>
+                                    <button
+                                        class="btn btn-primary"
+                                        id="submit-{{ assoc }}-{{ model.result.name }}"
+                                        data-result-id="{{ model.result.name }}"
+                                        data-benchmark-id="{{ assoc }}"
+                                        {% if task_running %} disabled {% endif %}
+                                    >
+                                        ⬆️ Submit
+                                    </button>
 								</div>
 								{% endif %}
 							{% endif %}
@@ -425,435 +384,84 @@
 	{% endif %}
 {% endfor %}
 
-<div id="panel" class="my-5" style="display: none;">
-    <h2 id="panel-title"></h2>
+{% include "partials/panel_container.html" %}
+{% include "partials/text_content_container.html" %}
+{% include "partials/yaml_container.html" %}
+{% include "partials/prompt_container.html" %}
 
-    <div class="stages">
-        <ul class="list-group mb-3" id="stages-list"></ul>
-    </div>
+{% include "partials/view_result_modal.html" %}
+{% endblock detail_panel %}
 
-    <div class="card mt-5">
-        <div class="card-body">
-            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
-        </div>
-    </div>
-</div>
-
-<div id="text-content" style="display: none;" class="mt-5">
-    <div id="content"></div>
-</div>
-
-<div id="yaml-div" style="display: none;">
-    <pre id="yaml-content" class="language-yaml" style="padding: 15px; border-radius: 4px;"></pre>
-</div>
-
-<div id="prompt-div" class="my-5" style="display: none;">
-    <div id="prompt-text"></div>
-    <div class="text-center mt-5">
-        <button type="button" class="btn btn-danger mx-3" id="respond-no">No</button>
-        <button type="button" class="btn btn-success mx-3" id="respond-yes">Yes</button>
-    </div>
-</div>
-
-<!-- Result View Modal -->
-<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="resultModalLabel"></h5>
-            </div>
-            <div class="modal-body">
-                <pre id="result-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="/static/js/event_handler.js"></script>
-<script src="/static/js/app.js"></script>
-
-<script>
-	function disableAllButtons(){
-		document.querySelectorAll('.run-all-btn').forEach(btn => {
-			btn.setAttribute("disabled", true);
-		});
-		document.querySelectorAll('[id^="run-"]').forEach(btn => {
-			btn.setAttribute("disabled", true);
-		});
-	}
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle the "Associate" dropdown item click
-        document.querySelectorAll('.benchmark-item').forEach(item => {
-            item.addEventListener('click', function() {
-                if (!this.classList.contains('disabled')) {
-                    const datasetId = "{{ dataset.id }}";
-					const datasetName = "{{ dataset.name }}"
-                    const benchmarkId = this.getAttribute('data-benchmark-id');
-                    associate(datasetId, benchmarkId, datasetName, this);
-                }
-            });
-        });
-
-        $("#respond-yes").on("click", respond_yes);
-        $("#respond-no").on("click", respond_no);
-        $("#prepare-dataset").on("click", function() {
-            prepare(this);
-        });
-        $("#set-operational").on("click", function() {
-            setOperation(this);
-        });
-        $("[id^='run-']").on("click", function() {
-            disableAllButtons();
-            runBenchmark(this);
-        });
-        $("[id^='show-']").on("click", function() {
-            showResult(this);
-        });
-        $("[id^='submit-']").on("click", function() {
-            submitResult(this);
-        });
-        // Add an event listener to handle the "Run All" button clicks
-        document.querySelectorAll('.run-all-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const benchmarkId = this.getAttribute('data-benchmark-id');
-                const datasetId = this.getAttribute('data-dataset-id');
-                const datasetName = this.getAttribute('data-dataset-name');
-                // Find all run buttons related to this benchmark
-                const runButtons = document.querySelectorAll(`[id^="run-${benchmarkId}-"]`);
-                let model_ids = [];
-                runButtons.forEach(button => {
-                    if (!button.classList.contains('d-none')) {
-                        disableAllButtons();
-                        model_ids.push(
-                            {
-                                "id": button.getAttribute('data-model-id'),
-                                "name": button.getAttribute('data-model-name')
-                            }
-                        );
-                        button.innerHTML = `
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Running`;
-                    }
-                });
-                if(model_ids){
-                    this.innerHTML = `
-                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Running`;
-                    runBenchmark(null, benchmarkId, datasetId, model_ids, datasetName);
-                }
-            });
-        });
-    });
-</script>
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/datasets/dataset_detail.js') }}"></script>
 
 {% if task_running %}
+{% if request.app.state.task["name"] == "dataset_preparation" %}
 <script>
-    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
-        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
-            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
-        });
-        return currentStageElement;
-    }
-    task_id = "{{ request.app.state.task['id'] }}";
-    document.addEventListener("DOMContentLoaded", () => {
-    {% if request.app.state.task["name"] == "dataset_preparation" %}
-        showPanel(`Preparing Dataset...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            let title;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                title = "Dataset Prepared Successfully";
-                showReloadModal(title);
-                timer(3);
-            }
-            else{
-                title = "Failed to Prepare Dataset";
-                $("#errorModalLabel").html(title);
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-        });
-    {% elif request.app.state.task["name"] == "dataset_set_operational" %}
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        if(!prompt_received){
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Dataset Set to Operation Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Failed to Set Dataset to Operation"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#prepare-dataset",
+            `Preparing Dataset...`,
+            onDatasetPrepareSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task["name"] == "dataset_set_operational" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#set-operational",
+            null,
+            onDatasetSetOperationSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task["name"] == "dataset_association" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#associate-dropdown-btn",
+            `Requesting Association...`,
+            onDatasetAssociationRequestSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task["name"] == "benchmark_run" %}
+<script>
+    $(document).ready(() => {
+        elementsSpinners = [];
+        benchmarkId = "{{ task_formData.get('benchmark_id', '') }}";
+        modelIds = "{{ task_formData.get('model_ids', '') }}";
+        runAll = "{{ task_formData.get('run_all', '') }}" === "true";
+        if (runAll){
+            elementsSpinners.push(`#run-all-${benchmarkId}`);
+            $(`[id^="run-${benchmarkId}-"]`).each((index, element) => {
+                elementsSpinners.push("#"+element.getAttribute("id"));
             });
         }
-        respond_yes = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: true },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Dataset Set to Operation Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Failed to Set Dataset to Operation"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
+        else{
+            elementsSpinners = `[id^="run-${benchmarkId}-${modelIds}"]`
         }
-        respond_no = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: false },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Dataset Set to Operation Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Failed to Set Dataset to Operation"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        };
-        $("#respond-no").off("click").on("click", respond_no);
-        $("#respond-yes").off("click").on("click", respond_yes);
-    {% elif request.app.state.task["name"] == "dataset_association" %}
-        showPanel(`Requesting Association...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        if (!prompt_received){
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Association Requested Successfully";
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Association Request Failed";
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        }
-        respond_yes = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: true },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Association Requested Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Association Request Failed"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        }
-        respond_no = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: false },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Association Requested Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Association Request Failed"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        };
-        $("#respond-no").off("click").on("click", respond_no);
-        $("#respond-yes").off("click").on("click", respond_yes);
-        {% elif request.app.state.task["name"] == "benchmark_run" %}
-        showPanel(`Running Benchmark Execution...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-            let response = last_log.response;
-            let title;
-            markAllStagesAsComplete();
-            if(response.status === "success"){
-                title = "Execution Ran Successfully";
-                showReloadModal(title);
-                timer(3);
-            }
-            else{
-                title = "Execution Failed";
-                $("#errorModalLabel").html(title);
-                $("#errorText").html(response.error);
-                const errorModal = new bootstrap.Modal('#errorModal', {
-                    keyboard: false,
-                    backdrop: "static"
-                });
-                errorModal.show();
-            }
-        });
-        {% elif request.app.state.task["name"] == "result_submit" %}
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        if (!prompt_received){
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                let title;
-                markAllStagesAsComplete();
-                if(response.status === "success"){
-                    title = "Results Successfully Submitted";
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Results Submission Failed";
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        }
-        respond_yes = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: true },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Results Successfully Submitted"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Results Submission Failed"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        }
-        respond_no = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: false },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Results Successfully Submitted"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Results Submission Failed"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        };
-        $("#respond-no").off("click").on("click", respond_no);
-        $("#respond-yes").off("click").on("click", respond_yes);
-    {% endif %}
+        resumeRunningTask(
+            elementsSpinners,
+            `Running Benchmark Execution...`,
+            onDatasetBenchmarkExecutionSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task["name"] == "result_submit" %}
+<script>
+    $(document).ready(() => {
+        benchmarkId = "{{ task_formData.get('benchmark_id', '') }}";
+        resultId = "{{ task_formData.get('result_id', '') }}";
+        resumeRunningTask(
+            `#submit-${benchmarkId}-${resultId}`,
+            null,
+            onResultSubmitSuccess
+        );
     });
 </script>
 {% endif %}
-{% endblock detail_panel %}
+{% endif %}
+{% endblock extra_js %}

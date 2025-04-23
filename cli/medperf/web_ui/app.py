@@ -36,12 +36,8 @@ web_app.include_router(medperf_login)
 web_app.include_router(profiles_router)
 
 static_folder_path = Path(resources.files("medperf.web_ui")) / "static"
-web_app.mount(
-    "/static",
-    StaticFiles(
-        directory=static_folder_path,
-    ),
-)
+
+web_app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
 
 web_app.add_exception_handler(Exception, custom_exception_handler)
 
@@ -54,7 +50,13 @@ def startup_event():
     # Showing logs/prompts
     # Checking if a CLI function is running
     # Notify user about a finished or a running task / pending prompt-confirmation
-    web_app.state.task = {"id": "", "name": "", "running": False, "logs": []}
+    web_app.state.task = {
+        "id": "",
+        "name": "",
+        "running": False,
+        "logs": [],
+        "formData": {},
+    }
     web_app.state.old_tasks = []
     web_app.state.task_running = False
     # Will be shown in the notifications tab in the navbar

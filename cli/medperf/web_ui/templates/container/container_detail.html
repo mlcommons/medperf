@@ -115,9 +115,10 @@
                     <button
                         class="step-btn btn btn-info dropdown-toggle"
                         type="button"
-                        id="associate-dropdown"
+                        id="associate-dropdown-btn"
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
+                        {% if task_running %} disabled {% endif %}
                     >
                         Associate with Benchmark
                     </button>
@@ -127,12 +128,18 @@
                     {% set _ = available_benchmarks.append(benchmark) %}
                     {% endif %}
                     {% endfor %}
-                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown" id="dropdown-div">
+                    <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown-btn" id="dropdown-div">
                     {% for benchmark in available_benchmarks %}
                     <li class="dropdown-item">
                         <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
                         <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
-                        <button type="button" class="btn btn-primary benchmark-item" data-benchmark-id="{{ benchmark.id }}">Request Association</button>
+                        <button
+                            type="button"
+                            class="btn btn-primary request-association-btn"
+                            data-benchmark-id="{{ benchmark.id }}"
+                            data-container-id="{{ entity.id }}"
+                            {% if task_running %} disabled {% endif %}
+                        >Request Association</button>
                     </li>
                     {% endfor %}
                     {% if not available_benchmarks %}
@@ -153,156 +160,29 @@
     <div class="associations-column">
         <h2 class="my-4">Associated Benchmarks</h2>
         {% for assoc in benchmarks_associations.values() %}
-            {{ association_card_macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmarks") }}
+            {{ association_card_macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmark") }}
         {% endfor %}
     </div>
 </div>
 
-<div id="panel" class="my-5" style="display: none;">
-    <h2 id="panel-title"></h2>
+{% include "partials/panel_container.html" %}
+{% include "partials/text_content_container.html" %}
+{% include "partials/yaml_container.html" %}
+{% include "partials/panel_container.html" %}
+{% endblock detail_panel %}
 
-    <div class="stages">
-        <ul class="list-group mb-3" id="stages-list"></ul>
-    </div>
-
-    <div class="card mt-5">
-        <div class="card-body">
-            <pre id="log-panel" style="height: 300px; overflow-y: scroll; background-color: #f8f9fa; padding: 15px;"></pre>
-        </div>
-    </div>
-</div>
-
-<div id="text-content" style="display: none;">
-    <div id="content"></div>
-</div>
-
-<div id="yaml-div" style="display: none;">
-    <pre id="yaml-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;"></pre>
-</div>
-
-<div id="prompt-div" class="my-5" style="display: none;">
-    <div id="prompt-text"></div>
-    <div class="text-center mt-5">
-        <button type="button" class="btn btn-danger mx-3" id="respond-no">No</button>
-        <button type="button" class="btn btn-success mx-3" id="respond-yes">Yes</button>
-    </div>
-</div>
-
-<script src="/static/js/event_handler.js"></script>
-<script src="/static/js/app.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle the "Associate" dropdown item click
-        document.querySelectorAll('.benchmark-item').forEach(item => {
-            item.addEventListener('click', function() {
-                if (!this.classList.contains('disabled')) {
-                    const modelId = "{{ entity.id }}";
-					const modelName = "{{ entity.name }}"
-                    const benchmarkId = this.getAttribute('data-benchmark-id');
-                    associateContainer(modelId, benchmarkId, modelName, this);
-                }
-            });
-        });
-        $("#respond-yes").on("click", respond_yes);
-        $("#respond-no").on("click", respond_no);
-    });
-</script>
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/containers/container_detail.js') }}"></script>
 
 {% if task_running and request.app.state.task["name"] == "container_association" %}
 <script>
-    function processOldEvents(logPanel, stagesList, currentStageElement, task_id){
-        {{ request.app.state.task["logs"] | tojson }}.forEach(log => {
-            currentStageElement = handleEvents(log, logPanel, stagesList, currentStageElement, task_id);
-        });
-        return currentStageElement;
-    }
-    task_id = "{{ request.app.state.task['id'] }}";
-    document.addEventListener("DOMContentLoaded", () => {
-        const associate_btn = document.getElementById("associate-dropdown");
-        associate_btn.setAttribute("disabled", true);
-        showPanel(`Requesting Model Association...`);
-        currentStageElement = processOldEvents(logPanel, stagesList, currentStageElement, task_id);
-        if (!prompt_received){
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Association Requested Successfully";
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Association Request Failed";
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        }
-        respond_yes = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: true },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Association Requested Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Association Request Failed"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        }
-        respond_no = function(){
-            $.ajax({
-                url: "/events",
-                type: "POST",
-                data: { is_approved: false },
-            });
-            prompt_received = false;
-            getEvents(logPanel, stagesList, currentStageElement, task_id).then(last_log => {
-                let response = last_log.response;
-                markAllStagesAsComplete();
-                let title;
-                if(response.status === "success"){
-                    title = "Association Requested Successfully"
-                    showReloadModal(title);
-                    timer(3);
-                }
-                else{
-                    title = "Association Request Failed"
-                    $("#errorModalLabel").html(title);
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            });
-        };
-        $("#respond-no").off("click").on("click", respond_no);
-        $("#respond-yes").off("click").on("click", respond_yes);
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#associate-dropdown-btn",
+            `Requesting Container Association...`,
+            onContainerAssociationRequestSuccess
+        );
     });
 </script>
 {% endif %}

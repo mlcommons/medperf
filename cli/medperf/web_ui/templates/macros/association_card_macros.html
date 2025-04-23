@@ -4,28 +4,30 @@
     <div class="card-body">
         <h5 class="card-title">{{ entity_name }}</h5>
         <h5 class="card-title">
-            <a href="/{{ entity_type }}/ui/display/{{ entity.id }}" class="text-primary">{{ entity.name }}</a>
+            <a href="/{{ entity_type }}s/ui/display/{{ entity.id }}" class="text-primary">{{ entity.name }}</a>
         </h5>
         <p class="card-text">
             <strong>Approval Status:</strong> 
             {{ assoc.approval_status }}
-            {% if assoc.approval_status == "PENDING" and entity_type!="benchmarks"%}
+            {% if assoc.approval_status == "PENDING" and entity_type!="benchmark"%}
             <br>
             <button
                 type="button"
-                class="btn btn-danger {{ entity_type }}-btn"
-                data-{{entity_type}}-id="{{ entity.id }}"
+                class="btn btn-danger"
+                data-{{ entity_type }}-id="{{ entity.id }}"
                 data-benchmark-id="{{ assoc.benchmark }}"
-                data-status-name="reject"
-                onclick="{{ entity_type }}Confirm(this)"
+                data-entity-type="{{ entity_type }}"
+                data-action-name="reject"
+                onclick="showConfirmationPrompt(this, '{{ entity_type }}', 'reject')"
             >Reject</button>
             <button
                 type="button"
-                class="btn btn-success {{ entity_type }}-btn"
-                data-{{entity_type}}-id="{{ entity.id }}"
+                class="btn btn-success"
+                data-{{ entity_type }}-id="{{ entity.id }}"
                 data-benchmark-id="{{ assoc.benchmark }}"
-                data-status-name="approve"
-                onclick="{{ entity_type }}Confirm(this)"
+                data-entity-type="{{ entity_type }}"
+                data-action-name="approve"
+                onclick="showConfirmationPrompt(this)"
             >Approve</button>
             {% endif %}
         </p>

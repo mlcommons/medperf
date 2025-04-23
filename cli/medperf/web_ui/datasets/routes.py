@@ -297,6 +297,7 @@ def run(
     dataset_id: int = Form(...),
     benchmark_id: int = Form(...),
     model_ids: List[int] = Form(...),
+    run_all: bool = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
     task_id = initialize_state_task(request, task_name="benchmark_run")
