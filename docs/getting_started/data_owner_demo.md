@@ -130,7 +130,11 @@ _For the sake of continuing the tutorial only_, run the following to simulate th
 sh tutorials_scripts/simulate_data_association_approval.sh
 ```
 
-You can verify if your association request has been approved by running `medperf association ls -bd`.
+You can verify if your association request has been approved by running the following command:
+
+```bash
+medperf association ls -bd
+```
 
 ## 5. Execute the Benchmark
 
