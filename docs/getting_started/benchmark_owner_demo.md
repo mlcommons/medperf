@@ -277,9 +277,9 @@ You need to keep at hand the following information:
 ```
 
 - For this tutorial, the UIDs are as follows:
-  - Data preparator UID: `1`
-  - Reference model UID: `2`
-  - Evaluator UID: `3`
+  - Data preparator UID: `2`
+  - Reference model UID: `3`
+  - Evaluator UID: `4`
 
 You can create and submit your benchmark using the following command:
 
@@ -288,9 +288,9 @@ medperf benchmark submit \
    --name tutorial_bmk \
    --description "MedPerf demo bmk" \
    --demo-url "{{ demo_url }}" \
-   --data-preparation-mlcube 1 \
-   --reference-model-mlcube 2 \
-   --evaluator-mlcube 3 \
+   --data-preparation-mlcube 2 \
+   --reference-model-mlcube 3 \
+   --evaluator-mlcube 4 \
    --operational
 ```
 
