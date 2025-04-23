@@ -117,12 +117,12 @@ Benchmark workflows are run by Data Owners, who will get notified when a new mod
 To initiate an association request, you need to collect the following information:
 
 - The target benchmark ID, which is `1`
-- The server UID of your MLCube, which is `4`.
+- The server UID of your MLCube, which is `5`.
 
 Run the following command to request associating your MLCube with the benchmark:
 
 ```bash
-medperf mlcube associate --benchmark 1 --model_uid 4
+medperf mlcube associate --benchmark 1 --model_uid 5
 ```
 
 This command will first run the benchmark's workflow on your model to ensure your model is compatible with the benchmark workflow. Then, the association request information is printed on the screen, which includes an executive summary of the test mentioned. You will be prompted to confirm sending this information and initiating this association request.

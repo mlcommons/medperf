@@ -54,7 +54,7 @@ A demo dataset is a small reference dataset. It contains a few data records and 
 
 2. When a model owner wants to participate in the benchmark, the MedPerf client tests the compatibility of their model with the benchmark's data preparation cube and metrics cube. The test is run using the benchmark's demo dataset as input.
 
-For this tutorial, you are provided with a demo dataset for the chest X-ray classification workflow. The dataset can be found in your workspace folder under `demo_data`. It is a small dataset comprising two chest X-ray images and corresponding thoracic disease labels.
+For this tutorial, you are provided with a demo dataset for the chest X-ray classification workflow. The dataset can be found in your workspace folder (`medperf_tutorial`) under `demo_data`. It is a small dataset comprising two chest X-ray images and corresponding thoracic disease labels.
 
 You can test the workflow now that you have the three MLCubes and the demo data. Testing the workflow before submitting any asset to the MedPerf server is usually recommended.
 
@@ -277,9 +277,9 @@ You need to keep at hand the following information:
 ```
 
 - For this tutorial, the UIDs are as follows:
-  - Data preparator UID: `1`
-  - Reference model UID: `2`
-  - Evaluator UID: `3`
+  - Data preparator UID: `2`
+  - Reference model UID: `3`
+  - Evaluator UID: `4`
 
 You can create and submit your benchmark using the following command:
 
@@ -288,9 +288,9 @@ medperf benchmark submit \
    --name tutorial_bmk \
    --description "MedPerf demo bmk" \
    --demo-url "{{ demo_url }}" \
-   --data-preparation-mlcube 1 \
-   --reference-model-mlcube 2 \
-   --evaluator-mlcube 3 \
+   --data-preparation-mlcube 2 \
+   --reference-model-mlcube 3 \
+   --evaluator-mlcube 4 \
    --operational
 ```
 

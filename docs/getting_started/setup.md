@@ -10,7 +10,7 @@ If this is your first time using MedPerf, install the MedPerf client library as 
 
 For this tutorial, you should spawn a local MedPerf server for the MedPerf client to communicate with. Note that this server will be hosted on your `localhost` and not on the internet.
 
-1. Install the server requirements ensuring you are in MedPerf's root folder:
+1. Install the server requirements ensuring you are in MedPerf's root folder. If a virtual environment was created when installing the MedPerf client (see [this section](installation.md#install-medperf)), make sure the same virtual environment is used when installing the local server dependencies:
 
     ```bash
     pip install -r server/requirements.txt

@@ -4,21 +4,8 @@ You have reached the end of the tutorial! If you are planning to rerun any of th
 
 - To shut down the local MedPerf server: press `CTRL`+`C` in the terminal where the server is running.
 
-- To cleanup the downloaded files workspace (make sure you are in the MedPerf's root directory):
+- To cleanup the downloaded files workspace, local MedPerf server database and local test storage, run the following script (make sure you are in the MedPerf's root directory):
 
 ```bash
-rm -fr medperf_tutorial
-```
-
-- To cleanup the local MedPerf server database: (make sure you are in the MedPerf's root directory)
-
-```bash
-cd server
-sh reset_db.sh
-```
-
-- To cleanup the test storage:
-
-```bash
-rm -fr ~/.medperf/localhost_8000
+sh tutorials_scripts/tutorials_cleanup.sh
 ```
