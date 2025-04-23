@@ -8,3 +8,4 @@ You have reached the end of the tutorial! If you are planning to rerun any of th
 
 ```bash
 sh tutorials_scripts/tutorials_cleanup.sh
+```
