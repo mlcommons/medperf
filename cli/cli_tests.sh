@@ -352,8 +352,10 @@ echo "\n"
 echo "======================================================"
 echo "Submitted associations:"
 echo "======================================================"
-print_eval medperf association ls
-checkFailed "Listing associations failed"
+print_eval medperf association ls -bd
+checkFailed "Listing benchmark-datasets associations failed"
+print_eval medperf association ls -bm
+checkFailed "Listing benchmark-models associations failed"
 ##########################################################
 
 echo "\n"

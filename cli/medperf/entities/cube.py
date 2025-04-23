@@ -18,6 +18,7 @@ from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEnti
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.cube_utils import craft_cube_command, get_config
 
 
 class Cube(Entity, DeployableSchema):
@@ -230,10 +231,13 @@ class Cube(Entity, DeployableSchema):
     def run(
         self,
         task: str,
-        output_logs: str = None,
+        output_logs_file: str = None,
         string_params: Dict[str, str] = {},
         timeout: int = None,
         read_protected_input: bool = True,
+        port=None,
+        publish_on=None,
+        env_dict: dict = {},
         **kwargs,
     ):
         """Executes a given task on the cube instance
@@ -247,60 +251,23 @@ class Cube(Entity, DeployableSchema):
             kwargs (dict): additional arguments that are passed directly to the mlcube command
         """
         kwargs.update(string_params)
-        cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'
-        if config.gpus is not None:
-            cmd += f" --gpus={config.gpus}"
-        if read_protected_input:
-            cmd += " --mount=ro"
-        for k, v in kwargs.items():
-            cmd_arg = f'{k}="{v}"'
-            cmd = " ".join([cmd, cmd_arg])
-
-        container_loglevel = config.container_loglevel
-
-        # TODO: we should override run args instead of what we are doing below
-        #       we shouldn't allow arbitrary run args unless our client allows it
-        if config.platform == "docker":
-            # use current user
-            cpu_args = self.get_config("docker.cpu_args") or ""
-            gpu_args = self.get_config("docker.gpu_args") or ""
-            cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
-            gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
-            cmd += f' -Pdocker.cpu_args="{cpu_args}"'
-            cmd += f' -Pdocker.gpu_args="{gpu_args}"'
-
-            if container_loglevel:
-                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
-        elif config.platform == "singularity":
-            # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
-            run_args = self.get_config("singularity.run_args") or ""
-            run_args = " ".join([run_args, "-eC"]).strip()
-            cmd += f' -Psingularity.run_args="{run_args}"'
-
-            # set image name in case of running docker image with singularity
-            # Assuming we only accept mlcube.yamls with either singularity or docker sections
-            # TODO: make checks on submitted mlcubes
-            singularity_config = self.get_config("singularity")
-            if singularity_config is None:
-                cmd += (
-                    f' -Psingularity.image="{self._converted_singularity_image_name}"'
-                )
-            # TODO: pass logging env for singularity also there
-        else:
-            raise InvalidArgumentError("Unsupported platform")
-
-        # set accelerator count to zero to avoid unexpected behaviours and
-        # force mlcube to only use --gpus to figure out GPU config
-        cmd += " -Pplatform.accelerator_count=0"
-
+        cmd = craft_cube_command(
+            cube_path=self.cube_path,
+            task=task,
+            read_protected_input=read_protected_input,
+            kwargs=kwargs,
+            env_dict=env_dict,
+            port=port,
+            publish_on=publish_on,
+            converted_singularity_image_name=self._converted_singularity_image_name,
+        )
         logging.info(f"Running MLCube command: {cmd}")
         with spawn_and_kill(cmd, timeout=timeout) as proc_wrapper:
             proc = proc_wrapper.proc
             proc_out = combine_proc_sp_text(proc)
 
-        if output_logs is not None:
-            with open(output_logs, "w") as f:
+        if output_logs_file is not None:
+            with open(output_logs_file, "w") as f:
                 f.write(proc_out)
         if proc.exitstatus != 0:
             raise ExecutionError("There was an error while executing the cube")
@@ -320,7 +287,9 @@ class Cube(Entity, DeployableSchema):
             str: the path as specified in the mlcube.yaml file for the desired
                 output for the desired task. Defaults to None if out_key not found
         """
-        out_path = self.get_config(f"tasks.{task}.parameters.outputs.{out_key}")
+        out_path = get_config(
+            self.cube_path, f"tasks.{task}.parameters.outputs.{out_key}"
+        )
         if out_path is None:
             return
 
@@ -337,26 +306,6 @@ class Cube(Entity, DeployableSchema):
             out_path = os.path.join(out_path, params[param_key])
 
         return out_path
-
-    def get_config(self, identifier):
-        """
-        Returns the output parameter specified in the mlcube.yaml file
-
-        Args:
-            identifier (str): `.` separated keys to traverse the mlcube dict
-        Returns:
-            str: the parameter value, None if not found
-        """
-        with open(self.cube_path, "r") as f:
-            cube = yaml.safe_load(f)
-
-        keys = identifier.split(".")
-        for key in keys:
-            if key not in cube:
-                return
-            cube = cube[key]
-
-        return cube
 
     def display_dict(self):
         return {

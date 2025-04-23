@@ -1,0 +1,56 @@
+name: FL MLCube
+description: FL MLCube
+authors:
+  - { name: MLCommons Medical Working Group }
+
+platform:
+  accelerator_count: 0
+
+docker:
+  gpu_args: "--shm-size 12g"
+  # Image name
+  image: mlcommons/rano-fl:30-oct-2024
+  # Docker build context relative to $MLCUBE_ROOT. Default is `build`.
+  build_context: "../project"
+  # Docker file name within docker build context, default is `Dockerfile`.
+  build_file: "Dockerfile"
+
+tasks:
+  train:
+    parameters:
+      inputs:
+        data_path: data/
+        labels_path: labels/
+        node_cert_folder: node_cert/
+        ca_cert_folder: ca_cert/
+        plan_path: plan.yaml
+        init_nnunet_directory: additional_files/init_nnunet/
+      outputs:
+        output_logs: logs/
+  start_aggregator:
+    parameters:
+      inputs:
+        input_weights: additional_files/init_weights
+        node_cert_folder: node_cert/
+        ca_cert_folder: ca_cert/
+        plan_path: plan.yaml
+        collaborators: cols.yaml
+      outputs:
+        output_logs: logs/
+        output_weights: final_weights/
+        report_path: { type: "file", default: "report/report.yaml" }
+  generate_plan:
+    parameters:
+      inputs:
+        training_config_path: training_config.yaml
+        aggregator_config_path: aggregator_config.yaml
+      outputs:
+        plan_path: { type: "file", default: "plan/plan.yaml" }
+  train_initial_model:
+    parameters:
+      inputs:
+        data_path: data/
+        labels_path: labels/
+      outputs:
+        output_logs: logs/
+        init_nnunet_directory: init_nnunet_directory/

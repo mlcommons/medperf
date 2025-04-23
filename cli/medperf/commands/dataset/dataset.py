@@ -10,6 +10,7 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.train import TrainingExecution
 from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
 
@@ -127,21 +128,58 @@ def associate(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark_uid", "-b", help="Benchmark UID"
+        None, "--benchmark_uid", "-b", help="Benchmark UID"
+    ),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp_uid", "-t", help="Training experiment UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
-        help="Execute the test even if results already exist",
+        help="Execute the benchmark association test even if results already exist",
     ),
 ):
-    """Associate a registered dataset with a specific benchmark.
-    The dataset and benchmark must share the same data preparation cube.
-    """
+    """Associate a registered dataset with a specific benchmark or experiment."""
     ui = config.ui
-    AssociateDataset.run(data_uid, benchmark_uid, approved=approval, no_cache=no_cache)
+    AssociateDataset.run(
+        data_uid, benchmark_uid, training_exp_uid, approved=approval, no_cache=no_cache
+    )
     ui.print("✅ Done!")
+
+
+@app.command("train")
+@clean_except
+def train(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite outputs if present"
+    ),
+    restart_on_failure: bool = typer.Option(
+        False,
+        "--restart_on_failure",
+        help="Keep restarting failing training processes until Keyboard interrupt",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    skip_restart_on_failure_prompt: bool = typer.Option(
+        False, "--skip_restart_on_failure_prompt", help="Skip restart on failure prompt"
+    ),
+):
+    """Runs training"""
+    TrainingExecution.run(
+        training_exp_id,
+        data_uid,
+        overwrite,
+        approval,
+        restart_on_failure,
+        skip_restart_on_failure_prompt,
+    )
+    config.ui.print("✅ Done!")
 
 
 @app.command("view")
