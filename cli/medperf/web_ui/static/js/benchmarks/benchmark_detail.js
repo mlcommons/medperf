@@ -10,15 +10,15 @@ function showConfirmationPrompt(approveRejectBtn){
     });
 
     if(actionName==="approve"){
-        $("#confirmTitle").text("Approval Confirmation");
-        $("#confirmText").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
+        $("#confirm-modal-title").text("Approval Confirmation");
+        $("#confirm-text").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
     }
     else{
-        $("#confirmTitle").text("Rejection Confirmation");
-        $("#confirmText").html("Are you sure you want to reject this association?<br><span class='text-danger fw-bold'>This action cannot be undone.</span>");
+        $("#confirm-modal-title").text("Rejection Confirmation");
+        $("#confirm-text").html("Are you sure you want to reject this association?<br><span class='text-danger fw-bold'>This action cannot be undone.</span>");
     }
 
-    const modal = new bootstrap.Modal('#confirmModal', {
+    const modal = new bootstrap.Modal('#confirm-modal', {
         keyboard: false,
         backdrop: "static"
     })

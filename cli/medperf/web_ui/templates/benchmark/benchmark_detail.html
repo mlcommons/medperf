@@ -1,5 +1,7 @@
-<!-- ./cli/medperf/web-ui/templates/benchmark/benchmark_detail.html -->
+{# ./cli/medperf/web_ui/templates/bechmark/benchmark_detail.html #}
+
 {% extends "detail_base.html" %}
+
 {% import 'macros/association_card_macros.html' as association_card_macros %}
 {% import 'macros/container_macros.html' as container_macros %}
 
@@ -98,7 +100,14 @@
 </div>
 {% endif %}
 
-{% include "partials/approve_reject_confirmation_modal.html" %}
+{{ modal_macros.add_modal(
+    modal_id="confirm-modal",
+    modal_body='<p id="confirm-text" class="fs-5"></p>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>',
+    success_button='<button id="confirmation-btn" type="button" class="btn btn-success" data-bs-dismiss="modal" >Confirm</button>'
+
+) }}
 {% endblock detail_panel %}
 
 

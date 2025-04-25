@@ -7,9 +7,9 @@ from medperf.web_ui.common import templates, api_key_cookie
 router = APIRouter()
 
 
-# Login page GET endpoint
+# security check page GET endpoint
 @router.get("/security_check", response_class=HTMLResponse)
-def login_form(
+def security_check_form(
     request: Request, redirect_url: str = "/", token: str = Security(api_key_cookie)
 ):
     # Check if user is already authenticated
@@ -17,15 +17,15 @@ def login_form(
         # User is already authenticated, redirect to original URL
         return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
     else:
-        # User is not authenticated, show login form
+        # User is not authenticated, show security check form
         return templates.TemplateResponse(
-            "login.html", {"request": request, "redirect_url": redirect_url}
+            "security_check.html", {"request": request, "redirect_url": redirect_url}
         )
 
 
-# Login page POST endpoint
+# security check page POST endpoint
 @router.post("/security_check")
-def login(
+def access_web_ui(
     request: Request,
     token: str = Form(...),
     redirect_url: str = Form("/"),
@@ -36,7 +36,7 @@ def login(
         return response
     else:
         return templates.TemplateResponse(
-            "login.html",
+            "security_check.html",
             {
                 "request": request,
                 "redirect_url": redirect_url,

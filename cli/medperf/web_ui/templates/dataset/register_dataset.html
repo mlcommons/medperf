@@ -1,8 +1,9 @@
-{# ./cli/medperf/web-ui/templates/dataset/register_dataset.html #}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
+{# ./cli/medperf/web_ui/templates/dataset/register_dataset.html #}
 
 {% extends "base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
 
 {% block title %}Register Dataset{% endblock %}
 
@@ -145,7 +146,14 @@
         </div>
     </form>
 
-    {% include "partials/folder_selection_modal.html" %}
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
     {% include "partials/text_content_container.html" %}
     {% include "partials/yaml_container.html" %}
     {% include "partials/prompt_container.html" %}

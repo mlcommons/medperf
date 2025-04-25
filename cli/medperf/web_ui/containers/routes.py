@@ -1,4 +1,3 @@
-# medperf/web-ui/containers/routes.py
 import logging
 
 from fastapi import APIRouter, Depends, Form

@@ -17,7 +17,7 @@ from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.containers.routes import router as containers_router
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
 from medperf.web_ui.api.routes import router as api_router
-from medperf.web_ui.login import router as login_router
+from medperf.web_ui.security_check import router as login_router
 from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.profiles import router as profiles_router

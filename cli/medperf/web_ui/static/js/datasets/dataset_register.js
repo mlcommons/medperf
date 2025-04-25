@@ -69,12 +69,15 @@ let activeInput = null;
 $("#browse-data-btn").on("click", () => {
     activeInput = document.getElementById("data-path");
     loadFolder(currentPath);
-    $("#folderPickerModal").modal("show");
+    $("#folder-picker-modal-title").html("Select Folder");
+    $("#folder-picker-modal").modal("show");
 });
+
 $("#browse-labels-btn").on("click", () => {
     activeInput = document.getElementById("labels-path");
     loadFolder(currentPath);
-    $("#folderPickerModal").modal("show");
+    $("#folder-picker-modal-title").html("Select Folder");
+    $("#folder-picker-modal").modal("show");
 });
 
 $("#folder-list").on("click", (e) => {
@@ -90,5 +93,5 @@ $("#select-folder-btn").on("click", () => {
         activeInput.value = currentPath;
         $(activeInput).trigger("keyup");
     }
-    $("#folderPickerModal").modal("hide");
+    $("#folder-picker-modal").modal("hide");
 });

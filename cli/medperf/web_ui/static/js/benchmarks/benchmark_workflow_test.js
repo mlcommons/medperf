@@ -2,7 +2,8 @@
 function onBenchmarkWorkflowTestSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        const nextModal = new bootstrap.Modal('#nextModal', {
+        $("next-modal-title").html("Benchmark Workflow Test Successful");
+        const nextModal = new bootstrap.Modal('#next-modal', {
             keyboard: false,
             backdrop: "static"
         })

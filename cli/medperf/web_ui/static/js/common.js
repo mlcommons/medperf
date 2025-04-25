@@ -69,7 +69,7 @@ function disableElements(selector){
 }
 
 function showReloadModal(title){
-    $("#popup-title").html(title);
+    $("#popup-modal-title").html(title);
     const popupModal = new bootstrap.Modal("#popup-modal", {
         keyboard: false,
         backdrop: "static"
@@ -88,7 +88,7 @@ function timer(seconds, url=null){
             if(url)
                 window.location.href = url;
             else
-                window.location.reload(true);
+                reloadPage();
         }
     }, 1000);
 }
@@ -120,9 +120,9 @@ function showErrorModal(errorTitle, response){
     if (responseStatus){
         errorText += responseStatus.replace("\n", "<br>");
     }
-    $("#errorModalLabel").html(errorTitle);
-    $("#errorText").html(errorText);
-    const errorModal = new bootstrap.Modal("#errorModal", {
+    $("#error-modal-title").html(errorTitle);
+    $("#error-text").html(errorText);
+    const errorModal = new bootstrap.Modal("#error-modal", {
         keyboard: false,
         backdrop: "static"
     });
@@ -197,7 +197,7 @@ function resumeRunningTask(buttonSelector, panelTitle, callback){
 }
 
 function reloadPage(){
-        window.location.reload(true);
+    window.location.reload(true);
 }
 
 function getEntities(switchElement){

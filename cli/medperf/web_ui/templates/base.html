@@ -1,7 +1,10 @@
-{# ./cli/medperf/web-ui/templates/base.html #}
+{# ./cli/medperf/web_ui/templates/base.html #}
+
+{% import 'macros/modal_macros.html' as modal_macros %}
 
 {% set task_running = request.app.state.task["running"] %}
 {% set notifications = request.app.state.notifications %}
+
 {% for notification in request.app.state.new_notifications %}
 {% set _ = notifications.append(notification) %}
 {% set _ = request.app.state.new_notifications.remove(notification) %}
@@ -15,6 +18,7 @@
         {% endif %}
     {% endfor %}
 {% endif %}
+
 {% set unread_notifications = unread_notifications | length %}
 {% set task_formData = request.app.state.task["formData"] %}
 
@@ -51,8 +55,21 @@
         </div>
     </div>
 
-    {% include "partials/error_modal.html" %}
-    {% include "partials/popup_modal.html" %}
+    {{ modal_macros.add_modal(
+        modal_id="popup-modal",
+        modal_body='<p id="popup-text"></p>',
+        modal_footer=False,
+    ) }}
+
+    {{ modal_macros.add_modal(
+        modal_id="error-modal",
+        modal_body=(
+            '<p id="error-text" class="fs-5 text-danger fw-bold"></p>'
+            '<p class="text-end mt-3"><button type="button" class="btn" onclick="reloadPage();">Click here to reload</button></p>'
+        ),
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>',
+    ) }}
 
     <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;"></div>
 

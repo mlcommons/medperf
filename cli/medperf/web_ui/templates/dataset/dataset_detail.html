@@ -1,12 +1,13 @@
-<!-- ./cli/medperf/web-ui/templates/dataset/dataset_detail.html -->
+{# ./cli/medperf/web_ui/templates/dataset/dataset_detail.html #}
+
 {% extends "detail_base.html" %}
+
 {% import 'macros/container_macros.html' as container_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details{% endblock title %}
 
 {% block detail_panel %}
-
 <h1 class="my-4">{{ dataset.name }}</h1>
 <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
@@ -389,7 +390,12 @@
 {% include "partials/yaml_container.html" %}
 {% include "partials/prompt_container.html" %}
 
-{% include "partials/view_result_modal.html" %}
+{{ modal_macros.add_modal(
+    modal_id="result-modal",
+    modal_body='<pre id="result-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;" class="language-yaml"></pre>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
+) }}
 {% endblock detail_panel %}
 
 {% block extra_js %}

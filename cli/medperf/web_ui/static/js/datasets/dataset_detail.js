@@ -199,8 +199,8 @@ function showResult(element){
     const result = JSON.parse(element.getAttribute("data-result"));
 
     $("#result-content").html(JSON.stringify(result, null, 2));
-    $("#resultModalLabel").html(`Benchmark Results`);
-    const resultModal = new bootstrap.Modal('#resultModal', {
+    $("#result-modal-title").html(`Benchmark Results`);
+    const resultModal = new bootstrap.Modal('#result-modal', {
         keyboard: false,
         backdrop: "static"
     })
