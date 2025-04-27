@@ -33,7 +33,6 @@ def check_allowed_run_args(run_args):
 
 def add_medperf_run_args(run_args):
     run_args["user"] = f"{os.getuid()}:{os.getgid()}"
-    run_args["network"] = "none"
 
 
 def add_user_defined_run_args(run_args):
