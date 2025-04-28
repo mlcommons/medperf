@@ -1,6 +1,6 @@
 import os
 
-from medperf.exceptions import InvalidContainerSpec
+from medperf.exceptions import InvalidContainerSpec, MedperfException
 from .utils import run_command
 import shlex
 
@@ -19,21 +19,29 @@ def get_docker_image_hash(docker_image, timeout: int = None):
 
 def volumes_to_cli_args(input_volumes: list, output_volumes: list):
     args = []
-    for io_type, volumes_list in [("ro", input_volumes), ("rw", output_volumes)]:
-        for volume in volumes_list:
-            host_path = volume["host_path"]
-            mount_path = volume["mount_path"]
-            mount_type = volume["type"]
-            if mount_type == "directory":
-                os.makedirs(host_path, exist_ok=True)
-            else:
-                dirname = os.path.dirname(host_path)
-                os.makedirs(dirname, exist_ok=True)
-                if not os.path.exists(host_path):
-                    with open(host_path, "w"):
-                        pass
-            args.append("--volume")
-            args.append(f"{host_path}:{mount_path}:{io_type}")
+    for volume in input_volumes:
+        host_path = volume["host_path"]
+        mount_path = volume["mount_path"]
+        mount_type = volume["type"]
+        if not os.path.exists(host_path):
+            raise MedperfException(f"Input volume should exist: {host_path}")
+        args.append("--volume")
+        args.append(f"{host_path}:{mount_path}:ro")
+
+    for volume in output_volumes:
+        host_path = volume["host_path"]
+        mount_path = volume["mount_path"]
+        mount_type = volume["type"]
+        if mount_type == "directory":
+            os.makedirs(host_path, exist_ok=True)
+        else:
+            dirname = os.path.dirname(host_path)
+            os.makedirs(dirname, exist_ok=True)
+            if not os.path.exists(host_path):
+                with open(host_path, "w"):
+                    pass
+        args.append("--volume")
+        args.append(f"{host_path}:{mount_path}:rw")
 
     return args
 

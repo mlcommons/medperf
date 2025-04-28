@@ -183,7 +183,7 @@ def _parse_parameters(
                 "host_path": host_path,
                 "mount_path": f"/mlcube_io{mount_index}",
                 "io_type": io_type,
-                "type": param_type,
+                "type": "directory",
             }
             volumes.append(mount_info)
             mount_index += 1

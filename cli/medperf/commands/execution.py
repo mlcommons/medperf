@@ -123,6 +123,10 @@ class Execution:
         }
 
     def get_results(self):
+        if not os.path.exists(self.results_path):
+            raise ExecutionError("Results file does not exist")
         with open(self.results_path, "r") as f:
             results = yaml.safe_load(f)
+        if results is None:
+            raise ExecutionError("Results file is empty")
         return results
