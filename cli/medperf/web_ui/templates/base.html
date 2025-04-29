@@ -49,7 +49,7 @@
 </head>
 <body>
     {% include "partials/navbar.html" %}
-    <div class="page-container">
+    <div class="">
         <div class="main-content">
             {% block content %}{% endblock %}
         </div>
@@ -71,7 +71,7 @@
         close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>',
     ) }}
 
-    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;"></div>
+    <div id="toast-container" class="position-fixed bottom-0 end-0 p-3"></div>
 
     <!-- jQuery and Bootstrap JS -->
     <script src="{{ url_for('static', path='js/jquery-3.6.0.min.js') }}"></script>

@@ -26,7 +26,6 @@ function showConfirmationPrompt(approveRejectBtn){
 }
 
 function onApproveRejectAssociationSuccess(response, actionName){
-    hideLoading();
     let title;
     if(response.status === "success"){
         if(actionName === "approve")
@@ -51,7 +50,6 @@ function onApproveRejectAssociationError(xhr, status, error, actionName){
 
 function approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn){
     addSpinner(approveRejectBtn);
-    showLoading();
     disableElements(".card button");
 
     const formData = new FormData();

@@ -11,128 +11,126 @@
 {% set benchmark_workflow_test_running = (task_running and request.app.state.task["name"] == "benchmark_workflow_test") %}
 <div class="container">
     <h1 class="text-center">Test your Benchmark Workflow</h1>
-    <form class="mt-5" id="workflow-test-form">
-        <div class="form-step">
-            <div class="form-group my-5">
-                <label for="data-preparation" class="form-label h4">Locate Data Preparation Container Path</label>
-                <div class="input-group">
-                    <input
-                        name="data_preparation"
-                        class="form-control"
-                        type="text"
-                        id="data-preparation"
-                        placeholder="{{ placeholders.workflow_test_data_preparation_container }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if benchmark_workflow_test_running %}
-                        value="{{ task_formData.get('data_preparation', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.workflow_test_data_preparation_container }}"
-                    ></i>
-                </div>
-            </div>
-            <div class="form-group my-5">
-                <label for="model-path" class="form-label h4">Locate Reference Model Path</label>
-                <div class="input-group">
-                    <input
-                        name="model_path"
-                        class="form-control"
-                        type="text"
-                        id="model-path"
-                        placeholder="{{ placeholders.workflow_test_reference_model_path }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if benchmark_workflow_test_running %}
-                        value="{{ task_formData.get('model_path', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.workflow_test_reference_model_path }}"
-                    ></i>
-                </div>
-            </div>
-            <div class="form-group my-5">
-                <label for="evaluator-path" class="form-label h4">Locate Metrics Container Path</label>
-                <div class="input-group">
-                    <input
-                        name="evaluator_path"
-                        class="form-control"
-                        type="text"
-                        id="evaluator-path"
-                        placeholder="{{ placeholders.workflow_test_metrics_container_path }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if benchmark_workflow_test_running %}
-                        value="{{ task_formData.get('evaluator_path', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.workflow_test_metrics_container_path }}"
-                    ></i>
-                </div>
-            </div>
-            <div class="form-group my-5">
-                <label for="data-path" class="form-label h4">Locate Reference Dataset's Data Path</label>
-                <div class="input-group">
-                    <input
-                        name="data_path"
-                        class="form-control"
-                        type="text"
-                        id="data-path"
-                        placeholder="{{ placeholders.workflow_test_reference_dataset_data_path }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if benchmark_workflow_test_running %}
-                        value="{{ task_formData.get('data_path', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.workflow_test_reference_dataset_data_path }}"
-                    ></i>
-                </div>
-            </div>
-            <div class="form-group my-5">
-                <label for="labels-path" class="form-label h4">Locate Reference Dataset's Labels Path</label>
-                <div class="input-group">
-                    <input
-                        name="labels_path"
-                        class="form-control"
-                        type="text"
-                        id="labels-path"
-                        placeholder="{{ placeholders.workflow_test_reference_dataset_labels_path }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if benchmark_workflow_test_running %}
-                        value="{{ task_formData.get('labels_path', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.workflow_test_reference_dataset_labels_path }}"
-                    ></i>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <button
-                    id="run-workflow-test-btn"
-                    type="button"
-                    class="btn btn-success mx-3"
-                    disabled
+    <form class="my-5" id="workflow-test-form">
+        <div class="form-group my-5">
+            <label for="data-preparation" class="form-label h4">Locate Data Preparation Container Path</label>
+            <div class="input-group">
+                <input
+                    name="data_preparation"
+                    class="form-control"
+                    type="text"
+                    id="data-preparation"
+                    placeholder="{{ placeholders.workflow_test_data_preparation_container }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_workflow_test_running %}
+                    value="{{ task_formData.get('data_preparation', '') }}"
+                    {% endif %}
                 >
-                    Run workflow test
-                </button>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.workflow_test_data_preparation_container }}"
+                ></i>
             </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="model-path" class="form-label h4">Locate Reference Model Path</label>
+            <div class="input-group">
+                <input
+                    name="model_path"
+                    class="form-control"
+                    type="text"
+                    id="model-path"
+                    placeholder="{{ placeholders.workflow_test_reference_model_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_workflow_test_running %}
+                    value="{{ task_formData.get('model_path', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.workflow_test_reference_model_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="evaluator-path" class="form-label h4">Locate Metrics Container Path</label>
+            <div class="input-group">
+                <input
+                    name="evaluator_path"
+                    class="form-control"
+                    type="text"
+                    id="evaluator-path"
+                    placeholder="{{ placeholders.workflow_test_metrics_container_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_workflow_test_running %}
+                    value="{{ task_formData.get('evaluator_path', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.workflow_test_metrics_container_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="data-path" class="form-label h4">Locate Reference Dataset's Data Path</label>
+            <div class="input-group">
+                <input
+                    name="data_path"
+                    class="form-control"
+                    type="text"
+                    id="data-path"
+                    placeholder="{{ placeholders.workflow_test_reference_dataset_data_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_workflow_test_running %}
+                    value="{{ task_formData.get('data_path', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.workflow_test_reference_dataset_data_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="labels-path" class="form-label h4">Locate Reference Dataset's Labels Path</label>
+            <div class="input-group">
+                <input
+                    name="labels_path"
+                    class="form-control"
+                    type="text"
+                    id="labels-path"
+                    placeholder="{{ placeholders.workflow_test_reference_dataset_labels_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_workflow_test_running %}
+                    value="{{ task_formData.get('labels_path', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.workflow_test_reference_dataset_labels_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <button
+                id="run-workflow-test-btn"
+                type="button"
+                class="btn btn-success mx-3"
+                disabled
+            >
+                Run workflow test
+            </button>
         </div>
     </form>
 
@@ -141,7 +139,7 @@
         modal_id="next-modal",
         modal_body=(
             '<h5>Results generated by the workflow text</h5>'
-            '<div class="mt-3"><pre id="yaml-content" class="language-yaml" style="padding: 15px; border-radius: 4px;"></pre></div>'
+            '<div class="mt-3"><pre id="yaml-content" class="language-yaml"></pre></div>'
         ),
         modal_footer=True,
         close_button='<button type="button" class="btn btn-danger" onclick="reloadPage()">Cancel</button>',

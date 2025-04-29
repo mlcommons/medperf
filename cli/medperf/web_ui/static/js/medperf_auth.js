@@ -12,9 +12,9 @@ function onMedperfLoginSuccess(response){
 async function medperfLogin(){
     addSpinner($("#medperf-login-btn")[0]);
 
-    const formData = new FormData($("#medperf-login")[0]);
+    const formData = new FormData($("#medperf-login-form")[0]);
     
-    disableElements("#medperf-login input, #medperf-login button");
+    disableElements("#medperf-login-form input, #medperf-login-form button");
 
     ajaxRequest(
         "/medperf_login",
@@ -102,8 +102,15 @@ function resumeLogin(buttonSelector, callback){
     }
 }
 
+function checkLoginFormValidity() {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const isValid = emailRegex.test($("#email").val());
+    $("#medperf-login-btn").prop("disabled", !isValid);
+}
+
 $(document).ready(() => {
     $("#medperf-login-btn").on("click", () => {
         medperfLogin();
     });
+    $("#medperf-login-form input").on("keyup", checkLoginFormValidity);
 });

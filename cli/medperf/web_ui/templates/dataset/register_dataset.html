@@ -11,8 +11,8 @@
 {% set dataset_register_running = (task_running and request.app.state.task["name"] == "dataset_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Dataset</h1>
-    <form class="my-5" id="dataset-register-form" method="POST">
-        <div class="form-group my-4">
+    <form class="my-5" id="dataset-register-form">
+        <div class="form-group my-5">
             <label class="form-label h4" for="benchmark">Select Benchmark</label>
             <select name="benchmark" id="benchmark" class="form-control" {% if task_running %} disabled {% endif %}>
                 <option value="" disabled selected>Select a benchmark</option>
@@ -26,8 +26,8 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="form-group my-4">
-            <label for="name" class="form-label h4">Dataset Name:</label>
+        <div class="form-group my-5">
+            <label for="name" class="form-label h4">Dataset Name</label>
             <div class="input-group">
                 <input
                     type="text"
@@ -48,8 +48,8 @@
                 ></i>
             </div>
         </div>
-        <div class="form-group my-4">
-            <label for="description" class="form-label h4">Description:</label>
+        <div class="form-group my-5">
+            <label for="description" class="form-label h4">Description</label>
             <div class="input-group">
                 <textarea
                     name="description"
@@ -66,8 +66,8 @@
                 ></i>
             </div>
         </div>
-        <div class="form-group my-4">
-            <label for="location" class="form-label h4">Location:</label>
+        <div class="form-group my-5">
+            <label for="location" class="form-label h4">Location</label>
             <div class="input-group">
                 <input
                     type="text"
@@ -88,8 +88,8 @@
                 ></i>
             </div>
         </div>
-        <div class="form-group my-4">
-            <label for="data-path" class="form-label h4">Data Folder:</label>
+        <div class="form-group my-5">
+            <label for="data-path" class="form-label h4">Data Folder</label>
             <div class="input-group mb-3">
                 <input
                     type="text"
@@ -112,8 +112,8 @@
                 </div>
             </div>
         </div>
-        <div class="form-group my-4">
-            <label for="labels-path" class="form-label h4">Labels Folder:</label>
+        <div class="form-group my-5">
+            <label for="labels-path" class="form-label h4">Labels Folder</label>
             <div class="input-group mb-3">
                 <input
                     type="text"

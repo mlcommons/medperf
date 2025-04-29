@@ -1,40 +1,37 @@
+
 .badge-state-operational {
     background-color: lightgreen;
     color: black;
 }
+
 .badge-state-development {
     background-color: lightcoral;
     color: black;
 }
+
 .badge-approval-pending {
     background-color: coral;
     color: black;
 }
+
 .badge-approval-approved {
     background-color: lightgreen;
     color: black;
 }
+
 .badge-approval-rejected {
     background-color: red;
     color: black;
 }
+
 .badge-valid {
     background-color: lightgreen;
     color: black;
 }
+
 .badge-invalid {
     background-color: red;
     color: black;
-}
-.spinner {
-    display: inline-block;
-    width: 80px;
-    height: 80px;
-    border: 3px solid rgba(0, 0, 0, 0.1);
-    border-radius: 50%;
-    border-top-color: #007bff;
-    animation: spin 1s ease-in-out infinite;
-    margin: 0 auto;
 }
 
 .invalid-card {
@@ -86,36 +83,6 @@
 .yaml-panel-visible .detail-panel {
     max-width: 60%; /* Adjust to take 60% width when YAML panel is visible */
     margin-right: 20px;
-}
-
-@media (max-width: 992px) {
-    .detail-panel {
-        max-width: 100%;
-        padding-right: 0;
-    }
-
-    .yaml-panel {
-        display: none;
-    }
-
-    .detail-panel, .associations-panel {
-        max-width: 100%;
-        padding-right: 0;
-        padding-left: 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .detail-container {
-        flex-direction: column;
-    }
-}
-
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 pre {
@@ -228,20 +195,13 @@ pre {
     border-radius: 20px;
 }
 
-
-label[for="switch"], #switch{
-    cursor: pointer;
+.hidden-element{
+    display: none;
 }
 
-button[disabled]{
-    cursor: not-allowed !important;
-    pointer-events: none !important; /* Prevents interaction */
-}
-
-.modal-body {
-    word-wrap: break-word; 
-    overflow-wrap: break-word; 
-    white-space: normal;
+.bottom-buttons-panel{
+    border:1px solid rgba(0, 0, 0, .125);
+    border-radius:.25rem;
 }
 
 .benchmarks-dropdown li:active{
@@ -251,36 +211,6 @@ button[disabled]{
 
 .tooltip-info:hover{
     cursor: help;
-}
-
-
-/* Fullscreen overlay */
-#loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Faded background */
-    z-index: 9999; /* Ensure it's above everything */
-    justify-content: center;
-    align-items: center;
-}
-
-/* Spinner */
-.spinner {
-    border: 8px solid rgba(255, 255, 255, 0.3); /* Light gray border */
-    border-top: 8px solid white; /* White border for animation */
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
 }
 
 .dropdown-item:active{
@@ -293,9 +223,76 @@ button[disabled]{
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1055; /* above most things */
+    z-index: 1055;
     width: fit-content;
     max-width: 90%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     height: fit-content;
+}
+
+.language-yaml{
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.modal-body {
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
+    white-space: normal;
+}
+
+#notifications-list {
+    max-height: 360px;
+    overflow-y:auto;
+}
+
+#log-panel{
+    height: 300px;
+    overflow-y: scroll;
+    background-color: #f8f9fa;
+    padding: 15px;
+}
+
+label[for="switch"] {
+    margin-left: -40px;
+    cursor: pointer;
+}
+
+#switch {
+    border: 1px solid gray;
+    cursor: pointer;
+}
+
+#toast-container {
+    z-index: 11;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 992px) {
+    .detail-panel {
+        max-width: 100%;
+        padding-right: 0;
+    }
+
+    .yaml-panel {
+        display: none;
+    }
+
+    .detail-panel, .associations-panel {
+        max-width: 100%;
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .detail-container {
+        flex-direction: column;
+    }
 }

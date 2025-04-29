@@ -16,101 +16,99 @@
         to run the <a href="/containers/register/compatibility_test">compatibility test</a> before submission.
     </div>
 
-    <form class="mt-5" id="container-register-form">
-        <div class="form-step">
-            <div class="form-group my-5">
-                <label for="name" class="form-label h4">Container name</label>
-                <div class="input-group">
-                    <input
-                        name="name"
-                        class="form-control"
-                        type="text"
-                        id="name"
-                        placeholder="{{ placeholders.register_container_name }}"
-                        {% if container_register_running %}
-                        value="{{ task_formData.get('name', '') }}"
-                        disabled
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.register_container_name }}"
-                    ></i>
-                </div>
+    <form class="my-5" id="container-register-form">
+        <div class="form-group my-5">
+            <label for="name" class="form-label h4">Container name</label>
+            <div class="input-group">
+                <input
+                    name="name"
+                    class="form-control"
+                    type="text"
+                    id="name"
+                    placeholder="{{ placeholders.register_container_name }}"
+                    {% if container_register_running %}
+                    value="{{ task_formData.get('name', '') }}"
+                    disabled
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_container_name }}"
+                ></i>
             </div>
-            <div class="form-group my-5">
-                <label for="container-file" class="form-label h4">Container manifest file</label>
-                <div class="input-group">
-                    <input
-                        name="container_file"
-                        class="form-control"
-                        type="text"
-                        id="container-file"
-                        placeholder="{{ placeholders.register_container_manifest_file }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if container_register_running %}
-                        value="{{ task_formData.get('container_file', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.register_container_manifest_file }}"
-                    ></i>
-                </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="container-file" class="form-label h4">Container manifest file</label>
+            <div class="input-group">
+                <input
+                    name="container_file"
+                    class="form-control"
+                    type="text"
+                    id="container-file"
+                    placeholder="{{ placeholders.register_container_manifest_file }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if container_register_running %}
+                    value="{{ task_formData.get('container_file', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_container_manifest_file }}"
+                ></i>
             </div>
-            <div class="form-group my-5">
-                <label for="parameters-file" class="form-label h4">Parameters File</label>
-                <div class="input-group">
-                    <input
-                        name="parameters_file"
-                        class="form-control"
-                        type="text"
-                        id="parameters-file"
-                        placeholder="{{ placeholders.register_container_parameters_file }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if container_register_running %}
-                        value="{{ task_formData.get('parameters_file', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.register_container_parameters_file }}"
-                    ></i>
-                </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="parameters-file" class="form-label h4">Parameters File</label>
+            <div class="input-group">
+                <input
+                    name="parameters_file"
+                    class="form-control"
+                    type="text"
+                    id="parameters-file"
+                    placeholder="{{ placeholders.register_container_parameters_file }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if container_register_running %}
+                    value="{{ task_formData.get('parameters_file', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_container_parameters_file }}"
+                ></i>
             </div>
-            <div class="form-group my-5">
-                <label for="additional-file" class="form-label h4">Additional Files</label>
-                <div class="input-group">
-                    <input
-                        name="additional_file"
-                        class="form-control"
-                        type="text"
-                        id="additional-file"
-                        placeholder="{{ placeholders.register_container_additional_file }}"
-                        {% if task_running %} disabled {% endif %}
-                        {% if container_register_running %}
-                        value="{{ task_formData.get('additional_file', '') }}"
-                        {% endif %}
-                    >
-                    <i
-                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        data-bs-title="{{ tooltips.register_container_additional_file }}"
-                    ></i>
-                </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="additional-file" class="form-label h4">Additional Files</label>
+            <div class="input-group">
+                <input
+                    name="additional_file"
+                    class="form-control"
+                    type="text"
+                    id="additional-file"
+                    placeholder="{{ placeholders.register_container_additional_file }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if container_register_running %}
+                    value="{{ task_formData.get('additional_file', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_container_additional_file }}"
+                ></i>
             </div>
-            <div class="text-center mt-4">
-                <button id="register-container-btn" type="button" class="btn btn-success mx-3" disabled>
-                    Register
-                </button>
-            </div>
+        </div>
+        <div class="text-center mt-4">
+            <button id="register-container-btn" type="button" class="btn btn-success mx-3" disabled>
+                Register
+            </button>
         </div>
     </form>
 

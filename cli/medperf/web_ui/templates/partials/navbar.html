@@ -14,7 +14,7 @@
             </ul>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown">
-                    <a class="nav-link me-2" href="#" role="button" id="notifiations-dropdown" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                    <a class="nav-link me-2 cursor-pointer" href="#" role="button" id="notifiations-dropdown" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa fa-bell"></i>
                         <span
                             id="notifications-count"
@@ -23,7 +23,7 @@
                             0
                         </span>
                     </a>
-                    <ul id="notifications-list" style="max-height: 360px; overflow-y:auto;" class="dropdown-menu dropdown-menu-end" aria-labelledby="notifiations-dropdown">
+                    <ul id="notifications-list" class="dropdown-menu dropdown-menu-end" aria-labelledby="notifiations-dropdown">
                         {% if not notifications %}
                         <li class="dropdown-item">No notifications yet</li>
                         {% endif %}

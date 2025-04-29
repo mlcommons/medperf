@@ -98,8 +98,7 @@
             </div>
         </div>
         <div
-			class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4"
-			style="border:1px solid rgba(0, 0, 0, .125);border-radius:.25rem;"
+			class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel"
 			>
             <div class="col-md-3 text-center">
                 {% if dataset_is_prepared %}
@@ -217,7 +216,7 @@
                     <div class="d-flex flex-row justify-content-between align-items-center">
                         <div>
                             Benchmark:
-                            <a href="/benchmarks/ui/display/{{ assoc }}" style="text-decoration: underline;">
+                            <a href="/benchmarks/ui/display/{{ assoc }}" class="text-decoration-underline">
                                 <strong>{{ benchmarks[assoc].name }}</strong>
                             </a>
                         </div>
@@ -392,7 +391,7 @@
 
 {{ modal_macros.add_modal(
     modal_id="result-modal",
-    modal_body='<pre id="result-content" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px;" class="language-yaml"></pre>',
+    modal_body='<pre id="result-content" class="language-yaml"></pre>',
     modal_footer=True,
     close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
 ) }}

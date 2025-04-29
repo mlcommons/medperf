@@ -145,16 +145,6 @@ function getTaskId(){
     });
 }
 
-function showLoading(){
-    $("#loading-overlay").css("display", "flex");
-    $("html").css("cursor", "not-allowed");
-}
-
-function hideLoading(){
-    $("#loading-overlay").hide();
-    $("html").css("cursor", "unset");
-}
-
 function respondToPrompt(value){
     $.ajax({
         url: "/events",
@@ -254,9 +244,9 @@ $(document).ready(() => {
 
     $(".yaml-link").on("click", (e) => {
         e.preventDefault();
-        const entity = $(this).data("entity");
-        const id = $(this).data("id");
-        const field = $(this).data("field");
+        const entity = $(e.currentTarget).data("entity");
+        const id = $(e.currentTarget).data("id");
+        const field = $(e.currentTarget).data("field");
         $("#yaml-panel").show();
         $(".detail-container").addClass("yaml-panel-visible");
         $("#loading-indicator").show();
@@ -273,5 +263,9 @@ $(document).ready(() => {
             $("#yaml-code").show();
             $("#hide-yaml").show();
         });
+    });
+
+    $("form").on("submit", (e) => {
+        e.preventDefault();
     });
 });

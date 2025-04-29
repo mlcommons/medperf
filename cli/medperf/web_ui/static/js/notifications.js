@@ -10,7 +10,7 @@ function showToast(message, bgClass) {
     `;
 
     const $toast = $(toastHTML);
-    $("#toastContainer").append($toast);
+    $("#toast-container").append($toast);
 
     const bsToast = new bootstrap.Toast($toast[0], {
         animation: true,
