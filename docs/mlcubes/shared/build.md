@@ -13,7 +13,7 @@ MedPerf provides some cookiecutter templates for all the related MLCubes. Additi
 
 2. Install the MedPerf CLI:
     ```bash
-    pip install -e cli
+    pip install ./cli
     ```
 
 3. If you have not done so, create a folder for keeping all MLCubes created in this tutorial:

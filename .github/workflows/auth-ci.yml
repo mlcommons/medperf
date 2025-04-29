@@ -37,7 +37,7 @@ jobs:
       working-directory: .
       run: |
         python -m pip install --upgrade pip
-        pip install -e cli/
+        pip install ./cli
         pip install -r cli/test-requirements.txt
         pip install -r server/requirements.txt
         pip install -r server/test-requirements.txt
@@ -52,7 +52,7 @@ jobs:
 
     - name: Run django server in background with generated certs
       working-directory: ./server
-      run: sh setup-dev-server.sh & sleep 6
+      run: sh setup-dev-server.sh -c cert.crt -k cert.key & sleep 6
 
     - name: Run server integration tests
       working-directory: ./server

@@ -2,8 +2,6 @@ from ._version import __version__
 from pathlib import Path
 from os import getenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 major_version, minor_version, patch_version = __version__.split(".")
 
 # MedPerf server
@@ -11,7 +9,6 @@ server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = str(BASE_DIR / "server" / "cert.crt")
 
 comms = "REST"
 
@@ -44,8 +41,6 @@ token_absolute_expiry = 2592000  # Refresh token absolute expiration time (secon
 access_token_storage_id = "medperf_access_token"
 refresh_token_storage_id = "medperf_refresh_token"
 
-local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
-
 # Storage config
 config_storage = Path.home().resolve() / ".medperf_config"
 logs_storage = Path.home().resolve() / ".medperf_logs"
@@ -54,6 +49,10 @@ auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
+
+local_server_config_storage = Path.home().resolve() / ".medperf_dev"
+local_tokens_path = local_server_config_storage / "tokens.json"
+local_certificate = str(local_server_config_storage / "cert.crt")
 
 images_folder = ".images"
 trash_folder = ".trash"

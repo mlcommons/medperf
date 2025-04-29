@@ -19,7 +19,7 @@ from datetime import datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
-from git import Repo, GitCommandError
+from git import Repo, GitCommandError, InvalidGitRepositoryError
 import medperf.config as config
 from medperf.exceptions import (
     ExecutionError,
@@ -448,7 +448,12 @@ def get_cube_image_name(cube_path: str) -> str:
 
 def check_for_updates() -> None:
     """Check if the current branch is up-to-date with its remote counterpart using GitPython."""
-    repo = Repo(config.BASE_DIR)
+    repo_root_dir = Path(__file__).resolve().parent.parent.parent
+    try:
+        repo = Repo(repo_root_dir)
+    except InvalidGitRepositoryError:  # package is installed not in -e mode from git repo
+        return
+
     if repo.bare:
         logging.debug("Repo is bare")
         return
