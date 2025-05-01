@@ -29,10 +29,24 @@
                         <button id="security-check-btn" type="button" class="btn btn-primary">Access Web UI</button>
                     </div>
                 </form>
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#security-check-modal">
+                        What is this?
+                      </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{{ modal_macros.add_modal(
+    modal_id="security-check-modal",
+    modal_class="modal-lg",
+    modal_body='<p class="fs-5">This token is a simple way to make sure that only the person who started the app, can access this page.<br><br>
+        When the app starts, it shows a one-time code (the security token) in the terminal. You just copy that code and paste it here.<br><br>
+        It is a safety step to prevent other users on the same computer from seeing your data or using the app without permission.</p>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>',
+) }}
 {% endblock %}
 
 {% block extra_js %}
