@@ -57,7 +57,7 @@ function loadFolder(path) {
 
 $(document).ready(() => {
     $("#register-dataset-btn").on("click", (e) => {
-        registerDataset(e.currentTarget);
+        showConfirmModal(e.currentTarget, registerDataset, "register this dataset?");
     });
     $("#dataset-register-form input, #dataset-register-form select, #dataset-register-form textarea").on("change keyup", checkDatasetFormValidity);
 });

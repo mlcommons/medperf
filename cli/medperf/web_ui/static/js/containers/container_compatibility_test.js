@@ -49,7 +49,7 @@ function checkCompTestFormValidity() {
 
 $(document).ready(() => {
     $("#run-comp-test-btn").on("click", (e) => {
-        runContainerCompatibilityTest(e.currentTarget);
+        showConfirmModal(e.currentTarget, runContainerCompatibilityTest, "run the compatibility test?");
     });
     $("#container-comp-test-form input, #container-comp-test-form select").on("change keyup", checkCompTestFormValidity);
 });

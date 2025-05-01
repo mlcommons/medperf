@@ -64,7 +64,7 @@ function checkWorkflowTestFormValidity() {
 
 $(document).ready(() => {
     $("#run-workflow-test-btn").on("click", (e) => {
-        benchmarkWorkflowTest(e.currentTarget);
+        showConfirmModal(e.currentTarget, benchmarkWorkflowTest, "run the workflow test");
     });
     $("#workflow-test-form input").on("keyup", checkWorkflowTestFormValidity);
 });

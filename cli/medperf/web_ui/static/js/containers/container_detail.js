@@ -38,6 +38,6 @@ async function requestContainerAssociation(requestAssociationButton){
 
 $(document).ready(() => {
     $(".request-association-btn").on("click", (e) => {
-        requestContainerAssociation(e.currentTarget);
+        showConfirmModal(e.currentTarget, requestContainerAssociation, "request container association?");
     });
 });

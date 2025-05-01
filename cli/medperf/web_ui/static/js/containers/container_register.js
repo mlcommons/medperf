@@ -42,7 +42,7 @@ function checkContainerFormValidity() {
 
 $(document).ready(() => {
     $("#register-container-btn").on("click", (e) => {
-        registerContainer(e.currentTarget);
+        showConfirmModal(e.currentTarget, registerContainer, "register this container?");
     });
     $("#container-register-form input").on("keyup", checkContainerFormValidity);
 });

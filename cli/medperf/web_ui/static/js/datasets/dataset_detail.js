@@ -114,7 +114,7 @@ function onDatasetBenchmarkExecutionSuccess(response){
     }
 }
 
-async function runBenchmarkExecution(executeBenchmarkButton, runAll=false){
+async function runBenchmarkExecution(executeBenchmarkButton){
     addSpinner(executeBenchmarkButton);
 
     let modelIds = [];
@@ -122,6 +122,7 @@ async function runBenchmarkExecution(executeBenchmarkButton, runAll=false){
 
     const benchmarkId = executeBenchmarkButton.getAttribute("data-benchmark-id");
     const datasetId = executeBenchmarkButton.getAttribute("data-dataset-id");
+    const runAll = executeBenchmarkButton.getAttribute("data-runAll") === "true";
 
     if(runAll){
         const runButtons = document.querySelectorAll(`[id^="run-${benchmarkId}-"]`);
@@ -210,24 +211,24 @@ function showResult(element){
 
 $(document).ready(() => {
     $("#prepare-dataset").on("click", (e) => {
-        prepareDataset(e.currentTarget);
+        showConfirmModal(e.currentTarget, prepareDataset, "prepare this dataset?");
     });
 
     $("#set-operational").on("click", (e) => {
-        setDatasetToOperation(e.currentTarget);
+        showConfirmModal(e.currentTarget, setDatasetToOperation, "set this dataset to operation?");
     });
 
     $(".request-association-btn").on("click", (e) => {
-        requestDatasetAssociation(e.currentTarget);
+        showConfirmModal(e.currentTarget, requestDatasetAssociation, "request dataset association?");
     });
 
     $("[id^='run-']").on("click", (e) => {
         const targetButton = $(e.currentTarget);
         if (targetButton.hasClass("run-all-btn")){
-            runBenchmarkExecution(e.currentTarget, runAll=true);
+            showConfirmModal(e.currentTarget, runBenchmarkExecution, "run the benchmark execution for all models?");
         }
         else{
-            runBenchmarkExecution(e.currentTarget);
+            showConfirmModal(e.currentTarget, runBenchmarkExecution, "run the benchmark execution for the selected model?");
         }
         
     });
@@ -237,6 +238,6 @@ $(document).ready(() => {
     });
 
     $("[id^='submit-']").on("click", (e) => {
-        submitResult(e.currentTarget);
+        showConfirmModal(e.currentTarget, submitResult, "submit the result?");
     });
 });

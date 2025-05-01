@@ -56,7 +56,7 @@ function checkBenchmarkFormValidity() {
 
 $(document).ready(() => {
     $("#register-benchmark-btn").on("click", (e) => {
-        registerBenchmark(e.currentTarget);
+        showConfirmModal(e.currentTarget, registerBenchmark, "register this benchmark?");
     });
 
     $("#benchmark-register-form input, #benchmark-register-form textarea").on("keyup", checkBenchmarkFormValidity);

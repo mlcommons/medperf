@@ -129,6 +129,19 @@ function showErrorModal(errorTitle, response){
     errorModal.show();
 }
 
+function showConfirmModal(clickedBtn, callback, message){
+    $("#confirm-modal-title").html("Confirmation Prompt");
+    $("#confirm-text").html("Are you sure you want to " + message);
+    $("#confirmation-btn").off("click").on("click", () => {
+        callback(clickedBtn);
+    });
+    const errorModal = new bootstrap.Modal("#confirm-modal", {
+        keyboard: false,
+        backdrop: "static"
+    });
+    errorModal.show();
+}
+
 function getTaskId(){
     return new Promise((resolve, reject) => {
         $.ajax({

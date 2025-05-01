@@ -250,6 +250,7 @@
 				data-benchmark-id="{{ assoc }}"
 				data-dataset-id="{{ dataset.id }}"
 				data-dataset-name="{{ dataset.name }}"
+                data-runAll="true"
                 {% if task_running %} disabled {% endif %}
 			>
 				▶️ Run All
@@ -391,6 +392,7 @@
 
 {{ modal_macros.add_modal(
     modal_id="result-modal",
+    modal_class="modal-lg",
     modal_body='<pre id="result-content" class="language-yaml"></pre>',
     modal_footer=True,
     close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
