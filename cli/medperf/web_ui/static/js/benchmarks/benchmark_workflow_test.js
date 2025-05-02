@@ -66,5 +66,31 @@ $(document).ready(() => {
     $("#run-workflow-test-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, benchmarkWorkflowTest, "run the workflow test");
     });
+    
     $("#workflow-test-form input").on("keyup", checkWorkflowTestFormValidity);
+
+    $("#browse-data-prep-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("data-preparation");
+    });
+
+    $("#browse-ref-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("model-path");
+    });
+    
+    $("#browse-metrics-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("evaluator-path");
+    });
+
+    $("#browse-data-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("data-path");
+    });
+    
+    $("#browse-labels-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("labels-path");
+    });
 });

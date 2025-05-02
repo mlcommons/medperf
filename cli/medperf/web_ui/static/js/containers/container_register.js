@@ -44,5 +44,21 @@ $(document).ready(() => {
     $("#register-container-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, registerContainer, "register this container?");
     });
+
     $("#container-register-form input").on("keyup", checkContainerFormValidity);
+    
+    $("#browse-container-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("container-file");
+    });
+
+    $("#browse-parameters-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("parameters-file");
+    });
+
+    $("#browse-additional-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("additional-file");
+    });
 });

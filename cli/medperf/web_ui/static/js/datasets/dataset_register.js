@@ -40,58 +40,19 @@ function checkDatasetFormValidity() {
     $("#register-dataset-btn").prop("disabled", !isValid);
 }
 
-function loadFolder(path) {
-    fetch(`/api/browse?path=${encodeURIComponent(path)}`)
-        .then(response => response.json())
-        .then(data => {
-            const folderList = document.getElementById("folder-list");
-            folderList.innerHTML = "";
-            if (data.parent) {
-                folderList.innerHTML += `<li class='list-group-item folder-item' data-path='${data.parent}'>.. (parent)</li>`;
-            }
-            data.folders.forEach(folder => {
-                folderList.innerHTML += `<li class='list-group-item folder-item' data-path='${folder.path}'>${folder.name}</li>`;
-            });
-        });
-}
-
 $(document).ready(() => {
     $("#register-dataset-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, registerDataset, "register this dataset?");
     });
     $("#dataset-register-form input, #dataset-register-form select, #dataset-register-form textarea").on("change keyup", checkDatasetFormValidity);
-});
+    
+    $("#browse-data-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("data-path");
+    });
 
-// AJAX folder browsing logic
-let currentPath = ".";  // Start at root directory or a defined base path
-let activeInput = null;
-
-$("#browse-data-btn").on("click", () => {
-    activeInput = document.getElementById("data-path");
-    loadFolder(currentPath);
-    $("#folder-picker-modal-title").html("Select Folder");
-    $("#folder-picker-modal").modal("show");
-});
-
-$("#browse-labels-btn").on("click", () => {
-    activeInput = document.getElementById("labels-path");
-    loadFolder(currentPath);
-    $("#folder-picker-modal-title").html("Select Folder");
-    $("#folder-picker-modal").modal("show");
-});
-
-$("#folder-list").on("click", (e) => {
-    if (e.target.classList.contains("folder-item")) {
-        const newPath = e.target.getAttribute("data-path");
-        currentPath = newPath;
-        loadFolder(newPath);
-    }
-});
-
-$("#select-folder-btn").on("click", () => {
-    if (activeInput) {
-        activeInput.value = currentPath;
-        $(activeInput).trigger("keyup");
-    }
-    $("#folder-picker-modal").modal("hide");
+    $("#browse-labels-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("labels-path");
+    });
 });

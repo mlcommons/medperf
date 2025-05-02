@@ -53,6 +53,14 @@
                     value="{{ task_formData.get('container_file', '') }}"
                     {% endif %}
                 >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-container-btn"
+                        {% if task_running %} disabled {% endif %}   
+                    >Browse</button>
+                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
@@ -75,6 +83,14 @@
                     value="{{ task_formData.get('parameters_file', '') }}"
                     {% endif %}
                 >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-parameters-btn"
+                        {% if task_running %} disabled {% endif %}   
+                    >Browse</button>
+                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
@@ -97,6 +113,14 @@
                     value="{{ task_formData.get('additional_file', '') }}"
                     {% endif %}
                 >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-additional-btn"
+                        {% if task_running %} disabled {% endif %}   
+                    >Browse</button>
+                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
@@ -112,6 +136,14 @@
         </div>
     </form>
 
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
     {% include "partials/panel_container.html" %}
     {% include "partials/text_content_container.html" %}
     {% include "partials/yaml_container.html" %}
@@ -122,6 +154,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/containers/container_register.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
 {% if task_running and request.app.state.task["name"] == "container_registration" %}
 <script>
