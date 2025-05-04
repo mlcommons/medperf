@@ -65,12 +65,10 @@ class Cube(Entity, DeployableSchema):
         self.cube_path = os.path.join(self.path, config.cube_filename)
         self.params_path = None
         self.additiona_files_folder_path = None
-        if self.git_parameters_url:
-            self.params_path = os.path.join(self.path, config.params_filename)
-        if self.additional_files_tarball_url:
-            self.additiona_files_folder_path = os.path.join(
-                self.path, config.additional_path
-            )
+        self.params_path = os.path.join(self.path, config.params_filename)
+        self.additiona_files_folder_path = os.path.join(
+            self.path, config.additional_path
+        )
         self._parser = None
         self._runner = None
 
@@ -184,11 +182,11 @@ class Cube(Entity, DeployableSchema):
         ports: list = [],
         disable_network: bool = True,
     ):
-        extra_mounts = {}
-        if self.params_path is not None:
-            extra_mounts["parameters_file"] = self.params_path
-        if self.additiona_files_folder_path is not None:
-            extra_mounts["additional_files"] = self.additiona_files_folder_path
+        os.makedirs(self.additiona_files_folder_path, exist_ok=True)
+        extra_mounts = {
+            "parameters_file": self.params_path,
+            "additional_files": self.additiona_files_folder_path,
+        }
 
         extra_env = {}
         if config.container_loglevel is not None:

@@ -6,8 +6,9 @@ from data_loader import CustomImageDataset
 from pprint import pprint
 
 
-data_path = "path/to/data/folder"
-weights = "path/to/weights.pt"
+data_path = "/chestxray/data"
+weights = "/cnn/weights.pt"
+
 in_channels = 1
 num_classes = 14
 batch_size = 5

@@ -43,4 +43,4 @@ class CleanExit(MedperfException):
 
 
 class InvalidContainerSpec(MedperfException):
-    """Raised when container information file is invalid"""
+    """Raised when container config file is invalid"""

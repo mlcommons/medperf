@@ -6,6 +6,7 @@ from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.run_test import run_mlcube
@@ -82,6 +83,33 @@ def list(
         unregistered=unregistered,
         mine_only=mine,
     )
+
+
+@app.command("create")
+@clean_except
+def create(
+    template: str = typer.Argument(
+        ...,
+        help=f"Container type. Available types: [{' | '.join(config.templates.keys())}]",
+    ),
+    image_name: str = typer.Option(
+        ...,
+        "--image",
+        "-i",
+        help="Image name",
+    ),
+    folder_name: str = typer.Option(
+        ...,
+        "--folder_name",
+        "-f",
+        help="Folder name of the container files template to be created",
+    ),
+    output_path: str = typer.Option(
+        ".", "--output", "-o", help="Save the generated template to the specified path"
+    ),
+):
+    """Creates a container files template"""
+    CreateCube.run(template, image_name, folder_name, output_path)
 
 
 @app.command("submit")

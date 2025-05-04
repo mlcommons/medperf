@@ -24,7 +24,9 @@ def volumes_to_cli_args(input_volumes: list, output_volumes: list):
         mount_path = volume["mount_path"]
         mount_type = volume["type"]
         if not os.path.exists(host_path):
-            raise MedperfException(f"Input volume should exist: {host_path}")
+            raise MedperfException(
+                f"Internal error: input volume should exist: {host_path}"
+            )
         args.append("--volume")
         args.append(f"{host_path}:{mount_path}:ro")
 

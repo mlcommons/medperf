@@ -12,7 +12,12 @@ from medperf.certificates import trust
 
 class StartAggregator:
     @classmethod
-    def run(cls, training_exp_id: int, publish_on: str, overwrite: bool = False):
+    def run(
+        cls,
+        training_exp_id: int,
+        publish_on: str = "127.0.0.1",
+        overwrite: bool = False,
+    ):
         """Starts the aggregation server of a training experiment
 
         Args:
@@ -44,8 +49,6 @@ class StartAggregator:
         if self.event.finished:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
-        if self.publish_on == "127.0.0.1":
-            pass
 
     def check_existing_outputs(self):
         msg = (
@@ -100,10 +103,9 @@ class StartAggregator:
 
         self.ui.text = "Running Aggregator"
         port = self.aggregator.port
-        publish_on = self.publish_on or "0.0.0.0"
         self.cube.run(
             task="start_aggregator",
             mounts=mounts,
-            ports=[f"{publish_on}:{port}:{port}"],
+            ports=[f"{self.publish_on}:{port}:{port}"],
             disable_network=False,
         )

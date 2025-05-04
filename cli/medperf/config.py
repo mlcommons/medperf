@@ -250,10 +250,10 @@ configurable_parameters = inline_parameters + [
 ]
 
 templates = {
-    "data_preparator": "templates/data_preparator_mlcube",
-    "model": "templates/model_mlcube",
-    "evaluator": "templates/evaluator_mlcube",
-    "gandlf": "templates/gandlf_mlcube",
+    "data_preparator": "templates/data_preparator_container",
+    "model": "templates/model_container",
+    "evaluator": "templates/evaluator_container",
+    "gandlf": "templates/gandlf_container",
 }
 
 # Temporary paths to cleanup
