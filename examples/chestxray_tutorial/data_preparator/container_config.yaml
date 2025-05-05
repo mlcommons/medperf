@@ -3,7 +3,7 @@ image: mlcommons/chestxray-tutorial-prep:0.0.1
 tasks:
   prepare:
     run_args:
-      command: python3 /project/prepare_data.py
+      command: python3 /project/prepare.py
     input_volumes:
       data_path:
         mount_path: /mlcommons/volumes/raw_data
@@ -23,7 +23,7 @@ tasks:
         type: directory
   sanity_check:
     run_args:
-      command: python3 /project/check.py
+      command: python3 /project/sanity_check.py
     input_volumes:
       data_path:
         mount_path: /mlcommons/volumes/data
