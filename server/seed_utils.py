@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 ASSETS_URL = (
     "https://raw.githubusercontent.com/hasan7n/medperf/"
-    "99b0d84bc107415d9fc6f69c4ea3fcdfbf22315d/examples/chestxray_tutorial/"
+    "2f33cce68b41318f20db7c49802fcdc4cd7ca9f1/examples/chestxray_tutorial/"
 )
 
 
@@ -102,15 +102,15 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_prep",
-            "git_mlcube_url": (ASSETS_URL + "data_preparator/mlcube/mlcube.yaml"),
-            "mlcube_hash": "a12a2d4e4290ffac38846c81d6300a24090605410eb603f02e8905f9674f1abc",
+            "git_mlcube_url": (ASSETS_URL + "data_preparator/container_config.yaml"),
+            "mlcube_hash": "1fd27eb724eb2b3340333176cfcec91e338a63a7a547a780264032c43d94ccb9",
             "git_parameters_url": (
-                ASSETS_URL + "data_preparator/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "data_preparator/workspace/parameters.yaml"
             ),
             "parameters_hash": "1541e05437040745d2489e8d2cf14795d4839eecc15c1ac959c84f6b77c1a5df",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "4cefa8a2b9580220a0503076f1e961e4d86ec72dad8e1e78b9c43444dee9a4cd",
+            "image_hash": "d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {},
@@ -143,10 +143,10 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_cnn",
-            "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/mlcube/mlcube.yaml"),
-            "mlcube_hash": "0212a9ed74c71c717b4540c154d56726841d1c7c963cdaceb3542bd42e34bd26",
+            "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/container_config.yaml"),
+            "mlcube_hash": "7ffb958bf83841b5f601a2538d004740216c336872c824a2fc3b9b346c6291dc",
             "git_parameters_url": (
-                ASSETS_URL + "model_custom_cnn/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "model_custom_cnn/workspace/parameters.yaml"
             ),
             "parameters_hash": "af0aed4735b5075c198f8b49b3afbf7a0d7eaaaaa2a2b914d5931f0bee51d3f6",
             "additional_files_tarball_url": (
@@ -154,7 +154,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "63d48be95598a7474d1bd26fdee41dcc20a752a436c28b35dbd33796087a6d29",
+            "image_hash": "7c569d6cdc44d699cd79912b338f3eb08f1c679d85551460218190520836a24b",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {},
@@ -187,15 +187,13 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_metrics",
-            "git_mlcube_url": (ASSETS_URL + "metrics/mlcube/mlcube.yaml"),
-            "mlcube_hash": "5dce9b6a1498c0e47a3e7f3167c0157b00ab4445b31e37f61f6eab161d6b3624",
-            "git_parameters_url": (
-                ASSETS_URL + "metrics/mlcube/workspace/parameters.yaml"
-            ),
+            "git_mlcube_url": (ASSETS_URL + "metrics/container_config.yaml"),
+            "mlcube_hash": "1617c231a9a9cc596664222056e19718ef860552ab8cf99a97f52318e0d566f7",
+            "git_parameters_url": (ASSETS_URL + "metrics/workspace/parameters.yaml"),
             "parameters_hash": "16cad451c54b801a5b50d999330465d7f68ab5f6d30a0674268d2d17c7f26b73",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "2dbea6a3ba40d553905427c8bb156f219970306f55061462918fd19b220e9b51",
+            "image_hash": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {},
@@ -274,10 +272,10 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
         model_owner_token,
         {
             "name": "chestxray_mobilenet",
-            "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/mlcube/mlcube.yaml"),
-            "mlcube_hash": "5ed783c6aaffe813a82ba61e8d7de986aeedae92662ff76288b142968732aad7",
+            "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/container_config.yaml"),
+            "mlcube_hash": "618ce7ef9f2b0dbdb0f361823aa4e2efc32e3ef9b29334466bd33eb3eca2aa02",
             "git_parameters_url": (
-                ASSETS_URL + "model_mobilenetv2/mlcube/workspace/parameters.yaml"
+                ASSETS_URL + "model_mobilenetv2/workspace/parameters.yaml"
             ),
             "parameters_hash": "81a7e5c2006a8f54c4c2bd16d751df44d3cde3feb1a0c12768df095744a76c60",
             "additional_files_tarball_url": (
@@ -287,7 +285,7 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
             "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "7ae4a8ecbe899b5486c699d934d74bce7f3aa73d779e0138e6d119cd8040b46e",
+            "image_hash": "33d26c8e266be9fe072081fb157313bfa51778b2934ab64bd622c8f0cd52dfa1",
             "metadata": {},
         },
         "id",

@@ -1,6 +1,6 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
-from medperf.utils import get_file_hash, get_folders_hash, remove_path
+from medperf.utils import get_file_hash, get_folders_hash, remove_path, generate_tmp_uid
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -39,8 +39,9 @@ def download_demo_data(dset_url, dset_hash):
     return data_path, labels_path, metadata_path
 
 
-def prepare_local_cube(path):
-    temp_uid = get_folders_hash([path])
+def prepare_local_cube(container_config_path):
+    path = container_config_path.parent
+    temp_uid = generate_tmp_uid()
     cubes_folder = config.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
     os.symlink(path, dst)
@@ -48,8 +49,7 @@ def prepare_local_cube(path):
     config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     if not os.path.exists(cube_metadata_file):
-        mlcube_yaml_path = os.path.join(path, config.cube_filename)
-        mlcube_yaml_hash = get_file_hash(mlcube_yaml_path)
+        mlcube_yaml_hash = get_file_hash(container_config_path)
         temp_metadata = {
             "id": None,
             "name": temp_uid,
@@ -84,17 +84,12 @@ def prepare_cube(cube_uid: str):
         return cube_uid
 
     # Check if value is a local mlcube
-    path = Path(cube_uid)
-    if path.is_file():
-        path = path.parent
-    path = path.resolve()
+    path = Path(cube_uid).resolve()
 
-    if os.path.exists(path):
-        mlcube_yaml_path = os.path.join(path, config.cube_filename)
-        if os.path.exists(mlcube_yaml_path):
-            logging.info("local path provided. Creating symbolic link")
-            temp_uid = prepare_local_cube(path)
-            return temp_uid
+    if path.is_file():
+        logging.info("local path provided. Creating symbolic link")
+        temp_uid = prepare_local_cube(path)
+        return temp_uid
 
     logging.error(f"mlcube {cube_uid} was not found as an existing mlcube")
     raise InvalidArgumentError(
@@ -102,10 +97,13 @@ def prepare_cube(cube_uid: str):
     )
 
 
-def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
+def get_cube(
+    uid: int, name: str, local_only: bool = False, use_local_model_image: bool = False
+) -> Cube:
     config.ui.text = f"Retrieving {name} cube"
     cube = Cube.get(uid, local_only=local_only)
-    cube.download_run_files()
+    if not use_local_model_image:
+        cube.download_run_files()
     config.ui.print(f"> {name} cube download complete")
     return cube
 

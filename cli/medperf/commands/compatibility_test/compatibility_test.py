@@ -69,6 +69,11 @@ def run(
         "--skip-demo-data-preparation",
         help="Use this flag if the passed demo dataset or data path is already prepared",
     ),
+    use_local_model_image: bool = typer.Option(
+        False,
+        "--use-local-model-image",
+        help="Use this flag if you don't want MedPerf to pull the model docker image before running",
+    ),
 ):
     """
     Executes a compatibility test for a determined benchmark.
@@ -87,6 +92,7 @@ def run(
         no_cache=no_cache,
         offline=offline,
         skip_data_preparation_step=skip_data_preparation_step,
+        use_local_model_image=use_local_model_image,
     )
     config.ui.print("✅ Done!")
 

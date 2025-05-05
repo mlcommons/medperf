@@ -25,6 +25,7 @@ class CompatibilityTestExecution:
         no_cache: bool = False,
         offline: bool = False,
         skip_data_preparation_step: bool = False,
+        use_local_model_image: bool = False,
     ) -> (str, dict):
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
@@ -81,6 +82,7 @@ class CompatibilityTestExecution:
             no_cache,
             offline,
             skip_data_preparation_step,
+            use_local_model_image,
         )
         test_exec.validate()
         test_exec.set_data_source()
@@ -111,6 +113,7 @@ class CompatibilityTestExecution:
         no_cache: bool = False,
         offline: bool = False,
         skip_data_preparation_step: bool = False,
+        use_local_model_image: bool = False,
     ):
         self.benchmark_uid = benchmark
         self.data_prep = data_prep
@@ -124,6 +127,7 @@ class CompatibilityTestExecution:
         self.no_cache = no_cache
         self.offline = offline
         self.skip_data_preparation_step = skip_data_preparation_step
+        self.use_local_model_image = use_local_model_image
 
         # This property will be set to either "path", "demo", "prepared", or "benchmark"
         self.data_source = None
@@ -181,7 +185,12 @@ class CompatibilityTestExecution:
         logging.info(f"Establishing the evaluator cube: {self.evaluator}")
         self.evaluator = prepare_cube(self.evaluator)
 
-        self.model_cube = get_cube(self.model, "Model", local_only=self.offline)
+        self.model_cube = get_cube(
+            self.model,
+            "Model",
+            local_only=self.offline,
+            use_local_model_image=self.use_local_model_image,
+        )
         self.evaluator_cube = get_cube(
             self.evaluator, "Evaluator", local_only=self.offline
         )
