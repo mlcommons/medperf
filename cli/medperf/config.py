@@ -190,7 +190,7 @@ dataset_raw_paths_file = "raw.yaml"
 ready_flag_file = ".ready"
 
 # MLCube assets conventions
-cube_filename = "mlcube.yaml"
+cube_filename = "container_config.yaml"
 params_filename = "parameters.yaml"
 workspace_path = "workspace"
 additional_path = "workspace/additional_files"

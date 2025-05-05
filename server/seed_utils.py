@@ -154,7 +154,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "7c569d6cdc44d699cd79912b338f3eb08f1c679d85551460218190520836a24b",
+            "image_hash": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5",
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {},

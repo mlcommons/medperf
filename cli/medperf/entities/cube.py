@@ -65,7 +65,9 @@ class Cube(Entity, DeployableSchema):
         self.cube_path = os.path.join(self.path, config.cube_filename)
         self.params_path = None
         self.additiona_files_folder_path = None
-        self.params_path = os.path.join(self.path, config.params_filename)
+        self.params_path = os.path.join(
+            self.path, config.workspace_path, config.params_filename
+        )
         self.additiona_files_folder_path = os.path.join(
             self.path, config.additional_path
         )

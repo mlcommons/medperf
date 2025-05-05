@@ -36,7 +36,7 @@ with torch.no_grad():
         outputs = outputs.detach().numpy()
 
         for file_id, output in zip(files_ids, outputs):
-            predictions_dict[file_id] = output
+            predictions_dict[file_id] = output.tolist()
 
 # save
 output_path = "/mlcommons/volumes/predictions"

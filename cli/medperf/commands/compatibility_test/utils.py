@@ -41,7 +41,7 @@ def download_demo_data(dset_url, dset_hash):
 
 def prepare_local_cube(container_config_path):
     path = container_config_path.parent
-    temp_uid = generate_tmp_uid()
+    temp_uid = "local_" + generate_tmp_uid()
     cubes_folder = config.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
     os.symlink(path, dst)
