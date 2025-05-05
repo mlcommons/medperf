@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 ASSETS_URL = (
     "https://raw.githubusercontent.com/hasan7n/medperf/"
-    "2f33cce68b41318f20db7c49802fcdc4cd7ca9f1/examples/chestxray_tutorial/"
+    "10622446c274823a68ce681e88e79506ecf4e380/examples/chestxray_tutorial/"
 )
 
 
@@ -103,7 +103,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_prep",
             "git_mlcube_url": (ASSETS_URL + "data_preparator/container_config.yaml"),
-            "mlcube_hash": "1fd27eb724eb2b3340333176cfcec91e338a63a7a547a780264032c43d94ccb9",
+            "mlcube_hash": "173d593918abdde0e008dc4dbad12393e9b26cd27787570337f7ef4923946e31",
             "git_parameters_url": (
                 ASSETS_URL + "data_preparator/workspace/parameters.yaml"
             ),
