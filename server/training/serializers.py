@@ -27,7 +27,7 @@ class WriteTrainingExperimentSerializer(serializers.ModelSerializer):
             if any(dev_mlcubes):
                 raise serializers.ValidationError(
                     "User cannot mark an experiment as operational"
-                    " if its MLCubes are not operational"
+                    " if its containers are not operational"
                 )
 
         return data
@@ -72,7 +72,7 @@ class ReadTrainingExperimentSerializer(serializers.ModelSerializer):
             if any(dev_mlcubes):
                 raise serializers.ValidationError(
                     "User cannot mark an experiment as operational"
-                    " if its MLCubes are not operational"
+                    " if its containers are not operational"
                 )
         return state
 

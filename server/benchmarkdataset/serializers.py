@@ -42,7 +42,7 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         if dataset_obj.data_preparation_mlcube != benchmark.data_preparation_mlcube:
             raise serializers.ValidationError(
                 "Dataset association request can be made only if the dataset"
-                " was prepared with benchmark's data preparation MLCube"
+                " was prepared with benchmark's data preparation container"
             )
 
         # approval status

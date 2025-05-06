@@ -54,7 +54,7 @@ class ExperimentDatasetListSerializer(serializers.ModelSerializer):
         if dataset_obj.data_preparation_mlcube != training_exp.data_preparation_mlcube:
             raise serializers.ValidationError(
                 "Dataset association request can be made only if the dataset"
-                " was prepared with the training experiment's data preparation MLCube"
+                " was prepared with the training experiment's data preparation Container"
             )
 
         # approval status

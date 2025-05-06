@@ -35,7 +35,7 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
         mlcube_state = mlcube_obj.state
         if mlcube_state != "OPERATION":
             raise serializers.ValidationError(
-                "Association requests can be made only on an operational model mlcube"
+                "Association requests can be made only on an operational model"
             )
 
         # approval status

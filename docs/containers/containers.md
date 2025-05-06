@@ -35,7 +35,7 @@ When creating a container, you may want to separate some assets from the contain
 - **Additional files:** The contents of the `additional_files.tar.gz` archive will be uncompressed and available in `/mlcommons/volumes/additional_files` inside the container.
 - **Parameters file:** Your parameters file will be available as `/mlcommons/volumes/parameters/parameters.yaml` inside the container.
 
-## Container configuration files
+## Container configuration file
 
 A container configuration file defines properties about your container:
 

@@ -37,10 +37,10 @@ To register your dataset, you need to collect the following information:
 - The source location of your data (e.g., hospital name).
 - The path to the data records (here, it is `medperf_tutorial/sample_raw_data/images`).
 - The path to the labels of the data (here, it is `medperf_tutorial/sample_raw_data/labels`)
-- The benchmark ID that you wish to participate in. This ensures your data in the next step will be prepared using the benchmark's data preparation MLCube.
+- The benchmark ID that you wish to participate in. This ensures your data in the next step will be prepared using the benchmark's data preparation container.
 
 !!! note
-    The `data_path` and `labels_path` are determined according to the input path requirements of the data preparation MLCube. To ensure that your data is structured correctly, it is recommended to check with the Benchmark Committee for specific details or instructions.
+    The `data_path` and `labels_path` are determined according to the input path requirements of the data preparation container. To ensure that your data is structured correctly, it is recommended to check with the Benchmark Committee for specific details or instructions.
 
 In order to find the benchmark ID, you can execute the following command to view the list of available benchmarks.
 
