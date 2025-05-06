@@ -159,13 +159,13 @@ def test_prepare_checks_report_and_metadata_path(
 
     # Assert
     if report_specified:
-        assert "report_file" in spy.call_args.kwargs.keys()
+        assert "report_file" in spy.call_args.kwargs["mounts"].keys()
     else:
-        assert "report_file" not in spy.call_args.kwargs.keys()
+        assert "report_file" not in spy.call_args.kwargs["mounts"].keys()
     if metadata_specified:
-        assert "metadata_path" in spy.call_args.kwargs.keys()
+        assert "metadata_path" in spy.call_args.kwargs["mounts"].keys()
     else:
-        assert "metadata_path" not in spy.call_args.kwargs.keys()
+        assert "metadata_path" not in spy.call_args.kwargs["mounts"].keys()
 
 
 @pytest.mark.parametrize(
@@ -224,9 +224,9 @@ def test_statistics_checks_metadata_path(
 
     # Assert
     if metadata_specified:
-        assert "metadata_path" in spy.call_args.kwargs.keys()
+        assert "metadata_path" in spy.call_args.kwargs["mounts"].keys()
     else:
-        assert "metadata_path" not in spy.call_args.kwargs.keys()
+        assert "metadata_path" not in spy.call_args.kwargs["mounts"].keys()
 
 
 def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube, fs):

@@ -95,9 +95,6 @@ def generate_cubefile_fn(fs, path, filename):
         except FileExistsError:
             pass
         hash = get_file_hash(filepath)
-        # special case: tarball file
-        if filename == config.tarball_filename:
-            return hash
         return filepath, hash
 
     return cubefile_fn
