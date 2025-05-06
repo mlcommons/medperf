@@ -1,6 +1,6 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
-from medperf.utils import get_file_hash, get_folders_hash, remove_path
+from medperf.utils import get_file_hash, get_folders_hash, remove_path, generate_tmp_uid
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -39,17 +39,17 @@ def download_demo_data(dset_url, dset_hash):
     return data_path, labels_path, metadata_path
 
 
-def prepare_local_cube(path):
-    temp_uid = get_folders_hash([path])
+def prepare_local_cube(container_config_path):
+    path = container_config_path.parent
+    temp_uid = "local_" + generate_tmp_uid()
     cubes_folder = config.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
     os.symlink(path, dst)
-    logging.info(f"local cube will be linked to path: {dst}")
+    logging.info(f"local container will be linked to path: {dst}")
     config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     if not os.path.exists(cube_metadata_file):
-        mlcube_yaml_path = os.path.join(path, config.cube_filename)
-        mlcube_yaml_hash = get_file_hash(mlcube_yaml_path)
+        mlcube_yaml_hash = get_file_hash(container_config_path)
         temp_metadata = {
             "id": None,
             "name": temp_uid,
@@ -80,33 +80,31 @@ def prepare_cube(cube_uid: str):
 
     # Test if value looks like an mlcube_uid, if so skip path validation
     if str(cube_uid).isdigit():
-        logging.info(f"MLCube value {cube_uid} resembles an mlcube_uid")
+        logging.info(f"Container identifier {cube_uid} resembles a server ID")
         return cube_uid
 
     # Check if value is a local mlcube
-    path = Path(cube_uid)
+    path = Path(cube_uid).resolve()
+
     if path.is_file():
-        path = path.parent
-    path = path.resolve()
+        logging.info("local path provided. Creating symbolic link")
+        temp_uid = prepare_local_cube(path)
+        return temp_uid
 
-    if os.path.exists(path):
-        mlcube_yaml_path = os.path.join(path, config.cube_filename)
-        if os.path.exists(mlcube_yaml_path):
-            logging.info("local path provided. Creating symbolic link")
-            temp_uid = prepare_local_cube(path)
-            return temp_uid
-
-    logging.error(f"mlcube {cube_uid} was not found as an existing mlcube")
+    logging.error(f"container {cube_uid} was not found")
     raise InvalidArgumentError(
-        f"The provided mlcube ({cube_uid}) could not be found as a local or remote mlcube"
+        f"The provided container ({cube_uid}) could not be found as a local or remote container"
     )
 
 
-def get_cube(uid: int, name: str, local_only: bool = False) -> Cube:
-    config.ui.text = f"Retrieving {name} cube"
+def get_cube(
+    uid: int, name: str, local_only: bool = False, use_local_model_image: bool = False
+) -> Cube:
+    config.ui.text = f"Retrieving container '{name}'"
     cube = Cube.get(uid, local_only=local_only)
-    cube.download_run_files()
-    config.ui.print(f"> {name} cube download complete")
+    if not use_local_model_image:
+        cube.download_run_files()
+    config.ui.print(f"> Container '{name}' download complete")
     return cube
 
 

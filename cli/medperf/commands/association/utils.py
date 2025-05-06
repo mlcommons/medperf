@@ -24,12 +24,12 @@ def validate_args(
         )
     if sum([dataset, model_mlcube, aggregator, ca]) != 1:
         raise InvalidArgumentError(
-            "One dataset, mlcube, aggregator, or ca flag must be provided"
+            "One dataset, container, aggregator, or ca flag must be provided"
         )
     if training_exp and model_mlcube:
         raise InvalidArgumentError(
             "Invalid combination of arguments. There are no associations"
-            " between training experiments and models mlcubes"
+            " between training experiments and models"
         )
     if benchmark and (ca or aggregator):
         raise InvalidArgumentError(

@@ -137,12 +137,12 @@ class DataPreparation:
 
     def get_prep_cube(self):
         self.ui.text = (
-            "Retrieving and setting up data preparation MLCube. "
+            "Retrieving and setting up data preparation Container. "
             "This may take some time."
         )
         self.cube = Cube.get(self.dataset.data_preparation_mlcube)
         self.cube.download_run_files()
-        self.ui.print("> Preparation cube download complete")
+        self.ui.print("> Preparation container download complete")
 
     def setup_parameters(self):
         self.out_statistics_path = self.dataset.statistics_path
@@ -153,13 +153,11 @@ class DataPreparation:
         self.raw_data_path, self.raw_labels_path = self.dataset.get_raw_paths()
 
         # Backwards compatibility. Run a cube as before if no report is specified
-        self.report_specified = (
-            self.cube.get_default_output("prepare", "report_file") is not None
-        )
+        self.report_specified = self.cube.is_report_specified()
+
         # Backwards compatibility. Run a cube as before if no metadata is specified
-        self.metadata_specified = (
-            self.cube.get_default_output("prepare", "metadata_path") is not None
-        )
+        self.metadata_specified = self.cube.is_metadata_specified()
+
         if not self.report_specified:
             self.allow_sending_reports = False
 
@@ -167,17 +165,17 @@ class DataPreparation:
         report_sender = ReportSender(self)
         report_sender.start()
 
-        prepare_params = {
+        prepare_mounts = {
             "data_path": self.raw_data_path,
             "labels_path": self.raw_labels_path,
             "output_path": self.out_datapath,
             "output_labels_path": self.out_labelspath,
         }
         if self.metadata_specified:
-            prepare_params["metadata_path"] = self.metadata_path
+            prepare_mounts["metadata_path"] = self.metadata_path
 
         if self.report_specified:
-            prepare_params["report_file"] = self.report_path
+            prepare_mounts["report_file"] = self.report_path
 
         self.ui.text = "Running preparation step..."
         try:
@@ -185,7 +183,7 @@ class DataPreparation:
                 self.cube.run(
                     task="prepare",
                     timeout=config.prepare_timeout,
-                    **prepare_params,
+                    mounts=prepare_mounts,
                 )
         except Exception as e:
             # Inform the server that a failure occured
@@ -196,7 +194,7 @@ class DataPreparation:
             report_sender.stop("interrupted")
             raise e
 
-        self.ui.print("> Cube execution complete")
+        self.ui.print("> Container execution complete")
         report_sender.stop("finished")
 
     def run_sanity_check(self):
@@ -205,7 +203,7 @@ class DataPreparation:
         out_labelspath = self.out_labelspath
 
         # Specify parameters for the tasks
-        sanity_params = {
+        sanity_check_mounts = {
             "data_path": out_datapath,
             "labels_path": out_labelspath,
         }
@@ -215,7 +213,7 @@ class DataPreparation:
             self.cube.run(
                 task="sanity_check",
                 timeout=sanity_check_timeout,
-                **sanity_params,
+                mounts=sanity_check_mounts,
             )
         except ExecutionError:
             self.dataset.unmark_as_ready()
@@ -239,14 +237,14 @@ class DataPreparation:
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
 
-        statistics_params = {
+        statistics_mounts = {
             "data_path": out_datapath,
             "labels_path": out_labelspath,
             "output_path": self.out_statistics_path,
         }
 
         if self.metadata_specified:
-            statistics_params["metadata_path"] = self.metadata_path
+            statistics_mounts["metadata_path"] = self.metadata_path
 
         self.ui.text = "Generating statistics..."
 
@@ -254,7 +252,7 @@ class DataPreparation:
             self.cube.run(
                 task="statistics",
                 timeout=statistics_timeout,
-                **statistics_params,
+                mounts=statistics_mounts,
             )
         except ExecutionError as e:
             self.dataset.unmark_as_ready()
@@ -306,7 +304,7 @@ class DataPreparation:
             + " MedPerf will generate a summary of the progress of the data preparation and"
             + " will send this summary to the MedPerf server.\nThis will happen multiple times"
             + " during the preparation process in order to facilitate the supervision of the"
-            + " experiment. The summary will be only visible to the data preparation MLCube owner."
+            + " experiment. The summary will be only visible to the data preparation container owner."
             + "\nBelow is an example of this summary, which conveys that the current execution"
             + " status of your dataset preparation is actively running, and that 40% of your"
             + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"

@@ -140,17 +140,17 @@ class TrainingExecution:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = (
-            "Retrieving and setting up training MLCube. This may take some time."
+            "Retrieving and setting up training container. This may take some time."
         )
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Container '{name}' download complete")
         return cube
 
     def run_experiment(self):
         participant_label = get_participant_label(self.user_email, self.dataset.id)
-        env_dict = {"MEDPERF_PARTICIPANT_LABEL": participant_label}
-        params = {
+        env = {"MEDPERF_PARTICIPANT_LABEL": participant_label}
+        mounts = {
             "data_path": self.dataset.data_path,
             "labels_path": self.dataset.labels_path,
             "node_cert_folder": self.dataset_pki_assets,
@@ -160,4 +160,4 @@ class TrainingExecution:
         }
 
         self.ui.text = "Running Training"
-        self.cube.run(task="train", env_dict=env_dict, **params)
+        self.cube.run(task="train", mounts=mounts, env=env, disable_network=False)

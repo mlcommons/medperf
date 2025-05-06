@@ -49,21 +49,21 @@ class UpdatePlan:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = (
-            "Retrieving and setting up training MLCube. This may take some time."
+            "Retrieving and setting up training Container. This may take some time."
         )
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Contaier '{name}' download complete")
         return cube
 
     def update_plan(self):
-        env_dict = {
+        env = {
             "MEDPERF_ADMIN_PARTICIPANT_CN": self.user_email,
             "MEDPERF_UPDATE_FIELD_NAME": self.field_name,
             "MEDPERF_UPDATE_FIELD_VALUE": self.field_value,
         }
 
-        params = {
+        mounts = {
             "node_cert_folder": self.admin_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
@@ -71,4 +71,4 @@ class UpdatePlan:
         }
 
         self.ui.text = "Updating plan"
-        self.cube.run(task="update_plan", env_dict=env_dict, **params)
+        self.cube.run(task="update_plan", mounts=mounts, env=env, disable_network=False)

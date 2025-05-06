@@ -85,7 +85,7 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/ab813a8142e1d9f2f215cb10cc59842dfc9b701c"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/63454ef4bb96f1879a549e2131ab6361a702e8e1"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -94,29 +94,28 @@ DSET_C_URL="${ASSETS_URL}/assets/datasets/dataset_c.tar.gz"
 DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 
 # prep cubes
-PREP_MLCUBE="$ASSETS_URL/prep-sep/mlcube/mlcube.yaml"
-PREP_PARAMS="$ASSETS_URL/prep-sep/mlcube/workspace/parameters.yaml"
+PREP_MLCUBE="$ASSETS_URL/prep-sep/container_config.yaml"
+PREP_PARAMS="$ASSETS_URL/prep-sep/workspace/parameters.yaml"
 PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
-MODEL_WITH_SINGULARITY="$ASSETS_URL/model-cpu/mlcube/mlcube_docker+singularity.yaml"
-MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube.yaml"
+MODEL_WITH_SINGULARITY="$ASSETS_URL/model-cpu/container_config_as_singularity.yaml"
+MODEL_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_docker.yaml"
 MODEL_LOG_MLCUBE="$ASSETS_URL/model-debug-logging/mlcube/mlcube.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
-MODEL_SING_IMAGE="https://storage.googleapis.com/medperf-storage/mock-model-cpu.simg"
 
-MODEL1_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters1.yaml"
-MODEL2_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters2.yaml"
-MODEL3_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters3.yaml"
-MODEL4_PARAMS="$ASSETS_URL/model-cpu/mlcube/workspace/parameters4.yaml"
+MODEL1_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters1.yaml"
+MODEL2_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters2.yaml"
+MODEL3_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters3.yaml"
+MODEL4_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters4.yaml"
 
 MODEL_LOG_NONE_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_none.yaml"
 MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_debug.yaml"
 
 # metrics cubes
-METRIC_MLCUBE="$ASSETS_URL/metrics/mlcube/mlcube.yaml"
-METRIC_PARAMS="$ASSETS_URL/metrics/mlcube/workspace/parameters.yaml"
+METRIC_MLCUBE="$ASSETS_URL/metrics/container_config.yaml"
+METRIC_PARAMS="$ASSETS_URL/metrics/workspace/parameters.yaml"
 
 # FL cubes
 TRAIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/19c80d88deaad27b353d1cb9bc180757534027aa/examples/fl/fl/mlcube/mlcube.yaml"
@@ -133,9 +132,9 @@ AGGOWNER="testao@example.com"
 FLADMIN="testfladmin@example.com"
 
 # local MLCubes for local compatibility tests
-PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator/mlcube"
-MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn/mlcube"
-METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics/mlcube"
+PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator"
+MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn"
+METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics"
 
 TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
 # create storage folders

@@ -12,7 +12,12 @@ from medperf.certificates import trust
 
 class StartAggregator:
     @classmethod
-    def run(cls, training_exp_id: int, publish_on: str, overwrite: bool = False):
+    def run(
+        cls,
+        training_exp_id: int,
+        publish_on: str = "127.0.0.1",
+        overwrite: bool = False,
+    ):
         """Starts the aggregation server of a training experiment
 
         Args:
@@ -44,8 +49,6 @@ class StartAggregator:
         if self.event.finished:
             msg = "The provided training experiment has to start a training event."
             raise InvalidArgumentError(msg)
-        if self.publish_on == "127.0.0.1":
-            pass
 
     def check_existing_outputs(self):
         msg = (
@@ -68,10 +71,10 @@ class StartAggregator:
         self.cube = self.__get_cube(self.aggregator.aggregation_mlcube, "aggregation")
 
     def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
+        self.ui.text = f"Retrieving container '{name}'"
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> container '{name}' download complete")
         return cube
 
     def prepare_participants_list(self):
@@ -88,7 +91,7 @@ class StartAggregator:
         self.ca = ca
 
     def run_experiment(self):
-        params = {
+        mounts = {
             "node_cert_folder": self.aggregator_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
@@ -99,9 +102,10 @@ class StartAggregator:
         }
 
         self.ui.text = "Running Aggregator"
+        port = self.aggregator.port
         self.cube.run(
             task="start_aggregator",
-            port=self.aggregator.port,
-            publish_on=self.publish_on,
-            **params,
+            mounts=mounts,
+            ports=[f"{self.publish_on}:{port}:{port}"],
+            disable_network=False,
         )

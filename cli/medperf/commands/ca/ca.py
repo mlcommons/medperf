@@ -23,16 +23,16 @@ def submit(
         "-c",
         help="Path to the configuration file (JSON) of the CA",
     ),
-    ca_mlcube: int = typer.Option(..., "--ca-mlcube", help="CA MLCube UID"),
+    ca_mlcube: int = typer.Option(..., "--ca-container", help="CA container UID"),
     client_mlcube: int = typer.Option(
         ...,
-        "--client-mlcube",
-        help="MLCube UID to be used by clients to get a cert",
+        "--client-container",
+        help="container UID to be used by clients to get a cert",
     ),
     server_mlcube: int = typer.Option(
         ...,
-        "--server-mlcube",
-        help="MLCube UID to be used by servers to get a cert",
+        "--server-container",
+        help="container UID to be used by servers to get a cert",
     ),
 ):
     """Submits a ca"""

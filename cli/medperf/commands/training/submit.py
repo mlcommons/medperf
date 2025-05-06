@@ -24,11 +24,11 @@ class SubmitTrainingExp:
         submission = cls(training_exp_info)
 
         with ui.interactive():
-            ui.text = "Getting FL MLCube"
+            ui.text = "Getting FL Container"
             submission.get_fl_mlcube()
-            ui.text = "Getting FL admin MLCube"
+            ui.text = "Getting FL admin Container"
             submission.get_fl_admin_mlcube()
-            ui.print("> Completed retrieving FL MLCube")
+            ui.print("> Completed retrieving FL Container")
             ui.text = "Submitting TrainingExp to MedPerf"
             updated_benchmark_body = submission.submit()
         ui.print("Uploaded")

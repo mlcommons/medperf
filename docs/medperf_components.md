@@ -12,7 +12,7 @@ The backend server is implemented in Django, and it can be found in the [server 
 
 The MedPerf client contains all the necessary tools to interact with the server, preparing datasets for benchmarks and running experiments on the local machine. It can be found in this [folder](https://github.com/mlcommons/medperf/tree/main/cli/medperf){target="\_blank"} in the MedPerf Github repository.
 
-The client communicates to the server through the API to, for example, authenticate a user, retrieve benchmarks/MLcubes and send results.
+The client communicates to the server through the API to, for example, authenticate a user, retrieve benchmarks/containers and send results.
 
 The client is currently available to the user through a command-line interface (CLI). <!--TODO: uncomment once cli_reference is filled. See the [CLI reference](cli_reference.md).-->
 

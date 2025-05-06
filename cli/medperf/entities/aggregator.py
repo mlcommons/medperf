@@ -102,7 +102,7 @@ class Aggregator(Entity, MedperfSchema):
             "UID": self.identifier,
             "Name": self.name,
             "Address": self.address,
-            "MLCube": int(self.aggregation_mlcube),
+            "Container": int(self.aggregation_mlcube),
             "Port": self.port,
             "Created At": self.created_at,
             "Registered": self.is_registered,

@@ -25,12 +25,12 @@ def submit(
         ..., "--description", "-d", help="Description of the benchmark"
     ),
     docs_url: str = typer.Option("", "--docs-url", "-u", help="URL to documentation"),
-    prep_mlcube: int = typer.Option(..., "--prep-mlcube", "-p", help="prep MLCube UID"),
-    fl_mlcube: int = typer.Option(
-        ..., "--fl-mlcube", "-m", help="Reference Model MLCube UID"
+    prep_mlcube: int = typer.Option(
+        ..., "--prep-container", "-p", help="prep container UID"
     ),
+    fl_mlcube: int = typer.Option(..., "--fl-container", "-m", help="FL container UID"),
     fl_admin_mlcube: int = typer.Option(
-        None, "--fl-admin-mlcube", "-a", help="FL admin interface MLCube"
+        None, "--fl-admin-container", "-a", help="FL admin interface container"
     ),
     operational: bool = typer.Option(
         False,

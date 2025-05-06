@@ -190,7 +190,7 @@ dataset_raw_paths_file = "raw.yaml"
 ready_flag_file = ".ready"
 
 # MLCube assets conventions
-cube_filename = "mlcube.yaml"
+cube_filename = "container_config.yaml"
 params_filename = "parameters.yaml"
 workspace_path = "workspace"
 additional_path = "workspace/additional_files"
@@ -204,6 +204,7 @@ wait_before_sending_reports = 30  # In seconds
 
 # Container config
 gpus = None
+shm_size = None
 platform = "docker"
 prepare_timeout = None
 sanity_check_timeout = None
@@ -249,10 +250,10 @@ configurable_parameters = inline_parameters + [
 ]
 
 templates = {
-    "data_preparator": "templates/data_preparator_mlcube",
-    "model": "templates/model_mlcube",
-    "evaluator": "templates/evaluator_mlcube",
-    "gandlf": "templates/gandlf_mlcube",
+    "data_preparator": "templates/data_preparator_container",
+    "model": "templates/model_container",
+    "evaluator": "templates/evaluator_container",
+    "gandlf": "templates/gandlf_container",
 }
 
 # Temporary paths to cleanup

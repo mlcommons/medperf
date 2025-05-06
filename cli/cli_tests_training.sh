@@ -96,20 +96,20 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Submit cubes"
+echo "Submit containers"
 echo "====================================="
 
-print_eval medperf mlcube submit --name trainprep -m $PREP_TRAINING_MLCUBE --operational
+print_eval medperf container submit --name trainprep -m $PREP_TRAINING_MLCUBE --operational
 checkFailed "Train prep submission failed"
-PREP_UID=$(medperf mlcube ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf container ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-print_eval medperf mlcube submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
-checkFailed "traincube submission failed"
-TRAINCUBE_UID=$(medperf mlcube ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+print_eval medperf container submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
+checkFailed "fl container submission failed"
+TRAINCUBE_UID=$(medperf container ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-print_eval medperf mlcube submit --name fladmincube -m $FLADMIN_MLCUBE --operational
-checkFailed "fladmincube submission failed"
-FLADMINCUBE_UID=$(medperf mlcube ls | grep fladmincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+print_eval medperf container submit --name fladmincube -m $FLADMIN_MLCUBE --operational
+checkFailed "fladmin container submission failed"
+FLADMINCUBE_UID=$(medperf container ls | grep fladmincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 ##########################################################
 
@@ -248,7 +248,7 @@ echo "====================================="
 print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
 AGG_PID=$!
 
-# sleep so that the mlcube is run before we change profiles
+# sleep so that the container is run before we change profiles
 sleep 7
 
 # Check if the command is still running.
@@ -327,7 +327,7 @@ echo "====================================="
 print_eval medperf dataset train -d $DSET_1_UID -t $TRAINING_UID -y </dev/null >col1.log 2>&1 &
 COL1_PID=$!
 
-# sleep so that the mlcube is run before we change profiles
+# sleep so that the container is run before we change profiles
 sleep 7
 
 # Check if the command is still running.
@@ -406,7 +406,7 @@ echo "====================================="
 print_eval medperf dataset train -d $DSET_2_UID -t $TRAINING_UID -y </dev/null >col2.log 2>&1 &
 COL2_PID=$!
 
-# sleep so that the mlcube is run before we change profiles
+# sleep so that the container is run before we change profiles
 sleep 7
 
 # Check if the command is still running.

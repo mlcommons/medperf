@@ -45,20 +45,20 @@ class SetPlan:
         self.aggregator.prepare_config()
 
     def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
+        self.ui.text = f"Retrieving container '{name}'"
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Container '{name}' download complete")
         return cube
 
     def create_plan(self):
         """Auto-generates dataset UIDs for both input and output paths"""
-        params = {
+        mounts = {
             "training_config_path": self.training_config_path,
             "aggregator_config_path": self.aggregator.config_path,
             "plan_path": self.plan_out_path,
         }
-        self.mlcube.run("generate_plan", **params)
+        self.mlcube.run("generate_plan", mounts=mounts)
 
     def update(self):
         with open(self.plan_out_path) as f:

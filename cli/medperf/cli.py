@@ -27,6 +27,7 @@ from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
+app.add_typer(mlcube.app, name="container", help="Manage containers")
 app.add_typer(result.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
@@ -57,7 +58,7 @@ def execute(
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+        help="Ignore failing models, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False,

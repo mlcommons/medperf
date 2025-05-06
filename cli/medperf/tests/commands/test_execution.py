@@ -21,7 +21,7 @@ def mock_model(mocker, fs, state_variables):
     failing_model = state_variables["failing_model"]
 
     def _side_effect(*args, **kwargs):
-        out_path = kwargs["output_path"]
+        out_path = kwargs["mounts"]["output_path"]
         fs.create_dir(out_path)
         if failing_model:
             raise ExecutionError
@@ -37,7 +37,7 @@ def mock_eval(mocker, fs, state_variables):
     def _side_effect(*args, **kwargs):
         if failing_eval:
             raise ExecutionError
-        out_path = kwargs["output_path"]
+        out_path = kwargs["mounts"]["output_path"]
         fs.create_file(out_path, contents=yaml.dump(execution_results))
 
     spy = mocker.patch.object(INPUT_EVALUATOR, "run", side_effect=_side_effect)
@@ -169,18 +169,22 @@ def test_cube_run_are_called_properly(mocker, setup):
 
     exp_model_call = call(
         task="infer",
-        output_logs_file=exp_model_logs_path,
+        output_logs=exp_model_logs_path,
         timeout=config.infer_timeout,
-        data_path=INPUT_DATASET.data_path,
-        output_path=exp_preds_path,
+        mounts={
+            "data_path": INPUT_DATASET.data_path,
+            "output_path": exp_preds_path,
+        },
     )
     exp_eval_call = call(
         task="evaluate",
-        output_logs_file=exp_metrics_logs_path,
+        output_logs=exp_metrics_logs_path,
         timeout=config.evaluate_timeout,
-        predictions=exp_preds_path,
-        labels=INPUT_DATASET.labels_path,
-        output_path=ANY,
+        mounts={
+            "predictions": exp_preds_path,
+            "labels": INPUT_DATASET.labels_path,
+            "output_path": ANY,
+        },
     )
     # Act
     Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)

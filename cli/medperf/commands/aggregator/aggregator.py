@@ -25,7 +25,7 @@ def submit(
         ..., "--port", "-p", help="The port which the aggregator will use"
     ),
     aggregation_mlcube: int = typer.Option(
-        ..., "--aggregation-mlcube", "-m", help="Aggregation MLCube UID"
+        ..., "--aggregation-container", "-m", help="Aggregation container UID"
     ),
 ):
     """Submits an aggregator"""
@@ -44,7 +44,7 @@ def associate(
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
+    """Associates an aggregator with a training experiment."""
     AssociateAggregator.run(aggregator_id, training_exp_id, approved=approval)
     config.ui.print("✅ Done!")
 

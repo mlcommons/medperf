@@ -58,16 +58,16 @@ class GetExperimentStatus:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = (
-            "Retrieving and setting up training MLCube. This may take some time."
+            "Retrieving and setting up training Container. This may take some time."
         )
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Container '{name}' download complete")
         return cube
 
     def get_experiment_status(self):
-        env_dict = {"MEDPERF_ADMIN_PARTICIPANT_CN": self.user_email}
-        params = {
+        env = {"MEDPERF_ADMIN_PARTICIPANT_CN": self.user_email}
+        mounts = {
             "node_cert_folder": self.admin_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
@@ -76,7 +76,9 @@ class GetExperimentStatus:
         }
 
         self.ui.text = "Getting training experiment status"
-        self.cube.run(task="get_experiment_status", env_dict=env_dict, **params)
+        self.cube.run(
+            task="get_experiment_status", mounts=mounts, env=env, disable_network=False
+        )
 
     def print_experiment_status(self):
         with open(self.status_output) as f:
