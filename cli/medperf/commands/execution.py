@@ -90,11 +90,11 @@ class Execution:
 
         except ExecutionError as e:
             if not self.ignore_model_errors:
-                logging.error(f"Model MLCube Execution failed: {e}")
-                raise ExecutionError(f"Model MLCube failed: {e}")
+                logging.error(f"Model Execution failed: {e}")
+                raise ExecutionError(f"Model failed: {e}")
             else:
                 self.partial = True
-                logging.warning(f"Model MLCube Execution failed: {e}")
+                logging.warning(f"Model Execution failed: {e}")
 
     def run_evaluation(self):
         self.ui.text = "Running model evaluation on dataset"
@@ -113,8 +113,8 @@ class Execution:
                 mounts=evaluator_mounts,
             )
         except ExecutionError as e:
-            logging.error(f"Metrics MLCube Execution failed: {e}")
-            raise ExecutionError("Metrics MLCube failed")
+            logging.error(f"Metrics Execution failed: {e}")
+            raise ExecutionError("Metrics calculation failed")
 
     def todict(self):
         return {

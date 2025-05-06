@@ -26,7 +26,7 @@ def ls():
 @clean_except
 def move(path: str = typer.Option(..., "--target", "-t", help="Target path")):
     """Moves all storage folders to a target base path. Folders include:
-    Benchmarks, datasets, mlcubes, results, tests, ...
+    Benchmarks, datasets, containers, results, tests, ...
 
     Args:
         path (str): target path

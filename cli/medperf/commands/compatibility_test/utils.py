@@ -45,7 +45,7 @@ def prepare_local_cube(container_config_path):
     cubes_folder = config.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
     os.symlink(path, dst)
-    logging.info(f"local cube will be linked to path: {dst}")
+    logging.info(f"local container will be linked to path: {dst}")
     config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     if not os.path.exists(cube_metadata_file):
@@ -80,7 +80,7 @@ def prepare_cube(cube_uid: str):
 
     # Test if value looks like an mlcube_uid, if so skip path validation
     if str(cube_uid).isdigit():
-        logging.info(f"MLCube value {cube_uid} resembles an mlcube_uid")
+        logging.info(f"Container identifier {cube_uid} resembles a server ID")
         return cube_uid
 
     # Check if value is a local mlcube
@@ -91,20 +91,20 @@ def prepare_cube(cube_uid: str):
         temp_uid = prepare_local_cube(path)
         return temp_uid
 
-    logging.error(f"mlcube {cube_uid} was not found as an existing mlcube")
+    logging.error(f"container {cube_uid} was not found")
     raise InvalidArgumentError(
-        f"The provided mlcube ({cube_uid}) could not be found as a local or remote mlcube"
+        f"The provided container ({cube_uid}) could not be found as a local or remote container"
     )
 
 
 def get_cube(
     uid: int, name: str, local_only: bool = False, use_local_model_image: bool = False
 ) -> Cube:
-    config.ui.text = f"Retrieving {name} cube"
+    config.ui.text = f"Retrieving container '{name}'"
     cube = Cube.get(uid, local_only=local_only)
     if not use_local_model_image:
         cube.download_run_files()
-    config.ui.print(f"> {name} cube download complete")
+    config.ui.print(f"> Container '{name}' download complete")
     return cube
 
 

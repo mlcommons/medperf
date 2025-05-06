@@ -46,7 +46,7 @@ class ListAssociations:
             assocs_info.append(assoc_info)
 
         headers = [
-            f"{component_type.replace('_', ' ').title()} UID",
+            f"{component_type.replace('_mlcube', '').replace('_', ' ').title()} UID",
             f"{experiment_type.replace('_', ' ').title()} UID",
             "Initiated by",
             "Status",

@@ -160,10 +160,10 @@ class BenchmarkExecution:
         }
 
     def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
+        self.ui.text = f"Retrieving container '{name}'"
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Container '{name}' download complete")
         return cube
 
     def run_experiments(self):
@@ -216,7 +216,7 @@ class BenchmarkExecution:
     def __handle_experiment_error(self, model_uid, exception):
         if isinstance(exception, InvalidEntityError):
             config.ui.print_error(
-                f"There was an error when retrieving the model mlcube {model_uid}: {exception}"
+                f"There was an error when retrieving the model container {model_uid}: {exception}"
             )
         elif isinstance(exception, ExecutionError):
             config.ui.print_error(

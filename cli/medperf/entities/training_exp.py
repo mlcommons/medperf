@@ -130,7 +130,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
             "Description": self.description,
             "Documentation": self.docs_url,
             "Created At": self.created_at,
-            "FL MLCube": int(self.fl_mlcube),
+            "FL Container": int(self.fl_mlcube),
             "Plan": self.plan,
             "State": self.state,
             "Registered": self.is_registered,

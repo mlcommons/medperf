@@ -177,12 +177,14 @@ class CompatibilityTestExecution:
         a temporary uid and link the cube path to the medperf storage path."""
 
         if self.data_source != "prepared":
-            logging.info(f"Establishing the data preparation cube: {self.data_prep}")
+            logging.info(
+                f"Establishing the data preparation container: {self.data_prep}"
+            )
             self.data_prep = prepare_cube(self.data_prep)
 
-        logging.info(f"Establishing the model cube: {self.model}")
+        logging.info(f"Establishing the model container: {self.model}")
         self.model = prepare_cube(self.model)
-        logging.info(f"Establishing the evaluator cube: {self.evaluator}")
+        logging.info(f"Establishing the evaluator container: {self.evaluator}")
         self.evaluator = prepare_cube(self.evaluator)
 
         self.model_cube = get_cube(

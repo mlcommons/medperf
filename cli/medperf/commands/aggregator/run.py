@@ -71,10 +71,10 @@ class StartAggregator:
         self.cube = self.__get_cube(self.aggregator.aggregation_mlcube, "aggregation")
 
     def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving {name} cube"
+        self.ui.text = f"Retrieving container '{name}'"
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> container '{name}' download complete")
         return cube
 
     def prepare_participants_list(self):

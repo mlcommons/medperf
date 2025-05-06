@@ -26,13 +26,23 @@ def list(
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
     mlcube: int = typer.Option(
-        None, "--mlcube", "-m", help="Get datasets for a given data prep mlcube"
+        None,
+        "--data-preparation-container",
+        "-m",
+        help="Get datasets for a given data preparation container",
     ),
 ):
     """List datasets"""
     EntityList.run(
         Dataset,
-        fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status", "Owner"],
+        fields=[
+            "UID",
+            "Name",
+            "Data Preparation Container UID",
+            "State",
+            "Status",
+            "Owner",
+        ],
         unregistered=unregistered,
         mine_only=mine,
         mlcube=mlcube,
@@ -46,7 +56,7 @@ def submit(
         None, "--benchmark", "-b", help="UID of the desired benchmark"
     ),
     data_prep_uid: int = typer.Option(
-        None, "--data_prep", "-p", help="UID of the desired preparation cube"
+        None, "--data_prep", "-p", help="UID of the desired preparation container"
     ),
     data_path: str = typer.Option(..., "--data_path", "-d", help="Path to the data"),
     labels_path: str = typer.Option(

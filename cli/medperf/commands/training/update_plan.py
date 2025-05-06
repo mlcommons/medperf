@@ -49,11 +49,11 @@ class UpdatePlan:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = (
-            "Retrieving and setting up training MLCube. This may take some time."
+            "Retrieving and setting up training Container. This may take some time."
         )
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Contaier '{name}' download complete")
         return cube
 
     def update_plan(self):

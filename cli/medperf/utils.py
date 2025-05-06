@@ -322,7 +322,7 @@ def combine_proc_sp_text(proc: spawn) -> str:
         if not log_filter.check_line(line):
             ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
 
-    logging.debug("MLCube process finished")
+    logging.debug("Container process finished")
     logging.debug(proc_out)
     return proc_out
 

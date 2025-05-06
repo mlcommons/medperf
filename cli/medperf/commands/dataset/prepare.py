@@ -137,12 +137,12 @@ class DataPreparation:
 
     def get_prep_cube(self):
         self.ui.text = (
-            "Retrieving and setting up data preparation MLCube. "
+            "Retrieving and setting up data preparation Container. "
             "This may take some time."
         )
         self.cube = Cube.get(self.dataset.data_preparation_mlcube)
         self.cube.download_run_files()
-        self.ui.print("> Preparation cube download complete")
+        self.ui.print("> Preparation container download complete")
 
     def setup_parameters(self):
         self.out_statistics_path = self.dataset.statistics_path
@@ -194,7 +194,7 @@ class DataPreparation:
             report_sender.stop("interrupted")
             raise e
 
-        self.ui.print("> Cube execution complete")
+        self.ui.print("> Container execution complete")
         report_sender.stop("finished")
 
     def run_sanity_check(self):
@@ -304,7 +304,7 @@ class DataPreparation:
             + " MedPerf will generate a summary of the progress of the data preparation and"
             + " will send this summary to the MedPerf server.\nThis will happen multiple times"
             + " during the preparation process in order to facilitate the supervision of the"
-            + " experiment. The summary will be only visible to the data preparation MLCube owner."
+            + " experiment. The summary will be only visible to the data preparation container owner."
             + "\nBelow is an example of this summary, which conveys that the current execution"
             + " status of your dataset preparation is actively running, and that 40% of your"
             + " dataset subjects have reached Stage 1, and that 60% of your dataset subjects"

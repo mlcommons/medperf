@@ -140,11 +140,11 @@ class TrainingExecution:
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = (
-            "Retrieving and setting up training MLCube. This may take some time."
+            "Retrieving and setting up training container. This may take some time."
         )
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> {name} cube download complete")
+        self.ui.print(f"> Container '{name}' download complete")
         return cube
 
     def run_experiment(self):

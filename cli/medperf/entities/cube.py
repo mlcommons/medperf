@@ -36,7 +36,7 @@ class Cube(Entity, DeployableSchema):
 
     @staticmethod
     def get_type():
-        return "cube"
+        return "container"
 
     @staticmethod
     def get_storage_path():
@@ -120,7 +120,7 @@ class Cube(Entity, DeployableSchema):
 
         cube = super().get(cube_uid, local_only)
         if not cube.is_valid:
-            raise InvalidEntityError("The requested MLCube is marked as INVALID.")
+            raise InvalidEntityError("The requested container is marked as INVALID.")
         cube.download_config_files()
         return cube
 
@@ -152,18 +152,18 @@ class Cube(Entity, DeployableSchema):
         try:
             self.download_mlcube()
         except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} manifest file: {e}")
+            raise InvalidEntityError(f"Container {self.name} config file: {e}")
 
         try:
             self.download_parameters()
         except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
+            raise InvalidEntityError(f"Container {self.name} parameters file: {e}")
 
     def download_run_files(self):
         try:
             self.download_additional()
         except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} additional files: {e}")
+            raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
         try:
             self.image_hash = self.runner.download(
@@ -172,7 +172,7 @@ class Cube(Entity, DeployableSchema):
                 get_hash_timeout=config.mlcube_inspect_timeout,
             )
         except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
+            raise InvalidEntityError(f"Container {self.name} image: {e}")
 
     def run(
         self,
