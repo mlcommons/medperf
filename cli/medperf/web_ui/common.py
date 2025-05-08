@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from importlib import resources
 
 from fastapi.requests import Request
+from medperf import config
 from starlette.responses import RedirectResponse
 
 from medperf.entities.association import Association
@@ -36,6 +37,8 @@ def generate_uuid():
 def initialize_state_task(request: Request, task_name: str) -> str:
     form_data = dict(anyio.run(lambda: request.form()))
     new_task_id = generate_uuid()
+    config.ui.set_task_id(new_task_id)
+    config.ui.set_request(request)
     request.app.state.task = {
         "id": new_task_id,
         "name": task_name,

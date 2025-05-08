@@ -119,8 +119,7 @@ def register_container(
     additional_file: str = Form(""),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="container_registration")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="container_registration")
     return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
         "name": name,
@@ -163,8 +162,7 @@ def test_container(
     container_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="container_compatibility_test")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="container_compatibility_test")
     return_response = {"status": "", "error": "", "results": None}
     try:
         _, results = CompatibilityTestExecution.run(
@@ -196,8 +194,7 @@ def associate(
     benchmark_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="container_association")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="container_association")
     return_response = {"status": "", "error": ""}
     try:
         AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)

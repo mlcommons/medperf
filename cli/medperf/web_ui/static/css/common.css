@@ -247,6 +247,17 @@ pre {
     overflow-y:auto;
 }
 
+#notifications-list > li{
+    width: 340px!important;
+}
+
+.notification-text {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    white-space: normal;
+}
+
 #log-panel{
     height: 300px;
     overflow-y: scroll;

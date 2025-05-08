@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 
 import medperf.config as config
 from medperf.web_ui.common import (
-    # add_notification,
     get_current_user_api,
 )
 
@@ -80,12 +79,6 @@ def get_event(
     if request.app.state.task["running"]:
         if event["task_id"] == request.app.state.task["id"]:
             request.app.state.task["logs"].append(event)
-            # if event["type"] == "prompt":
-            #     add_notification(
-            #         request,
-            #         message="A prompt is waiting for your response",
-            #         type="info",
-            #     )
         else:
             for task in request.app.state.old_tasks:
                 if task["id"] == event["task_id"]:
@@ -109,6 +102,6 @@ def respond(
     # Remove the prompt event after responding to the prompt
     for event in request.app.state.task["logs"]:
         if event["type"] == "prompt":
-            request.app.state.task["logs"].remove(event)
-            # TODO Maybe shouldn't be removed.
-            # change its type so it no longer require a confirmation, just to be shown in logs with the response.
+            event["type"] = "prompt_done"
+            event["approved"] = is_approved
+            break

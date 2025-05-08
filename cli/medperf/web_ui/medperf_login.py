@@ -37,8 +37,7 @@ def login(
     email: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="medperf_login")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="medperf_login")
     return_response = {"status": "", "error": ""}
     success = True
 

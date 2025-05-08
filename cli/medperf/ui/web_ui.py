@@ -1,5 +1,6 @@
 from queue import Queue
 from contextlib import contextmanager
+from medperf.web_ui.common import add_notification
 from yaspin import yaspin
 import typer
 
@@ -14,6 +15,7 @@ class WebUI(CLI):
         self.is_interactive = False
         self.spinner = yaspin(color="green")
         self.task_id = None
+        self.request = None
 
     def print(self, msg: str = ""):
         """Display a message on the command line
@@ -126,6 +128,11 @@ class WebUI(CLI):
                 "end": False,
             }
         )
+        add_notification(
+            self.request,
+            message="A prompt is waiting for your response in the current running task",
+            type="info",
+        )
         resp = self.get_response()
         if resp["value"]:
             return "y"
@@ -191,6 +198,9 @@ class WebUI(CLI):
 
     def set_task_id(self, task_id):
         self.task_id = task_id
+
+    def set_request(self, request):
+        self.request = request
 
     def unset_task_id(self):
         self.task_id = None

@@ -143,8 +143,7 @@ def test_benchmark(
     labels_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="benchmark_workflow_test")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="benchmark_workflow_test")
     return_response = {"status": "", "error": "", "results": None}
     try:
         _, results = CompatibilityTestExecution.run(
@@ -196,8 +195,7 @@ def register_benchmark(
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
-    task_id = initialize_state_task(request, task_name="benchmark_registration")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="benchmark_registration")
     return_response = {"status": "", "error": "", "benchmark_id": None}
     benchmark_id = None
     try:
@@ -229,8 +227,7 @@ def approve(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="approve_association")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="approve_association")
     return_response = {"status": "", "error": ""}
     try:
         Approval.run(
@@ -265,8 +262,7 @@ def reject(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="reject_association")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="reject_association")
     return_response = {"status": "", "error": ""}
     try:
         Approval.run(

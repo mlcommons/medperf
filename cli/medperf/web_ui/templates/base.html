@@ -6,8 +6,8 @@
 {% set notifications = request.app.state.notifications %}
 
 {% for notification in request.app.state.new_notifications %}
-{% set _ = notifications.append(notification) %}
-{% set _ = request.app.state.new_notifications.remove(notification) %}
+    {% set _ = notifications.append(notification) %}
+    {% set _ = request.app.state.new_notifications.remove(notification) %}
 {% endfor %}
 
 {% set unread_notifications = [] %}

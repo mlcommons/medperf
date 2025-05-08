@@ -158,8 +158,7 @@ def register_dataset(
     labels_path: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="dataset_registration")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="dataset_registration")
     return_response = {"status": "", "dataset_id": None, "error": ""}
     dataset_id = None
     try:
@@ -204,8 +203,7 @@ def prepare(
     dataset_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="dataset_preparation")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="dataset_preparation")
     return_response = {"status": "", "dataset_id": None, "error": ""}
 
     try:
@@ -235,8 +233,7 @@ def set_operational(
     dataset_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="dataset_set_operational")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="dataset_set_operational")
     return_response = {"status": "", "dataset_id": None, "error": ""}
 
     try:
@@ -267,8 +264,7 @@ def associate(
     benchmark_id: int = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="dataset_association")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="dataset_association")
     return_response = {"status": "", "error": ""}
 
     try:
@@ -300,8 +296,7 @@ def run(
     run_all: bool = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="benchmark_run")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="benchmark_run")
     return_response = {"status": "", "error": ""}
 
     try:
@@ -330,8 +325,7 @@ def submit_result(
     result_id: str = Form(...),
     current_user: bool = Depends(get_current_user_api),
 ):
-    task_id = initialize_state_task(request, task_name="result_submit")
-    config.ui.set_task_id(task_id)
+    initialize_state_task(request, task_name="result_submit")
     return_response = {"status": "", "error": ""}
 
     try:

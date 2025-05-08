@@ -78,7 +78,11 @@ function addNotification(notification){
     if (!notification.read) {
         buttonContainer.append(mark_read_btn);
     }
-    buttonContainer.append(`<a href="${notification.url}" class="btn btn-sm btn-outline-primary">Open</a>`);
+
+    if(notification.url !== ""){
+        buttonContainer.append(`<a href="${notification.url}" class="btn btn-sm btn-outline-primary">Open</a>`);
+    }
+
     buttonContainer.append(delete_btn);
     
     notifications_list.prepend(new_notification);
