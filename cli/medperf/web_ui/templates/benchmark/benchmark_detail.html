@@ -8,7 +8,11 @@
 {% block title %}Benchmark Details{% endblock %}
 
 {% block detail_panel %}
-<h1 class="my-4">{{ entity.name }}</h1>
+<h1 class="mt-4">{{ entity.name }}</h1>
+<div class="mb-4 text-center">
+    <a href="#datasets-associations" class="btn btn-default me-3">View Dataset associations</a>
+    <a href="#models-associations" class="btn btn-default">View Models associations</a>
+</div>
 <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -83,21 +87,21 @@
     </div>
 </div>
 
-{% if current_user_is_benchmark_owner %}
-<div class="associations-panel">
-    <div class="associations-column">
-        <h2 class="my-4">Datasets Associations</h2>
-        {% for assoc in datasets_associations %}
-        {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "dataset") }}
-        {% endfor %}
-    </div>
-    <div class="associations-column">
-        <h2 class="my-4">Models Associations</h2>
-        {% for assoc in models_associations %}
-        {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
-        {% endfor %}
-    </div>
+{% if true %}
+
+<h2 class="my-5 text-center">Datasets Associations</h2>
+<div id="datasets-associations">
+    {% for assoc in datasets_associations %}
+    {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "dataset") }}
+    {% endfor %}
 </div>
+<h2 class="my-5 text-center">Models Associations</h2>
+<div id="models-associations">
+    {% for assoc in models_associations %}
+    {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
+    {% endfor %}
+</div>
+
 {% endif %}
 
 {% endblock detail_panel %}

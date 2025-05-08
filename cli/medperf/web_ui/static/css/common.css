@@ -128,6 +128,18 @@ pre {
     box-sizing: border-box;
 }
 
+#datasets-associations{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+#models-associations{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
 /* Step container styling */
 .step-container {
     border-radius: 8px;
