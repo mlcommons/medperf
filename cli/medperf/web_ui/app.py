@@ -1,7 +1,6 @@
 from importlib import resources
 from pathlib import Path
 
-from medperf.account_management.account_management import read_user_account
 import typer
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
@@ -11,7 +10,7 @@ from medperf import config
 from medperf.ui.factory import UIFactory
 
 from medperf.decorators import clean_except
-from medperf.web_ui.common import custom_exception_handler, templates
+from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.containers.routes import router as containers_router
@@ -33,7 +32,7 @@ web_app.include_router(api_router, prefix="/api")
 web_app.include_router(login_router)
 web_app.include_router(events_router)
 web_app.include_router(medperf_login)
-web_app.include_router(profiles_router)
+web_app.include_router(profiles_router, prefix="/profiles")
 
 static_folder_path = Path(resources.files("medperf.web_ui")) / "static"
 
@@ -93,14 +92,6 @@ def not_authenticated_exception_handler(
 def read_root():
     return RedirectResponse(url="/benchmarks/ui")
 
-
-def is_logged_in():
-    return read_user_account() is not None
-
-
-templates.env.globals["logged_in"] = (
-    is_logged_in()
-)  # check for cleaner solution like middlewares
 
 app = typer.Typer()
 

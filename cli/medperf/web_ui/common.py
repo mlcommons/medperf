@@ -21,6 +21,8 @@ from medperf.web_ui.auth import (
 import uuid
 import time
 
+from medperf.account_management.account_management import read_user_account
+
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
 
@@ -119,10 +121,15 @@ api_key_cookie = APIKeyCookie(name=AUTH_COOKIE_NAME, auto_error=False)
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
+def is_logged_in():
+    return read_user_account() is not None
+
+
 def get_current_user_ui(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
+    request.app.state.logged_in = is_logged_in()
     if token == security_token:
         return True
     else:
@@ -131,8 +138,10 @@ def get_current_user_ui(
 
 
 def get_current_user_api(
+    request: Request,
     token: str = Security(api_key_cookie),
 ):
+    request.app.state.logged_in = is_logged_in()
     if token == security_token:
         return True
     else:

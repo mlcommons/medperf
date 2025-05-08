@@ -21,6 +21,7 @@
 
 {% set unread_notifications = unread_notifications | length %}
 {% set task_formData = request.app.state.task["formData"] %}
+{% set logged_in = request.app.state.logged_in %}
 
 <!DOCTYPE html>
 <html>
@@ -95,6 +96,13 @@
     <script src="{{ url_for('static', path='js/prism-yaml-1.23.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
+    <script>
+        $(document).ready(() => {
+            $("#logout-btn").on("click", (e) => {
+                showConfirmModal(e.currentTarget, logout, "logout?");
+            });
+        });
+    </script>
     {% if task_running %}
     <script>
         getNotifications();

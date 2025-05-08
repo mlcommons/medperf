@@ -20,7 +20,7 @@ def activate(profile: str):
     config_p = read_config()
 
     if profile not in config_p:
-        raise InvalidArgumentError("The provided profile does not exists")
+        raise InvalidArgumentError("The provided profile does not exist")
 
     config_p.activate(profile)
     write_config(config_p)
@@ -81,6 +81,8 @@ def view(profile: str = typer.Argument(None)):
     config_p = read_config()
     profile_config = config_p.active_profile
     if profile:
+        if profile not in config_p:
+            raise InvalidArgumentError("The provided profile does not exist")
         profile_config = config_p[profile]
 
     profile_config.pop(config.credentials_keyword, None)
@@ -99,7 +101,7 @@ def delete(profile: str):
     """
     config_p = read_config()
     if profile not in config_p.profiles:
-        raise InvalidArgumentError("The provided profile does not exists")
+        raise InvalidArgumentError("The provided profile does not exist")
 
     if profile in [
         config.default_profile_name,

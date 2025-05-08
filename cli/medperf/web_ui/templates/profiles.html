@@ -1,171 +1,56 @@
+{# ./cli/medperf/web_ui/templates/profiles.html #}
+
 {% extends "base.html" %}
 
 {% block title %}Profiles{% endblock %}
 
 {% block content %}
-<div class="container min-vh-100 justify-content-center align-items-center">
+<div class="container">
     <div class="row mt-5">
         <div class="col-12 mt-5">
             <h1 class="text-center">Profiles</h1>
         </div>
         <div class="col-12 mt-5">
-            <h3 class="text-center mt-5">Profile Activation</h3>
-            <form id="activate-profile" action="/activate_profile" method="post">
-                <div class="mb-2">
-                </div>
-                <div class="mb-3">
-                    <label for="profile" class="form-label">Current Profile: <strong> {{ profiles.active_profile_name.title() }}</strong></label>
+            <h4 class="text-center">
+                Current Profile: 
+                <strong> {{ profiles.active_profile_name.title() }}</strong>
+            </h4>
+            <form id="profiles-form" class="mt-5">
+                <div class="form-group my-5">
+                    <label for="profile" class="form-label h4">
+                        Select Profile
+                    </label>
                     <select name="profile" id="profile" class="form-select">
-                        <option value="" selected>Select Profile</option>
+                        <option value="" disabled>Select Profile</option>
                         {% for profile in profiles %}
-                        <option value="{{ profile }}">{{ profile.title() }}</option>
+                        <option
+                            value="{{ profile }}"
+                            {% if profile == profiles.active_profile_name %}
+                            selected
+                            {% endif %}
+                        >{{ profile.title() }}</option>
                         {% endfor %}
                     </select>
                 </div>
-
-                <div class="text-center mt-4">
-                    <button type="button" class="btn btn-primary mx-3" onclick="confirmActivation(this);" data-command="activate">Activate Profile</button>
-                    <button type="button" class="btn btn-secondary mx-3" onclick="confirmActivation(this);" data-command="view">View Profile</button>
+                <div class="text-center mt-5">
+                    <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn">Activate Profile</button>
+                    <button type="button" class="btn btn-secondary mx-3" id="view-profile-btn">View Profile</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<!-- Profile Activation Modal -->
-<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="profileModalLabel">Confirm Profile Activation</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to activate the selected profile <strong id="modalProfileName"></strong>?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
-                <button type="button" class="btn btn-success" id="confirmActivate">Yes</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Profile View Modal -->
-<div class="modal fade modal-lg" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="viewModalLabel">View Profile</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h1 id="viewProfileName" class="text-center"></h1>
-                <pre id="profile-yaml" class="language-yaml"></pre>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    let selectedProfile = "";
-    document.addEventListener('DOMContentLoaded', function(){    
-        $("#confirmActivate").click(function () {
-            console.log(selectedProfile)
-            if (selectedProfile) {
-                activateProfile(selectedProfile);
-                window.location.reload(true);
-            }
-        });
-    })
-    function confirmActivation(btn) {
-        const command = btn.getAttribute("data-command");
-        const selectElement = document.getElementById("profile");
-        const profile = selectElement.options[selectElement.selectedIndex].value;
-        if (!profile){
-            alert("no profile selected!");
-            return;
-        }
-        selectedProfile = profile;
-        if (command === "activate"){
-            $("#modalProfileName").text(profile);
-            $("#profileModal").modal("show");viewModal
-        }
-        else{
-            $("#viewProfileName").text(profile);
-            viewProfile(profile);
-        }
-    }
 
-    function activateProfile(profile) {
-        $.ajax({
-            url: "/activate_profile",
-            type: "POST",
-            data: { profile: profile },
-            success: function (response) {
-                if (response.status === "success") {
-                    alert("Profile activated successfully!");
-                } else {
-                    alert("Error: " + response.error);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("Request failed: " + error);
-            }
-        });
-    }
+{{ modal_macros.add_modal(
+    modal_id="view-profile-modal",
+    modal_class="modal-lg",
+    modal_body='<h5 id="view-profile-name" class="text-center"></h5><pre id="profile-yaml" class="language-yaml"></pre>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>',
+) }}
 
-    function viewProfile(profile){
-        $.ajax({
-            url: "/view_profile",
-            type: "POST",
-            data: { profile: profile },
-            async: true,
-            success: function(response) {
-                if (response.status === "success"){
-                    $("#viewModal").modal("show");
-                }
-                else {
-                    $("#errorModalLabel").html("Failed to Get Profile Details");
-                    $("#errorText").html(response.error);
-                    const errorModal = new bootstrap.Modal('#errorModal', {
-                        keyboard: false,
-                        backdrop: "static"
-                    });
-                    errorModal.show();
-                }
-            },
-            error: function(xhr, status, error) {
-                console.log("Error occurred:", error);
-            }
-        });
-        processView();
-    }
-    
-    function processView(){
-        $.ajax({
-            url: "/events",
-            type: "GET",
-            dataType: "json",
-            success: function(response) {
-                if (response.end)
-                    return;
-
-                if(response.type === "yaml"){
-                    $("#profile-yaml").html(response.message);
-                    Prism.highlightElement(document.getElementById("profile-yaml"));
-                }
-                processView();
-            },
-            error: function(xhr, status, error) {
-                console.log("Error getEvents");
-                console.log(xhr);
-                console.log(status);
-                console.log(error);
-            }
-        });
-    }
-
-</script>
-<script src="/static/js/app.js"></script>
 {% endblock content %}
+
+{% block extra_js %}
+<script src="/static/js/profiles.js"></script>
+{% endblock extra_js %}

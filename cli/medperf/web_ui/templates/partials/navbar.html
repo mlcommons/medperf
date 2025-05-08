@@ -29,13 +29,13 @@
                         {% endif %}
                     </ul>
                 </li>
-                {% if not logged_in %}
+                {% if logged_in %}
                 <li class="nav-item">
-                  <a class="nav-link" href="/medperf_login">Login</a>
+                    <button id="logout-btn" type="button" class="btn btn-default nav-link">Logout</button>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                  <button type="button" class="btn btn-default nav-link" onclick="logout()">Logout</button>
+                  <a class="nav-link" href="/medperf_login">Login</a>
                 </li>
                 {% endif %}
                 <li class="nav-item">

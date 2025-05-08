@@ -8,6 +8,12 @@ from medperf.exceptions import InvalidArgumentError
 class UIFactory:
     @staticmethod
     def create_ui(name: str) -> UI:
+        if isinstance(name, CLI):
+            return CLI()
+        elif isinstance(name, WebUI):
+            return WebUI()
+        elif isinstance(name, StdIn):
+            return StdIn()
         name = name.lower()
         if name == "cli":
             return CLI()

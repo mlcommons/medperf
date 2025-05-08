@@ -68,6 +68,10 @@ function disableElements(selector){
     $(selector).prop("disabled", true);
 }
 
+function enableElements(selector){
+    $(selector).prop("disabled", false);
+}
+
 function showReloadModal(title){
     $("#popup-modal-title").html(title);
     const popupModal = new bootstrap.Modal("#popup-modal", {

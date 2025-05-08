@@ -109,8 +109,9 @@ function checkLoginFormValidity() {
 }
 
 $(document).ready(() => {
-    $("#medperf-login-btn").on("click", () => {
-        medperfLogin();
+    $("#medperf-login-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, medperfLogin, "want to login?");
     });
+
     $("#medperf-login-form input").on("keyup", checkLoginFormValidity);
 });
