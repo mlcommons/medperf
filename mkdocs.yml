@@ -24,7 +24,7 @@ nav:
     # - Creating Model containers from GaNDLF: containers/gandlf_container.md
   - Authentication: concepts/auth.md
   #  - Client Configuration: concepts/profiles.md
-  - Container Assets: concepts/container_files.md
+  - Container Assets: concepts/container_assets.md
   - Hosting Files: concepts/hosting_files.md
   - Transferring to another Machine: concepts/import_export_data.md
   #  - Benchmark Associations: concepts/associations.md
