@@ -1,3 +1,3 @@
 import os
 
-os.makedirs("{{cookiecutter.project_slug}}", exist_ok=True)
+os.makedirs("workspace/additional_files", exist_ok=True)
