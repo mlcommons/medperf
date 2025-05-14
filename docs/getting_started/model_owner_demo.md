@@ -58,7 +58,7 @@ Assuming the test passes successfuly, you are ready to submit the container to t
 
 ### How does MedPerf Recognize an Container?
 
-{% include "getting_started/shared/mlcube_submission_overview.md" %}
+{% include "getting_started/shared/container_submission_overview.md" %}
 
 {% include "getting_started/shared/redirect_to_hosting_files.md" %}
 
