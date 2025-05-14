@@ -219,6 +219,13 @@ def add_inline_parameters(func: Callable) -> Callable:
             - Form "device=<id1>,<id2>": to expose specific GPUs.
             (e.g., --gpus="device=0,2")\n""",
         ),
+        shm_size: str = typer.Option(
+            config.shm_size,
+            "--shm-size",
+            help="""
+            Only for Docker. See --shm-size argument
+            in docker run: https://docs.docker.com/engine/containers/run/""",
+        ),
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
