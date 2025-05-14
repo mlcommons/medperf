@@ -235,10 +235,21 @@ inline_parameters = [
     "evaluate_timeout",
     "platform",
     "gpus",
+    "shm_size",
     "cleanup",
     "container_loglevel",
 ]
-configurable_parameters = inline_parameters + [
+configurable_parameters = [
+    "loglevel",
+    "prepare_timeout",
+    "sanity_check_timeout",
+    "statistics_timeout",
+    "infer_timeout",
+    "evaluate_timeout",
+    "platform",
+    "gpus",
+    "cleanup",
+    "container_loglevel",
     "server",
     "certificate",
     "auth_class",
