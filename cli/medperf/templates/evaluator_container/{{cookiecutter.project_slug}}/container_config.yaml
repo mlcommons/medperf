@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: {{ cookiecutter.docker_image_name }}
+image: {{ cookiecutter.image_name }}
 tasks:
   evaluate:
     input_volumes:
