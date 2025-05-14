@@ -239,7 +239,7 @@ inline_parameters = [
     "cleanup",
     "container_loglevel",
 ]
-configurable_parameters = inline_parameters + [
+configurable_parameters = [
     "loglevel",
     "prepare_timeout",
     "sanity_check_timeout",
