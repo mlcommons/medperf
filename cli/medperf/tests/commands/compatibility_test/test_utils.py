@@ -27,10 +27,9 @@ class TestPrepareCube:
         # Assert
         assert returned_uid == uid
 
-    @pytest.mark.parametrize("path_attr", ["cube_path", "cube_path_config"])
-    def test_local_cube_symlink_is_created_properly(self, path_attr):
+    def test_local_cube_symlink_is_created_properly(self):
         # Act
-        new_uid = utils.prepare_cube(getattr(self, path_attr))
+        new_uid = utils.prepare_cube(self.cube_path_config)
 
         # Assert
         cube_path = os.path.join(config.cubes_folder, new_uid)
@@ -39,7 +38,7 @@ class TestPrepareCube:
 
     def test_local_cube_metadata_is_created(self):
         # Act
-        new_uid = utils.prepare_cube(self.cube_path)
+        new_uid = utils.prepare_cube(self.cube_path_config)
 
         # Assert
         metadata_file = os.path.join(
@@ -59,7 +58,7 @@ class TestPrepareCube:
         fs.create_file(metadata_file, contents=metadata_contents)
 
         # Act
-        new_uid = utils.prepare_cube(self.cube_path)
+        new_uid = utils.prepare_cube(self.cube_path_config)
 
         # Assert
         metadata_file = os.path.join(
@@ -76,7 +75,7 @@ class TestPrepareCube:
 
     def test_cleanup_is_set_up_correctly(self):
         # Act
-        uid = utils.prepare_cube(self.cube_path)
+        uid = utils.prepare_cube(self.cube_path_config)
         symlinked_path = os.path.join(config.cubes_folder, uid)
         metadata_file = os.path.join(
             self.cube_path,

@@ -26,7 +26,7 @@ class AssociateBenchmark:
         too_many_resources = data_uid and model_uid
         no_resource = data_uid is None and model_uid is None
         if no_resource or too_many_resources:
-            raise InvalidArgumentError("Must provide either a dataset or mlcube")
+            raise InvalidArgumentError("Must provide either a dataset or a model")
         if model_uid is not None:
             AssociateCube.run(
                 model_uid, benchmark_uid, approved=approved, no_cache=no_cache

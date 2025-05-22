@@ -28,7 +28,7 @@ class BenchmarkSerializer(serializers.ModelSerializer):
             if any(dev_mlcubes):
                 raise serializers.ValidationError(
                     "User cannot mark a benchmark as operational"
-                    " if its MLCubes are not operational"
+                    " if its containers are not operational"
                 )
 
         return data
@@ -57,11 +57,6 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "User can only approve or reject a benchmark"
             )
-        if self.instance.state == "DEVELOPMENT":
-            raise serializers.ValidationError(
-                "User cannot approve or reject when benchmark is in development stage"
-            )
-
         if approval_status == "APPROVED":
             if self.instance.approval_status == "REJECTED":
                 raise serializers.ValidationError(
@@ -79,7 +74,7 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
             if any(dev_mlcubes):
                 raise serializers.ValidationError(
                     "User cannot mark a benchmark as operational"
-                    " if its MLCubes are not operational"
+                    " if its containers are not operational"
                 )
         return state
 

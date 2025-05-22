@@ -38,10 +38,10 @@ To register your dataset, you need to collect the following information:
 - The source location of your data (e.g., hospital name).
 - The path to the data records (here, it is `medperf_tutorial/sample_raw_data/images`).
 - The path to the labels of the data (here, it is `medperf_tutorial/sample_raw_data/labels`)
-- The benchmark ID that you wish to participate in. This ensures your data in the next step will be prepared using the benchmark's data preparation MLCube.
+- The benchmark ID that you wish to participate in. This ensures your data in the next step will be prepared using the benchmark's data preparation container.
 
 !!! note
-    The `data_path` and `labels_path` are determined according to the input path requirements of the data preparation MLCube. To ensure that your data is structured correctly, it is recommended to check with the Benchmark Committee for specific details or instructions.
+    The `data_path` and `labels_path` are determined according to the input path requirements of the data preparation container. To ensure that your data is structured correctly, it is recommended to check with the Benchmark Committee for specific details or instructions.
 
 In order to find the benchmark ID, you can execute the following command to view the list of available benchmarks.
 
@@ -123,7 +123,7 @@ This command will first run the benchmark's reference model on your dataset to e
 #### How to proceed after requesting association
 
 ![Benchmark Committee accepts / rejects datasets](../tutorial_images/do-4-bc-accepts-rejects-datasets.png){class="tutorial-sticky-image-content"}
-When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls`. The association is identified by the server UIDs of your dataset and the benchmark with which you are requesting association.
+When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls -bd`. The association is identified by the server UIDs of your dataset and the benchmark with which you are requesting association.
 
 _For the sake of continuing the tutorial only_, run the following to simulate the benchmark committee approving your association (make sure you are in the MedPerf's root directory):
 
@@ -131,7 +131,7 @@ _For the sake of continuing the tutorial only_, run the following to simulate th
 sh tutorials_scripts/simulate_data_association_approval.sh
 ```
 
-You can verify if your association request has been approved by running `medperf association ls`.
+You can verify if your association request has been approved by running `medperf association ls -bd`.
 
 ## 5. Execute the Benchmark
 

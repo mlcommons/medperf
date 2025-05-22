@@ -27,7 +27,7 @@ def run(
         None,
         "--demo_dataset_url",
         help="""Identifier to download the demonstration dataset tarball file.\n
-            See `medperf mlcube submit --help` for more information""",
+            See `medperf container submit --help` for more information""",
     ),
     demo_dataset_hash: str = typer.Option(
         None, "--demo_dataset_hash", help="Hash of the demo dataset, if provided."
@@ -40,21 +40,30 @@ def run(
     ),
     data_prep: str = typer.Option(
         None,
-        "--data_preparation",
+        "--data_preparator",
         "-p",
-        help="UID or local path to the data preparation mlcube. Optional. Defaults to benchmark data preparation mlcube.",
+        help=(
+            "UID or local path to the data preparation container config file."
+            " Optional. Defaults to benchmark data preparator."
+        ),
     ),
     model: str = typer.Option(
         None,
         "--model",
         "-m",
-        help="UID or local path to the model mlcube. Optional. Defaults to benchmark reference mlcube.",
+        help=(
+            "UID or local path to the model container config file."
+            " Optional. Defaults to benchmark reference model."
+        ),
     ),
     evaluator: str = typer.Option(
         None,
         "--evaluator",
         "-e",
-        help="UID or local path to the evaluator mlcube. Optional. Defaults to benchmark evaluator mlcube",
+        help=(
+            "UID or local path to the evaluator container config file."
+            " Optional. Defaults to benchmark evaluator."
+        ),
     ),
     no_cache: bool = typer.Option(
         False, "--no-cache", help="Execute the test even if results already exist"
@@ -69,10 +78,14 @@ def run(
         "--skip-demo-data-preparation",
         help="Use this flag if the passed demo dataset or data path is already prepared",
     ),
+    use_local_model_image: bool = typer.Option(
+        False,
+        "--use-local-model-image",
+        help="Use this flag if you don't want MedPerf to pull the model container image before running",
+    ),
 ):
     """
-    Executes a compatibility test for a determined benchmark.
-    Can test prepared and unprepared datasets, remote and local models independently.
+    Executes a compatibility test.
     """
     CompatibilityTestExecution.run(
         benchmark_uid,
@@ -87,6 +100,7 @@ def run(
         no_cache=no_cache,
         offline=offline,
         skip_data_preparation_step=skip_data_preparation_step,
+        use_local_model_image=use_local_model_image,
     )
     config.ui.print("✅ Done!")
 

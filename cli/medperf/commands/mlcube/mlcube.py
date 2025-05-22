@@ -9,19 +9,74 @@ from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.mlcube.run_test import run_mlcube
 
 app = typer.Typer()
+
+
+@app.command("run_test")
+@clean_except
+def run_test(
+    mlcube_path: str = typer.Option(
+        ..., "--container", "-m", help="path to container config"
+    ),
+    task: str = typer.Option(..., "--task", "-t", help="container task to run"),
+    parameters_file_path: str = typer.Option(
+        None, "--parameters_file_path", help="path to container parameters file"
+    ),
+    additional_files_path: str = typer.Option(
+        None, "--additional_files_path", help="path to ciontainer additional files"
+    ),
+    output_logs: str = typer.Option(
+        None, "--output_logs", "-o", help="where to store stdout"
+    ),
+    timeout: int = typer.Option(
+        None, "--timeout", help="comma separated list of key=value pairs"
+    ),
+    mounts: str = typer.Option(
+        "", "--mounts", "-m", help="comma separated list of key=value pairs"
+    ),
+    env: str = typer.Option(
+        "", "--env", "-e", help="comma separated list of key=value pairs"
+    ),
+    ports: str = typer.Option(
+        "", "--ports", "-P", help="comma separated list of ports to expose"
+    ),
+    allow_network: bool = typer.Option(
+        False, "--allow_network", help="comma separated list of key=value pairs"
+    ),
+    download: int = typer.Option(
+        False, "--download", help="whether to pull docker image"
+    ),
+):
+    """Runs a container for testing only"""
+    mounts = dict([p.split("=") for p in mounts.strip().strip(",").split(",") if p])
+    env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
+    ports = ports.split(",")
+    run_mlcube(
+        mlcube_path,
+        task,
+        parameters_file_path,
+        additional_files_path,
+        output_logs,
+        timeout,
+        mounts,
+        env,
+        ports,
+        not allow_network,
+        download,
+    )
 
 
 @app.command("ls")
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered mlcubes"
+        False, "--unregistered", help="Get unregistered containers"
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user containers"),
 ):
-    """List mlcubes"""
+    """List containers"""
     EntityList.run(
         Cube,
         fields=["UID", "Name", "State", "Registered"],
@@ -35,33 +90,41 @@ def list(
 def create(
     template: str = typer.Argument(
         ...,
-        help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
+        help=f"Container type. Available types: [{' | '.join(config.templates.keys())}]",
+    ),
+    image_name: str = typer.Option(
+        ...,
+        "--image",
+        "-i",
+        help="Image name",
+    ),
+    folder_name: str = typer.Option(
+        ...,
+        "--folder_name",
+        "-f",
+        help="Folder name of the container files template to be created",
     ),
     output_path: str = typer.Option(
-        ".", "--output", "-o", help="Save the generated MLCube to the specified path"
-    ),
-    config_file: str = typer.Option(
-        None,
-        "--config-file",
-        "-c",
-        help="JSON Configuration file. If not present then user is prompted for configuration",
+        ".", "--output", "-o", help="Save the generated template to the specified path"
     ),
 ):
-    """Creates an MLCube based on one of the specified templates"""
-    CreateCube.run(template, output_path, config_file)
+    """Creates a container files template"""
+    CreateCube.run(template, image_name, folder_name, output_path)
 
 
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the mlcube"),
+    name: str = typer.Option(..., "--name", "-n", help="Name of the container"),
     mlcube_file: str = typer.Option(
         ...,
-        "--mlcube-file",
+        "--container-config-file",
         "-m",
-        help="Identifier to download the mlcube file. See the description above",
+        help="Identifier to download the container config file. See the description above",
     ),
-    mlcube_hash: str = typer.Option("", "--mlcube-hash", help="hash of mlcube file"),
+    mlcube_hash: str = typer.Option(
+        "", "--container-config-hash", help="hash of container config file"
+    ),
     parameters_file: str = typer.Option(
         "",
         "--parameters-file",
@@ -80,22 +143,16 @@ def submit(
     additional_hash: str = typer.Option(
         "", "--additional-hash", help="hash of additional file"
     ),
-    image_file: str = typer.Option(
-        "",
-        "--image-file",
-        "-i",
-        help="Identifier to download the image file. See the description above",
-    ),
     image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
     operational: bool = typer.Option(
         False,
         "--operational",
-        help="Submit the MLCube as OPERATIONAL",
+        help="Submit the container as OPERATIONAL",
     ),
 ):
-    """Submits a new cube to the platform.\n
+    """Submits a new container to the platform.\n
     The following assets:\n
-        - mlcube_file\n
+        - container config file\n
         - parameters_file\n
         - additional_file\n
         - image_file\n
@@ -113,8 +170,7 @@ def submit(
         "git_mlcube_hash": mlcube_hash,
         "git_parameters_url": parameters_file,
         "parameters_hash": parameters_hash,
-        "image_tarball_url": image_file,
-        "image_tarball_hash": image_hash,
+        "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
@@ -135,7 +191,7 @@ def associate(
         help="Execute the test even if results already exist",
     ),
 ):
-    """Associates an MLCube to a benchmark"""
+    """Associates a model to a benchmark"""
     AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     config.ui.print("✅ Done!")
 
@@ -143,7 +199,7 @@ def associate(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="MLCube ID"),
+    entity_id: Optional[int] = typer.Argument(None, help="Container ID"),
     format: str = typer.Option(
         "yaml",
         "-f",
@@ -153,12 +209,12 @@ def view(
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered mlcubes if mlcube ID is not provided",
+        help="Display unregistered containers if container ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user mlcubes if mlcube ID is not provided",
+        help="Display current-user containers if container ID is not provided",
     ),
     output: str = typer.Option(
         None,
@@ -167,5 +223,5 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more mlcubes"""
+    """Displays the information of one or more containers"""
     EntityView.run(entity_id, Cube, format, unregistered, mine, output)

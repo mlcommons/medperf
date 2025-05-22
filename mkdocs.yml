@@ -19,16 +19,14 @@ nav:
   - Model Owners: getting_started/model_owner_demo.md
   - Data Owners: getting_started/data_owner_demo.md
 - ADVANCED CONCEPTS:
-  - MedPerf MLCubes: 
-    - Introduction: mlcubes/mlcubes.md
-    - Creating Data Preparator MLCubes from Scratch: mlcubes/mlcube_data.md
-    - Creating Model MLCubes from Scratch: mlcubes/mlcube_models.md
-    - Creating Metrics MLCubes from Scratch: mlcubes/mlcube_metrics.md
-    - Creating Model MLCubes from GaNDLF: mlcubes/gandlf_mlcube.md
+  - Containers:
+    - MedPerf-compatible Containers: containers/containers.md
+    # - Creating Model containers from GaNDLF: containers/gandlf_container.md
   - Authentication: concepts/auth.md
   #  - Client Configuration: concepts/profiles.md
-  - MLCube Components: concepts/mlcube_files.md
+  - Container Assets: concepts/container_assets.md
   - Hosting Files: concepts/hosting_files.md
+  - Transferring to another Machine: concepts/import_export_data.md
   #  - Benchmark Associations: concepts/associations.md
   #  - Model Priority: concepts/priorities.md
   #  - Running Specific Models: concepts/single_run.md

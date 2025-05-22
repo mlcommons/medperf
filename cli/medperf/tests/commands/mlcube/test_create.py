@@ -20,7 +20,7 @@ class TestTemplate:
         spy = setup
 
         # Act
-        CreateCube.run(template)
+        CreateCube.run(template, "image_name", "my_container")
 
         # Assert
         spy.assert_called_once()
@@ -31,7 +31,7 @@ class TestTemplate:
     def test_invalid_template_raises_error(mocker, template):
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
-            CreateCube.run(template)
+            CreateCube.run(template, "image_name", ".")
 
 
 class TestOutputPath:
@@ -42,7 +42,7 @@ class TestOutputPath:
         template = list(config.templates.keys())[0]
 
         # Act
-        CreateCube.run(template)
+        CreateCube.run(template, "image_name", "my_container")
 
         # Assert
         spy.assert_called_once()
@@ -56,7 +56,7 @@ class TestOutputPath:
         template = list(config.templates.keys())[0]
 
         # Act
-        CreateCube.run(template, output_path=output_path)
+        CreateCube.run(template, "image_name", "my_container", output_path=output_path)
 
         # Assert
         spy.assert_called_once()
@@ -64,45 +64,17 @@ class TestOutputPath:
         assert spy.call_args.kwargs["output_dir"] == output_path
 
 
-class TestConfigFile:
-    def test_config_file_is_disabled_by_default(mocker, setup):
+class TestImageName:
+    @pytest.mark.parametrize("image_name", ["local/image:0.0.0"])
+    def test_image_name_is_used_when_passed(mocker, setup, image_name):
         # Arrange
         spy = setup
         template = list(config.templates.keys())[0]
 
         # Act
-        CreateCube.run(template)
+        CreateCube.run(template, image_name, "my_container")
 
         # Assert
         spy.assert_called_once()
-        assert "config_file" in spy.call_args.kwargs
-        assert spy.call_args.kwargs["config_file"] is None
-
-    @pytest.mark.parametrize("config_file", ["path/to/config.json"])
-    def test_config_file_is_used_when_passed(mocker, setup, config_file):
-        # Arrange
-        spy = setup
-        template = list(config.templates.keys())[0]
-
-        # Act
-        CreateCube.run(template, config_file=config_file)
-
-        # Assert
-        spy.assert_called_once()
-        assert "config_file" in spy.call_args.kwargs
-        assert spy.call_args.kwargs["config_file"] is config_file
-
-    @pytest.mark.parametrize("config_file", [None, "config.json"])
-    def test_passing_config_file_disables_input(mocker, setup, config_file):
-        # Arrange
-        spy = setup
-        should_not_input = config_file is not None
-        template = list(config.templates.keys())[0]
-
-        # Act
-        CreateCube.run(template, config_file=config_file)
-
-        # Assert
-        spy.assert_called_once()
-        assert "no_input" in spy.call_args.kwargs
-        assert spy.call_args.kwargs["no_input"] == should_not_input
+        assert "image_name" in spy.call_args.kwargs["extra_context"]
+        assert spy.call_args.kwargs["extra_context"]["image_name"] is image_name

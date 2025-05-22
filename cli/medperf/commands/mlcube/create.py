@@ -8,7 +8,13 @@ from medperf.exceptions import InvalidArgumentError
 
 class CreateCube:
     @classmethod
-    def run(cls, template_name: str, output_path: str = ".", config_file: str = None):
+    def run(
+        cls,
+        template_name: str,
+        image_name: str,
+        folder_name: str,
+        output_path: str = ".",
+    ):
         """Creates a new MLCube based on one of the provided templates
 
         Args:
@@ -20,12 +26,8 @@ class CreateCube:
         if template_name not in template_dirs:
             templates = list(template_dirs.keys())
             raise InvalidArgumentError(
-                f"Invalid template name. Available templates: [{' | '.join(templates)}]"
+                f"Invalid type. Available types: [{' | '.join(templates)}]"
             )
-
-        no_input = False
-        if config_file is not None:
-            no_input = True
 
         # Get package parent path
         path = abspath(Path(__file__).parent.parent.parent)
@@ -35,6 +37,6 @@ class CreateCube:
             path,
             directory=template_dir,
             output_dir=output_path,
-            config_file=config_file,
-            no_input=no_input,
+            extra_context={"image_name": image_name, "project_slug": folder_name},
+            no_input=True,
         )

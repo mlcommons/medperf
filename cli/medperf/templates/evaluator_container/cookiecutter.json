@@ -1,0 +1,4 @@
+{
+    "project_slug": "container_files",
+    "image_name": "docker/image:latest"
+}

@@ -36,11 +36,11 @@ class AssociateCube:
         dict_pretty_print(results)
 
         msg = "Please confirm that you would like to associate "
-        msg += f"the MLCube '{cube.name}' with the benchmark '{benchmark.name}' [Y/n]"
+        msg += f"the model '{cube.name}' with the benchmark '{benchmark.name}' [Y/n]"
         approved = approved or approval_prompt(msg)
         if approved:
-            ui.print("Generating mlcube benchmark association")
+            ui.print("Generating model benchmark association")
             metadata = {"test_result": results}
-            comms.associate_cube(cube_uid, benchmark_uid, metadata)
+            comms.associate_benchmark_model(cube_uid, benchmark_uid, metadata)
         else:
-            raise CleanExit("MLCube association operation cancelled")
+            raise CleanExit("Model association operation cancelled")

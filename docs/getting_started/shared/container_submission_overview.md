@@ -1,0 +1,1 @@
+The MedPerf server registers a container as metadata comprised of a set of assets that can be retrieved from the internet. This means that before submitting a container you have to host its assets on the internet. You can refer to [this page](../concepts/container_assets.md) if you want to understand what the assets are.
