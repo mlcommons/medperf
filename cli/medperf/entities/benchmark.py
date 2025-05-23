@@ -1,5 +1,8 @@
 from typing import List, Optional
-from medperf.commands.association.utils import get_experiment_associations
+from medperf.commands.association.utils import (
+    get_experiment_associations,
+    get_user_associations,
+)
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
@@ -108,9 +111,19 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         Returns:
             List[Association]: List of associations
         """
-        associations = config.comms.get_cubes_associations()
+
+        experiment_type = "benchmark"
+        component_type = "model_mlcube"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
         associations = [Association(**assoc) for assoc in associations]
         associations = [a for a in associations if a.benchmark == benchmark_uid]
+
         return associations
 
     @classmethod
@@ -123,9 +136,19 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         Returns:
             List[Association]: List of associations
         """
-        associations = config.comms.get_datasets_associations()
+
+        experiment_type = "benchmark"
+        component_type = "dataset"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
         associations = [Association(**assoc) for assoc in associations]
         associations = [a for a in associations if a.benchmark == benchmark_uid]
+
         return associations
 
     def display_dict(self):

@@ -1,6 +1,9 @@
 import os
-from typing import Optional, Union, List
+from typing import List, Optional, Union
+from medperf.commands.association.utils import get_user_associations
 from pydantic import Field
+
+from medperf.entities.association import Association
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidEntityError
@@ -221,14 +224,22 @@ class Cube(Entity, DeployableSchema):
 
         Args:
             mlcube_uid (int): UID of the cube.
-            comms (Comms): Instance of the communications interface.
 
         Returns:
             List[Association]: List of associations
         """
-        associations = config.comms.get_cubes_associations()
+        experiment_type = "benchmark"
+        component_type = "model_mlcube"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
         associations = [Association(**assoc) for assoc in associations]
         associations = [a for a in associations if a.model_mlcube == mlcube_uid]
+
         return associations
 
     def display_dict(self):

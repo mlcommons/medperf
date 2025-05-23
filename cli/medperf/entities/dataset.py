@@ -1,4 +1,5 @@
 import os
+from medperf.commands.association.utils import get_user_associations
 import yaml
 from pydantic import Field, validator
 from typing import Optional, Union, List
@@ -113,6 +114,7 @@ class Dataset(Entity, DeployableSchema):
             comms_fn = config.comms.get_user_datasets
 
         if "mlcube" in filters and filters["mlcube"] is not None:
+
             def func():
                 return config.comms.get_mlcube_datasets(filters["mlcube"])
 
@@ -126,12 +128,23 @@ class Dataset(Entity, DeployableSchema):
 
         Args:
             dataset_uid (int): UID of the dataset.
+
         Returns:
             List[Association]: List of associations
         """
-        associations = config.comms.get_datasets_associations()
+
+        experiment_type = "benchmark"
+        component_type = "dataset"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
         associations = [Association(**assoc) for assoc in associations]
         associations = [a for a in associations if a.dataset == dataset_uid]
+
         return associations
 
     def read_report(self):

@@ -66,7 +66,6 @@ def dataset_detail_ui(
     dataset.read_report()
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
-
     benchmark_assocs = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
     benchmark_associations = {}
     for assoc in benchmark_assocs:
