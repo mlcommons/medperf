@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 import medperf.config as config
 from medperf.web_ui.common import (
-    get_current_user_api,
+    check_user_api,
 )
 
 router = APIRouter()
@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("/notifications", response_class=JSONResponse)
 def get_notifications(
     request: Request,
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     new_notifications = request.app.state.new_notifications.copy()
     for notification in new_notifications:
@@ -26,7 +26,7 @@ def get_notifications(
 def read_notification(
     request: Request,
     notification_id: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     for notification in request.app.state.notifications:
         if notification["id"] == notification_id:
@@ -43,7 +43,7 @@ def read_notification(
 def delete_notification(
     request: Request,
     notification_id: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     notifications = request.app.state.notifications
     new_notifications = request.app.state.new_notifications
@@ -60,7 +60,7 @@ def delete_notification(
 
 
 @router.get("/current_task", response_class=JSONResponse)
-def get_task_id(request: Request, current_user: bool = Depends(get_current_user_api)):
+def get_task_id(request: Request, current_user: bool = Depends(check_user_api)):
     while not config.ui.task_id:
         pass
     return {"task_id": config.ui.task_id}
@@ -69,7 +69,7 @@ def get_task_id(request: Request, current_user: bool = Depends(get_current_user_
 @router.get("/events", response_class=JSONResponse)
 def get_event(
     request: Request,
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     event = config.ui.get_event()
 
@@ -96,7 +96,7 @@ def get_event(
 def respond(
     request: Request,
     is_approved: bool = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     config.ui.set_response({"value": is_approved})
     # Remove the prompt event after responding to the prompt

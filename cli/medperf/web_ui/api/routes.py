@@ -3,7 +3,7 @@ import os
 from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
 
-from medperf.web_ui.common import get_current_user_api
+from medperf.web_ui.common import check_user_api
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ BASE_DIR = os.path.realpath(BASE_DIR)
 def browse_directory(
     path: str = Form(...),
     with_files: bool = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     full_path = os.path.abspath(os.path.join(BASE_DIR, path))
 

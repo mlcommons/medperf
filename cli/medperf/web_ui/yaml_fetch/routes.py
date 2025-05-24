@@ -6,7 +6,7 @@ import requests
 import yaml
 
 from medperf.entities.dataset import Dataset
-from medperf.web_ui.common import get_current_user_api
+from medperf.web_ui.common import check_user_api
 
 router = APIRouter()
 
@@ -28,7 +28,7 @@ def fetch_yaml(
     entity: EntityToFetch,
     entity_uid: int,
     field_to_fetch: FieldsToFetch,
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     try:
         entity_class = {

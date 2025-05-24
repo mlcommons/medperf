@@ -21,8 +21,8 @@ from medperf.entities.result import Result
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     templates,
-    get_current_user_ui,
-    get_current_user_api,
+    check_user_ui,
+    check_user_api,
     initialize_state_task,
     reset_state_task,
     add_notification,
@@ -37,7 +37,7 @@ router = APIRouter()
 def datasets_ui(
     request: Request,
     mine_only: bool = False,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
@@ -62,7 +62,7 @@ def datasets_ui(
 def dataset_detail_ui(
     request: Request,
     dataset_id: int,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
@@ -141,7 +141,7 @@ def dataset_detail_ui(
 @router.get("/register/ui", response_class=HTMLResponse)
 def create_dataset_ui(
     request: Request,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     # Fetch the list of benchmarks to populate the benchmark dropdown
     benchmarks = Benchmark.all()
@@ -160,7 +160,7 @@ def register_dataset(
     location: str = Form(...),
     data_path: str = Form(...),
     labels_path: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="dataset_registration")
     return_response = {"status": "", "dataset_id": None, "error": ""}
@@ -205,7 +205,7 @@ def register_dataset(
 def prepare(
     request: Request,
     dataset_id: int = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="dataset_preparation")
     return_response = {"status": "", "dataset_id": None, "error": ""}
@@ -235,7 +235,7 @@ def prepare(
 def set_operational(
     request: Request,
     dataset_id: int = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="dataset_set_operational")
     return_response = {"status": "", "dataset_id": None, "error": ""}
@@ -266,7 +266,7 @@ def associate(
     request: Request,
     dataset_id: int = Form(...),
     benchmark_id: int = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="dataset_association")
     return_response = {"status": "", "error": ""}
@@ -298,7 +298,7 @@ def run(
     benchmark_id: int = Form(...),
     model_ids: List[int] = Form(...),
     run_all: bool = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="benchmark_run")
     return_response = {"status": "", "error": ""}
@@ -327,7 +327,7 @@ def run(
 def submit_result(
     request: Request,
     result_id: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="result_submit")
     return_response = {"status": "", "error": ""}
@@ -356,7 +356,7 @@ def export_dataset_ui(
     request: Request,
     submit: str = Form(...),
     dataset_id: int = Form(...),
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
@@ -381,7 +381,7 @@ def export_dataset(
     request: Request,
     dataset_id: int = Form(...),
     output_path: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
 
     initialize_state_task(request, task_name="dataset_export")
@@ -410,7 +410,7 @@ def export_dataset(
 @router.get("/import/ui", response_class=HTMLResponse)
 def import_dataset_ui(
     request: Request,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
 
     return templates.TemplateResponse(
@@ -425,7 +425,7 @@ def import_dataset(
     dataset_id: int = Form(...),
     input_path: str = Form(...),
     raw_dataset_path: str = Form(None),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
 
     initialize_state_task(request, task_name="dataset_import")

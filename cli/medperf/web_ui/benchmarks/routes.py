@@ -15,12 +15,12 @@ from medperf.account_management import get_medperf_user_data
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     add_notification,
-    get_current_user_api,
+    check_user_api,
     initialize_state_task,
     reset_state_task,
     templates,
     sort_associations_display,
-    get_current_user_ui,
+    check_user_ui,
 )
 
 from medperf.commands.association.approval import Approval
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def benchmarks_ui(
     request: Request,
     mine_only: bool = False,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
@@ -60,7 +60,7 @@ def benchmarks_ui(
 def benchmark_detail_ui(
     request: Request,
     benchmark_id: int,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     benchmark = Benchmark.get(benchmark_id)
     data_preparation_container = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
@@ -114,7 +114,7 @@ def benchmark_detail_ui(
 @router.get("/register/ui", response_class=HTMLResponse)
 def create_benchmark_ui(
     request: Request,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
 
     return templates.TemplateResponse(
@@ -125,7 +125,7 @@ def create_benchmark_ui(
 @router.get("/register/workflow_test", response_class=HTMLResponse)
 def workflow_test_ui(
     request: Request,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
 
     return templates.TemplateResponse(
@@ -141,7 +141,7 @@ def test_benchmark(
     evaluator_path: str = Form(...),
     data_path: str = Form(...),
     labels_path: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="benchmark_workflow_test")
     return_response = {"status": "", "error": "", "results": None}
@@ -181,7 +181,7 @@ def register_benchmark(
     data_preparation_container: str = Form(...),
     reference_model_container: str = Form(...),
     evaluator_container: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
 
     benchmark_info = {
@@ -225,7 +225,7 @@ def approve(
     benchmark_id: int = Form(...),
     container_id: Optional[int] = Form(None),
     dataset_id: Optional[int] = Form(None),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="approve_association")
     return_response = {"status": "", "error": ""}
@@ -260,7 +260,7 @@ def reject(
     benchmark_id: int = Form(...),
     container_id: Optional[int] = Form(None),
     dataset_id: Optional[int] = Form(None),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="reject_association")
     return_response = {"status": "", "error": ""}

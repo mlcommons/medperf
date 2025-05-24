@@ -12,8 +12,8 @@ from medperf.account_management import read_user_account
 from email_validator import validate_email, EmailNotValidError
 import medperf.config as config
 from medperf.web_ui.common import (
-    get_current_user_api,
-    get_current_user_ui,
+    check_user_api,
+    check_user_ui,
 )
 
 router = APIRouter()
@@ -23,7 +23,7 @@ router = APIRouter()
 def login_form(
     request: Request,
     redirect: str = "false",
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     redirect = redirect.lower() == "true"
     return templates.TemplateResponse(
@@ -35,7 +35,7 @@ def login_form(
 def login(
     request: Request,
     email: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="medperf_login")
     return_response = {"status": "", "error": ""}
@@ -85,7 +85,7 @@ def login(
 
 @router.post("/logout", response_class=JSONResponse)
 def logout(
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     try:
         config.auth.logout()

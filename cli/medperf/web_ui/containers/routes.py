@@ -13,11 +13,11 @@ from medperf.entities.benchmark import Benchmark
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     add_notification,
-    get_current_user_api,
+    check_user_api,
     initialize_state_task,
     reset_state_task,
     templates,
-    get_current_user_ui,
+    check_user_ui,
 )
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 def containers_ui(
     request: Request,
     mine_only: bool = False,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
@@ -54,7 +54,7 @@ def containers_ui(
 def container_detail_ui(
     request: Request,
     container_id: int,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     container = Cube.get(cube_uid=container_id, valid_only=False)
 
@@ -85,7 +85,7 @@ def container_detail_ui(
 @router.get("/register/ui", response_class=HTMLResponse)
 def create_container_ui(
     request: Request,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     # Fetch the list of benchmarks to populate the benchmark dropdown
     benchmarks = Benchmark.all()
@@ -99,7 +99,7 @@ def create_container_ui(
 @router.get("/register/compatibility_test", response_class=HTMLResponse)
 def compatibilty_test_ui(
     request: Request,
-    current_user: bool = Depends(get_current_user_ui),
+    current_user: bool = Depends(check_user_ui),
 ):
     # Fetch the list of benchmarks to populate the benchmark dropdown
     benchmarks = Benchmark.all()
@@ -117,7 +117,7 @@ def register_container(
     container_file: str = Form(...),
     parameters_file: str = Form(""),
     additional_file: str = Form(""),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_registration")
     return_response = {"status": "", "error": "", "container_id": None}
@@ -160,7 +160,7 @@ def test_container(
     request: Request,
     benchmark: int = Form(...),
     container_path: str = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_compatibility_test")
     return_response = {"status": "", "error": "", "results": None}
@@ -192,7 +192,7 @@ def associate(
     request: Request,
     container_id: int = Form(...),
     benchmark_id: int = Form(...),
-    current_user: bool = Depends(get_current_user_api),
+    current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_association")
     return_response = {"status": "", "error": ""}

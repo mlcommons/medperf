@@ -29,6 +29,8 @@ templates = Jinja2Templates(directory=templates_folder_path)
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
+
 
 def generate_uuid():
     return str(uuid.uuid4())
@@ -128,7 +130,7 @@ def is_logged_in():
     return read_user_account() is not None
 
 
-def get_current_user_ui(
+def check_user_ui(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
@@ -140,11 +142,19 @@ def get_current_user_ui(
         raise NotAuthenticatedException(redirect_url=login_url)
 
 
-def get_current_user_api(
+def check_user_api(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
+    request_path = request.url.path
+
     request.app.state.logged_in = is_logged_in()
+    if request.app.state.task_running:
+        if not any(request_path.startswith(path) for path in ALLOWED_PATHS):
+            raise HTTPException(
+                status_code=400,
+                detail="A task is currently running, please wait until it is finished",
+            )
     if token == security_token:
         return True
     else:

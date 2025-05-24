@@ -1,6 +1,6 @@
 {# ./cli/medperf/web_ui/templates/dataset/export_dataset.html #}
 
-{% extends "base.html" %}
+{% extends "detail_base.html" %}
 
 {% import "constants/forms_placeholders.html" as placeholders %}
 {% import "constants/tooltips.html" as tooltips %}
@@ -8,7 +8,7 @@
 
 {% block title %}Export Dataset{% endblock %}
 
-{% block content %}
+{% block detail_panel %}
 {% set dataset_export_running = (task_running and request.app.state.task["name"] == "dataset_export") %}
 <div class="container">
     <h1 class="text-center">Export Dataset</h1>
@@ -179,7 +179,7 @@
     {% include "partials/yaml_container.html" %}
     {% include "partials/prompt_container.html" %}
 </div>
-{% endblock content %}
+{% endblock detail_panel %}
 
 
 {% block extra_js %}

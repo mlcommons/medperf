@@ -5,14 +5,14 @@ from medperf import config
 from medperf.config_management.config_management import read_config, write_config
 from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.utils import dict_pretty_print
-from medperf.web_ui.common import get_current_user_api, get_current_user_ui, templates
+from medperf.web_ui.common import check_user_api, check_user_ui, templates
 from medperf.init import initialize
 
 router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-def profiles_ui(request: Request, current_user: bool = Depends(get_current_user_ui)):
+def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
 
     profiles = read_config()
     return templates.TemplateResponse(
@@ -23,7 +23,7 @@ def profiles_ui(request: Request, current_user: bool = Depends(get_current_user_
 
 @router.post("/activate", response_class=JSONResponse)
 def activate_profile(
-    profile: str = Form(...), current_user: bool = Depends(get_current_user_api)
+    profile: str = Form(...), current_user: bool = Depends(check_user_api)
 ):
     config_p = read_config()
 
@@ -38,7 +38,7 @@ def activate_profile(
 
 @router.post("/view", response_class=JSONResponse)
 def view_profile(
-    profile: str = Form(...), current_user: bool = Depends(get_current_user_api)
+    profile: str = Form(...), current_user: bool = Depends(check_user_api)
 ):
     return_response = {"status": "", "error": "", "profile": "", "profile_dict": ""}
     try:
