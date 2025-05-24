@@ -7,6 +7,8 @@ from fastapi import Request, APIRouter, Depends, Form
 from medperf import config
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.export_dataset import ExportDataset
+from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.submit import DataCreation
@@ -117,6 +119,8 @@ def dataset_detail_ui(
         for i in benchmark_associations
         if benchmark_associations[i].approval_status == "APPROVED"
     ]
+    my_user_id = get_medperf_user_data()["id"]
+    is_owner = my_user_id == dataset.owner
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
@@ -129,6 +133,7 @@ def dataset_detail_ui(
             "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
             "benchmark_models": benchmark_models,  # Pass associated models without status
             "approved_benchmarks": approved_benchmarks,
+            "is_owner": is_owner,
         },
     )
 
@@ -343,4 +348,106 @@ def submit_result(
         message=notification_message,
         type=return_response["status"],
     )
+    return return_response
+
+
+@router.post("/export/ui", response_class=HTMLResponse)
+def export_dataset_ui(
+    request: Request,
+    submit: str = Form(...),
+    dataset_id: int = Form(...),
+    current_user: bool = Depends(get_current_user_ui),
+):
+    dataset = Dataset.get(dataset_id)
+    dataset.read_report()
+    dataset.read_statistics()
+    prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
+    dataset_is_operational = dataset.state == "OPERATION"
+    dataset_is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
+    return templates.TemplateResponse(
+        "dataset/export_dataset.html",
+        {
+            "request": request,
+            "dataset": dataset,
+            "prep_cube": prep_cube,
+            "dataset_is_prepared": dataset_is_prepared,
+            "dataset_is_operational": dataset_is_operational,
+        },
+    )
+
+
+@router.post("/export", response_class=JSONResponse)
+def export_dataset(
+    request: Request,
+    dataset_id: int = Form(...),
+    output_path: str = Form(...),
+    current_user: bool = Depends(get_current_user_api),
+):
+
+    initialize_state_task(request, task_name="dataset_export")
+    return_response = {"status": "", "error": "", "dataset_id": dataset_id}
+
+    try:
+        ExportDataset.run(dataset_id, output_path)
+        return_response["status"] = "success"
+        notification_message = "Dataset successfully exported"
+    except MedperfException as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to export dataset"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+    )
+
+    return return_response
+
+
+@router.get("/import/ui", response_class=HTMLResponse)
+def import_dataset_ui(
+    request: Request,
+    current_user: bool = Depends(get_current_user_ui),
+):
+
+    return templates.TemplateResponse(
+        "dataset/import_dataset.html",
+        {"request": request},
+    )
+
+
+@router.post("/import", response_class=JSONResponse)
+def import_dataset(
+    request: Request,
+    dataset_id: int = Form(...),
+    input_path: str = Form(...),
+    raw_dataset_path: str = Form(None),
+    current_user: bool = Depends(get_current_user_api),
+):
+
+    initialize_state_task(request, task_name="dataset_import")
+    return_response = {"status": "", "error": "", "dataset_id": dataset_id}
+
+    try:
+        ImportDataset.run(dataset_id, input_path, raw_dataset_path)
+        return_response["status"] = "success"
+        notification_message = "Dataset successfully imported"
+    except MedperfException as exp:
+        dataset_id = None
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to import dataset"
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        type=return_response["status"],
+        url=f"/datasets/ui/display/{dataset_id}" if dataset_id else "",
+    )
+
     return return_response

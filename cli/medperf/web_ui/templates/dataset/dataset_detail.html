@@ -8,7 +8,14 @@
 {% block title %}Dataset Details{% endblock title %}
 
 {% block detail_panel %}
-<h1 class="my-4">{{ dataset.name }}</h1>
+<div class="clearfix">
+    <h1 class="my-4 float-start">{{ dataset.name }}</h1>
+    <form action="/datasets/export/ui" method="POST" id="redirect-export-form" class="{% if is_owner %} d-none {% endif %}">
+        <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+        <input class="btn btn-dark float-end my-4" type="submit" name="submit" value="Export Dataset">
+    </form>
+</div>
+
 <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">

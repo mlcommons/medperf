@@ -240,4 +240,6 @@ $(document).ready(() => {
     $("[id^='submit-']").on("click", (e) => {
         showConfirmModal(e.currentTarget, submitResult, "submit the result?");
     });
+    
+    $("#redirect-export-form").off("submit");
 });
