@@ -104,6 +104,14 @@
                     value="{{ task_formData.get('raw_dataset_path', '') }}"
                     {% endif %}
                 >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-raw-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"

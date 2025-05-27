@@ -31,10 +31,12 @@ class ImportDataset:
 
         # raw_data_path should be provided if the imported dataset is in dev
         if self.dataset.state == "DEVELOPMENT" and (
-            self.raw_data_path is None or os.path.exists(self.raw_data_path)
+            self.raw_data_path is None
+            or os.path.isfile(self.raw_data_path)
+            or (os.path.exists(self.raw_data_path) and os.listdir(self.raw_data_path))
         ):
             raise InvalidArgumentError(
-                "Output raw data path must be specified and shouldn't exist."
+                "Output raw data path must be specified and, the directory should be empty or does not exist."
             )
 
     def untar_files(self):

@@ -61,6 +61,11 @@ $(document).ready(() => {
         browseFolderHandler("input-path");
     });
 
+    $("#browse-raw-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("raw-path");
+    });
+
     $("input[name='dataset_type']").on("change", (e) => {
         if (e.currentTarget.value === "development"){
             if ($("#raw-data-group").hasClass("d-none")) {

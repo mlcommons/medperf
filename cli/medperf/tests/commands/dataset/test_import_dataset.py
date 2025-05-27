@@ -53,10 +53,26 @@ def test_import_fails_if_input_path_is_not_a_file(import_dataset):
         import_dataset.validate_input()
 
 
-def test_import_fails_if_raw_data_path_does_not_exist(import_dataset):
+def test_import_fails_if_raw_data_path_is_not_provided(import_dataset, fs):
 
     # Arrange
+    import_dataset.input_path = "/test.gz"
+    fs.create_file(import_dataset.input_path)
+    import_dataset.raw_data_path = None
+
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        import_dataset.validate_input()
+
+
+def test_import_fails_if_raw_data_path_exist_and_not_empty(import_dataset, fs):
+
+    # Arrange
+    import_dataset.input_path = "/test.gz"
+    fs.create_file(import_dataset.input_path)
     import_dataset.raw_data_path = "/test"
+    os.makedirs(import_dataset.raw_data_path)
+    fs.create_file(os.path.join(import_dataset.raw_data_path, "test"))
 
     # Act & Assert
     with pytest.raises(InvalidArgumentError):
@@ -66,7 +82,10 @@ def test_import_fails_if_raw_data_path_does_not_exist(import_dataset):
 def test_import_fails_if_raw_data_path_is_a_file(import_dataset, fs):
 
     # Arrange
-    import_dataset.raw_data_path = "/testfile"
+    import_dataset.input_path = "/test.gz"
+    fs.create_file(import_dataset.input_path)
+
+    import_dataset.raw_data_path = "/test.file"
     fs.create_file(import_dataset.raw_data_path)
 
     # Act & Assert
