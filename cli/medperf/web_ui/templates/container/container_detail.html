@@ -107,6 +107,7 @@
                 </div>
             </div>
         </div>
+        {% if is_owner %}
         <div class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel">
             <div class="col-12 text-center">
                 {% if entity.state=="OPERATION" %}
@@ -153,8 +154,10 @@
                 <small class="step-label ms-2">If this is a model container, make a request to the benchmark owner to associate your model with the benchmark</small>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
+{% if is_owner %}
 <div class="associations-panel my-5">
     <div class="associations-column">
         <h2 class="my-4">Associated Benchmarks</h2>
@@ -163,6 +166,7 @@
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}

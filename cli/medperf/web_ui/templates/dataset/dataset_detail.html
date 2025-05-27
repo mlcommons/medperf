@@ -104,6 +104,7 @@
                 </div>
             </div>
         </div>
+        {% if is_owner %}
         <div
 			class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel"
 			>
@@ -203,9 +204,11 @@
                 <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 
+{% if is_owner %}
 {% if benchmark_associations and not approved_benchmarks %}
 <!-- Display associations between the dataset and the benchmarks -->
 <div class="card mb-4 shadow-sm mt-5">
@@ -391,6 +394,7 @@
         </div>
 	{% endif %}
 {% endfor %}
+{% endif %}
 
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}

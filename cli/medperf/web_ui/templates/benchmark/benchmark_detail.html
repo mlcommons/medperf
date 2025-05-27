@@ -9,10 +9,12 @@
 
 {% block detail_panel %}
 <h1 class="mt-4">{{ entity.name }}</h1>
+{% if current_user_is_benchmark_owner %}
 <div class="mb-4 text-center">
     <a href="#datasets-associations" class="btn btn-default me-3">View Dataset associations</a>
     <a href="#models-associations" class="btn btn-default">View Models associations</a>
 </div>
+{% endif %}
 <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -45,7 +47,7 @@
                 </p>
                 {% endif %}
                 <p class="card-text">
-                    <strong>Referebce Dataset Tarball:</strong> 
+                    <strong>Reference Dataset Tarball:</strong> 
                     <a href="{{ entity.demo_dataset_tarball_url }}" class="text-primary" target="_blank">{{ entity.demo_dataset_tarball_url }}</a>
                 </p>
                 <p class="card-text text-muted small">{{ entity.demo_dataset_tarball_hash }}</p>
@@ -87,7 +89,7 @@
     </div>
 </div>
 
-{% if true %}
+{% if current_user_is_benchmark_owner %}
 
 <h2 class="my-5 text-center">Datasets Associations</h2>
 <div id="datasets-associations">
