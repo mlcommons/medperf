@@ -22,6 +22,7 @@ watchdog==3.0.0
 GitPython==3.1.41
 psutil==5.9.8
 semver==3.0.4
-cookiecutter==2.1.1uvicorn==0.30.1
+cookiecutter==2.1.1
+uvicorn==0.30.1
 fastapi==0.111.1
 fastapi-login==1.10.2
