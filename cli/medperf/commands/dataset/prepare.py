@@ -291,7 +291,6 @@ class DataPreparation:
 
         return report_status_dict
 
-    @staticmethod
     def prompt_for_report_sending_approval(self):
         example = {
             "execution_status": "running",
