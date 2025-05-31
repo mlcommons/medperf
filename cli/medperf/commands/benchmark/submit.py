@@ -41,7 +41,6 @@ class SubmitBenchmark:
         ui.print("Uploaded")
         submission.to_permanent_path(updated_benchmark_body)
         submission.write(updated_benchmark_body)
-        print(submission.bmk.id)
         return submission.bmk.id
 
     def __init__(
