@@ -577,7 +577,7 @@ class REST(Comms):
         error_msg = "could not upload dataset"
         return self.__post(url, json=reg_dict, error_msg=error_msg)
 
-    def upload_executions(self, executions_dict: dict) -> int:
+    def upload_execution(self, executions_dict: dict) -> int:
         """Uploads execution to the server.
 
         Args:
