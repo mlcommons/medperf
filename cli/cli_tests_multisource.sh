@@ -1,3 +1,4 @@
+# IMPORTANT: This script is outdated
 # import setup
 . "$(dirname $(realpath "$0"))/tests_setup.sh"
 

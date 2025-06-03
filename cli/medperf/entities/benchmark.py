@@ -1,4 +1,5 @@
 from typing import List, Optional
+from medperf.commands.association.utils import get_experiment_associations
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
@@ -88,12 +89,13 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         Returns:
             List[int]: List of mlcube uids
         """
-        associations = config.comms.get_benchmark_model_associations(benchmark_uid)
-        models_uids = [
-            assoc["model_mlcube"]
-            for assoc in associations
-            if assoc["approval_status"] == "APPROVED"
-        ]
+        associations = get_experiment_associations(
+            experiment_id=benchmark_uid,
+            experiment_type="benchmark",
+            component_type="model_mlcube",
+            approval_status="APPROVED",
+        )
+        models_uids = [assoc["model_mlcube"] for assoc in associations]
         return models_uids
 
     def display_dict(self):
@@ -103,9 +105,9 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
             "Description": self.description,
             "Documentation": self.docs_url,
             "Created At": self.created_at,
-            "Data Preparation MLCube": int(self.data_preparation_mlcube),
-            "Reference Model MLCube": int(self.reference_model_mlcube),
-            "Data Evaluator MLCube": int(self.data_evaluator_mlcube),
+            "Data Preparation Container": int(self.data_preparation_mlcube),
+            "Reference Model Container": int(self.reference_model_mlcube),
+            "Data Evaluator Container": int(self.data_evaluator_mlcube),
             "State": self.state,
             "Approval Status": self.approval_status,
             "Registered": self.is_registered,

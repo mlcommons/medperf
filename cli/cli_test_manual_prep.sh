@@ -5,7 +5,6 @@
 ################### Start Testing ########################
 ##########################################################
 
-
 ##########################################################
 echo "=========================================="
 echo "Printing MedPerf version"
@@ -84,14 +83,14 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Submit cubes"
+echo "Submit containers"
 echo "====================================="
 
 PREP_MLCUBE="https://raw.githubusercontent.com/aristizabal95/medperf-2/4aea7de62fd71b377fd3a0b58352d104fd8f9c08/examples/DataPrepManualSteps/data_prep/mlcube/mlcube.yaml"
 PREP_PARAMS="https://raw.githubusercontent.com/aristizabal95/medperf-2/4aea7de62fd71b377fd3a0b58352d104fd8f9c08/examples/DataPrepManualSteps/data_prep/mlcube/workspace/parameters.yaml"
-print_eval medperf mlcube submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
+print_eval medperf container submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
-PREP_UID=$(medperf mlcube ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf container ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "PREP_UID=$PREP_UID"
 
 ##########################################################

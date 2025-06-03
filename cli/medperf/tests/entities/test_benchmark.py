@@ -26,7 +26,7 @@ def setup(request, mocker, comms, fs):
 
     setup_benchmark_fs(local_ids, fs)
     setup_benchmark_comms(mocker, comms, remote_ids, user_ids, uploaded)
-    mocker.patch.object(comms, "get_benchmark_model_associations", return_value=models)
+    mocker.patch.object(comms, "get_benchmark_models_associations", return_value=models)
     request.param["uploaded"] = uploaded
 
     return request.param
@@ -39,9 +39,21 @@ def setup(request, mocker, comms, fs):
             {
                 "remote": [721],
                 "models": [
-                    {"model_mlcube": 37, "approval_status": "APPROVED"},
-                    {"model_mlcube": 23, "approval_status": "APPROVED"},
-                    {"model_mlcube": 495, "approval_status": "PENDING"},
+                    {
+                        "model_mlcube": 37,
+                        "approval_status": "APPROVED",
+                        "created_at": 1,
+                    },
+                    {
+                        "model_mlcube": 23,
+                        "approval_status": "APPROVED",
+                        "created_at": 2,
+                    },
+                    {
+                        "model_mlcube": 495,
+                        "approval_status": "PENDING",
+                        "created_at": 3,
+                    },
                 ],
             },
             [37, 23],

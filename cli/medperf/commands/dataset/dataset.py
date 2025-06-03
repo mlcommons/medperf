@@ -10,6 +10,10 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.associate import AssociateDataset
+from medperf.commands.dataset.train import TrainingExecution
+from medperf.commands.dataset.import_dataset import ImportDataset
+from medperf.commands.dataset.export_dataset import ExportDataset
+
 
 app = typer.Typer()
 
@@ -22,7 +26,10 @@ def list(
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user datasets"),
     mlcube: int = typer.Option(
-        None, "--mlcube", "-m", help="Get datasets for a given data prep mlcube"
+        None,
+        "--data-preparation-container",
+        "-m",
+        help="Get datasets for a given data preparation container",
     ),
     name: str = typer.Option(None, "--name", help="Filter by name"),
     owner: int = typer.Option(None, "--owner", help="Filter by owner"),
@@ -32,7 +39,14 @@ def list(
     """List datasets"""
     EntityList.run(
         Dataset,
-        fields=["UID", "Name", "Data Preparation Cube UID", "State", "Status", "Owner"],
+        fields=[
+            "UID",
+            "Name",
+            "Data Preparation Container UID",
+            "State",
+            "Status",
+            "Owner",
+        ],
         unregistered=unregistered,
         mine_only=mine,
         mlcube=mlcube,
@@ -50,7 +64,7 @@ def submit(
         None, "--benchmark", "-b", help="UID of the desired benchmark"
     ),
     data_prep_uid: int = typer.Option(
-        None, "--data_prep", "-p", help="UID of the desired preparation cube"
+        None, "--data_prep", "-p", help="UID of the desired preparation container"
     ),
     data_path: str = typer.Option(..., "--data_path", "-d", help="Path to the data"),
     labels_path: str = typer.Option(
@@ -132,21 +146,58 @@ def associate(
         ..., "--data_uid", "-d", help="Registered Dataset UID"
     ),
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark_uid", "-b", help="Benchmark UID"
+        None, "--benchmark_uid", "-b", help="Benchmark UID"
+    ),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp_uid", "-t", help="Training experiment UID"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
-        help="Execute the test even if results already exist",
+        help="Execute the benchmark association test even if results already exist",
     ),
 ):
-    """Associate a registered dataset with a specific benchmark.
-    The dataset and benchmark must share the same data preparation cube.
-    """
+    """Associate a registered dataset with a specific benchmark or experiment."""
     ui = config.ui
-    AssociateDataset.run(data_uid, benchmark_uid, approved=approval, no_cache=no_cache)
+    AssociateDataset.run(
+        data_uid, benchmark_uid, training_exp_uid, approved=approval, no_cache=no_cache
+    )
     ui.print("✅ Done!")
+
+
+@app.command("train")
+@clean_except
+def train(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Overwrite outputs if present"
+    ),
+    restart_on_failure: bool = typer.Option(
+        False,
+        "--restart_on_failure",
+        help="Keep restarting failing training processes until Keyboard interrupt",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    skip_restart_on_failure_prompt: bool = typer.Option(
+        False, "--skip_restart_on_failure_prompt", help="Skip restart on failure prompt"
+    ),
+):
+    """Runs training"""
+    TrainingExecution.run(
+        training_exp_id,
+        data_uid,
+        overwrite,
+        approval,
+        restart_on_failure,
+        skip_restart_on_failure_prompt,
+    )
+    config.ui.print("✅ Done!")
 
 
 @app.command("view")
@@ -178,3 +229,44 @@ def view(
 ):
     """Displays the information of one or more datasets"""
     EntityView.run(entity_id, Dataset, format, unregistered, mine, output)
+
+
+@app.command("import")
+@clean_except
+def import_dataset(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Dataset UID to be imported"
+    ),
+    input_path: str = typer.Option(
+        ...,
+        "--input",
+        "-i",
+        help="Path of the tar.gz file (dataset backup) to be imported.",
+    ),
+    raw_path: str = typer.Option(
+        None,
+        "--raw_dataset_path",
+        help="New path of the DEVELOPMENT dataset raw data to be saved.",
+    ),
+):
+    """Imports dataset files from specified tar.gz file."""
+    ImportDataset.run(data_uid, input_path, raw_path)
+    config.ui.print("✅ Done!")
+
+
+@app.command("export")
+@clean_except
+def export_dataset(
+    data_uid: str = typer.Option(
+        ..., "--data_uid", "-d", help="Dataset UID to be exported"
+    ),
+    output: str = typer.Option(
+        ...,
+        "--output",
+        "-o",
+        help="Path of the folder that will contain the tar.gz dataset backup.",
+    ),
+):
+    """Exports dataset files to a tar.gz file in the specified output folder."""
+    ExportDataset.run(data_uid, output)
+    config.ui.print("✅ Done!")

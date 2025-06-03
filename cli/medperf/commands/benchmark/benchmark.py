@@ -22,10 +22,21 @@ def list(
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
     name: str = typer.Option(None, "--name", help="Filter by name"),
     owner: int = typer.Option(None, "--owner", help="Filter by owner"),
-    state: str = typer.Option(None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"),
-    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Filter by valid status"),
-    is_active: bool = typer.Option(None, "--active/--inactive", help="Filter by active status"),
-    data_prep: int = typer.Option(None, "-d", "--data-preparation-mlcube", help="Filter by Data Preparation MLCube"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_valid: bool = typer.Option(
+        None, "--valid/--invalid", help="Filter by valid status"
+    ),
+    is_active: bool = typer.Option(
+        None, "--active/--inactive", help="Filter by active status"
+    ),
+    data_prep: int = typer.Option(
+        None,
+        "-d",
+        "--data-preparation-container",
+        help="Filter by Data Preparation Container",
+    ),
 ):
     """List benchmarks"""
     filters = {
@@ -34,12 +45,20 @@ def list(
         "state": state,
         "is_valid": is_valid,
         "is_active": is_active,
-        "data_preparation_mlcube": data_prep
+        "data_preparation_mlcube": data_prep,
     }
 
     EntityList.run(
         Benchmark,
-        fields=["UID", "Name", "Description", "Data Preparation MLCube", "State", "Approval Status", "Registered"],
+        fields=[
+            "UID",
+            "Name",
+            "Description",
+            "Data Preparation MLCube",
+            "State",
+            "Approval Status",
+            "Registered",
+        ],
         unregistered=unregistered,
         mine_only=mine,
         **filters,
@@ -58,19 +77,19 @@ def submit(
         ...,
         "--demo-url",
         help="""Identifier to download the demonstration dataset tarball file.\n
-        See `medperf mlcube submit --help` for more information""",
+        See `medperf container submit --help` for more information""",
     ),
     demo_hash: str = typer.Option(
         "", "--demo-hash", help="Hash of demonstration dataset tarball file"
     ),
-    data_preparation_mlcube: int = typer.Option(
-        ..., "--data-preparation-mlcube", "-p", help="Data Preparation MLCube UID"
+    data_preparation_container: int = typer.Option(
+        ..., "--data-preparation-container", "-p", help="Data Preparation container UID"
     ),
-    reference_model_mlcube: int = typer.Option(
-        ..., "--reference-model-mlcube", "-m", help="Reference Model MLCube UID"
+    reference_model_container: int = typer.Option(
+        ..., "--reference-model-container", "-m", help="Reference Model container UID"
     ),
-    evaluator_mlcube: int = typer.Option(
-        ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
+    evaluator_container: int = typer.Option(
+        ..., "--evaluator-container", "-e", help="Evaluator container UID"
     ),
     skip_data_preparation_step: bool = typer.Option(
         False,
@@ -90,9 +109,9 @@ def submit(
         "docs_url": docs_url,
         "demo_dataset_tarball_url": demo_url,
         "demo_dataset_tarball_hash": demo_hash,
-        "data_preparation_mlcube": data_preparation_mlcube,
-        "reference_model_mlcube": reference_model_mlcube,
-        "data_evaluator_mlcube": evaluator_mlcube,
+        "data_preparation_mlcube": data_preparation_container,
+        "reference_model_mlcube": reference_model_container,
+        "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitBenchmark.run(
@@ -109,7 +128,7 @@ def associate(
         ..., "--benchmark_uid", "-b", help="UID of benchmark to associate with"
     ),
     model_uid: int = typer.Option(
-        None, "--model_uid", "-m", help="UID of model MLCube to associate"
+        None, "--model_uid", "-m", help="UID of model container to associate"
     ),
     dataset_uid: int = typer.Option(
         None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
@@ -121,7 +140,7 @@ def associate(
         help="Execute the test even if results already exist",
     ),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
+    """Associates a benchmark with a given model or dataset. Only one option at a time."""
     AssociateBenchmark.run(
         benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
@@ -148,7 +167,7 @@ def run(
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+        help="Ignore failing models, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False,

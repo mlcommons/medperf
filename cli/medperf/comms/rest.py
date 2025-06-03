@@ -5,12 +5,7 @@ import logging
 from medperf.enums import Status
 import medperf.config as config
 from medperf.comms.interface import Comms
-from medperf.utils import (
-    sanitize_json,
-    log_response_error,
-    format_errors_dict,
-    filter_latest_associations,
-)
+from medperf.utils import sanitize_json, log_response_error, format_errors_dict
 from medperf.exceptions import (
     CommunicationError,
     CommunicationRetrievalError,
@@ -82,6 +77,7 @@ class REST(Comms):
         offset=0,
         binary_reduction=False,
         filters={},
+        error_msg: str = "",
     ):
         """Retrieves a list of elements from a URL by iterating over pages until num_elements is obtained.
         If num_elements is None, then iterates until all elements have been retrieved.
@@ -113,16 +109,15 @@ class REST(Comms):
                 if not binary_reduction:
                     log_response_error(res)
                     details = format_errors_dict(res.json())
-                    raise CommunicationRetrievalError(
-                        f"there was an error retrieving the current list: {details}"
-                    )
+                    raise CommunicationRetrievalError(f"{error_msg}: {details}")
 
                 log_response_error(res, warn=True)
                 details = format_errors_dict(res.json())
                 if page_size <= 1:
-                    raise CommunicationRetrievalError(
-                        f"Could not retrieve list. Minimum page size achieved without success: {details}"
+                    logging.debug(
+                        "Could not retrieve list. Minimum page size achieved without success"
                     )
+                    raise CommunicationRetrievalError(f"{error_msg}: {details}")
                 page_size = page_size // 2
                 continue
             else:
@@ -136,436 +131,39 @@ class REST(Comms):
             return el_list[:num_elements]
         return el_list
 
-    def __set_approval_status(self, url: str, status: str) -> requests.Response:
-        """Sets the approval status of a resource
+    def __get(self, url: str, error_msg: str) -> dict:
+        """self.__auth_get with error handling"""
+        res = self.__auth_get(url)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(f"{error_msg}: {details}")
+        return res.json()
 
-        Args:
-            url (str): URL to the resource to update
-            status (str): approval status to set
+    def __post(self, url: str, json: dict, error_msg: str) -> int:
+        """self.__auth_post with error handling"""
+        res = self.__auth_post(url, json=json)
+        if res.status_code != 201:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(f"{error_msg}: {details}")
+        return res.json()
 
-        Returns:
-            requests.Response: Response object returned by the update
-        """
-        data = {"approval_status": status}
-        res = self.__auth_put(url, json=data)
-        return res
+    def __put(self, url: str, json: dict, error_msg: str):
+        """self.__auth_put with error handling"""
+        res = self.__auth_put(url, json=json)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRequestError(f"{error_msg}: {details}")
 
     def get_current_user(self):
         """Retrieve the currently-authenticated user information"""
-        res = self.__auth_get(f"{self.server_url}/me/")
-        return res.json()
-
-    def get_benchmarks(self, filters={}) -> List[dict]:
-        """Retrieves all benchmarks in the platform.
-
-        Returns:
-            List[dict]: all benchmarks information.
-        """
-        bmks = self.__get_list(f"{self.server_url}/benchmarks/", filters=filters)
-        return bmks
-
-    def get_benchmark(self, benchmark_uid: int) -> dict:
-        """Retrieves the benchmark specification file from the server
-
-        Args:
-            benchmark_uid (int): uid for the desired benchmark
-
-        Returns:
-            dict: benchmark specification
-        """
-        res = self.__auth_get(f"{self.server_url}/benchmarks/{benchmark_uid}")
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(
-                f"the specified benchmark doesn't exist: {details}"
-            )
-        return res.json()
-
-    def get_benchmark_model_associations(self, benchmark_uid: int, filters={}) -> List[int]:
-        """Retrieves all the model associations of a benchmark.
-
-        Args:
-            benchmark_uid (int): UID of the desired benchmark
-
-        Returns:
-            list[int]: List of benchmark model associations
-        """
-        assocs = self.__get_list(
-            f"{self.server_url}/benchmarks/{benchmark_uid}/models",
-            filters=filters,
-        )
-        return filter_latest_associations(assocs, "model_mlcube")
-
-    def get_user_benchmarks(self, filters={}) -> List[dict]:
-        """Retrieves all benchmarks created by the user
-
-        Returns:
-            List[dict]: Benchmarks data
-        """
-        bmks = self.__get_list(f"{self.server_url}/me/benchmarks/", filters=filters)
-        return bmks
-
-    def get_cubes(self, filters={}) -> List[dict]:
-        """Retrieves all MLCubes in the platform
-
-        Returns:
-            List[dict]: List containing the data of all MLCubes
-        """
-        cubes = self.__get_list(f"{self.server_url}/mlcubes/", filters=filters)
-        return cubes
-
-    def get_cube_metadata(self, cube_uid: int) -> dict:
-        """Retrieves metadata about the specified cube
-
-        Args:
-            cube_uid (int): UID of the desired cube.
-
-        Returns:
-            dict: Dictionary containing url and hashes for the cube files
-        """
-        res = self.__auth_get(f"{self.server_url}/mlcubes/{cube_uid}/")
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(
-                f"the specified cube doesn't exist {details}"
-            )
-        return res.json()
-
-    def get_user_cubes(self, filters={}) -> List[dict]:
-        """Retrieves metadata from all cubes registered by the user
-
-        Returns:
-            List[dict]: List of dictionaries containing the mlcubes registration information
-        """
-        cubes = self.__get_list(f"{self.server_url}/me/mlcubes/", filters=filters)
-        return cubes
-
-    def upload_benchmark(self, benchmark_dict: dict) -> int:
-        """Uploads a new benchmark to the server.
-
-        Args:
-            benchmark_dict (dict): benchmark_data to be uploaded
-
-        Returns:
-            int: UID of newly created benchmark
-        """
-        res = self.__auth_post(f"{self.server_url}/benchmarks/", json=benchmark_dict)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(f"Could not upload benchmark: {details}")
-        return res.json()
-
-    def upload_mlcube(self, mlcube_body: dict) -> int:
-        """Uploads an MLCube instance to the platform
-
-        Args:
-            mlcube_body (dict): Dictionary containing all the relevant data for creating mlcubes
-
-        Returns:
-            int: id of the created mlcube instance on the platform
-        """
-        res = self.__auth_post(f"{self.server_url}/mlcubes/", json=mlcube_body)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(f"Could not upload the mlcube: {details}")
-        return res.json()
-
-    def get_datasets(self, filters={}) -> List[dict]:
-        """Retrieves all datasets in the platform
-
-        Returns:
-            List[dict]: List of data from all datasets
-        """
-        dsets = self.__get_list(f"{self.server_url}/datasets/", filters=filters)
-        return dsets
-
-    def get_dataset(self, dset_uid: int) -> dict:
-        """Retrieves a specific dataset
-
-        Args:
-            dset_uid (int): Dataset UID
-
-        Returns:
-            dict: Dataset metadata
-        """
-        res = self.__auth_get(f"{self.server_url}/datasets/{dset_uid}/")
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(
-                f"Could not retrieve the specified dataset from server: {details}"
-            )
-        return res.json()
-
-    def get_user_datasets(self, filters={}) -> dict:
-        """Retrieves all datasets registered by the user
-
-        Returns:
-            dict: dictionary with the contents of each dataset registration query
-        """
-        dsets = self.__get_list(f"{self.server_url}/me/datasets/", filters=filters)
-        return dsets
-
-    def upload_dataset(self, reg_dict: dict) -> int:
-        """Uploads registration data to the server, under the sha name of the file.
-
-        Args:
-            reg_dict (dict): Dictionary containing registration information.
-
-        Returns:
-            int: id of the created dataset registration.
-        """
-        res = self.__auth_post(f"{self.server_url}/datasets/", json=reg_dict)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not upload the dataset: {details}")
-        return res.json()
-
-    def get_executions(self, filters={}) -> List[dict]:
-        """Retrieves all executions
-
-        Returns:
-            List[dict]: List of executions
-        """
-        res = self.__get_list(f"{self.server_url}/executions", filters=filters)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(f"Could not retrieve executions: {details}")
-        return res.json()
-
-    def get_execution(self, execution_uid: int) -> dict:
-        """Retrieves a specific execution data
-
-        Args:
-            execution_uid (int): execution UID
-
-        Returns:
-            dict: execution metadata
-        """
-        res = self.__auth_get(f"{self.server_url}/executions/{execution_uid}/")
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRetrievalError(
-                f"Could not retrieve the specified execution: {details}"
-            )
-        return res.json()
-
-    def get_user_executions(self, filters={}) -> dict:
-        """Retrieves all executions registered by the user
-
-        Returns:
-            dict: dictionary with the contents of each execution registration query
-        """
-        executions = self.__get_list(f"{self.server_url}/me/executions/", filters=filters)
-        return executions
-
-    def get_benchmark_executions(self, benchmark_id: int, filters={}) -> dict:
-        """Retrieves all executions for a given benchmark
-
-        Args:
-            benchmark_id (int): benchmark ID to retrieve executions from
-
-        Returns:
-            dict: dictionary with the contents of each execution in the specified benchmark
-        """
-        executions = self.__get_list(
-            f"{self.server_url}/benchmarks/{benchmark_id}/executions",
-            filters=filters,
-        )
-        return executions
-
-    def upload_execution(self, executions_dict: dict) -> int:
-        """Uploads execution to the server.
-
-        Args:
-            executions_dict (dict): Dictionary containing executions information.
-
-        Returns:
-            int: id of the generated executions entry
-        """
-        res = self.__auth_post(f"{self.server_url}/executions/", json=executions_dict)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not upload the executions: {details}")
-        return res.json()
-
-    def update_execution(self, execution_id: int, data: dict) -> dict:
-        """Updates an execution object
-
-        Args:
-            execution_id (int): Execution ID
-            data (dict): Execution data. Can be a partial update
-
-        Returns:
-            dict: Updated description of the execution
-        """
-        url = f"{self.server_url}/executions/{execution_id}/"
-        res = self.__auth_put(url, json=data)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not update execution: {details}")
-        return res.json()
-
-    def associate_dset(self, data_uid: int, benchmark_uid: int, metadata: dict = {}):
-        """Create a Dataset Benchmark association
-
-        Args:
-            data_uid (int): Registered dataset UID
-            benchmark_uid (int): Benchmark UID
-            metadata (dict, optional): Additional metadata. Defaults to {}.
-        """
-        data = {
-            "dataset": data_uid,
-            "benchmark": benchmark_uid,
-            "approval_status": Status.PENDING.value,
-            "metadata": metadata,
-        }
-        res = self.__auth_post(f"{self.server_url}/datasets/benchmarks/", json=data)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(
-                f"Could not associate dataset to benchmark: {details}"
-            )
-
-    def associate_cube(self, cube_uid: int, benchmark_uid: int, metadata: dict = {}):
-        """Create an MLCube-Benchmark association
-
-        Args:
-            cube_uid (int): MLCube UID
-            benchmark_uid (int): Benchmark UID
-            metadata (dict, optional): Additional metadata. Defaults to {}.
-        """
-        data = {
-            "approval_status": Status.PENDING.value,
-            "model_mlcube": cube_uid,
-            "benchmark": benchmark_uid,
-            "metadata": metadata,
-        }
-        res = self.__auth_post(f"{self.server_url}/mlcubes/benchmarks/", json=data)
-        if res.status_code != 201:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(
-                f"Could not associate mlcube to benchmark: {details}"
-            )
-
-    def set_dataset_association_approval(
-        self, benchmark_uid: int, dataset_uid: int, status: str
-    ):
-        """Approves a dataset association
-
-        Args:
-            dataset_uid (int): Dataset UID
-            benchmark_uid (int): Benchmark UID
-            status (str): Approval status to set for the association
-        """
-        url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
-        res = self.__set_approval_status(url, status)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(
-                f"Could not approve association between dataset {dataset_uid} and benchmark {benchmark_uid}: {details}"
-            )
-
-    def set_mlcube_association_approval(
-        self, benchmark_uid: int, mlcube_uid: int, status: str
-    ):
-        """Approves an mlcube association
-
-        Args:
-            mlcube_uid (int): Dataset UID
-            benchmark_uid (int): Benchmark UID
-            status (str): Approval status to set for the association
-        """
-        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
-        res = self.__set_approval_status(url, status)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(
-                f"Could not approve association between mlcube {mlcube_uid} and benchmark {benchmark_uid}: {details}"
-            )
-
-    def get_datasets_associations(self, filters={}) -> List[dict]:
-        """Get all dataset associations related to the current user
-
-        Returns:
-            List[dict]: List containing all associations information
-        """
-        assocs = self.__get_list(
-            f"{self.server_url}/me/datasets/associations/",
-            filters=filters,
-        )
-        return filter_latest_associations(assocs, "dataset")
-
-    def get_cubes_associations(self, filters={}) -> List[dict]:
-        """Get all cube associations related to the current user
-
-        Returns:
-            List[dict]: List containing all associations information
-        """
-        assocs = self.__get_list(
-            f"{self.server_url}/me/mlcubes/associations/",
-            filters=filters,
-        )
-        return filter_latest_associations(assocs, "model_mlcube")
-
-    def set_mlcube_association_priority(
-        self, benchmark_uid: int, mlcube_uid: int, priority: int
-    ):
-        """Sets the priority of an mlcube-benchmark association
-
-        Args:
-            mlcube_uid (int): MLCube UID
-            benchmark_uid (int): Benchmark UID
-            priority (int): priority value to set for the association
-        """
-        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
-        data = {"priority": priority}
-        res = self.__auth_put(url, json=data)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(
-                f"Could not set the priority of mlcube {mlcube_uid} within the benchmark {benchmark_uid}: {details}"
-            )
-
-    def update_dataset(self, dataset_id: int, data: dict):
-        url = f"{self.server_url}/datasets/{dataset_id}/"
-        res = self.__auth_put(url, json=data)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not update dataset: {details}")
-        return res.json()
-
-    def get_mlcube_datasets(self, mlcube_id: int, filters={}) -> dict:
-        """Retrieves all datasets that have the specified mlcube as the prep mlcube
-
-        Args:
-            mlcube_id (int): mlcube ID to retrieve datasets from
-
-        Returns:
-            dict: dictionary with the contents of each dataset
-        """
-
-        datasets = self.__get_list(
-            f"{self.server_url}/mlcubes/{mlcube_id}/datasets/",
-            filters=filters,
-        )
-        return datasets
-
+        url = f"{self.server_url}/me/"
+        error_msg = "Could not get current user"
+        return self.__get(url, error_msg)
+
+    # get object
     def get_user(self, user_id: int) -> dict:
         """Retrieves the specified user. This will only return if
         the current user has permission to view the requested user,
@@ -579,9 +177,735 @@ class REST(Comms):
             dict: Requested user information
         """
         url = f"{self.server_url}/users/{user_id}/"
-        res = self.__auth_get(url)
-        if res.status_code != 200:
-            log_response_error(res)
-            details = format_errors_dict(res.json())
-            raise CommunicationRequestError(f"Could not retrieve user: {details}")
-        return res.json()
+        error_msg = "Could not retrieve user"
+        return self.__get(url, error_msg)
+
+    def get_benchmark(self, benchmark_uid: int) -> dict:
+        """Retrieves the benchmark specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        url = f"{self.server_url}/benchmarks/{benchmark_uid}"
+        error_msg = "Could not retrieve benchmark"
+        return self.__get(url, error_msg)
+
+    def get_cube_metadata(self, cube_uid: int) -> dict:
+        """Retrieves metadata about the specified cube
+
+        Args:
+            cube_uid (int): UID of the desired cube.
+
+        Returns:
+            dict: Dictionary containing url and hashes for the cube files
+        """
+        url = f"{self.server_url}/mlcubes/{cube_uid}/"
+        error_msg = "Could not retrieve mlcube"
+        return self.__get(url, error_msg)
+
+    def get_dataset(self, dset_uid: int) -> dict:
+        """Retrieves a specific dataset
+
+        Args:
+            dset_uid (int): Dataset UID
+
+        Returns:
+            dict: Dataset metadata
+        """
+        url = f"{self.server_url}/datasets/{dset_uid}/"
+        error_msg = "Could not retrieve dataset"
+        return self.__get(url, error_msg)
+
+    def get_execution(self, execution_uid: int) -> dict:
+        """Retrieves a specific execution data
+
+        Args:
+            execution_uid (int): Execution UID
+
+        Returns:
+            dict: Execution metadata
+        """
+        url = f"{self.server_url}/executions/{execution_uid}/"
+        error_msg = "Could not retrieve execution"
+        return self.__get(url, error_msg)
+
+    def get_training_exp(self, training_exp_id: int) -> dict:
+        """Retrieves the training_exp specification file from the server
+
+        Args:
+            training_exp_id (int): uid for the desired training_exp
+
+        Returns:
+            dict: training_exp specification
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/"
+        error_msg = "Could not retrieve training experiment"
+        return self.__get(url, error_msg)
+
+    def get_aggregator(self, aggregator_id: int) -> dict:
+        """Retrieves the aggregator specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        url = f"{self.server_url}/aggregators/{aggregator_id}"
+        error_msg = "Could not retrieve aggregator"
+        return self.__get(url, error_msg)
+
+    def get_ca(self, ca_id: int) -> dict:
+        """Retrieves the aggregator specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        url = f"{self.server_url}/cas/{ca_id}"
+        error_msg = "Could not retrieve ca"
+        return self.__get(url, error_msg)
+
+    def get_training_event(self, event_id: int) -> dict:
+        """Retrieves the aggregator specification file from the server
+
+        Args:
+            benchmark_uid (int): uid for the desired benchmark
+
+        Returns:
+            dict: benchmark specification
+        """
+        url = f"{self.server_url}/training/events/{event_id}"
+        error_msg = "Could not retrieve training event"
+        return self.__get(url, error_msg)
+
+    # get object of an object
+    def get_experiment_event(self, training_exp_id: int) -> dict:
+        """Retrieves the training experiment's event object from the server
+
+        Args:
+            training_exp_id (int): uid for the training experiment
+
+        Returns:
+            dict: event specification
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/event/"
+        error_msg = "Could not retrieve training experiment event"
+        return self.__get(url, error_msg)
+
+    def get_experiment_aggregator(self, training_exp_id: int) -> dict:
+        """Retrieves the training experiment's aggregator object from the server
+
+        Args:
+            training_exp_id (int): uid for the training experiment
+
+        Returns:
+            dict: aggregator specification
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/aggregator/"
+        error_msg = "Could not retrieve training experiment aggregator"
+        return self.__get(url, error_msg)
+
+    def get_experiment_ca(self, training_exp_id: int) -> dict:
+        """Retrieves the training experiment's ca object from the server
+
+        Args:
+            training_exp_id (int): uid for the training experiment
+
+        Returns:
+            dict: ca specification
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/ca/"
+        error_msg = "Could not retrieve training experiment ca"
+        return self.__get(url, error_msg)
+
+    # get list
+    def get_benchmarks(self, filters={}) -> List[dict]:
+        """Retrieves all benchmarks in the platform.
+
+        Returns:
+            List[dict]: all benchmarks information.
+        """
+        url = f"{self.server_url}/benchmarks/"
+        error_msg = "Could not retrieve benchmarks"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_cubes(self, filters={}) -> List[dict]:
+        """Retrieves all MLCubes in the platform
+
+        Returns:
+            List[dict]: List containing the data of all MLCubes
+        """
+        url = f"{self.server_url}/mlcubes/"
+        error_msg = "Could not retrieve mlcubes"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_datasets(self, filters={}) -> List[dict]:
+        """Retrieves all datasets in the platform
+
+        Returns:
+            List[dict]: List of data from all datasets
+        """
+        url = f"{self.server_url}/datasets/"
+        error_msg = "Could not retrieve datasets"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_executions(self, filters={}) -> List[dict]:
+        """Retrieves all executions
+
+        Returns:
+            List[dict]: List of executions
+        """
+        url = f"{self.server_url}/executions/"
+        error_msg = "Could not retrieve executions"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_training_exps(self) -> List[dict]:
+        """Retrieves all training_exps
+
+        Returns:
+            List[dict]: List of training_exps
+        """
+        url = f"{self.server_url}/training/"
+        error_msg = "Could not retrieve training experiments"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_aggregators(self) -> List[dict]:
+        """Retrieves all aggregators
+
+        Returns:
+            List[dict]: List of aggregators
+        """
+        url = f"{self.server_url}/aggregators/"
+        error_msg = "Could not retrieve aggregators"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_cas(self) -> List[dict]:
+        """Retrieves all cas
+
+        Returns:
+            List[dict]: List of cas
+        """
+        url = f"{self.server_url}/cas/"
+        error_msg = "Could not retrieve cas"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_training_events(self) -> List[dict]:
+        """Retrieves all training events
+
+        Returns:
+            List[dict]: List of training events
+        """
+        url = f"{self.server_url}/training/events/"
+        error_msg = "Could not retrieve training events"
+        return self.__get_list(url, error_msg=error_msg)
+
+    # get user list
+    def get_user_cubes(self) -> List[dict]:
+        """Retrieves metadata from all cubes registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the mlcubes registration information
+        """
+        url = f"{self.server_url}/me/mlcubes/"
+        error_msg = "Could not retrieve user mlcubes"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_datasets(self, filters={}) -> dict:
+        """Retrieves all datasets registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each dataset registration query
+        """
+        url = f"{self.server_url}/me/datasets/"
+        error_msg = "Could not retrieve user datasets"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_benchmarks(self, filters={}) -> List[dict]:
+        """Retrieves all benchmarks created by the user
+
+        Returns:
+            List[dict]: Benchmarks data
+        """
+        url = f"{self.server_url}/me/benchmarks/"
+        error_msg = "Could not retrieve user benchmarks"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_executions(self, filters={}) -> dict:
+        """Retrieves all executions registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each execution registration query
+        """
+        url = f"{self.server_url}/me/executions/"
+        error_msg = "Could not retrieve user executions"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_training_exps(self) -> dict:
+        """Retrieves all training_exps registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        url = f"{self.server_url}/me/training/"
+        error_msg = "Could not retrieve user training experiments"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_aggregators(self) -> dict:
+        """Retrieves all aggregators registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        url = f"{self.server_url}/me/aggregators/"
+        error_msg = "Could not retrieve user aggregators"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_cas(self) -> dict:
+        """Retrieves all cas registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        url = f"{self.server_url}/me/cas/"
+        error_msg = "Could not retrieve user cas"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_training_events(self) -> dict:
+        """Retrieves all training events registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        url = f"{self.server_url}/me/training/events/"
+        error_msg = "Could not retrieve user training events"
+        return self.__get_list(url, error_msg=error_msg)
+
+    # get user associations list
+    def get_user_benchmarks_datasets_associations(self) -> List[dict]:
+        """Get all dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        url = f"{self.server_url}/me/datasets/associations/"
+        error_msg = "Could not retrieve user datasets benchmark associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_benchmarks_models_associations(self) -> List[dict]:
+        """Get all cube associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        url = f"{self.server_url}/me/mlcubes/associations/"
+        error_msg = "Could not retrieve user mlcubes benchmark associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_training_datasets_associations(self) -> List[dict]:
+        """Get all training dataset associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        url = f"{self.server_url}/me/datasets/training_associations/"
+        error_msg = "Could not retrieve user datasets training associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_training_aggregators_associations(self) -> List[dict]:
+        """Get all aggregator associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        url = f"{self.server_url}/me/aggregators/training_associations/"
+        error_msg = "Could not retrieve user aggregators training associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_user_training_cas_associations(self) -> List[dict]:
+        """Get all ca associations related to the current user
+
+        Returns:
+            List[dict]: List containing all associations information
+        """
+        url = f"{self.server_url}/me/cas/training_associations/"
+        error_msg = "Could not retrieve user cas training associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    # upload
+    def upload_benchmark(self, benchmark_dict: dict) -> int:
+        """Uploads a new benchmark to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/benchmarks/"
+        error_msg = "could not upload benchmark"
+        return self.__post(url, json=benchmark_dict, error_msg=error_msg)
+
+    def upload_mlcube(self, mlcube_body: dict) -> int:
+        """Uploads an MLCube instance to the platform
+
+        Args:
+            mlcube_body (dict): Dictionary containing all the relevant data for creating mlcubes
+
+        Returns:
+            int: id of the created mlcube instance on the platform
+        """
+        url = f"{self.server_url}/mlcubes/"
+        error_msg = "could not upload mlcube"
+        return self.__post(url, json=mlcube_body, error_msg=error_msg)
+
+    def upload_dataset(self, reg_dict: dict) -> int:
+        """Uploads registration data to the server, under the sha name of the file.
+
+        Args:
+            reg_dict (dict): Dictionary containing registration information.
+
+        Returns:
+            int: id of the created dataset registration.
+        """
+        url = f"{self.server_url}/datasets/"
+        error_msg = "could not upload dataset"
+        return self.__post(url, json=reg_dict, error_msg=error_msg)
+
+    def upload_executions(self, executions_dict: dict) -> int:
+        """Uploads execution to the server.
+
+        Args:
+            executions_dict (dict): Dictionary containing executions information.
+
+        Returns:
+            dict: generated executions entry
+        """
+        url = f"{self.server_url}/executions/"
+        error_msg = "could not upload execution"
+        return self.__post(url, json=executions_dict, error_msg=error_msg)
+
+    def update_execution(self, execution_id: int, data: dict) -> dict:
+        """Updates an execution object
+        Args:
+            execution_id (int): Execution ID
+            data (dict): Execution data. Can be a partial update
+        Returns:
+            dict: Updated description of the execution
+        """
+        url = f"{self.server_url}/executions/{execution_id}/"
+        error_msg = "Could not update execution"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def upload_training_exp(self, training_exp_dict: dict) -> int:
+        """Uploads a new training_exp to the server.
+
+        Args:
+            training_exp_dict (dict): training_exp to be uploaded
+
+        Returns:
+            dict: newly created training_exp
+        """
+        url = f"{self.server_url}/training/"
+        error_msg = "could not upload training experiment"
+        return self.__post(url, json=training_exp_dict, error_msg=error_msg)
+
+    def upload_aggregator(self, aggregator_dict: dict) -> int:
+        """Uploads a new aggregator to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/aggregators/"
+        error_msg = "could not upload aggregator"
+        return self.__post(url, json=aggregator_dict, error_msg=error_msg)
+
+    def upload_ca(self, ca_dict: dict) -> int:
+        """Uploads a new ca to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/cas/"
+        error_msg = "could not upload ca"
+        return self.__post(url, json=ca_dict, error_msg=error_msg)
+
+    def upload_training_event(self, trainnig_event_dict: dict) -> int:
+        """Uploads a new training event to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/training/events/"
+        error_msg = "could not upload training event"
+        return self.__post(url, json=trainnig_event_dict, error_msg=error_msg)
+
+    # Association creation
+    def associate_benchmark_dataset(
+        self, data_uid: int, benchmark_uid: int, metadata: dict = {}
+    ):
+        """Create a Dataset Benchmark association
+
+        Args:
+            data_uid (int): Registered dataset UID
+            benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+        url = f"{self.server_url}/datasets/benchmarks/"
+        data = {
+            "dataset": data_uid,
+            "benchmark": benchmark_uid,
+            "approval_status": Status.PENDING.value,
+            "metadata": metadata,
+        }
+        error_msg = "Could not associate dataset to benchmark"
+        return self.__post(url, json=data, error_msg=error_msg)
+
+    def associate_benchmark_model(
+        self, cube_uid: int, benchmark_uid: int, metadata: dict = {}
+    ):
+        """Create an MLCube-Benchmark association
+
+        Args:
+            cube_uid (int): MLCube UID
+            benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+        url = f"{self.server_url}/mlcubes/benchmarks/"
+        data = {
+            "approval_status": Status.PENDING.value,
+            "model_mlcube": cube_uid,
+            "benchmark": benchmark_uid,
+            "metadata": metadata,
+        }
+        error_msg = "Could not associate mlcube to benchmark"
+        return self.__post(url, json=data, error_msg=error_msg)
+
+    def associate_training_dataset(self, data_uid: int, training_exp_id: int):
+        """Create a Dataset experiment association
+
+        Args:
+            data_uid (int): Registered dataset UID
+            benchmark_uid (int): Benchmark UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+        url = f"{self.server_url}/datasets/training/"
+        data = {
+            "dataset": data_uid,
+            "training_exp": training_exp_id,
+            "approval_status": Status.PENDING.value,
+        }
+        error_msg = "Could not associate dataset to training_exp"
+        return self.__post(url, json=data, error_msg=error_msg)
+
+    def associate_training_aggregator(self, aggregator_id: int, training_exp_id: int):
+        """Create a aggregator experiment association
+
+        Args:
+            aggregator_id (int): Registered aggregator UID
+            training_exp_id (int): training experiment UID
+        """
+        url = f"{self.server_url}/aggregators/training/"
+        data = {
+            "aggregator": aggregator_id,
+            "training_exp": training_exp_id,
+            "approval_status": Status.PENDING.value,
+        }
+        error_msg = "Could not associate aggregator to training_exp"
+        return self.__post(url, json=data, error_msg=error_msg)
+
+    def associate_training_ca(self, ca_id: int, training_exp_id: int):
+        """Create a ca experiment association
+
+        Args:
+            ca_id (int): Registered ca UID
+            training_exp_id (int): training experiment UID
+        """
+        url = f"{self.server_url}/cas/training/"
+        data = {
+            "ca": ca_id,
+            "training_exp": training_exp_id,
+            "approval_status": Status.PENDING.value,
+        }
+        error_msg = "Could not associate ca to training_exp"
+        return self.__post(url, json=data, error_msg=error_msg)
+
+    # updates associations
+    def update_benchmark_dataset_association(
+        self, benchmark_uid: int, dataset_uid: int, data: str
+    ):
+        """Approves a dataset association
+
+        Args:
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
+        error_msg = f"Could not update association: dataset {dataset_uid}, benchmark {benchmark_uid}"
+        self.__put(url, json=data, error_msg=error_msg)
+
+    def update_benchmark_model_association(
+        self, benchmark_uid: int, mlcube_uid: int, data: dict
+    ):
+        """Approves an mlcube association
+
+        Args:
+            mlcube_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+        error_msg = (
+            f"Could update association: mlcube {mlcube_uid}, benchmark {benchmark_uid}"
+        )
+        self.__put(url, json=data, error_msg=error_msg)
+
+    def update_training_aggregator_association(
+        self, training_exp_id: int, aggregator_id: int, data: dict
+    ):
+        """Approves a aggregator association
+
+        Args:
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = (
+            f"{self.server_url}/aggregators/{aggregator_id}/training/{training_exp_id}/"
+        )
+        error_msg = (
+            "Could not update association: aggregator"
+            f" {aggregator_id}, training_exp {training_exp_id}"
+        )
+        self.__put(url, json=data, error_msg=error_msg)
+
+    def update_training_dataset_association(
+        self, training_exp_id: int, dataset_uid: int, data: dict
+    ):
+        """Approves a training dataset association
+
+        Args:
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/training/{training_exp_id}/"
+        error_msg = (
+            "Could not approve association: dataset"
+            f"{dataset_uid}, training_exp {training_exp_id}"
+        )
+        self.__put(url, json=data, error_msg=error_msg)
+
+    def update_training_ca_association(
+        self, training_exp_id: int, ca_uid: int, data: dict
+    ):
+        """Approves a training ca association
+
+        Args:
+            dataset_uid (int): Dataset UID
+            benchmark_uid (int): Benchmark UID
+            status (str): Approval status to set for the association
+        """
+        url = f"{self.server_url}/cas/{ca_uid}/training/{training_exp_id}/"
+        error_msg = (
+            "Could not update association: ca"
+            f"{ca_uid}, training_exp {training_exp_id}"
+        )
+        self.__put(url, json=data, error_msg=error_msg)
+
+    # update objects
+    def update_dataset(self, dataset_id: int, data: dict):
+        url = f"{self.server_url}/datasets/{dataset_id}/"
+        error_msg = "Could not update dataset"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_training_exp(self, training_exp_id: int, data: dict):
+        url = f"{self.server_url}/training/{training_exp_id}/"
+        error_msg = "Could not update training experiment"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_training_event(self, training_event_id: int, data: dict):
+        url = f"{self.server_url}/training/events/{training_event_id}/"
+        error_msg = "Could not update training event"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    # misc
+    def get_benchmark_executions(self, benchmark_id: int, filters={}) -> dict:
+        """Retrieves all executions for a given benchmark
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve executions from
+
+        Returns:
+            dict: dictionary with the contents of each execution in the specified benchmark
+        """
+        url = f"{self.server_url}/benchmarks/{benchmark_id}/executions/"
+        error_msg = "Could not get benchmark executions"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_mlcube_datasets(self, mlcube_id: int, filters={}) -> dict:
+        """Retrieves all datasets that have the specified mlcube as the prep mlcube
+
+        Args:
+            mlcube_id (int): mlcube ID to retrieve datasets from
+
+        Returns:
+            dict: dictionary with the contents of each dataset
+        """
+        url = f"{self.server_url}/mlcubes/{mlcube_id}/datasets/"
+        error_msg = "Could not get mlcube datasets"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_training_datasets_associations(self, training_exp_id: int) -> dict:
+        """Retrieves all datasets for a given training_exp
+
+        Args:
+            benchmark_id (int): benchmark ID to retrieve results from
+
+        Returns:
+            dict: dictionary with the contents of each result in the specified benchmark
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/datasets"
+        error_msg = "Could not get training experiment datasets associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_benchmark_models_associations(self, benchmark_uid: int) -> List[int]:
+        """Retrieves all the model associations of a benchmark.
+
+        Args:
+            benchmark_uid (int): UID of the desired benchmark
+
+        Returns:
+            list[int]: List of benchmark model associations
+        """
+        url = f"{self.server_url}/benchmarks/{benchmark_uid}/models"
+        error_msg = "Could not get benchmark models associations"
+        return self.__get_list(url, error_msg=error_msg)
+
+    def get_training_datasets_with_users(self, training_exp_id: int) -> dict:
+        """Retrieves all datasets for a given training_exp and their owner information
+
+        Args:
+            training_exp_id (int): training exp ID
+
+        Returns:
+            dict: dictionary with the contents of dataset IDs and owner info
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/participants_info/"
+        error_msg = "Could not get training experiment participants info"
+        return self.__get_list(url, error_msg=error_msg)

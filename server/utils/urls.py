@@ -10,6 +10,18 @@ urlpatterns = [
     path("mlcubes/", views.MlCubeList.as_view()),
     path("results/", views.ExecutionList.as_view()),  # Kept for backwards compatibility
     path("executions/", views.ExecutionList.as_view()),
+    path("training/", views.TrainingExperimentList.as_view()),
+    path("aggregators/", views.AggregatorList.as_view()),
+    path("training/events/", views.TrainingEventList.as_view()),
+    path("cas/", views.CAList.as_view()),
     path("datasets/associations/", views.DatasetAssociationList.as_view()),
     path("mlcubes/associations/", views.MlCubeAssociationList.as_view()),
+    path(
+        "datasets/training_associations/",
+        views.DatasetTrainingAssociationList.as_view(),
+    ),
+    path(
+        "aggregators/training_associations/", views.AggregatorAssociationList.as_view()
+    ),
+    path("cas/training_associations/", views.CAAssociationList.as_view()),
 ]

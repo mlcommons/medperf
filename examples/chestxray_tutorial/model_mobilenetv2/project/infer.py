@@ -4,6 +4,7 @@ import tensorflow as tf
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.models import Sequential
 import json
+import yaml
 
 
 def preprocess(images):
@@ -62,3 +63,15 @@ def run_inference(data_path, parameters, output_path, weights):
     preds_file = os.path.join(output_path, "predictions.json")
     with open(preds_file, "w") as f:
         json.dump(predictions_dict, f, indent=4)
+
+
+if __name__ == "__main__":
+    parameters_file = "/mlcommons/volumes/parameters/parameters_file.yaml"
+    output_path = "/mlcommons/volumes/predictions"
+    data_path = "/mlcommons/volumes/data"
+    weights = "/mlcommons/volumes/additional_files/mobilenetv2_weights.h5"
+
+    with open(parameters_file) as f:
+        parameters = yaml.safe_load(f)
+
+    run_inference(data_path, parameters, output_path, weights)

@@ -60,6 +60,13 @@ SUPERUSER_USERNAME = env("SUPERUSER_USERNAME")
 
 SUPERUSER_PASSWORD = env("SUPERUSER_PASSWORD")
 
+CA_NAME = env("CA_NAME")
+CA_CONFIG = env.json("CA_CONFIG")
+CA_MLCUBE_NAME = env("CA_MLCUBE_NAME")
+CA_MLCUBE_URL = env("CA_MLCUBE_URL")
+CA_MLCUBE_HASH = env("CA_MLCUBE_HASH")
+CA_MLCUBE_IMAGE_HASH = env("CA_MLCUBE_IMAGE_HASH")
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # TODO Change later to list of allowed domains
@@ -92,6 +99,13 @@ INSTALLED_APPS = [
     "benchmarkmodel",
     "user",
     "execution",
+    "training",
+    "aggregator",
+    "ca",
+    "traindataset_association",
+    "aggregator_association",
+    "ca_association",
+    "trainingevent",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
@@ -225,7 +239,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],

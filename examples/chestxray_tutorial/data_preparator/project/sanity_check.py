@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import yaml
 
 
 def perform_sanity_checks(data_path, labels_path, parameters):
@@ -24,3 +25,14 @@ def perform_sanity_checks(data_path, labels_path, parameters):
     ), f"Labels should be one-hot encoded with {len(labels_list)} classes"
 
     print("Sanity checks ran successfully.")
+
+
+if __name__ == "__main__":
+    parameters_file = "/mlcommons/volumes/parameters/parameters_file.yaml"
+    data_path = "/mlcommons/volumes/data"
+    labels_path = "/mlcommons/volumes/labels"
+
+    with open(parameters_file) as f:
+        parameters = yaml.safe_load(f)
+
+    perform_sanity_checks(data_path, labels_path, parameters)

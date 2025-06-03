@@ -17,9 +17,9 @@ class SubmitCube:
         submission = cls(submit_info)
 
         with ui.interactive():
-            ui.text = "Validating MLCube can be downloaded"
+            ui.text = "Validating Container can be downloaded"
             submission.download()
-            ui.text = "Submitting MLCube to MedPerf"
+            ui.text = "Submitting Container to MedPerf"
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)

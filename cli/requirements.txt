@@ -8,17 +8,12 @@ tabulate==0.9.0
 pexpect==4.8.0
 colorama==0.4.4
 time-machine==2.4.0
-pytest-mock==1.13.0
-pyfakefs==5.0.0
-mlcube @ git+https://github.com/hasan7n/mlcube@7fbb1828c9c79ab52023d2919e157468deecb95a#subdirectory=mlcube
-mlcube-docker @ git+https://github.com/hasan7n/mlcube@7fbb1828c9c79ab52023d2919e157468deecb95a#subdirectory=runners/mlcube_docker
-mlcube-singularity @ git+https://github.com/hasan7n/mlcube@7fbb1828c9c79ab52023d2919e157468deecb95a#subdirectory=runners/mlcube_singularity
+pytest-mock==3.14.0
+pyfakefs==5.8.0
 validators==0.18.2
 merge-args==0.1.4
 synapseclient==4.1.1
 schema==0.7.5
-# setuptools hotfix: https://github.com/mlcommons/medperf/issues/449
-setuptools<=66.1.1
 email-validator==2.0.0
 auth0-python==4.3.0
 pandas==2.1.0
@@ -26,3 +21,5 @@ numpy==1.26.4
 watchdog==3.0.0
 GitPython==3.1.41
 psutil==5.9.8
+semver==3.0.4
+cookiecutter==2.1.1

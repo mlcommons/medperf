@@ -27,7 +27,7 @@ def create(
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+        help="Ignore failing models, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False,

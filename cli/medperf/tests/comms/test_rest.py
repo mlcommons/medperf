@@ -1,4 +1,4 @@
-from medperf.exceptions import CommunicationRequestError, CommunicationRetrievalError
+from medperf.exceptions import CommunicationRetrievalError
 import pytest
 import requests
 from unittest.mock import ANY, call
@@ -24,13 +24,14 @@ def server(mocker, ui):
     [
         ("get_benchmark", "get", 200, [1], {}, (f"{full_url}/benchmarks/1",), {}),
         (
-            "get_benchmark_model_associations",
+            "get_benchmark_models_associations",
             "get_list",
             200,
             [1],
             [],
             (f"{full_url}/benchmarks/1/models",),
             {"filters": {}},
+            {"error_msg": ANY},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{full_url}/mlcubes/1/",), {}),
         (
@@ -52,7 +53,7 @@ def server(mocker, ui):
             {"json": {}},
         ),
         (
-            "associate_dset",
+            "associate_benchmark_dataset",
             "post",
             201,
             [1, 1],
@@ -66,24 +67,6 @@ def server(mocker, ui):
                     "metadata": {},
                 }
             },
-        ),
-        (
-            "_REST__set_approval_status",
-            "put",
-            200,
-            [f"{full_url}/mlcubes/1/benchmarks/1", Status.APPROVED.value],
-            {},
-            (f"{full_url}/mlcubes/1/benchmarks/1",),
-            {"json": {"approval_status": Status.APPROVED.value}},
-        ),
-        (
-            "_REST__set_approval_status",
-            "put",
-            200,
-            [f"{full_url}/mlcubes/1/benchmarks/1", Status.REJECTED.value],
-            {},
-            (f"{full_url}/mlcubes/1/benchmarks/1",),
-            {"json": {"approval_status": Status.REJECTED.value}},
         ),
     ],
 )
@@ -113,9 +96,9 @@ def test_methods_run_authorized_method(mocker, server, method_params):
     [
         ("get_benchmark", [1], {}, CommunicationRetrievalError),
         ("get_cube_metadata", [1], {}, CommunicationRetrievalError),
-        ("upload_dataset", [{}], {"id": "invalid id"}, CommunicationRequestError),
-        ("upload_execution", [{}], {"id": "invalid id"}, CommunicationRequestError),
-        ("associate_dset", [1, 1], {}, CommunicationRequestError),
+        ("upload_dataset", [{}], {"id": "invalid id"}, CommunicationRetrievalError),
+        ("upload_execution", [{}], {"id": "invalid id"}, CommunicationRetrievalError),
+        ("associate_benchmark_dataset", [1, 1], {}, CommunicationRetrievalError),
     ],
 )
 def test_methods_exit_if_status_not_200(mocker, server, status, method_params):
@@ -284,7 +267,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
     bmarks = server.get_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/benchmarks/", filters={})
+    spy.assert_called_once_with(f"{full_url}/benchmarks/", filters={}, error_msg=ANY)
     assert bmarks == [body]
 
 
@@ -294,15 +277,11 @@ def test_get_benchmark_model_associations_calls_expected_functions(mocker, serve
     spy_list = mocker.patch(
         patch_server.format("REST._REST__get_list"), return_value=assocs
     )
-    spy_filter = mocker.patch(
-        patch_server.format("filter_latest_associations"), side_effect=lambda x, y: x
-    )
     # Act
-    server.get_benchmark_model_associations(1)
+    server.get_benchmark_models_associations(1)
 
     # Assert
     spy_list.assert_called_once()
-    spy_filter.assert_called_once()
 
 
 def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
@@ -319,7 +298,7 @@ def test_get_user_benchmarks_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_benchmarks()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/me/benchmarks/", filters={})
+    spy.assert_called_once_with(f"{full_url}/me/benchmarks/", filters={}, error_msg=ANY)
 
 
 def test_get_user_benchmarks_returns_benchmarks(mocker, server):
@@ -346,7 +325,7 @@ def test_get_mlcubes_calls_mlcubes_path(mocker, server, body):
     cubes = server.get_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/mlcubes/", filters={})
+    spy.assert_called_once_with(f"{full_url}/mlcubes/", filters={}, error_msg=ANY)
     assert cubes == [body]
 
 
@@ -375,7 +354,7 @@ def test_get_user_cubes_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_cubes()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/me/mlcubes/", filters={})
+    spy.assert_called_once_with(f"{full_url}/me/mlcubes/", filters={}, error_msg=ANY)
 
 
 @pytest.mark.parametrize("body", [{"dset": 1}, {}, {"test": "test"}])
@@ -387,7 +366,7 @@ def test_get_datasets_calls_datasets_path(mocker, server, body):
     dsets = server.get_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/datasets/", filters={})
+    spy.assert_called_once_with(f"{full_url}/datasets/", filters={}, error_msg=ANY)
     assert dsets == [body]
 
 
@@ -418,7 +397,7 @@ def test_get_user_datasets_calls_auth_get_for_expected_path(mocker, server):
     server.get_user_datasets()
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/me/datasets/", filters={})
+    spy.assert_called_once_with(f"{full_url}/me/datasets/", filters={}, error_msg=ANY)
 
 
 @pytest.mark.parametrize("body", [{"mlcube": 1}, {}, {"test": "test"}])
@@ -462,7 +441,9 @@ def test_upload_executions_returns_execution_body(mocker, server, body):
 
 @pytest.mark.parametrize("cube_uid", [2156, 915])
 @pytest.mark.parametrize("benchmark_uid", [1206, 3741])
-def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchmark_uid):
+def test_associate_benchmark_model_posts_association_data(
+    mocker, server, cube_uid, benchmark_uid
+):
     # Arrange
     data = {
         "approval_status": Status.PENDING.value,
@@ -474,7 +455,7 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
     spy = mocker.patch(patch_server.format("REST._REST__auth_post"), return_value=res)
 
     # Act
-    server.associate_cube(cube_uid, benchmark_uid)
+    server.associate_benchmark_model(cube_uid, benchmark_uid)
 
     # Assert
     spy.assert_called_once_with(ANY, json=data)
@@ -483,53 +464,39 @@ def test_associate_cube_posts_association_data(mocker, server, cube_uid, benchma
 @pytest.mark.parametrize("dataset_uid", [4417, 1057])
 @pytest.mark.parametrize("benchmark_uid", [1011, 635])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
-def test_set_dataset_association_approval_sets_approval(
+def test_update_benchmark_dataset_association_sets_approval(
     mocker, server, dataset_uid, benchmark_uid, status
 ):
     # Arrange
+    status = {"approval_status": status}
     res = MockResponse({}, 200)
-    spy = mocker.patch(
-        patch_server.format("REST._REST__set_approval_status"), return_value=res
-    )
+    spy = mocker.patch(patch_server.format("REST._REST__put"), return_value=res)
     exp_url = f"{full_url}/datasets/{dataset_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_dataset_association_approval(benchmark_uid, dataset_uid, status)
+    server.update_benchmark_dataset_association(benchmark_uid, dataset_uid, status)
 
     # Assert
-    spy.assert_called_once_with(exp_url, status)
+    spy.assert_called_once_with(exp_url, json=status, error_msg=ANY)
 
 
 @pytest.mark.parametrize("mlcube_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
-def test_set_mlcube_association_approval_sets_approval(
+def test_update_benchmark_model_association_sets_approval(
     mocker, server, mlcube_uid, benchmark_uid, status
 ):
     # Arrange
+    status = {"approval_status": status}
     res = MockResponse({}, 200)
-    spy = mocker.patch(
-        patch_server.format("REST._REST__set_approval_status"), return_value=res
-    )
+    spy = mocker.patch(patch_server.format("REST._REST__put"), return_value=res)
     exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_mlcube_association_approval(benchmark_uid, mlcube_uid, status)
+    server.update_benchmark_model_association(benchmark_uid, mlcube_uid, status)
 
     # Assert
-    spy.assert_called_once_with(exp_url, status)
-
-
-def test_get_datasets_associations_gets_associations(mocker, server):
-    # Arrange
-    spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
-    exp_path = f"{full_url}/me/datasets/associations/"
-
-    # Act
-    server.get_datasets_associations()
-
-    # Assert
-    spy.assert_called_once_with(exp_path, filters={})
+    spy.assert_called_once_with(exp_url, json=status, error_msg=ANY)
 
 
 def test_get_cubes_associations_gets_associations(mocker, server):
@@ -538,10 +505,10 @@ def test_get_cubes_associations_gets_associations(mocker, server):
     exp_path = f"{full_url}/me/mlcubes/associations/"
 
     # Act
-    server.get_cubes_associations()
+    server.get_user_benchmarks_models_associations()
 
     # Assert
-    spy.assert_called_once_with(exp_path, filters={})
+    spy.assert_called_once_with(exp_path, filters={}, error_msg=ANY)
 
 
 @pytest.mark.parametrize("uid", [448, 53, 312])
@@ -576,7 +543,7 @@ def test_upload_benchmark_returns_benchmark_body(mocker, server, body):
 @pytest.mark.parametrize("mlcube_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("priority", [2, -10])
-def test_set_mlcube_association_priority_sets_priority(
+def test_update_benchmark_model_association_sets_priority(
     mocker, server, mlcube_uid, benchmark_uid, priority
 ):
     # Arrange
@@ -585,7 +552,9 @@ def test_set_mlcube_association_priority_sets_priority(
     exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.set_mlcube_association_priority(benchmark_uid, mlcube_uid, priority)
+    server.update_benchmark_model_association(
+        benchmark_uid, mlcube_uid, {"priority": priority}
+    )
 
     # Assert
     spy.assert_called_once_with(exp_url, json={"priority": priority})
@@ -621,5 +590,7 @@ def test_get_mlcube_datasets_calls_auth_get_for_expected_path(mocker, server):
     exp_datasets = server.get_mlcube_datasets(cube_id)
 
     # Assert
-    spy.assert_called_once_with(f"{full_url}/mlcubes/{cube_id}/datasets/", filters={})
+    spy.assert_called_once_with(
+        f"{full_url}/mlcubes/{cube_id}/datasets/", filters={}, error_msg=ANY
+    )
     assert exp_datasets == datasets

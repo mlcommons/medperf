@@ -91,57 +91,57 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Existing cubes":
+echo "Existing containers":
 echo "====================================="
-print_eval medperf mlcube ls
+print_eval medperf container ls
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Submit cubes"
+echo "Submit containers"
 echo "====================================="
 
-print_eval medperf mlcube submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS --operational
+print_eval medperf container submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS --operational
 checkFailed "Prep submission failed"
-PREP_UID=$(medperf mlcube ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf container ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "PREP_UID=$PREP_UID"
 
-print_eval medperf mlcube submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
+print_eval medperf container submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
-MODEL1_UID=$(medperf mlcube ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL1_UID=$(medperf container ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL1_UID=$MODEL1_UID"
 
-print_eval medperf mlcube submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
+print_eval medperf container submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
-MODEL2_UID=$(medperf mlcube ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL2_UID=$MODEL2_UID"
 
-# MLCube with singularity section
-print_eval medperf mlcube submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD -i $MODEL_SING_IMAGE --operational
+# Container with singularity section
+print_eval medperf --platform singularity container submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model3 submission failed"
-MODEL3_UID=$(medperf mlcube ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL3_UID=$MODEL3_UID"
 
-print_eval medperf mlcube submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
+print_eval medperf container submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
-FAILING_MODEL_UID=$(medperf mlcube ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+FAILING_MODEL_UID=$(medperf container ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "FAILING_MODEL_UID=$FAILING_MODEL_UID"
 
-print_eval medperf mlcube submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS --operational
+print_eval medperf container submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS --operational
 checkFailed "Model with logging None submission failed"
-MODEL_LOG_NONE_UID=$(medperf mlcube ls | grep model-log-none | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL_LOG_NONE_UID=$(medperf container ls | grep model-log-none | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL_LOG_NONE_UID=$MODEL_LOG_NONE_UID"
 
-print_eval medperf mlcube submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS --operational
+print_eval medperf container submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS --operational
 checkFailed "Model with logging debug submission failed"
-MODEL_LOG_DEBUG_UID=$(medperf mlcube ls | grep model-log-debug | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL_LOG_DEBUG_UID=$(medperf container ls | grep model-log-debug | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL_LOG_DEBUG_UID=$MODEL_LOG_DEBUG_UID"
 
-print_eval medperf mlcube submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
+print_eval medperf container submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
-METRICS_UID=$(medperf mlcube ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+METRICS_UID=$(medperf container ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "METRICS_UID=$METRICS_UID"
 ##########################################################
 
@@ -161,7 +161,7 @@ echo "\n"
 echo "====================================="
 echo "Submit benchmark"
 echo "====================================="
-print_eval medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-mlcube $PREP_UID --reference-model-mlcube $MODEL1_UID --evaluator-mlcube $METRICS_UID --operational
+print_eval medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model-container $MODEL1_UID --evaluator-container $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "BMK_UID=$BMK_UID"
@@ -212,12 +212,54 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Running exporting data while it's in development"
+echo "====================================="
+print_eval medperf dataset export -d $DSET_A_UID -o $TEST_ROOT/exported_dev_dataset
+checkFailed "Dev Data export step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running importing development data after removing it from storage"
+echo "====================================="
+print_eval rm -rf $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID
+print_eval medperf dataset import -d $DSET_A_UID -i $TEST_ROOT/exported_dev_dataset/$DSET_A_UID.gz --raw_dataset_path $TEST_ROOT/imported_raw_data
+checkFailed "Dev Data import step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Running data set operational step"
 echo "====================================="
 print_eval medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data set operational step failed"
 DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d " " -f 2)
 echo "DSET_A_GENUID=$DSET_A_GENUID"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running exporting data while it's in operation"
+echo "====================================="
+print_eval medperf dataset export -d $DSET_A_UID -o $TEST_ROOT/exported_op_dataset
+checkFailed "Operational Data export step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running importing operational data after removing it from storage"
+echo "====================================="
+print_eval rm -rf $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID
+print_eval medperf dataset import -d $DSET_A_UID -i $TEST_ROOT/exported_op_dataset/$DSET_A_UID.gz
+checkFailed "Op Data import step failed"
 ##########################################################
 
 echo "\n"
@@ -257,7 +299,7 @@ echo "\n"
 echo "====================================="
 echo "Running model2 association"
 echo "====================================="
-print_eval medperf mlcube associate -m $MODEL2_UID -b $BMK_UID -y
+print_eval medperf container associate -m $MODEL2_UID -b $BMK_UID -y
 checkFailed "Model2 association failed"
 ##########################################################
 
@@ -267,10 +309,10 @@ echo "\n"
 echo "====================================="
 echo "Running model3 association (with singularity)"
 echo "====================================="
-# this will run two types of singularity mlcubes:
+# this will run two types of singularity containers:
 #   1) an already built singularity image (model 3)
 #   2) a docker image to be converted (metrics)
-print_eval medperf --platform singularity mlcube associate -m $MODEL3_UID -b $BMK_UID -y
+print_eval medperf --platform singularity container associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
@@ -280,7 +322,7 @@ echo "\n"
 echo "======================================================"
 echo "Running failing model association (This will NOT fail)"
 echo "======================================================"
-print_eval medperf mlcube associate -m $FAILING_MODEL_UID -b $BMK_UID -y
+print_eval medperf container associate -m $FAILING_MODEL_UID -b $BMK_UID -y
 checkFailed "Failing model association failed"
 ##########################################################
 
@@ -290,7 +332,7 @@ echo "\n"
 echo "======================================================"
 echo "Running logging-model-without-env association"
 echo "======================================================"
-print_eval medperf mlcube associate -m $MODEL_LOG_NONE_UID -b $BMK_UID -y
+print_eval medperf container associate -m $MODEL_LOG_NONE_UID -b $BMK_UID -y
 checkFailed "Logging-model-without-env association association failed"
 ##########################################################
 
@@ -300,7 +342,7 @@ echo "\n"
 echo "======================================================"
 echo "Running logging-model-with-debug association"
 echo "======================================================"
-print_eval medperf --container-loglevel debug mlcube associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
+print_eval medperf --container-loglevel debug container associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
 checkFailed "Logging-model-with-debug association failed"
 ##########################################################
 
@@ -310,8 +352,10 @@ echo "\n"
 echo "======================================================"
 echo "Submitted associations:"
 echo "======================================================"
-print_eval medperf association ls
-checkFailed "Listing associations failed"
+print_eval medperf association ls -bd
+checkFailed "Listing benchmark-datasets associations failed"
+print_eval medperf association ls -bm
+checkFailed "Listing benchmark-models associations failed"
 ##########################################################
 
 echo "\n"
@@ -396,21 +440,21 @@ echo "\n"
 
 ##########################################################
 echo "======================================================================================"
-echo "Run failing cube with ignore errors (This SHOULD fail since predictions folder exists)"
+echo "Run failing container with ignore errors (This SHOULD fail since predictions folder exists)"
 echo "======================================================================================"
 print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
-checkSucceeded "MLCube ran successfuly but should fail since predictions folder exists"
+checkSucceeded "Container ran successfuly but should fail since predictions folder exists"
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================================================="
-echo "Run failing cube with ignore errors after deleting predictions folder"
+echo "Run failing container with ignore errors after deleting predictions folder"
 echo "====================================================================="
 print_eval rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
 print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
-checkFailed "Failing mlcube run with ignore errors failed"
+checkFailed "Failing container run with ignore errors failed"
 ##########################################################
 
 echo "\n"

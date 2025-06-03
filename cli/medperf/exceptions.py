@@ -40,3 +40,7 @@ class CleanExit(MedperfException):
     def __init__(self, *args, medperf_status_code=0) -> None:
         super().__init__(*args)
         self.medperf_status_code = medperf_status_code
+
+
+class InvalidContainerSpec(MedperfException):
+    """Raised when container config file is invalid"""

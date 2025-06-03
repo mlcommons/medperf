@@ -26,12 +26,12 @@ class ExecutionSerializer(serializers.ModelSerializer):
         if not is_reference_model:
             if not last_benchmarkmodel:
                 raise serializers.ValidationError(
-                    "Mlcube must be associated to the benchmark"
+                    "Model must be associated to the benchmark"
                 )
             else:
                 if last_benchmarkmodel.approval_status != "APPROVED":
                     raise serializers.ValidationError(
-                        "Mlcube-Benchmark association must be approved"
+                        "Model-Benchmark association must be approved"
                     )
 
         last_benchmarkdataset = (

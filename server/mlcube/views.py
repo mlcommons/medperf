@@ -100,7 +100,7 @@ class MlCubeDatasetList(GenericAPIView):
         """
         mlcube = self.get_object(pk)
         if mlcube.state != "DEVELOPMENT":
-            errors = {"error": "The mlcube is not in DEVELOPMENT"}
+            errors = {"error": "The container is not in DEVELOPMENT"}
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
         datasets = Dataset.objects.all().filter(data_preparation_mlcube__pk=pk)

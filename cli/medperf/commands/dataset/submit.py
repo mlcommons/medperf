@@ -103,7 +103,7 @@ class DataCreation:
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
         if no_resource or too_many_resources:
             raise InvalidArgumentError(
-                "Must provide either a benchmark or a preparation mlcube"
+                "Must provide either a benchmark or a preparation container"
             )
 
     def validate_prep_cube(self):

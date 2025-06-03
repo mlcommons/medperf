@@ -1,4 +1,3 @@
-from datetime import datetime
 import os
 import pytest
 import logging
@@ -8,8 +7,6 @@ from unittest.mock import mock_open, call, ANY
 from medperf import utils
 import medperf.config as config
 from medperf.tests.mocks import MockTar
-from medperf.exceptions import MedperfException
-import yaml
 
 patch_utils = "medperf.utils.{}"
 
@@ -360,74 +357,3 @@ def test_format_errors_dict_correctly_formats_all_expected_inputs(
 
     # Assert
     assert out == expected_out
-
-
-def test_get_cube_image_name_retrieves_name(mocker, fs):
-    # Arrange
-    exp_image_name = "some_image_name"
-    cube_path = "path"
-
-    mock_content = {"singularity": {"image": exp_image_name}}
-    target_file = os.path.join(cube_path, config.cube_filename)
-    fs.create_file(target_file, contents=yaml.dump(mock_content))
-
-    # Act
-    image_name = utils.get_cube_image_name(cube_path)
-
-    # Assert
-    assert exp_image_name == image_name
-
-
-def test_get_cube_image_name_fails_if_cube_not_configured(mocker, fs):
-    # Arrange
-    exp_image_name = "some_image_name"
-    cube_path = "path"
-
-    mock_content = {"not singularity": {"image": exp_image_name}}
-    target_file = os.path.join(cube_path, config.cube_filename)
-    fs.create_file(target_file, contents=yaml.dump(mock_content))
-
-    # Act & Assert
-    with pytest.raises(MedperfException):
-        utils.get_cube_image_name(cube_path)
-
-
-@pytest.mark.parametrize(
-    "associations,expected_result",
-    [
-        (
-            [
-                {"dataset": 1, "created_at": datetime.fromtimestamp(5).isoformat()},
-                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
-                {"dataset": 1, "created_at": datetime.fromtimestamp(7).isoformat()},
-            ],
-            [
-                {"dataset": 1, "created_at": datetime.fromtimestamp(7).isoformat()},
-                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
-            ],
-        ),
-        (
-            [
-                {"dataset": 1, "created_at": datetime.fromtimestamp(5).isoformat()},
-                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
-                {"dataset": 3, "created_at": datetime.fromtimestamp(7).isoformat()},
-                {"dataset": 2, "created_at": datetime.fromtimestamp(4).isoformat()},
-            ],
-            [
-                {"dataset": 1, "created_at": datetime.fromtimestamp(5).isoformat()},
-                {"dataset": 2, "created_at": datetime.fromtimestamp(6).isoformat()},
-                {"dataset": 3, "created_at": datetime.fromtimestamp(7).isoformat()},
-            ],
-        ),
-    ],
-)
-def test_filter_latest_associations_works_as_expected(
-    mocker, associations, expected_result
-):
-    # Act
-    filtered = utils.filter_latest_associations(associations, "dataset")
-
-    # Assert
-    assert sorted(filtered, key=lambda x: x["dataset"]) == sorted(
-        expected_result, key=lambda x: x["dataset"]
-    )

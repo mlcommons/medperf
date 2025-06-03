@@ -29,12 +29,12 @@ class CompatibilityTestParamsValidator:
     def __validate_cubes(self):
         if not self.model and not self.benchmark_uid:
             raise InvalidArgumentError(
-                "A model mlcube or a benchmark should at least be specified"
+                "A model or a benchmark should at least be specified"
             )
 
         if not self.evaluator and not self.benchmark_uid:
             raise InvalidArgumentError(
-                "A metrics mlcube or a benchmark should at least be specified"
+                "A metrics container or a benchmark should at least be specified"
             )
 
     def __raise_redundant_data_source(self):
@@ -54,7 +54,7 @@ class CompatibilityTestParamsValidator:
             self.__raise_redundant_data_source()
         if self.data_prep:
             raise InvalidArgumentError(
-                "A data preparation cube is not needed when specifying a prepared dataset"
+                "A data preparation container is not needed when specifying a prepared dataset"
             )
 
     def __validate_data_path_source(self):
@@ -67,7 +67,7 @@ class CompatibilityTestParamsValidator:
 
         if not self.data_prep and not self.benchmark_uid:
             raise InvalidArgumentError(
-                "A data preparation cube should be passed when specifying raw data input"
+                "A data preparation container should be passed when specifying raw data input"
             )
 
     def __validate_demo_data_source(self):
@@ -80,7 +80,7 @@ class CompatibilityTestParamsValidator:
 
         if not self.data_prep and not self.benchmark_uid:
             raise InvalidArgumentError(
-                "A data preparation cube should be passed when specifying raw data input"
+                "A data preparation container should be passed when specifying raw data input"
             )
 
     def __validate_data_source(self):
