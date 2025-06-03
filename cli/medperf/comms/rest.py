@@ -406,7 +406,7 @@ class REST(Comms):
         return self.__get_list(url, error_msg=error_msg)
 
     # get user list
-    def get_user_cubes(self) -> List[dict]:
+    def get_user_cubes(self, filters={}) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
         Returns:
@@ -414,7 +414,7 @@ class REST(Comms):
         """
         url = f"{self.server_url}/me/mlcubes/"
         error_msg = "Could not retrieve user mlcubes"
-        return self.__get_list(url, error_msg=error_msg)
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_user_datasets(self, filters={}) -> dict:
         """Retrieves all datasets registered by the user
@@ -497,7 +497,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user datasets benchmark associations"
         return self.__get_list(url, error_msg=error_msg)
 
-    def get_user_benchmarks_models_associations(self) -> List[dict]:
+    def get_user_benchmarks_models_associations(self, filters={}) -> List[dict]:
         """Get all cube associations related to the current user
 
         Returns:
@@ -505,7 +505,7 @@ class REST(Comms):
         """
         url = f"{self.server_url}/me/mlcubes/associations/"
         error_msg = "Could not retrieve user mlcubes benchmark associations"
-        return self.__get_list(url, error_msg=error_msg)
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_user_training_datasets_associations(self) -> List[dict]:
         """Get all training dataset associations related to the current user
@@ -884,7 +884,9 @@ class REST(Comms):
         error_msg = "Could not get training experiment datasets associations"
         return self.__get_list(url, error_msg=error_msg)
 
-    def get_benchmark_models_associations(self, benchmark_uid: int) -> List[int]:
+    def get_benchmark_models_associations(
+        self, benchmark_uid: int, filters={}
+    ) -> List[int]:
         """Retrieves all the model associations of a benchmark.
 
         Args:
@@ -895,7 +897,7 @@ class REST(Comms):
         """
         url = f"{self.server_url}/benchmarks/{benchmark_uid}/models"
         error_msg = "Could not get benchmark models associations"
-        return self.__get_list(url, error_msg=error_msg)
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_training_datasets_with_users(self, training_exp_id: int) -> dict:
         """Retrieves all datasets for a given training_exp and their owner information

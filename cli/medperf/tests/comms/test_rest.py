@@ -30,8 +30,7 @@ def server(mocker, ui):
             [1],
             [],
             (f"{full_url}/benchmarks/1/models",),
-            {"filters": {}},
-            {"error_msg": ANY},
+            {"error_msg": ANY, "filters": {}},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{full_url}/mlcubes/1/",), {}),
         (
