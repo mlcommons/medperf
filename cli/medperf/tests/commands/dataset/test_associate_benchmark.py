@@ -1,4 +1,4 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
@@ -95,12 +95,12 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
     assoc_spy = mocker.patch.object(comms, "associate_benchmark_dataset")
 
-    # Act
-    AssociateDataset.run(1, 1)
+    # Act & Assert
+    with pytest.raises(CleanExit):
+        AssociateDataset.run(1, 1)
 
-    # Assert
-    spy.assert_called_once()
-    assoc_spy.assert_not_called()
+        spy.assert_called_once()
+        assoc_spy.assert_not_called()
 
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
