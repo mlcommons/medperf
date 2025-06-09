@@ -60,11 +60,11 @@ def _normalize_gpu_arg(gpus: Optional[str]):
         return gpus
 
     if isinstance(gpus, str):
-        if gpus.is_numeric():
+        if gpus.isnumeric():
             if gpus == "0":
                 return
             return int(gpus)
-        if gpus.starts_with("device="):
+        if gpus.startswith("device="):
             gpus = gpus[len("device=") :]  # noqa
             if gpus:
                 ids = gpus.split(",")

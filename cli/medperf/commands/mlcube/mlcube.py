@@ -52,7 +52,7 @@ def run_test(
     """Runs a container for testing only"""
     mounts = dict([p.split("=") for p in mounts.strip().strip(",").split(",") if p])
     env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
-    ports = ports.split(",")
+    ports = [p for p in ports.split(",") if p]
     run_mlcube(
         mlcube_path,
         task,
