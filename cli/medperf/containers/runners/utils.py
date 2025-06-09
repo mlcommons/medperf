@@ -96,3 +96,9 @@ def add_network_config(run_args, disable_network, ports):
             )
 
     run_args["ports"] = ports
+
+
+def add_medperf_tmp_folder(output_volumes, tmp_folder):
+    output_volumes.append(
+        {"host_path": tmp_folder, "mount_path": "/tmp", "type": "directory"}
+    )
