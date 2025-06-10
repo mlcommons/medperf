@@ -22,7 +22,7 @@ def init_storage():
 
 def __apply_logs_migrations(config_p: ConfigManager):
     if "logs_folder" not in config_p.storage:
-        return config_p
+        return
 
     src_dir = os.path.join(config_p.storage["logs_folder"], "logs")
     tgt_dir = config.logs_storage
@@ -30,8 +30,6 @@ def __apply_logs_migrations(config_p: ConfigManager):
     shutil.move(src_dir, tgt_dir)
 
     del config_p.storage["logs_folder"]
-
-    return config_p
 
 
 def __apply_training_migrations(config_p: ConfigManager):
@@ -61,28 +59,21 @@ def __apply_login_tracking_migrations(config_p: ConfigManager):
                 "logged_in_at"
             ] = time.time()
 
-    return config_p
-
 
 def __apply_results_to_executions_migrations(config_p):
     if "results_folder" not in config_p.storage:
-        return config_p
+        return
 
     results_base = config_p.storage["results_folder"]
     execs_folder = os.path.join(results_base, config.executions_folder)
 
     # Move old results into the execution path
-    results_folder = os.path.join(results_base, config.results_folder)
+    results_folder = os.path.join(results_base, "results")
     results_exist = os.path.exists(results_folder) and os.listdir(results_folder)
-    if not results_exist:
-        return config_p
-
-    # Don't override results
-    shutil.move(results_folder, execs_folder)
+    if results_exist:
+        shutil.move(results_folder, execs_folder)
 
     del config_p.storage["results_folder"]
-
-    return config_p
 
 
 def apply_configuration_migrations():
