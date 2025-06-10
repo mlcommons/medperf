@@ -54,7 +54,7 @@ def list(
             "UID",
             "Name",
             "Description",
-            "Data Preparation MLCube",
+            "Data Preparation Container",
             "State",
             "Approval Status",
             "Registered",

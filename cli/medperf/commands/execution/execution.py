@@ -70,7 +70,7 @@ def list(
         None, "--benchmark", "-b", help="Get results for a given benchmark"
     ),
     model: int = typer.Option(
-        None, "--owner", "-o", help="Get results for a given model"
+        None, "--model", "-m", help="Get results for a given model"
     ),
     dataset: int = typer.Option(
         None, "--dataset", "-d", help="Get reuslts for a given dataset"

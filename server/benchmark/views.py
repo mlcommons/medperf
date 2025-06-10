@@ -104,7 +104,7 @@ class BenchmarkResultList(GenericAPIView):
         Retrieve results associated with a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        results = benchmark.Execution_set.all()
+        results = benchmark.execution_set.all()
         results = self.paginate_queryset(results)
         serializer = ExecutionSerializer(results, many=True)
         return self.get_paginated_response(serializer.data)
