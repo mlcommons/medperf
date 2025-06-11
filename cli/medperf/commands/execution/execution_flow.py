@@ -109,13 +109,14 @@ class ExecutionFlow:
             self.ui.print("> Model execution complete")
 
         except ExecutionError as e:
+            self.__send_model_report("failed")
             if not self.ignore_model_errors:
                 logging.error(f"Model Execution failed: {e}")
                 raise ExecutionError(f"Model Execution failed: {e}")
             else:
                 self.partial = True
                 logging.warning(f"Model Execution failed: {e}")
-            self.__send_model_report("failed")
+                return
         except KeyboardInterrupt:
             logging.warning("Model Execution interrupted by user")
             self.__send_model_report("interrupted")
