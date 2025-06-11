@@ -13,8 +13,8 @@ class ResultSubmission:
         sub.get_execution()
         sub.validate()
         sub.prepare()
-        updated_result_dict = sub.update_execution()
-        sub.write(updated_result_dict)
+        sub.update_execution()
+        sub.write()
 
     def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
         self.benchmark_uid = benchmark_uid
@@ -26,13 +26,15 @@ class ResultSubmission:
 
     def get_execution(self):
         owner = get_medperf_user_data()["id"]
-        filters = {
-            "dataset": self.data_uid,
-            "model": self.model_uid,
-            "benchmark": self.benchmark_uid,
-            "owner": owner,
-        }
-        executions = Execution.all(filters=filters)
+
+        executions = Execution.all(filters={"owner": owner})
+        executions = [
+            execution
+            for execution in executions
+            if execution.benchmark == self.benchmark_uid
+            and execution.model == self.model_uid
+            and execution.dataset == self.data_uid
+        ]
         if len(executions) == 0:
             raise InvalidArgumentError(
                 "User has not created an execution"
@@ -79,9 +81,8 @@ class ResultSubmission:
             "results": self.results,
             "metadata": {**self.execution.metadata, "partial": self.partial},
         }
-        updated_exec_dict = config.comms.update_execution(uid, body)
-        return updated_exec_dict
+        config.comms.update_execution(uid, body)
 
-    def write(self, updated_result_dict):
-        result = Execution(**updated_result_dict)
-        result.write()
+    def write(self):
+        # this will do a .write with the new dictionary
+        Execution.get(self.execution.id)

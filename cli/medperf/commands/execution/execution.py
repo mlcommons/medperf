@@ -94,7 +94,7 @@ def list(
     """List results"""
     EntityList.run(
         Execution,
-        fields=["UID", "Benchmark", "Model", "Dataset", "Finalized"],
+        fields=["UID", "Benchmark", "Model", "Dataset", "Executed", "Finalized"],
         unregistered=unregistered,
         mine_only=mine,
         benchmark=benchmark,
