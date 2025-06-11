@@ -34,6 +34,14 @@ def create(
         "--no-cache",
         help="Execute even if results already exist",
     ),
+    new_result: bool = typer.Option(
+        False,
+        "--new-result",
+        help=(
+            "Works if the result of the execution was already uploaded."
+            "This will rerun and create a new record."
+        ),
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     BenchmarkExecution.run(
@@ -42,6 +50,7 @@ def create(
         [model_uid],
         no_cache=no_cache,
         ignore_model_errors=ignore_model_errors,
+        rerun_finalized_executions=new_result,
     )
     config.ui.print("✅ Done!")
 
@@ -49,13 +58,19 @@ def create(
 @app.command("submit")
 @clean_except
 def submit(
-    result_uid: str = typer.Option(
-        ..., "--result", "-r", help="Unregistered result UID"
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    data_uid: int = typer.Option(
+        ..., "--data_uid", "-d", help="Registered Dataset UID"
+    ),
+    model_uid: int = typer.Option(
+        ..., "--model_uid", "-m", help="UID of model to execute"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
-    ResultSubmission.run(result_uid, approved=approval)
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 
@@ -79,7 +94,7 @@ def list(
     """List results"""
     EntityList.run(
         Execution,
-        fields=["UID", "Benchmark", "Model", "Dataset", "Registered"],
+        fields=["UID", "Benchmark", "Model", "Dataset", "Finalized"],
         unregistered=unregistered,
         mine_only=mine,
         benchmark=benchmark,

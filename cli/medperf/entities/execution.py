@@ -139,4 +139,5 @@ class Execution(Entity, ApprovableSchema):
             "Approval Status": self.approval_status,
             "Created At": self.created_at,
             "Registered": self.is_registered,
+            "Finalized": self.finalized,
         }

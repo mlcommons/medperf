@@ -65,6 +65,14 @@ def execute(
         "--no-cache",
         help="Ignore existing results. The experiment then will be rerun",
     ),
+    new_result: bool = typer.Option(
+        False,
+        "--new-result",
+        help=(
+            "Works if the result of the execution was already uploaded."
+            "This will rerun and create a new record."
+        ),
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     execution = BenchmarkExecution.run(
@@ -73,6 +81,7 @@ def execute(
         [model_uid],
         ignore_model_errors=ignore_model_errors,
         no_cache=no_cache,
+        rerun_finalized_executions=new_result,
     )[0]
     ResultSubmission.run(execution.id, approved=approval)
     config.ui.print("✅ Done!")

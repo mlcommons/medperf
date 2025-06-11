@@ -174,17 +174,23 @@ def run(
         "--no-cache",
         help="Execute even if results already exist",
     ),
+    rerun_finalized: bool = typer.Option(
+        False,
+        "--rerun-finalized",
+        help="Execute even if results have been already uploaded (this will create new records)",
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
         models_uids=None,
-        no_cache=no_cache,
         models_input_file=file,
         ignore_model_errors=ignore_model_errors,
+        no_cache=no_cache,
         show_summary=True,
         ignore_failed_experiments=True,
+        rerun_finalized_executions=rerun_finalized,
     )
     config.ui.print("✅ Done!")
 

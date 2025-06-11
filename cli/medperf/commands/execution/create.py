@@ -4,6 +4,7 @@ from medperf.account_management.account_management import get_medperf_user_data
 from medperf.commands.execution.execution_flow import ExecutionFlow
 from medperf.entities.execution import Execution
 from tabulate import tabulate
+from medperf.commands.execution.utils import filter_latest_executions
 
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
@@ -170,6 +171,7 @@ class BenchmarkExecution:
             if execution.benchmark == self.benchmark_uid
             and execution.dataset == self.data_uid
         ]
+        benchmark_dset_executions = filter_latest_executions(benchmark_dset_executions)
         self.existing_executions = {
             execution.model: execution for execution in benchmark_dset_executions
         }
@@ -267,12 +269,10 @@ class BenchmarkExecution:
 
     def __create_execution(self, model_uid: int) -> Execution:
         # Get or create an execution object on the server
-        owner = get_medperf_user_data()["id"]
         query_dict = {
             "dataset": self.data_uid,
             "model": model_uid,
             "benchmark": self.benchmark_uid,
-            "owner": owner,
             "name": self.__execution_name(model_uid),
         }
         execution = Execution(**query_dict)
