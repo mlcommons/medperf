@@ -8,6 +8,7 @@ from medperf.utils import generate_tmp_path, remove_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError, CommunicationError, CleanExit
 import yaml
+from time import time
 
 
 class ExecutionFlow:
@@ -74,7 +75,10 @@ class ExecutionFlow:
 
     def __setup_predictions_path(self):
         if self.execution is not None and self.execution.id is not None:
-            preds_path = os.path.join(config.predictions_folder, str(self.execution.id))
+            timestamp = str(time()).replace(".", "_")
+            preds_path = os.path.join(
+                config.predictions_folder, str(self.execution.id), timestamp
+            )
         else:
             # for compatibility test execution flows
             model_uid = self.model.local_id
@@ -82,9 +86,8 @@ class ExecutionFlow:
             preds_path = os.path.join(
                 config.predictions_folder, str(model_uid), str(data_uid)
             )
+            remove_path(preds_path)  # clear it
 
-        remove_path(preds_path)
-        os.makedirs(preds_path)
         return preds_path
 
     def set_pending_status(self):
