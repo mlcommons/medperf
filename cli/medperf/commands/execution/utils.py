@@ -1,7 +1,9 @@
 from pydantic.datetime_parse import parse_datetime
+from medperf.entities.execution import Execution
+from typing import List
 
 
-def filter_latest_executions(executions):
+def filter_latest_executions(executions: List[Execution]) -> List[Execution]:
     """Given a list of executions, this function
     retrieves a list containing the latest executions of each
     model-dataset-benchmark triplet.
