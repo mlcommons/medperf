@@ -188,6 +188,9 @@ metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"
 dataset_raw_paths_file = "raw.yaml"
 ready_flag_file = ".ready"
+partial_flag = ".partial"
+executed_flag = ".executed"
+results_filename = "results.yaml"
 
 # MLCube assets conventions
 cube_filename = "container_config.yaml"

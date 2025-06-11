@@ -4,7 +4,7 @@ import logging
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.execution import Execution
-from medperf.utils import generate_tmp_path
+from medperf.utils import generate_tmp_path, remove_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError, CommunicationError, CleanExit
 import yaml
@@ -73,16 +73,18 @@ class ExecutionFlow:
         return model_logs_path, metrics_logs_path
 
     def __setup_predictions_path(self):
-        model_uid = self.model.local_id
-        data_uid = self.dataset.local_id
-        preds_path = os.path.join(
-            config.predictions_folder, str(model_uid), str(data_uid)
-        )
-        if os.path.exists(preds_path):
-            msg = f"Found existing predictions for model {self.model.id} on dataset "
-            msg += f"{self.dataset.id} at {preds_path}. Consider deleting this "
-            msg += "folder if you wish to overwrite the predictions."
-            raise ExecutionError(msg)
+        if self.execution is not None and self.execution.id is not None:
+            preds_path = os.path.join(config.predictions_folder, str(self.execution.id))
+        else:
+            # for compatibility test execution flows
+            model_uid = self.model.local_id
+            data_uid = self.dataset.local_id
+            preds_path = os.path.join(
+                config.predictions_folder, str(model_uid), str(data_uid)
+            )
+
+        remove_path(preds_path)
+        os.makedirs(preds_path)
         return preds_path
 
     def set_pending_status(self):

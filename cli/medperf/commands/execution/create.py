@@ -29,9 +29,17 @@ class BenchmarkExecution:
         ignore_failed_experiments=False,
         no_cache=False,
         show_summary=False,
-        test=False,
+        rerun_finalized_executions=False,
     ):
         """Benchmark execution flow.
+        How the following variables affect whether to execute or no:
+        no_cache, rerun_finalized_executions, and
+        execution object state ((0) doesn't exist, (1) exist, (2) executed, (3) finalized):
+
+        if no_cache is false and rerun_finalized_executions is false, then execute if (0) or (1)
+        if no_cache is true and rerun_finalized_executions is false, then execute if (0) or (1) or(2)
+        if no_cache is true and rerun_finalized_executions is true, then execute anyway
+
 
         Args:
             benchmark_uid (int): UID of the desired benchmark
@@ -40,26 +48,27 @@ class BenchmarkExecution:
                                     if None, models_input_file will be used
             models_input_file: filename to read from
             if models_uids and models_input_file are None, use all benchmark models
-            test: Whether this execution represents an association test. Defaults to False.
         """
-        execution = cls(
+        if rerun_finalized_executions:
+            no_cache = True
+        execution_flow = cls(
             benchmark_uid,
             data_uid,
             models_uids,
             models_input_file,
             ignore_model_errors,
             ignore_failed_experiments,
-            test=test,
+            no_cache,
+            rerun_finalized_executions,
         )
-        execution.prepare()
-        execution.validate()
-        execution.prepare_models()
-        if not no_cache:
-            execution.load_cached_executions()
-        with execution.ui.interactive():
-            executions = execution.run_experiments()
+        execution_flow.prepare()
+        execution_flow.validate()
+        execution_flow.prepare_models()
+        execution_flow.load_existing_executions()
+        with execution_flow.ui.interactive():
+            executions = execution_flow.run_experiments()
         if show_summary:
-            execution.print_summary()
+            execution_flow.print_summary()
         return executions
 
     def __init__(
@@ -70,7 +79,8 @@ class BenchmarkExecution:
         models_input_file: str = None,
         ignore_model_errors=False,
         ignore_failed_experiments=False,
-        test=False,
+        no_cache=False,
+        rerun_finalized_executions=False,
     ):
         self.benchmark_uid = benchmark_uid
         self.data_uid = data_uid
@@ -80,9 +90,10 @@ class BenchmarkExecution:
         self.evaluator = None
         self.ignore_model_errors = ignore_model_errors
         self.ignore_failed_experiments = ignore_failed_experiments
-        self.cached_executions = {}
+        self.existing_executions = {}
         self.experiments = []
-        self.test = test
+        self.no_cache = no_cache
+        self.rerun_finalized_executions = rerun_finalized_executions
 
     def prepare(self):
         self.benchmark = Benchmark.get(self.benchmark_uid)
@@ -150,17 +161,16 @@ class BenchmarkExecution:
                 msg = f"Models of UIDs {non_assoc_cubes} are not associated with the specified benchmark."
             raise InvalidArgumentError(msg)
 
-    def load_cached_executions(self):
+    def load_existing_executions(self):
         user_id = get_medperf_user_data()["id"]
         executions = Execution.all(filters={"owner": user_id})
-        executions += Execution.all(unregistered=True)
         benchmark_dset_executions = [
             execution
             for execution in executions
             if execution.benchmark == self.benchmark_uid
             and execution.dataset == self.data_uid
         ]
-        self.cached_executions = {
+        self.existing_executions = {
             execution.model: execution for execution in benchmark_dset_executions
         }
 
@@ -173,18 +183,35 @@ class BenchmarkExecution:
 
     def run_experiments(self):
         for model_uid in self.models_uids:
-            if model_uid in self.cached_executions:
+            execution = self.existing_executions.get(model_uid, None)
+            if (
+                execution is None
+                or execution.finalized
+                and self.rerun_finalized_executions
+            ):
+                execution = self.__create_execution(model_uid)
+
+            if self.rerun_finalized_executions:
+                should_run = True
+            else:
+                if self.no_cache:
+                    should_run = not execution.finalized
+                else:
+                    should_run = not execution.is_executed()
+
+            if should_run:
+                execution.unmark_as_executed()
+            else:
                 self.experiments.append(
                     {
                         "model_uid": model_uid,
-                        "execution": self.cached_executions[model_uid],
+                        "execution": execution,
                         "cached": True,
                         "error": "",
+                        "partial": execution.is_partial(),
                     }
                 )
                 continue
-
-            execution = self.__get_or_create_execution(model_uid)
 
             try:
                 model_cube = self.__get_cube(model_uid, "Model")
@@ -203,13 +230,15 @@ class BenchmarkExecution:
                         "execution": None,
                         "cached": False,
                         "error": str(e),
+                        "partial": "N/A",
                     }
                 )
                 continue
 
-            execution.results = execution_summary["results"]
-            execution.metadata = {"partial": execution_summary["partial"]}
-            execution.write()
+            execution.mark_as_executed()
+            execution.save_results(
+                execution_summary["results"], execution_summary["partial"]
+            )
 
             self.experiments.append(
                 {
@@ -217,6 +246,7 @@ class BenchmarkExecution:
                     "execution": execution,
                     "cached": False,
                     "error": "",
+                    "partial": execution_summary["partial"],
                 }
             )
         return [experiment["execution"] for experiment in self.experiments]
@@ -235,7 +265,7 @@ class BenchmarkExecution:
         if not self.ignore_failed_experiments:
             raise exception
 
-    def __get_or_create_execution(self, model_uid: int) -> Execution:
+    def __create_execution(self, model_uid: int) -> Execution:
         # Get or create an execution object on the server
         owner = get_medperf_user_data()["id"]
         query_dict = {
@@ -243,21 +273,12 @@ class BenchmarkExecution:
             "model": model_uid,
             "benchmark": self.benchmark_uid,
             "owner": owner,
+            "name": self.__execution_name(model_uid),
         }
-        exec_query = Execution.all(filters=query_dict)
-        if len(exec_query):
-            # Return the first (and pressumably only) execution object
-            return exec_query[0]
-
-        # Create a new execution instance
-        query_dict["name"] = self.__execution_name(model_uid)
         execution = Execution(**query_dict)
-        if self.test:
-            # For tests we don't upload the execution
-            return execution
-
-        exec_dict = execution.upload()
-        execution = Execution(**exec_dict)
+        updated_exec_dict = execution.upload()
+        execution = Execution(**updated_exec_dict)
+        execution.write()
         return execution
 
     def __execution_name(self, model_uid):
@@ -280,7 +301,7 @@ class BenchmarkExecution:
                     [
                         experiment["model_uid"],
                         experiment["execution"].local_id,
-                        experiment["execution"].metadata["partial"],
+                        experiment["partial"],
                         experiment["cached"],
                         experiment["error"],
                     ]
@@ -295,11 +316,11 @@ class BenchmarkExecution:
                 num_failed += 1
             elif experiment["cached"]:
                 num_skipped += 1
-                if experiment["execution"].metadata["partial"]:
+                if experiment["partial"]:
                     num_partial_skipped += 1
             elif experiment["execution"]:
                 num_success_run += 1
-                if experiment["execution"].metadata["partial"]:
+                if experiment["partial"]:
                     num_partial_run += 1
 
         tab = tabulate(data_lists_for_display, headers=headers)

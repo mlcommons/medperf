@@ -1,7 +1,13 @@
+import os
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
+from typing import Optional
+from datetime import datetime
+
+from medperf.utils import remove_path
+import yaml
 
 
 class Execution(Entity, ApprovableSchema):
@@ -23,6 +29,8 @@ class Execution(Entity, ApprovableSchema):
     user_metadata: dict = {}
     model_report: dict = {}
     evaluation_report: dict = {}
+    finalized: bool = False
+    finalized_at: Optional[datetime]
 
     @staticmethod
     def get_type():
@@ -47,10 +55,46 @@ class Execution(Entity, ApprovableSchema):
     def __init__(self, *args, **kwargs):
         """Creates a new execution instance"""
         super().__init__(*args, **kwargs)
+        self.results_path = os.path.join(self.path, config.results_filename)
 
     @property
     def local_id(self):
         return self.name
+
+    def is_executed(self):
+        flag_file = os.path.join(self.path, config.executed_flag)
+        return os.path.exists(flag_file)
+
+    def unmark_as_executed(self):
+        flag_file = os.path.join(self.path, config.executed_flag)
+        remove_path(flag_file)
+
+    def mark_as_executed(self):
+        flag_file = os.path.join(self.path, config.executed_flag)
+        with open(flag_file, "w"):
+            pass
+
+    def save_results(self, results, partial):
+        with open(self.results_path, "w") as f:
+            yaml.safe_dump(results, f)
+
+        if partial:
+            flag_file = os.path.join(self.path, config.partial_flag)
+            with open(flag_file, "w"):
+                pass
+
+    def read_results(self):
+        with open(self.results_path) as f:
+            results = yaml.safe_load(f)
+        return results
+
+    def is_partial(self):
+        is_partial_from_metadata = self.metadata.get("partial", None)
+        if is_partial_from_metadata is not None:
+            return is_partial_from_metadata
+        # otherwise, check locally
+        flag_file = os.path.join(self.path, config.partial_flag)
+        return os.path.exists(flag_file)
 
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:
