@@ -74,6 +74,7 @@ def __apply_results_to_executions_migrations(config_p):
         shutil.move(results_folder, execs_folder)
 
     del config_p.storage["results_folder"]
+    config_p.storage["executions_folder"] = results_base
 
 
 def apply_configuration_migrations():
