@@ -439,33 +439,41 @@ checkFailed "run all outstanding models failed"
 echo "\n"
 
 ##########################################################
-echo "======================================================================================"
-echo "Run failing container with ignore errors (This SHOULD fail since predictions folder exists)"
-echo "======================================================================================"
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
-checkSucceeded "Container ran successfuly but should fail since predictions folder exists"
-##########################################################
-
-echo "\n"
-
-##########################################################
 echo "====================================================================="
-echo "Run failing container with ignore errors after deleting predictions folder"
+echo "Run failing container with ignore errors"
 echo "====================================================================="
-print_eval rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-fail/$DSET_A_GENUID
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y --ignore-model-errors
+print_eval medperf result create -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors
 checkFailed "Failing container run with ignore errors failed"
 ##########################################################
 
 echo "\n"
 
 ##########################################################
-echo "====================================="
-echo "Running logging model without logging env"
-echo "====================================="
-print_eval rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-log-none/$DSET_A_GENUID
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_NONE_UID -y
-checkFailed "run logging model without logging env failed"
+echo "====================================================================="
+echo "Submit failing container's result"
+echo "====================================================================="
+print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y
+checkFailed "Failing container run with ignore errors failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================================================="
+echo "Rerun (execute+submit). This will error out"
+echo "====================================================================="
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors -y
+checkSucceeded "Rerunning should fail, but it succeeded"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================================================="
+echo "Rerun (execute+submit) with --new-result flag. This should work."
+echo "====================================================================="
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors --new-result -y
+checkFailed "Rerunning with --new-result failed"
 ##########################################################
 
 echo "\n"
@@ -474,8 +482,7 @@ echo "\n"
 echo "====================================="
 echo "Running logging model with debug logging env"
 echo "====================================="
-print_eval rm -rf $MEDPERF_STORAGE/predictions/$SERVER_STORAGE_ID/model-log-debug/$DSET_A_GENUID
-print_eval medperf --container-loglevel debug run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID -y
+print_eval medperf --container-loglevel debug run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID --new-result -y
 checkFailed "run logging model with debug logging env failed"
 ##########################################################
 
