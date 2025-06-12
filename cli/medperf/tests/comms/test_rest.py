@@ -48,7 +48,7 @@ def server(mocker, ui):
             201,
             [{}],
             {"id": 1},
-            (f"{full_url}/executions/",),
+            (f"{full_url}/results/",),
             {"json": {}},
         ),
         (
@@ -516,7 +516,7 @@ def test_get_execution_calls_specified_path(mocker, server, uid, body):
     # Arrange
     res = MockResponse(body, 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_get"), return_value=res)
-    exp_path = f"{full_url}/executions/{uid}/"
+    exp_path = f"{full_url}/results/{uid}/"
 
     # Act
     execution = server.get_execution(uid)
