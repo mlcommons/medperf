@@ -10,7 +10,7 @@ from .testing_utils import (
     mock_benchmark,
     mock_dataset,
     mock_mlcube,
-    mock_execution,
+    mock_result,
     mock_dataset_association,
     mock_mlcube_association,
 )
@@ -52,7 +52,7 @@ class MedPerfTest(TestCase):
         self.mock_benchmark = mock_benchmark
         self.mock_dataset = mock_dataset
         self.mock_mlcube = mock_mlcube
-        self.mock_execution = mock_execution
+        self.mock_result = mock_result
         self.mock_dataset_association = mock_dataset_association
         self.mock_mlcube_association = mock_mlcube_association
 
@@ -107,7 +107,7 @@ class MedPerfTest(TestCase):
     def create_mlcube(self, data):
         return self.__create_asset(data, self.api_prefix + "/mlcubes/")
 
-    def create_execution(self, data):
+    def create_result(self, data):
         return self.__create_asset(data, self.api_prefix + "/results/")
 
     def create_dataset_association(

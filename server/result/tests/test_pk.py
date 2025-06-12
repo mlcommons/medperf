@@ -89,11 +89,11 @@ class ResultGetTest(ResultsTest):
 
     def test_generic_get_result(self):
         # Arrange
-        execution = self.mock_execution(
+        result = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_execution(execution).data
+        result = self.create_result(result).data
         self.set_credentials(self.actor)
 
         url = self.url.format(result["id"])
@@ -136,11 +136,11 @@ class ResultPutTest(ResultsTest):
 
     def test_put_does_not_modify_readonly_fields(self):
         # Arrange
-        execution = self.mock_execution(
+        result = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_execution(execution).data
+        result = self.create_result(result).data
         self.set_credentials(self.actor)
 
         newtestresult = {
@@ -164,13 +164,13 @@ class ResultPutTest(ResultsTest):
         for k, v in newtestresult.items():
             self.assertNotEqual(v, response.data[k], f"{k} was modified")
 
-    def test_adding_results_turns_execution_finalized(self):
+    def test_adding_results_turns_result_object_finalized(self):
         # Arrange
-        execution = self.mock_execution(
+        modelresult = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_execution(execution).data
+        result = self.create_result(modelresult).data
         self.set_credentials(self.actor)
 
         newtestresult = {
@@ -185,13 +185,13 @@ class ResultPutTest(ResultsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(True, response.data["finalized"], "It's still not finalized")
 
-    def test_put_is_not_allowed_with_finalized_execution(self):
+    def test_put_is_not_allowed_with_finalized_result_objects(self):
         # Arrange
-        execution = self.mock_execution(
+        modelresult = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_execution(execution).data
+        result = self.create_result(modelresult).data
         newtestresult = {
             "results": {"res": 1},
         }
@@ -231,11 +231,11 @@ class ResultDeleteTest(ResultsTest):
 
     def test_deletion_works_as_expected(self):
         # Arrange
-        execution = self.mock_execution(
+        result = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_execution(execution).data
+        result = self.create_result(result).data
         self.set_credentials(self.actor)
 
         url = self.url.format(result["id"])
@@ -266,11 +266,11 @@ class PermissionTest(ResultsTest):
     def setUp(self):
         super(PermissionTest, self).setUp()
         self.generic_setup()
-        execution = self.mock_execution(
+        result = self.mock_result(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
-        result = self.create_execution(execution).data
+        result = self.create_result(result).data
         self.url = self.url.format(result["id"])
 
         self.result = result

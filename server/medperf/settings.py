@@ -98,7 +98,7 @@ INSTALLED_APPS = [
     "mlcube",
     "benchmarkmodel",
     "user",
-    "execution",
+    "result",
     "training",
     "aggregator",
     "ca",

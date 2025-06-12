@@ -4,15 +4,23 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
-from .models import Execution
-from .serializers import ExecutionSerializer, ExecutionDetailSerializer
+from .models import ModelResult
+from .serializers import ModelResultSerializer, ModelResultDetailSerializer
 from .permissions import IsAdmin, IsBenchmarkOwner, IsDatasetOwner
 
 
-class ExecutionList(GenericAPIView):
-    serializer_class = ExecutionSerializer
+class ModelResultList(GenericAPIView):
+    serializer_class = ModelResultSerializer
     queryset = ""
-    filterset_fields = ('name', 'owner', 'benchmark', 'model', 'dataset', 'is_valid', 'approval_status')
+    filterset_fields = (
+        "name",
+        "owner",
+        "benchmark",
+        "model",
+        "dataset",
+        "is_valid",
+        "approval_status",
+    )
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -24,27 +32,27 @@ class ExecutionList(GenericAPIView):
     @extend_schema(operation_id="results_retrieve_all")
     def get(self, request, format=None):
         """
-        List all executions
+        List all results
         """
-        executions = Execution.objects.all()
-        executions = self.filter_queryset(executions)
-        executions = self.paginate_queryset(executions)
-        serializer = ExecutionSerializer(executions, many=True)
+        modelresults = ModelResult.objects.all()
+        modelresults = self.filter_queryset(modelresults)
+        modelresults = self.paginate_queryset(modelresults)
+        serializer = ModelResultSerializer(modelresults, many=True)
         return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
         """
-        Creates a new execution
+        Creates a new result
         """
-        serializer = ExecutionSerializer(data=request.data)
+        serializer = ModelResultSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ExecutionDetail(GenericAPIView):
-    serializer_class = ExecutionDetailSerializer
+class ModelResultDetail(GenericAPIView):
+    serializer_class = ModelResultDetailSerializer
     queryset = ""
 
     def get_permissions(self):
@@ -58,24 +66,24 @@ class ExecutionDetail(GenericAPIView):
 
     def get_object(self, pk):
         try:
-            return Execution.objects.get(pk=pk)
-        except Execution.DoesNotExist:
+            return ModelResult.objects.get(pk=pk)
+        except ModelResult.DoesNotExist:
             raise Http404
 
     def get(self, request, pk, format=None):
         """
-        Retrieve a execution instance.
+        Retrieve a result instance.
         """
-        execution = self.get_object(pk)
-        serializer = ExecutionDetailSerializer(execution)
+        modelresult = self.get_object(pk)
+        serializer = ModelResultDetailSerializer(modelresult)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
         """
-        Update a execution instance.
+        Update a result instance.
         """
-        execution = self.get_object(pk)
-        serializer = ExecutionDetailSerializer(execution, data=request.data)
+        modelresult = self.get_object(pk)
+        serializer = ModelResultDetailSerializer(modelresult, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -83,8 +91,8 @@ class ExecutionDetail(GenericAPIView):
 
     def delete(self, request, pk, format=None):
         """
-        Delete an execution instance.
+        Delete a result instance.
         """
-        Execution = self.get_object(pk)
-        Execution.delete()
+        modelresult = self.get_object(pk)
+        modelresult.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

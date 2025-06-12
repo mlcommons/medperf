@@ -11,8 +11,8 @@ python manage.py test \
     dataset.tests.test_pk_benchmarks_bid \
     mlcube.tests.test_benchmarks \
     mlcube.tests.test_pk_benchmarks_bid \
-    execution.tests.test_ \
-    execution.tests.test_pk \
+    result.tests.test_ \
+    result.tests.test_pk \
     utils.tests \
     user.tests.test_ \
     user.tests.test_pk \

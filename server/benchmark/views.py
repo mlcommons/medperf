@@ -1,6 +1,6 @@
 from benchmarkmodel.serializers import BenchmarkListofModelsSerializer
 from benchmarkdataset.serializers import BenchmarkListofDatasetsSerializer
-from execution.serializers import ExecutionSerializer
+from result.serializers import ModelResultSerializer
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -90,7 +90,7 @@ class BenchmarkDatasetList(GenericAPIView):
 
 class BenchmarkResultList(GenericAPIView):
     permission_classes = [IsAdmin | IsBenchmarkOwner]
-    serializer_class = ExecutionSerializer
+    serializer_class = ModelResultSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -104,9 +104,9 @@ class BenchmarkResultList(GenericAPIView):
         Retrieve results associated with a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        results = benchmark.execution_set.all()
+        results = benchmark.modelresult_set.all()
         results = self.paginate_queryset(results)
-        serializer = ExecutionSerializer(results, many=True)
+        serializer = ModelResultSerializer(results, many=True)
         return self.get_paginated_response(serializer.data)
 
 

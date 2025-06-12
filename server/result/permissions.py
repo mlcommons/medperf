@@ -1,7 +1,7 @@
 from rest_framework.permissions import BasePermission
 from benchmark.models import Benchmark
 from dataset.models import Dataset
-from .models import Execution
+from .models import ModelResult
 
 
 class IsAdmin(BasePermission):
@@ -9,31 +9,31 @@ class IsAdmin(BasePermission):
         return request.user.is_superuser
 
 
-class IsExecutionOwner(BasePermission):
+class IsResultOwner(BasePermission):
     def get_object(self, pk):
         try:
-            return Execution.objects.get(pk=pk)
-        except Execution.DoesNotExist:
+            return ModelResult.objects.get(pk=pk)
+        except ModelResult.DoesNotExist:
             return None
 
     def has_permission(self, request, view):
         pk = view.kwargs.get("pk", None)
         if not pk:
             return False
-        execution = self.get_object(pk)
-        if not execution:
+        result = self.get_object(pk)
+        if not result:
             return False
-        if execution.owner.id == request.user.id:
+        if result.owner.id == request.user.id:
             return True
         else:
             return False
 
 
 class IsDatasetOwner(BasePermission):
-    def get_execution_object(self, pk):
+    def get_result_object(self, pk):
         try:
-            return Execution.objects.get(pk=pk)
-        except Execution.DoesNotExist:
+            return ModelResult.objects.get(pk=pk)
+        except ModelResult.DoesNotExist:
             return None
 
     def get_dataset_object(self, pk):
@@ -46,11 +46,11 @@ class IsDatasetOwner(BasePermission):
         if request.method == "POST":
             pk = request.data.get("dataset", None)
         else:
-            execution_pk = view.kwargs.get("pk", None)
-            execution = self.get_execution_object(execution_pk)
-            if not execution:
+            result_pk = view.kwargs.get("pk", None)
+            result = self.get_result_object(result_pk)
+            if not result:
                 return False
-            pk = execution.dataset.id
+            pk = result.dataset.id
         if not pk:
             return False
         dataset = self.get_dataset_object(pk)
@@ -63,10 +63,10 @@ class IsDatasetOwner(BasePermission):
 
 
 class IsBenchmarkOwner(BasePermission):
-    def get_execution_object(self, pk):
+    def get_result_object(self, pk):
         try:
-            return Execution.objects.get(pk=pk)
-        except Execution.DoesNotExist:
+            return ModelResult.objects.get(pk=pk)
+        except ModelResult.DoesNotExist:
             return None
 
     def get_benchmark_object(self, pk):
@@ -77,11 +77,11 @@ class IsBenchmarkOwner(BasePermission):
 
     def has_permission(self, request, view):
         if request.method == "GET":
-            execution_pk = view.kwargs.get("pk", None)
-            execution = self.get_execution_object(execution_pk)
-            if not execution:
+            result_pk = view.kwargs.get("pk", None)
+            result = self.get_result_object(result_pk)
+            if not result:
                 return False
-            pk = execution.benchmark.id
+            pk = result.benchmark.id
         if not pk:
             return False
         benchmark = self.get_benchmark_object(pk)

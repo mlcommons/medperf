@@ -136,7 +136,7 @@ def mock_benchmark(
     return data
 
 
-def mock_execution(benchmark, model, dataset, **kwargs):
+def mock_result(benchmark, model, dataset, **kwargs):
     data = {
         "name": "string",
         "benchmark": benchmark,

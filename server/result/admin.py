@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Execution
+from .models import ModelResult
 
 
-class ExecutionAdmin(admin.ModelAdmin):
+class ModelResultAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "owner",
@@ -22,4 +22,4 @@ class ExecutionAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Execution, ExecutionAdmin)
+admin.site.register(ModelResult, ModelResultAdmin)

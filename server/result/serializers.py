@@ -3,12 +3,12 @@ from rest_framework import serializers
 from benchmarkdataset.models import BenchmarkDataset
 from benchmarkmodel.models import BenchmarkModel
 
-from .models import Execution
+from .models import ModelResult
 
 
-class ExecutionSerializer(serializers.ModelSerializer):
+class ModelResultSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Execution
+        model = ModelResult
         fields = "__all__"
         read_only_fields = [
             "owner",
@@ -64,9 +64,9 @@ class ExecutionSerializer(serializers.ModelSerializer):
         return data
 
 
-class ExecutionDetailSerializer(serializers.ModelSerializer):
+class ModelResultDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Execution
+        model = ModelResult
         fields = "__all__"
         read_only_fields = [
             "owner",
@@ -81,7 +81,7 @@ class ExecutionDetailSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if self.instance.finalized:
             raise serializers.ValidationError(
-                "User cannot update an execution after it's been finalized."
+                "User cannot update a result object after it's been finalized."
             )
         return data
 
