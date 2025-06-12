@@ -58,6 +58,7 @@ class ExecutionFlow:
         self.preds_path = self.__setup_predictions_path()
         self.model_logs_path, self.metrics_logs_path = self.__setup_logs_path()
         self.results_path = generate_tmp_path()
+        self.local_outputs_path = self.__setup_local_outputs_path()
         logging.debug(f"tmp results output: {self.results_path}")
 
     def __setup_logs_path(self):
@@ -89,6 +90,16 @@ class ExecutionFlow:
             remove_path(preds_path)  # clear it
 
         return preds_path
+
+    def __setup_local_outputs_path(self):
+        if self.execution is not None and self.execution.id is not None:
+            local_outputs_path = self.execution.local_outputs_path
+        else:
+            # Non-persistent for compatibility test execution flows
+            # TODO: make this better
+            local_outputs_path = generate_tmp_path()
+
+        return local_outputs_path
 
     def set_pending_status(self):
         self.__send_model_report("pending")
@@ -133,6 +144,7 @@ class ExecutionFlow:
             "predictions": self.preds_path,
             "labels": self.dataset.labels_path,
             "output_path": self.results_path,
+            "local_outputs_path": self.local_outputs_path,
         }
         self.ui.text = "Evaluating results"
         self.__send_evaluator_report("started")

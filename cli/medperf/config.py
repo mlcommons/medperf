@@ -191,6 +191,7 @@ ready_flag_file = ".ready"
 partial_flag = ".partial"
 executed_flag = ".executed"
 results_filename = "results.yaml"
+local_metrics_outputs = "local_outputs"
 
 # MLCube assets conventions
 cube_filename = "container_config.yaml"

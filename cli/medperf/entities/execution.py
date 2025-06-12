@@ -56,6 +56,7 @@ class Execution(Entity, ApprovableSchema):
         """Creates a new execution instance"""
         super().__init__(*args, **kwargs)
         self.results_path = os.path.join(self.path, config.results_filename)
+        self.local_outputs_path = os.path.join(self.path, config.local_metrics_outputs)
 
     @property
     def local_id(self):
