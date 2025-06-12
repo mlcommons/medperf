@@ -286,7 +286,7 @@ class BenchmarkExecution:
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
 
     def print_summary(self):
-        headers = ["model", "local result UID", "partial result", "from cache", "error"]
+        headers = ["model", "Execution UID", "partial result", "from cache", "error"]
         data_lists_for_display = []
 
         num_total = len(self.experiments)
@@ -301,7 +301,7 @@ class BenchmarkExecution:
                 data_lists_for_display.append(
                     [
                         experiment["model_uid"],
-                        experiment["execution"].local_id,
+                        experiment["execution"].id,
                         experiment["partial"],
                         experiment["cached"],
                         experiment["error"],
