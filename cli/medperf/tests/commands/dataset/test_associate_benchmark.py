@@ -1,8 +1,8 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError
 import pytest
 from unittest.mock import ANY
 
-from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.execution import TestExecution
 from medperf.tests.mocks.dataset import TestDataset
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.commands.dataset.associate import AssociateDataset
@@ -50,10 +50,11 @@ def test_fails_if_dataset_is_not_registered(mocker, comms, ui, dataset, benchmar
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch.object(result, "read_results", return_value={})
 
     # Act
     AssociateDataset.run(1, 1)
@@ -70,11 +71,12 @@ def test_associates_if_approved(
     mocker, comms, ui, dataset, data_uid, benchmark_uid, benchmark
 ):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     assoc_func = "associate_benchmark_dataset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch.object(result, "read_results", return_value={})
     spy = mocker.patch.object(comms, assoc_func)
     dataset.id = data_uid
 
@@ -89,25 +91,26 @@ def test_associates_if_approved(
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
     assoc_spy = mocker.patch.object(comms, "associate_benchmark_dataset")
+    mocker.patch.object(result, "read_results", return_value={})
 
-    # Act
-    AssociateDataset.run(1, 1)
+    # Act & Assert
+    with pytest.raises(CleanExit):
+        AssociateDataset.run(1, 1)
 
-    # Assert
-    spy.assert_called_once()
-    assoc_spy.assert_not_called()
+        spy.assert_called_once()
+        assoc_spy.assert_not_called()
 
 
 @pytest.mark.parametrize("dataset", [1], indirect=True)
 @pytest.mark.parametrize("benchmark", [1], indirect=True)
 def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, benchmark):
     # Arrange
-    result = TestResult()
+    result = TestExecution()
     data_uid = 1562
     benchmark_uid = 3557
     assoc_func = "associate_benchmark_dataset"
@@ -116,6 +119,7 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
     spy = mocker.patch(
         PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret
     )
+    mocker.patch.object(result, "read_results", return_value={})
     mocker.patch.object(comms, assoc_func)
     dataset.id = data_uid
 
@@ -124,8 +128,5 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
 
     # Assert
     spy.assert_called_once_with(
-        benchmark_uid,
-        data_uid,
-        [benchmark.reference_model_mlcube],
-        no_cache=False,
+        benchmark_uid, data_uid, [benchmark.reference_model_mlcube], no_cache=False
     )

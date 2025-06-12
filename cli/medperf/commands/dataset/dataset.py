@@ -31,6 +31,10 @@ def list(
         "-m",
         help="Get datasets for a given data preparation container",
     ),
+    name: str = typer.Option(None, "--name", help="Filter by name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner"),
+    state: str = typer.Option(None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"),
+    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Filter by valid status"),
 ):
     """List datasets"""
     EntityList.run(
@@ -46,6 +50,10 @@ def list(
         unregistered=unregistered,
         mine_only=mine,
         mlcube=mlcube,
+        name=name,
+        owner=owner,
+        state=state,
+        is_valid=is_valid,
     )
 
 

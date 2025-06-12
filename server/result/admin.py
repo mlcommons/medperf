@@ -15,6 +15,10 @@ class ModelResultAdmin(admin.ModelAdmin):
         "approved_at",
         "created_at",
         "modified_at",
+        "model_report",
+        "evaluation_report",
+        "finalized",
+        "finalized_at",
     )
 
 

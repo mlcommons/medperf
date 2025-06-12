@@ -3,7 +3,7 @@ import pytest
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.tests.entities.utils import (
     setup_benchmark_fs,
     setup_benchmark_comms,
@@ -12,13 +12,13 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
     setup_dset_fs,
     setup_dset_comms,
-    setup_result_fs,
-    setup_result_comms,
+    setup_execution_fs,
+    setup_execution_comms,
 )
 from medperf.exceptions import CommunicationRetrievalError, InvalidArgumentError
 
 
-@pytest.fixture(params=[Benchmark, Cube, Dataset, Result])
+@pytest.fixture(params=[Benchmark, Cube, Dataset, Execution])
 def Implementation(request):
     return request.param
 
@@ -48,9 +48,9 @@ def setup(request, mocker, comms, Implementation, fs):
     elif Implementation == Dataset:
         setup_fs = setup_dset_fs
         setup_comms = setup_dset_comms
-    elif Implementation == Result:
-        setup_fs = setup_result_fs
-        setup_comms = setup_result_comms
+    elif Implementation == Execution:
+        setup_fs = setup_execution_fs
+        setup_comms = setup_execution_comms
 
     setup_comms(mocker, comms, remote_ids, user_ids, uploaded)
     setup_fs(local_ids, fs)
