@@ -75,7 +75,7 @@ class Entity(MedperfSchema, ABC):
     @classmethod
     def __remote_all(cls: Type[EntityType], filters: dict) -> List[EntityType]:
         comms_fn = cls.remote_prefilter(filters)
-        entity_meta = comms_fn()
+        entity_meta = comms_fn(filters=filters)
         entities = [cls(**meta) for meta in entity_meta]
         return entities
 

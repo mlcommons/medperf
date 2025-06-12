@@ -1,6 +1,6 @@
 import logging
 
-from medperf.commands.execution import Execution
+from medperf.commands.execution.execution_flow import ExecutionFlow
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
@@ -267,7 +267,7 @@ class CompatibilityTestExecution:
         Returns:
             dict: returns the results of the test execution.
         """
-        execution_summary = Execution.run(
+        execution_summary = ExecutionFlow.run(
             dataset=self.dataset,
             model=self.model_cube,
             evaluator=self.evaluator_cube,

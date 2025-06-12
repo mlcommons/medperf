@@ -147,6 +147,8 @@ def mock_result(benchmark, model, dataset, **kwargs):
         "user_metadata": {"key3": "value3"},
         "approval_status": "PENDING",
         "is_valid": True,
+        "model_report": {"execution_status": "finished"},
+        "evaluator_report": {"execution_status": "finished"},
     }
 
     for key, val in kwargs.items():

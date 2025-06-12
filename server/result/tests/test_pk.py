@@ -123,6 +123,7 @@ class ResultGetTest(ResultsTest):
 @parameterized_class(
     [
         {"actor": "api_admin"},
+        {"actor": "data_owner"},
     ]
 )
 class ResultPutTest(ResultsTest):
@@ -150,7 +151,8 @@ class ResultPutTest(ResultsTest):
             "benchmark": 44,
             "model": 444,
             "dataset": 55,
-            "results": {"new": 111},
+            "finalized": True,
+            "finalized_at": "some_time",
         }
         url = self.url.format(result["id"])
 
@@ -161,6 +163,57 @@ class ResultPutTest(ResultsTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in newtestresult.items():
             self.assertNotEqual(v, response.data[k], f"{k} was modified")
+
+    def test_adding_results_turns_result_object_finalized(self):
+        # Arrange
+        modelresult = self.mock_result(
+            self.bmk_id, self.mlcube_id, self.dataset_id, results={}
+        )
+        self.set_credentials(self.data_owner)
+        result = self.create_result(modelresult).data
+        self.set_credentials(self.actor)
+
+        newtestresult = {
+            "results": {"res": 1},
+        }
+        url = self.url.format(result["id"])
+
+        # Act
+        response = self.client.put(url, newtestresult, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(True, response.data["finalized"], "It's still not finalized")
+
+    def test_put_is_not_allowed_with_finalized_result_objects(self):
+        # Arrange
+        modelresult = self.mock_result(
+            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+        )
+        self.set_credentials(self.data_owner)
+        result = self.create_result(modelresult).data
+        newtestresult = {
+            "results": {"res": 1},
+        }
+        url = self.url.format(result["id"])
+        response = self.client.put(url, newtestresult, format="json")
+
+        self.set_credentials(self.actor)
+
+        newtestresult = {
+            "results": {"newr": 3},
+            "model_report": {"rep": "t"},
+            "evaluation_report": {"rep": "t"},
+            "partial": False,
+        }
+        url = self.url.format(result["id"])
+
+        for key, val in newtestresult.items():
+            # Act
+            response = self.client.put(url, {key: val}, format="json")
+
+            # Assert
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 @parameterized_class(
@@ -207,7 +260,7 @@ class PermissionTest(ResultsTest):
     Non-permitted actions:
         GET: for all users except bmk_owner, data_owner, and admin
         DELETE: for all users except admin
-        PUT: for all users except admin
+        PUT: for all users except admin and data_owner
     """
 
     def setUp(self):
@@ -247,7 +300,6 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("data_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
@@ -287,6 +339,10 @@ class PermissionTest(ResultsTest):
             "approved_at": "time",
             "created_at": "time",
             "modified_at": "time",
+            "finalized_at": "time",
+            "finalized": True,
+            "model_report": {"new": "t"},
+            "evaluation_report": {"new": "t"},
         }
 
         self.set_credentials(user)

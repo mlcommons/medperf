@@ -75,6 +75,14 @@ def list(
         False, "--unregistered", help="Get unregistered containers"
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user containers"),
+    name: str = typer.Option(None, "--name", "-n", help="Filter out by container Name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner ID"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_active: bool = typer.Option(
+        None, "--active/--inactive", help="Filter by active status"
+    ),
 ):
     """List containers"""
     EntityList.run(
@@ -82,6 +90,10 @@ def list(
         fields=["UID", "Name", "State", "Registered"],
         unregistered=unregistered,
         mine_only=mine,
+        name=name,
+        owner=owner,
+        state=state,
+        is_active=is_active,
     )
 
 

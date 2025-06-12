@@ -1,15 +1,16 @@
 import os
 from unittest.mock import ANY, call
-from medperf.commands.execution import Execution
+from medperf.commands.execution.execution_flow import ExecutionFlow
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
+from medperf.tests.mocks.execution import TestExecution
 import pytest
 from medperf import config
 import yaml
 
 
-PATCH_EXECUTION = "medperf.commands.execution.{}"
+PATCH_EXECUTION_FLOW = "medperf.commands.execution.execution_flow.{}"
 
 
 INPUT_DATASET = TestDataset()
@@ -52,6 +53,7 @@ def setup(request, mocker, ui, fs):
         "failing_eval": False,
         "execution_results": {"res": 1, "metric": 55},
         "result_path": "tmp_result_path",
+        "execution": TestExecution(),
     }
     state_variables.update(request.param)
 
@@ -59,10 +61,11 @@ def setup(request, mocker, ui, fs):
     model_run_spy = mock_model(mocker, fs, state_variables)
     eval_run_spy = mock_eval(mocker, fs, state_variables)
 
+    # mock update
     mocker.patch(
-        PATCH_EXECUTION.format("generate_tmp_path"),
-        return_value=state_variables["result_path"],
+        PATCH_EXECUTION_FLOW.format("ExecutionFlow._ExecutionFlow__send_report")
     )
+
     spies = {
         "model_run": model_run_spy,
         "eval_run": eval_run_spy,
@@ -75,70 +78,91 @@ class TestFailures:
         "setup", [{"failing_model": True}, {"failing_eval": True}], indirect=True
     )
     def test_failure_with_failing_cubes_and_no_ignore_error(mocker, setup):
+        # Arrange
+        execution = setup[0]["execution"]
+
         # Act & Assert
         with pytest.raises(ExecutionError):
-            Execution.run(
-                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=False
+            ExecutionFlow.run(
+                INPUT_DATASET,
+                INPUT_MODEL,
+                INPUT_EVALUATOR,
+                execution=execution,
+                ignore_model_errors=False,
             )
 
     @pytest.mark.parametrize("setup", [{"failing_eval": True}], indirect=True)
     def test_failure_with_failing_eval_and_ignore_error(mocker, setup):
+        # Arrange
+        execution = setup[0]["execution"]
+
         # Act & Assert
         with pytest.raises(ExecutionError):
-            Execution.run(
-                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
+            ExecutionFlow.run(
+                INPUT_DATASET,
+                INPUT_MODEL,
+                INPUT_EVALUATOR,
+                execution=execution,
+                ignore_model_errors=True,
             )
 
     @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
     def test_no_failure_with_ignore_error(mocker, setup):
-        # Act & Assert
-        Execution.run(
-            INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
-        )
-
-    @pytest.mark.parametrize("setup", [{}], indirect=True)
-    @pytest.mark.parametrize("ignore_model_errors", [True, False])
-    def test_failure_with_existing_predictions(mocker, setup, ignore_model_errors, fs):
         # Arrange
-        preds_path = os.path.join(
-            config.predictions_folder,
-            INPUT_MODEL.local_id,
-            INPUT_DATASET.local_id,
-        )
+        execution = setup[0]["execution"]
 
-        fs.create_dir(preds_path)
         # Act & Assert
-        with pytest.raises(ExecutionError):
-            Execution.run(
-                INPUT_DATASET,
-                INPUT_MODEL,
-                INPUT_EVALUATOR,
-                ignore_model_errors=ignore_model_errors,
-            )
+        ExecutionFlow.run(
+            INPUT_DATASET,
+            INPUT_MODEL,
+            INPUT_EVALUATOR,
+            execution,
+            ignore_model_errors=True,
+        )
 
 
 @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
 def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
+    # Arrange
+    execution = setup[0]["execution"]
+
     # Act
-    execution_summary = Execution.run(
-        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, ignore_model_errors=True
+    execution_summary = ExecutionFlow.run(
+        INPUT_DATASET,
+        INPUT_MODEL,
+        INPUT_EVALUATOR,
+        execution=execution,
+        ignore_model_errors=True,
     )
+
     # Assert
     assert execution_summary["partial"]
 
 
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_no_partial_result_by_default(mocker, setup):
+    # Arrange
+    execution = setup[0]["execution"]
+
     # Act
-    execution_summary = Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    execution_summary = ExecutionFlow.run(
+        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
+    )
+
     # Assert
     assert not execution_summary["partial"]
 
 
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_results_are_returned(mocker, setup):
+    # Arrange
+    execution = setup[0]["execution"]
+
     # Act
-    execution_summary = Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    execution_summary = ExecutionFlow.run(
+        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
+    )
+
     # Assert
     state_variables = setup[0]
     assert execution_summary["results"] == state_variables["execution_results"]
@@ -147,12 +171,12 @@ def test_results_are_returned(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
+    mocker.patch(PATCH_EXECUTION_FLOW.format("time"), return_value="tmp.uid")
+    execution = setup[0]["execution"]
     exp_preds_path = os.path.join(
-        config.predictions_folder,
-        INPUT_MODEL.local_id,
-        INPUT_DATASET.local_id,
+        config.predictions_folder, str(execution.id), "tmp_uid"
     )
-
+    exp_local_outputs_path = os.path.join(execution.path, config.local_metrics_outputs)
     exp_model_logs_path = os.path.join(
         config.experiments_logs_folder,
         INPUT_MODEL.local_id,
@@ -184,10 +208,13 @@ def test_cube_run_are_called_properly(mocker, setup):
             "predictions": exp_preds_path,
             "labels": INPUT_DATASET.labels_path,
             "output_path": ANY,
+            "local_outputs_path": exp_local_outputs_path,
         },
     )
+
     # Act
-    Execution.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR)
+    ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution)
+
     # Assert
     spies = setup[1]
     spies["model_run"].assert_has_calls([exp_model_call])

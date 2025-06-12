@@ -6,7 +6,7 @@ from medperf.utils import get_file_hash
 from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.execution import TestExecution
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
@@ -154,41 +154,41 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
     )
 
 
-# Setup Result
-def setup_result_fs(ents, fs):
+# Setup Execution
+def setup_execution_fs(ents, fs):
     for ent in ents:
         # Assume we're passing ids, names, or dicts
         if isinstance(ent, dict):
-            result_contents = TestResult(**ent)
+            execution_contents = TestExecution(**ent)
         elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
-            result_contents = TestResult(id=str(ent))
+            execution_contents = TestExecution(id=str(ent))
         else:
-            result_contents = TestResult(id=None, name=ent)
+            execution_contents = TestExecution(id=None, name=ent)
 
-        result_file = os.path.join(result_contents.path, config.results_info_file)
-        bmk_id = result_contents.benchmark
-        cube_id = result_contents.model
-        dataset_id = result_contents.dataset
+        execution_file = os.path.join(execution_contents.path, config.results_info_file)
+        bmk_id = execution_contents.benchmark
+        cube_id = execution_contents.model
+        dataset_id = execution_contents.dataset
         setup_benchmark_fs([bmk_id], fs)
         setup_cube_fs([cube_id], fs)
         setup_dset_fs([dataset_id], fs)
 
         try:
-            fs.create_file(result_file, contents=yaml.dump(result_contents.todict()))
+            fs.create_file(execution_file, contents=yaml.dump(execution_contents.todict()))
         except FileExistsError:
             pass
 
 
-def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = TestResult
+def setup_execution_comms(mocker, comms, all_ents, user_ents, uploaded):
+    generate_fn = TestExecution
     comms_calls = {
-        "get_all": "get_results",
-        "get_user": "get_user_results",
-        "get_instance": "get_result",
-        "upload_instance": "upload_result",
+        "get_all": "get_executions",
+        "get_user": "get_user_executions",
+        "get_instance": "get_execution",
+        "upload_instance": "upload_execution",
     }
 
-    # Enable dset retrieval since its required for result creation
+    # Enable dset retrieval since its required for execution creation
     setup_dset_comms(mocker, comms, [1], [1], uploaded)
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
