@@ -149,7 +149,6 @@ def mock_execution(benchmark, model, dataset, **kwargs):
         "is_valid": True,
         "model_report": {"execution_status": "finished"},
         "evaluator_report": {"execution_status": "finished"},
-
     }
 
     for key, val in kwargs.items():

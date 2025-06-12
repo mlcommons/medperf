@@ -123,6 +123,7 @@ class ResultGetTest(ResultsTest):
 @parameterized_class(
     [
         {"actor": "api_admin"},
+        {"actor": "data_owner"},
     ]
 )
 class ResultPutTest(ResultsTest):
@@ -150,6 +151,8 @@ class ResultPutTest(ResultsTest):
             "benchmark": 44,
             "model": 444,
             "dataset": 55,
+            "finalized": True,
+            "finalized_at": "some_time",
         }
         url = self.url.format(result["id"])
 
@@ -206,7 +209,7 @@ class PermissionTest(ResultsTest):
     Non-permitted actions:
         GET: for all users except bmk_owner, data_owner, and admin
         DELETE: for all users except admin
-        PUT: for all users except admin
+        PUT: for all users except admin and data_owner
     """
 
     def setUp(self):
@@ -246,7 +249,6 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("data_owner", status.HTTP_200_OK),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
@@ -286,6 +288,10 @@ class PermissionTest(ResultsTest):
             "approved_at": "time",
             "created_at": "time",
             "modified_at": "time",
+            "finalized_at": "time",
+            "finalized": True,
+            "model_report": {"new": "t"},
+            "evaluation_report": {"new": "t"},
         }
 
         self.set_credentials(user)
