@@ -3,7 +3,7 @@
 {% macro association_card(assoc, entity, entity_type) %}
 <div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
     <div class="card-body">
-        <h5 class="card-title">{{ entity_name }}</h5>
+        <h5 class="card-title">{{ entity.name }}</h5>
         <h5 class="card-title">
             <a href="/{{ entity_type }}s/ui/display/{{ entity.id }}" class="text-primary">{{ entity.name }}</a>
         </h5>
