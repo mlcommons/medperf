@@ -51,12 +51,19 @@ def mock_dataset(mocker, state_variables):
     mocker.patch(PATCH_EXECUTION.format("Dataset.get"), side_effect=__get_side_effect)
 
 
-def mock_execution_all(mocker, state_variables):
+def mock_execution_all(mocker, state_variables, fs):
     cached_executions_triplets = state_variables["cached_executions_triplets"]
+    ids = range(len(cached_executions_triplets))
     executions = [
-        TestExecution(id=1, benchmark=triplet[0], model=triplet[1], dataset=triplet[2])
-        for triplet in cached_executions_triplets
+        TestExecution(
+            id=id_, benchmark=triplet[0], model=triplet[1], dataset=triplet[2], owner=1
+        )
+        for triplet, id_ in zip(cached_executions_triplets, ids)
     ]
+    for ex in executions:
+        fs.create_file(os.path.join(ex.path, config.executed_flag))
+        # ex.mark_as_executed()
+
     mocker.patch(
         PATCH_EXECUTION.format("get_medperf_user_data", return_value={"id": 1})
     )
@@ -138,7 +145,7 @@ def setup(request, mocker, ui, fs):
     # mocks
     mock_benchmark(mocker, state_variables)
     mock_dataset(mocker, state_variables)
-    mock_execution_all(mocker, state_variables)
+    mock_execution_all(mocker, state_variables, fs)
     mock_cube(mocker, state_variables)
     exec_spy = mock_execution(mocker, state_variables)
 
@@ -248,6 +255,7 @@ class TestDefaultSetup:
                     2,
                     models_uids=[fail_model_uid],
                     ignore_failed_experiments=False,
+                    no_cache=True,
                 )
         else:
             BenchmarkExecution.run(
@@ -255,6 +263,7 @@ class TestDefaultSetup:
                 2,
                 models_uids=[fail_model_uid],
                 ignore_failed_experiments=True,
+                no_cache=True,
             )
             self.spies["ui_error"].assert_called_once()
 
@@ -271,6 +280,7 @@ class TestDefaultSetup:
                     2,
                     models_uids=[invalid_model_uid],
                     ignore_failed_experiments=False,
+                    no_cache=True,
                 )
         else:
             BenchmarkExecution.run(
@@ -278,6 +288,7 @@ class TestDefaultSetup:
                 2,
                 models_uids=[invalid_model_uid],
                 ignore_failed_experiments=True,
+                no_cache=True,
             )
             self.spies["ui_error"].assert_called_once()
 
@@ -287,7 +298,11 @@ class TestDefaultSetup:
     ):
         # Act
         BenchmarkExecution.run(
-            1, 2, models_uids=[5], ignore_model_errors=ignore_model_errors
+            1,
+            2,
+            models_uids=[5],
+            ignore_model_errors=ignore_model_errors,
+            no_cache=True,
         )
 
         # Assert
@@ -334,7 +349,9 @@ class TestDefaultSetup:
             ]
         ]
         # Act
-        BenchmarkExecution.run(1, 2, models_uids=[model_uid], show_summary=True)
+        BenchmarkExecution.run(
+            1, 2, models_uids=[model_uid], show_summary=True, no_cache=True
+        )
 
         # Assert
         self.spies["tabulate"].assert_called_once_with(
@@ -347,17 +364,16 @@ class TestDefaultSetup:
         dset_uid = 2
         bmk_uid = 1
         mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
-        expected_file = os.path.join(
-            TestExecution.get_storage_path(),
-            "1",  # Execution UID mocked from TestExecution.upload
-            config.results_info_file,
-        )
+
         # Act
-        BenchmarkExecution.run(bmk_uid, dset_uid, models_uids=[model_uid])
+        ex = BenchmarkExecution.run(
+            bmk_uid, dset_uid, models_uids=[model_uid], no_cache=True
+        )
+        expected_file = ex[0].results_path
 
         # Assert
         assert (
-            yaml.safe_load(open(expected_file))["results"]
+            yaml.safe_load(open(expected_file))
             == self.state_variables["models_props"][model_uid]["results"]
         )
 

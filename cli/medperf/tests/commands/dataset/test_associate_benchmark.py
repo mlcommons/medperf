@@ -54,6 +54,7 @@ def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch.object(result, "read_results", return_value={})
 
     # Act
     AssociateDataset.run(1, 1)
@@ -75,6 +76,7 @@ def test_associates_if_approved(
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch.object(result, "read_results", return_value={})
     spy = mocker.patch.object(comms, assoc_func)
     dataset.id = data_uid
 
@@ -94,6 +96,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
     assoc_spy = mocker.patch.object(comms, "associate_benchmark_dataset")
+    mocker.patch.object(result, "read_results", return_value={})
 
     # Act & Assert
     with pytest.raises(CleanExit):
@@ -116,6 +119,7 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
     spy = mocker.patch(
         PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret
     )
+    mocker.patch.object(result, "read_results", return_value={})
     mocker.patch.object(comms, assoc_func)
     dataset.id = data_uid
 
@@ -124,9 +128,5 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
 
     # Assert
     spy.assert_called_once_with(
-        benchmark_uid,
-        data_uid,
-        [benchmark.reference_model_mlcube],
-        no_cache=False,
-        test=True,
+        benchmark_uid, data_uid, [benchmark.reference_model_mlcube], no_cache=False
     )

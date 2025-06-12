@@ -3,7 +3,7 @@ from medperf.entities.execution import Execution
 
 
 class TestExecution(Execution):
-    id: Optional[int] = None
+    id: Optional[int] = 1
     name: str = "name"
     benchmark: int = 1
     model: int = 1
@@ -11,5 +11,5 @@ class TestExecution(Execution):
     results: dict = {}
 
     def upload(self):
-        self.id = 1
+        # self.id = 1
         return self.todict()

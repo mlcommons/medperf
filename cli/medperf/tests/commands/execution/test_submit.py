@@ -5,14 +5,17 @@ from medperf.tests.mocks.execution import TestExecution
 from medperf.tests.mocks.dataset import TestDataset
 
 from medperf.commands.execution.submit import ResultSubmission
-from medperf.enums import Status
 
 PATCH_SUBMISSION = "medperf.commands.execution.submit.{}"
 
 
 @pytest.fixture
-def result():
-    return TestExecution(id=None, approval_status=Status.PENDING)
+def result(fs):
+    exec = TestExecution()
+    exec.write()
+    exec.save_results({}, False)
+    exec.mark_as_executed()
+    return exec
 
 
 @pytest.fixture
@@ -22,21 +25,26 @@ def dataset():
 
 @pytest.fixture
 def submission(mocker, comms, ui, result, dataset):
-    sub = ResultSubmission(1)
-    mocker.patch(PATCH_SUBMISSION.format("Execution"), return_value=result)
-    mocker.patch(PATCH_SUBMISSION.format("Execution.get"), return_value=result)
+    mocker.patch(PATCH_SUBMISSION.format("Execution.all"), return_value=[result])
+    mocker.patch(
+        PATCH_SUBMISSION.format("get_medperf_user_data"), return_value={"id": 1}
+    )
+    mocker.patch(
+        PATCH_SUBMISSION.format("filter_latest_executions"), side_effect=lambda x: x
+    )
+    sub = ResultSubmission(1, 1, 1)
     sub.get_execution()
+    sub.prepare()
     return sub
 
 
 def test_upload_results_requests_approval(mocker, submission, result):
     # Arrange
     spy = mocker.patch(PATCH_SUBMISSION.format("approval_prompt"), return_value=True)
-    mocker.patch.object(result, "upload")
-    mocker.patch.object(result, "write")
-    mocker.patch("os.rename")
+    mocker.patch(PATCH_SUBMISSION.format("ResultSubmission.write"))
+
     # Act
-    ResultSubmission.run(1)
+    ResultSubmission.run(1, 1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -57,26 +65,25 @@ def test_upload_results_fails_if_not_approved(mocker, submission, result, approv
 
 def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     # Arrange
-    result_uid = 1
     up_spy = mocker.spy(ResultSubmission, "update_execution")
-    write_spy = mocker.spy(ResultSubmission, "write")
+    write_spy = mocker.patch(PATCH_SUBMISSION.format("ResultSubmission.write"))
+
     mocker.patch.object(ui, "prompt", return_value="y")
-    mocker.patch("os.rename")
 
     # Act
-    ResultSubmission.run(result_uid)
+    ResultSubmission.run(1, 1, 1)
 
     # Assert
     up_spy.assert_called_once()
     write_spy.assert_called_once()
 
 
-def test_write_writes_results_using_entity(mocker, submission, result):
+def test_write_writes_results_using_entity(mocker, submission, result, fs):
     # Arrange
-    spy = mocker.patch.object(result, "write")
+    spy = mocker.patch(PATCH_SUBMISSION.format("Execution.get"), return_value=result)
 
     # Act
-    submission.write({})
+    submission.write()
 
     # Assert
     spy.assert_called()

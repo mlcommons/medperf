@@ -10,7 +10,7 @@ from medperf import config
 import yaml
 
 
-PATCH_EXECUTION = "medperf.commands.execution.{}"
+PATCH_EXECUTION_FLOW = "medperf.commands.execution.execution_flow.{}"
 
 
 INPUT_DATASET = TestDataset()
@@ -61,6 +61,11 @@ def setup(request, mocker, ui, fs):
     model_run_spy = mock_model(mocker, fs, state_variables)
     eval_run_spy = mock_eval(mocker, fs, state_variables)
 
+    # mock update
+    mocker.patch(
+        PATCH_EXECUTION_FLOW.format("ExecutionFlow._ExecutionFlow__send_report")
+    )
+
     spies = {
         "model_run": model_run_spy,
         "eval_run": eval_run_spy,
@@ -79,7 +84,11 @@ class TestFailures:
         # Act & Assert
         with pytest.raises(ExecutionError):
             ExecutionFlow.run(
-                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution, ignore_model_errors=False
+                INPUT_DATASET,
+                INPUT_MODEL,
+                INPUT_EVALUATOR,
+                execution=execution,
+                ignore_model_errors=False,
             )
 
     @pytest.mark.parametrize("setup", [{"failing_eval": True}], indirect=True)
@@ -90,7 +99,11 @@ class TestFailures:
         # Act & Assert
         with pytest.raises(ExecutionError):
             ExecutionFlow.run(
-                INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution, ignore_model_errors=True
+                INPUT_DATASET,
+                INPUT_MODEL,
+                INPUT_EVALUATOR,
+                execution=execution,
+                ignore_model_errors=True,
             )
 
     @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
@@ -100,28 +113,12 @@ class TestFailures:
 
         # Act & Assert
         ExecutionFlow.run(
-            INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution, ignore_model_errors=True
+            INPUT_DATASET,
+            INPUT_MODEL,
+            INPUT_EVALUATOR,
+            execution,
+            ignore_model_errors=True,
         )
-
-    @pytest.mark.parametrize("setup", [{}], indirect=True)
-    @pytest.mark.parametrize("ignore_model_errors", [True, False])
-    def test_failure_with_existing_predictions(mocker, setup, ignore_model_errors, fs):
-        # Arrange
-        preds_path = os.path.join(
-            config.predictions_folder,
-            INPUT_MODEL.local_id,
-            INPUT_DATASET.local_id,
-        )
-
-        fs.create_dir(preds_path)
-        # Act & Assert
-        with pytest.raises(ExecutionError):
-            ExecutionFlow.run(
-                INPUT_DATASET,
-                INPUT_MODEL,
-                INPUT_EVALUATOR,
-                ignore_model_errors=ignore_model_errors,
-            )
 
 
 @pytest.mark.parametrize("setup", [{"failing_model": True}], indirect=True)
@@ -131,7 +128,11 @@ def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
 
     # Act
     execution_summary = ExecutionFlow.run(
-        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution, ignore_model_errors=True
+        INPUT_DATASET,
+        INPUT_MODEL,
+        INPUT_EVALUATOR,
+        execution=execution,
+        ignore_model_errors=True,
     )
 
     # Assert
@@ -144,7 +145,9 @@ def test_no_partial_result_by_default(mocker, setup):
     execution = setup[0]["execution"]
 
     # Act
-    execution_summary = ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution)
+    execution_summary = ExecutionFlow.run(
+        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
+    )
 
     # Assert
     assert not execution_summary["partial"]
@@ -156,7 +159,9 @@ def test_results_are_returned(mocker, setup):
     execution = setup[0]["execution"]
 
     # Act
-    execution_summary = ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution)
+    execution_summary = ExecutionFlow.run(
+        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
+    )
 
     # Assert
     state_variables = setup[0]
@@ -166,12 +171,12 @@ def test_results_are_returned(mocker, setup):
 @pytest.mark.parametrize("setup", [{}], indirect=True)
 def test_cube_run_are_called_properly(mocker, setup):
     # Arrange
+    mocker.patch(PATCH_EXECUTION_FLOW.format("time"), return_value="tmp.uid")
+    execution = setup[0]["execution"]
     exp_preds_path = os.path.join(
-        config.predictions_folder,
-        INPUT_MODEL.local_id,
-        INPUT_DATASET.local_id,
+        config.predictions_folder, str(execution.id), "tmp_uid"
     )
-
+    exp_local_outputs_path = os.path.join(execution.path, config.local_metrics_outputs)
     exp_model_logs_path = os.path.join(
         config.experiments_logs_folder,
         INPUT_MODEL.local_id,
@@ -203,9 +208,9 @@ def test_cube_run_are_called_properly(mocker, setup):
             "predictions": exp_preds_path,
             "labels": INPUT_DATASET.labels_path,
             "output_path": ANY,
+            "local_outputs_path": exp_local_outputs_path,
         },
     )
-    execution = setup[0]["execution"]
 
     # Act
     ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution)
