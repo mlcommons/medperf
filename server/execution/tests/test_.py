@@ -143,6 +143,8 @@ class GenericExecutionsPostTest(ExecutionsTest):
             "modified_at": "time2",
             "approved_at": "time3",
             "approval_status": "APPROVED",
+            "finalized": True,
+            "finalized_at": "time4",
         }
         testexecution = self.mock_execution(
             self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
@@ -215,6 +217,17 @@ class SerializersExecutionsPostTest(ExecutionsTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_result_creation_with_unassociated_dataset_and_reference_model(self):
+        # Arrange
+        testexecution = self.mock_execution(
+            self.bmk_id, self.ref_mlcube_id, self.dataset_id, results={"r": 1}
+        )
+        # Act
+        response = self.client.post(self.url, testexecution, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_result_creation_with_unassociated_mlcube(self):
         # Arrange

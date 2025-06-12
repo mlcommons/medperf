@@ -164,6 +164,57 @@ class ResultPutTest(ResultsTest):
         for k, v in newtestresult.items():
             self.assertNotEqual(v, response.data[k], f"{k} was modified")
 
+    def test_adding_results_turns_execution_finalized(self):
+        # Arrange
+        execution = self.mock_execution(
+            self.bmk_id, self.mlcube_id, self.dataset_id, results={}
+        )
+        self.set_credentials(self.data_owner)
+        result = self.create_execution(execution).data
+        self.set_credentials(self.actor)
+
+        newtestresult = {
+            "results": {"res": 1},
+        }
+        url = self.url.format(result["id"])
+
+        # Act
+        response = self.client.put(url, newtestresult, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(True, response.data["finalized"], "It's still not finalized")
+
+    def test_put_is_not_allowed_with_finalized_execution(self):
+        # Arrange
+        execution = self.mock_execution(
+            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+        )
+        self.set_credentials(self.data_owner)
+        result = self.create_execution(execution).data
+        newtestresult = {
+            "results": {"res": 1},
+        }
+        url = self.url.format(result["id"])
+        response = self.client.put(url, newtestresult, format="json")
+
+        self.set_credentials(self.actor)
+
+        newtestresult = {
+            "results": {"newr": 3},
+            "model_report": {"rep": "t"},
+            "evaluation_report": {"rep": "t"},
+            "partial": False,
+        }
+        url = self.url.format(result["id"])
+
+        for key, val in newtestresult.items():
+            # Act
+            response = self.client.put(url, {key: val}, format="json")
+
+            # Assert
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 @parameterized_class(
     [
