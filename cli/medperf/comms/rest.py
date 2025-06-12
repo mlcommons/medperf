@@ -228,7 +228,7 @@ class REST(Comms):
         Returns:
             dict: Execution metadata
         """
-        url = f"{self.server_url}/executions/{execution_uid}/"
+        url = f"{self.server_url}/results/{execution_uid}/"
         error_msg = "Could not retrieve execution"
         return self.__get(url, error_msg)
 
@@ -361,7 +361,7 @@ class REST(Comms):
         Returns:
             List[dict]: List of executions
         """
-        url = f"{self.server_url}/executions/"
+        url = f"{self.server_url}/results/"
         error_msg = "Could not retrieve executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
@@ -442,7 +442,7 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each execution registration query
         """
-        url = f"{self.server_url}/me/executions/"
+        url = f"{self.server_url}/me/results/"
         error_msg = "Could not retrieve user executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
@@ -586,7 +586,7 @@ class REST(Comms):
         Returns:
             dict: generated executions entry
         """
-        url = f"{self.server_url}/executions/"
+        url = f"{self.server_url}/results/"
         error_msg = "could not upload execution"
         return self.__post(url, json=executions_dict, error_msg=error_msg)
 
@@ -598,7 +598,7 @@ class REST(Comms):
         Returns:
             dict: Updated description of the execution
         """
-        url = f"{self.server_url}/executions/{execution_id}/"
+        url = f"{self.server_url}/results/{execution_id}/"
         error_msg = "Could not update execution"
         return self.__put(url, json=data, error_msg=error_msg)
 
@@ -854,7 +854,7 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each execution in the specified benchmark
         """
-        url = f"{self.server_url}/benchmarks/{benchmark_id}/executions/"
+        url = f"{self.server_url}/benchmarks/{benchmark_id}/results/"
         error_msg = "Could not get benchmark executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 

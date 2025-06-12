@@ -25,7 +25,7 @@ class ModelResultSerializer(serializers.ModelSerializer):
         is_reference_model = benchmark.reference_model_mlcube.id == mlcube.id
 
         if is_reference_model:
-            # any dataset can create an execution with the reference model
+            # any dataset can create a result with the reference model
             return data
 
         last_benchmarkmodel = (

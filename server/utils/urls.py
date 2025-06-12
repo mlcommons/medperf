@@ -8,8 +8,7 @@ urlpatterns = [
     path("benchmarks/", views.BenchmarkList.as_view()),
     path("datasets/", views.DatasetList.as_view()),
     path("mlcubes/", views.MlCubeList.as_view()),
-    path("results/", views.ModelResultList.as_view()),  # Kept for backwards compatibility
-    path("executions/", views.ModelResultList.as_view()),
+    path("results/", views.ModelResultList.as_view()),
     path("training/", views.TrainingExperimentList.as_view()),
     path("aggregators/", views.AggregatorList.as_view()),
     path("training/events/", views.TrainingEventList.as_view()),

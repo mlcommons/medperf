@@ -33,7 +33,7 @@ class ResultsTest(MedPerfTest):
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
-        self.url = self.api_prefix + "/executions/"
+        self.url = self.api_prefix + "/results/"
         self.set_credentials(None)
 
 
