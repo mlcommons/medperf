@@ -8,7 +8,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
-from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.execution.create import BenchmarkExecution
 
 app = typer.Typer()
 
@@ -20,13 +20,48 @@ def list(
         False, "--unregistered", help="Get unregistered benchmarks"
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
+    name: str = typer.Option(None, "--name", help="Filter by name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_valid: bool = typer.Option(
+        None, "--valid/--invalid", help="Filter by valid status"
+    ),
+    is_active: bool = typer.Option(
+        None, "--active/--inactive", help="Filter by active status"
+    ),
+    data_prep: int = typer.Option(
+        None,
+        "-d",
+        "--data-preparation-container",
+        help="Filter by Data Preparation Container",
+    ),
 ):
     """List benchmarks"""
+    filters = {
+        "name": name,
+        "owner": owner,
+        "state": state,
+        "is_valid": is_valid,
+        "is_active": is_active,
+        "data_preparation_mlcube": data_prep,
+    }
+
     EntityList.run(
         Benchmark,
-        fields=["UID", "Name", "Description", "State", "Approval Status", "Registered"],
+        fields=[
+            "UID",
+            "Name",
+            "Description",
+            "Data Preparation Container",
+            "State",
+            "Approval Status",
+            "Registered",
+        ],
         unregistered=unregistered,
         mine_only=mine,
+        **filters,
     )
 
 
@@ -139,17 +174,23 @@ def run(
         "--no-cache",
         help="Execute even if results already exist",
     ),
+    rerun_finalized: bool = typer.Option(
+        False,
+        "--rerun-finalized",
+        help="Execute even if results have been already uploaded (this will create new records)",
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
     BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
         models_uids=None,
-        no_cache=no_cache,
         models_input_file=file,
         ignore_model_errors=ignore_model_errors,
+        no_cache=no_cache,
         show_summary=True,
         ignore_failed_experiments=True,
+        rerun_finalized_executions=rerun_finalized,
     )
     config.ui.print("✅ Done!")
 

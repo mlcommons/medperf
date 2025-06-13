@@ -6,9 +6,9 @@ import logging.handlers
 from medperf import __version__
 import medperf.config as config
 from medperf.decorators import clean_except, add_inline_parameters
-import medperf.commands.result.result as result
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.execution import execution
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 import medperf.commands.auth.auth as auth
@@ -28,7 +28,7 @@ from medperf.logging.utils import log_machine_details
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
 app.add_typer(mlcube.app, name="container", help="Manage containers")
-app.add_typer(result.app, name="result", help="Manage results")
+app.add_typer(execution.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 app.add_typer(association.app, name="association", help="Manage associations")
@@ -65,23 +65,25 @@ def execute(
         "--no-cache",
         help="Ignore existing results. The experiment then will be rerun",
     ),
+    new_result: bool = typer.Option(
+        False,
+        "--new-result",
+        help=(
+            "Works if the result of the execution was already uploaded."
+            "This will rerun and create a new record."
+        ),
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    result = BenchmarkExecution.run(
+    BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
         [model_uid],
         ignore_model_errors=ignore_model_errors,
         no_cache=no_cache,
-    )[0]
-    if result.id:  # TODO: use result.is_registered once PR #338 is merged
-        config.ui.print(  # TODO: msg should be colored yellow
-            """An existing registered result for the requested execution has been\n
-            found. If you wish to submit a new result for the same execution,\n
-            please run the command again with the --no-cache option.\n"""
-        )
-    else:
-        ResultSubmission.run(result.local_id, approved=approval)
+        rerun_finalized_executions=new_result,
+    )
+    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 

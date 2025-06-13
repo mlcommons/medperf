@@ -21,8 +21,9 @@ class EntityList:
         Args:
             unregistered (bool, optional): Display only local unregistered results. Defaults to False.
             mine_only (bool, optional): Display all registered current-user results. Defaults to False.
-            kwargs (dict): Additional parameters for filtering entity lists.
+            kwargs (dict): Additional parameters for filtering entity lists. Keys with None will be filtered out.
         """
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
         entity_list = EntityList(
             entity_class, fields, unregistered, mine_only, **kwargs
         )

@@ -60,6 +60,23 @@ def __apply_login_tracking_migrations(config_p: ConfigManager):
             ] = time.time()
 
 
+def __apply_results_to_executions_migrations(config_p):
+    if "results_folder" not in config_p.storage:
+        return
+
+    results_base = config_p.storage["results_folder"]
+    execs_folder = os.path.join(results_base, config.executions_folder)
+
+    # Move old results into the execution path
+    results_folder = os.path.join(results_base, "results")
+    results_exist = os.path.exists(results_folder) and os.listdir(results_folder)
+    if results_exist:
+        shutil.move(results_folder, execs_folder)
+
+    del config_p.storage["results_folder"]
+    config_p.storage["executions_folder"] = results_base
+
+
 def apply_configuration_migrations():
     if not os.path.exists(config.config_path):
         return
@@ -68,5 +85,6 @@ def apply_configuration_migrations():
     __apply_logs_migrations(config_p)
     __apply_training_migrations(config_p)
     __apply_login_tracking_migrations(config_p)
+    __apply_results_to_executions_migrations(config_p)
 
     write_config(config_p)
