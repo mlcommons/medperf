@@ -305,7 +305,7 @@
 									</button>
 								</div>
 								<!-- any cleaner way? -->
-								{% if reference_model.result.id %}
+								{% if reference_model.result.finalized %}
 								<div class="mx-2">
 									<span class="btn btn-success">✅ Submitted</span>
 								</div>
@@ -313,8 +313,8 @@
 								<div class="mx-2">
 									<button
 										class="btn btn-primary"
-                                        id="submit-{{ assoc }}-{{ reference_model.result.name }}"
-										data-result-id="{{ reference_model.result.name }}"
+                                        id="submit-{{ assoc }}-{{ reference_model.result.id }}"
+										data-result-id="{{ reference_model.result.id }}"
                                         data-benchmark-id="{{ assoc }}"
                                         {% if task_running %} disabled {% endif %}
 									>
@@ -362,7 +362,7 @@
 									</button>
 								</div>
 								<!-- any cleaner way? -->
-								{% if model.result.id %}
+								{% if model.result.finalized %}
 								<div class="mx-2">
 									<span class="btn btn-success">✅ Submitted</span>
 								</div>
@@ -370,8 +370,8 @@
 								<div class="mx-2">
                                     <button
                                         class="btn btn-primary"
-                                        id="submit-{{ assoc }}-{{ model.result.name }}"
-                                        data-result-id="{{ model.result.name }}"
+                                        id="submit-{{ assoc }}-{{ model.result.id }}"
+                                        data-result-id="{{ model.result.id }}"
                                         data-benchmark-id="{{ assoc }}"
                                         {% if task_running %} disabled {% endif %}
                                     >

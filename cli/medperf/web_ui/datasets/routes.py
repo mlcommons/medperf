@@ -12,12 +12,12 @@ from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.submit import DataCreation
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.submit import ResultSubmission
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     templates,
@@ -78,8 +78,7 @@ def dataset_detail_ui(
     results = []
     if benchmark_assocs:
         user_id = get_medperf_user_data()["id"]
-        results = Result.all(filters={"owner": user_id})
-        results += Result.all(unregistered=True)
+        results = Execution.all(filters={"owner": user_id})
 
     # Fetch models associated with each benchmark
     benchmark_models = {}

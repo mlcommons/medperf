@@ -8,15 +8,24 @@ from medperf.commands.execution.utils import filter_latest_executions
 
 class ResultSubmission:
     @classmethod
-    def run(cls, benchmark_uid, data_uid, model_uid, approved=False):
-        sub = cls(benchmark_uid, data_uid, model_uid, approved=approved)
+    def run(
+        cls,
+        result_id,
+        benchmark_uid=None,
+        data_uid=None,
+        model_uid=None,
+        approved=False,
+    ):
+        sub = cls(result_id, benchmark_uid, data_uid, model_uid, approved=approved)
+        sub.check_inputs()
         sub.get_execution()
         sub.validate()
         sub.prepare()
         sub.update_execution()
         sub.write()
 
-    def __init__(self, benchmark_uid, data_uid, model_uid, approved=False):
+    def __init__(self, result_id, benchmark_uid, data_uid, model_uid, approved=False):
+        self.result_id = result_id
         self.benchmark_uid = benchmark_uid
         self.model_uid = model_uid
         self.data_uid = data_uid
@@ -24,7 +33,26 @@ class ResultSubmission:
         self.ui = config.ui
         self.approved = approved
 
+    def check_inputs(self):
+        result_provided = self.result_id is not None
+        triplet_provided = (
+            self.benchmark_uid is not None
+            and self.model_uid is not None
+            and self.data_uid is not None
+        )
+        msg = "Either the result ID, or the benchmark-dataset-model IDs triplets, must be provided"
+        if result_provided and triplet_provided:
+            raise InvalidArgumentError(msg)
+
+        if not result_provided and not triplet_provided:
+            raise InvalidArgumentError(msg)
+
     def get_execution(self):
+        if self.result_id is not None:
+            self.execution = Execution.get(self.result_id)
+            return
+
+        # Else, get result based on benchmark-model-dataset triplet
         owner = get_medperf_user_data()["id"]
 
         executions = Execution.all(filters={"owner": owner})

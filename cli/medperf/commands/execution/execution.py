@@ -70,7 +70,7 @@ def submit(
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
+    ResultSubmission.run(None, benchmark_uid, data_uid, model_uid, approved=approval)
     config.ui.print("✅ Done!")
 
 
