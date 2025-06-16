@@ -228,7 +228,14 @@ $(document).ready(() => {
             showConfirmModal(e.currentTarget, runBenchmarkExecution, "run the benchmark execution for all models?");
         }
         else{
-            showConfirmModal(e.currentTarget, runBenchmarkExecution, "run the benchmark execution for the selected model?");
+            let msg;
+            if (targetButton.attr("rerun") !== undefined){
+                msg = "rerun the benchmark execution for the selected model? This will clear previous results.";
+            }
+            else {
+                msg = "run the benchmark execution for the selected model?";
+            }
+            showConfirmModal(e.currentTarget, runBenchmarkExecution, msg);
         }
         
     });

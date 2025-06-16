@@ -270,6 +270,7 @@
       		<div class="benchmark-section mb-4">
         		<ul class="list-group">
 					<li class="list-group-item d-flex justify-content-between align-items-center">
+                        {% set results_exist = reference_model.result and reference_model.result.results_exist %}
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
                             <small class="text-muted">&nbsp;Reference Model</small>
@@ -285,12 +286,13 @@
 									data-dataset-id="{{ dataset.id }}"
 									data-model-name="{{ reference_model.name }}"
 									id="run-{{ assoc }}-{{ reference_model.id }}"
+                                    {% if results_exist %} rerun="true" {% endif %}
                                     {% if task_running %} disabled {% endif %}
 								>
-									▶️ Run
+									▶️ {% if results_exist %} Rerun {% else %} Run {% endif %}
 								</button>
 							</div>
-							{% if reference_model.result %}
+							{% if results_exist %}
 								<div class="mx-2">
 									<button
 										class="btn btn-primary view-result-btn"
@@ -298,7 +300,7 @@
 										data-model-name="{{ reference_model.name }}"
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ reference_model.id }}"
-										data-result='{{ reference_model.result|tojson }}'
+										data-result='{{ reference_model.result.results|tojson }}'
                                         {% if task_running %} disabled {% endif %}
 									>
                                         🔍 View Result
@@ -327,6 +329,7 @@
 					</li>
 					{% if benchmark_models[assoc] %}
                     {% for model in benchmark_models[assoc] %}
+                    {% set results_exist = model.result and model.result.results_exist %}
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
@@ -342,12 +345,13 @@
 									data-dataset-id="{{ dataset.id }}"
 									data-model-name="{{ model.name }}"
 									id="run-{{ assoc }}-{{ model.id }}"
+                                    {% if results_exist %} rerun="true" {% endif %}
                                     {% if task_running %} disabled {% endif %}
 								>
-									▶️ Run
+									▶️ {% if results_exist %} Rerun {% else %} Run {% endif %}
 								</button>
 							</div>
-							{% if model.result %}
+							{% if results_exist %}
 								<div class="mx-2">
 									<button
 										class="btn btn-primary show-result-btn"
@@ -355,7 +359,7 @@
 										data-model-name="{{ model.name }}"
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ model.id }}"
-										data-result='{{ model.result|tojson }}'
+										data-result='{{ model.result.results|tojson }}'
                                         {% if task_running %} disabled {% endif %}
 									>
                                         🔍 View Result

@@ -14,6 +14,7 @@ from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.execution.submit import ResultSubmission
+from medperf.commands.execution.utils import filter_latest_executions
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -74,30 +75,6 @@ def dataset_detail_ui(
         benchmark_associations[assoc.benchmark] = assoc
     # benchmark_associations = sort_associations_display(benchmark_associations)
 
-    # Get all results
-    results = []
-    if benchmark_assocs:
-        user_id = get_medperf_user_data()["id"]
-        results = Execution.all(filters={"owner": user_id})
-
-    # Fetch models associated with each benchmark
-    benchmark_models = {}
-    for assoc in benchmark_assocs:
-        if assoc.approval_status != "APPROVED":
-            continue  # if association is not approved we cannot list its models
-        models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
-        models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
-        benchmark_models[assoc.benchmark] = models
-        for model in models:
-            model.result = None
-            for result in results:
-                if (
-                    result.benchmark == assoc.benchmark
-                    and result.dataset == dataset_id
-                    and result.model == model.id
-                ):
-                    model.result = result.todict()
-
     # Get all relevant benchmarks for making an association
     benchmarks = Benchmark.all()
     valid_benchmarks = {
@@ -120,6 +97,39 @@ def dataset_detail_ui(
     ]
     my_user_id = get_medperf_user_data()["id"]
     is_owner = my_user_id == dataset.owner
+
+    # Get all results
+    results = []
+    if benchmark_assocs:
+        user_id = get_medperf_user_data()["id"]
+        results = Execution.all(filters={"owner": user_id})
+        results = filter_latest_executions(results)
+
+    # Fetch models associated with each benchmark
+    benchmark_models = {}
+    for assoc in benchmark_assocs:
+        if assoc.approval_status != "APPROVED":
+            continue  # if association is not approved we cannot list its models
+        models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
+        models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
+        benchmark_models[assoc.benchmark] = models
+        for model in models + [
+            valid_benchmarks[assoc.benchmark].reference_model_mlcube
+        ]:
+            model.result = None
+            for result in results:
+                if (
+                    result.benchmark == assoc.benchmark
+                    and result.dataset == dataset_id
+                    and result.model == model.id
+                ):
+                    model.result = result.todict()
+                    model.result["results_exist"] = (
+                        result.is_executed() or result.finalized
+                    )
+                    if model.result["results_exist"]:
+                        model.result["results"] = result.read_results()
+
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
@@ -303,7 +313,13 @@ def run(
     return_response = {"status": "", "error": ""}
 
     try:
-        BenchmarkExecution.run(benchmark_id, dataset_id, model_ids)
+        BenchmarkExecution.run(
+            benchmark_id,
+            dataset_id,
+            model_ids,
+            no_cache=not run_all,
+            rerun_finalized_executions=not run_all,
+        )
         return_response["status"] = "success"
         notification_message = "Execution ran successfully"
     except MedperfException as exp:
