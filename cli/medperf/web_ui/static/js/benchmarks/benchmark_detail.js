@@ -72,3 +72,9 @@ function approveRejectAssociation(actionName, benchmarkId, entityId, entityType,
     });
 
 }
+
+$(document).ready(() => {
+    $("[id^='show-']").on("click", (e) => {
+        showResult(e.currentTarget);
+    });
+});

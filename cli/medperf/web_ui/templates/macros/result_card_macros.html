@@ -1,0 +1,46 @@
+{# ./cli/medperf/web_ui/templates/macros/result_card_macros.html #}
+
+{% macro result_card(result) %}
+<div class="card benchmark-result-card {% if not result.finalized %}unfinalized-result-card{% endif %}">
+    <div class="card-body">
+        <h5 class="card-title">{{ result.name }}</h5>
+        {% if result.finalized %}
+        <h5 class="card-title">
+            <button class="btn btn-primary view-result-btn" id="show-{{ result.id }}"
+                data-result='{{ result.results|tojson }}'>
+                🔍 View Result
+            </button>
+        </h5>
+        {% else %}
+        <h5 class="text-muted small">
+            Results not submitted
+        </h5>
+        {% endif %}
+        <p class="card-text">
+            <strong>Data Owner:</strong>
+            <i class="fas fa-user"></i>
+            {{ result.data_owner_email }}
+        </p>
+        <p class="card-text">
+            <strong>Model:</strong>
+            <a href="/containers/ui/display/{{ result.model }}" class="text-primary">ID:{{ result.model }}</a>
+        </p>
+        <p class="card-text">
+            <strong>Dataset:</strong>
+            <a href="/datasets/ui/display/{{ result.dataset }}" class="text-primary">ID:{{ result.dataset }}</a>
+        </p>
+        <p class="card-text">
+            <strong>Inference Status:</strong>
+            {{ result.model_report|tojson }}
+        </p>
+        <p class="card-text">
+            <strong>Metrics Status:</strong>
+            {{ result.evaluation_report|tojson }}
+        </p>
+        <p class="card-text">
+            <strong>Modified:</strong>
+            <span class="text-muted small" data-date="{{ result.modified_at }}"></span>
+        </p>
+    </div>
+</div>
+{% endmacro %}

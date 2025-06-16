@@ -38,6 +38,10 @@
     background-color: #ffe6e6;
 }
 
+.unfinalized-result-card {
+    background-color: #ffe6e6;
+}
+
 .page-container {
     display: flex;
     flex-direction: column;
@@ -113,6 +117,10 @@ pre {
     margin-bottom: 20px;
 }
 
+.benchmark-result-card {
+    margin-bottom: 20px;
+}
+
 .associations-panel {
     display: flex;
     flex-wrap: wrap;
@@ -135,6 +143,12 @@ pre {
 }
 
 #models-associations{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+#benchmark-results{
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;

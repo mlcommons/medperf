@@ -3,6 +3,7 @@
 {% extends "detail_base.html" %}
 
 {% import 'macros/association_card_macros.html' as association_card_macros %}
+{% import 'macros/result_card_macros.html' as result_card_macros %}
 {% import 'macros/container_macros.html' as container_macros %}
 
 {% block title %}Benchmark Details{% endblock %}
@@ -11,8 +12,9 @@
 <h1 class="mt-4">{{ entity.name }}</h1>
 {% if current_user_is_benchmark_owner %}
 <div class="mb-4 text-center">
-    <a href="#datasets-associations" class="btn btn-default me-3">View Dataset associations</a>
-    <a href="#models-associations" class="btn btn-default">View Models associations</a>
+    <a href="#datasets-associations" class="btn btn-default me-3">Go to Dataset associations</a>
+    <a href="#models-associations" class="btn btn-default">Go to Models associations</a>
+    <a href="#benchmark-results" class="btn btn-default">Go to Results</a>
 </div>
 {% endif %}
 <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
@@ -103,13 +105,27 @@
     {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
     {% endfor %}
 </div>
-
+<h2 class="my-5 text-center">Results</h2>
+<div id="benchmark-results">
+    {% for result in results %}
+    {{ result_card_macros.result_card(result) }}
+    {% endfor %}
+</div>
 {% endif %}
+
+{{ modal_macros.add_modal(
+    modal_id="result-modal",
+    modal_class="modal-lg",
+    modal_body='<pre id="result-content" class="language-yaml"></pre>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
+) }}
 
 {% endblock detail_panel %}
 
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/benchmarks/benchmark_detail.js') }}"></script>
 {% endblock extra_js %}

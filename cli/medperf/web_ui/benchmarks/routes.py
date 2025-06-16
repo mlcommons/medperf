@@ -7,11 +7,13 @@ from typing import Optional
 
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
+from medperf.commands.execution.utils import filter_latest_executions
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.execution import Execution
 from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     add_notification,
@@ -70,6 +72,7 @@ def benchmark_detail_ui(
     models_associations = []
     datasets = {}
     models = {}
+    results = []
     current_user_is_benchmark_owner = benchmark.owner == get_medperf_user_data()["id"]
     if current_user_is_benchmark_owner:
         datasets_associations = Benchmark.get_datasets_associations(
@@ -93,6 +96,17 @@ def benchmark_detail_ui(
             if assoc.model_mlcube
         }
 
+        # Results
+        results = Execution.all(filters={"benchmark": benchmark_id})
+        results = filter_latest_executions(results)
+        datasets_with_users = Benchmark.get_datasets_with_users(benchmark_id)
+        id_to_email_mapping = {}
+        for dataset in datasets_with_users:
+            id_to_email_mapping[dataset["id"]] = dataset["owner"]["email"]
+
+        for result in results:
+            result.data_owner_email = id_to_email_mapping.get(result.dataset, "Hidden")
+
     return templates.TemplateResponse(
         "benchmark/benchmark_detail.html",
         {
@@ -107,6 +121,7 @@ def benchmark_detail_ui(
             "datasets": datasets,
             "models": models,
             "current_user_is_benchmark_owner": current_user_is_benchmark_owner,
+            "results": results,
         },
     )
 
