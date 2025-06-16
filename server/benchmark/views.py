@@ -1,3 +1,6 @@
+from dataset.models import Dataset
+from django.db.models import OuterRef, Subquery
+from dataset.serializers import DatasetWithOwnerInfoSerializer
 from benchmarkmodel.serializers import BenchmarkListofModelsSerializer
 from benchmarkdataset.serializers import BenchmarkListofDatasetsSerializer
 from result.serializers import ModelResultSerializer
@@ -15,7 +18,15 @@ from .permissions import IsAdmin, IsBenchmarkOwner, IsAssociatedDatasetOwner
 class BenchmarkList(GenericAPIView):
     serializer_class = BenchmarkSerializer
     queryset = ""
-    filterset_fields = ('name', 'owner', 'state', 'is_valid', 'is_active', 'approval_status', 'data_preparation_mlcube')
+    filterset_fields = (
+        "name",
+        "owner",
+        "state",
+        "is_valid",
+        "is_active",
+        "approval_status",
+        "data_preparation_mlcube",
+    )
 
     @extend_schema(operation_id="benchmarks_retrieve_all")
     def get(self, request, format=None):
@@ -107,6 +118,37 @@ class BenchmarkResultList(GenericAPIView):
         results = benchmark.modelresult_set.all()
         results = self.paginate_queryset(results)
         serializer = ModelResultSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class ParticipantsInfo(GenericAPIView):
+    permission_classes = [IsAdmin | IsBenchmarkOwner]
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Benchmark.objects.get(pk=pk)
+        except Benchmark.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve datasets associated with a benchmark instance.
+        """
+        benchmark = self.get_object(pk)
+        latest_datasets_assocs_status = (
+            benchmark.benchmarkdataset_set.all()
+            .filter(dataset__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
+        )
+        datasets_with_users = (
+            Dataset.objects.all()
+            .annotate(assoc_status=Subquery(latest_datasets_assocs_status))
+            .filter(assoc_status="APPROVED")
+        )
+        datasets_with_users = self.paginate_queryset(datasets_with_users)
+        serializer = DatasetWithOwnerInfoSerializer(datasets_with_users, many=True)
         return self.get_paginated_response(serializer.data)
 
 

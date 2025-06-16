@@ -102,6 +102,19 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         return models_uids
 
     @classmethod
+    def get_datasets_with_users(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of datasets and their owner info, associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of dicts of dataset IDs with their owner info
+        """
+        uids_with_users = config.comms.get_benchmark_datasets_with_users(benchmark_uid)
+        return uids_with_users
+
+    @classmethod
     def get_models_associations(cls, benchmark_uid: int) -> List[Association]:
         """Retrieves the list of model associations to the benchmark
 
