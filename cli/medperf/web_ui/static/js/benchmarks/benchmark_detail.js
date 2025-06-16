@@ -77,4 +77,13 @@ $(document).ready(() => {
     $("[id^='show-']").on("click", (e) => {
         showResult(e.currentTarget);
     });
+    $("#datasets-associations-title").on("click", () => {
+        $("#datasets-associations").slideToggle(); // smooth animation
+    });
+    $("#models-associations-title").on("click", () => {
+        $("#models-associations").slideToggle(); // smooth animation
+    });
+    $("#benchmark-results-title").on("click", () => {
+        $("#benchmark-results").slideToggle(); // smooth animation
+    });
 });
