@@ -10,6 +10,7 @@ from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
+from medperf.utils import generate_tmp_path
 
 
 class Cube(Entity, DeployableSchema):
@@ -194,8 +195,12 @@ class Cube(Entity, DeployableSchema):
         if config.container_loglevel is not None:
             extra_env["MEDPERF_LOGLEVEL"] = config.container_loglevel.upper()
 
+        tmp_folder = generate_tmp_path()
+        os.makedirs(tmp_folder, exist_ok=True)
+
         self.runner.run(
             task,
+            tmp_folder,
             output_logs,
             timeout,
             medperf_mounts={**mounts, **extra_mounts},

@@ -15,6 +15,7 @@ class Runner(ABC):
     def run(
         self,
         task: str,
+        tmp_folder: str,
         output_logs: str = None,
         timeout: int = None,
         medperf_mounts: dict[str, str] = {},
