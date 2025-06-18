@@ -18,9 +18,9 @@ class ImportDataset:
 
     def __init__(self, dataset_id: str, input_path: str, raw_data_path: str):
         self.dataset_id = dataset_id
-        self.input_path = input_path
+        self.input_path = str(Path(input_path).resolve())
         self.dataset = Dataset.get(self.dataset_id)
-        self.raw_data_path = raw_data_path
+        self.raw_data_path = str(Path(raw_data_path).resolve())
 
     def validate_input(self):
         # The input archive file should exist and be a file
@@ -140,7 +140,6 @@ class ImportDataset:
 
         # For development datasets, move raw data as well
         os.makedirs(self.raw_data_path, exist_ok=True)
-        self.raw_data_path = str(Path(self.raw_data_path).resolve())
         new_raw_data_path = os.path.join(
             self.raw_data_path, os.path.basename(self.archive_raw_data_path)
         )
