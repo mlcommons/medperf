@@ -53,7 +53,7 @@ def access_web_ui(
 
         response.set_cookie(
             key=AUTH_COOKIE_NAME,
-            value=token,
+            value=security_token,
             secure=True,
             httponly=True,
             samesite="strict",
