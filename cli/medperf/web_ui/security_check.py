@@ -3,8 +3,16 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from medperf.web_ui.auth import security_token, AUTH_COOKIE_NAME
 from medperf.web_ui.common import templates, api_key_cookie
+from urllib.parse import urlparse
 
 router = APIRouter()
+
+
+def is_safe_redirect_url(url: str) -> bool:
+    """Validate that the URL is a relative path or matches allowed hosts."""
+    url = url.replace("\\", "")  # Normalize backslashes
+    parsed = urlparse(url)
+    return not parsed.netloc and not parsed.scheme
 
 
 # security check page GET endpoint
@@ -15,7 +23,11 @@ def security_check_form(
     # Check if user is already authenticated
     if token == security_token:
         # User is already authenticated, redirect to original URL
-        return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
+        if is_safe_redirect_url(redirect_url):
+            # https://github.com/mlcommons/medperf/security/code-scanning/100
+            return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
     else:
         # User is not authenticated, show security check form
         return templates.TemplateResponse(
@@ -31,7 +43,14 @@ def access_web_ui(
     redirect_url: str = Form("/"),
 ):
     if token == security_token:
-        response = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
+        if is_safe_redirect_url(redirect_url):
+            # https://github.com/mlcommons/medperf/security/code-scanning/100
+            response = RedirectResponse(
+                url=redirect_url, status_code=status.HTTP_302_FOUND
+            )
+        else:
+            response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
         response.set_cookie(key=AUTH_COOKIE_NAME, value=token)
         return response
     else:
