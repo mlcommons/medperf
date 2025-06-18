@@ -51,7 +51,13 @@ def access_web_ui(
         else:
             response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
-        response.set_cookie(key=AUTH_COOKIE_NAME, value=token)
+        response.set_cookie(
+            key=AUTH_COOKIE_NAME,
+            value=token,
+            secure=True,
+            httponly=True,
+            samesite="strict",
+        )
         return response
     else:
         return templates.TemplateResponse(
