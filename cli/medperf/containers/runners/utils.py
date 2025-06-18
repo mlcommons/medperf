@@ -60,11 +60,11 @@ def _normalize_gpu_arg(gpus: Optional[str]):
         return gpus
 
     if isinstance(gpus, str):
-        if gpus.is_numeric():
+        if gpus.isnumeric():
             if gpus == "0":
                 return
             return int(gpus)
-        if gpus.starts_with("device="):
+        if gpus.startswith("device="):
             gpus = gpus[len("device=") :]  # noqa
             if gpus:
                 ids = gpus.split(",")
@@ -96,3 +96,9 @@ def add_network_config(run_args, disable_network, ports):
             )
 
     run_args["ports"] = ports
+
+
+def add_medperf_tmp_folder(output_volumes, tmp_folder):
+    output_volumes.append(
+        {"host_path": tmp_folder, "mount_path": "/tmp", "type": "directory"}
+    )

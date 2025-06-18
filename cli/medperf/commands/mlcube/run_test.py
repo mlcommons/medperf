@@ -17,8 +17,10 @@ def run_mlcube(
     """Dev utility command"""
     c = Cube(name="test", for_test=True, git_mlcube_url="https://example.com")
     c.cube_path = cube_path
-    c.params_path = parameters_file_path
-    c.additiona_files_folder_path = additional_files_path
+    c.params_path = parameters_file_path or c.params_path
+    c.additiona_files_folder_path = (
+        additional_files_path or c.additiona_files_folder_path
+    )
     if download:
         c.download_run_files()
     c.run(task, output_logs, timeout, mounts, env, ports, disable_network)

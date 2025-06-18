@@ -12,6 +12,7 @@ from .utils import (
     add_user_defined_run_args,
     add_medperf_environment_variables,
     add_network_config,
+    add_medperf_tmp_folder,
 )
 from .singularity_utils import (
     get_docker_image_hash_from_dockerhub,
@@ -117,6 +118,7 @@ class SingularityRunner(Runner):
     def run(
         self,
         task: str,
+        tmp_folder: str,
         output_logs: str = None,
         timeout: int = None,
         medperf_mounts: dict[str, str] = {},
@@ -143,6 +145,8 @@ class SingularityRunner(Runner):
 
         # Add volumes
         input_volumes, output_volumes = self.parser.get_volumes(task, medperf_mounts)
+        add_medperf_tmp_folder(output_volumes, tmp_folder)
+
         run_args["input_volumes"] = input_volumes
         run_args["output_volumes"] = output_volumes
 
