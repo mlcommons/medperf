@@ -7,9 +7,9 @@ from medperf.web_ui.common import check_user_api
 
 router = APIRouter()
 
-# Start listing folders at the /home/{username}
-BASE_DIR = os.path.expanduser("~")
-BASE_DIR = os.path.realpath(BASE_DIR)
+# Allow user to put any path
+# TODO: should we worry about this?
+BASE_DIR = "/"
 
 
 # TODO: close with token and list in documentation
