@@ -21,12 +21,12 @@ def browse_directory(
 ):
     full_path = os.path.abspath(os.path.join(BASE_DIR, path))
 
+    # Ensure path is within the base directory
+    if not full_path.startswith(BASE_DIR):
+        raise HTTPException(status_code=403, detail="Access denied")
+
     if not os.path.exists(full_path) or not os.path.isdir(full_path):
         raise HTTPException(status_code=404, detail="Directory not found")
-
-    # Ensure path is within the base directory
-    if not os.path.commonpath([BASE_DIR, full_path]) == BASE_DIR:
-        raise HTTPException(status_code=403, detail="Access denied")
 
     # List directories inside the path and sort them
     sorted_folders = []
