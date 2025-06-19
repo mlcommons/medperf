@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from medperf import config
 from medperf.config_management.config_management import read_config, write_config
 from medperf.exceptions import InvalidArgumentError, MedperfException
-from medperf.utils import dict_pretty_print
+from medperf.utils import make_pretty_dict
 from medperf.web_ui.common import check_user_api, check_user_ui, templates
 from medperf.init import initialize
 
@@ -50,9 +50,7 @@ def view_profile(
             profile_config = config_p[profile]
 
         profile_config.pop(config.credentials_keyword, None)
-        profile_dict = dict_pretty_print(
-            profile_config, skip_none_values=False, is_print=False
-        )
+        profile_dict = make_pretty_dict(profile_config, skip_none_values=False)
 
         return_response["status"] = "success"
         return_response["profile_dict"] = profile_dict

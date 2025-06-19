@@ -234,9 +234,20 @@ def approval_prompt(msg: str) -> bool:
     return approval == "y"
 
 
-def dict_pretty_print(
-    in_dict: dict, skip_none_values: bool = True, is_print: bool = True
-):
+def make_pretty_dict(in_dict: dict, skip_none_values: bool = True):
+    """Helper function for distinctively creating dict string with yaml format.
+
+    Args:
+        in_dict (dict): dictionary to convert to yaml string
+        skip_none_values (bool): if fields with `None` values should be omitted
+    """
+    if skip_none_values:
+        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+    yaml_dict = yaml.dump(in_dict)
+    return yaml_dict
+
+
+def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     """Helper function for distinctively printing dictionaries with yaml format.
 
     Args:
@@ -244,13 +255,9 @@ def dict_pretty_print(
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    if skip_none_values:
-        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
-    yaml_dict = yaml.dump(in_dict)
-    if is_print:
-        config.ui.print_yaml(yaml_dict)
+    yaml_dict = make_pretty_dict(in_dict, skip_none_values)
+    config.ui.print_yaml(yaml_dict)
     logging.debug(f"Dictionary printed to the user: {in_dict}")
-    return yaml_dict
 
 
 class _MLCubeOutputFilter:
