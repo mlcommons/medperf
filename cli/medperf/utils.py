@@ -530,7 +530,8 @@ def get_participant_label(email, data_id):
 
 
 def normalize_and_check_input_path(path: str) -> str:
-    path = str(Path(path).resolve())
-    if not path.startswith(config.safe_root):
-        raise InvalidArgumentError(f"Unaccepted path: {path}")
-    return path
+    safe_root = str(Path(config.safe_root).resolve())
+    resolved_path = str(Path(resolved_path).resolve())
+    if not resolved_path.startswith(safe_root):
+        raise InvalidArgumentError(f"Unaccepted path: {resolved_path}")
+    return resolved_path
