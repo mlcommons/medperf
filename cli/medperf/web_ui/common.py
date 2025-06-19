@@ -10,6 +10,7 @@ from importlib import resources
 from fastapi.requests import Request
 from medperf import config
 from starlette.responses import RedirectResponse
+from pydantic.datetime_parse import parse_datetime
 
 from medperf.enums import Status
 from medperf.web_ui.auth import (
@@ -115,7 +116,9 @@ def sort_associations_display(associations: list[dict]) -> list[dict]:
         # lower status - first
         status_order = approval_status_order.get(assoc["approval_status"], -1)
         # recent associations - first
-        date_order = -(assoc["approved_at"] or assoc["created_at"]).timestamp()
+        date_order = -parse_datetime(
+            assoc["approved_at"] or assoc["created_at"]
+        ).timestamp()
         return status_order, date_order
 
     return sorted(associations, key=assoc_sorting_key)
