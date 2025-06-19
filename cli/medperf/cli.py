@@ -84,7 +84,7 @@ def execute(
         no_cache=no_cache,
         rerun_finalized_executions=new_result,
     )[0]
-    ResultSubmission.run(execution.id)
+    ResultSubmission.run(execution.id, approved=approval)
     config.ui.print("✅ Done!")
 
 
