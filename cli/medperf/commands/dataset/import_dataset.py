@@ -1,7 +1,12 @@
 import os
-from pathlib import Path
 from medperf.entities.dataset import Dataset
-from medperf.utils import generate_tmp_path, untar, move_folder, remove_path
+from medperf.utils import (
+    generate_tmp_path,
+    untar,
+    move_folder,
+    remove_path,
+    normalize_and_check_input_path,
+)
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
 import yaml
@@ -18,11 +23,11 @@ class ImportDataset:
 
     def __init__(self, dataset_id: str, input_path: str, raw_data_path: str):
         self.dataset_id = dataset_id
-        self.input_path = str(Path(input_path).resolve())
+        self.input_path = normalize_and_check_input_path(input_path)
         self.dataset = Dataset.get(self.dataset_id)
         self.raw_data_path = raw_data_path
         if raw_data_path is not None:
-            self.raw_data_path = str(Path(raw_data_path).resolve())
+            self.raw_data_path = normalize_and_check_input_path(raw_data_path)
 
     def validate_input(self):
         # The input archive file should exist and be a file

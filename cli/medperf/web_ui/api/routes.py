@@ -4,12 +4,9 @@ from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
 
 from medperf.web_ui.common import check_user_api
+from medperf.utils import normalize_and_check_input_path
 
 router = APIRouter()
-
-# Allow user to put any path
-# TODO: should we worry about this?
-BASE_DIR = "/"
 
 
 # TODO: close with token and list in documentation
@@ -19,11 +16,9 @@ def browse_directory(
     with_files: bool = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    full_path = os.path.abspath(os.path.join(BASE_DIR, path))
 
-    # Ensure path is within the base directory
-    if not full_path.startswith(BASE_DIR):
-        raise HTTPException(status_code=403, detail="Access denied")
+    base_dir = "/"  # Allow user to put any path
+    full_path = normalize_and_check_input_path(os.path.join(base_dir, path))
 
     if not os.path.exists(full_path) or not os.path.isdir(full_path):
         raise HTTPException(status_code=404, detail="Directory not found")
@@ -53,8 +48,8 @@ def browse_directory(
             folders.append({"name": item, "path": item_path, "type": "file"})
 
     # Add the parent directory
-    parent = os.path.dirname(full_path) if full_path != BASE_DIR else BASE_DIR
-    have_parent = full_path != BASE_DIR
+    parent = os.path.dirname(full_path) if full_path != base_dir else base_dir
+    have_parent = full_path != base_dir
 
     return {
         "folders": folders,

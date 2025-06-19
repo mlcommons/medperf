@@ -527,3 +527,10 @@ def get_pki_assets_path(common_name: str, ca_name: str):
 def get_participant_label(email, data_id):
     # return f"d{data_id}"
     return f"{email}"
+
+
+def normalize_and_check_input_path(path: str) -> str:
+    path = str(Path(path).resolve())
+    if not path.startswith(config.safe_root):
+        raise InvalidArgumentError(f"Unaccepted path: {path}")
+    return path

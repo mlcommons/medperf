@@ -55,6 +55,9 @@ creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
 
+# TODO: should we change this?
+safe_root = "/"  # Base path to accept input paths from user.
+
 images_folder = ".images"
 trash_folder = ".trash"
 tmp_folder = ".tmp"
