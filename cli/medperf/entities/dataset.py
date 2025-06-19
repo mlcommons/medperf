@@ -4,7 +4,6 @@ import yaml
 from pydantic import Field, validator
 from typing import Optional, Union, List
 
-from medperf.entities.association import Association
 from medperf.utils import remove_path
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -123,14 +122,14 @@ class Dataset(Entity, DeployableSchema):
         return comms_fn
 
     @classmethod
-    def get_benchmarks_associations(cls, dataset_uid: int) -> List[Association]:
+    def get_benchmarks_associations(cls, dataset_uid: int) -> List[dict]:
         """Retrieves the list of benchmarks dataset is associated with
 
         Args:
             dataset_uid (int): UID of the dataset.
 
         Returns:
-            List[Association]: List of associations
+            List[dict]: List of associations
         """
 
         experiment_type = "benchmark"
@@ -142,8 +141,7 @@ class Dataset(Entity, DeployableSchema):
             approval_status=None,
         )
 
-        associations = [Association(**assoc) for assoc in associations]
-        associations = [a for a in associations if a.dataset == dataset_uid]
+        associations = [a for a in associations if a["dataset"] == dataset_uid]
 
         return associations
 

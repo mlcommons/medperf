@@ -62,7 +62,7 @@ def container_detail_ui(
 
     benchmark_associations = {}
     for assoc in benchmark_assocs:
-        benchmark_associations[assoc.benchmark] = assoc
+        benchmark_associations[assoc["benchmark"]] = assoc
 
     benchmarks = Benchmark.all()
     benchmarks = {b.id: b for b in benchmarks}
@@ -76,7 +76,7 @@ def container_detail_ui(
             "entity": container,
             "entity_name": container.name,
             "is_owner": is_owner,
-            "benchmarks_associations": benchmark_associations,
+            "benchmarks_associations": benchmark_associations,  #
             "benchmarks": benchmarks,
         },
     )

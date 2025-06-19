@@ -86,14 +86,14 @@ def benchmark_detail_ui(
         models_associations = sort_associations_display(models_associations)
 
         datasets = {
-            assoc.dataset: Dataset.get(assoc.dataset)
+            assoc["dataset"]: Dataset.get(assoc["dataset"])
             for assoc in datasets_associations
-            if assoc.dataset
+            if assoc["dataset"]
         }
         models = {
-            assoc.model_mlcube: Cube.get(assoc.model_mlcube)
+            assoc["model_mlcube"]: Cube.get(assoc["model_mlcube"])
             for assoc in models_associations
-            if assoc.model_mlcube
+            if assoc["model_mlcube"]
         }
 
         # Results
@@ -116,8 +116,8 @@ def benchmark_detail_ui(
             "data_preparation_container": data_preparation_container,
             "reference_model_container": reference_model_container,
             "metrics_container": metrics_container,
-            "datasets_associations": datasets_associations,
-            "models_associations": models_associations,
+            "datasets_associations": datasets_associations,  #
+            "models_associations": models_associations,  #
             "datasets": datasets,
             "models": models,
             "current_user_is_benchmark_owner": current_user_is_benchmark_owner,

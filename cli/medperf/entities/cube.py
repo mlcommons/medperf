@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 from medperf.commands.association.utils import get_user_associations
 from pydantic import Field
 
-from medperf.entities.association import Association
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidEntityError
@@ -224,14 +223,14 @@ class Cube(Entity, DeployableSchema):
         return self.parser.is_metadata_specified()
 
     @classmethod
-    def get_benchmarks_associations(cls, mlcube_uid: int) -> List[Association]:
+    def get_benchmarks_associations(cls, mlcube_uid: int) -> List[dict]:
         """Retrieves the list of benchmarks model is associated with
 
         Args:
             mlcube_uid (int): UID of the cube.
 
         Returns:
-            List[Association]: List of associations
+            List[dict]: List of associations
         """
         experiment_type = "benchmark"
         component_type = "model_mlcube"
@@ -242,8 +241,7 @@ class Cube(Entity, DeployableSchema):
             approval_status=None,
         )
 
-        associations = [Association(**assoc) for assoc in associations]
-        associations = [a for a in associations if a.model_mlcube == mlcube_uid]
+        associations = [a for a in associations if a["model_mlcube"] == mlcube_uid]
 
         return associations
 

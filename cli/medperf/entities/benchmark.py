@@ -6,7 +6,6 @@ from medperf.commands.association.utils import (
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
-from medperf.entities.association import Association
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
@@ -115,14 +114,14 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         return uids_with_users
 
     @classmethod
-    def get_models_associations(cls, benchmark_uid: int) -> List[Association]:
+    def get_models_associations(cls, benchmark_uid: int) -> List[dict]:
         """Retrieves the list of model associations to the benchmark
 
         Args:
             benchmark_uid (int): UID of the benchmark.
 
         Returns:
-            List[Association]: List of associations
+            List[dict]: List of associations
         """
 
         experiment_type = "benchmark"
@@ -134,20 +133,19 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
             approval_status=None,
         )
 
-        associations = [Association(**assoc) for assoc in associations]
-        associations = [a for a in associations if a.benchmark == benchmark_uid]
+        associations = [a for a in associations if a["benchmark"] == benchmark_uid]
 
         return associations
 
     @classmethod
-    def get_datasets_associations(cls, benchmark_uid: int) -> List[Association]:
+    def get_datasets_associations(cls, benchmark_uid: int) -> List[dict]:
         """Retrieves the list of models associated to the benchmark
 
         Args:
             benchmark_uid (int): UID of the benchmark.
 
         Returns:
-            List[Association]: List of associations
+            List[dict]: List of associations
         """
 
         experiment_type = "benchmark"
@@ -159,8 +157,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
             approval_status=None,
         )
 
-        associations = [Association(**assoc) for assoc in associations]
-        associations = [a for a in associations if a.benchmark == benchmark_uid]
+        associations = [a for a in associations if a["benchmark"] == benchmark_uid]
 
         return associations
 

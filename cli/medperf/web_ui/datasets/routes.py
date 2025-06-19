@@ -72,7 +72,7 @@ def dataset_detail_ui(
     benchmark_assocs = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
     benchmark_associations = {}
     for assoc in benchmark_assocs:
-        benchmark_associations[assoc.benchmark] = assoc
+        benchmark_associations[assoc["benchmark"]] = assoc
     # benchmark_associations = sort_associations_display(benchmark_associations)
 
     # Get all relevant benchmarks for making an association
@@ -93,7 +93,7 @@ def dataset_detail_ui(
     approved_benchmarks = [
         i
         for i in benchmark_associations
-        if benchmark_associations[i].approval_status == "APPROVED"
+        if benchmark_associations[i]["approval_status"] == "APPROVED"
     ]
     my_user_id = get_medperf_user_data()["id"]
     is_owner = my_user_id == dataset.owner
@@ -108,18 +108,18 @@ def dataset_detail_ui(
     # Fetch models associated with each benchmark
     benchmark_models = {}
     for assoc in benchmark_assocs:
-        if assoc.approval_status != "APPROVED":
+        if assoc["approval_status"] != "APPROVED":
             continue  # if association is not approved we cannot list its models
-        models_uids = Benchmark.get_models_uids(benchmark_uid=assoc.benchmark)
+        models_uids = Benchmark.get_models_uids(benchmark_uid=assoc["benchmark"])
         models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
-        benchmark_models[assoc.benchmark] = models
+        benchmark_models[assoc["benchmark"]] = models
         for model in models + [
-            valid_benchmarks[assoc.benchmark].reference_model_mlcube
+            valid_benchmarks[assoc["benchmark"]].reference_model_mlcube
         ]:
             model.result = None
             for result in results:
                 if (
-                    result.benchmark == assoc.benchmark
+                    result.benchmark == assoc["benchmark"]
                     and result.dataset == dataset_id
                     and result.model == model.id
                 ):
@@ -138,7 +138,7 @@ def dataset_detail_ui(
             "prep_cube": prep_cube,
             "dataset_is_prepared": dataset_is_prepared,
             "dataset_is_operational": dataset_is_operational,
-            "benchmark_associations": benchmark_associations,
+            "benchmark_associations": benchmark_associations,  #
             "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
             "benchmark_models": benchmark_models,  # Pass associated models without status
             "approved_benchmarks": approved_benchmarks,

@@ -11,7 +11,6 @@ from fastapi.requests import Request
 from medperf import config
 from starlette.responses import RedirectResponse
 
-from medperf.entities.association import Association
 from medperf.enums import Status
 from medperf.web_ui.auth import (
     security_token,
@@ -96,7 +95,7 @@ def custom_exception_handler(request: Request, exc: Exception):
     return templates.TemplateResponse("error.html", context, status_code=500)
 
 
-def sort_associations_display(associations: list[Association]) -> list[Association]:
+def sort_associations_display(associations: list[dict]) -> list[dict]:
     """
     Sorts associations:
     - by approval status (pending, approved, rejected)
@@ -114,9 +113,9 @@ def sort_associations_display(associations: list[Association]) -> list[Associati
 
     def assoc_sorting_key(assoc):
         # lower status - first
-        status_order = approval_status_order.get(assoc.approval_status, -1)
+        status_order = approval_status_order.get(assoc["approval_status"], -1)
         # recent associations - first
-        date_order = -(assoc.approved_at or assoc.created_at).timestamp()
+        date_order = -(assoc["approved_at"] or assoc["created_at"]).timestamp()
         return status_order, date_order
 
     return sorted(associations, key=assoc_sorting_key)
