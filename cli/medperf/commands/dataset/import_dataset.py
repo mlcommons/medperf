@@ -20,7 +20,9 @@ class ImportDataset:
         self.dataset_id = dataset_id
         self.input_path = str(Path(input_path).resolve())
         self.dataset = Dataset.get(self.dataset_id)
-        self.raw_data_path = str(Path(raw_data_path).resolve())
+        self.raw_data_path = raw_data_path
+        if raw_data_path is not None:
+            self.raw_data_path = str(Path(raw_data_path).resolve())
 
     def validate_input(self):
         # The input archive file should exist and be a file
