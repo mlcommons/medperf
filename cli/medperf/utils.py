@@ -234,6 +234,19 @@ def approval_prompt(msg: str) -> bool:
     return approval == "y"
 
 
+def make_pretty_dict(in_dict: dict, skip_none_values: bool = True):
+    """Helper function for distinctively creating dict string with yaml format.
+
+    Args:
+        in_dict (dict): dictionary to convert to yaml string
+        skip_none_values (bool): if fields with `None` values should be omitted
+    """
+    if skip_none_values:
+        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+    yaml_dict = yaml.dump(in_dict)
+    return yaml_dict
+
+
 def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     """Helper function for distinctively printing dictionaries with yaml format.
 
@@ -242,14 +255,9 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    ui = config.ui
-    ui.print()
-    ui.print("=" * 20)
-    if skip_none_values:
-        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
-    ui.print(yaml.dump(in_dict))
+    yaml_dict = make_pretty_dict(in_dict, skip_none_values)
+    config.ui.print_yaml(yaml_dict)
     logging.debug(f"Dictionary printed to the user: {in_dict}")
-    ui.print("=" * 20)
 
 
 class _MLCubeOutputFilter:
@@ -519,3 +527,11 @@ def get_pki_assets_path(common_name: str, ca_name: str):
 def get_participant_label(email, data_id):
     # return f"d{data_id}"
     return f"{email}"
+
+
+def normalize_and_check_input_path(path: str) -> str:
+    safe_root = str(Path(config.safe_root).resolve())
+    resolved_path = str(Path(path).resolve())
+    if not resolved_path.startswith(safe_root):
+        raise InvalidArgumentError(f"Unaccepted path: {resolved_path}")
+    return resolved_path

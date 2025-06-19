@@ -915,3 +915,16 @@ class REST(Comms):
         url = f"{self.server_url}/training/{training_exp_id}/participants_info/"
         error_msg = "Could not get training experiment participants info"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_benchmark_datasets_with_users(self, benchamrk_id: int, filters={}) -> dict:
+        """Retrieves all datasets for a given benchmark and their owner information
+
+        Args:
+            benchamrk_id (int): benchmark ID
+
+        Returns:
+            dict: dictionary with the contents of dataset IDs and owner info
+        """
+        url = f"{self.server_url}/benchmarks/{benchamrk_id}/participants_info/"
+        error_msg = "Could not get benchmark participants info"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)

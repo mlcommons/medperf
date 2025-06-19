@@ -1,0 +1,181 @@
+{# ./cli/medperf/web_ui/templates/bechmark/register_benchmark.html #}
+
+{% extends "base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Create Benchmark{% endblock %}
+
+{% block content %}
+{% set benchmark_register_running = (task_running and request.app.state.task["name"] == "benchmark_registration") %}
+<div class="container">
+    <h1 class="text-center">Register a New Benchmark</h1>
+    <div class="text-center fs-5 mt-4">
+        It is <strong>recommended</strong> to test the benchmark workflow <a href="/benchmarks/register/workflow_test">here</a> before registration.
+    </div>
+
+    <form class="my-5" id="benchmark-register-form">
+        <div class="form-group my-5">
+            <label for="name" class="form-label h4">Benchmark Name</label>
+            <div class="input-group">
+                <input
+                    name="name"
+                    class="form-control"
+                    type="text"
+                    id="name"
+                    placeholder="{{ placeholders.register_benchmark_name }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_register_running %}
+                    value="{{ task_formData.get('name', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_benchmark_name }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="description" class="form-label h4">Description</label>
+            <div class="input-group">
+                <textarea
+                    name="description"
+                    id="description"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_benchmark_description }}"
+                    {% if task_running %} disabled {% endif %}
+                >{% if benchmark_register_running %} {{ task_formData.get('description', '') }} {% endif %}</textarea>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_benchmark_description }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="reference-dataset-tarball-url" class="form-label h4">Reference Dataset Tarball URL</label>
+            <div class="input-group">
+                <input
+                    name="reference_dataset_tarball_url"
+                    class="form-control"
+                    type="text"
+                    id="reference-dataset-tarball-url"
+                    placeholder="{{ placeholders.register_benchmark_reference_dataset_tarball_url }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_register_running %}
+                    value="{{ task_formData.get('reference_dataset_tarball_url', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_benchmark_reference_dataset_tarball_url }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="data-preparation-container" class="form-label h4">Data Preparation Container ID</label>
+            <div class="input-group">
+                <input
+                    name="data_preparation_container"
+                    class="form-control"
+                    type="number"
+                    id="data-preparation-container"
+                    placeholder="{{ placeholders.register_benchmark_data_preparation_container_id }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_register_running %}
+                    value="{{ task_formData.get('data_preparation_container', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_benchmark_data_preparation_container_id }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="reference-model-container" class="form-label h4">Reference Model ID</label>
+            <div class="input-group">
+                <input
+                    name="reference_model_container"
+                    class="form-control"
+                    type="number"
+                    id="reference-model-container"
+                    placeholder="{{ placeholders.register_benchmark_reference_model_id }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_register_running %}
+                    value="{{ task_formData.get('reference_model_container', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_benchmark_reference_model_id }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="evaluator-container" class="form-label h4">Metrics Container ID</label>
+            <div class="input-group">
+                <input
+                    name="evaluator_container"
+                    class="form-control"
+                    type="number"
+                    id="evaluator-container"
+                    placeholder="{{ placeholders.register_benchmark_metrics_container_id }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if benchmark_register_running %}
+                    value="{{ task_formData.get('evaluator_container', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_benchmark_metrics_container_id }}"
+                ></i>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <button
+                id="register-benchmark-btn"
+                type="button"
+                class="btn btn-success mx-3"
+                disabled
+            >
+                Register
+            </button>
+        </div>
+    </form>
+
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/benchmarks/benchmark_register.js') }}"></script>
+
+{% if task_running and request.app.state.task["name"] == "benchmark_registration" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#register-benchmark-btn",
+            `Registering Benchmark...`,
+            onBenchmarkRegisterSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

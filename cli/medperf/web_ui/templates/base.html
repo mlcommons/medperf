@@ -1,0 +1,115 @@
+{# ./cli/medperf/web_ui/templates/base.html #}
+
+{% import 'macros/modal_macros.html' as modal_macros %}
+
+{% set task_running = request.app.state.task["running"] %}
+{% set notifications = request.app.state.notifications %}
+
+{% for notification in request.app.state.new_notifications %}
+    {% set _ = notifications.append(notification) %}
+    {% set _ = request.app.state.new_notifications.remove(notification) %}
+{% endfor %}
+
+{% set unread_notifications = [] %}
+{% if notifications %}
+    {% for notification in notifications %}
+        {% if not notification["read"] %}
+            {% set _ = unread_notifications.append(notification) %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% set unread_notifications = unread_notifications | length %}
+{% set task_formData = request.app.state.task["formData"] %}
+{% set logged_in = request.app.state.logged_in %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}MedPerf{% endblock %}</title>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"> -->
+    <link href="{{ url_for('static', path='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/font-awesome-5.15.4-all.min.css') }}">
+    <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/prism-1.23.0.min.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', path='css/common.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='images/favicon.png') }}">
+    {% block extra_css %} {% endblock extra_css %}
+    <script>
+        window.notifications = {{ notifications | tojson }};
+    </script>
+    {% if task_running %}
+    <script>
+        // Save running task id and previous events in global variables
+        window.runningTaskId = "{{ request.app.state.task['id'] }}";
+        window.previousEvents = {{ request.app.state.task["logs"] | tojson }};
+    </script>
+    {% endif %}
+</head>
+<body>
+    {% include "partials/navbar.html" %}
+    <div class="">
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    {{ modal_macros.add_modal(
+        modal_id="popup-modal",
+        modal_body='<p id="popup-text"></p>',
+        modal_footer=False,
+    ) }}
+
+    {{ modal_macros.add_modal(
+        modal_id="error-modal",
+        modal_body=(
+            '<p id="error-text" class="fs-5 text-danger fw-bold"></p>'
+            '<p class="text-end mt-3"><button type="button" class="btn" onclick="reloadPage();">Click here to reload</button></p>'
+        ),
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>',
+    ) }}
+
+    {{ modal_macros.add_modal(
+        modal_id="confirm-modal",
+        modal_body='<p id="confirm-text" class="fs-5"></p>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button id="confirmation-btn" type="button" class="btn btn-success" data-bs-dismiss="modal" >Confirm</button>'
+    
+    ) }}
+
+    <div id="toast-container" class="position-fixed bottom-0 end-0 p-3"></div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="{{ url_for('static', path='js/jquery-3.6.0.min.js') }}"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script> -->
+    <script src="{{ url_for('static', path='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/bootstrap.bundle.min.js') }}"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <script src="{{ url_for('static', path='js/prism-1.23.0.min.js') }}"></script>
+    <!-- https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-yaml.min.js -->
+
+    <script src="{{ url_for('static', path='js/prism-yaml-1.23.0.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/common.js') }}"></script>
+    <script>
+        $(document).ready(() => {
+            $("#logout-btn").on("click", (e) => {
+                showConfirmModal(e.currentTarget, logout, "logout?");
+            });
+        });
+    </script>
+    {% if task_running %}
+    <script>
+        getNotifications();
+        // Fetch notifications every 5 seconds
+        setInterval(getNotifications, 5000);
+    </script>
+    {% endif %}
+    {% block extra_js %} {% endblock extra_js %}
+</body>
+</html>

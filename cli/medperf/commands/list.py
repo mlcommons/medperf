@@ -19,6 +19,8 @@ class EntityList:
         """Lists all local datasets
 
         Args:
+            entity_class: entity class to instantiate (Dataset, Model, etc.)
+            fields (list[str]): list of fields to display
             unregistered (bool, optional): Display only local unregistered results. Defaults to False.
             mine_only (bool, optional): Display all registered current-user results. Defaults to False.
             kwargs (dict): Additional parameters for filtering entity lists. Keys with None will be filtered out.

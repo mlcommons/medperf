@@ -21,7 +21,7 @@ import medperf.commands.aggregator.aggregator as aggregator
 import medperf.commands.ca.ca as ca
 import medperf.commands.certificate.certificate as certificate
 import medperf.commands.storage as storage
-
+import medperf.web_ui.app as web_ui
 from medperf.utils import check_for_updates
 from medperf.logging.utils import log_machine_details
 
@@ -40,6 +40,7 @@ app.add_typer(training.app, name="training", help="Manage training experiments")
 app.add_typer(aggregator.app, name="aggregator", help="Manage aggregators")
 app.add_typer(ca.app, name="ca", help="Manage CAs")
 app.add_typer(certificate.app, name="certificate", help="Manage certificates")
+app.add_typer(web_ui.app, name="web-ui", help="local web UI to manage medperf entities")
 
 
 @app.command("run")
@@ -75,15 +76,15 @@ def execute(
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    BenchmarkExecution.run(
+    execution = BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
         [model_uid],
         ignore_model_errors=ignore_model_errors,
         no_cache=no_cache,
         rerun_finalized_executions=new_result,
-    )
-    ResultSubmission.run(benchmark_uid, data_uid, model_uid, approved=approval)
+    )[0]
+    ResultSubmission.run(execution.id, approved=approval)
     config.ui.print("✅ Done!")
 
 

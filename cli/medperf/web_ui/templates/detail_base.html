@@ -1,0 +1,19 @@
+{# ./cli/medperf/web_ui/templates/detail_base.html #}
+
+{% extends "base.html" %}
+
+{% block title %}Details{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-panel">
+        {% block detail_panel %}{% endblock %}
+    </div>
+    <div class="yaml-panel mt-5" id="yaml-panel">
+        <h5 class="mt-4">YAML Content</h5>
+        <div id="loading-indicator" class="spinner hidden-element"></div>
+        <pre id="yaml-code" class="language-yaml"></pre>
+        <a id="hide-yaml" href="#" class="mt-4 btn btn-outline-dark hidden-element">Hide YAML Content</a>
+    </div>
+</div>
+{% endblock %}

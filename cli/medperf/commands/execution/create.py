@@ -62,7 +62,8 @@ class BenchmarkExecution:
             no_cache,
             rerun_finalized_executions,
         )
-        execution_flow.prepare()
+        with execution_flow.ui.interactive():
+            execution_flow.prepare()
         execution_flow.validate()
         execution_flow.prepare_models()
         execution_flow.load_existing_executions()
@@ -183,7 +184,7 @@ class BenchmarkExecution:
         self.ui.print(f"> Container '{name}' download complete")
         return cube
 
-    def run_experiments(self):
+    def run_experiments(self) -> list[Execution]:
         for model_uid in self.models_uids:
             execution = self.existing_executions.get(model_uid, None)
             if (
@@ -285,7 +286,7 @@ class BenchmarkExecution:
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
 
     def print_summary(self):
-        headers = ["model", "local result UID", "partial result", "from cache", "error"]
+        headers = ["model", "Execution UID", "partial result", "from cache", "error"]
         data_lists_for_display = []
 
         num_total = len(self.experiments)
@@ -300,7 +301,7 @@ class BenchmarkExecution:
                 data_lists_for_display.append(
                     [
                         experiment["model_uid"],
-                        experiment["execution"].local_id,
+                        experiment["execution"].id,
                         experiment["partial"],
                         experiment["cached"],
                         experiment["error"],

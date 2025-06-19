@@ -1,0 +1,29 @@
+{# ./cli/medperf/web_ui/templates/macros/modal_macros.html #}
+
+{% macro add_modal(
+    modal_id,
+    modal_body,
+    modal_class="",
+    modal_footer=False,
+    close_button="",
+    success_button=""
+) %}
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}-title" aria-hidden="true">
+    <div class="modal-dialog {{ modal_class }} ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fs-5" id="{{ modal_id }}-title"></h5>
+            </div>
+            <div class="modal-body">
+               {{ modal_body | safe }}
+            </div>
+            {% if modal_footer %}
+            <div class="modal-footer">
+                {{ close_button | safe }}
+                {{ success_button | safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endmacro %}

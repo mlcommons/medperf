@@ -1,0 +1,356 @@
+
+.badge-state-operational {
+    background-color: lightgreen;
+    color: black;
+}
+
+.badge-state-development {
+    background-color: lightcoral;
+    color: black;
+}
+
+.badge-approval-pending {
+    background-color: coral;
+    color: black;
+}
+
+.badge-approval-approved {
+    background-color: lightgreen;
+    color: black;
+}
+
+.badge-approval-rejected {
+    background-color: red;
+    color: black;
+}
+
+.badge-valid {
+    background-color: lightgreen;
+    color: black;
+}
+
+.badge-invalid {
+    background-color: red;
+    color: black;
+}
+
+.invalid-card {
+    background-color: #ffe6e6;
+}
+
+.unfinalized-result-card {
+    background-color: #ffe6e6;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.detail-container {
+    display: flex;
+    justify-content: center; /* Center the detail panel initially */
+    width: 100%;
+    align-items: center;
+}
+
+.detail-panel {
+    flex: 1;
+    max-width: 60%;
+    padding-right: 20px;
+    box-sizing: border-box;
+    transition: max-width 0.3s, margin 0.3s; /* Smooth transition */
+}
+
+.yaml-panel {
+    flex: 0 0 40%;
+    max-width: 40%;
+    min-width: 300px;
+    height: 100vh;
+    overflow: auto;
+    display: none; /* Hidden initially */
+}
+
+.yaml-panel-visible .yaml-panel {
+    justify-content: flex-start; /* Align detail panel to the left when YAML panel is visible */
+}
+
+.yaml-panel-visible .detail-panel {
+    max-width: 60%; /* Adjust to take 60% width when YAML panel is visible */
+    margin-right: 20px;
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+/* Floating alert container at the bottom-right corner */
+.floating-alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050; /* Ensure it appears above other content */
+    width: 300px;
+    max-width: 100%;
+}
+
+/*----from detail_base.html*/
+.card-body.d-flex {
+    flex-wrap: wrap;
+}
+
+.card-text {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.association-card {
+    margin-bottom: 20px;
+}
+
+.benchmark-result-card {
+    margin-bottom: 20px;
+}
+
+.associations-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.associations-column {
+    flex: 1;
+    min-width: 150px;
+    max-width: 48%;
+    box-sizing: border-box;
+}
+
+#datasets-associations{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+#models-associations{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+#benchmark-results{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+/* Step container styling */
+.step-container {
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Step buttons */
+.step-btn {
+    padding: 5px 15px;  /* Reduced padding */
+    font-size: 0.9rem;  /* Slightly smaller font for a more compact design */
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.step-btn i {
+    font-size: 1rem;
+}
+
+/* Completed steps */
+.step-complete {
+    display: flex;
+    align-items: center;
+    background-color: #e8f5e9;
+    padding: 5px 15px;  /* Reduced padding */
+    border-radius: 20px;
+}
+
+.step-complete i {
+    font-size: 1.2rem;
+}
+
+/* Step labels */
+.step-label {
+    margin-top: 2px;
+    font-size: 0.85rem;  /* Smaller step labels */
+    color: #6c757d;
+}
+
+/* Step dividers */
+.step-divider i {
+    font-size: 1.2rem;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+/* Consistent button styles */
+.step-btn, .step-complete {
+    min-width: 120px; /* Adjusted width */
+    text-align: center;
+}
+
+.step-btn:disabled {
+    background-color: #e0e0e0;
+    color: #6c757d;
+}
+
+/* Dropdown button adjustments */
+.dropdown-toggle {
+    padding: 5px 15px;
+    border-radius: 20px;
+}
+
+.hidden-element{
+    display: none;
+}
+
+.bottom-buttons-panel{
+    border:1px solid rgba(0, 0, 0, .125);
+    border-radius:.25rem;
+}
+
+.benchmarks-dropdown li:active{
+    background-color: unset;
+    color: unset;
+}
+
+.tooltip-info:hover{
+    cursor: help;
+}
+
+.dropdown-item:active{
+    background-color: initial;
+    color: initial;
+}
+
+.floating-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1055;
+    width: fit-content;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    height: fit-content;
+}
+
+.language-yaml{
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.modal-body {
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
+    white-space: normal;
+}
+
+#notifications-list {
+    max-height: 360px;
+    overflow-y:auto;
+}
+
+#notifications-list > li{
+    width: 340px!important;
+}
+
+.notification-text {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    white-space: normal;
+}
+
+#log-panel{
+    height: 300px;
+    overflow-y: scroll;
+    background-color: #f8f9fa;
+    padding: 15px;
+}
+
+label[for="switch"] {
+    margin-left: -40px;
+    cursor: pointer;
+}
+
+#switch {
+    border: 1px solid gray;
+    cursor: pointer;
+}
+
+#toast-container {
+    z-index: 11;
+}
+
+#folder-list{
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.folder-item{
+    cursor: pointer;
+}
+
+.file-item{
+    color: grey;
+}
+
+.parent-disabled{
+    cursor: not-allowed;
+}
+
+#folder-picker-modal-title{
+    word-break: break-all;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 992px) {
+    .detail-panel {
+        max-width: 100%;
+        padding-right: 0;
+    }
+
+    .yaml-panel {
+        display: none;
+    }
+
+    .detail-panel, .associations-panel {
+        max-width: 100%;
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .detail-container {
+        flex-direction: column;
+    }
+}

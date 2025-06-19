@@ -1,0 +1,30 @@
+{# ./cli/medperf/web_ui/templates/macros/benchmark_macros.html #}
+
+{% macro benchmark_card(benchmark) %}
+<div class="card {% if not benchmark.is_valid %}invalid-card{% endif %}">
+    <div class="card-body">
+        <h5 class="card-title">
+            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a>
+        </h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ benchmark.is_valid }}</h6>
+        <p class="card-text">
+            <strong>Description:</strong> 
+            {{ benchmark.description }}
+        </p>
+        {% if benchmark.docs_url %}
+        <p class="card-text">
+            <a href="{{ benchmark.docs_url }}" target="_blank" class="text-primary">Documentation</a>
+        </p>
+        {% else %}
+        <p class="card-text text-muted">Documentation: Not Available</p>
+        {% endif %}
+        <p class="card-text">
+            <small class="text-muted" data-date="{{ benchmark.created_at }}"></small>
+        </p>
+        <p class="card-text">
+            <small class="text-muted">Approval Status: {{ benchmark.approval_status }}</small>
+        </p>
+    </div>
+</div>
+{% endmacro %}

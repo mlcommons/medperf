@@ -246,7 +246,7 @@ def import_dataset(
     raw_path: str = typer.Option(
         None,
         "--raw_dataset_path",
-        help="New path of the DEVELOPMENT dataset raw data to be saved.",
+        help="New path of the DEVELOPMENT dataset raw data to be saved. Directory should be empty or doesn't exist.",
     ),
 ):
     """Imports dataset files from specified tar.gz file."""

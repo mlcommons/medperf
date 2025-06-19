@@ -89,7 +89,8 @@ class DataPreparation:
             preparation.prompt_for_report_sending_approval()
 
         if preparation.should_run_prepare():
-            preparation.run_prepare()
+            with preparation.ui.interactive():
+                preparation.run_prepare()
 
         with preparation.ui.interactive():
             preparation.run_sanity_check()
@@ -277,6 +278,8 @@ class DataPreparation:
             with open(self.report_path, "r") as f:
                 report_dict = yaml.safe_load(f)
 
+            # TODO: this specific logic with status is very tuned to the RANO. Hope we'd
+            #  make it more general once
             report = pd.DataFrame(report_dict)
             if "status" in report.keys():
                 report_status = report.status.value_counts() / len(report)

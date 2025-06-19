@@ -1,0 +1,37 @@
+{# ./cli/medperf/web_ui/templates/constants/forms_placeholders.html #}
+
+{# Forms placeholders for benchmarks pages #}
+{% set workflow_test_data_preparation_container = "Path of the data preparation container" %}
+{% set workflow_test_reference_model_path = "Path of the reference model" %}
+{% set workflow_test_metrics_container_path = "Path of the metrics container" %}
+{% set workflow_test_reference_dataset_data_path = "Path of the reference dataset data folder" %}
+{% set workflow_test_reference_dataset_labels_path = "Path of the referebce dataset labels folder" %}
+
+{% set register_benchmark_name = "Example Benchmark" %}
+{% set register_benchmark_description = "Example Description" %}
+{% set register_benchmark_reference_dataset_tarball_url = "https://www.example.com/reference_dataset_tarball_example.tar" %}
+{% set register_benchmark_data_preparation_container_id = "Data preparation container id, e.g; 1" %}
+{% set register_benchmark_reference_model_id = "Reference model id, e.g; 2" %}
+{% set register_benchmark_metrics_container_id = "Metrics container id, e.g; 3" %}
+
+
+{# Forms placeholders for datasets pages #}
+{% set register_dataset_name = "Example Dataset" %}
+{% set register_dataset_description = "Example Description" %}
+{% set register_dataset_location = "Example Location" %}
+{% set register_dataset_data_path = "/home/example/data_folder" %}
+{% set register_dataset_labels_path = "/home/example/labels_folder" %}
+
+{% set export_dataset_output_path = "/home/example/output_folder" %}
+
+{% set import_dataset_id = "Exported dataset id, e.g; 1" %}
+{% set import_dataset_input_path = "/home/example/X.tar.gz" %}
+{% set import_dataset_raw_path = "/home/example/new_raw_data_folder_for_DEVELOPMENT_datasets" %}
+
+{# Forms placeholders for containers pages #}
+{% set compatibility_test_container_path = "Path of the container you want to test" %}
+
+{% set register_container_name = "Example Container" %}
+{% set register_container_manifest_file = "Path of the container's manifest file" %}
+{% set register_container_parameters_file = "Path of the container's parameters file" %}
+{% set register_container_additional_file = "Path of the container's additional file" %}

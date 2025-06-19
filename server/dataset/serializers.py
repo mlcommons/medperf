@@ -75,7 +75,7 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
 
 
 class DatasetWithOwnerInfoSerializer(serializers.ModelSerializer):
-    """This is needed for training to get datasets and their owners
+    """This is needed when getting datasets and their owners
     with one API call."""
 
     owner = UserSerializer()

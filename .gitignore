@@ -60,7 +60,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-static/
+server/static/
 *.crt
 *.key
 *.pem
@@ -147,6 +147,9 @@ cython_debug/
 # Dev Environment Specific
 .vscode
 .venv
+
+# Medperf tutorial files
+medperf_tutorial
 server/keys
 
 # exclude fl example
