@@ -143,6 +143,7 @@ def register_container(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to register container"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -175,6 +176,7 @@ def test_container(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Container compatibility test failed"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -204,6 +206,7 @@ def associate(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to request container association"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)

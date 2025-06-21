@@ -194,6 +194,7 @@ def register_dataset(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to register dataset"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -228,6 +229,7 @@ def prepare(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to prepare dataset"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -258,6 +260,7 @@ def set_operational(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to set dataset to operational"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -288,6 +291,7 @@ def associate(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to request dataset association"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -326,6 +330,7 @@ def run(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Error during execution"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -355,6 +360,7 @@ def submit_result(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to submit results"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -410,6 +416,7 @@ def export_dataset(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to export dataset"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -455,6 +462,7 @@ def import_dataset(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to import dataset"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)

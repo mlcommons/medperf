@@ -175,6 +175,7 @@ def test_benchmark(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Benchmark workflow test failed"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -222,6 +223,7 @@ def register_benchmark(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to register benchmark"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -257,6 +259,7 @@ def approve(
         return_response["status"] = "failed"
         return_response["status"] = str(exp)
         notification_message = "Failed to approve association"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -292,6 +295,7 @@ def reject(
         return_response["status"] = "failed"
         return_response["status"] = str(exp)
         notification_message = "Failed to reject association"
+        logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)

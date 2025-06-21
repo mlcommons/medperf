@@ -7,6 +7,9 @@ from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.utils import make_pretty_dict
 from medperf.web_ui.common import check_user_api, check_user_ui, templates
 from medperf.init import initialize
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -58,5 +61,6 @@ def view_profile(
     except MedperfException as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
+        logger.exception(exp)
 
     return return_response

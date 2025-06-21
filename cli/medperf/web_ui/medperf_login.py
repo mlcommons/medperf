@@ -15,6 +15,9 @@ from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -60,6 +63,7 @@ def login(
             return_response["error"] = str(exp)
             success = False
             notification_message = "Error Logging In"
+            logger.exception(exp)
 
     if success:
         try:
@@ -71,6 +75,7 @@ def login(
             return_response["status"] = "failed"
             return_response["error"] = str(exp)
             notification_message = "Error Logging In"
+            logger.exception(exp)
 
     config.ui.end_task(return_response)
     reset_state_task(request)
@@ -92,4 +97,5 @@ def logout(
         templates.env.globals["logged_in"] = False
         return {"status": "success", "error": ""}
     except MedperfException as e:
+        logger.exception(e)
         return {"status": "failed", "error": str(e)}
