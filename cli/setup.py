@@ -27,6 +27,7 @@ setup(
     entry_points="""
         [console_scripts]
         medperf=medperf.__main__:app
+        medperf_webui=medperf.webui_main:app
         """,
-    package_data={"medperf": package_data}
+    package_data={"medperf": package_data},
 )

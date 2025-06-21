@@ -1,5 +1,7 @@
 from importlib import resources
 from pathlib import Path
+import logging
+from medperf.logging.utils import log_machine_details
 
 import typer
 from fastapi import FastAPI, Request
@@ -7,7 +9,6 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
-from medperf.ui.factory import UIFactory
 
 from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler
@@ -72,6 +73,12 @@ def startup_event():
     # "time": "timestamp"
     # }
 
+    # continue setup logging
+    loglevel = config.loglevel.upper()
+    logging.getLogger().setLevel(loglevel)
+    logging.getLogger("requests").setLevel(loglevel)
+    log_machine_details()
+
     # print security token to CLI (avoid logging to file)
     print("=" * 40)
     print()
@@ -103,8 +110,6 @@ def run(
 ):
     """Runs a local web UI"""
     import uvicorn
-
-    config.ui = UIFactory.create_ui(config.webui)
 
     uvicorn.run(
         web_app,

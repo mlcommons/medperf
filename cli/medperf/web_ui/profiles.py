@@ -32,7 +32,7 @@ def activate_profile(
 
     config_p.activate(profile)
     write_config(config_p)
-    initialize()
+    initialize(for_webui=True)
     return {"status": "success", "error": ""}
 
 
