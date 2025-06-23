@@ -131,7 +131,7 @@ class WebUI(CLI):
         add_notification(
             self.request,
             message="A prompt is waiting for your response in the current running task",
-            type="info",
+            return_response={"status": "info"},
         )
         resp = self.get_response()
         if resp["value"]:
