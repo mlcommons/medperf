@@ -49,6 +49,47 @@ function viewProfile(viewProfileBtn){
     );
 }
 
+function editProfile(editProfileBtn) {
+    const formData = new FormData($("#edit-config-form")[0]);
+
+    disableElements("#edit-config-form input, #edit-config-form button");
+
+    ajaxRequest(
+        "/profiles/edit",
+        "POST",
+        formData,
+        (response) => {
+            if (response.status === "success"){
+                showReloadModal("Profile Edited Successfully");
+                timer(3);
+            }
+            else {
+                showErrorModal("Failed to Edit Profile", response);
+            }
+        },
+        "Error editing profile:"
+    );
+}
+
+function checkForEditChanges() {
+    const gpusVal = $('#gpus').val();
+    const platformVal = $('#platform').val();
+
+    const gpusChanged = gpusVal !== window.defaultGpus;
+    const platformChanged = platformVal !== window.defaultPlatform;
+
+    $('#apply-changes-btn').prop('disabled', !(gpusChanged || platformChanged));
+}
+
+function checkProfileMatch() {
+    const selectedProfile = $('#profile').val();
+
+    if (selectedProfile === window.activeProfile) {
+        $('#edit-config-container').show();
+    } else {
+        $('#edit-config-container').hide();
+    }
+}
 
 $(document).ready(() => {
     $("#activate-profile-btn").on("click", (e) => {
@@ -58,4 +99,15 @@ $(document).ready(() => {
     $("#view-profile-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, viewProfile, "view this profile?");
     });
+
+    $("#apply-changes-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, editProfile, "edit this profile?");
+    });
+
+    $('#profile').on('change', checkProfileMatch);
+    $('#gpus, #platform').on('input', checkForEditChanges);
+
+    // Run initial state checks
+    checkProfileMatch();
+    checkForEditChanges();
 });

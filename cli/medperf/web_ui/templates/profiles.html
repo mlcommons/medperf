@@ -38,6 +38,25 @@
                 </div>
             </form>
         </div>
+        <div id="edit-config-container" class="mt-5" style="display: none;">
+            <form id="edit-config-form" class="mt-5">
+                <div class="row mb-4">
+                    <label for="gpus" class="col-sm-2 col-form-label h5 text-end">GPUs</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="gpus" name="gpus" class="form-control" value="{{ default_gpus }}">
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="platform" class="col-sm-2 col-form-label h5 text-end">Platform</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="platform" name="platform" class="form-control" value="{{ default_platform }}">
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="button" id="apply-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
+                </div>
+            </form>   
+        </div>
     </div>
 </div>
 
@@ -52,5 +71,11 @@
 {% endblock content %}
 
 {% block extra_js %}
+<script>
+    // Save some global variables to be accessible by js scripts
+    window.defaultGpus = "{{ default_gpus }}";
+    window.defaultPlatform = "{{ default_platform }}";
+    window.activeProfile = "{{ profiles.active_profile_name }}";
+</script>
 <script src="/static/js/profiles.js"></script>
 {% endblock extra_js %}

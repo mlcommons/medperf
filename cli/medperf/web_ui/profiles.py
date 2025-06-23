@@ -20,7 +20,12 @@ def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
     profiles = read_config()
     return templates.TemplateResponse(
         "profiles.html",
-        {"request": request, "profiles": profiles},
+        {
+            "request": request,
+            "profiles": profiles,
+            "default_gpus": config.gpus if config.gpus else "0",
+            "default_platform": config.platform,
+        },
     )
 
 
@@ -34,6 +39,23 @@ def activate_profile(
         return {"status": "failed", "error": "The provided profile does not exists"}
 
     config_p.activate(profile)
+    write_config(config_p)
+    initialize(for_webui=True)
+    return {"status": "success", "error": ""}
+
+
+@router.post("/edit", response_class=JSONResponse)
+def edit_profile(
+    gpus: str = Form(None),
+    platform: str = Form(None),
+    current_user: bool = Depends(check_user_api),
+):
+    if platform is None:
+        platform = config.platform
+    if gpus is None:
+        gpus = config.gpus
+    config_p = read_config()
+    config_p.active_profile.update({"gpus": gpus, "platform": platform})
     write_config(config_p)
     initialize(for_webui=True)
     return {"status": "success", "error": ""}
