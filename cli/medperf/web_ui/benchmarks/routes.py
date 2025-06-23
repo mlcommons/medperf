@@ -182,7 +182,7 @@ def test_benchmark(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url="/benchmarks/register/ui",
     )
     return return_response
@@ -230,7 +230,7 @@ def register_benchmark(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}" if benchmark_id else "",
     )
     return return_response
@@ -266,7 +266,7 @@ def approve(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
     return return_response
@@ -302,7 +302,7 @@ def reject(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
     return return_response

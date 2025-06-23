@@ -150,7 +150,7 @@ def register_container(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/containers/ui/display/{container_id}" if container_id else "",
     )
     return return_response
@@ -183,7 +183,7 @@ def test_container(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url="/containers/register/ui",
     )
     return return_response
@@ -213,7 +213,7 @@ def associate(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/containers/ui/display/{container_id}",
     )
     return return_response

@@ -69,12 +69,16 @@ def reset_state_task(request: Request):
     request.app.state.task_running = False
 
 
-def add_notification(request: Request, message: str, type: str, url: str = ""):
+def add_notification(
+    request: Request, message: str, return_response: dict, url: str = ""
+):
+    if return_response["status"] == "failed":
+        message += f": {return_response['error']}"
     request.app.state.new_notifications.append(
         {
             "id": generate_uuid(),
             "message": message,
-            "type": type,
+            "type": return_response["status"],
             "read": False,
             "timestamp": time.time(),
             "url": url,

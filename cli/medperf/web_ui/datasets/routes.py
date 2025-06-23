@@ -201,7 +201,7 @@ def register_dataset(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=(
             f"/datasets/ui/display/{dataset_id}"
             if dataset_id
@@ -236,7 +236,7 @@ def prepare(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
     )
     return return_response
@@ -267,7 +267,7 @@ def set_operational(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
     )
     return return_response
@@ -298,7 +298,7 @@ def associate(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
     )
     return return_response
@@ -337,7 +337,7 @@ def run(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
     )
     return return_response
@@ -367,7 +367,7 @@ def submit_result(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
     )
     return return_response
 
@@ -423,7 +423,7 @@ def export_dataset(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
     )
 
     return return_response
@@ -469,7 +469,7 @@ def import_dataset(
     add_notification(
         request,
         message=notification_message,
-        type=return_response["status"],
+        return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}" if dataset_id else "",
     )
 
