@@ -1,5 +1,4 @@
 import os
-import logging
 
 from medperf import config
 from medperf.comms.factory import CommsFactory
