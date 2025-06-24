@@ -10,7 +10,6 @@ from medperf.utils import (
     dict_pretty_print,
     get_folders_hash,
     remove_path,
-    normalize_and_check_input_path,
 )
 from medperf.exceptions import CleanExit, InvalidArgumentError
 
@@ -70,8 +69,8 @@ class DataCreation:
         for_test: bool,
     ):
         self.ui = config.ui
-        self.data_path = normalize_and_check_input_path(data_path)
-        self.labels_path = normalize_and_check_input_path(labels_path)
+        self.data_path = str(Path(data_path).resolve())
+        self.labels_path = str(Path(labels_path).resolve())
         self.metadata_path = metadata_path
         self.name = name
         self.description = description

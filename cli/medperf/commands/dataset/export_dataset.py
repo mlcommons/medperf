@@ -15,6 +15,7 @@ class ExportDataset:
 
     def __init__(self, dataset_id: str, output_path: str):
         self.dataset_id = dataset_id
+        output_path = os.path.realpath(output_path)
         self.output_path = os.path.join(output_path, str(dataset_id)) + ".gz"
         self.dataset = Dataset.get(self.dataset_id)
 
