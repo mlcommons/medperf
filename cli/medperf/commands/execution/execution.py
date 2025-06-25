@@ -8,6 +8,7 @@ from medperf.entities.execution import Execution
 from medperf.commands.list import EntityList
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.execution.submit import ResultSubmission
+from medperf.commands.execution.show_local_results import ShowLocalResults
 
 app = typer.Typer()
 
@@ -58,19 +59,22 @@ def create(
 @app.command("submit")
 @clean_except
 def submit(
+    result_uid: int = typer.Option(None, "--result", "-r", help="UID of the result"),
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        None, "--benchmark", "-b", help="UID of the desired benchmark"
     ),
     data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
+        None, "--data_uid", "-d", help="Registered Dataset UID"
     ),
     model_uid: int = typer.Option(
-        ..., "--model_uid", "-m", help="UID of model to execute"
+        None, "--model_uid", "-m", help="UID of model to execute"
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Submits already obtained results to the server"""
-    ResultSubmission.run(None, benchmark_uid, data_uid, model_uid, approved=approval)
+    ResultSubmission.run(
+        result_uid, benchmark_uid, data_uid, model_uid, approved=approval
+    )
     config.ui.print("✅ Done!")
 
 
@@ -137,3 +141,24 @@ def view(
     EntityView.run(
         entity_id, Execution, format, unregistered, mine, output, benchmark=benchmark
     )
+
+
+@app.command("show_local_results")
+@clean_except
+def show_local_results(
+    result_id: int = typer.Argument(..., help="Result ID"),
+    format: str = typer.Option(
+        "yaml",
+        "-f",
+        "--format",
+        help="Format to display contents. Available formats: [yaml, json]",
+    ),
+    output: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file to store contents. If not provided, the output will be displayed",
+    ),
+):
+    """Displays the information of one or more results"""
+    ShowLocalResults.run(result_id, format, output)
