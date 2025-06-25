@@ -98,4 +98,4 @@ def logout(
         return {"status": "success", "error": ""}
     except MedperfException as e:
         logger.exception(e)
-        return {"status": "failed", "error": str(e)}
+        return {"status": "failed", "error": "Logout failed. Check logs."}
