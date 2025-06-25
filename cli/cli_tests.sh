@@ -450,6 +450,18 @@ echo "\n"
 
 ##########################################################
 echo "====================================================================="
+echo "View local result"
+echo "====================================================================="
+FAILING_MODEL_RESULT_ID=$(medperf result ls --mine | grep b${BMK_UID}m${FAILING_MODEL_UID}d${DSET_A_UID} | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+echo "FAILING_MODEL_RESULT_ID=$FAILING_MODEL_RESULT_ID"
+print_eval medperf result show_local_results $FAILING_MODEL_RESULT_ID
+checkFailed "show_local_results failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================================================="
 echo "Submit failing container's result"
 echo "====================================================================="
 print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y
