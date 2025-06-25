@@ -91,7 +91,7 @@ def prepare_cube(cube_uid: str):
     # Check if value is a local mlcube
     path = sanitize_path(cube_uid)
 
-    if os.path.isfile():
+    if os.path.isfile(path):
         logging.info("local path provided. Creating symbolic link")
         temp_uid = prepare_local_cube(path)
         return temp_uid

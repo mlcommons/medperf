@@ -77,7 +77,9 @@ class TestWithDefaultUID:
         )
 
         # Act
-        creation = DataCreation(None, cube_uid, *[""] * 7, False, False)
+        creation = DataCreation(
+            None, cube_uid, "", "", None, "", "", "", False, False, False
+        )
         creation.validate_prep_cube()
 
         # Assert
@@ -95,7 +97,9 @@ class TestWithDefaultUID:
         )
 
         # Act
-        creation = DataCreation(cube_uid, None, *[""] * 7, False, False)
+        creation = DataCreation(
+            cube_uid, None, "", "", None, "", "", "", False, False, False
+        )
         creation.validate_prep_cube()
 
         # Assert
@@ -108,7 +112,9 @@ class TestWithDefaultUID:
         num_arguments = int(benchmark_uid is None) + int(cube_uid is None)
 
         # Act
-        creation = DataCreation(benchmark_uid, cube_uid, *[""] * 7, False, False)
+        creation = DataCreation(
+            benchmark_uid, cube_uid, "", "", None, "", "", "", False, False, False
+        )
         # Assert
 
         if num_arguments != 1:
@@ -171,7 +177,7 @@ def test_run_returns_generated_uid(mocker, comms, ui, uid):
     )
 
     # Act
-    returned_uid = DataCreation.run("", 1, *[""] * 7, False)
+    returned_uid = DataCreation.run("", 1, "", "", None, "", "", "", False)
 
     # Assert
     assert returned_uid == uid
@@ -195,7 +201,7 @@ class TestWithApproval:
 
         # Act
         if approved:
-            DataCreation.run("", 1, *[""] * 7, False)
+            DataCreation.run("", 1, "", "", None, "", "", "", False)
 
             # Assert
             spy.assert_called_once()
