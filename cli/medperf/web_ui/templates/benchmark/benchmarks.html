@@ -1,0 +1,61 @@
+{# ./cli/medperf/web_ui/templates/bechmark/benchmarks.html #}
+
+{% extends "base.html" %}
+
+{% import 'macros/benchmark_macros.html' as benchmark_macros %}
+
+{% block title %}Benchmarks{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12">
+            <a class="btn btn-primary my-4" href="/benchmarks/register/ui">
+                Register a New Benchmark
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <h1 class="mt-4 text-center">Benchmarks</h1>
+            <div class="form-check form-switch d-flex flex-column align-items-center">
+                <input
+                    class="form-check-input fs-5"
+                    type="checkbox"
+                    role="switch"
+                    id="switch"
+                    data-entity-name="benchmarks"
+                    {% if mine_only %}
+                    checked
+                    {% endif %}
+                >
+                <label class="form-check-label fs-6 mt-2" for="switch">Show only my benchmarks</label>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <!-- Benchmark Cards -->
+    <div class="row">
+        {% if benchmarks %}
+        {% for benchmark in benchmarks %}
+        <div class="col-md-4 mb-4">
+            {{ benchmark_macros.benchmark_card(benchmark) }}
+        </div>
+        {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5">
+            No benchmarks yet
+        </h3>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $("#switch").on("change", (e) => {
+        getEntities(e.currentTarget);
+    });
+</script>
+{% endblock extra_js %}

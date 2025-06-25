@@ -66,3 +66,27 @@ class UI(ABC):
         Args:
             msg (str): message to print
         """
+
+    @abstractmethod
+    def print_url(self, msg: str = ""):
+        """Display a url
+
+        Args:
+            msg (str): message to print
+        """
+
+    @abstractmethod
+    def print_code(self, msg: str = ""):
+        """Display a user code for authentication
+
+        Args:
+            msg (str): message to print
+        """
+
+    @abstractmethod
+    def print_yaml(self, msg: str = ""):
+        """Display a yaml object on the command line
+
+        Args:
+            msg (str): message to display
+        """

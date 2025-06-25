@@ -1,6 +1,6 @@
 import os
 from medperf.entities.dataset import Dataset
-from medperf.utils import tar, generate_tmp_path
+from medperf.utils import sanitize_path, tar, generate_tmp_path
 import medperf.config as config
 from medperf.exceptions import ExecutionError, MedperfException
 import yaml
@@ -15,7 +15,8 @@ class ExportDataset:
 
     def __init__(self, dataset_id: str, output_path: str):
         self.dataset_id = dataset_id
-        self.output_path = os.path.join(output_path, str(dataset_id)) + ".gz"
+        output_path = os.path.join(output_path, str(dataset_id)) + ".gz"
+        self.output_path = sanitize_path(output_path)
         self.dataset = Dataset.get(self.dataset_id)
 
         # this will contain what goes into the archive

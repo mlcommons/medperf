@@ -7,6 +7,7 @@ from medperf.entities.report import TestReport
 from medperf.exceptions import InvalidArgumentError
 from .validate_params import CompatibilityTestParamsValidator
 from .utils import download_demo_data, prepare_cube, get_cube, create_test_dataset
+import medperf.config as config
 
 
 class CompatibilityTestExecution:
@@ -87,8 +88,9 @@ class CompatibilityTestExecution:
         test_exec.validate()
         test_exec.set_data_source()
         test_exec.process_benchmark()
-        test_exec.prepare_cubes()
-        test_exec.prepare_dataset()
+        with config.ui.interactive():
+            test_exec.prepare_cubes()
+            test_exec.prepare_dataset()
         test_exec.initialize_report()
         results = test_exec.cached_results()
         if results is None:

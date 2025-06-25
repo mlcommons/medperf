@@ -1,5 +1,8 @@
 from typing import List, Optional
-from medperf.commands.association.utils import get_experiment_associations
+from medperf.commands.association.utils import (
+    get_experiment_associations,
+    get_user_associations,
+)
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
@@ -84,7 +87,6 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
         Args:
             benchmark_uid (int): UID of the benchmark.
-            comms (Comms): Instance of the communications interface.
 
         Returns:
             List[int]: List of mlcube uids
@@ -97,6 +99,67 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         )
         models_uids = [assoc["model_mlcube"] for assoc in associations]
         return models_uids
+
+    @classmethod
+    def get_datasets_with_users(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of datasets and their owner info, associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of dicts of dataset IDs with their owner info
+        """
+        uids_with_users = config.comms.get_benchmark_datasets_with_users(benchmark_uid)
+        return uids_with_users
+
+    @classmethod
+    def get_models_associations(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of model associations to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of associations
+        """
+
+        experiment_type = "benchmark"
+        component_type = "model_mlcube"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
+        associations = [a for a in associations if a["benchmark"] == benchmark_uid]
+
+        return associations
+
+    @classmethod
+    def get_datasets_associations(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of models associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of associations
+        """
+
+        experiment_type = "benchmark"
+        component_type = "dataset"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
+        associations = [a for a in associations if a["benchmark"] == benchmark_uid]
+
+        return associations
 
     def display_dict(self):
         return {

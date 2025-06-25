@@ -1,0 +1,201 @@
+{# ./cli/medperf/web_ui/templates/dataset/export_dataset.html #}
+
+{% extends "detail_base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+{% import 'macros/container_macros.html' as container_macros %}
+
+{% block title %}Export Dataset{% endblock %}
+
+{% block detail_panel %}
+{% set dataset_export_running = (task_running and request.app.state.task["name"] == "dataset_export") %}
+<div class="container">
+    <h1 class="text-center">Export Dataset</h1>
+    <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %} mt-5">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">Details</h5>
+                <span class="badge {% if dataset_is_operational %}badge-state-operational{% else %}badge-state-development{% endif %}">
+                    {{ dataset.state }}
+                </span>
+                <span class="badge {% if dataset.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
+                    {% if dataset.is_valid %}Valid{% else %}Invalid{% endif %}
+                </span>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <p class="card-text fs-5 text-center">
+                        <strong>Dataset Name:</strong> 
+                        <strong>{{ dataset.name }}</strong>
+                    </p>
+                    <p class="card-text">
+                        <strong>Dataset ID:</strong> 
+                        <strong>{{ dataset.id }}</strong>
+                    </p>
+                    <p class="card-text">
+                        <strong>Description:</strong> 
+                        {{ dataset.description }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Location:</strong> 
+                        {{ dataset.location }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Input Data Hash:</strong> 
+                        {{ dataset.input_data_hash }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Generated UID:</strong> 
+                        {{ dataset.generated_uid }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Data Preparation Container:</strong> 
+                        {{ container_macros.container_link(prep_cube) }}
+                    </p>
+                    {% if dataset.generated_metadata %}
+                    <p class="card-text">
+                        <strong>Statistics:</strong> 
+                        <a
+                            href="#"
+                            class="text-primary yaml-link"
+                            data-id="{{ dataset.id }}"
+                            data-field="statistics_path"
+                            data-entity="dataset"
+                        >View Statistics</a>
+                    </p>
+                    {% endif %}
+                    {% if dataset.report %}
+                    <p class="card-text">
+                        <strong>Report:</strong> 
+                        <a
+                            href="#"
+                            class="text-primary yaml-link"
+                            data-id="{{ dataset.id }}"
+                            data-field="report_path"
+                            data-entity="dataset"
+                        >View Report</a>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body d-flex justify-content-between flex-wrap">
+                    <div class="w-50">
+                        <p class="card-text">
+                            <strong>Is Valid:</strong> 
+                            <span class="text-muted small">{{ dataset.is_valid }}</span>
+                        </p>
+                        <p class="card-text">
+                            <strong>Is Prepared:</strong>
+                            <span class="text-muted small">{{ dataset_is_prepared }}</span>
+                            {% if dataset_is_prepared %}
+                            <i class="fas fa-check-circle text-success ms-2"></i>
+                            {% else %}
+                            <i class="fas fa-times-circle text-danger ms-2"></i>
+                            {% endif %}
+                        </p>
+                        <p class="card-text">
+                            <strong>Is Operational:</strong>
+                            <span class="text-muted small">{{ dataset_is_operational }}</span>
+                        {% if dataset_is_operational %}
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger ms-2"></i>
+                        {% endif %}
+                        </p>
+                    </div>
+                    <div class="text-right w-50">
+                        <p class="card-text">
+                            <strong>Created:</strong> 
+                            <span class="text-muted small" data-date="{{ dataset.created_at }}"></span>
+                        </p>
+                        <p class="card-text">
+                            <strong>Modified:</strong> 
+                            <span class="text-muted small" data-date="{{ dataset.modified_at }}"></span>
+                        </p>
+                        <p class="card-text">
+                            <strong>Owner:</strong> 
+                            <i class="fas fa-user"></i> 
+                            <span class="text-muted small">{{ dataset.owner }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form class="my-5" id="dataset-export-form">
+        <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+        <div class="form-group my-5">
+            <label for="output-path" class="form-label h4">Output Folder</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="output-path"
+                    name="output_path"
+                    class="form-control"
+                    placeholder="{{ placeholders.export_dataset_output_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_export_running %}
+                    value="{{ task_formData.get('output_path', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-output-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.export_dataset_output_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <button
+                type="button"
+                class="btn btn-success"
+                id="export-dataset-btn"
+                disabled
+            >Export</button>
+        </div>
+    </form>
+
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock detail_panel %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/datasets/dataset_export.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+
+{% if task_running and request.app.state.task["name"] == "dataset_export" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#export-dataset-btn",
+            null,
+            onDatasetExportSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

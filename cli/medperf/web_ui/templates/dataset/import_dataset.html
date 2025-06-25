@@ -1,0 +1,164 @@
+{# ./cli/medperf/web_ui/templates/dataset/import_dataset.html #}
+
+{% extends "base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Import Dataset{% endblock %}
+
+{% block content %}
+{% set dataset_import_running = (task_running and request.app.state.task["name"] == "dataset_import") %}
+<div class="container">
+    <h1 class="text-center">Import Dataset</h1>
+
+    <form class="my-5" id="dataset-import-form">
+        <div class="form-group my-5">
+            <label for="dataset-id" class="form-label h4">Dataset UID</label>
+            <div class="input-group mb-3">
+                <input
+                    type="number"
+                    id="dataset-id"
+                    name="dataset_id"
+                    class="form-control"
+                    placeholder="{{ placeholders.import_dataset_id }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_import_running %}
+                    value="{{ task_formData.get('dataset_id', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.import_dataset_id }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="input-path" class="form-label h4">Dataset Backup File</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="input-path"
+                    name="input_path"
+                    class="form-control"
+                    placeholder="{{ placeholders.import_dataset_input_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_import_running %}
+                    value="{{ task_formData.get('input_path', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-input-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.import_dataset_input_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <h4>Development/Operational Dataset?</h4>
+            <div class="form-check">
+                <input
+                    class="form-check-input"
+                    style="border: 1px solid black;"
+                    type="radio"
+                    name="dataset_type"
+                    id="development"
+                    value="development"
+                >
+                <label class="form-check-label" for="development">Development</label>
+            </div>
+            <div class="form-check mt-2">
+                <input
+                    class="form-check-input"
+                    style="border: 1px solid black;"
+                    type="radio"
+                    name="dataset_type"
+                    id="operational"
+                    value="operational"
+                >
+                <label class="form-check-label" for="operational">Operational</label>
+            </div>
+        </div>
+        <div class="form-group my-5 d-none" id="raw-data-group">
+            <label for="raw-path" class="form-label h4">Raw Dataset Path</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="raw-path"
+                    name="raw_dataset_path"
+                    class="form-control"
+                    placeholder="{{ placeholders.import_dataset_raw_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_import_running %}
+                    value="{{ task_formData.get('raw_dataset_path', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-raw-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.import_dataset_raw_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <button
+                type="button"
+                class="btn btn-success"
+                id="import-dataset-btn"
+                disabled
+            >Import</button>
+        </div>
+    </form>
+
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/datasets/dataset_import.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+
+{% if task_running and request.app.state.task["name"] == "dataset_import" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#import-dataset-btn",
+            null,
+            onDatasetImportSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

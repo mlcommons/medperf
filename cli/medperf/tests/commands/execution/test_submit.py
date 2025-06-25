@@ -32,7 +32,7 @@ def submission(mocker, comms, ui, result, dataset):
     mocker.patch(
         PATCH_SUBMISSION.format("filter_latest_executions"), side_effect=lambda x: x
     )
-    sub = ResultSubmission(1, 1, 1)
+    sub = ResultSubmission(None, 1, 1, 1)
     sub.get_execution()
     sub.prepare()
     return sub
@@ -44,7 +44,7 @@ def test_upload_results_requests_approval(mocker, submission, result):
     mocker.patch(PATCH_SUBMISSION.format("ResultSubmission.write"))
 
     # Act
-    ResultSubmission.run(1, 1, 1)
+    ResultSubmission.run(None, 1, 1, 1)
 
     # Assert
     spy.assert_called_once()
@@ -71,7 +71,7 @@ def test_run_executes_upload_procedure(mocker, comms, ui, submission):
     mocker.patch.object(ui, "prompt", return_value="y")
 
     # Act
-    ResultSubmission.run(1, 1, 1)
+    ResultSubmission.run(None, 1, 1, 1)
 
     # Assert
     up_spy.assert_called_once()

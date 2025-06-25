@@ -52,6 +52,9 @@ class DatasetGetTest(DatasetTest):
         self.private_fields = ["owner", "report"]
         self.set_credentials(self.actor)
 
+    def __can_see_private_fields(self):
+        return self.actor == "data_owner"
+
     def test_generic_get_dataset(self):
         # Arrange
         dataset_id = self.testdataset["id"]
@@ -66,7 +69,7 @@ class DatasetGetTest(DatasetTest):
             if k in self.testdataset:
                 self.assertEqual(self.testdataset[k], v, f"Unexpected value for {k}")
 
-    def test_get_dataset_list_private_fields(self):
+    def test_get_dataset_private_fields(self):
         # Arrange
         dataset_id = self.testdataset["id"]
         url = self.url.format(dataset_id)
@@ -76,8 +79,13 @@ class DatasetGetTest(DatasetTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for key in response.data:
-            self.assertNotIn(key, self.private_fields, f"{key} shouldn't be visible")
+        if not self.__can_see_private_fields():
+            for key in response.data:
+                self.assertNotIn(
+                    key,
+                    self.private_fields,
+                    f"{key} shouldn't be visible to {self.actor}",
+                )
 
     def test_dataset_not_found(self):
         # Arrange

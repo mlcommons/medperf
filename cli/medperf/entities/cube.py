@@ -1,5 +1,6 @@
 import os
-from typing import Optional, Union
+from typing import List, Optional, Union
+from medperf.commands.association.utils import get_user_associations
 from pydantic import Field
 
 from medperf.entities.interface import Entity
@@ -108,11 +109,17 @@ class Cube(Entity, DeployableSchema):
         return comms_fn
 
     @classmethod
-    def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
+    def get(
+        cls,
+        cube_uid: Union[str, int],
+        local_only: bool = False,
+        valid_only: bool = True,
+    ) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
+            valid_only: if to raise an error in case of invalidated Cube
             cube_uid (str): UID of the cube.
 
         Returns:
@@ -120,7 +127,7 @@ class Cube(Entity, DeployableSchema):
         """
 
         cube = super().get(cube_uid, local_only)
-        if not cube.is_valid:
+        if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested container is marked as INVALID.")
         cube.download_config_files()
         return cube
@@ -214,6 +221,29 @@ class Cube(Entity, DeployableSchema):
 
     def is_metadata_specified(self):
         return self.parser.is_metadata_specified()
+
+    @classmethod
+    def get_benchmarks_associations(cls, mlcube_uid: int) -> List[dict]:
+        """Retrieves the list of benchmarks model is associated with
+
+        Args:
+            mlcube_uid (int): UID of the cube.
+
+        Returns:
+            List[dict]: List of associations
+        """
+        experiment_type = "benchmark"
+        component_type = "model_mlcube"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
+        associations = [a for a in associations if a["model_mlcube"] == mlcube_uid]
+
+        return associations
 
     def display_dict(self):
         return {

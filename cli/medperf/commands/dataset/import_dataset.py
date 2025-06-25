@@ -1,7 +1,12 @@
 import os
-from pathlib import Path
 from medperf.entities.dataset import Dataset
-from medperf.utils import generate_tmp_path, untar, move_folder, remove_path
+from medperf.utils import (
+    generate_tmp_path,
+    sanitize_path,
+    untar,
+    move_folder,
+    remove_path,
+)
 import medperf.config as config
 from medperf.exceptions import ExecutionError, InvalidArgumentError
 import yaml
@@ -18,9 +23,9 @@ class ImportDataset:
 
     def __init__(self, dataset_id: str, input_path: str, raw_data_path: str):
         self.dataset_id = dataset_id
-        self.input_path = input_path
+        self.input_path = sanitize_path(input_path)
         self.dataset = Dataset.get(self.dataset_id)
-        self.raw_data_path = raw_data_path
+        self.raw_data_path = sanitize_path(raw_data_path)
 
     def validate_input(self):
         # The input archive file should exist and be a file
@@ -31,10 +36,12 @@ class ImportDataset:
 
         # raw_data_path should be provided if the imported dataset is in dev
         if self.dataset.state == "DEVELOPMENT" and (
-            self.raw_data_path is None or os.path.exists(self.raw_data_path)
+            self.raw_data_path is None
+            or os.path.isfile(self.raw_data_path)
+            or (os.path.exists(self.raw_data_path) and os.listdir(self.raw_data_path))
         ):
             raise InvalidArgumentError(
-                "Output raw data path must be specified and shouldn't exist."
+                "Output raw data path must be specified and, the directory should be empty or does not exist."
             )
 
     def untar_files(self):
@@ -97,6 +104,7 @@ class ImportDataset:
         archive_prepared_dataset_path = os.path.join(
             root_archive_folder, str(self.dataset_id)
         )
+        archive_prepared_dataset_path = sanitize_path(archive_prepared_dataset_path)
         if not os.path.exists(archive_prepared_dataset_path):
             raise ExecutionError("No prepared dataset in archive")
 
@@ -138,7 +146,6 @@ class ImportDataset:
 
         # For development datasets, move raw data as well
         os.makedirs(self.raw_data_path, exist_ok=True)
-        self.raw_data_path = str(Path(self.raw_data_path).resolve())
         new_raw_data_path = os.path.join(
             self.raw_data_path, os.path.basename(self.archive_raw_data_path)
         )

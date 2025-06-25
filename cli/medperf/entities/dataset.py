@@ -1,7 +1,8 @@
 import os
+from medperf.commands.association.utils import get_user_associations
 import yaml
 from pydantic import Field, validator
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from medperf.utils import remove_path
 from medperf.entities.interface import Entity
@@ -119,6 +120,44 @@ class Dataset(Entity, DeployableSchema):
             comms_fn = func
 
         return comms_fn
+
+    @classmethod
+    def get_benchmarks_associations(cls, dataset_uid: int) -> List[dict]:
+        """Retrieves the list of benchmarks dataset is associated with
+
+        Args:
+            dataset_uid (int): UID of the dataset.
+
+        Returns:
+            List[dict]: List of associations
+        """
+
+        experiment_type = "benchmark"
+        component_type = "dataset"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
+        associations = [a for a in associations if a["dataset"] == dataset_uid]
+
+        return associations
+
+    def read_report(self):
+        """Reads the report if it exists"""
+        if os.path.exists(self.report_path):
+            with open(self.report_path, "r") as f:
+                self.report = yaml.safe_load(f.read())
+        return self.report
+
+    def read_statistics(self):
+        """Reads the report if it exists"""
+        if os.path.exists(self.statistics_path):
+            with open(self.statistics_path, "r") as f:
+                self.generated_metadata = yaml.safe_load(f.read())
+        return self.generated_metadata
 
     def display_dict(self):
         return {

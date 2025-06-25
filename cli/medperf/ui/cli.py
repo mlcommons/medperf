@@ -17,7 +17,7 @@ class CLI(UI):
         Args:
             msg (str): message to print
         """
-        self.__print(msg)
+        self._print(msg)
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -27,7 +27,7 @@ class CLI(UI):
         """
         msg = f"❌ {msg}"
         msg = typer.style(msg, fg=typer.colors.RED, bold=True)
-        self.__print(msg)
+        self._print(msg)
 
     def print_warning(self, msg: str):
         """Display a warning message on the command line
@@ -36,9 +36,15 @@ class CLI(UI):
             msg (str): warning message to display
         """
         msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
-        self.__print(msg)
+        self._print(msg)
 
-    def __print(self, msg: str = ""):
+    def print_url(self, msg: str):
+        self._print(msg)
+
+    def print_code(self, msg: str):
+        self._print(msg)
+
+    def _print(self, msg: str = ""):
         if self.is_interactive:
             self.spinner.write(msg)
         else:
@@ -116,4 +122,15 @@ class CLI(UI):
             msg (str): message to print
         """
         msg = typer.style(msg, fg=typer.colors.GREEN)
-        self.__print(msg)
+        self._print(msg)
+
+    def print_yaml(self, msg: str):
+        """Display a yaml object on the command line
+
+        Args:
+            msg (str): message to display
+        """
+        self.print()
+        self.print("=" * 20)
+        self.print(msg)
+        self.print("=" * 20)

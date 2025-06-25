@@ -1,0 +1,192 @@
+{# ./cli/medperf/web_ui/templates/dataset/register_dataset.html #}
+
+{% extends "base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Register Dataset{% endblock %}
+
+{% block content %}
+{% set dataset_register_running = (task_running and request.app.state.task["name"] == "dataset_registration") %}
+<div class="container">
+    <h1 class="text-center">Register a New Dataset</h1>
+    <form class="my-5" id="dataset-register-form">
+        <div class="form-group my-5">
+            <label class="form-label h4" for="benchmark">Select Benchmark</label>
+            <select name="benchmark" id="benchmark" class="form-control" {% if task_running %} disabled {% endif %}>
+                <option value="" disabled selected>Select a benchmark</option>
+                {% for benchmark in benchmarks %}
+                <option
+                    value="{{ benchmark.id }}"
+                    {% if dataset_register_running %}
+                    {% if task_formData.get("benchmark") == benchmark.id|string %} selected {% endif %}
+                    {% endif %}
+                >{{ benchmark.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group my-5">
+            <label for="name" class="form-label h4">Dataset Name</label>
+            <div class="input-group">
+                <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_dataset_name }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_register_running %}
+                    value="{{ task_formData.get('name', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_dataset_name }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="description" class="form-label h4">Description</label>
+            <div class="input-group">
+                <textarea
+                    name="description"
+                    id="description"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_dataset_description }}"
+                    {% if task_running %} disabled {% endif %}
+                >{% if dataset_register_running %} {{ task_formData.get('description', '') }} {% endif %}</textarea>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_dataset_description }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="location" class="form-label h4">Location</label>
+            <div class="input-group">
+                <input
+                    type="text"
+                    name="location"
+                    id="location"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_dataset_location }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_register_running %}
+                    value="{{ task_formData.get('location', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_dataset_location }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="data-path" class="form-label h4">Data Folder</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="data-path"
+                    name="data_path"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_dataset_data_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_register_running %}
+                    value="{{ task_formData.get('data_path', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-data-btn"
+                        {% if task_running %} disabled {% endif %}   
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_dataset_data_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group my-5">
+            <label for="labels-path" class="form-label h4">Labels Folder</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="labels-path"
+                    name="labels_path"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_dataset_labels_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_register_running %}
+                    value="{{ task_formData.get('labels_path', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-labels-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_dataset_labels_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <button
+                type="button"
+                class="btn btn-success"
+                id="register-dataset-btn"
+                disabled
+            >Register</button>
+        </div>
+    </form>
+
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/datasets/dataset_register.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+
+{% if task_running and request.app.state.task["name"] == "dataset_registration" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#register-dataset-btn",
+            null,
+            onDatasetRegisterSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

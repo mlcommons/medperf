@@ -1,0 +1,54 @@
+{# ./cli/medperf/web_ui/templates/macros/association_card_macros.html #}
+
+{% macro association_card(assoc, entity, entity_type) %}
+<div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
+    <div class="card-body">
+        <h5 class="card-title">{{ entity.name }}</h5>
+        <h5 class="card-title">
+            <a href="/{{ entity_type }}s/ui/display/{{ entity.id }}" class="text-primary">{{ entity.name }}</a>
+        </h5>
+        <p class="card-text">
+            <strong>Approval Status:</strong> 
+            {{ assoc.approval_status }}
+            {% if assoc.approval_status == "PENDING" and entity_type!="benchmark"%}
+            <br>
+            <button
+                type="button"
+                class="btn btn-danger"
+                data-{{ entity_type }}-id="{{ entity.id }}"
+                data-benchmark-id="{{ assoc.benchmark }}"
+                data-entity-type="{{ entity_type }}"
+                data-action-name="reject"
+                onclick="showConfirmationPrompt(this, '{{ entity_type }}', 'reject')"
+            >Reject</button>
+            <button
+                type="button"
+                class="btn btn-success"
+                data-{{ entity_type }}-id="{{ entity.id }}"
+                data-benchmark-id="{{ assoc.benchmark }}"
+                data-entity-type="{{ entity_type }}"
+                data-action-name="approve"
+                onclick="showConfirmationPrompt(this)"
+            >Approve</button>
+            {% endif %}
+        </p>
+        <p class="card-text">
+            <strong>Approved:</strong>
+            {% if assoc.approval_status == "PENDING" %}
+            <span class="text-muted small">N/A</span>
+            {% else %}
+            <span class="text-muted small" data-date="{{ assoc.approved_at }}"></span>
+            {% endif %}
+        </p>
+        <p class="card-text">
+            <strong>Modified:</strong> 
+            <span class="text-muted small" data-date="{{ assoc.modified_at }}"></span>
+        </p>
+        <p class="card-text">
+            <strong>Initiated By:</strong> 
+            <i class="fas fa-user"></i> 
+            {{ assoc.initiated_by }}
+        </p>
+    </div>
+</div>
+{% endmacro %}

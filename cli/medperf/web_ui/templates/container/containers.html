@@ -1,0 +1,75 @@
+{# ./cli/medperf/web_ui/templates/container/containers.html #}
+
+{% extends "base.html" %}
+
+{% block title %}Containers{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12">
+            <a class="btn btn-primary my-4" href="/containers/register/ui">
+                Register a New Container
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <h1 class="mt-4 text-center">Containers</h1>
+            <div class="form-check form-switch d-flex flex-column align-items-center">
+                <input
+                    class="form-check-input fs-5"
+                    type="checkbox"
+                    role="switch"
+                    id="switch"
+                    data-entity-name="containers"
+                    {% if mine_only %}
+                    checked
+                    {% endif %}
+                >
+                <label class="form-check-label fs-6 mt-2" for="switch">Show only my containers</label>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <div class="row">
+        {% if containers %}
+        {% for container in containers %}
+        <div class="col-md-4 mb-4">
+            <div class="{% if container.is_valid %}card{% else %}invalid-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="/containers/ui/display/{{ container.id }}" class="text-primary">{{ container.name }}</a>
+                    </h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ container.state }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ container.is_valid }}</h6>
+                    <p class="card-text">
+                        <a href="{{ container.git_mlcube_url }}" target="_blank" class="text-primary">Config File</a>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted" data-date="{{ container.created_at }}"></small>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">Registered: {{ container.is_registered }}</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5">
+            No containers yet
+        </h3>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $("#switch").on("change", (e) => {
+        getEntities(e.currentTarget);
+    });
+</script>
+{% endblock extra_js %}

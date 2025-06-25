@@ -1,6 +1,12 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
-from medperf.utils import get_file_hash, get_folders_hash, remove_path, generate_tmp_uid
+from medperf.utils import (
+    get_file_hash,
+    get_folders_hash,
+    sanitize_path,
+    remove_path,
+    generate_tmp_uid,
+)
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
 from medperf.comms.entity_resources import resources
@@ -8,7 +14,6 @@ from medperf.entities.cube import Cube
 import medperf.config as config
 import os
 import yaml
-from pathlib import Path
 import logging
 
 
@@ -40,7 +45,7 @@ def download_demo_data(dset_url, dset_hash):
 
 
 def prepare_local_cube(container_config_path):
-    path = container_config_path.parent
+    path = os.path.dirname(container_config_path)
     temp_uid = "local_" + generate_tmp_uid()
     cubes_folder = config.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
@@ -84,9 +89,9 @@ def prepare_cube(cube_uid: str):
         return cube_uid
 
     # Check if value is a local mlcube
-    path = Path(cube_uid).resolve()
+    path = sanitize_path(cube_uid)
 
-    if path.is_file():
+    if os.path.isfile(path):
         logging.info("local path provided. Creating symbolic link")
         temp_uid = prepare_local_cube(path)
         return temp_uid

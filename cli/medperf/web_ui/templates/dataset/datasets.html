@@ -1,0 +1,85 @@
+{# ./cli/medperf/web_ui/templates/dataset/datasets.html #}
+
+{% extends "base.html" %}
+
+{% block title %}Datasets{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12">
+            <a class="btn btn-primary my-4" href="/datasets/register/ui">
+                Register a New Dataset
+            </a>
+            <a class="btn btn-dark my-4 mx-3" href="/datasets/import/ui">
+                Import Dataset
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <h1 class="mt-4 text-center">Datasets</h1>
+            <div class="form-check form-switch d-flex flex-column align-items-center">
+                <input
+                    class="form-check-input fs-5"
+                    type="checkbox"
+                    role="switch"
+                    id="switch"
+                    data-entity-name="datasets"
+                    {% if mine_only %}
+                    checked
+                    {% endif %}
+                >
+                <label class="form-check-label fs-6 mt-2" for="switch">Show only my datasets</label>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <!-- Dataset Cards -->
+    <div class="row">
+        {% if datasets %}
+        {% for dataset in datasets %}
+        <div class="col-md-4 mb-4">
+            <div class="card {% if not dataset.is_valid %}invalid-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="/datasets/ui/display/{{ dataset.id }}" class="text-primary">
+                            {{ dataset.name }}
+                        </a>
+                    </h5>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        {{ dataset.state }}
+                    </h6>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        Is valid: {{ dataset.is_valid }}
+                    </h6>
+                    <p class="card-text">
+                        {{ dataset.description }}
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted" data-date="{{ dataset.created_at }}"></small>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">Location: {{ dataset.location }}</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5">
+            No datasets yet
+        </h3>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $("#switch").on("change", (e) => {
+        getEntities(e.currentTarget);
+    });
+</script>
+{% endblock extra_js %}

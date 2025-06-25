@@ -2,6 +2,7 @@ from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
 import os
+from medperf.utils import sanitize_path
 import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
@@ -112,7 +113,10 @@ class Entity(MedperfSchema, ABC):
 
     @classmethod
     def get(
-        cls: Type[EntityType], uid: Union[str, int], local_only: bool = False
+        cls: Type[EntityType],
+        uid: Union[str, int],
+        local_only: bool = False,
+        valid_only: bool = True,
     ) -> EntityType:
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends
@@ -121,6 +125,7 @@ class Entity(MedperfSchema, ABC):
         Args:
             uid (str): Unique Identifier to retrieve the entity
             local_only (bool): If True, the entity will be retrieved locally
+            valid_only: if to raise en error in case of invalidated entity
 
         Returns:
             Entity: Entity Instance associated to the UID
@@ -176,6 +181,7 @@ class Entity(MedperfSchema, ABC):
         storage_path = cls.get_storage_path()
         metadata_filename = cls.get_metadata_filename()
         entity_file = os.path.join(storage_path, str(uid), metadata_filename)
+        entity_file = sanitize_path(entity_file)
         if not os.path.exists(entity_file):
             raise InvalidArgumentError(
                 f"No {cls.get_type()} with the given uid could be found"

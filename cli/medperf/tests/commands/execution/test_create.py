@@ -336,22 +336,21 @@ class TestDefaultSetup:
     def test_execution_of_multiple_models_with_summary(self, mocker, setup, model_uid):
         # Arrange
         exec_res = self.state_variables["models_props"][model_uid]
-        headers = ["model", "local result UID", "partial result", "from cache", "error"]
-        dset_uid = 2
-        bmk_uid = 1
+        headers = ["model", "Execution UID", "partial result", "from cache", "error"]
         expected_datalist = [
             [
                 model_uid,
-                f"b{bmk_uid}m{model_uid}d{dset_uid}",
+                "",
                 exec_res["partial"],
                 False,
                 "",
             ]
         ]
         # Act
-        BenchmarkExecution.run(
+        executions = BenchmarkExecution.run(
             1, 2, models_uids=[model_uid], show_summary=True, no_cache=True
         )
+        expected_datalist[0][1] = executions[0].id
 
         # Assert
         self.spies["tabulate"].assert_called_once_with(

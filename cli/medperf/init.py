@@ -12,7 +12,14 @@ from medperf.storage import (
 from medperf.ui.factory import UIFactory
 
 
-def initialize():
+def initialize(for_webui=False):
+    if not for_webui:
+        log_file_name = config.log_file
+        ui_class = config.ui
+    else:
+        log_file_name = config.webui_log_file
+        ui_class = config.webui
+
     # Apply any required migration
     apply_configuration_migrations()
 
@@ -24,11 +31,11 @@ def initialize():
     init_storage()
 
     # Setup logging
-    log_file = os.path.join(config.logs_storage, config.log_file)
+    log_file = os.path.join(config.logs_storage, log_file_name)
     setup_logging(log_file, config.loglevel)
 
     # Setup UI, COMMS
-    config.ui = UIFactory.create_ui(config.ui)
+    config.ui = UIFactory.create_ui(ui_class)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
 
     # Setup auth class

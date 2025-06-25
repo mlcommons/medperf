@@ -55,6 +55,9 @@ creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
 
+# TODO: should we change this?
+safe_root = ""  # Base path to accept input paths from user.
+
 images_folder = ".images"
 trash_folder = ".trash"
 tmp_folder = ".tmp"
@@ -167,6 +170,7 @@ ca_file = "ca-info.yaml"
 training_event_file = "event.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 log_file = "medperf.log"
+webui_log_file = "medperf_webui.log"
 log_package_file = "medperf_logs.tar.gz"
 tarball_filename = "tmp.tar.gz"
 demo_dset_paths_file = "paths.yaml"
@@ -224,6 +228,7 @@ loglevel = "debug"
 logs_backup_count = 100
 cleanup = True
 ui = "CLI"
+webui = "WEBUI"
 
 default_profile_name = "default"
 testauth_profile_name = "testauth"

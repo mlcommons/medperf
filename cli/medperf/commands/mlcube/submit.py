@@ -23,6 +23,7 @@ class SubmitCube:
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
+        return submission.cube.id
 
     def __init__(self, submit_info: dict):
         self.comms = config.comms
@@ -49,5 +50,5 @@ class SubmitCube:
         os.rename(old_cube_loc, new_cube_loc)
 
     def write(self, updated_cube_dict):
-        cube = Cube(**updated_cube_dict)
-        cube.write()
+        self.cube = Cube(**updated_cube_dict)
+        self.cube.write()

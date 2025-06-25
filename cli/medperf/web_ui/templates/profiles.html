@@ -1,0 +1,81 @@
+{# ./cli/medperf/web_ui/templates/profiles.html #}
+
+{% extends "base.html" %}
+
+{% block title %}Profiles{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-12 mt-5">
+            <h1 class="text-center">Profiles</h1>
+        </div>
+        <div class="col-12 mt-5">
+            <h4 class="text-center">
+                Current Profile: 
+                <strong> {{ profiles.active_profile_name.title() }}</strong>
+            </h4>
+            <form id="profiles-form" class="mt-5">
+                <div class="form-group my-5">
+                    <label for="profile" class="form-label h4">
+                        Select Profile
+                    </label>
+                    <select name="profile" id="profile" class="form-select">
+                        <option value="" disabled>Select Profile</option>
+                        {% for profile in profiles %}
+                        <option
+                            value="{{ profile }}"
+                            {% if profile == profiles.active_profile_name %}
+                            selected
+                            {% endif %}
+                        >{{ profile.title() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="text-center mt-5">
+                    <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn">Activate Profile</button>
+                    <button type="button" class="btn btn-secondary mx-3" id="view-profile-btn">View Profile</button>
+                </div>
+            </form>
+        </div>
+        <div id="edit-config-container" class="mt-5" style="display: none;">
+            <form id="edit-config-form" class="mt-5">
+                <div class="row mb-4">
+                    <label for="gpus" class="col-sm-2 col-form-label h5 text-end">GPUs</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="gpus" name="gpus" class="form-control" value="{{ default_gpus }}">
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="platform" class="col-sm-2 col-form-label h5 text-end">Platform</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="platform" name="platform" class="form-control" value="{{ default_platform }}">
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="button" id="apply-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
+                </div>
+            </form>   
+        </div>
+    </div>
+</div>
+
+{{ modal_macros.add_modal(
+    modal_id="view-profile-modal",
+    modal_class="modal-lg",
+    modal_body='<h5 id="view-profile-name" class="text-center"></h5><pre id="profile-yaml" class="language-yaml"></pre>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>',
+) }}
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Save some global variables to be accessible by js scripts
+    window.defaultGpus = "{{ default_gpus }}";
+    window.defaultPlatform = "{{ default_platform }}";
+    window.activeProfile = "{{ profiles.active_profile_name }}";
+</script>
+<script src="/static/js/profiles.js"></script>
+{% endblock extra_js %}

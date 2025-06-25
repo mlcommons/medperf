@@ -39,11 +39,14 @@ class Auth0(Auth):
         interval = device_code_response["interval"]
 
         config.ui.print(
-            "\nPlease go to the following link to complete your login request:\n"
-            f"\t{verification_uri_complete}\n\n"
-            "Make sure that you will be presented with the following code:\n"
-            f"\t{user_code}\n\n"
+            "\nPlease go to the following link to complete your login request:\n\t"
         )
+        config.ui.print_url(verification_uri_complete)
+        config.ui.print(
+            "\n\nMake sure that you will be presented with the following code:\n\t"
+        )
+        config.ui.print_code(user_code)
+        config.ui.print("\n\n")
         config.ui.print_warning(
             "Keep this terminal open until you complete your login request. "
             "The command will exit on its own once you complete the request. "
