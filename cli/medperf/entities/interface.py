@@ -2,6 +2,7 @@ from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
 import os
+from medperf.utils import sanitize_path
 import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
@@ -180,6 +181,7 @@ class Entity(MedperfSchema, ABC):
         storage_path = cls.get_storage_path()
         metadata_filename = cls.get_metadata_filename()
         entity_file = os.path.join(storage_path, str(uid), metadata_filename)
+        entity_file = sanitize_path(entity_file)
         if not os.path.exists(entity_file):
             raise InvalidArgumentError(
                 f"No {cls.get_type()} with the given uid could be found"

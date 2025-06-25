@@ -8,11 +8,13 @@ from urllib.parse import urlparse
 router = APIRouter()
 
 
-def is_safe_redirect_url(url: str) -> bool:
+def sanitize_redirect_url(url: str, fallback: str = "/") -> bool:
     """Validate that the URL is a relative path or matches allowed hosts."""
-    url = url.replace("\\", "")  # Normalize backslashes
-    parsed = urlparse(url)
-    return not parsed.netloc and not parsed.scheme
+    normalized_url = url.replace("\\", "")  # Normalize backslashes
+    parsed = urlparse(normalized_url)
+    if not parsed.netloc and not parsed.scheme:
+        return normalized_url
+    return fallback
 
 
 # security check page GET endpoint
@@ -23,10 +25,10 @@ def security_check_form(
     # Check if user is already authenticated
     if token == security_token:
         # User is already authenticated, redirect to original URL
-        if is_safe_redirect_url(redirect_url):
-            # https://github.com/mlcommons/medperf/security/code-scanning/100
-            return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
-        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        sanitized_redirect_url = sanitize_redirect_url(redirect_url)
+        return RedirectResponse(
+            url=sanitized_redirect_url, status_code=status.HTTP_302_FOUND
+        )
 
     else:
         # User is not authenticated, show security check form
@@ -42,14 +44,11 @@ def access_web_ui(
     token: str = Form(...),
     redirect_url: str = Form("/"),
 ):
+    sanitized_redirect_url = sanitize_redirect_url(redirect_url)
     if token == security_token:
-        if is_safe_redirect_url(redirect_url):
-            # https://github.com/mlcommons/medperf/security/code-scanning/100
-            response = RedirectResponse(
-                url=redirect_url, status_code=status.HTTP_302_FOUND
-            )
-        else:
-            response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        response = RedirectResponse(
+            url=sanitized_redirect_url, status_code=status.HTTP_302_FOUND
+        )
 
         response.set_cookie(
             key=AUTH_COOKIE_NAME,
@@ -64,7 +63,7 @@ def access_web_ui(
             "security_check.html",
             {
                 "request": request,
-                "redirect_url": redirect_url,
+                "redirect_url": sanitized_redirect_url,
                 "error": "Invalid token",
             },
         )

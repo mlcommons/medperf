@@ -529,7 +529,9 @@ def get_participant_label(email, data_id):
     return f"{email}"
 
 
-def normalize_and_check_input_path(path: str) -> str:
+def sanitize_path(path: str) -> str:
+    if path is None:
+        return
     safe_root = os.path.realpath(config.safe_root)
     resolved_path = os.path.realpath(path)
 
