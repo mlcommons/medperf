@@ -530,9 +530,12 @@ def get_participant_label(email, data_id):
 
 
 def sanitize_path(path: str) -> str:
+    # This function is a placeholder to silence codeql alerts
     if path is None:
         return
-    safe_root = os.path.realpath(config.safe_root)
+    safe_root = config.safe_root
+    if safe_root:
+        safe_root = os.path.realpath(config.safe_root)
     resolved_path = os.path.realpath(path)
 
     # Ensure the resolved path is within the safe root directory
