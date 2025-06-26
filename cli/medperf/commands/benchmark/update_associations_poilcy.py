@@ -2,6 +2,7 @@ import os
 
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
+from medperf.enums import AutoApprovalMode
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import sanitize_path
 from email_validator import validate_email, EmailNotValidError
@@ -34,9 +35,11 @@ class UpdateAssociationsPolicy:
         self.allowed_emails = None
 
     def validate(self):
-        if self.auto_approve_mode.upper() not in ["NEVER", "ALWAYS", "ALLOWLIST"]:
+        modes = [e.value for e in AutoApprovalMode]
+        self.auto_approve_mode = self.auto_approve_mode.upper()
+        if self.auto_approve_mode.upper() not in modes:
             raise InvalidArgumentError(
-                f"auto_approve_mode should be NEVER, ALWAYS, or ALLOWLIST. Got {self.auto_approve_mode}"
+                f"auto_approve_mode should be one of {modes}. Got {self.auto_approve_mode}"
             )
 
         if self.auto_approve_file is not None and not os.path.exists(
