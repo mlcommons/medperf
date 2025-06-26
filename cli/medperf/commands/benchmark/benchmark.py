@@ -9,6 +9,9 @@ from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
 from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.benchmark.update_associations_poilcy import (
+    UpdateAssociationsPolicy,
+)
 
 app = typer.Typer()
 
@@ -224,3 +227,32 @@ def view(
 ):
     """Displays the information of one or more benchmarks"""
     EntityView.run(entity_id, Benchmark, format, unregistered, mine, output)
+
+
+@app.command("update_associations_policy")
+@clean_except
+def update_associations_policy(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    auto_approve_mode: str = typer.Option(
+        None,
+        "--auto_approve_mode",
+        "-m",
+        help=(
+            "Can be NEVER for no auto approvals, ALWAYS for auto"
+            " approving any association, and ALLOWLIST for approving associations with"
+            " owners contained in the auto_approve_file"
+        ),
+    ),
+    auto_approve_file: str = typer.Option(
+        None,
+        "--auto_approve_file",
+        "-f",
+        help=(
+            "File containing list of emails to approve associations with their datasets/models"
+            " when the auto approve mode is ALLOWLIST"
+        ),
+    ),
+):
+    UpdateAssociationsPolicy.run(benchmark_uid, auto_approve_mode, auto_approve_file)

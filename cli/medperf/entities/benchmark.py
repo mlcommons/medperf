@@ -33,6 +33,8 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     metadata: dict = {}
     user_metadata: dict = {}
     is_active: bool = True
+    association_auto_approval_allow_list: list[str] = []
+    association_auto_approval_mode: str = "NEVER"
 
     @staticmethod
     def get_type():
