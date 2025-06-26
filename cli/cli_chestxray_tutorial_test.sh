@@ -46,6 +46,20 @@ print_eval medperf auth login -e $DATAOWNER
 checkFailed "testdata login failed"
 
 echo "====================================="
+echo ""Activate benchmarkowner profile""
+echo "====================================="
+# Log in as the benchmark owner
+print_eval medperf profile activate testbenchmark
+checkFailed "testbenchmark profile activation failed"
+
+echo "====================================="
+echo ""Change association approval policy to auto approve always""
+echo "====================================="
+# Log in as the benchmark owner
+print_eval medperf benchmark update_associations_policy -b 1 --auto_approve_mode ALWAYS
+checkFailed "benchmark update policy failed"
+
+echo "====================================="
 echo "Activate dataowner profile"
 echo "====================================="
 print_eval medperf profile activate testdata
@@ -81,25 +95,8 @@ print_eval medperf dataset associate -d $DSET_UID -b 1 -y
 checkFailed "Data association step failed"
 
 echo "====================================="
-echo ""Activate benchmarkowner profile""
-echo "====================================="
-# Log in as the benchmark owner
-print_eval medperf profile activate testbenchmark
-checkFailed "testbenchmark profile activation failed"
-# Get association information
-ASSOC_INFO=$(medperf association ls -bd | head -n 4 | tail -n 1 | tr -s ' ')
-ASSOC_DSET_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 1)
-ASSOC_BMK_UID=$(echo $ASSOC_INFO | cut -d ' ' -f 2)
-# Mark dataset-benchmark association as approved
-print_eval medperf association approve -b $ASSOC_BMK_UID -d $ASSOC_DSET_UID
-checkFailed "Association approval failed"
-
-echo "====================================="
 echo "Running benchmark execution step"
 echo "====================================="
-# log back as user
-print_eval medperf profile activate testdata
-checkFailed "testdata profile activation failed"
 # Create results
 print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
 checkFailed "Benchmark execution step failed"

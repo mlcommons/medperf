@@ -28,6 +28,8 @@ print_eval medperf profile create -n testmodel
 checkFailed "testmodel profile creation failed"
 print_eval medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
+print_eval medperf profile create -n testdata2
+checkFailed "testdata2 profile creation failed"
 ##########################################################
 
 echo "\n"
@@ -67,6 +69,12 @@ checkFailed "testdata profile activation failed"
 
 print_eval medperf auth login -e $DATAOWNER
 checkFailed "testdata login failed"
+
+print_eval medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+
+print_eval medperf auth login -e $DATAOWNER2
+checkFailed "testdata2 login failed"
 ##########################################################
 
 echo "\n"
@@ -180,6 +188,18 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Update benchmark association approval policy"
+echo "====================================="
+# create the allowlist file with only the data owner
+echo "$DATAOWNER" >>$DIRECTORY/allowlist.txt
+print_eval medperf benchmark update_associations_policy -b $BMK_UID --auto_approve_mode allowlist --auto_approve_file $DIRECTORY/allowlist.txt
+checkFailed "benchmark update policy failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Activate dataowner profile"
 echo "====================================="
 print_eval medperf profile activate testdata
@@ -276,6 +296,58 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Activate dataowner2 profile"
+echo "====================================="
+print_eval medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data submission step"
+echo "====================================="
+print_eval "medperf dataset submit -p $PREP_UID -d $DIRECTORY/dataset_b -l $DIRECTORY/dataset_b --name='dataset_b' --description='mock dataset b' --location='mock location b' -y"
+checkFailed "Data2 submission step failed"
+DSET_B_UID=$(medperf dataset ls | grep dataset_b | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+echo "DSET_B_UID=$DSET_B_UID"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data2 preparation step"
+echo "====================================="
+print_eval medperf dataset prepare -d $DSET_B_UID
+checkFailed "Data2 preparation step failed"
+##########################################################
+
+echo "\n"
+##########################################################
+echo "====================================="
+echo "Running data2 set operational step"
+echo "====================================="
+print_eval medperf dataset set_operational -d $DSET_B_UID -y
+checkFailed "Data2 set operational step failed"
+DSET_B_GENUID=$(medperf dataset view $DSET_B_UID | grep generated_uid | cut -d " " -f 2)
+echo "DSET_B_GENUID=$DSET_B_GENUID"
+##########################################################
+
+echo "\n"
+##########################################################
+echo "====================================="
+echo "Running data2 association step"
+echo "====================================="
+print_eval medperf dataset associate -d $DSET_B_UID -b $BMK_UID -y
+checkFailed "Data2 association step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Activate benchmarkowner profile"
 echo "====================================="
 print_eval medperf profile activate testbenchmark
@@ -286,11 +358,22 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Approve association"
+echo "Approve data association. This will fail because it's auto-approved"
 echo "====================================="
 # Mark dataset-benchmark association as approved
 print_eval medperf association approve -b $BMK_UID -d $DSET_A_UID
-checkFailed "Data association approval failed"
+checkSucceeded "Data association approval should fail, but it succeeded"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Approve data2 association"
+echo "====================================="
+# Mark dataset-benchmark association as approved
+print_eval medperf association approve -b $BMK_UID -d $DSET_B_UID
+checkFailed "Data2 association approval failed"
 ##########################################################
 
 echo "\n"
