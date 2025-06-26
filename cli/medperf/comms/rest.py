@@ -844,7 +844,7 @@ class REST(Comms):
         error_msg = "Could not update training event"
         return self.__put(url, json=data, error_msg=error_msg)
 
-    def update_benchamrk(self, benchamrk_id: int, data: dict):
+    def update_benchmark(self, benchamrk_id: int, data: dict):
         url = f"{self.server_url}/benchamrks/{benchamrk_id}/"
         error_msg = "Could not update benchamrk"
         return self.__put(url, json=data, error_msg=error_msg)
