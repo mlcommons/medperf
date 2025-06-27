@@ -51,6 +51,8 @@ class UpdateAssociationsPolicy:
         self.benchmark = Benchmark.get(self.benchmark_uid)
 
     def read_and_validate_auto_approve_file(self):
+        if self.auto_approve_file is None:
+            return
         with open(self.auto_approve_file) as f:
             content = f.read()
         allowed_emails = content.strip().split("\n")
