@@ -86,6 +86,8 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
                 "user_metadata",
                 "approval_status",
                 "demo_dataset_tarball_url",
+                "association_auto_approval_allow_list",
+                "association_auto_approval_mode",
             ]
             for k, v in data.items():
                 if k not in editable_fields:
@@ -94,3 +96,9 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
                             "User cannot update non editable fields in Operation mode"
                         )
         return data
+
+
+class BenchmarkPublicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Benchmark
+        exclude = ["association_auto_approval_allow_list"]

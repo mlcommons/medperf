@@ -55,7 +55,11 @@ class BenchmarkGetTest(BenchmarkTest):
             state="DEVELOPMENT",
         )
         self.testbenchmark = testbenchmark
+        self.private_fields = ["association_auto_approval_allow_list"]
         self.set_credentials(self.actor)
+
+    def __can_see_private_fields(self):
+        return self.actor == "bmk_owner"
 
     def test_generic_get_benchmark(self):
         # Arrange
@@ -70,6 +74,24 @@ class BenchmarkGetTest(BenchmarkTest):
         for k, v in response.data.items():
             if k in self.testbenchmark:
                 self.assertEqual(self.testbenchmark[k], v, f"Unexpected value for {k}")
+
+    def test_get_benchmark_private_fields(self):
+        # Arrange
+        benchmark_id = self.testbenchmark["id"]
+        url = self.url.format(benchmark_id)
+
+        # Act
+        response = self.client.get(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        if not self.__can_see_private_fields():
+            for key in response.data:
+                self.assertNotIn(
+                    key,
+                    self.private_fields,
+                    f"{key} shouldn't be visible to {self.actor}",
+                )
 
     def test_benchmark_not_found(self):
         # Arrange
@@ -133,6 +155,8 @@ class BenchmarkPutTest(BenchmarkTest):
             "is_valid": False,
             "is_active": False,
             "user_metadata": {"newkey2": "newvalue2"},
+            "association_auto_approval_allow_list": ["test@example.com"],
+            "association_auto_approval_mode": "ALWAYS",
         }
         url = self.url.format(testbenchmark["id"])
 
@@ -167,6 +191,8 @@ class BenchmarkPutTest(BenchmarkTest):
             "is_active": False,
             "user_metadata": {"newkey": "newval"},
             "demo_dataset_tarball_url": "newstring",
+            "association_auto_approval_allow_list": ["test@example.com"],
+            "association_auto_approval_mode": "ALWAYS",
         }
         url = self.url.format(testbenchmark["id"])
 
@@ -552,6 +578,8 @@ class PermissionTest(BenchmarkTest):
             "approved_at": "some time",
             "created_at": "some time",
             "modified_at": "some time",
+            "association_auto_approval_allow_list": ["test@example.com"],
+            "association_auto_approval_mode": "ALWAYS",
         }
 
         self.set_credentials(user)

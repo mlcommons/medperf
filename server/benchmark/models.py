@@ -16,6 +16,11 @@ class Benchmark(models.Model):
         ("OPERATION", "OPERATION"),
     )
 
+    AUTO_APPROVAL_MODE = (
+        ("NEVER", "NEVER"),
+        ("ALWAYS", "ALWAYS"),
+        ("ALLOWLIST", "ALLOWLIST"),
+    )
     name = models.CharField(max_length=20, unique=True)
     description = models.CharField(max_length=100, blank=True)
     docs_url = models.CharField(max_length=100, blank=True)
@@ -46,6 +51,10 @@ class Benchmark(models.Model):
     is_active = models.BooleanField(default=True)
     approval_status = models.CharField(
         choices=BENCHMARK_STATUS, max_length=100, default="PENDING"
+    )
+    association_auto_approval_allow_list = models.JSONField(default=list)
+    association_auto_approval_mode = models.CharField(
+        choices=AUTO_APPROVAL_MODE, max_length=100, default="NEVER"
     )
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)

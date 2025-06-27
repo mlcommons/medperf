@@ -7,6 +7,7 @@ from .models import BenchmarkModel
 from utils.associations import (
     validate_approval_status_on_creation,
     validate_approval_status_on_update,
+    should_auto_approve,
 )
 
 
@@ -53,11 +54,11 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
         if approval_status != "PENDING":
             validated_data["approved_at"] = timezone.now()
         else:
-            same_owner = (
-                validated_data["model_mlcube"].owner.id
-                == validated_data["benchmark"].owner.id
-            )
-            if same_owner:
+            if should_auto_approve(
+                validated_data["benchmark"],
+                validated_data["model_mlcube"],
+                self.context["request"].user,
+            ):
                 validated_data["approval_status"] = "APPROVED"
                 validated_data["approved_at"] = timezone.now()
         return BenchmarkModel.objects.create(**validated_data)

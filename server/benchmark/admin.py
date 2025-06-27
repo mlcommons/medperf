@@ -25,6 +25,8 @@ class BenchmarkAdmin(admin.ModelAdmin):
         "approval_status",
         "created_at",
         "modified_at",
+        "association_auto_approval_allow_list",
+        "association_auto_approval_mode",
     )
 
     def dataset_list(self, obj):

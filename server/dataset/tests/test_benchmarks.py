@@ -15,12 +15,12 @@ class DatasetBenchmarksTest(MedPerfTest):
         eval_mlcube_owner = "eval_mlcube_owner"
         other_user = "other_user"
 
-        self.create_user(data_owner)
-        self.create_user(bmk_owner)
-        self.create_user(bmk_prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
-        self.create_user(eval_mlcube_owner)
-        self.create_user(other_user)
+        self.data_owner_info = self.create_user(data_owner)
+        self.bmk_owner_info = self.create_user(bmk_owner)
+        self.bmk_prep_mlcube_owner_info = self.create_user(bmk_prep_mlcube_owner)
+        self.ref_mlcube_owner_info = self.create_user(ref_mlcube_owner)
+        self.eval_mlcube_owner_info = self.create_user(eval_mlcube_owner)
+        self.other_user_info = self.create_user(other_user)
 
         # setup globals
         self.data_owner = data_owner
@@ -364,6 +364,123 @@ class SerializersDatasetBenchmarksPostTest(DatasetBenchmarksTest):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["approval_status"], "APPROVED")
         self.assertNotEqual(response.data["approved_at"], None)
+
+
+class SerializersDatasetBenchmarksPostAssociationPolicyTest(DatasetBenchmarksTest):
+    """Test module for association approval rules of POST /datasets/benchmarks"""
+
+    def setUp(self):
+        super(SerializersDatasetBenchmarksPostAssociationPolicyTest, self).setUp()
+        self.generic_setup()
+        self.set_credentials(None)
+
+    def test_always_auto_approval(self):
+        # Arrange
+        prep, _, _, benchmark = self.shortcut_create_benchmark(
+            self.bmk_prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            association_auto_approval_mode="ALWAYS",
+        )
+        self.set_credentials(self.data_owner)
+        dataset = self.mock_dataset(
+            data_preparation_mlcube=prep["id"], state="OPERATION"
+        )
+        dataset = self.create_dataset(dataset).data
+
+        testassoc = self.mock_dataset_association(benchmark["id"], dataset["id"])
+
+        # Act
+        response = self.client.post(self.url, testassoc, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["approval_status"], "APPROVED")
+        self.assertNotEqual(response.data["approved_at"], None)
+
+    @parameterized.expand(["ALWAYS", "ALLOWLIST", "NEVER"])
+    def test_no_auto_approval_if_bmk_owner_creates_association(self, auto_approve_mode):
+        # Arrange
+        prep, _, _, benchmark = self.shortcut_create_benchmark(
+            self.bmk_prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            association_auto_approval_mode=auto_approve_mode,
+            association_auto_approval_allow_list=[
+                self.bmk_owner_info["email"],
+                self.data_owner_info["email"],
+            ],
+        )
+        self.set_credentials(self.data_owner)
+        dataset = self.mock_dataset(
+            data_preparation_mlcube=prep["id"], state="OPERATION"
+        )
+        dataset = self.create_dataset(dataset).data
+
+        self.set_credentials(self.bmk_owner)
+        testassoc = self.mock_dataset_association(benchmark["id"], dataset["id"])
+
+        # Act
+        response = self.client.post(self.url, testassoc, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["approval_status"], "PENDING")
+        self.assertEqual(response.data["approved_at"], None)
+
+    def test_allowlist_auto_approval(self):
+        # Arrange
+        prep, _, _, benchmark = self.shortcut_create_benchmark(
+            self.bmk_prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            association_auto_approval_mode="ALLOWLIST",
+            association_auto_approval_allow_list=[self.data_owner_info["email"]],
+        )
+        self.set_credentials(self.data_owner)
+        dataset = self.mock_dataset(
+            data_preparation_mlcube=prep["id"], state="OPERATION"
+        )
+        dataset = self.create_dataset(dataset).data
+
+        testassoc = self.mock_dataset_association(benchmark["id"], dataset["id"])
+
+        # Act
+        response = self.client.post(self.url, testassoc, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["approval_status"], "APPROVED")
+        self.assertNotEqual(response.data["approved_at"], None)
+
+    def test_allowlist_not_containing_mlcube_owner(self):
+        # Arrange
+        prep, _, _, benchmark = self.shortcut_create_benchmark(
+            self.bmk_prep_mlcube_owner,
+            self.ref_mlcube_owner,
+            self.eval_mlcube_owner,
+            self.bmk_owner,
+            association_auto_approval_mode="ALLOWLIST",
+            association_auto_approval_allow_list=[self.other_user_info["email"]],
+        )
+        self.set_credentials(self.data_owner)
+        dataset = self.mock_dataset(
+            data_preparation_mlcube=prep["id"], state="OPERATION"
+        )
+        dataset = self.create_dataset(dataset).data
+
+        testassoc = self.mock_dataset_association(benchmark["id"], dataset["id"])
+
+        # Act
+        response = self.client.post(self.url, testassoc, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["approval_status"], "PENDING")
+        self.assertEqual(response.data["approved_at"], None)
 
 
 class PermissionTest(DatasetBenchmarksTest):
