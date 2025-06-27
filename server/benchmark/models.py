@@ -52,8 +52,12 @@ class Benchmark(models.Model):
     approval_status = models.CharField(
         choices=BENCHMARK_STATUS, max_length=100, default="PENDING"
     )
-    association_auto_approval_allow_list = models.JSONField(default=list)
-    association_auto_approval_mode = models.CharField(
+    dataset_auto_approval_allow_list = models.JSONField(default=list)
+    dataset_auto_approval_mode = models.CharField(
+        choices=AUTO_APPROVAL_MODE, max_length=100, default="NEVER"
+    )
+    model_auto_approval_allow_list = models.JSONField(default=list)
+    model_auto_approval_mode = models.CharField(
         choices=AUTO_APPROVAL_MODE, max_length=100, default="NEVER"
     )
     user_metadata = models.JSONField(default=dict, blank=True, null=True)

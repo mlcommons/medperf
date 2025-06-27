@@ -114,8 +114,10 @@ class BenchmarkPostTest(BenchmarkTest):
             "approval_status": "PENDING",
             "user_metadata": {},
             "approved_at": None,
-            "association_auto_approval_allow_list": [],
-            "association_auto_approval_mode": "NEVER",
+            "dataset_auto_approval_allow_list": [],
+            "dataset_auto_approval_mode": "NEVER",
+            "model_auto_approval_allow_list": [],
+            "model_auto_approval_mode": "NEVER",
         }
 
         benchmark = self.mock_benchmark(
@@ -269,7 +271,10 @@ class BenchmarkGetListTest(BenchmarkTest):
         self.other_user = other_user
 
         self.testbenchmark = benchmark
-        self.private_fields = ["association_auto_approval_allow_list"]
+        self.private_fields = [
+            "dataset_auto_approval_allow_list",
+            "model_auto_approval_allow_list",
+        ]
         self.set_credentials(self.actor)
 
     def test_generic_get_benchmark_list(self):

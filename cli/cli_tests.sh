@@ -192,7 +192,7 @@ echo "Update benchmark association approval policy"
 echo "====================================="
 # create the allowlist file with only the data owner
 echo "$DATAOWNER" >>$DIRECTORY/allowlist.txt
-print_eval medperf benchmark update_associations_policy -b $BMK_UID --auto_approve_mode allowlist --auto_approve_file $DIRECTORY/allowlist.txt
+print_eval medperf benchmark update_associations_policy -b $BMK_UID --dataset_auto_approve_mode allowlist --dataset_auto_approve_file $DIRECTORY/allowlist.txt
 checkFailed "benchmark update policy failed"
 ##########################################################
 

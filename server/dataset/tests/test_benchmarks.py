@@ -381,7 +381,7 @@ class SerializersDatasetBenchmarksPostAssociationPolicyTest(DatasetBenchmarksTes
             self.ref_mlcube_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
-            association_auto_approval_mode="ALWAYS",
+            dataset_auto_approval_mode="ALWAYS",
         )
         self.set_credentials(self.data_owner)
         dataset = self.mock_dataset(
@@ -407,8 +407,8 @@ class SerializersDatasetBenchmarksPostAssociationPolicyTest(DatasetBenchmarksTes
             self.ref_mlcube_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
-            association_auto_approval_mode=auto_approve_mode,
-            association_auto_approval_allow_list=[
+            dataset_auto_approval_mode=auto_approve_mode,
+            dataset_auto_approval_allow_list=[
                 self.bmk_owner_info["email"],
                 self.data_owner_info["email"],
             ],
@@ -437,8 +437,8 @@ class SerializersDatasetBenchmarksPostAssociationPolicyTest(DatasetBenchmarksTes
             self.ref_mlcube_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
-            association_auto_approval_mode="ALLOWLIST",
-            association_auto_approval_allow_list=[self.data_owner_info["email"]],
+            dataset_auto_approval_mode="ALLOWLIST",
+            dataset_auto_approval_allow_list=[self.data_owner_info["email"]],
         )
         self.set_credentials(self.data_owner)
         dataset = self.mock_dataset(
@@ -463,8 +463,8 @@ class SerializersDatasetBenchmarksPostAssociationPolicyTest(DatasetBenchmarksTes
             self.ref_mlcube_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
-            association_auto_approval_mode="ALLOWLIST",
-            association_auto_approval_allow_list=[self.other_user_info["email"]],
+            dataset_auto_approval_mode="ALLOWLIST",
+            dataset_auto_approval_allow_list=[self.other_user_info["email"]],
         )
         self.set_credentials(self.data_owner)
         dataset = self.mock_dataset(

@@ -56,7 +56,7 @@ echo "====================================="
 echo ""Change association approval policy to auto approve always""
 echo "====================================="
 # Log in as the benchmark owner
-print_eval medperf benchmark update_associations_policy -b 1 --auto_approve_mode ALWAYS
+print_eval medperf benchmark update_associations_policy -b 1 --dataset_auto_approve_mode ALWAYS
 checkFailed "benchmark update policy failed"
 
 echo "====================================="

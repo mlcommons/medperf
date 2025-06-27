@@ -86,8 +86,10 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
                 "user_metadata",
                 "approval_status",
                 "demo_dataset_tarball_url",
-                "association_auto_approval_allow_list",
-                "association_auto_approval_mode",
+                "dataset_auto_approval_allow_list",
+                "dataset_auto_approval_mode",
+                "model_auto_approval_allow_list",
+                "model_auto_approval_mode",
             ]
             for k, v in data.items():
                 if k not in editable_fields:
@@ -101,4 +103,4 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
 class BenchmarkPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Benchmark
-        exclude = ["association_auto_approval_allow_list"]
+        exclude = ["dataset_auto_approval_allow_list", "model_auto_approval_allow_list"]

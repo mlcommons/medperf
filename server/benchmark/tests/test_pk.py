@@ -55,7 +55,10 @@ class BenchmarkGetTest(BenchmarkTest):
             state="DEVELOPMENT",
         )
         self.testbenchmark = testbenchmark
-        self.private_fields = ["association_auto_approval_allow_list"]
+        self.private_fields = [
+            "dataset_auto_approval_allow_list",
+            "model_auto_approval_allow_list",
+        ]
         self.set_credentials(self.actor)
 
     def __can_see_private_fields(self):
@@ -155,8 +158,10 @@ class BenchmarkPutTest(BenchmarkTest):
             "is_valid": False,
             "is_active": False,
             "user_metadata": {"newkey2": "newvalue2"},
-            "association_auto_approval_allow_list": ["test@example.com"],
-            "association_auto_approval_mode": "ALWAYS",
+            "dataset_auto_approval_allow_list": ["test@example.com"],
+            "dataset_auto_approval_mode": "ALWAYS",
+            "model_auto_approval_allow_list": ["test2@example.com"],
+            "model_auto_approval_mode": "ALLOWLIST",
         }
         url = self.url.format(testbenchmark["id"])
 
@@ -191,8 +196,10 @@ class BenchmarkPutTest(BenchmarkTest):
             "is_active": False,
             "user_metadata": {"newkey": "newval"},
             "demo_dataset_tarball_url": "newstring",
-            "association_auto_approval_allow_list": ["test@example.com"],
-            "association_auto_approval_mode": "ALWAYS",
+            "dataset_auto_approval_allow_list": ["test@example.com"],
+            "dataset_auto_approval_mode": "ALLOWLIST",
+            "model_auto_approval_allow_list": ["test2@example.com"],
+            "model_auto_approval_mode": "ALWAYS",
         }
         url = self.url.format(testbenchmark["id"])
 
@@ -578,8 +585,10 @@ class PermissionTest(BenchmarkTest):
             "approved_at": "some time",
             "created_at": "some time",
             "modified_at": "some time",
-            "association_auto_approval_allow_list": ["test@example.com"],
-            "association_auto_approval_mode": "ALWAYS",
+            "dataset_auto_approval_allow_list": ["test@example.com"],
+            "dataset_auto_approval_mode": "ALWAYS",
+            "model_auto_approval_allow_list": ["test2@example.com"],
+            "model_auto_approval_mode": "ALLOWLIST",
         }
 
         self.set_credentials(user)

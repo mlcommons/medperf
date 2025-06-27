@@ -235,24 +235,45 @@ def update_associations_policy(
     benchmark_uid: int = typer.Option(
         ..., "--benchmark", "-b", help="UID of the desired benchmark"
     ),
-    auto_approve_mode: str = typer.Option(
+    dataset_auto_approve_mode: str = typer.Option(
         None,
-        "--auto_approve_mode",
-        "-m",
+        "--dataset_auto_approve_mode",
         help=(
             "Can be NEVER for no auto approvals, ALWAYS for auto"
-            " approving any association, and ALLOWLIST for approving associations with"
-            " owners contained in the auto_approve_file"
+            " approving any dataset association, and ALLOWLIST for approving"
+            " dataset associations with owners contained in the auto_approve_file"
         ),
     ),
-    auto_approve_file: str = typer.Option(
+    dataset_auto_approve_file: str = typer.Option(
         None,
-        "--auto_approve_file",
-        "-f",
+        "--dataset_auto_approve_file",
         help=(
-            "File containing list of emails to approve associations with their datasets/models"
-            " when the auto approve mode is ALLOWLIST"
+            "File containing list of emails to approve associations with"
+            " their datasets when the auto approve mode is ALLOWLIST"
+        ),
+    ),
+    model_auto_approve_mode: str = typer.Option(
+        None,
+        "--model_auto_approve_mode",
+        help=(
+            "Can be NEVER for no auto approvals, ALWAYS for auto"
+            " approving any model association, and ALLOWLIST for approving"
+            " model associations with owners contained in the auto_approve_file"
+        ),
+    ),
+    model_auto_approve_file: str = typer.Option(
+        None,
+        "--model_auto_approve_file",
+        help=(
+            "File containing list of emails to approve associations with"
+            " their models when the auto approve mode is ALLOWLIST"
         ),
     ),
 ):
-    UpdateAssociationsPolicy.run(benchmark_uid, auto_approve_mode, auto_approve_file)
+    UpdateAssociationsPolicy.run(
+        benchmark_uid,
+        dataset_auto_approve_mode=dataset_auto_approve_mode,
+        dataset_auto_approve_file=dataset_auto_approve_file,
+        model_auto_approve_mode=model_auto_approve_mode,
+        model_auto_approve_file=model_auto_approve_file,
+    )
