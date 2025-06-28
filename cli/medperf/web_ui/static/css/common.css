@@ -335,17 +335,23 @@ label[for="switch"] {
     font-size: 14px;
     position: relative;
 }
+
 .email-chip .remove-btn {
     margin-left: 8px;
     cursor: pointer;
     font-weight: bold;
 }
+
 .email-container {
     display: flex;
     flex-wrap: wrap;
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
+}
+
+#datasets-associations-title, #models-associations-title, #benchmark-results-title{
+    cursor: pointer;
 }
 
 @keyframes spin {

@@ -232,28 +232,28 @@
 
 {% if current_user_is_benchmark_owner %}
 
-<h2 id="datasets-associations-title"
-    class="my-5 text-left border border-secondary rounded p-3 d-flex justify-content-between">Datasets Associations
-    <span class="text-muted small">(Click to expand/collapse)</span>
-</h2>
+<div id="datasets-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
+    <h4>Datasets Associations</h3>
+    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+</div>
 <div id="datasets-associations" style="display: none;">
     {% for assoc in datasets_associations %}
     {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "dataset") }}
     {% endfor %}
 </div>
-<h2 id="models-associations-title"
-    class="my-5 text-left border border-secondary rounded p-3 d-flex justify-content-between">Models Associations
-    <span class="text-muted small">(Click to expand/collapse)</span>
-</h2>
+<div id="models-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
+    <h4>Models Associations</h3>
+    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+</div>
 <div id="models-associations" style="display: none;">
     {% for assoc in models_associations %}
     {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
     {% endfor %}
 </div>
-<h2 id="benchmark-results-title"
-    class="my-5 text-left border border-secondary rounded p-3 d-flex justify-content-between">Results
-    <span class="text-muted small">(Click to expand/collapse)</span>
-</h2>
+<div id="benchmark-results-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
+    <h4>Results</h3>
+    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+</div>
 <div id="benchmark-results" style="display: none;">
     {% for result in results %}
     {{ result_card_macros.result_card(result) }}
