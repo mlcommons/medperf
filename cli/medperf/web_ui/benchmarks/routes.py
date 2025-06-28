@@ -27,6 +27,9 @@ from medperf.web_ui.common import (
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
+from medperf.commands.benchmark.update_associations_poilcy import (
+    UpdateAssociationsPolicy,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -295,6 +298,45 @@ def reject(
         return_response["status"] = "failed"
         return_response["status"] = str(exp)
         notification_message = "Failed to reject association"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        return_response=return_response,
+        url=f"/benchmarks/ui/display/{benchmark_id}",
+    )
+    return return_response
+
+
+@router.post("/update_associations_policy", response_class=JSONResponse)
+def update_associations_policy(
+    request: Request,
+    benchmark_id: int = Form(...),
+    dataset_auto_approve_mode: Optional[str] = Form(None),
+    dataset_auto_approve_file: Optional[str] = Form(None),
+    model_auto_approve_mode: Optional[str] = Form(None),
+    model_auto_approve_file: Optional[str] = Form(None),
+    current_user: bool = Depends(check_user_api),
+):
+    initialize_state_task(request, task_name="update_associations_policy")
+    return_response = {"status": "", "error": ""}
+    try:
+        UpdateAssociationsPolicy.run(
+            benchmark_uid=benchmark_id,
+            dataset_auto_approve_mode=dataset_auto_approve_mode,
+            dataset_auto_approve_file=dataset_auto_approve_file,
+            model_auto_approve_mode=model_auto_approve_mode,
+            model_auto_approve_file=model_auto_approve_file,
+        )
+        return_response["status"] = "success"
+        notification_message = "Associations policy updated"
+    except MedperfException as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to update associations policy"
         logger.exception(exp)
 
     config.ui.end_task(return_response)

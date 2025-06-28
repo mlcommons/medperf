@@ -1,10 +1,13 @@
 
-function showToast(message, bgClass) {
+function showToast(title, message, bgClass) {
     const toastHTML = `
       <div class="toast align-items-center ${bgClass} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header ${bgClass} d-flex">
+          <strong>${title}</strong>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
         <div class="d-flex">
           <div class="toast-body fw-bold">${message}</div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
       </div>
     `;
@@ -14,7 +17,7 @@ function showToast(message, bgClass) {
 
     const bsToast = new bootstrap.Toast($toast[0], {
         animation: true,
-        delay: 3000
+        delay: 5000
     });
 
     bsToast.show();
@@ -141,7 +144,7 @@ function getNotifications() {
                     else if (notification.type === "failed")
                         bg = "text-bg-danger";
 
-                    showToast(notification.message, bg);
+                    showToast("New Notification", notification.message, bg);
                     addNotification(notification);
                 });
             }

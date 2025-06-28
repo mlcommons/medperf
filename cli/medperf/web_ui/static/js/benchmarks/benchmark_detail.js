@@ -70,20 +70,242 @@ function approveRejectAssociation(actionName, benchmarkId, entityId, entityType,
             onApproveRejectAssociationError(xhr, status, error, actionName);
         }
     });
+}
 
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function createEmailChip(email, input_element) {
+    const $chip = $("<div class='email-chip'></div>").text(email);
+    const $remove = $("<span class='remove-btn'>&times;</span>");
+
+    $remove.on("click", function () {
+        $chip.remove();
+    });
+
+    $chip.append($remove);
+    input_element.before($chip);
+}
+
+function parseEmails(element){
+    const jsonList = JSON.parse(element.attr("data-allowed-list"));
+    const input_element = element.find("input");
+    if(jsonList.length){
+        jsonList.forEach(email => {
+            createEmailChip(email, input_element);
+        });
+    }
+}
+
+function getEmailsList(element){
+    const emailsArr = [];
+    element.find(".email-chip").each(function() {
+        $(this).find("span").remove()
+        emailsArr.push($(this).text().trim())
+    });
+    return emailsArr;
+}
+
+function showErrorToast(message){
+    showToast("An Error Occured", message, "bg-danger text-light")
+}
+
+function checkUpdateAssociationsPolicyForm(){
+    let isDatasetValid = false, isModelValid = false;
+
+    const datasetApproveMode = $("#dataset-auto-approve-mode").val();
+    const modelApproveMode = $("#model-auto-approve-mode").val();
+
+    isDatasetValid = (datasetApproveMode === "NEVER" || datasetApproveMode === "ALWAYS");
+    isModelValid = (modelApproveMode === "NEVER" || modelApproveMode === "ALWAYS")
+
+    if(!isDatasetValid){
+        const datasetAllowListMode = $("input[name='dataset_allow_list_mode']:checked").val();
+        if(datasetAllowListMode === "byFile"){
+            const datasetAllowListFilePath = $("#dataset-allow-list-file-input").val();
+            if(datasetAllowListFilePath.length)
+                isDatasetValid = true;
+            else{
+                showErrorToast("Make sure that you entered a valid path");
+            }
+        }
+        else if(datasetAllowListMode === "byText"){
+            const datasetAllowListArr = getEmailsList($("#dataset-allow-list-emails"));
+            if(datasetAllowListArr.length)
+                isDatasetValid = true;
+            else{
+                showErrorToast("Make sure that the allowed list is not empty");
+            }
+        }
+        else{
+            showErrorToast("Make sure that you have selected a mode for the allowed list");
+        }
+
+    }
+    if(!isModelValid){
+        const modelAllowListMode = $("input[name='model_allow_list_mode']:checked").val();
+        if(modelAllowListMode === "byFile"){
+            const modelAllowListFilePath = $("#model-allow-list-file-input").val();
+            if(modelAllowListFilePath.length)
+                isModelValid = true;
+            else{
+                showErrorToast("Make sure that you entered a valid path");
+            }
+        }
+        else if(modelAllowListMode === "byText"){
+            const modelAllowListArr = getEmailsList($("#model-allow-list-emails"));
+            if(modelAllowListArr.length)
+                isModelValid = true
+            else{
+                showErrorToast("Make sure that the allowed list is not empty");
+            }
+        }
+        else{
+            showErrorToast("Make sure that you have selected a mode for the allowed list");
+        }
+    }
+    return isDatasetValid && isModelValid;
+}
+
+function onUpdateAssociationsPolicySuccess(response){
+    if(response.status === "success"){
+        showReloadModal("Benchmark Associations Policy Successfully Updated");
+        timer(3);
+    }
+    else{
+        showErrorModal("Failed to Update Benchmark Associations Policy", response);
+    }
+}
+
+async function updateAssociationsPolicy(saveBtn){
+    addSpinner(saveBtn);
+
+    disableElements(".card button, .card input, .card select");
+    
+    const formData = new FormData();
+
+    const datasetApproveMode = $("#dataset-auto-approve-mode").val();
+    const modelApproveMode = $("#model-auto-approve-mode").val();
+    if(datasetApproveMode === "ALLOWLIST"){
+        const datasetAllowListMode = $("input[name='dataset_allow_list_mode']:checked").val();
+        if(datasetAllowListMode === "byFile"){
+            const datasetAllowListFilePath = $("#dataset-allow-list-file-input").val();
+            formData.append("dataset_auto_approve_file", datasetAllowListFilePath);
+        }
+    }
+    if(modelApproveMode === "ALLOWLIST"){
+        const modelAllowListMode = $("input[name='model_allow_list_mode']:checked").val();
+        if(modelAllowListMode === "byFile"){
+            const modelAllowListFilePath = $("#model-allow-list-file-input").val();
+            formData.append("model_auto_approve_file", modelAllowListFilePath);
+        }
+    }
+
+    formData.append("benchmark_id", saveBtn.getAttribute("data-benchmark-id"));
+    formData.append("dataset_auto_approve_mode", datasetApproveMode);
+    formData.append("model_auto_approve_mode", modelApproveMode);
+    
+    ajaxRequest(
+        `/benchmarks/update_associations_policy`,
+        "POST",
+        formData,
+        onUpdateAssociationsPolicySuccess,
+        "Failed to update associations policy"
+    );
+
+    window.runningTaskId = await getTaskId();
+    getEvents(logPanel, stagesList, currentStageElement);
 }
 
 $(document).ready(() => {
     $("[id^='show-']").on("click", (e) => {
         showResult(e.currentTarget);
     });
+    
     $("#datasets-associations-title").on("click", () => {
         $("#datasets-associations").slideToggle(); // smooth animation
     });
+    
     $("#models-associations-title").on("click", () => {
         $("#models-associations").slideToggle(); // smooth animation
     });
+    
     $("#benchmark-results-title").on("click", () => {
         $("#benchmark-results").slideToggle(); // smooth animation
+    });
+    
+    $("#benchmark-results-title").on("click", () => {
+        $("#benchmark-results").slideToggle(); // smooth animation
+    });
+    
+    $("#dataset-auto-approve-mode").on("change", (e) => {
+        if(e.currentTarget.value === "ALLOWLIST"){
+            $("#dataset-allow-list-container").removeClass("d-none");
+        }
+        else{
+            $("#dataset-allow-list-container").addClass("d-none");
+        }
+    });
+    
+    $("#model-auto-approve-mode").on("change", (e) => {
+        if(e.currentTarget.value === "ALLOWLIST"){
+            $("#model-allow-list-container").removeClass("d-none");
+        }
+        else{
+            $("#model-allow-list-container").addClass("d-none");
+        }
+    });
+    
+    $("input[name='dataset_allow_list_mode']").on("change", (e) => {
+        if(e.currentTarget.value === "byFile"){
+            $("#dataset-allow-list-file-input-container").removeClass("d-none");
+            $("#dataset-allow-list-text-input-container").addClass("d-none");
+        }
+        else{
+            $("#dataset-allow-list-file-input-container").addClass("d-none");
+            $("#dataset-allow-list-text-input-container").removeClass("d-none");
+        }
+    });
+    
+    $("input[name='model_allow_list_mode']").on("change", (e) => {
+        if(e.currentTarget.value === "byFile"){
+            $("#model-allow-list-file-input-container").removeClass("d-none");
+            $("#model-allow-list-text-input-container").addClass("d-none");
+        }
+        else{
+            $("#model-allow-list-file-input-container").addClass("d-none");
+            $("#model-allow-list-text-input-container").removeClass("d-none");
+        }
+    });
+    
+    $("#browse-dataset-allow-list-file-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("dataset-allow-list-file-input");
+    });
+    
+    $("#browse-model-allow-list-file-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("model-allow-list-file-input");
+    });
+
+    parseEmails($("#model-allow-list-emails"));
+    parseEmails($("#dataset-allow-list-emails"));
+    
+    $(".email-input").on("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === ",") {
+            e.preventDefault();
+            let email = $(this).val().trim().replace(/,$/, "");
+            if (email && isValidEmail(email)) {
+                createEmailChip(email, $(this));
+                $(this).val("");
+            }
+        }
+    });
+    
+    $("#save-policy-btn").on("click", (e) => {
+        if(checkUpdateAssociationsPolicyForm()){
+            showConfirmModal(e.currentTarget, updateAssociationsPolicy, "want to update benchmark associations policy?");
+        }
     });
 });

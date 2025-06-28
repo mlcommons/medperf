@@ -326,6 +326,28 @@ label[for="switch"] {
     word-break: break-all;
 }
 
+.email-chip {
+    display: inline-block;
+    background-color: #e0e0e0;
+    border-radius: 20px;
+    padding: 5px 10px;
+    margin: 2px;
+    font-size: 14px;
+    position: relative;
+}
+.email-chip .remove-btn {
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.email-container {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
