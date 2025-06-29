@@ -7,6 +7,7 @@ from .models import BenchmarkDataset
 from utils.associations import (
     validate_approval_status_on_creation,
     validate_approval_status_on_update,
+    should_auto_approve_dataset,
 )
 
 
@@ -60,11 +61,11 @@ class BenchmarkDatasetListSerializer(serializers.ModelSerializer):
         if approval_status != "PENDING":
             validated_data["approved_at"] = timezone.now()
         else:
-            same_owner = (
-                validated_data["dataset"].owner.id
-                == validated_data["benchmark"].owner.id
-            )
-            if same_owner:
+            if should_auto_approve_dataset(
+                validated_data["benchmark"],
+                validated_data["dataset"],
+                self.context["request"].user,
+            ):
                 validated_data["approval_status"] = "APPROVED"
                 validated_data["approved_at"] = timezone.now()
         return BenchmarkDataset.objects.create(**validated_data)

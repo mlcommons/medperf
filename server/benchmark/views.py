@@ -11,7 +11,11 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 from .models import Benchmark
-from .serializers import BenchmarkSerializer, BenchmarkApprovalSerializer
+from .serializers import (
+    BenchmarkSerializer,
+    BenchmarkApprovalSerializer,
+    BenchmarkPublicSerializer,
+)
 from .permissions import IsAdmin, IsBenchmarkOwner, IsAssociatedDatasetOwner
 
 
@@ -36,7 +40,7 @@ class BenchmarkList(GenericAPIView):
         benchmarks = Benchmark.objects.all()
         benchmarks = self.filter_queryset(benchmarks)
         benchmarks = self.paginate_queryset(benchmarks)
-        serializer = BenchmarkSerializer(benchmarks, many=True)
+        serializer = BenchmarkPublicSerializer(benchmarks, many=True)
         return self.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
@@ -176,7 +180,10 @@ class BenchmarkDetail(GenericAPIView):
         Retrieve a benchmark instance.
         """
         benchmark = self.get_object(pk)
-        serializer = BenchmarkSerializer(benchmark)
+        if benchmark.owner.id == request.user.id:
+            serializer = BenchmarkSerializer(benchmark)
+        else:
+            serializer = BenchmarkPublicSerializer(benchmark)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):

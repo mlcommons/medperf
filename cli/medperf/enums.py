@@ -12,3 +12,9 @@ class Status(Enum):
     APPROVED = "APPROVED"
     PENDING = "PENDING"
     REJECTED = "REJECTED"
+
+
+class AutoApprovalMode(Enum):
+    NEVER = "NEVER"
+    ALWAYS = "ALWAYS"
+    ALLOWLIST = "ALLOWLIST"

@@ -57,8 +57,9 @@ class MedPerfTest(TestCase):
         self.mock_mlcube_association = mock_mlcube_association
 
     def create_user(self, username):
-        token, _ = create_user(username)
+        token, user_data = create_user(username)
         self.tokens[username] = token
+        return user_data
 
     def set_credentials(self, username):
         self.current_user = username

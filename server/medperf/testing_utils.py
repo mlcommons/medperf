@@ -125,7 +125,10 @@ def mock_benchmark(
         "state": "DEVELOPMENT",
         "is_valid": True,
         "is_active": True,
-        "user_metadata": {"key2": "value2"},
+        "dataset_auto_approval_allow_list": [],
+        "dataset_auto_approval_mode": "NEVER",
+        "model_auto_approval_allow_list": [],
+        "model_auto_approval_mode": "NEVER",
     }
 
     for key, val in kwargs.items():
