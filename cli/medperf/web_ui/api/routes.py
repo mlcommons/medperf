@@ -1,5 +1,6 @@
 # medperf/web_ui/api/routes.py
 import os
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
 
@@ -13,11 +14,11 @@ router = APIRouter()
 # TODO: close with token and list in documentation
 @router.post("/browse", response_class=JSONResponse)
 def browse_directory(
-    path: str = Form(...),
+    path: str = Form(""),
     with_files: bool = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-
+    path = path or str(Path.home())
     base_dir = "/"  # Allow user to put any path
     try:
         full_path = sanitize_path(os.path.join(base_dir, path))
