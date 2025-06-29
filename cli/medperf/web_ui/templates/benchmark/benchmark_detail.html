@@ -92,6 +92,7 @@
             </div>
         </div>
     </div>
+    {% if current_user_is_benchmark_owner %}
     <div class="card-body">
         <h5>Association Policy</h5>
         <div class="card mb-3">
@@ -174,6 +175,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 {% if current_user_is_benchmark_owner %}
