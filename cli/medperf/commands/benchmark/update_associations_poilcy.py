@@ -2,7 +2,7 @@ import os
 
 import medperf.config as config
 from medperf.enums import AutoApprovalMode
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.utils import sanitize_path
 from email_validator import validate_email, EmailNotValidError
 
@@ -12,37 +12,48 @@ class UpdateAssociationsPolicy:
     def run(
         cls,
         benchmark_uid: int,
-        dataset_auto_approve_mode: str = None,
-        dataset_auto_approve_file: str = None,
-        model_auto_approve_mode: str = None,
-        model_auto_approve_file: str = None,
+        dataset_mode: str = None,
+        dataset_emails_file: str = None,
+        dataset_emails: str = None,
+        model_mode: str = None,
+        model_emails_file: str = None,
+        model_emails: str = None,
     ):
+        """
+        dataset_emails: a string containing space-separated list of emails
+        model_emails: a string containing space-separated list of emails
+        """
         update_policy = cls(
             benchmark_uid,
-            dataset_auto_approve_mode,
-            dataset_auto_approve_file,
-            model_auto_approve_mode,
-            model_auto_approve_file,
+            dataset_mode,
+            dataset_emails_file,
+            dataset_emails,
+            model_mode,
+            model_emails_file,
+            model_emails,
         )
         update_policy.validate()
-        update_policy.read_and_files_contents()
+        update_policy.read_emails()
+        update_policy.validate_emails()
         update_policy.update()
 
     def __init__(
         self,
         benchmark_uid: int,
-        dataset_auto_approve_mode: str = None,
-        dataset_auto_approve_file: str = None,
-        model_auto_approve_mode: str = None,
-        model_auto_approve_file: str = None,
+        dataset_mode: str = None,
+        dataset_emails_file: str = None,
+        dataset_emails: str = None,
+        model_mode: str = None,
+        model_emails_file: str = None,
+        model_emails: str = None,
     ):
         self.benchmark_uid = benchmark_uid
-        self.dataset_auto_approve_mode = dataset_auto_approve_mode
-        self.dataset_auto_approve_file = sanitize_path(dataset_auto_approve_file)
-        self.model_auto_approve_mode = model_auto_approve_mode
-        self.model_auto_approve_file = sanitize_path(model_auto_approve_file)
-        self.allowed_dataset_emails = None
-        self.allowed_model_emails = None
+        self.dataset_mode = dataset_mode
+        self.dataset_emails_file = sanitize_path(dataset_emails_file)
+        self.dataset_emails = dataset_emails
+        self.model_mode = model_mode
+        self.model_emails_file = sanitize_path(model_emails_file)
+        self.model_emails = model_emails
 
     def __validate_mode(self, mode):
         if mode is None:
@@ -55,65 +66,80 @@ class UpdateAssociationsPolicy:
             )
         return mode
 
-    def __validate_file_existance(self, file):
-        if file is None:
-            return
-        if not os.path.exists(file):
-            raise InvalidArgumentError(f"File {file} does not exist")
-
     def validate(self):
-        self.dataset_auto_approve_mode = self.__validate_mode(
-            self.dataset_auto_approve_mode
-        )
-        self.model_auto_approve_mode = self.__validate_mode(
-            self.model_auto_approve_mode
-        )
-        self.__validate_file_existance(self.dataset_auto_approve_file)
-        self.__validate_file_existance(self.model_auto_approve_file)
+        # validate modes
+        self.dataset_mode = self.__validate_mode(self.dataset_mode)
+        self.model_mode = self.__validate_mode(self.model_mode)
 
-    def __read_and_validate_file_contents(self, file):
-        if file is None:
-            return
+        # File and list shouldn't both be provided
+        if self.dataset_emails_file is not None and self.dataset_emails is not None:
+            raise MedperfException(
+                "Internal Error: Both a file and a list of emails are provided."
+            )
+        if self.model_emails_file is not None and self.model_emails is not None:
+            raise MedperfException(
+                "Internal Error: Both a file and a list of emails are provided."
+            )
+
+        # validate files if provided
+        if self.dataset_emails_file and not os.path.isfile(self.dataset_emails_file):
+            raise InvalidArgumentError(
+                f"File {self.dataset_emails_file} does not exist or is a directory"
+            )
+        if self.model_emails_file and not os.path.isfile(self.model_emails_file):
+            raise InvalidArgumentError(
+                f"File {self.dataset_emails_file} does not exist or is a directory"
+            )
+
+    def __read_emails_file(self, file):
         with open(file) as f:
             contents = f.read()
         allowed_emails = contents.strip().split("\n")
-        allowed_emails = [
-            email.lower().strip() for email in allowed_emails if email.strip()
-        ]
-        for email in allowed_emails:
+        return allowed_emails
+
+    def read_emails(self):
+        if self.dataset_emails_file is not None:
+            self.dataset_emails = self.__read_emails_file(self.dataset_emails_file)
+        elif self.dataset_emails is not None:
+            self.dataset_emails = self.dataset_emails.strip().split(" ")
+        if self.model_emails_file is not None:
+            self.model_emails = self.__read_emails_file(self.model_emails_file)
+        elif self.model_emails is not None:
+            self.model_emails = self.model_emails.strip().split(" ")
+
+    def __validate_emails(self, emails: list[str]):
+        emails = [email.lower().strip() for email in emails if email.strip()]
+        for email in emails:
             try:
                 validate_email(email, check_deliverability=False)
             except EmailNotValidError as e:
                 raise InvalidArgumentError(str(e))
-        return allowed_emails
+        return emails
 
-    def read_and_files_contents(self):
-        self.allowed_dataset_emails = self.__read_and_validate_file_contents(
-            self.dataset_auto_approve_file
-        )
-
-        self.allowed_model_emails = self.__read_and_validate_file_contents(
-            self.model_auto_approve_file
-        )
+    def validate_emails(self):
+        if self.dataset_emails is not None:
+            self.dataset_emails = self.__validate_emails(self.dataset_emails)
+        if self.model_emails is not None:
+            self.model_emails = self.__validate_emails(self.model_emails)
 
     def update(self):
         if all(
             [
-                self.allowed_dataset_emails is None
-                and self.allowed_model_emails is None
-                and self.dataset_auto_approve_mode is None
-                and self.model_auto_approve_mode is None
+                self.dataset_emails is None
+                and self.model_emails is None
+                and self.dataset_mode is None
+                and self.model_mode is None
             ]
         ):
             return
         body = {}
-        if self.allowed_dataset_emails is not None:
-            body["dataset_auto_approval_allow_list"] = self.allowed_dataset_emails
-        if self.allowed_model_emails is not None:
-            body["model_auto_approval_allow_list"] = self.allowed_model_emails
-        if self.dataset_auto_approve_mode is not None:
-            body["dataset_auto_approval_mode"] = self.dataset_auto_approve_mode
-        if self.model_auto_approve_mode is not None:
-            body["model_auto_approval_mode"] = self.model_auto_approve_mode
+        if self.dataset_emails is not None:
+            body["dataset_auto_approval_allow_list"] = self.dataset_emails
+        if self.model_emails is not None:
+            body["model_auto_approval_allow_list"] = self.model_emails
+        if self.dataset_mode is not None:
+            body["dataset_auto_approval_mode"] = self.dataset_mode
+        if self.model_mode is not None:
+            body["model_auto_approval_mode"] = self.model_mode
 
         config.comms.update_benchmark(self.benchmark_uid, body)

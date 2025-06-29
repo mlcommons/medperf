@@ -272,8 +272,8 @@ def update_associations_policy(
 ):
     UpdateAssociationsPolicy.run(
         benchmark_uid,
-        dataset_auto_approve_mode=dataset_auto_approve_mode,
-        dataset_auto_approve_file=dataset_auto_approve_file,
-        model_auto_approve_mode=model_auto_approve_mode,
-        model_auto_approve_file=model_auto_approve_file,
+        dataset_mode=dataset_auto_approve_mode,
+        dataset_emails_file=dataset_auto_approve_file,
+        model_mode=model_auto_approve_mode,
+        model_emails_file=model_auto_approve_file,
     )
