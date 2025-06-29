@@ -37,3 +37,44 @@ def validate_approval_status_on_update(
             raise serializers.ValidationError(
                 "Same user cannot approve the association request"
             )
+
+
+def __should_auto_approve(
+    benchmark, component, initiating_user, auto_approve_mode, auto_approve_allow_list
+):
+    same_owner = component.owner.id == benchmark.owner.id
+    if same_owner:
+        return True
+
+    if initiating_user.id == benchmark.owner.id:
+        return False
+
+    always_auto_approve = auto_approve_mode == "ALWAYS"
+    if always_auto_approve:
+        return True
+
+    auto_approve_from_allow_list = (
+        auto_approve_mode == "ALLOWLIST"
+        and component.owner.email in auto_approve_allow_list
+    )
+    return auto_approve_from_allow_list
+
+
+def should_auto_approve_dataset(benchmark, dataset, initiating_user):
+    return __should_auto_approve(
+        benchmark,
+        dataset,
+        initiating_user,
+        benchmark.dataset_auto_approval_mode,
+        benchmark.dataset_auto_approval_allow_list,
+    )
+
+
+def should_auto_approve_model(benchmark, model, initiating_user):
+    return __should_auto_approve(
+        benchmark,
+        model,
+        initiating_user,
+        benchmark.model_auto_approval_mode,
+        benchmark.model_auto_approval_allow_list,
+    )

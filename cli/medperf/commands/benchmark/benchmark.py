@@ -9,6 +9,9 @@ from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
 from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.benchmark.update_associations_poilcy import (
+    UpdateAssociationsPolicy,
+)
 
 app = typer.Typer()
 
@@ -224,3 +227,53 @@ def view(
 ):
     """Displays the information of one or more benchmarks"""
     EntityView.run(entity_id, Benchmark, format, unregistered, mine, output)
+
+
+@app.command("update_associations_policy")
+@clean_except
+def update_associations_policy(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    dataset_auto_approve_mode: str = typer.Option(
+        None,
+        "--dataset_auto_approve_mode",
+        help=(
+            "Can be NEVER for no auto approvals, ALWAYS for auto"
+            " approving any dataset association, and ALLOWLIST for approving"
+            " dataset associations with owners contained in the auto_approve_file"
+        ),
+    ),
+    dataset_auto_approve_file: str = typer.Option(
+        None,
+        "--dataset_auto_approve_file",
+        help=(
+            "File containing list of emails to approve associations with"
+            " their datasets when the auto approve mode is ALLOWLIST"
+        ),
+    ),
+    model_auto_approve_mode: str = typer.Option(
+        None,
+        "--model_auto_approve_mode",
+        help=(
+            "Can be NEVER for no auto approvals, ALWAYS for auto"
+            " approving any model association, and ALLOWLIST for approving"
+            " model associations with owners contained in the auto_approve_file"
+        ),
+    ),
+    model_auto_approve_file: str = typer.Option(
+        None,
+        "--model_auto_approve_file",
+        help=(
+            "File containing list of emails to approve associations with"
+            " their models when the auto approve mode is ALLOWLIST"
+        ),
+    ),
+):
+    UpdateAssociationsPolicy.run(
+        benchmark_uid,
+        dataset_mode=dataset_auto_approve_mode,
+        dataset_emails_file=dataset_auto_approve_file,
+        model_mode=model_auto_approve_mode,
+        model_emails_file=model_auto_approve_file,
+    )

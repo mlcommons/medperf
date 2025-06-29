@@ -6,6 +6,9 @@
 {% import 'macros/result_card_macros.html' as result_card_macros %}
 {% import 'macros/container_macros.html' as container_macros %}
 
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
 {% block title %}Benchmark Details{% endblock %}
 
 {% block detail_panel %}
@@ -55,7 +58,7 @@
                 <p class="card-text text-muted small">{{ entity.demo_dataset_tarball_hash }}</p>
             </div>
         </div>
-        <div class="card mb-3">
+        <div class="card">
             <div class="card-body d-flex justify-content-between flex-wrap">
                 <div class="w-50 d-flex flex-column">
                     <p class="card-text">
@@ -89,32 +92,116 @@
             </div>
         </div>
     </div>
+    {% if current_user_is_benchmark_owner %}
+    <div class="card-body">
+        <h5>Association Policy</h5>
+        <div class="card mb-3">
+            <div class="card-body">
+                <form id="association-policy-form">
+                    <div class="form-group mb-3">
+                        <div class="form-group mb-3">
+                            <label class="form-label h6" for="dataset-auto-approve-mode">
+                                Dataset auto approve mode
+                            </label>
+                            <select
+                                class="form-select d-inline-block w-auto cursor-pointer"
+                                name="dataset_auto_approve_mode"
+                                id="dataset-auto-approve-mode"
+                                {% if task_running %} disabled {% endif %}
+                            >
+                                <option value="NEVER" {% if entity.dataset_auto_approval_mode == "NEVER" %} selected {% endif %}>Never</option>
+                                <option value="ALWAYS" {% if entity.dataset_auto_approval_mode == "ALWAYS" %} selected {% endif %}>Always</option>
+                                <option value="ALLOWLIST" {% if entity.dataset_auto_approval_mode == "ALLOWLIST" %} selected {% endif %}>Allow List</option>
+                            </select>
+                        </div>
+                        <div class="form-group d-none mb-3" id="dataset-allow-list-container">
+                            <label class="form-label h6" for="dataset-allow-list-text-input">
+                                Allow list emails
+                            </label>
+                            <div class="email-container" id="dataset-allow-list-emails" data-allowed-list='{{ entity.dataset_auto_approval_allow_list | tojson }}'>
+                                <input
+                                    type="text"
+                                    name="dataset-allow-list-text-input"
+                                    id="dataset-allow-list-text-input"
+                                    class="form-control email-input mt-2"
+                                    placeholder="Type email and hit Enter, comma, or space"
+                                    {% if task_running %} disabled {% endif %}
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-input mb-3">
+                        <div class="form-group mb-3">
+                            <label class="form-label h6" for="model-auto-approve-mode">
+                                Model auto approve mode
+                            </label>
+                            <select
+                                class="form-select d-inline-block w-auto"
+                                name="model_auto_approve_mode"
+                                id="model-auto-approve-mode"
+                                {% if task_running %} disabled {% endif %}    
+                            >
+                                <option value="NEVER" {% if entity.model_auto_approval_mode == "NEVER" %} selected {% endif %}>Never</option>
+                                <option value="ALWAYS" {% if entity.model_auto_approval_mode == "ALWAYS" %} selected {% endif %}>Always</option>
+                                <option value="ALLOWLIST" {% if entity.model_auto_approval_mode == "ALLOWLIST" %} selected {% endif %}>Allow List</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3 d-none" id="model-allow-list-container">
+                            <label class="form-label h6" for="model-allow-list-text-input">
+                                Allow list emails
+                            </label>
+                            <div class="email-container" id="model-allow-list-emails" data-allowed-list='{{ entity.model_auto_approval_allow_list | tojson }}'>
+                                <input
+                                    type="text"
+                                    name="model-allow-list-text-input"
+                                    id="model-allow-list-text-input"
+                                    class="form-control email-input mt-2"
+                                    placeholder="Type email and hit Enter, comma, or space"
+                                    {% if task_running %} disabled {% endif %}
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-5">
+                        <button
+                            type="button"
+                            id="save-policy-btn"
+                            class="btn btn-primary"
+                            data-benchmark-id="{{ entity.id }}"
+                            {% if task_running %} disabled {% endif %}
+                        >Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% if current_user_is_benchmark_owner %}
 
-<h2 id="datasets-associations-title"
-    class="my-5 text-left border border-secondary rounded p-3 d-flex justify-content-between">Datasets Associations
-    <span class="text-muted small">(Click to expand/collapse)</span>
-</h2>
+<div id="datasets-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
+    <h4>Datasets Associations</h3>
+    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+</div>
 <div id="datasets-associations" style="display: none;">
     {% for assoc in datasets_associations %}
     {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "dataset") }}
     {% endfor %}
 </div>
-<h2 id="models-associations-title"
-    class="my-5 text-left border border-secondary rounded p-3 d-flex justify-content-between">Models Associations
-    <span class="text-muted small">(Click to expand/collapse)</span>
-</h2>
+<div id="models-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
+    <h4>Models Associations</h3>
+    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+</div>
 <div id="models-associations" style="display: none;">
     {% for assoc in models_associations %}
     {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
     {% endfor %}
 </div>
-<h2 id="benchmark-results-title"
-    class="my-5 text-left border border-secondary rounded p-3 d-flex justify-content-between">Results
-    <span class="text-muted small">(Click to expand/collapse)</span>
-</h2>
+<div id="benchmark-results-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
+    <h4>Results</h3>
+    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+</div>
 <div id="benchmark-results" style="display: none;">
     {% for result in results %}
     {{ result_card_macros.result_card(result) }}
@@ -130,11 +217,20 @@
     close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
 ) }}
 
+{{ modal_macros.add_modal(
+    modal_id="folder-picker-modal",
+    modal_body='<ul id="folder-list" class="list-group"></ul>',
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+    success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+) }}
+
 {% endblock detail_panel %}
 
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 <script src="{{ url_for('static', path='js/benchmarks/benchmark_detail.js') }}"></script>
 {% endblock extra_js %}
