@@ -315,10 +315,10 @@ def reject(
 def update_associations_policy(
     request: Request,
     benchmark_id: int = Form(...),
-    dataset_auto_approve_mode: Optional[str] = Form(None),
-    dataset_auto_approve_file: Optional[str] = Form(None),
-    model_auto_approve_mode: Optional[str] = Form(None),
-    model_auto_approve_file: Optional[str] = Form(None),
+    dataset_mode: Optional[str] = Form(None),
+    dataset_emails: Optional[str] = Form(None),
+    model_mode: Optional[str] = Form(None),
+    model_emails: Optional[str] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="update_associations_policy")
@@ -326,10 +326,10 @@ def update_associations_policy(
     try:
         UpdateAssociationsPolicy.run(
             benchmark_uid=benchmark_id,
-            dataset_mode=dataset_auto_approve_mode,
-            dataset_emails=dataset_auto_approve_file,
-            model_mode=model_auto_approve_mode,
-            model_emails=model_auto_approve_file,
+            dataset_mode=dataset_mode,
+            dataset_emails=dataset_emails,
+            model_mode=model_mode,
+            model_emails=model_emails,
         )
         return_response["status"] = "success"
         notification_message = "Associations policy updated"

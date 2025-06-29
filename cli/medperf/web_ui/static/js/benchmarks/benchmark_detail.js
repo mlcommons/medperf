@@ -101,14 +101,16 @@ function parseEmails(element){
 function getEmailsList(element){
     const emailsArr = [];
     element.find(".email-chip").each(function() {
-        $(this).find("span").remove()
-        emailsArr.push($(this).text().trim())
+        const span = $(this).find("span");
+        span.remove();
+        emailsArr.push($(this).text().trim());
+        $(this).append(span);
     });
     return emailsArr;
 }
 
 function showErrorToast(message){
-    showToast("An Error Occured", message, "bg-danger text-light")
+    showToast("Validation Error", message, "bg-danger text-light");
 }
 
 function checkUpdateAssociationsPolicyForm(){
@@ -121,48 +123,19 @@ function checkUpdateAssociationsPolicyForm(){
     isModelValid = (modelApproveMode === "NEVER" || modelApproveMode === "ALWAYS")
 
     if(!isDatasetValid){
-        const datasetAllowListMode = $("input[name='dataset_allow_list_mode']:checked").val();
-        if(datasetAllowListMode === "byFile"){
-            const datasetAllowListFilePath = $("#dataset-allow-list-file-input").val();
-            if(datasetAllowListFilePath.length)
-                isDatasetValid = true;
-            else{
-                showErrorToast("Make sure that you entered a valid path");
-            }
-        }
-        else if(datasetAllowListMode === "byText"){
-            const datasetAllowListArr = getEmailsList($("#dataset-allow-list-emails"));
-            if(datasetAllowListArr.length)
-                isDatasetValid = true;
-            else{
-                showErrorToast("Make sure that the allowed list is not empty");
-            }
-        }
+        const datasetAllowListArr = getEmailsList($("#dataset-allow-list-emails"));
+        if(datasetAllowListArr.length)
+            isDatasetValid = true;
         else{
-            showErrorToast("Make sure that you have selected a mode for the allowed list");
+            showErrorToast("Make sure that the dataset allow list is not empty");
         }
-
     }
     if(!isModelValid){
-        const modelAllowListMode = $("input[name='model_allow_list_mode']:checked").val();
-        if(modelAllowListMode === "byFile"){
-            const modelAllowListFilePath = $("#model-allow-list-file-input").val();
-            if(modelAllowListFilePath.length)
-                isModelValid = true;
-            else{
-                showErrorToast("Make sure that you entered a valid path");
-            }
-        }
-        else if(modelAllowListMode === "byText"){
-            const modelAllowListArr = getEmailsList($("#model-allow-list-emails"));
-            if(modelAllowListArr.length)
-                isModelValid = true
-            else{
-                showErrorToast("Make sure that the allowed list is not empty");
-            }
-        }
+        const modelAllowListArr = getEmailsList($("#model-allow-list-emails"));
+        if(modelAllowListArr.length)
+            isModelValid = true
         else{
-            showErrorToast("Make sure that you have selected a mode for the allowed list");
+            showErrorToast("Make sure that the model allow list is not empty");
         }
     }
     return isDatasetValid && isModelValid;
@@ -187,24 +160,19 @@ async function updateAssociationsPolicy(saveBtn){
 
     const datasetApproveMode = $("#dataset-auto-approve-mode").val();
     const modelApproveMode = $("#model-auto-approve-mode").val();
+
     if(datasetApproveMode === "ALLOWLIST"){
-        const datasetAllowListMode = $("input[name='dataset_allow_list_mode']:checked").val();
-        if(datasetAllowListMode === "byFile"){
-            const datasetAllowListFilePath = $("#dataset-allow-list-file-input").val();
-            formData.append("dataset_auto_approve_file", datasetAllowListFilePath);
-        }
-    }
+        const datasetAllowListArr = getEmailsList($("#dataset-allow-list-emails"));
+        formData.append("dataset_emails", datasetAllowListArr.join(" "));
+    } 
     if(modelApproveMode === "ALLOWLIST"){
-        const modelAllowListMode = $("input[name='model_allow_list_mode']:checked").val();
-        if(modelAllowListMode === "byFile"){
-            const modelAllowListFilePath = $("#model-allow-list-file-input").val();
-            formData.append("model_auto_approve_file", modelAllowListFilePath);
-        }
+        const modelAllowListArr = getEmailsList($("#model-allow-list-emails"));
+        formData.append("model_emails", modelAllowListArr.join(" "));
     }
 
     formData.append("benchmark_id", saveBtn.getAttribute("data-benchmark-id"));
-    formData.append("dataset_auto_approve_mode", datasetApproveMode);
-    formData.append("model_auto_approve_mode", modelApproveMode);
+    formData.append("dataset_mode", datasetApproveMode);
+    formData.append("model_mode", modelApproveMode);
     
     ajaxRequest(
         `/benchmarks/update_associations_policy`,
@@ -256,38 +224,6 @@ $(document).ready(() => {
             $("#model-allow-list-container").addClass("d-none");
         }
     });
-    
-    $("input[name='dataset_allow_list_mode']").on("change", (e) => {
-        if(e.currentTarget.value === "byFile"){
-            $("#dataset-allow-list-file-input-container").removeClass("d-none");
-            $("#dataset-allow-list-text-input-container").addClass("d-none");
-        }
-        else{
-            $("#dataset-allow-list-file-input-container").addClass("d-none");
-            $("#dataset-allow-list-text-input-container").removeClass("d-none");
-        }
-    });
-    
-    $("input[name='model_allow_list_mode']").on("change", (e) => {
-        if(e.currentTarget.value === "byFile"){
-            $("#model-allow-list-file-input-container").removeClass("d-none");
-            $("#model-allow-list-text-input-container").addClass("d-none");
-        }
-        else{
-            $("#model-allow-list-file-input-container").addClass("d-none");
-            $("#model-allow-list-text-input-container").removeClass("d-none");
-        }
-    });
-    
-    $("#browse-dataset-allow-list-file-btn").on("click", () => {
-        browseWithFiles = true;
-        browseFolderHandler("dataset-allow-list-file-input");
-    });
-    
-    $("#browse-model-allow-list-file-btn").on("click", () => {
-        browseWithFiles = true;
-        browseFolderHandler("model-allow-list-file-input");
-    });
 
     parseEmails($("#model-allow-list-emails"));
     parseEmails($("#dataset-allow-list-emails"));
@@ -302,10 +238,26 @@ $(document).ready(() => {
             }
         }
     });
-    
+
+    $(".email-input").on("paste", function (e) {
+        e.preventDefault();
+        let clipboardData = (e.originalEvent || e).clipboardData.getData("text");
+        let rawEmails = clipboardData.split(/[\s,]+/);
+        rawEmails.forEach(email => {
+            email = email.trim();
+            if (email && isValidEmail(email)) {
+                createEmailChip(email, $(this));
+            }
+        });
+        $(this).val("");
+    });
+
     $("#save-policy-btn").on("click", (e) => {
         if(checkUpdateAssociationsPolicyForm()){
             showConfirmModal(e.currentTarget, updateAssociationsPolicy, "want to update benchmark associations policy?");
         }
     });
+
+    $("#dataset-auto-approve-mode").trigger("change");
+    $("#model-auto-approve-mode").trigger("change");
 });

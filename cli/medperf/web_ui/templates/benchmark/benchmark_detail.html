@@ -102,60 +102,30 @@
                             <label class="form-label h6" for="dataset-auto-approve-mode">
                                 Dataset auto approve mode
                             </label>
-                            <select class="form-select d-inline-block w-auto cursor-pointer" name="dataset_auto_approve_mode" id="dataset-auto-approve-mode">
+                            <select
+                                class="form-select d-inline-block w-auto cursor-pointer"
+                                name="dataset_auto_approve_mode"
+                                id="dataset-auto-approve-mode"
+                                {% if task_running %} disabled {% endif %}
+                            >
                                 <option value="NEVER" {% if entity.dataset_auto_approval_mode == "NEVER" %} selected {% endif %}>Never</option>
                                 <option value="ALWAYS" {% if entity.dataset_auto_approval_mode == "ALWAYS" %} selected {% endif %}>Always</option>
                                 <option value="ALLOWLIST" {% if entity.dataset_auto_approval_mode == "ALLOWLIST" %} selected {% endif %}>Allow List</option>
                             </select>
                         </div>
-                        <div class="form-group mb-3 d-flex justify-content-around {% if entity.dataset_auto_approval_mode != "ALLOWLIST" %}d-none{% endif %}" id="dataset-allow-list-container">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input border-black" name="dataset_allow_list_mode" type="radio" id="dataset-allow-list-file" value="byFile">
-                                <label class="form-check-label" for="dataset-allow-list-file">File Input</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input border-black" name="dataset_allow_list_mode" type="radio" id="dataset-allow-list-text" value="byText">
-                                <label class="form-check-label" for="dataset-allow-list-text">Text Input</label>
-                            </div>
-                        </div>
-                        <div class="form-group mb-3 d-none" id="dataset-allow-list-file-input-container">
-                            <label class="form-label h6" for="dataset-allow-list-file-input">
-                                Allow list file
-                            </label>
-                            <div class="input-group">
-                                <input
-                                    name="dataset_allow_list_file_input"
-                                    class="form-control"
-                                    type="text"
-                                    id="dataset-allow-list-file-input"
-                                    placeholder="{{ placeholders.benchmark_dataset_allow_list_file_input }}"
-                                    {% if task_running %} disabled {% endif %}
-                                    {% if container_register_running %}
-                                    value="{{ task_formData.get('dataset_allow_list_file_input', '') }}"
-                                    {% endif %}
-                                >
-                                <div class="input-group-append">
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-secondary"
-                                        id="browse-dataset-allow-list-file-btn"
-                                        {% if task_running %} disabled {% endif %}   
-                                    >Browse</button>
-                                </div>
-                                <i
-                                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-title="{{ tooltips.benchmark_dataset_allow_list_file_input }}"
-                                ></i>
-                            </div>
-                        </div>
-                        <div class="form-group d-none mb-3" id="dataset-allow-list-text-input-container">
+                        <div class="form-group d-none mb-3" id="dataset-allow-list-container">
                             <label class="form-label h6" for="dataset-allow-list-text-input">
-                                Allow list text
+                                Allow list emails
                             </label>
                             <div class="email-container" id="dataset-allow-list-emails" data-allowed-list='{{ entity.dataset_auto_approval_allow_list | tojson }}'>
-                                <input type="text" name="dataset-allow-list-text-input" id="dataset-allow-list-text-input" class="form-control email-input mt-2" placeholder="Type email and hit Enter, comma, or space">
+                                <input
+                                    type="text"
+                                    name="dataset-allow-list-text-input"
+                                    id="dataset-allow-list-text-input"
+                                    class="form-control email-input mt-2"
+                                    placeholder="Type email and hit Enter, comma, or space"
+                                    {% if task_running %} disabled {% endif %}
+                                >
                             </div>
                         </div>
                     </div>
@@ -164,65 +134,41 @@
                             <label class="form-label h6" for="model-auto-approve-mode">
                                 Model auto approve mode
                             </label>
-                            <select class="form-select d-inline-block w-auto" name="model_auto_approve_mode" id="model-auto-approve-mode">
+                            <select
+                                class="form-select d-inline-block w-auto"
+                                name="model_auto_approve_mode"
+                                id="model-auto-approve-mode"
+                                {% if task_running %} disabled {% endif %}    
+                            >
                                 <option value="NEVER" {% if entity.model_auto_approval_mode == "NEVER" %} selected {% endif %}>Never</option>
                                 <option value="ALWAYS" {% if entity.model_auto_approval_mode == "ALWAYS" %} selected {% endif %}>Always</option>
                                 <option value="ALLOWLIST" {% if entity.model_auto_approval_mode == "ALLOWLIST" %} selected {% endif %}>Allow List</option>
                             </select>
                         </div>
-                        <div class="form-group d-flex justify-content-around {% if entity.model_auto_approval_mode != "ALLOWLIST" %}d-none{% endif %}" id="model-allow-list-container">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input border-black" name="model_allow_list_mode" type="radio" id="model-allow-list-file" value="byFile">
-                                <label class="form-check-label" for="model-allow-list-file">File Input</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input border-black" name="model_allow_list_mode" type="radio" id="model-allow-list-text" value="byText">
-                                <label class="form-check-label" for="model-allow-list-text">Text Input</label>
-                            </div>
-                        </div>
-                        <div class="form-group mb-3 d-none" id="model-allow-list-file-input-container">
-                            <label class="form-label h6" for="model-allow-list-file-input">
-                                Allow list file
-                            </label>
-                            <div class="input-group">
-                                <input
-                                    name="model_allow_list_file_input"
-                                    class="form-control"
-                                    type="text"
-                                    id="model-allow-list-file-input"
-                                    placeholder="{{ placeholders.benchmark_model_allow_list_file_input }}"
-                                    {% if task_running %} disabled {% endif %}
-                                    {% if container_register_running %}
-                                    value="{{ task_formData.get('model_allow_list_file_input', '') }}"
-                                    {% endif %}
-                                >
-                                <div class="input-group-append">
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-secondary"
-                                        id="browse-model-allow-list-file-btn"
-                                        {% if task_running %} disabled {% endif %}   
-                                    >Browse</button>
-                                </div>
-                                <i
-                                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-title="{{ tooltips.benchmark_model_allow_list_file_input }}"
-                                ></i>
-                            </div>
-                        </div>
-                        <div class="form-group mb-3 d-none" id="model-allow-list-text-input-container">
+                        <div class="form-group mb-3 d-none" id="model-allow-list-container">
                             <label class="form-label h6" for="model-allow-list-text-input">
-                                Allow list text
+                                Allow list emails
                             </label>
                             <div class="email-container" id="model-allow-list-emails" data-allowed-list='{{ entity.model_auto_approval_allow_list | tojson }}'>
-                                <input type="text" name="model-allow-list-text-input" id="model-allow-list-text-input" class="form-control email-input mt-2" placeholder="Type email and hit Enter, comma, or space">
+                                <input
+                                    type="text"
+                                    name="model-allow-list-text-input"
+                                    id="model-allow-list-text-input"
+                                    class="form-control email-input mt-2"
+                                    placeholder="Type email and hit Enter, comma, or space"
+                                    {% if task_running %} disabled {% endif %}
+                                >
                             </div>
                         </div>
                     </div>
                     <div class="text-center mt-5">
-                        <button type="button" id="save-policy-btn" class="btn btn-primary" data-benchmark-id="{{ entity.id }}">Save</button>
+                        <button
+                            type="button"
+                            id="save-policy-btn"
+                            class="btn btn-primary"
+                            data-benchmark-id="{{ entity.id }}"
+                            {% if task_running %} disabled {% endif %}
+                        >Save</button>
                     </div>
                 </form>
             </div>
