@@ -1,8 +1,10 @@
 # medperf/web_ui/api/routes.py
 import os
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
 
+from medperf.exceptions import InvalidArgumentError
 from medperf.web_ui.common import check_user_api
 from medperf.utils import sanitize_path
 
@@ -12,13 +14,16 @@ router = APIRouter()
 # TODO: close with token and list in documentation
 @router.post("/browse", response_class=JSONResponse)
 def browse_directory(
-    path: str = Form(...),
+    path: str = Form(""),
     with_files: bool = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-
+    path = path or str(Path.home())
     base_dir = "/"  # Allow user to put any path
-    full_path = sanitize_path(os.path.join(base_dir, path))
+    try:
+        full_path = sanitize_path(os.path.join(base_dir, path))
+    except InvalidArgumentError:
+        raise HTTPException(status_code=400, detail="Invalid path")
 
     if not os.path.exists(full_path) or not os.path.isdir(full_path):
         raise HTTPException(status_code=404, detail="Directory not found")

@@ -37,7 +37,7 @@ function browseFolderHandler(elementId){
 }
 
 // AJAX folder browsing logic
-let currentPath = ".";
+let currentPath = "";
 let currentPathType = "folder";
 let browseWithFiles = false;
 let activeInput = null;

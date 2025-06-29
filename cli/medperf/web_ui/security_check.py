@@ -56,6 +56,7 @@ def access_web_ui(
             secure=True,
             httponly=True,
             samesite="strict",
+            max_age=60 * 60 * 24 * 365,  # 1 year
         )
         return response
     else:

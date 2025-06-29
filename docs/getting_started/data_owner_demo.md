@@ -150,10 +150,10 @@ medperf benchmark run --benchmark 1 --data_uid 1
 After running the command, you will receive a summary of the executions. You will see something similar to the following:
 
 ```text
-  model  local result UID    partial result    from cache    error
--------  ------------------  ----------------  ------------  -------
-      2  b1m2d1              False             True
-      4  b1m4d1              False             False
+  model    Execution UID  partial result    from cache    error
+-------  ---------------  ----------------  ------------  -------
+      5                2  False             False
+      3                1  False             True
 Total number of models: 2
         1 were skipped (already executed), of which 0 have partial results
         0 failed
@@ -165,12 +165,12 @@ Total number of models: 2
 This means that the benchmark has two models:
 
 - A model that you already ran when you requested the association. This explains why it was skipped.
-- Another model that ran successfully. Its result generated UID is `b1m4d1`.
+- Another model that ran successfully. Its result UID is `2`.
 
-You can view the results by running the following command with the specific local result UID. For example:
+You can view the results by running the following command with the specific result UID. For example:
 
 ```bash
-medperf result view b1m4d1
+medperf result show_local_results 2
 ```
 
 For now, your results are only local. Next, you will learn how to submit the results.
@@ -178,12 +178,12 @@ For now, your results are only local. Next, you will learn how to submit the res
 ## 6. Submit a Result
 
 ![Dataset Owner submits evaluation results](../tutorial_images/do-6-do-submits-eval-results.png){class="tutorial-sticky-image-content"}
-After executing the benchmark, you will submit a result to the MedPerf server. To do so, you have to find the target result generated UID.
+After executing the benchmark, you will submit the results to the MedPerf server. To do so, you have to find the target result ID.
 
-As an example, you will be submitting the result of UID `b1m4d1`. To do this, run the following command:
+As an example, you will be submitting the result of UID `2`. To do this, run the following command:
 
 ```bash
-medperf result submit --result b1m4d1
+medperf result submit --result 2
 ```
 
 The information that is going to be submitted will be printed to the screen and you will be prompted to confirm that you want to submit.
