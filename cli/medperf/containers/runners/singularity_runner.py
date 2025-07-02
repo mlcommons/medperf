@@ -1,9 +1,5 @@
 from medperf.comms.entity_resources import resources
-from medperf.exceptions import (
-    InvalidContainerSpec,
-    InvalidArgumentError,
-    MedperfException,
-)
+from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.utils import remove_path
 from .utils import (
     run_command,
@@ -13,6 +9,7 @@ from .utils import (
     add_medperf_environment_variables,
     add_network_config,
     add_medperf_tmp_folder,
+    check_docker_image_hash,
 )
 from .singularity_utils import (
     get_docker_image_hash_from_dockerhub,
@@ -54,6 +51,7 @@ class SingularityRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
+        alternative_image_hash: str = None,
     ):
         if self.parser.container_type == "SingularityFile":
             return self._download_singularity_file(
@@ -66,6 +64,7 @@ class SingularityRunner(Runner):
                 expected_image_hash,
                 download_timeout,
                 get_hash_timeout,
+                alternative_image_hash,
             )
 
     def _download_singularity_file(
@@ -86,13 +85,15 @@ class SingularityRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
+        alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
         computed_image_hash = get_docker_image_hash_from_dockerhub(
             docker_image, get_hash_timeout
         )
-        if expected_image_hash and expected_image_hash != computed_image_hash:
-            raise InvalidContainerSpec("hash mismatch")
+        check_docker_image_hash(
+            computed_image_hash, expected_image_hash, alternative_image_hash
+        )
 
         sif_image_folder = os.path.join(
             self.container_files_base_path, config.image_path
