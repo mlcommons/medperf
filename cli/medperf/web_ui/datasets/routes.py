@@ -19,7 +19,6 @@ from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.execution import Execution
-from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     templates,
     check_user_ui,

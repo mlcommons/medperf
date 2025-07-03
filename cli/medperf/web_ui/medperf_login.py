@@ -1,7 +1,6 @@
 from fastapi import Request, Form, APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     add_notification,
     initialize_state_task,
