@@ -5,9 +5,25 @@ function create_p(msg){
 }
 
 function scrollToElement(selector){
-    $("html, body").animate({
-        scrollTop: $(selector).offset().top
-    }, 1000);
+    const element = document.querySelector(selector);
+    if (element) {
+        $("html, body").animate({
+            scrollTop: $(selector).offset().top
+        }, 1000);
+        return;
+    }
+    const observer = new MutationObserver(() => {
+        const el = document.querySelector(selector);
+        if (el) {
+            observer.disconnect();
+            $("html, body").animate({
+                scrollTop: $(selector).offset().top
+            }, 1000);
+        }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
 }
 
 // Recursively get events(logs, prompts, etc..)
