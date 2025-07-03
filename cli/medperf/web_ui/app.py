@@ -21,7 +21,7 @@ from medperf.web_ui.security_check import router as login_router
 from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.profiles import router as profiles_router
-from medperf.web_ui.auth import security_token, wrap_openapi, NotAuthenticatedException
+from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException
 
 web_app = FastAPI()
 
@@ -78,14 +78,6 @@ def startup_event():
     logging.getLogger().setLevel(loglevel)
     logging.getLogger("requests").setLevel(loglevel)
     log_machine_details()
-
-    # print security token to CLI (avoid logging to file)
-    print("=" * 40)
-    print()
-    print("Use security token to view the web-UI:")
-    print(security_token)
-    print()
-    print("=" * 40)
 
 
 @web_app.exception_handler(NotAuthenticatedException)
