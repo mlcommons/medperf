@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+from django.conf import settings
 from .models import Benchmark
 
 
@@ -30,7 +31,8 @@ class BenchmarkSerializer(serializers.ModelSerializer):
                     "User cannot mark a benchmark as operational"
                     " if its containers are not operational"
                 )
-
+        if owner.email in settings.AUTO_APPROVE_BENCHMARKS_FROM:
+            data["approval_status"] = "APPROVED"
         return data
 
 

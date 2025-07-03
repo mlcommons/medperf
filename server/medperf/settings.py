@@ -304,3 +304,8 @@ SIMPLE_JWT = {
     "JTI_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
 }
 TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
+
+# Comma-separated list of emails
+AUTO_APPROVE_BENCHMARKS_FROM = env("AUTO_APPROVE_BENCHMARKS_FROM", default="").split(
+    ","
+)
