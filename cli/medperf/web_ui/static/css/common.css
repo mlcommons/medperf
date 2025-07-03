@@ -291,6 +291,11 @@ pre {
     padding: 15px;
 }
 
+#yaml-content{
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
 label[for="switch"] {
     margin-left: -40px;
     cursor: pointer;
