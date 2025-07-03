@@ -42,16 +42,11 @@
                     <h5 class="card-title">
                         <a href="/containers/ui/display/{{ container.id }}" class="text-primary">{{ container.name }}</a>
                     </h5>
+                    <h6 class="card-subtitle mb-2">ID: {{container.id}}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">{{ container.state }}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ container.is_valid }}</h6>
                     <p class="card-text">
-                        <a href="{{ container.git_mlcube_url }}" target="_blank" class="text-primary">Config File</a>
-                    </p>
-                    <p class="card-text">
                         <small class="text-muted" data-date="{{ container.created_at }}"></small>
-                    </p>
-                    <p class="card-text">
-                        <small class="text-muted">Registered: {{ container.is_registered }}</small>
                     </p>
                 </div>
             </div>
