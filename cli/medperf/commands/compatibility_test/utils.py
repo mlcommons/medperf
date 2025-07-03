@@ -138,8 +138,13 @@ def create_test_dataset(
     )
     data_creation.validate()
     data_creation.create_dataset_object()
-    # TODO: existing dataset could make problems
+
     # make some changes since this is a test dataset
+    remove_path(data_creation.dataset.data_path)
+    remove_path(data_creation.dataset.labels_path)
+    remove_path(data_creation.dataset.metadata_path)
+    remove_path(data_creation.dataset.report_path)
+    remove_path(data_creation.dataset.statistics_path)
     config.tmp_paths.remove(data_creation.dataset.path)
     if skip_data_preparation_step:
         data_creation.make_dataset_prepared()
