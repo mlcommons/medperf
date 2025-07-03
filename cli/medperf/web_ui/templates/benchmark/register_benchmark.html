@@ -77,6 +77,16 @@
                     data-bs-title="{{ tooltips.register_benchmark_reference_dataset_tarball_url }}"
                 ></i>
             </div>
+            <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
+                <div>
+                    <input class="form-check-input border-black" type="radio" name="skip_data_preparation_step" id="skip-dataprep" value="true">
+                    <label class="form-check-label" for="skip-dataprep">Already Prepared</label>
+                </div>
+                <div>
+                    <input class="form-check-input border-black" type="radio" name="skip_data_preparation_step" id="noskip-dataprep" value="false" checked>
+                    <label class="form-check-label" for="noskip-dataprep">Not Prepared</label>
+                </div>
+            </div>
         </div>
         <div class="form-group my-5">
             <label for="data-preparation-container" class="form-label h4">Data Preparation Container ID</label>
