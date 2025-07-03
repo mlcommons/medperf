@@ -173,11 +173,15 @@ class Cube(Entity, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
+        alternative_image_hash = None
+        if self.metadata is not None:
+            alternative_image_hash = self.metadata.get("digest", None)
         try:
             self.image_hash = self.runner.download(
                 expected_image_hash=self.image_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
+                alternative_image_hash=alternative_image_hash,
             )
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} image: {e}")

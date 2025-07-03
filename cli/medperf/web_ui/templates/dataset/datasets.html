@@ -48,6 +48,7 @@
                             {{ dataset.name }}
                         </a>
                     </h5>
+                    <h6 class="card-subtitle mb-2">ID: {{dataset.id}}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">
                         {{ dataset.state }}
                     </h6>
@@ -55,6 +56,7 @@
                         Is valid: {{ dataset.is_valid }}
                     </h6>
                     <p class="card-text">
+                        <strong>Description:</strong> 
                         {{ dataset.description }}
                     </p>
                     <p class="card-text">

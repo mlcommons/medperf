@@ -14,7 +14,6 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.execution import Execution
-from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     add_notification,
     check_user_api,
@@ -174,7 +173,7 @@ def test_benchmark(
         return_response["status"] = "success"
         return_response["results"] = results
         notification_message = "Benchmark workflow test succeeded"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Benchmark workflow test failed"
@@ -225,7 +224,7 @@ def register_benchmark(
         return_response["status"] = "success"
         return_response["benchmark_id"] = benchmark_id
         notification_message = "Benchmark successfully registered!"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to register benchmark"
@@ -261,7 +260,7 @@ def approve(
         )
         return_response["status"] = "success"
         notification_message = "Association successfully approved"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["status"] = str(exp)
         notification_message = "Failed to approve association"
@@ -297,7 +296,7 @@ def reject(
         )
         return_response["status"] = "success"
         notification_message = "Association successfully rejected"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["status"] = str(exp)
         notification_message = "Failed to reject association"
@@ -336,7 +335,7 @@ def update_associations_policy(
         )
         return_response["status"] = "success"
         notification_message = "Associations policy updated"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to update associations policy"

@@ -208,6 +208,8 @@ class DataPreparation:
             "data_path": out_datapath,
             "labels_path": out_labelspath,
         }
+        if self.metadata_specified:
+            sanity_check_mounts["metadata_path"] = self.metadata_path
 
         self.ui.text = "Running sanity check..."
         try:

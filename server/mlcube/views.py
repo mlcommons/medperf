@@ -14,7 +14,7 @@ from dataset.models import Dataset
 class MlCubeList(GenericAPIView):
     serializer_class = MlCubeSerializer
     queryset = ""
-    filterset_fields = ('name', 'owner', 'state', 'is_valid')
+    filterset_fields = ("name", "owner", "state", "is_valid")
 
     @extend_schema(operation_id="mlcubes_retrieve_all")
     def get(self, request, format=None):
@@ -98,11 +98,6 @@ class MlCubeDatasetList(GenericAPIView):
         """
         Retrieve datasets associated with an MlCube instance.
         """
-        mlcube = self.get_object(pk)
-        if mlcube.state != "DEVELOPMENT":
-            errors = {"error": "The container is not in DEVELOPMENT"}
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-
         datasets = Dataset.objects.all().filter(data_preparation_mlcube__pk=pk)
         datasets = self.paginate_queryset(datasets)
         serializer = DatasetFullSerializer(datasets, many=True)

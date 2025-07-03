@@ -1,4 +1,3 @@
-from medperf.exceptions import InvalidContainerSpec
 from .utils import (
     run_command,
     check_allowed_run_args,
@@ -7,6 +6,7 @@ from .utils import (
     add_medperf_environment_variables,
     add_network_config,
     add_medperf_tmp_folder,
+    check_docker_image_hash,
 )
 from .runner import Runner
 import logging
@@ -22,13 +22,15 @@ class DockerRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
+        alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
         command = ["docker", "pull", docker_image]
         run_command(command, timeout=download_timeout)
         computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
-        if expected_image_hash and expected_image_hash != computed_image_hash:
-            raise InvalidContainerSpec("hash mismatch")
+        check_docker_image_hash(
+            computed_image_hash, expected_image_hash, alternative_image_hash
+        )
         return computed_image_hash
 
     def run(

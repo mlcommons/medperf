@@ -12,14 +12,15 @@ from medperf.storage import (
 from medperf.ui.factory import UIFactory
 
 
-def initialize(for_webui=False):
+def initialize(for_webui=False, for_data_monitor=False):
     if not for_webui:
         log_file_name = config.log_file
         ui_class = config.ui
     else:
         log_file_name = config.webui_log_file
         ui_class = config.webui
-
+    if for_data_monitor:
+        log_file_name = config.data_monitor_log_file
     # Apply any required migration
     apply_configuration_migrations()
 

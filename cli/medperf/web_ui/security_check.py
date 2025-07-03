@@ -32,6 +32,13 @@ def security_check_form(
 
     else:
         # User is not authenticated, show security check form
+        # print security token to CLI (avoid logging to file)
+        print("=" * 40)
+        print()
+        print("Use security token to view the web-UI:")
+        print(security_token)
+        print()
+        print("=" * 40)
         return templates.TemplateResponse(
             "security_check.html", {"request": request, "redirect_url": redirect_url}
         )

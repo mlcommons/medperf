@@ -40,7 +40,7 @@
             </div>
         </div>
         <div class="form-group my-5">
-            <label for="container-file" class="form-label h4">Container manifest file</label>
+            <label for="container-file" class="form-label h4">Container manifest file URL</label>
             <div class="input-group">
                 <input
                     name="container_file"
@@ -53,14 +53,6 @@
                     value="{{ task_formData.get('container_file', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-container-btn"
-                        {% if task_running %} disabled {% endif %}   
-                    >Browse</button>
-                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
@@ -70,7 +62,7 @@
             </div>
         </div>
         <div class="form-group my-5">
-            <label for="parameters-file" class="form-label h4">Parameters File</label>
+            <label for="parameters-file" class="form-label h4">Parameters File URL</label>
             <div class="input-group">
                 <input
                     name="parameters_file"
@@ -83,14 +75,6 @@
                     value="{{ task_formData.get('parameters_file', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-parameters-btn"
-                        {% if task_running %} disabled {% endif %}   
-                    >Browse</button>
-                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
@@ -100,7 +84,7 @@
             </div>
         </div>
         <div class="form-group my-5">
-            <label for="additional-file" class="form-label h4">Additional Files</label>
+            <label for="additional-file" class="form-label h4">Additional Files URL</label>
             <div class="input-group">
                 <input
                     name="additional_file"
@@ -113,14 +97,6 @@
                     value="{{ task_formData.get('additional_file', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-additional-btn"
-                        {% if task_running %} disabled {% endif %}   
-                    >Browse</button>
-                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"

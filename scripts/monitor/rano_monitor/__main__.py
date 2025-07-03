@@ -1,5 +1,6 @@
 import os
 import tarfile
+import logging
 
 import typer
 from rano_monitor.constants import (
@@ -110,7 +111,11 @@ def main(
         from medperf import config
         from medperf.init import initialize
 
-        initialize()
+        initialize(for_data_monitor=True)
+        # continue setup logging
+        loglevel = config.loglevel.upper()
+        logging.getLogger().setLevel(loglevel)
+        logging.getLogger("requests").setLevel(loglevel)
         dset_path = os.path.join(config.datasets_folder, dataset_uid)
     else:
         dset_path = dataset_uid

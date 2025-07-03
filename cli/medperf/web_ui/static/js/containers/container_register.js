@@ -34,8 +34,7 @@ function checkContainerFormValidity() {
 
     const isValid = Boolean(
         $("#name").val().trim() &&
-        containerPath.length > 0 &&
-        containerPath.endsWith(".yaml")
+        containerPath.length > 0
     );
     $("#register-container-btn").prop("disabled", !isValid);
 }

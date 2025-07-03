@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from medperf import config
 from medperf.config_management.config_management import read_config, write_config
-from medperf.exceptions import InvalidArgumentError, MedperfException
+from medperf.exceptions import InvalidArgumentError
 from medperf.utils import make_pretty_dict
 from medperf.web_ui.common import check_user_api, check_user_ui, templates
 from medperf.init import initialize
@@ -80,7 +80,7 @@ def view_profile(
         return_response["status"] = "success"
         return_response["profile_dict"] = profile_dict
         return_response["profile"] = profile
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         logger.exception(exp)

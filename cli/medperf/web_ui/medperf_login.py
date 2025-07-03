@@ -1,7 +1,6 @@
 from fastapi import Request, Form, APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from medperf.exceptions import MedperfException
 from medperf.web_ui.common import (
     add_notification,
     initialize_state_task,
@@ -71,7 +70,7 @@ def login(
             templates.env.globals["logged_in"] = True
             return_response["status"] = "success"
             notification_message = "Successfully Logged In"
-        except MedperfException as exp:
+        except Exception as exp:
             return_response["status"] = "failed"
             return_response["error"] = str(exp)
             notification_message = "Error Logging In"
@@ -96,6 +95,6 @@ def logout(
         config.auth.logout()
         templates.env.globals["logged_in"] = False
         return {"status": "success", "error": ""}
-    except MedperfException as e:
+    except Exception as e:
         logger.exception(e)
         return {"status": "failed", "error": "Logout failed. Check logs."}
