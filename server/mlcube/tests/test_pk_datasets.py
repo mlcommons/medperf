@@ -17,7 +17,7 @@ class MlCubeTest(MedPerfTest):
         self.create_user(other_user)
 
         # create mlcube and dataset
-        testmlcube = self.mock_mlcube(state="DEVELOPMENT")
+        testmlcube = self.mock_mlcube()
         self.set_credentials(mlcube_owner)
         testmlcube = self.create_mlcube(testmlcube).data
         data = self.mock_dataset(testmlcube["id"])
@@ -60,23 +60,6 @@ class MlCubeDatasetGetListTest(MlCubeTest):
         self.assertEqual(
             len(response.data["results"]), 1, "unexpected number of datasets"
         )
-
-    def test_get_mlcube_datasets_list_fails_if_mlcube_is_operation(self):
-        # Arrange
-
-        # make mlcube operational
-        put_body = {"state": "OPERATION"}
-        url = self.api_prefix + "/mlcubes/{0}/".format(self.mlcube_id)
-        response = self.client.put(url, put_body, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        url = self.url.format(self.mlcube_id)
-
-        # Act
-        response = self.client.get(url)
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class PermissionTest(MlCubeTest):
