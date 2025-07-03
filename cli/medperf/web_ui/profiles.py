@@ -80,7 +80,7 @@ def view_profile(
         return_response["status"] = "success"
         return_response["profile_dict"] = profile_dict
         return_response["profile"] = profile
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         logger.exception(exp)

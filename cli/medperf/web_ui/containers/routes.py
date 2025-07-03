@@ -139,7 +139,7 @@ def register_container(
         return_response["status"] = "success"
         return_response["container_id"] = container_id
         notification_message = "Container successfully registered"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to register container"
@@ -172,7 +172,7 @@ def test_container(
         return_response["status"] = "success"
         return_response["results"] = results
         notification_message = "Container compatibility test succeeded!"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Container compatibility test failed"
@@ -202,7 +202,7 @@ def associate(
         AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"
         notification_message = "Successfully requested container association!"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to request container association"

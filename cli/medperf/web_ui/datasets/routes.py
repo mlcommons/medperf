@@ -190,7 +190,7 @@ def register_dataset(
         return_response["status"] = "success"
         return_response["dataset_id"] = dataset_id
         notification_message = "Dataset successfully registered"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to register dataset"
@@ -225,7 +225,7 @@ def prepare(
         return_response["status"] = "success"
         return_response["dataset_id"] = dataset_id
         notification_message = "Dataset successfully prepared"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to prepare dataset"
@@ -256,7 +256,7 @@ def set_operational(
         return_response["status"] = "success"
         return_response["dataset_id"] = dataset_id
         notification_message = "Dataset successfully set to operational"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to set dataset to operational"
@@ -287,7 +287,7 @@ def associate(
         AssociateDataset.run(data_uid=dataset_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"
         notification_message = "Successfully requested dataset association"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to request dataset association"
@@ -326,7 +326,7 @@ def run(
         )
         return_response["status"] = "success"
         notification_message = "Execution ran successfully"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Error during execution"
@@ -356,7 +356,7 @@ def submit_result(
         ResultSubmission.run(result_id)
         return_response["status"] = "success"
         notification_message = "Result successfully submitted"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to submit results"
@@ -412,7 +412,7 @@ def export_dataset(
         ExportDataset.run(dataset_id, output_path)
         return_response["status"] = "success"
         notification_message = "Dataset successfully exported"
-    except MedperfException as exp:
+    except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to export dataset"
@@ -457,7 +457,7 @@ def import_dataset(
         ImportDataset.run(dataset_id, input_path, raw_dataset_path)
         return_response["status"] = "success"
         notification_message = "Dataset successfully imported"
-    except MedperfException as exp:
+    except Exception as exp:
         dataset_id = None
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
