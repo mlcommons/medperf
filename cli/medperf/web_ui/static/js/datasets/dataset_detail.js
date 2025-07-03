@@ -177,10 +177,12 @@ async function submitResult(submitResultButton){
 
     const resultId = submitResultButton.getAttribute("data-result-id");
     const benchmarkId = submitResultButton.getAttribute("data-benchmark-id");
+    const datasetId = submitResultButton.getAttribute("data-dataset-id");
     
     const formData = new FormData();
     formData.append("result_id", resultId);
     formData.append("benchmark_id", benchmarkId);
+    formData.append("dataset_id", datasetId)
 
     disableElements(".card button");
     

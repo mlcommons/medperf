@@ -177,8 +177,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/containers/container_detail.js') }}"></script>
-
-{% if task_running and request.app.state.task["name"] == "container_association" %}
+{% if task_running and request.app.state.task["name"] == "container_association" and task_formData.get("container_id", "") == entity.id|string %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

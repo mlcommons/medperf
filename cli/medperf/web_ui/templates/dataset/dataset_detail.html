@@ -318,6 +318,7 @@
                                         id="submit-{{ assoc }}-{{ reference_model.result.id }}"
 										data-result-id="{{ reference_model.result.id }}"
                                         data-benchmark-id="{{ assoc }}"
+                                        data-dataset-id="{{ dataset.id }}"
                                         {% if task_running %} disabled {% endif %}
 									>
 										⬆️ Submit
@@ -377,6 +378,7 @@
                                         id="submit-{{ assoc }}-{{ model.result.id }}"
                                         data-result-id="{{ model.result.id }}"
                                         data-benchmark-id="{{ assoc }}"
+                                        data-dataset-id="{{ dataset.id }}"
                                         {% if task_running %} disabled {% endif %}
                                     >
                                         ⬆️ Submit
@@ -419,7 +421,7 @@
 <script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_detail.js') }}"></script>
 
-{% if task_running %}
+{% if task_running and task_formData.get("dataset_id", "") == dataset.id|string %}
 {% if request.app.state.task["name"] == "dataset_preparation" %}
 <script>
     $(document).ready(() => {
