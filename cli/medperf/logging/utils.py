@@ -208,7 +208,8 @@ def package_logs():
     logfiles = []
     for file in files:
         is_logfile = re.match(r"medperf\.log(?:\.\d+)?$", file) is not None
-        if is_logfile:
+        is_webui_logfile = re.match(r"medperf_webui\.log(?:\.\d+)?$", file) is not None
+        if is_logfile or is_webui_logfile:
             logfiles.append(file)
 
     package_file = os.path.join(config.logs_storage, config.log_package_file)
