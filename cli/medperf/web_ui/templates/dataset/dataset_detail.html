@@ -305,7 +305,6 @@
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ reference_model.id }}"
 										data-result='{{ reference_model.result.results|tojson }}'
-                                        {% if task_running %} disabled {% endif %}
 									>
                                         🔍 View Result
 									</button>
@@ -365,7 +364,6 @@
 										data-dataset-name="{{ dataset.name }}"
 										id="show-{{ assoc }}-{{ model.id }}"
 										data-result='{{ model.result.results|tojson }}'
-                                        {% if task_running %} disabled {% endif %}
 									>
                                         🔍 View Result
 									</button>
