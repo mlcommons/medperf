@@ -1,7 +1,7 @@
 from .token_storage import TokenStore
 from medperf.config_management import read_config, write_config
 from medperf import config
-from medperf.exceptions import MedperfException
+from medperf.exceptions import AuthenticationError
 
 
 def read_user_account():
@@ -49,7 +49,7 @@ def set_credentials(
 def read_credentials():
     account_info = read_user_account()
     if account_info is None:
-        raise MedperfException("You are not logged in")
+        raise AuthenticationError("You are not logged in")
     email = account_info["email"]
     access_token, refresh_token = TokenStore().read_tokens(email)
 
@@ -63,7 +63,7 @@ def read_credentials():
 def delete_credentials():
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
+        raise AuthenticationError("You are not logged in")
 
     email = config_p.active_profile[config.credentials_keyword]["email"]
     TokenStore().delete_tokens(email)
@@ -87,7 +87,7 @@ def get_medperf_user_data():
     """Return cached medperf user data. Get from the server if not found"""
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
+        raise AuthenticationError("You are not logged in")
 
     medperf_user = config_p.active_profile[config.credentials_keyword].get(
         "medperf_user", None

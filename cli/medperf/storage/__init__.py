@@ -51,13 +51,11 @@ def __apply_login_tracking_migrations(config_p: ConfigManager):
     if config.credentials_keyword in config_p.active_profile:
         # So the user is logged in
         if "logged_in_at" not in config_p.active_profile[config.credentials_keyword]:
-            # Apply migration. We will set it to the current time, since this
-            # will make sure they will not be logged out before the actual refresh
-            # token expiration (for a better user experience). However, currently logged
-            # in users will still face a confusing error when the refresh token expires.
-            config_p.active_profile[config.credentials_keyword][
-                "logged_in_at"
-            ] = time.time()
+            # Apply migration. We will set it to an old time to make sure users no longer
+            # face a confusing error about refresh token expiration.
+            config_p.active_profile[config.credentials_keyword]["logged_in_at"] = (
+                time.time() - 2 * config.token_absolute_expiry
+            )
 
 
 def __apply_results_to_executions_migrations(config_p):
