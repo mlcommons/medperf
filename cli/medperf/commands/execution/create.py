@@ -178,10 +178,10 @@ class BenchmarkExecution:
         }
 
     def __get_cube(self, uid: int, name: str) -> Cube:
-        self.ui.text = f"Retrieving container '{name}'"
         cube = Cube.get(uid)
+        self.ui.text = f"Retrieving {name} container '{cube.name}'"
         cube.download_run_files()
-        self.ui.print(f"> Container '{name}' download complete")
+        self.ui.print(f"> {name} Container '{cube.name}' download complete")
         return cube
 
     def run_experiments(self) -> list[Execution]:

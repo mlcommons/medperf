@@ -22,7 +22,7 @@ import medperf.commands.ca.ca as ca
 import medperf.commands.certificate.certificate as certificate
 import medperf.commands.storage as storage
 import medperf.web_ui.app as web_ui
-from medperf.utils import check_for_updates
+from medperf.utils import check_for_updates, get_webui_properties
 from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
@@ -86,6 +86,13 @@ def execute(
     )[0]
     ResultSubmission.run(execution.id, approved=approval)
     config.ui.print("✅ Done!")
+
+
+@app.command("get_webui_properties")
+@clean_except
+def get_webui_props():
+    """Prints necessary information to access an already-running medperf webui"""
+    get_webui_properties()
 
 
 def version_callback(value: bool):

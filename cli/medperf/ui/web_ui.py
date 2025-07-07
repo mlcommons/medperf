@@ -77,11 +77,15 @@ class WebUI(CLI):
         Yields:
             CLI: Yields the current CLI instance with an interactive session initialized
         """
-        self.start_interactive()
-        try:
+        if self.is_interactive:
+            # if already interactive, do nothing
             yield self
-        finally:
-            self.stop_interactive()
+        else:
+            self.start_interactive()
+            try:
+                yield self
+            finally:
+                self.stop_interactive()
 
     @property
     def text(self):

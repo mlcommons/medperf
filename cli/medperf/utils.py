@@ -21,7 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, InvalidArgumentError
+from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
 
 
 def get_file_hash(path: str) -> str:
@@ -427,7 +427,7 @@ def format_errors_dict(errors_dict: dict):
             error_msg += errors
         elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
-            error_msg += errors[0]
+            error_msg += str(errors[0])
         else:
             # Create a sublist otherwise
             for e_msg in errors:
@@ -543,3 +543,20 @@ def sanitize_path(path: str) -> str:
         raise InvalidArgumentError(f"Unaccepted path: {resolved_path}")
 
     return resolved_path
+
+
+def get_webui_properties():
+    if not os.path.exists(config.webui_host_props):
+        raise CleanExit("Web UI properties file could not be found.")
+
+    with open(config.webui_host_props) as f:
+        props = yaml.safe_load(f)
+
+    # print security token to CLI (avoid logging to file)
+    print("=" * 40)
+    print()
+    print("Use security token to view the web-UI:")
+    print(props["security_token"])
+    print()
+    print("=" * 40)
+    print(f"URL: http://{props['host']}:{props['port']}")

@@ -106,7 +106,7 @@ class ExecutionFlow:
         self.__send_evaluator_report("pending")
 
     def run_inference(self):
-        self.ui.text = "Running model inference on dataset"
+        self.ui.text = f"Running inference of model '{self.model.name}' on dataset"
         infer_timeout = config.infer_timeout
         inference_mounts = {
             "data_path": self.dataset.data_path,
@@ -138,7 +138,7 @@ class ExecutionFlow:
         self.__send_model_report("finished")
 
     def run_evaluation(self):
-        self.ui.text = "Running model evaluation on dataset"
+        self.ui.text = f"Calculating metrics for model '{self.model.name}' predictions"
         evaluate_timeout = config.evaluate_timeout
         evaluator_mounts = {
             "predictions": self.preds_path,
@@ -146,7 +146,6 @@ class ExecutionFlow:
             "output_path": self.results_path,
             "local_outputs_path": self.local_outputs_path,
         }
-        self.ui.text = "Evaluating results"
         self.__send_evaluator_report("started")
         try:
             self.evaluator.run(

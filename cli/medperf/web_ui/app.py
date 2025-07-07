@@ -1,4 +1,5 @@
 from importlib import resources
+import yaml
 from pathlib import Path
 import logging
 from medperf.logging.utils import log_machine_details
@@ -21,7 +22,7 @@ from medperf.web_ui.security_check import router as login_router
 from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.profiles import router as profiles_router
-from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException
+from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
 
 web_app = FastAPI()
 
@@ -74,6 +75,18 @@ def startup_event():
     # }
 
     # continue setup logging
+    host_props = {**web_app.state.host_props, "security_token": security_token}
+    with open(config.webui_host_props, "w") as f:
+        yaml.safe_dump(host_props, f)
+
+    # print security token to CLI (avoid logging to file)
+    print("=" * 40)
+    print()
+    print("Use security token to view the web-UI:")
+    print(security_token)
+    print()
+    print("=" * 40)
+
     loglevel = config.loglevel.upper()
     logging.getLogger().setLevel(loglevel)
     logging.getLogger("requests").setLevel(loglevel)
@@ -103,9 +116,12 @@ def run(
     """Runs a local web UI"""
     import uvicorn
 
+    host = "127.0.0.1"
+    web_app.state.host_props = {"host": host, "port": port}
+
     uvicorn.run(
         web_app,
-        host="127.0.0.1",
+        host=host,
         port=port,
         log_level=config.loglevel,
     )

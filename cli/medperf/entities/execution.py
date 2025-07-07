@@ -85,6 +85,8 @@ class Execution(Entity, ApprovableSchema):
                 pass
 
     def read_results(self):
+        if self.finalized:
+            return self.results
         with open(self.results_path) as f:
             results = yaml.safe_load(f)
         return results

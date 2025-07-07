@@ -138,8 +138,10 @@ class Auth0(Auth):
     def logout(self):
         """Logs out the user by revoking their refresh token and deleting the
         stored tokens."""
-
-        creds = read_credentials()
+        try:
+            creds = read_credentials()
+        except AuthenticationError:
+            return
         refresh_token = creds["refresh_token"]
 
         url = f"https://{self.domain}/oauth/revoke"

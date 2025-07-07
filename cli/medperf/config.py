@@ -54,6 +54,7 @@ auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
+webui_host_props = str(config_storage / ".webui_host_props")
 
 # TODO: should we change this?
 safe_root = ""  # Base path to accept input paths from user.
