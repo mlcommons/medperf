@@ -88,11 +88,9 @@ def dataset_detail_ui(
         )
 
     dataset_is_operational = dataset.state == "OPERATION"
-    dataset_is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
-    if dataset_is_operational:
-        # This is relevant for cases where a user is viewing their dataset from another machine.
-        # (in which case, the dataset does not exist locally and its 'ready' flag is not set.)
-        dataset_is_prepared = True
+    dataset_is_prepared = (
+        dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
+    )
     approved_benchmarks = [
         i
         for i in benchmark_associations
@@ -387,11 +385,9 @@ def export_dataset_ui(
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
     dataset_is_operational = dataset.state == "OPERATION"
-    dataset_is_prepared = dataset.submitted_as_prepared or dataset.is_ready()
-    if dataset_is_operational:
-        # This is relevant for cases where a user is viewing their dataset from another machine.
-        # (in which case, the dataset does not exist locally and its 'ready' flag is not set.)
-        dataset_is_prepared = True
+    dataset_is_prepared = (
+        dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
+    )
     return templates.TemplateResponse(
         "dataset/export_dataset.html",
         {
