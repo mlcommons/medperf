@@ -2,6 +2,16 @@ from abc import ABC, abstractmethod
 
 
 class Parser(ABC):
+
+    def __init__(self, container_config: dict, allowed_runners: list):
+        self.container_config = container_config
+        self.allowed_runners = allowed_runners
+
+    @property
+    @abstractmethod
+    def container_type(self):
+        pass
+    
     @abstractmethod
     def check_schema(self):
         pass

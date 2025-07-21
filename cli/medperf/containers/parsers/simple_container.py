@@ -2,11 +2,10 @@ from medperf.containers.parsers.parser import Parser
 from medperf.exceptions import InvalidContainerSpec
 
 
-class SimpleContainerParser(Parser):
-    def __init__(self, container_config: dict, allowed_runners: list):
-        self.container_config = container_config
-        self.allowed_runners = allowed_runners
-        self.container_type = container_config["container_type"]
+class SimpleContainerParser(Parser):    
+    @property
+    def container_type(self):
+        return self.container_config["container_type"]
 
     def check_schema(self) -> str:
         if "image" not in self.container_config:
