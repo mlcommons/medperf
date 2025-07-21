@@ -25,8 +25,8 @@ import logging
 
 class SingularityRunner(Runner):
     def __init__(self, container_config_parser, container_files_base_path):
-        self.parser = container_config_parser
-        self.container_files_base_path = container_files_base_path
+        super().__init__(container_config_parser=container_config_parser, 
+                         container_files_base_path=container_files_base_path)
         executable, runtime, version = get_singularity_executable_props()
         self.executable = executable
         self.runtime = runtime

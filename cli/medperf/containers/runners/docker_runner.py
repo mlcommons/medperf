@@ -14,9 +14,6 @@ from .docker_utils import craft_docker_run_command, get_docker_image_hash
 
 
 class DockerRunner(Runner):
-    def __init__(self, container_config_parser):
-        self.parser = container_config_parser
-
     def download(
         self,
         expected_image_hash,
