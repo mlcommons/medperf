@@ -8,8 +8,8 @@ import django
 from django.contrib.auth import get_user_model
 
 ASSETS_URL = (
-    "https://raw.githubusercontent.com/hasan7n/medperf/"
-    "10622446c274823a68ce681e88e79506ecf4e380/examples/chestxray_tutorial/"
+    "https://raw.githubusercontent.com/mlcommons/medperf/"
+    "9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/"
 )
 
 
@@ -113,7 +113,9 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "image_hash": "d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
-            "metadata": {},
+            "metadata": {
+                "digest": "f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+            },
         },
         "id",
     )
@@ -157,7 +159,9 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "image_hash": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "metadata": {},
+            "metadata": {
+                "digest": "a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
+            },
         },
         "id",
     )
@@ -196,7 +200,9 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "image_hash": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
-            "metadata": {},
+            "metadata": {
+                "digest": "d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+            },
         },
         "id",
     )
@@ -286,7 +292,9 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "33d26c8e266be9fe072081fb157313bfa51778b2934ab64bd622c8f0cd52dfa1",
-            "metadata": {},
+            "metadata": {
+                "digest": "f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
+            },
         },
         "id",
     )
