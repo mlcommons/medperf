@@ -2,6 +2,11 @@ from abc import ABC, abstractmethod
 
 
 class Runner(ABC):
+
+    def __init__(self, container_config_parser, container_files_base_path):
+        self.parser = container_config_parser
+        self.container_files_base_path = container_files_base_path
+
     @abstractmethod
     def download(
         self,
@@ -23,5 +28,6 @@ class Runner(ABC):
         medperf_env: dict[str, str] = {},
         ports: list = [],
         disable_network: bool = True,
+        image: str = None,
     ):
         pass
