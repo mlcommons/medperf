@@ -50,6 +50,9 @@ class WebUI(CLI):
         else:
             typer.echo(msg)
 
+        if type == "print" and self.is_interactive:
+            return
+
         self.set_event(
             {
                 "type": type,
