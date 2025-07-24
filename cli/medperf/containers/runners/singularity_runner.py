@@ -126,6 +126,7 @@ class SingularityRunner(Runner):
         medperf_env: dict[str, str] = {},
         ports: list = [],
         disable_network: bool = True,
+        image: str = None,
     ):
         self.parser.check_task_schema(task)
         run_args = self.parser.get_run_args(task, medperf_mounts)
@@ -160,7 +161,7 @@ class SingularityRunner(Runner):
         # Add image
         if self.sif_image_path is None:
             raise MedperfException("Internal error: Run is called before download.")
-        run_args["image"] = self.sif_image_path
+        run_args["image"] = image or self.sif_image_path
 
         # Run
         command = craft_singularity_run_command(run_args, self.executable)

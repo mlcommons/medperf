@@ -121,3 +121,27 @@ def check_docker_image_hash(
                 f"Hash mismatch. Expected {expected_image_hash} or"
                 f" {alternative_image_hash}, found {computed_image_hash}."
             )
+
+
+def delete_docker_containers_and_image(image_id):
+    """
+    Deletes all containers (including running!) based of `image_name`, then deletes said image
+    """
+
+    list_containers_from_image_sub_cmd = [
+        "docker",
+        "ps",
+        "-a",
+        "--filter",
+        f"ancestor={image_id}",
+        "-q",
+    ]
+    delete_containers_cmd = [
+        "docker",
+        "rm",
+        shlex.join(list_containers_from_image_sub_cmd),
+    ]
+    run_command(delete_containers_cmd)
+
+    delete_image_cmd = ["docker", "rmi", "-f", image_id]
+    run_command(delete_image_cmd)

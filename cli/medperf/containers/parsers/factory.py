@@ -4,6 +4,16 @@ import os
 import yaml
 from .mlcube import MLCubeParser
 from .simple_container import SimpleContainerParser
+from medperf.enums import ContainerTypes
+
+DOCKER_TYPES = [
+    ContainerTypes.docker_image.value,
+    ContainerTypes.encrypted_docker_image.value,
+]
+SINGULARITY_TYPES = [
+    ContainerTypes.singularity_file.value,
+    ContainerTypes.encrypted_singularity_file.value,
+]
 
 
 def _is_mlcube_yaml_file(container_config: dict):
@@ -46,14 +56,14 @@ def load_parser(container_config_path: str) -> Parser:
         )
 
     container_type = container_config["container_type"]
-    if container_type == "DockerImage":
+    if container_type in DOCKER_TYPES:
         parser = SimpleContainerParser(
             container_config, allowed_runners=["docker", "singularity"]
         )
         parser.check_schema()
         return parser
 
-    if container_type == "SingularityFile":
+    if container_type in SINGULARITY_TYPES:
         parser = SimpleContainerParser(
             container_config, allowed_runners=["singularity"]
         )

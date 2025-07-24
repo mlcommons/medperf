@@ -40,6 +40,7 @@ class DockerRunner(Runner):
         medperf_env: dict[str, str] = {},
         ports: list = [],
         disable_network: bool = True,
+        image: str = None,
     ):
         self.parser.check_task_schema(task)
         run_args = self.parser.get_run_args(task, medperf_mounts)
@@ -60,7 +61,7 @@ class DockerRunner(Runner):
         add_network_config(run_args, disable_network, ports)
 
         # Add images
-        run_args["image"] = self.parser.get_setup_args()
+        run_args["image"] = image or self.parser.get_setup_args()
 
         # Run
         command = craft_docker_run_command(run_args)

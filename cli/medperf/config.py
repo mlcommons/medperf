@@ -205,6 +205,8 @@ params_filename = "parameters.yaml"
 workspace_path = "workspace"
 additional_path = "workspace/additional_files"
 image_path = "workspace/.image"
+private_key_file = "key.key"
+certificate_file = "crt.crt"
 
 # requests
 default_page_size = 32  # This number was chosen arbitrarily
@@ -224,6 +226,11 @@ evaluate_timeout = None
 container_loglevel = None
 mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
+
+# Config for decrypting encrypted containers
+block_size = 1024 * 1024 * 10  # 10 MB block size
+private_key_file = "key.key"
+certificate_file = "crt.crt"
 
 # Other
 loglevel = "debug"
