@@ -203,10 +203,6 @@ $(document).ready(() => {
         $("#benchmark-results").slideToggle(); // smooth animation
     });
     
-    $("#benchmark-results-title").on("click", () => {
-        $("#benchmark-results").slideToggle(); // smooth animation
-    });
-    
     $("#dataset-auto-approve-mode").on("change", (e) => {
         if(e.currentTarget.value === "ALLOWLIST"){
             $("#dataset-allow-list-container").removeClass("d-none");
