@@ -72,11 +72,6 @@ class PrivateRunner(Runner):
         return decrypted_image_path
 
     @abstractmethod
-    def load_image(self, decrypted_image):
-        """Loads decrypted image into Docker/Singularity/Other engine"""
-        pass
-
-    @abstractmethod
     def clean_up(self, *args):
         """
         Cleaning of assets after running

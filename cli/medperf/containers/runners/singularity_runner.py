@@ -15,6 +15,7 @@ from .singularity_utils import (
     get_docker_image_hash_from_dockerhub,
     get_singularity_executable_props,
     craft_singularity_run_command,
+    convert_docker_image_to_sif,
 )
 import os
 from medperf import config
@@ -25,8 +26,10 @@ import logging
 
 class SingularityRunner(Runner):
     def __init__(self, container_config_parser, container_files_base_path):
-        super().__init__(container_config_parser=container_config_parser, 
-                         container_files_base_path=container_files_base_path)
+        super().__init__(
+            container_config_parser=container_config_parser,
+            container_files_base_path=container_files_base_path,
+        )
         executable, runtime, version = get_singularity_executable_props()
         self.executable = executable
         self.runtime = runtime
@@ -100,18 +103,14 @@ class SingularityRunner(Runner):
         )
         sif_image_file = os.path.join(sif_image_folder, f"{computed_image_hash}.sif")
         if not os.path.exists(sif_image_file):
-            # delete outdated files
-            remove_path(sif_image_folder)
-            os.makedirs(sif_image_folder, exist_ok=True)
-
             docker_image = self.parser.get_setup_args()
-            command = [
-                self.executable,
-                "build",
-                sif_image_file,
-                f"docker://{docker_image}",
-            ]
-            run_command(command, timeout=download_timeout)
+            convert_docker_image_to_sif(
+                sif_image_folder=sif_image_folder,
+                sif_image_file=sif_image_file,
+                singularity_executable=self.executable,
+                docker_image=docker_image,
+                timeout=download_timeout,
+            )
 
         self.sif_image_path = sif_image_file
         return computed_image_hash

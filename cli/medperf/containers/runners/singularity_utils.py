@@ -5,6 +5,7 @@ import requests
 import semver
 from .docker_utils import volumes_to_cli_args as docker_volumes_to_cli_args
 import shlex
+from medperf.utils import remove_path
 
 
 def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
@@ -136,3 +137,24 @@ def craft_singularity_run_command(run_args: dict, executable: str):
         extra_command = shlex.split(extra_command)
     command.extend(extra_command)
     return command
+
+
+def convert_docker_image_to_sif(
+    sif_image_folder: str,
+    sif_image_file: str,
+    singularity_executable: str,
+    docker_image: str,
+    protocol: str = "docker",
+    timeout: int = None,
+):
+    remove_path(sif_image_folder)
+    os.makedirs(sif_image_folder, exist_ok=True)
+
+    command = [
+        singularity_executable,
+        "build",
+        sif_image_file,
+        f"{protocol}://{docker_image}",
+    ]
+    run_command(command, timeout=timeout)
+    return sif_image_file
