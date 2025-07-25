@@ -1,7 +1,9 @@
 from .decryption_utils import (
+    SymmetricKeyFiles,
     decrypt_image,
     load_private_key_info,
     load_encrypted_symmetric_key_info,
+    get_encrypted_symmetric_key_files,
 )
 from .runner import Runner
 from medperf.comms.entity_resources import resources
@@ -19,6 +21,10 @@ class PrivateRunner(Runner):
         )
         self._decrypted_image_path = (
             None  # Set in download_encrypted_image_file; file created in decrypt
+        )
+        # TODO clarify when we load these files in
+        self._encrypted_symmetric_key_files: SymmetricKeyFiles = (
+            None  # set in decrypt, files deleted after use
         )
 
     def download(
@@ -40,24 +46,21 @@ class PrivateRunner(Runner):
 
     def decrypt_image(self) -> str:
         """Decrypts downloaded encrypted image"""
-        encrypted_key_path = ""
-        nonce_path = ""
-        tag_path = ""
 
+        self._encrypted_symmetric_key_files = get_encrypted_symmetric_key_files()
         encrypted_symmetric_key_info = load_encrypted_symmetric_key_info(
-            encrypted_key_file_path=encrypted_key_path,
-            nonce_file_path=nonce_path,
-            tag_file_path=tag_path,
+            encrypted_key_file_path=self._encrypted_symmetric_key_files.encrypted_key_file,
+            nonce_file_path=self._encrypted_symmetric_key_files.nonce_file,
+            tag_file_path=self._encrypted_symmetric_key_files.tag_file,
         )
+        self._encrypted_symmetric_key_files.delete_files()
 
-        for asset in [encrypted_key_path, nonce_path, tag_path]:
-            remove_path(asset)
-
-        pki_assets_path = get_pki_assets_path()
+        # TODO pass this information into Runner or Parser
+        pki_assets_path = get_pki_assets_path(common_name="test", ca_name="test")
         private_key_path = os.path.join(pki_assets_path, config.private_key_file)
         private_key_info = load_private_key_info(private_key_path=private_key_path)
 
-        decrypted_image_file = decrypt_image(
+        decrypted_image_path = decrypt_image(
             encrypted_symmetric_key_info=encrypted_symmetric_key_info,
             private_key_info=private_key_info,
             encrypted_image_path=self._encrypted_image_path,
@@ -66,7 +69,7 @@ class PrivateRunner(Runner):
 
         remove_path(self._encrypted_image_path)
 
-        return decrypted_image_file
+        return decrypted_image_path
 
     @abstractmethod
     def load_image(self, decrypted_image):
@@ -82,11 +85,16 @@ class PrivateRunner(Runner):
         the image and container from the daemon)
         """
         try:
+            self._encrypted_symmetric_key_files.delete_files()
+        except AttributeError:
+            pass
+
+        try:
             remove_path(self._encrypted_image_path)
-        except FileNotFoundError:
+        except (TypeError, FileNotFoundError):
             pass
 
         try:
             remove_path(self._decrypted_image_path)
-        except FileNotFoundError:
+        except (TypeError, FileNotFoundError):
             pass

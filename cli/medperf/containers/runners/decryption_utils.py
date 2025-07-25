@@ -11,6 +11,32 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import padding
 from medperf import config
 from typing import Union
+import os
+from medperf.utils import remove_path
+
+
+@dataclass
+class SymmetricKeyFiles:
+    """Paths to corresponding files"""
+
+    encrypted_key_file: str
+    nonce_file: str
+    tag_file: str
+    associated_data: Union[str, None] = None
+
+    def delete_files(self):
+        """Deletes files after being loaded into memory"""
+        for data_file_path in [
+            self.encrypted_key_file,
+            self.nonce_file,
+            self.tag_file,
+            self.associated_data,
+        ]:
+            if data_file_path is not None and os.path.exists(data_file_path):
+                try:
+                    remove_path(data_file_path)
+                except FileNotFoundError:
+                    pass
 
 
 @dataclass
@@ -30,7 +56,7 @@ class SymmetricKeyInfo:
     encrypted_key: bytes
     nonce: bytes
     tag: bytes
-    associated_data: Union[bytes, None] = None
+    associated_data: bytes = b""
 
 
 @dataclass
@@ -44,6 +70,15 @@ def _load_file_as_bytes(file_path: str) -> bytes:
         byte_content = f.read()
 
     return byte_content
+
+
+def get_encrypted_symmetric_key_files() -> SymmetricKeyFiles:
+    # TODO implement. How will we store/retrieve these?
+    return SymmetricKeyFiles(
+        encrypted_key_file="path/to/key.bin",
+        nonce_file="path/to/nonce.bin",
+        tag_file="path/to/tag.bin",
+    )
 
 
 def load_encrypted_symmetric_key_info(
@@ -67,7 +102,9 @@ def load_private_key_info(private_key_path: str) -> PrivateKeyDecryptionInfo:
         data=private_bytes, backend=default_backend(), password=None
     )
     padding_obj = padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256, label=None
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None,
     )
 
     private_info = PrivateKeyDecryptionInfo(

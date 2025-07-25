@@ -136,12 +136,21 @@ def delete_docker_containers_and_image(image_id):
         f"ancestor={image_id}",
         "-q",
     ]
-    delete_containers_cmd = [
-        "docker",
-        "rm",
-        shlex.join(list_containers_from_image_sub_cmd),
+    command_output = run_command(list_containers_from_image_sub_cmd)
+    # First line is some python output, ignore
+    command_as_list = command_output.split("\n")[1:]
+    spawned_containers = [
+        command.strip() for command in command_as_list if command.strip()
     ]
-    run_command(delete_containers_cmd)
+
+    for spawned_container in spawned_containers:
+        delete_container_cmd = [
+            "docker",
+            "rm",
+            "-f",
+            spawned_container,
+        ]
+        run_command(delete_container_cmd)
 
     delete_image_cmd = ["docker", "rmi", "-f", image_id]
     run_command(delete_image_cmd)

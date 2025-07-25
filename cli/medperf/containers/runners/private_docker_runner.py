@@ -6,7 +6,7 @@ import json
 from .utils import run_command, delete_docker_containers_and_image
 
 
-class PrivateDockerRunner(DockerRunner, PrivateRunner):
+class PrivateDockerRunner(PrivateRunner, DockerRunner):
     def run(
         self,
         task: str,
@@ -19,14 +19,18 @@ class PrivateDockerRunner(DockerRunner, PrivateRunner):
         disable_network: bool = True,
         image: str = None,
     ):
-        decrypted_image_archive = self.decrypt_image()
-        tagged_image_names_list = self.get_name_and_tag_from_archive(
-            decrypted_image_archive
-        )
-        tagged_image_name = tagged_image_names_list[0]
-        self.load_image(decrypted_image_archive)
-        remove_path(decrypted_image_archive)
         try:
+            decrypted_image_archive = self.decrypt_image()
+
+            # Usually there will be only one digest, but this should be somewhat robust if there are more
+            image_digests_list = self.get_image_digests_from_archive(
+                decrypted_image_archive
+            )
+            main_image_digest = image_digests_list[0]
+
+            self.load_image(decrypted_image_archive)
+            remove_path(decrypted_image_archive)
+
             super().run(
                 task=task,
                 tmp_folder=tmp_folder,
@@ -36,10 +40,10 @@ class PrivateDockerRunner(DockerRunner, PrivateRunner):
                 medperf_env=medperf_env,
                 ports=ports,
                 disable_network=disable_network,
-                image=tagged_image_name,
+                image=main_image_digest,
             )
         finally:
-            self.clean_up(*tagged_image_names_list)
+            self.clean_up(*image_digests_list)
 
     def get_image_digests_from_archive(self, image_archive: str) -> list[str]:
         """
@@ -51,7 +55,7 @@ class PrivateDockerRunner(DockerRunner, PrivateRunner):
         digest_key = "digest"
 
         with tarfile.open(image_archive, "r") as tar:
-            with tar.extractfile(index_file, "r") as index_json_obj:
+            with tar.extractfile(index_file) as index_json_obj:
                 index = json.load(index_json_obj)
 
         manifests_list = index[manifests_key]
