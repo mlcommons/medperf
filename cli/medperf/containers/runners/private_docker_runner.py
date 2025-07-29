@@ -20,10 +20,12 @@ class PrivateDockerRunner(PrivateRunner, DockerRunner):
         image: str = None,
     ):
         try:
+            # Define this early just in case we get an error before this is properly
+            # defined, so clean up can run without issues
             image_digests_list = []
+
             decrypted_image_archive = self.decrypt_image()
 
-            # Usually there will be only one digest, but this should be somewhat robust if there are more
             image_digests_list = self.get_image_digests_from_archive(
                 decrypted_image_archive
             )
