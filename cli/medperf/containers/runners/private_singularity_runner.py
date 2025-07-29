@@ -66,9 +66,5 @@ class PrivateSingularityRunner(PrivateRunner, SingularityRunner):
         return self._decrypted_converted_image
 
     def clean_up(self, *args):
-        try:
-            remove_path(self._decrypted_converted_image)
-        except (TypeError, FileNotFoundError):
-            pass
-
+        self._safe_remove_file(self._decrypted_converted_image)
         super().clean_up(*args)

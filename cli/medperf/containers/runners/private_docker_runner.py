@@ -20,6 +20,7 @@ class PrivateDockerRunner(PrivateRunner, DockerRunner):
         image: str = None,
     ):
         try:
+            image_digests_list = []
             decrypted_image_archive = self.decrypt_image()
 
             # Usually there will be only one digest, but this should be somewhat robust if there are more

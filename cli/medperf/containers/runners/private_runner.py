@@ -11,6 +11,7 @@ from medperf.utils import get_pki_assets_path, remove_path
 from medperf import config
 import os
 from abc import abstractmethod
+from typing import Union
 
 
 class PrivateRunner(Runner):
@@ -71,6 +72,19 @@ class PrivateRunner(Runner):
 
         return decrypted_image_path
 
+    @staticmethod
+    def _safe_remove_file(file_path: Union[str, None]):
+        """
+        Removes the file indicated by `filepath`.
+        If the file does not exist (already cleaned up) or if file_path is None
+        (ie file_path is something that was not set up before cleanup)
+        then this does nothing.
+        """
+        try:
+            remove_path(file_path)
+        except (AttributeError, FileNotFoundError):
+            pass
+
     @abstractmethod
     def clean_up(self, *args):
         """
@@ -83,13 +97,5 @@ class PrivateRunner(Runner):
             self._encrypted_symmetric_key_files.delete_files()
         except AttributeError:
             pass
-
-        try:
-            remove_path(self._encrypted_image_path)
-        except (TypeError, FileNotFoundError):
-            pass
-
-        try:
-            remove_path(self._decrypted_image_path)
-        except (TypeError, FileNotFoundError):
-            pass
+        self._safe_remove_file(self._encrypted_image_path)
+        self._safe_remove_file(self._decrypted_image_path)
