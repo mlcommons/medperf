@@ -1,9 +1,7 @@
 from .decryption_utils import (
-    SymmetricKeyFiles,
     decrypt_image,
     load_private_key_info,
-    load_encrypted_symmetric_key_info,
-    get_encrypted_symmetric_key_files,
+    load_encrypted_symmetric_key_and_delete,
 )
 from .runner import Runner
 from medperf.comms.entity_resources import resources
@@ -48,13 +46,7 @@ class PrivateRunner(Runner):
     def decrypt_image(self) -> str:
         """Decrypts downloaded encrypted image"""
 
-        self._encrypted_symmetric_key_files = get_encrypted_symmetric_key_files()
-        encrypted_symmetric_key_info = load_encrypted_symmetric_key_info(
-            encrypted_key_file_path=self._encrypted_symmetric_key_files.encrypted_key_file,
-            nonce_file_path=self._encrypted_symmetric_key_files.nonce_file,
-            tag_file_path=self._encrypted_symmetric_key_files.tag_file,
-        )
-        self._encrypted_symmetric_key_files.delete_files()
+        encrypted_symmetric_key = load_encrypted_symmetric_key_and_delete()
 
         # TODO pass this information into Runner or Parser
         pki_assets_path = get_pki_assets_path(common_name="test", ca_name="test")
@@ -62,7 +54,7 @@ class PrivateRunner(Runner):
         private_key_info = load_private_key_info(private_key_path=private_key_path)
 
         decrypted_image_path = decrypt_image(
-            encrypted_symmetric_key_info=encrypted_symmetric_key_info,
+            encrypted_symmetric_key=encrypted_symmetric_key,
             private_key_info=private_key_info,
             encrypted_image_path=self._encrypted_image_path,
             decrypted_image_path=self._decrypted_image_path,
