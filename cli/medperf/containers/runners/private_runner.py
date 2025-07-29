@@ -21,10 +21,6 @@ class PrivateRunner(Runner):
         self._decrypted_image_path = (
             None  # Set in download_encrypted_image_file; file created in decrypt
         )
-        # TODO clarify when we load these files in
-        self._encrypted_symmetric_key_files: SymmetricKeyFiles = (
-            None  # set in decrypt, files deleted after use
-        )
 
     def download(
         self,
@@ -85,9 +81,5 @@ class PrivateRunner(Runner):
         should also have a specific method for cleanup (for example, docker needs to delete
         the image and container from the daemon)
         """
-        try:
-            self._encrypted_symmetric_key_files.delete_files()
-        except AttributeError:
-            pass
         self._safe_remove_file(self._encrypted_image_path)
         self._safe_remove_file(self._decrypted_image_path)
