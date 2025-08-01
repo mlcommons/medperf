@@ -54,6 +54,7 @@ auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
+container_keys_dir = str(config_storage / ".container_keys")
 webui_host_props = str(config_storage / ".webui_host_props")
 
 # TODO: should we change this?
@@ -170,6 +171,7 @@ agg_file = "agg-info.yaml"
 ca_file = "ca-info.yaml"
 training_event_file = "event.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
+certificate_metadata_filename = "certificate.yaml"
 log_file = "medperf.log"
 webui_log_file = "medperf_webui.log"
 data_monitor_log_file = "medperf_data_monitor.log"
@@ -207,6 +209,12 @@ additional_path = "workspace/additional_files"
 image_path = "workspace/.image"
 private_key_file = "key.key"
 certificate_file = "crt.crt"
+symmetric_key_file = (
+    "container.key"  # Used for decrypting private containers by the container owner
+)
+encrypted_symmetric_key_file = (
+    "encrypted_container.key"  # Used for decrypting private containers by other users
+)
 
 # requests
 default_page_size = 32  # This number was chosen arbitrarily
@@ -226,11 +234,6 @@ evaluate_timeout = None
 container_loglevel = None
 mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
-
-# Config for decrypting encrypted containers
-block_size = 1024 * 1024 * 10  # 10 MB block size
-private_key_file = "key.key"
-certificate_file = "crt.crt"
 
 # Other
 loglevel = "debug"

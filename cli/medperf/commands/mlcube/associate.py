@@ -1,8 +1,13 @@
+from pathlib import Path
+import shutil
+import os
+
 from medperf import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
+from medperf.entities.ca import CA
 from medperf.exceptions import CleanExit
-from medperf.utils import dict_pretty_print, approval_prompt
+from medperf.utils import dict_pretty_print, approval_prompt, get_container_key_path
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 
 
@@ -44,3 +49,44 @@ class AssociateCube:
             comms.associate_benchmark_model(cube_uid, benchmark_uid, metadata)
         else:
             raise CleanExit("Model association operation cancelled")
+
+
+class AssociateCubeWithCA:
+    @classmethod
+    def run(
+        cls,
+        cube_uid: int,
+        ca_uid: int,
+        decryption_key_path: Path,
+        approved: bool = False,
+    ):
+        """Associates a cube with a given CA
+
+        Args:
+            cube_uid (int): UID of model MLCube
+            ca_uid (int): UID of CA
+            approved (bool): Skip validation step. Defualts to False
+        """
+        comms = config.comms
+        ui = config.ui
+        cube = Cube.get(cube_uid)
+        ca = CA.get(ca_uid)
+
+        msg = "Please confirm that you would like to associate "
+        msg += f"the model '{cube.name}' with the Certificate Authority (CA)'{ca.name}' [Y/n]"
+        approved = approved or approval_prompt(msg)
+        if approved:
+            ui.print("Generating model CA association")
+            comms.associate_ca_model(cube_uid, ca_uid)
+        else:
+            raise CleanExit("Model association operation cancelled")
+
+        if decryption_key_path is not None:
+            container_keys_dir = get_container_key_path(
+                container_id=cube.id, ca_name=ca.name
+            )
+            copied_key_path = os.path.join(
+                container_keys_dir, config.symmetric_key_file
+            )
+            os.makedirs(container_keys_dir, exist_ok=True)
+            shutil.copy(decryption_key_path, copied_key_path)

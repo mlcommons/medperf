@@ -16,7 +16,7 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from typing import List
+from typing import List, Union
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
@@ -522,6 +522,10 @@ def get_pki_assets_path(common_name: str, ca_name: str):
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
     cn_encoded = cn_encoded.rstrip("=")
     return os.path.join(config.pki_assets, cn_encoded, ca_name)
+
+
+def get_container_key_path(container_id: Union[str, int], ca_name: str):
+    return os.path.join(config.container_keys_dir, str(container_id), ca_name)
 
 
 def get_participant_label(email, data_id):

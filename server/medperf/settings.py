@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "corsheaders",
+    "mlcube_ca_association",
 ]
 
 MIDDLEWARE = [

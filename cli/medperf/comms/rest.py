@@ -695,6 +695,24 @@ class REST(Comms):
         error_msg = "Could not associate mlcube to benchmark"
         return self.__post(url, json=data, error_msg=error_msg)
 
+    def associate_ca_model(self, cube_uid: int, ca_uid: int, metadata: dict = None):
+        """Create an MLCube-CA association
+
+        Args:
+            cube_uid (int): MLCube UID
+            ca_uid (int): CA UID
+            metadata (dict, optional): Additional metadata. Defaults to {}.
+        """
+        metadata = metadata or {}
+        url = f"{self.server_url}/mlcubes/{cube_uid}/cas/"
+        data = {
+            "model_mlcube": cube_uid,
+            "associated_ca": ca_uid,
+            "metadata": metadata,
+        }
+        error_msg = "Could not associate mlcube to ca"
+        return self.__post(url, json=data, error_msg=error_msg)
+
     def associate_training_dataset(self, data_uid: int, training_exp_id: int):
         """Create a Dataset experiment association
 

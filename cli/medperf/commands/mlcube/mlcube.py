@@ -1,5 +1,6 @@
 import typer
 from typing import Optional
+from pathlib import Path
 
 import medperf.config as config
 from medperf.decorators import clean_except
@@ -8,8 +9,9 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
-from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCA
 from medperf.commands.mlcube.run_test import run_mlcube
+from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
 
@@ -161,6 +163,26 @@ def submit(
         "--operational",
         help="Submit the container as OPERATIONAL",
     ),
+    decryption_key: Path = typer.Option(
+        None,
+        "--decryption-key",
+        "--decryption_key",
+        "-d",
+        help="Only used for encrypted container submissions. "
+        "Path to the decryption key file for the encrypted container."
+        "The key will be moved to MedPerf's LOCAL storage in your system and will NOT be uploaded to any server! ",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    ca_id: int = typer.Option(
+        None,
+        "--ca-id",
+        "--ca_id",
+        "-c",
+        help="Only used for encrypted container submissions. ID of the Certificate Authority (CA) used to authenticate authorized users to access the encrypted container.",
+    ),
 ):
     """Submits a new container to the platform.\n
     The following assets:\n
@@ -175,7 +197,19 @@ def submit(
     2. An asset hosted on the Synapse platform: "synapse:<synapse ID>"\n\n
 
     If a URL is given without a source prefix, it will be treated as a direct download link.
+
+    For private Model containers, the decryption key and trusted Certificate Authority (CA) ID may be optionally provided.
+    THESE FIELDS ARE NOT TO BE USED WITH PUBLIC MODEL CONTAINERS!
+    If both fields are provided, the association of the Model with the CA will be done automatically.
+    If they are not provided, the association must be done later via the medperf container associate_with_ca command.
     """
+    if (decryption_key is not None and ca_id is None) or (
+        decryption_key is None and ca_id is not None
+    ):
+        raise InvalidArgumentError(
+            "Both a decryption key and a CA ID must be provided to submit a private container!"
+        )
+
     mlcube_info = {
         "name": name,
         "git_mlcube_url": mlcube_file,
@@ -187,7 +221,11 @@ def submit(
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(mlcube_info)
+    cube_id = SubmitCube.run(mlcube_info)
+    if decryption_key is not None and ca_id is not None:
+        AssociateCubeWithCA.run(
+            cube_uid=cube_id, ca_uid=ca_id, approved=True, decryption_key=decryption_key
+        )
     config.ui.print("✅ Done!")
 
 
@@ -205,6 +243,37 @@ def associate(
 ):
     """Associates a model to a benchmark"""
     AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
+    config.ui.print("✅ Done!")
+
+
+@app.command("associate_with_ca")
+@clean_except
+def associate_with_ca(
+    ca_uid: int = typer.Option(..., "--ca-id", "--ca-id", "-c", help="Benchmark UID"),
+    model_uid: int = typer.Option(
+        ..., "--model_id", "--model-id", "-m", help="Model UID"
+    ),
+    decryption_key: Path = typer.Option(
+        None,
+        "--decryption-key",
+        "--decryption_key",
+        "-d",
+        help="Path to the decryption key file for the encrypted container."
+        "The key will be moved to MedPerf's LOCAL storage in your system and will NOT be uploaded to any server! ",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Associates a model to a Certificate Authority (CA)"""
+    AssociateCubeWithCA.run(
+        cube_uid=model_uid,
+        ca_uid=ca_uid,
+        approved=approval,
+        decryption_key_path=decryption_key,
+    )
     config.ui.print("✅ Done!")
 
 
