@@ -23,6 +23,14 @@ class ContainerCAList(GenericAPIView):
             .order_by("created_at")
             .last()
         )
+
+        if association is None:
+            return Response(
+                {
+                    "detail": f"No CA association was found for the given Container ID ({pk}). Please verify the Container ID."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
         ca = association.associated_ca
 
         serialized_ca = CASerializer(ca)

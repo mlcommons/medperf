@@ -216,7 +216,7 @@ class REST(Comms):
             dict: ca specification
         """
         url = f"{self.server_url}/mlcubes/{cube_uid}/ca/"
-        error_msg = "Could not retrieve Container CA"
+        error_msg = "Could not retrieve Certificate Authority (CA) associated with this container."
         return self.__get(url, error_msg)
 
     def get_dataset(self, dset_uid: int) -> dict:
@@ -870,8 +870,7 @@ class REST(Comms):
         """
         url = f"{self.server_url}/cas/{ca_uid}/training/{training_exp_id}/"
         error_msg = (
-            "Could not update association: ca"
-            f"{ca_uid}, training_exp {training_exp_id}"
+            f"Could not update association: ca{ca_uid}, training_exp {training_exp_id}"
         )
         self.__put(url, json=data, error_msg=error_msg)
 
