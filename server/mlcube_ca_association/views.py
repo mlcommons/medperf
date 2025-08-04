@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -8,24 +6,31 @@ from rest_framework import status
 from .models import ContainerCA
 from .serializers import ContainerCASerializer
 from drf_spectacular.utils import extend_schema
+from ca.serializers import CASerializer
 
 
 class ContainerCAList(GenericAPIView):
     serializer_class = ContainerCASerializer
 
-    @extend_schema(operation_id="mlcube_cas_retrieve_all")
-    def get(self, request, format=None):
+    @extend_schema(operation="mlcube_get_associated_ca")
+    def get(self, request, pk, format=None):
         """
-        List all certificates
+        Get the CA associated with a Model Container
+        If multiple CAs are associated, returns the most recent one (similar do training experiments)
         """
-        certificates = ContainerCA.objects.all()
-        certificates = self.paginate_queryset(certificates)
-        serializer = ContainerCASerializer(certificates, many=True)
-        return self.get_paginated_response(serializer.data)
+        association = (
+            ContainerCA.objects.filter(model_mlcube__id=pk)
+            .order_by("created_at")
+            .last()
+        )
+        ca = association.associated_ca
+
+        serialized_ca = CASerializer(ca)
+        return Response(serialized_ca.data)
 
     def post(self, request, pk, format=None):
         """
-        Create a new certificate obj
+        Create a new Model <-> CA association object
         """
         serializer = ContainerCASerializer(data=request.data)
         if serializer.is_valid():
@@ -34,7 +39,7 @@ class ContainerCAList(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CertificateDetail(GenericAPIView):
+class ContainerCADetail(GenericAPIView):
     serializer_class = ContainerCASerializer
     queryset = ""
 

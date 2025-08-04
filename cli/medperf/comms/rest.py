@@ -206,6 +206,19 @@ class REST(Comms):
         error_msg = "Could not retrieve mlcube"
         return self.__get(url, error_msg)
 
+    def get_container_ca(self, cube_uid: int) -> dict:
+        """Retrieves the cube's ca object from the server
+
+        Args:
+            cube_uid (int): uid for the model
+
+        Returns:
+            dict: ca specification
+        """
+        url = f"{self.server_url}/mlcubes/{cube_uid}/ca/"
+        error_msg = "Could not retrieve Container CA"
+        return self.__get(url, error_msg)
+
     def get_dataset(self, dset_uid: int) -> dict:
         """Retrieves a specific dataset
 
@@ -704,7 +717,7 @@ class REST(Comms):
             metadata (dict, optional): Additional metadata. Defaults to {}.
         """
         metadata = metadata or {}
-        url = f"{self.server_url}/mlcubes/{cube_uid}/cas/"
+        url = f"{self.server_url}/mlcubes/{cube_uid}/ca/"
         data = {
             "model_mlcube": cube_uid,
             "associated_ca": ca_uid,
@@ -744,6 +757,22 @@ class REST(Comms):
             "approval_status": Status.PENDING.value,
         }
         error_msg = "Could not associate aggregator to training_exp"
+        return self.__post(url, json=data, error_msg=error_msg)
+
+    def associate_container_ca(self, ca_id: int, container_id: int):
+        """Create a ca experiment association
+
+        Args:
+            ca_id (int): Registered ca UID
+            containr_id (int): Container (MLCube) UID
+        """
+        url = f"{self.server_url}/cas/mlcube/"
+        data = {
+            "ca": ca_id,
+            "mlcube": container_id,
+            "approval_status": Status.PENDING.value,
+        }
+        error_msg = "Could not associate ca to container"
         return self.__post(url, json=data, error_msg=error_msg)
 
     def associate_training_ca(self, ca_id: int, training_exp_id: int):

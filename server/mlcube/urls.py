@@ -11,8 +11,8 @@ urlpatterns = [
     path("benchmarks/", bviews.BenchmarkModelList.as_view()),
     path("<int:pk>/benchmarks/<int:bid>/", bviews.ModelApproval.as_view()),
     path("<int:pk>/datasets/", views.MlCubeDatasetList.as_view()),
-    path("<int:pk>/cas/", mlcube_ca_views.ContainerCAList.as_view()),
-    path("<int:pk>/cas/<int:bid>/", mlcube_ca_views.CertificateDetail.as_view()),
+    path("<int:pk>/ca/", mlcube_ca_views.ContainerCAList.as_view()),
+    path("<int:pk>/ca/<int:bid>/", mlcube_ca_views.ContainerCADetail.as_view()),
     # path("<int:pk>/benchmarks/", bviews.ModelBenchmarksList.as_view()),
     # NOTE: when activating this endpoint later, check permissions and write tests
 ]

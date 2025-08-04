@@ -86,6 +86,14 @@ class CA(Entity, MedperfSchema):
         return ca
 
     @classmethod
+    def from_container(cls, cube_uid: int) -> "CA":
+        meta = config.comms.get_container_ca(cube_uid)
+        print(f"{meta=}")
+        ca = cls(**meta)
+        ca.write()
+        return ca
+
+    @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 
