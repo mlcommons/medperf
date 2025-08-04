@@ -12,7 +12,7 @@ from ca.serializers import CASerializer
 class ContainerCAList(GenericAPIView):
     serializer_class = ContainerCASerializer
 
-    @extend_schema(operation="mlcube_get_associated_ca")
+    @extend_schema(operation_id="mlcube_get_associated_ca")
     def get(self, request, pk, format=None):
         """
         Get the CA associated with a Model Container
