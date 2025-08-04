@@ -223,9 +223,19 @@ def submit(
     }
     cube_id = SubmitCube.run(mlcube_info)
     if decryption_key is not None and ca_id is not None:
-        AssociateCubeWithCA.run(
-            cube_uid=cube_id, ca_uid=ca_id, approved=True, decryption_key=decryption_key
-        )
+        try:
+            AssociateCubeWithCA.run(
+                cube_uid=cube_id,
+                ca_uid=ca_id,
+                approved=True,
+                decryption_key_path=decryption_key,
+            )
+        except:
+            config.ui.print(
+                "An error happened during the Container to CA association.\n"
+                "Please run the 'medperf container associate_with_ca command' to attempt association again."
+            )
+            raise
     config.ui.print("✅ Done!")
 
 
