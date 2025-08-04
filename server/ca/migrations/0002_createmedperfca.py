@@ -19,6 +19,7 @@ def createmedperfca(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> Non
         git_mlcube_url=settings.CA_MLCUBE_URL,
         mlcube_hash=settings.CA_MLCUBE_HASH,
         image_hash=settings.CA_MLCUBE_IMAGE_HASH,
+        digest=settings.CA_MLCUBE_METADATA,
         owner=admin_user,
         state="OPERATION",
     )
@@ -33,7 +34,6 @@ def createmedperfca(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> Non
 
 
 class Migration(migrations.Migration):
-
     initial = True
     dependencies = [
         ("ca", "0001_initial"),

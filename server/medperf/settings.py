@@ -66,7 +66,7 @@ CA_MLCUBE_NAME = env("CA_MLCUBE_NAME")
 CA_MLCUBE_URL = env("CA_MLCUBE_URL")
 CA_MLCUBE_HASH = env("CA_MLCUBE_HASH")
 CA_MLCUBE_IMAGE_HASH = env("CA_MLCUBE_IMAGE_HASH")
-
+CA_MLCUBE_METADATA = env("CA_MLCUBE_METADATA")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # TODO Change later to list of allowed domains
@@ -112,6 +112,7 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "corsheaders",
     "mlcube_ca_association",
+    # "certificate",
 ]
 
 MIDDLEWARE = [
