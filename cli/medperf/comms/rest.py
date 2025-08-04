@@ -408,6 +408,16 @@ class REST(Comms):
         error_msg = "Could not retrieve cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_certificatess(self, filters={}) -> List[dict]:
+        """Retrieves all certificatess
+
+        Returns:
+            List[dict]: List of certificates
+        """
+        url = f"{self.server_url}/certificates/"
+        error_msg = "Could not retrieve certificates"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     def get_training_events(self, filters={}) -> List[dict]:
         """Retrieves all training events
 
@@ -487,6 +497,16 @@ class REST(Comms):
         """
         url = f"{self.server_url}/me/cas/"
         error_msg = "Could not retrieve user cas"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_certificates(self, filters={}) -> dict:
+        """Retrieves all certificates registered by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        url = f"{self.server_url}/me/certificates/"
+        error_msg = "Could not retrieve user certificates"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_user_training_events(self, filters={}) -> dict:
@@ -666,6 +686,19 @@ class REST(Comms):
         url = f"{self.server_url}/training/events/"
         error_msg = "could not upload training event"
         return self.__post(url, json=trainnig_event_dict, error_msg=error_msg)
+
+    def upload_certificate(self, certificate_dict: dict) -> int:
+        """Uploads a new training event to the server.
+
+        Args:
+            certificate_dict (dict): certificate data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/certificates/"
+        error_msg = "could not upload certificate"
+        return self.__post(url, json=certificate_dict, error_msg=error_msg)
 
     # Association creation
     def associate_benchmark_dataset(

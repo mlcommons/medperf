@@ -112,7 +112,7 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "corsheaders",
     "mlcube_ca_association",
-    # "certificate",
+    "certificate",
 ]
 
 MIDDLEWARE = [
