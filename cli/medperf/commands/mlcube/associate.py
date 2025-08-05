@@ -73,7 +73,7 @@ class AssociateCubeWithCA:
         ca = CA.get(ca_uid)
 
         msg = "Please confirm that you would like to associate "
-        msg += f"the model '{cube.name}' with the Certificate Authority (CA)'{ca.name}' [Y/n]"
+        msg += f"the model '{cube.name}' with the Certificate Authority (CA) '{ca.name}' [Y/n]"
         approved = approved or approval_prompt(msg)
         if approved:
             ui.print("Generating model CA association")
@@ -81,12 +81,10 @@ class AssociateCubeWithCA:
         else:
             raise CleanExit("Model association operation cancelled")
 
-        if decryption_key_path is not None:
-            container_keys_dir = get_container_key_path(
-                container_id=cube.id, ca_name=ca.name
-            )
-            copied_key_path = os.path.join(
-                container_keys_dir, config.symmetric_key_file
-            )
-            os.makedirs(container_keys_dir, exist_ok=True)
-            shutil.copy(decryption_key_path, copied_key_path)
+        ui.print("Moving Decryption key to MedPerf LOCAL storage")
+        container_keys_dir = get_container_key_path(
+            container_id=cube.id, ca_name=ca.name
+        )
+        copied_key_path = os.path.join(container_keys_dir, config.symmetric_key_file)
+        os.makedirs(container_keys_dir, exist_ok=True)
+        shutil.copy(decryption_key_path, copied_key_path)
