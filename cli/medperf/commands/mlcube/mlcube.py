@@ -264,7 +264,7 @@ def associate_with_ca(
         ..., "--model_id", "--model-id", "-m", help="Model UID"
     ),
     decryption_key: Path = typer.Option(
-        None,
+        ...,
         "--decryption-key",
         "--decryption_key",
         "-d",
