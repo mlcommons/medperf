@@ -85,7 +85,7 @@ class Cube(Entity, DeployableSchema):
     @property
     def runner(self):
         if self._runner is None:
-            self._runner = load_runner(self.parser, self.path)
+            self._runner = load_runner(self.parser, self)
         return self._runner
 
     @property

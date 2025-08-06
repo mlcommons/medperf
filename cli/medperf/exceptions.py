@@ -44,3 +44,7 @@ class CleanExit(MedperfException):
 
 class InvalidContainerSpec(MedperfException):
     """Raised when container config file is invalid"""
+
+
+class MissingPrivateKeyException(MedperfException):
+    """Raised when the execution of a Private Container fails due to a missing Private Key"""

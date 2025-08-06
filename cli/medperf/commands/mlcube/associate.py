@@ -85,6 +85,6 @@ class AssociateCubeWithCA:
         container_keys_dir = get_container_key_path(
             container_id=cube.id, ca_name=ca.name
         )
-        copied_key_path = os.path.join(container_keys_dir, config.symmetric_key_file)
+        copied_key_path = os.path.join(container_keys_dir, config.container_key_file)
         os.makedirs(container_keys_dir, exist_ok=True)
         shutil.copy(decryption_key_path, copied_key_path)

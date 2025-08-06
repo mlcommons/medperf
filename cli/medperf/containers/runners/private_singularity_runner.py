@@ -24,7 +24,7 @@ class PrivateSingularityRunner(PrivateRunner, SingularityRunner):
         image: str = None,
     ):
         try:
-            decrypted_image = self.decrypt_image()
+            decrypted_image = self._decrypt_image()
             if (
                 self.parser.container_type
                 == ContainerTypes.encrypted_docker_image.value

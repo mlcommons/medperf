@@ -24,7 +24,7 @@ class PrivateDockerRunner(PrivateRunner, DockerRunner):
             # defined, so clean up can run without issues
             image_digests_list = []
 
-            decrypted_image_archive = self.decrypt_image()
+            decrypted_image_archive = self._decrypt_image()
 
             image_digests_list = self.get_image_digests_from_archive(
                 decrypted_image_archive

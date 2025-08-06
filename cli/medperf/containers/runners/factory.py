@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .docker_runner import DockerRunner
 from .singularity_runner import SingularityRunner
 from .private_docker_runner import PrivateDockerRunner
@@ -6,19 +7,24 @@ from medperf import config
 from medperf.exceptions import InvalidArgumentError
 from medperf.containers.parsers.parser import Parser
 from medperf.enums import ContainerTypes
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from medperf.entities.cube import Cube
 
 
-def load_runner(container_config_parser: Parser, container_files_base_path: str):
+def load_runner(container_config_parser: Parser, container: Cube):
     if config.platform not in container_config_parser.allowed_runners:
         raise InvalidArgumentError(f"Cannot run this container using {config.platform}")
 
+    container_files_base_path = container.path
     if config.platform == "docker":
         if (
             container_config_parser.container_type
             == ContainerTypes.encrypted_docker_image.value
         ):
             return PrivateDockerRunner(
-                container_config_parser, container_files_base_path
+                container_config_parser, container_files_base_path, container=container
             )
         else:
             return DockerRunner(container_config_parser, container_files_base_path)
@@ -28,7 +34,7 @@ def load_runner(container_config_parser: Parser, container_files_base_path: str)
             == ContainerTypes.encrypted_singularity_file.value
         ):
             return PrivateSingularityRunner(
-                container_config_parser, container_files_base_path
+                container_config_parser, container_files_base_path, container=container
             )
         else:
             return SingularityRunner(container_config_parser, container_files_base_path)

@@ -209,10 +209,8 @@ additional_path = "workspace/additional_files"
 image_path = "workspace/.image"
 private_key_file = "key.key"
 certificate_file = "crt.crt"
-symmetric_key_file = (
-    "container.key"  # Used for decrypting private containers by the container owner
-)
-encrypted_symmetric_key_file = (
+container_key_file = "container.key"  # Used for decrypting private containers by the container owner. Stored locally in their machine.
+encrypted_container_key_file = (
     "encrypted_container.key"  # Used for decrypting private containers by other users
 )
 

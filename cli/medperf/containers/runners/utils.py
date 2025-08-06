@@ -137,8 +137,8 @@ def delete_docker_containers_and_image(image_id):
         "-q",
     ]
     command_output = run_command(list_containers_from_image_sub_cmd)
-    # First line is some python output, ignore
-    command_as_list = command_output.split("\n")[1:]
+    command_as_list = command_output.split("\n")
+
     spawned_containers = [
         command.strip() for command in command_as_list if command.strip()
     ]
