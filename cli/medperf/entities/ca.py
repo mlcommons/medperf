@@ -88,7 +88,6 @@ class CA(Entity, MedperfSchema):
     @classmethod
     def from_container(cls, cube_uid: int) -> "CA":
         meta = config.comms.get_container_ca(cube_uid)
-        print(f"{meta=}")
         ca = cls(**meta)
         ca.write()
         return ca
