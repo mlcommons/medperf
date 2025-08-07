@@ -524,7 +524,7 @@ def get_pki_assets_path(common_name: str, ca_name: str):
     return os.path.join(config.pki_assets, cn_encoded, ca_name)
 
 
-def get_container_key_path(container_id: Union[str, int], ca_name: str):
+def get_container_key_dir_path(container_id: Union[str, int], ca_name: str):
     return os.path.join(config.container_keys_dir, str(container_id), ca_name)
 
 
