@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 import base64
 from medperf.exceptions import CleanExit
+from medperf.certificates import trust
 
 
 class GrantAccess:
@@ -30,20 +31,26 @@ class GrantAccess:
         if not approved and not approval_prompt(msg):
             raise CleanExit("Access granting operation cancelled")
 
+        config.ui.print("Verifying Certificate Authority")
         ca = CA.get(uid=ca_id)
+        trust(ca)
 
+        config.ui.print("Getting the local decryption key")
         container_key_bytes = cls.get_container_key_bytes(
             model_id=model_id, ca_name=ca.name
         )
 
+        config.ui.print("Getting Data Owner Certificates")
         certificates = Certificate.get_list_from_benchmark_model_ca(
             ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id
         )
 
+        config.ui.print("Creating Encrypted Keys for Data Owners")
         encrypted_key_info_list = cls.generate_encrypted_keys_list(
             certificates=certificates, container_key_bytes=container_key_bytes
         )
 
+        config.ui.print("Uploading Encrypted Keys")
         config.comms.upload_many_encrypted_keys(
             model_id=model_id, ca_id=ca_id, key_dict_list=encrypted_key_info_list
         )
@@ -100,3 +107,5 @@ class GrantAccess:
                 "data_owner": certificate.owner,
             }
             key_info_list.append(key_info)
+
+        return key_info_list
