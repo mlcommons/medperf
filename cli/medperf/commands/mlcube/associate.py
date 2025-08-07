@@ -7,7 +7,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.ca import CA
 from medperf.exceptions import CleanExit
-from medperf.utils import dict_pretty_print, approval_prompt, get_container_key_path
+from medperf.utils import dict_pretty_print, approval_prompt, get_container_key_dir_path
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 
 
@@ -82,7 +82,7 @@ class AssociateCubeWithCA:
             raise CleanExit("Model association operation cancelled")
 
         ui.print("Moving Decryption key to MedPerf LOCAL storage")
-        container_keys_dir = get_container_key_path(
+        container_keys_dir = get_container_key_dir_path(
             container_id=cube.id, ca_name=ca.name
         )
         copied_key_path = os.path.join(container_keys_dir, config.container_key_file)
