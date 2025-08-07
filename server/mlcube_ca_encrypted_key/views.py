@@ -75,7 +75,7 @@ class GetAndPostEncryptedKeyFromModelAndCA(RetrieveAPIView):
             item["ca_association"] = model_ca_association.id
             item["data_owner"] = User.objects.get(pk=item["data_owner"]).id
 
-        serializer = EncryptedKeySerializer(data=request.data[0])
+        serializer = EncryptedKeySerializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
