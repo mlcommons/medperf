@@ -46,5 +46,9 @@ class InvalidContainerSpec(MedperfException):
     """Raised when container config file is invalid"""
 
 
+class MissingContainerKeyException(MedperfException):
+    """Raised when the Model Owner Container Key is missing"""
+
+
 class MissingPrivateKeyException(MedperfException):
     """Raised when the execution of a Private Container fails due to a missing Private Key"""

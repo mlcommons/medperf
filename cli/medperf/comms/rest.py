@@ -284,6 +284,11 @@ class REST(Comms):
         error_msg = "Could not retrieve ca"
         return self.__get(url, error_msg)
 
+    def get_encrypted_key(self, key_id: int) -> dict:
+        url = f"{self.server_url}/keys/{key_id}"
+        error_msg = "Could not retrieve Encrypted Key"
+        return self.__get(url, error_msg)
+
     def get_training_event(self, event_id: int) -> dict:
         """Retrieves the aggregator specification file from the server
 
@@ -511,6 +516,13 @@ class REST(Comms):
         error_msg = "Could not retrieve user cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_user_keys(self, filters=None) -> dict:
+        if filters is None:
+            filters = {}
+        url = f"{self.server_url}/me/keys/"
+        error_msg = "Could not retrieve Encrypted Keys"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     def get_user_certificates(self, filters={}) -> dict:
         """Retrieves all certificates registered by the user
 
@@ -685,6 +697,20 @@ class REST(Comms):
         url = f"{self.server_url}/cas/"
         error_msg = "could not upload ca"
         return self.__post(url, json=ca_dict, error_msg=error_msg)
+
+    def upload_encrypted_key(self, key_dict) -> int:
+        """Uploads a new Encrypted Key to the server."""
+        url = f"{self.server_url}/keys/"
+        error_msg = "could not upload Encrypted Key"
+        return self.__post(url, json=key_dict, error_msg=error_msg)
+
+    def upload_many_encrypted_keys(
+        self, model_id: int, ca_id: int, key_dict_list: list[dict]
+    ):
+        """Uploads a list of Encrypted Keys in a single server request, based on a Model-CA association"""
+        url = f"{self.server_url}/mlcubes/{model_id}/ca/{ca_id}/keys/"
+        error_msg = "could not upload Encrypted Keys"
+        return self.__post(url, json=key_dict_list, error_msg=error_msg)
 
     def upload_training_event(self, trainnig_event_dict: dict) -> int:
         """Uploads a new training event to the server.

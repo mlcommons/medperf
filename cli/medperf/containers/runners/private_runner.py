@@ -14,7 +14,7 @@ from medperf import config
 from medperf.comms.entity_resources import resources
 from medperf.entities.ca import CA
 from medperf.exceptions import CommunicationRetrievalError
-from medperf.utils import remove_path, get_container_key_path
+from medperf.utils import remove_path, get_container_key_dir_path
 
 
 if TYPE_CHECKING:
@@ -81,7 +81,7 @@ class PrivateRunner(Runner):
         return self._decrypted_image_path
 
     def _load_symmetric_decryptor(self) -> Fernet:
-        container_key_dir = get_container_key_path(
+        container_key_dir = get_container_key_dir_path(
             container_id=self.container.id, ca_name=self.ca.name
         )
 

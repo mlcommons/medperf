@@ -11,6 +11,7 @@ from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCA
 from medperf.commands.mlcube.run_test import run_mlcube
+from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.exceptions import InvalidArgumentError
 
 app = typer.Typer()
@@ -316,3 +317,44 @@ def view(
 ):
     """Displays the information of one or more containers"""
     EntityView.run(entity_id, Cube, format, unregistered, mine, output)
+
+
+@app.command("give_access")
+@clean_except
+def give_access(
+    ca_id: int = typer.Option(
+        ...,
+        "-c",
+        "--ca-id",
+        "--ca_id",
+        help="Certificate Authority (CA) UID. This CA will provide the allowed Data Owners to get keys to the model.",
+    ),
+    model_id: int = typer.Option(
+        ...,
+        "-m",
+        "--model-id",
+        "--model_id",
+        help="Private Model Container for which access will be granted.",
+    ),
+    benchmark_id: int = typer.Option(
+        ...,
+        "-b",
+        "--benchmark-id",
+        "--benchmark_id",
+        help="Benchmark UID where the Private Container is associated. "
+        "All data owners registered to this benchmark and authorized to "
+        "the Certificate Authority (CA) will be granted access to the container.",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """
+    Allows all currently registered Data Owners in a given benchmark to access
+    a Private Container registered to the same benchmark, using the provided
+    Certificate Authority (CA) for authentication.
+    The Private Container must have already been associated with both the CA and the
+    benchmark for this to take effect.
+    """
+    GrantAccess.run(
+        ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id, approved=approval
+    )
+    config.ui.print("✅ Done!")
