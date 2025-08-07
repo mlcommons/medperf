@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "mlcube_ca_association",
     "certificate",
+    "mlcube_ca_encrypted_key",
 ]
 
 MIDDLEWARE = [

@@ -1,6 +1,8 @@
 from django.urls import path
 from benchmarkmodel import views as bviews
 from mlcube_ca_association import views as mlcube_ca_views
+
+from mlcube_ca_encrypted_key import views as key_views
 from . import views
 
 app_name = "MLCube"
@@ -12,7 +14,10 @@ urlpatterns = [
     path("<int:pk>/benchmarks/<int:bid>/", bviews.ModelApproval.as_view()),
     path("<int:pk>/datasets/", views.MlCubeDatasetList.as_view()),
     path("<int:pk>/ca/", mlcube_ca_views.ContainerCAList.as_view()),
-    path("<int:pk>/ca/<int:bid>/", mlcube_ca_views.ContainerCADetail.as_view()),
+    path(
+        "<int:model_id>/ca/<int:ca_id>/keys/",
+        key_views.GetAndPostEncryptedKeyFromModelAndCA.as_view(),
+    ),
     # path("<int:pk>/benchmarks/", bviews.ModelBenchmarksList.as_view()),
     # NOTE: when activating this endpoint later, check permissions and write tests
 ]

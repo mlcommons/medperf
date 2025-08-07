@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -7,7 +5,7 @@ from rest_framework import status
 
 from .models import Certificate
 from .serializers import CertificateSerializer
-from .permissions import IsModelApprovedInBenchmark, IsModelOwner
+from .permissions import IsModelApprovedInBenchmark
 from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
 from benchmarkdataset.models import BenchmarkDataset
@@ -79,6 +77,3 @@ class CertificatesFromBenchmark(GenericAPIView):
         valid_certificates = self.paginate_queryset(valid_certificates)
         serializer = CertificateSerializer(valid_certificates, many=True)
         return self.get_paginated_response(serializer.data)
-        # print(valid_certificates)
-        # serializer = CertificateSerializer(valid_certificates)
-        # return Response(serializer.data)
