@@ -408,7 +408,7 @@ class REST(Comms):
         error_msg = "Could not retrieve cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_certificatess(self, filters={}) -> List[dict]:
+    def get_certificates(self, filters={}) -> List[dict]:
         """Retrieves all certificatess
 
         Returns:
@@ -417,6 +417,18 @@ class REST(Comms):
         url = f"{self.server_url}/certificates/"
         error_msg = "Could not retrieve certificates"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_certificates_from_benchmark_model_ca(
+        self, benchmark_id: int, ca_id: int, model_id: int, filters=None
+    ) -> List[dict]:
+        """Retrieves certificates of Data Owners associated with a given benchmark"""
+        if filters is None:
+            filters = {}
+        url = (
+            f"{self.server_url}/benchmarks/{benchmark_id}/models/{model_id}/cas/{ca_id}"
+        )
+        error_msg = f"Could not retrieve certificates from Benchmark {benchmark_id}, CA {ca_id} associated with Model {model_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)
 
     def get_training_events(self, filters={}) -> List[dict]:
         """Retrieves all training events

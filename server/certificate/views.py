@@ -7,7 +7,11 @@ from rest_framework import status
 
 from .models import Certificate
 from .serializers import CertificateSerializer
+from .permissions import IsModelApprovedInBenchmark, IsModelOwner
+from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
+from benchmarkdataset.models import BenchmarkDataset
+from dataset.models import Dataset
 
 
 class CertificateList(GenericAPIView):
@@ -52,3 +56,29 @@ class CertificateDetail(GenericAPIView):
         certificate = self.get_object(pk)
         serializer = CertificateSerializer(certificate)
         return Response(serializer.data)
+
+
+class CertificatesFromBenchmark(GenericAPIView):
+    permission_classes = [IsAdmin | IsModelApprovedInBenchmark]
+    # permission_classes = [IsAdmin | (IsModelApprovedInBenchmark & IsModelOwner)]
+
+    def get(self, request, benchmark_id, model_id, ca_id, format=None):
+        benchmark_dataset_associations = BenchmarkDataset.objects.filter(
+            benchmark__id=benchmark_id
+        ).prefetch_related("dataset")
+
+        dataset_ids = [
+            association.dataset.id for association in benchmark_dataset_associations
+        ]
+        datasets = Dataset.objects.filter(pk__in=dataset_ids)
+        dataset_owners = datasets.values_list("owner", flat=True)
+
+        valid_certificates = Certificate.objects.filter(
+            ca_id__id=ca_id, owner__in=dataset_owners
+        )
+        valid_certificates = self.paginate_queryset(valid_certificates)
+        serializer = CertificateSerializer(valid_certificates, many=True)
+        return self.get_paginated_response(serializer.data)
+        # print(valid_certificates)
+        # serializer = CertificateSerializer(valid_certificates)
+        # return Response(serializer.data)

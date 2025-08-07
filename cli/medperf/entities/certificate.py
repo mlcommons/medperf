@@ -1,6 +1,5 @@
 from __future__ import annotations
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import DeployableSchema
 from medperf.account_management import get_medperf_user_data
 from medperf.utils import get_pki_assets_path
 from medperf import config
@@ -8,13 +7,13 @@ from typing import Optional
 from medperf.entities.ca import CA
 
 
-class Certificate(Entity, DeployableSchema):
+class Certificate(Entity):
     """
     Class representing a Certificate uploaded to the MedPerf server
     Currently only supports Client Certificates (ie common name is a email)
     """
 
-    certificate_content: str
+    certificate_content: bytes
     ca_id: int
     ca_name: Optional[str]
 
@@ -52,6 +51,17 @@ class Certificate(Entity, DeployableSchema):
             ca = CA.get(self.ca_id)
             self.ca_name = ca.name
         return get_pki_assets_path(common_name=self.user_email, ca_name=self.ca_name)
+
+    @classmethod
+    def get_list_from_benchmark_model_ca(
+        cls, benchmark_id: int, model_id: int, ca_id: int
+    ) -> list[Certificate]:
+        cert_data_list = config.comms.get_certificates_from_benchmark_model_ca(
+            benchmark_id=benchmark_id, model_id=model_id, ca_id=ca_id
+        )
+
+        cert_obj_list = [cls(**cert_data) for cert_data in cert_data_list]
+        return cert_obj_list
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
