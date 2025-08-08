@@ -103,7 +103,7 @@ class GrantAccess:
                 padding=padding_obj,
             )
             key_info = {
-                "encrypted_key": encrypted_key,
+                "encrypted_key_base64": encrypted_key,
                 "data_owner": certificate.owner,
             }
             key_info_list.append(key_info)
