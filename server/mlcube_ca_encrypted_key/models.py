@@ -14,7 +14,7 @@ class ModelCAEncryptedKey(models.Model):
     data_owner = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="data_owner", null=True
     )
-    encrypted_key = models.TextField(null=False)
+    encrypted_key_base64 = models.TextField(null=False)
     metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

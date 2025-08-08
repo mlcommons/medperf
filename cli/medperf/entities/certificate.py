@@ -5,6 +5,10 @@ from medperf.utils import get_pki_assets_path
 from medperf import config
 from typing import Optional
 from medperf.entities.ca import CA
+from pydantic import root_validator
+from typing import Any
+import base64
+from pydantic import Field
 
 
 class Certificate(Entity):
@@ -13,9 +17,41 @@ class Certificate(Entity):
     Currently only supports Client Certificates (ie common name is a email)
     """
 
-    certificate_content: bytes
+    certificate_content_base64: Optional[str]
+    certificate_content: Optional[bytes] = Field(exclude=True)
     ca_id: int
     ca_name: Optional[str]
+
+    @root_validator(pre=False)
+    def validate_certificate_content(cls, values: dict[str, Any]):
+        """
+        If only one of certificate_content_base64 or certificate_content is provided,
+        generate the other one via base64 encoding/decoding.
+        If both are provided, verify they match. If not, raise a ValueError.
+        If neither is provided, raise a ValueError.
+        """
+        content_base64 = values.get("certificate_content_base64")
+        content: bytes = values.get("certificate_content")
+        if content_base64 is None and content is None:
+            raise ValueError(
+                "One of certificate_content_base64 or certificate_content must be provided!"
+            )
+
+        elif content is not None:
+            converted_content = base64.b64encode(content).decode("utf-8")
+            if content_base64 is None:
+                values["certificate_content_base64"] = converted_content
+
+            elif converted_content != content_base64:
+                raise ValueError(
+                    "The values provided for certificate_content and certificate_content_base64 do not match!"
+                )
+
+        elif content_base64 is not None:
+            converted_base64 = base64.b64decode(content_base64)
+            values["certificate_content"] = converted_base64
+
+        return values
 
     @staticmethod
     def get_type():
