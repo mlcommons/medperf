@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Union
 import os
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 from .runner import Runner
 from .decryption_utils import (
@@ -12,7 +12,11 @@ from .decryption_utils import (
 from medperf import config
 from medperf.comms.entity_resources import resources
 from medperf.entities.ca import CA
-from medperf.exceptions import CommunicationRetrievalError, MissingContainerKeyException
+from medperf.exceptions import (
+    CommunicationRetrievalError,
+    MissingContainerKeyException,
+    DecryptionError,
+)
 from medperf.utils import remove_path, get_container_key_dir_path
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 from medperf.account_management.account_management import get_medperf_user_data
@@ -72,13 +76,17 @@ class PrivateRunner(Runner):
         """Decrypts downloaded encrypted image"""
         decryptor = self._load_symmetric_decryptor()
 
-        with (
-            open(self._encrypted_image_path, "rb") as encrypted_f,
-            open(self._decrypted_image_path, "wb") as decrypted_f,
-        ):
-            decrypted_bytes = decryptor.decrypt(encrypted_f.read())
-            decrypted_f.write(decrypted_bytes)
-
+        try:
+            with (
+                open(self._encrypted_image_path, "rb") as encrypted_f,
+                open(self._decrypted_image_path, "wb") as decrypted_f,
+            ):
+                decrypted_bytes = decryptor.decrypt(encrypted_f.read())
+                decrypted_f.write(decrypted_bytes)
+        except InvalidToken:
+            raise DecryptionError(
+                f"Error when decrypting Container {self.container.id}. Try redownloading the Container."
+            )
         return self._decrypted_image_path
 
     def _load_symmetric_decryptor(self) -> Fernet:
@@ -119,8 +127,6 @@ class PrivateRunner(Runner):
         return decrypted_key
 
     def _load_data_owner_key(self) -> bytes:
-        # TODO request to server to download encrypted key
-
         encrypted_key_obj = EncryptedContainerKey.get_from_model(self.container.id)
         private_key = load_private_key(ca=self.ca, container=self.container)
 

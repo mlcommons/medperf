@@ -52,3 +52,7 @@ class MissingContainerKeyException(MedperfException):
 
 class MissingPrivateKeyException(MedperfException):
     """Raised when the execution of a Private Container fails due to a missing Private Key"""
+
+
+class DecryptionError(MedperfException):
+    """Raised when failing to decrypt a private container"""
