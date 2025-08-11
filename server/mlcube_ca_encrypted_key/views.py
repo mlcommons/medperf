@@ -56,9 +56,9 @@ class GetAndPostEncryptedKeyFromModelAndCA(RetrieveAPIView):
         except ModelCAEncryptedKey.DoesNotExist:
             return Response(
                 {
-                    "detail": f"The access Key to Container ID {model_id}, CA ID {ca_association.associated_ca.id} has not been submitted yet for your user({request.user.email})."
+                    "detail": f"The access Key to Container ID {model_id}, CA ID {ca_id} has not been submitted yet for your user({request.user.email})."
                 },
-                status=status.HTTP_401_UNAUTHORIZED,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = EncryptedKeySerializer(key)
@@ -80,3 +80,30 @@ class GetAndPostEncryptedKeyFromModelAndCA(RetrieveAPIView):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetEncryptedKeyFromModel(RetrieveAPIView):
+    serializer_class = EncryptedKeySerializer
+    queryset = ""
+    permission_classes = [IsAdmin | IsDataOwnerForGet]
+
+    def get(self, request: Request, model_id: int, format=None):
+        """
+        Retrieve a Key Instance
+        """
+        ca_association: ContainerCA = ContainerCA.get_by_model_id(model_id=model_id)
+
+        try:
+            key = ModelCAEncryptedKey.objects.get(
+                data_owner=request.user, ca_association=ca_association
+            )
+        except ModelCAEncryptedKey.DoesNotExist:
+            return Response(
+                {
+                    "detail": f"The access Key to Container ID {model_id} has not been submitted yet for your user({request.user.email})."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = EncryptedKeySerializer(key)
+        return Response(serializer.data, status=status.HTTP_200_OK)
