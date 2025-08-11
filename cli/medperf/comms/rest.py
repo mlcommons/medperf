@@ -342,6 +342,11 @@ class REST(Comms):
         error_msg = "Could not retrieve training experiment ca"
         return self.__get(url, error_msg)
 
+    def get_encrypted_key_from_model_id(self, model_id: int) -> dict:
+        url = f"{self.server_url}/mlcubes/{model_id}/keys/"
+        error_msg = "Could not retrieve the encrypted key"
+        return self.__get(url, error_msg)
+
     # get list
     def get_benchmarks(self, filters={}) -> List[dict]:
         """Retrieves all benchmarks in the platform.

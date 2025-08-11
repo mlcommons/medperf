@@ -7,6 +7,16 @@ from medperf.utils import get_container_key_dir_path
 from pydantic import Field, root_validator
 from typing import Any
 import base64
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+
+
+def _get_default_padding():
+    return padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None,
+    )
 
 
 class EncryptedContainerKey(Entity):
@@ -20,6 +30,10 @@ class EncryptedContainerKey(Entity):
     encrypted_key_base64: Optional[str]
     container_id: Optional[int]
     ca_name: Optional[str]
+    padding: padding.AsymmetricPadding = Field(default_factory=_get_default_padding)
+
+    class Config:
+        arbitrary_types_allowed = True
 
     @root_validator(pre=False)
     def validate_encrypted_key(cls, values: dict[str, Any]):
@@ -111,6 +125,12 @@ class EncryptedContainerKey(Entity):
             model_id=model_id, ca_id=ca_id, key_dict_list=list_as_dicts
         )
         return updated_body
+
+    @classmethod
+    def get_from_model(cls, model_id: int) -> EncryptedContainerKey:
+        comms_fn = config.comms.get_encrypted_key_from_model_id
+        key_body = comms_fn(model_id=model_id)
+        return cls(**key_body)
 
     def display_dict(self):
         return {

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import padding
 from dataclasses import dataclass
@@ -30,13 +30,13 @@ def load_encrypted_symmetric_key_and_delete(encrypted_key_file_path: str) -> byt
     return encrypted_key
 
 
-def load_private_key_info(ca: CA, container: Cube) -> PrivateKeyDecryptionInfo:
+def load_private_key(ca: CA, container: Cube) -> rsa.RSAPrivateKey:
     # TODO validate configs!
     # Are we doing PEM Private Keys, with no password and default_backend as implemented?
     # Are we going to support multiple configurations? If so, how?
     # What about padding? We a default, support multiple? If supporting multiple, how to config?
 
-    user_email = get_medperf_user_data["email"]
+    user_email = get_medperf_user_data()["email"]
     pki_assets_dir = get_pki_assets_path(common_name=user_email, ca_name=ca.name)
     private_key_path = os.path.join(pki_assets_dir, config.private_key_file)
 
@@ -56,13 +56,5 @@ def load_private_key_info(ca: CA, container: Cube) -> PrivateKeyDecryptionInfo:
     private_key = serialization.load_pem_private_key(
         data=private_bytes, backend=default_backend(), password=None
     )
-    padding_obj = padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None,
-    )
 
-    private_info = PrivateKeyDecryptionInfo(
-        private_key=private_key, padding=padding_obj
-    )
-    return private_info
+    return private_key

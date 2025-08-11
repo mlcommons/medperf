@@ -6,16 +6,16 @@ from cryptography.fernet import Fernet
 
 from .runner import Runner
 from .decryption_utils import (
-    load_private_key_info,
-    load_encrypted_symmetric_key_and_delete,
+    load_private_key,
 )
 
 from medperf import config
 from medperf.comms.entity_resources import resources
 from medperf.entities.ca import CA
-from medperf.exceptions import CommunicationRetrievalError
+from medperf.exceptions import CommunicationRetrievalError, MissingContainerKeyException
 from medperf.utils import remove_path, get_container_key_dir_path
-
+from medperf.entities.encrypted_container_key import EncryptedContainerKey
+from medperf.account_management.account_management import get_medperf_user_data
 
 if TYPE_CHECKING:
     from medperf.entities.cube import Cube
@@ -35,6 +35,7 @@ class PrivateRunner(Runner):
         self._decrypted_image_path = (
             None  # Set in download_encrypted_image_file; file created in decrypt
         )
+        self._is_model_owner = self._current_user_is_model_owner()
 
     @property
     def ca(self):
@@ -45,7 +46,7 @@ class PrivateRunner(Runner):
                 error_msg = (
                     f"No associated Certificate Authority (CA) was found for the Container {self.container.name} (UID: {self.container.id})\n"
                     f"If you are the Model Owner responsible for this container, please run the following command to create the association:\n"
-                    f"medperf container associate_with_ca --container-id {self.container.id} --ca-id <ID of your preferred CA here>"
+                    f"medperf container associate_with_ca --container-id {self.container.id} --decryption-key <path to your decryption key file> --ca-id <ID of your preferred CA here>"
                 )
                 raise CommunicationRetrievalError(error_msg)
         return self._ca
@@ -90,29 +91,45 @@ class PrivateRunner(Runner):
             config.container_key_file,
         )
 
-        if os.path.exists(model_owner_key_path):
-            with open(model_owner_key_path, "rb") as f:
-                decrypted_key = f.read()
-
+        if self._is_model_owner:
+            if os.path.exists(model_owner_key_path):
+                decrypted_key = self._load_model_owner_local_key(model_owner_key_path)
+            else:
+                msg = (
+                    f"Container Key not found for Container ID {self.container.id}.\n"
+                    f"If you are the Model Owner responsible for this container, please run the following command to create the association:\n"
+                    f"medperf container associate_with_ca --container-id {self.container.id} --decryption-key <path to your decryption key file> --ca-id <ID of your preferred CA here>"
+                )
+                raise MissingContainerKeyException(msg)
         else:
-            # TODO request to server to download encrypted key
-            private_key_info = load_private_key_info(
-                ca=self.ca, container=self.container
-            )
-
-            data_owner_key_path = os.path.join(
-                container_key_dir, config.encrypted_container_key_file
-            )
-            encrypted_symmetric_key = load_encrypted_symmetric_key_and_delete(
-                data_owner_key_path
-            )
-            decrypted_key = private_key_info.private_key.decrypt(
-                ciphertext=encrypted_symmetric_key,
-                padding=private_key_info.padding,
-            )
+            decrypted_key = self._load_data_owner_key()
 
         fernet_obj = Fernet(decrypted_key)
         return fernet_obj
+
+    def _current_user_is_model_owner(self) -> bool:
+        current_user_id = get_medperf_user_data()["id"]
+        model_owner_id = self.container.owner
+        return current_user_id == model_owner_id
+
+    @staticmethod
+    def _load_model_owner_local_key(model_owner_key_path: str) -> bytes:
+        with open(model_owner_key_path, "rb") as f:
+            decrypted_key = f.read()
+        return decrypted_key
+
+    def _load_data_owner_key(self) -> bytes:
+        # TODO request to server to download encrypted key
+
+        encrypted_key_obj = EncryptedContainerKey.get_from_model(self.container.id)
+        private_key = load_private_key(ca=self.ca, container=self.container)
+
+        decrypted_key = private_key.decrypt(
+            ciphertext=encrypted_key_obj.encrypted_key,
+            padding=encrypted_key_obj.padding,
+        )
+
+        return decrypted_key
 
     @staticmethod
     def _safe_remove_file(file_path: Union[str, None]):
@@ -135,5 +152,6 @@ class PrivateRunner(Runner):
         should also have a specific method for cleanup (for example, docker needs to delete
         the image and container from the daemon)
         """
-        self._safe_remove_file(self._encrypted_image_path)
+        # if not self._is_model_owner:
+        #     self._safe_remove_file(self._encrypted_image_path)
         self._safe_remove_file(self._decrypted_image_path)
