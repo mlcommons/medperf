@@ -15,6 +15,9 @@ class ContainerCA(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"ModelCAAssociation(Model={self.model_mlcube.id}, CA={self.associated_ca.id})"
+
     class Meta:
         ordering = ["created_at"]
         constraints = [
