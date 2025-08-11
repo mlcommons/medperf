@@ -152,6 +152,6 @@ class PrivateRunner(Runner):
         should also have a specific method for cleanup (for example, docker needs to delete
         the image and container from the daemon)
         """
-        # if not self._is_model_owner:
-        #     self._safe_remove_file(self._encrypted_image_path)
+        if not self._is_model_owner:
+            self._safe_remove_file(self._encrypted_image_path)
         self._safe_remove_file(self._decrypted_image_path)
