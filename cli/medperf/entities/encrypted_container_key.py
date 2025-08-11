@@ -30,7 +30,9 @@ class EncryptedContainerKey(Entity):
     encrypted_key_base64: Optional[str]
     container_id: Optional[int]
     ca_name: Optional[str]
-    padding: padding.AsymmetricPadding = Field(default_factory=_get_default_padding)
+    padding: padding.AsymmetricPadding = Field(
+        default_factory=_get_default_padding, exclude=True
+    )
 
     class Config:
         arbitrary_types_allowed = True
