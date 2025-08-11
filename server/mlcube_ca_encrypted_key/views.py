@@ -80,16 +80,3 @@ class GetAndPostEncryptedKeyFromModelAndCA(RetrieveAPIView):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostEncryptedKey(CreateAPIView):
-    serializer_class = EncryptedKeySerializer
-    queryset = ""
-    permission_classes = [IsAdmin]
-
-    def post(self, request, format=None):
-        serializer = EncryptedKeySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(owner=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
