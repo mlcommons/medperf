@@ -6,6 +6,7 @@ User = get_user_model()
 
 class ModelCAEncryptedKey(models.Model):
     owner = models.ForeignKey(User, on_delete=models.PROTECT, null=True)  # Model owner
+    name = models.CharField(max_length=20)
     ca_association = models.ForeignKey(
         "mlcube_ca_association.ContainerCA",
         on_delete=models.CASCADE,
