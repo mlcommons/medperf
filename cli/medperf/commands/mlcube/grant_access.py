@@ -7,14 +7,21 @@ from medperf import config
 from medperf.exceptions import MissingContainerKeyException
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-import base64
 from medperf.exceptions import CleanExit
 from medperf.certificates import trust
+from medperf.entities.encrypted_container_key import EncryptedContainerKey
 
 
 class GrantAccess:
     @classmethod
-    def run(cls, ca_id: int, benchmark_id: int, model_id: int, approved: bool = False):
+    def run(
+        cls,
+        ca_id: int,
+        benchmark_id: int,
+        model_id: int,
+        name: str = None,
+        approved: bool = False,
+    ):
         """
         Registers encrypted access keys in the MedPerf server for all
         Data Owners registered to the Benchmark from benchmark_id and
@@ -31,6 +38,8 @@ class GrantAccess:
         if not approved and not approval_prompt(msg):
             raise CleanExit("Access granting operation cancelled")
 
+        if name is None:
+            name = f"Model {model_id} Key"
         config.ui.print("Verifying Certificate Authority")
         ca = CA.get(uid=ca_id)
         trust(ca)
@@ -47,12 +56,16 @@ class GrantAccess:
 
         config.ui.print("Creating Encrypted Keys for Data Owners")
         encrypted_key_info_list = cls.generate_encrypted_keys_list(
-            certificates=certificates, container_key_bytes=container_key_bytes
+            certificates=certificates,
+            container_key_bytes=container_key_bytes,
+            key_name=name,
         )
 
         config.ui.print("Uploading Encrypted Keys")
-        config.comms.upload_many_encrypted_keys(
-            model_id=model_id, ca_id=ca_id, key_dict_list=encrypted_key_info_list
+        EncryptedContainerKey.upload_many(
+            encrypted_key_info_list,
+            model_id=model_id,
+            ca_id=ca_id,
         )
 
     @classmethod
@@ -67,7 +80,7 @@ class GrantAccess:
         encrypted_container_key = public_key_obj.encrypt(
             container_key_bytes, padding=padding
         )
-        return base64.b64encode(encrypted_container_key).decode("utf-8")
+        return encrypted_container_key
 
     @staticmethod
     def get_container_key_bytes(model_id: int, ca_name: str):
@@ -88,7 +101,7 @@ class GrantAccess:
 
     @classmethod
     def generate_encrypted_keys_list(
-        cls, container_key_bytes: bytes, certificates: list[Certificate]
+        cls, container_key_bytes: bytes, key_name: str, certificates: list[Certificate]
     ):
         padding_obj = padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -102,10 +115,9 @@ class GrantAccess:
                 container_key_bytes=container_key_bytes,
                 padding=padding_obj,
             )
-            key_info = {
-                "encrypted_key_base64": encrypted_key,
-                "data_owner": certificate.owner,
-            }
-            key_info_list.append(key_info)
+            key_obj = EncryptedContainerKey(
+                encrypted_key=encrypted_key, data_owner=certificate.owner, name=key_name
+            )
+            key_info_list.append(key_obj)
 
         return key_info_list

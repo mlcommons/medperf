@@ -1,0 +1,124 @@
+from __future__ import annotations
+from medperf.entities.interface import Entity
+from medperf.account_management import get_medperf_user_data
+from medperf import config
+from typing import Optional
+from medperf.utils import get_container_key_dir_path
+from pydantic import Field, root_validator
+from typing import Any
+import base64
+
+
+class EncryptedContainerKey(Entity):
+    """
+    Class representing an Encrypted Container Key uploaded to the MedPerf server
+    """
+
+    model_ca_association: Optional[int]
+    data_owner: int  # ID of Data Owner who can decrypt the key
+    encrypted_key: Optional[bytes] = Field(exclude=True)
+    encrypted_key_base64: Optional[str]
+    container_id: Optional[int]
+    ca_name: Optional[str]
+
+    @root_validator(pre=False)
+    def validate_encrypted_key(cls, values: dict[str, Any]):
+        """
+        If only one of encrypted_key_base64 or encrypted_key is provided,
+        generate the other one via base64 encoding/decoding.
+        If both are provided, verify they match. If not, raise a ValueError.
+        If neither is provided, raise a ValueError.
+        """
+        content_base64 = values.get("encrypted_key_base64")
+        content: bytes = values.get("encrypted_key")
+        if content_base64 is None and content is None:
+            raise ValueError(
+                "One of encrypted_key_base64 or encrypted_key must be provided!"
+            )
+
+        elif content is not None:
+            converted_content = base64.b64encode(content).decode("utf-8")
+            if content_base64 is None:
+                values["encrypted_key_base64"] = converted_content
+
+            elif converted_content != content_base64:
+                raise ValueError(
+                    "The values provided for encrypted_key and encrypted_key_base64 do not match!"
+                )
+
+        elif content_base64 is not None:
+            converted_base64 = base64.b64decode(content_base64)
+            values["encrypted_key"] = converted_base64
+
+        return values
+
+    @staticmethod
+    def get_type():
+        return "encrypted_container_key"
+
+    @staticmethod
+    def get_storage_path():
+        return config.container_keys_dir
+
+    @staticmethod
+    def get_comms_retriever():
+        return config.comms.get_encrypted_container_key
+
+    @staticmethod
+    def get_metadata_filename():
+        return config.encrypted_container_key_metadata_filename
+
+    @staticmethod
+    def get_comms_uploader():
+        return config.comms.upload_encrypted_container_key
+
+    @property
+    def local_id(self):
+        return config.encrypted_container_key_file
+
+    @property
+    def path(self) -> str:
+        if self.container_id is not None and self.ca_name is not None:
+            return get_container_key_dir_path(
+                container_id=self.container_id, ca_name=self.ca_name
+            )
+        else:
+            return config.container_keys_dir
+
+    @classmethod
+    def remote_prefilter(cls, filters: dict) -> callable:
+        """Applies filtering logic that must be done before retrieving remote entities
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities with the applied prefilters
+        """
+        comms_fn = config.comms.get_encrypted_container_keys
+        if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
+            comms_fn = config.comms.get_user_encrypted_container_keys
+        return comms_fn
+
+    @classmethod
+    def upload_many(
+        cls, encrypted_container_key_list: list[EncryptedContainerKey], model_id, ca_id
+    ) -> list[dict]:
+        """Uploads many objects in a single operation on the server"""
+        comms_fn = config.comms.upload_many_encrypted_keys
+        list_as_dicts = [item.todict() for item in encrypted_container_key_list]
+        updated_body = comms_fn(
+            model_id=model_id, ca_id=ca_id, key_dict_list=list_as_dicts
+        )
+        return updated_body
+
+    def display_dict(self):
+        return {
+            "UID": self.identifier,
+            "Name": self.name,
+            "Data Owner": self.data_owner,
+            "Encrypted Key": self.encrypted_key,
+            "Model-CA Association ID": self.model_ca_association,
+            "Created At": self.created_at,
+            "Registered": self.is_registered,
+        }
