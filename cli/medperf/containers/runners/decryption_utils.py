@@ -14,13 +14,6 @@ from medperf.account_management.account_management import get_medperf_user_data
 if TYPE_CHECKING:
     from medperf.entities.ca import CA
     from medperf.entities.cube import Cube
-    from cryptography.hazmat.primitives.asymmetric import padding
-
-
-@dataclass
-class PrivateKeyDecryptionInfo:
-    private_key: rsa.RSAPrivateKey
-    padding: padding.AsymmetricPadding
 
 
 def load_encrypted_symmetric_key_and_delete(encrypted_key_file_path: str) -> bytes:
