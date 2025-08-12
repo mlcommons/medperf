@@ -1,5 +1,6 @@
 import typer
 from typing import Optional
+from pathlib import Path
 
 import medperf.config as config
 from medperf.decorators import clean_except
@@ -83,6 +84,18 @@ def run(
         "--use-local-model-image",
         help="Use this flag if you don't want MedPerf to pull the model container image before running",
     ),
+    decryption_key: Path = typer.Option(
+        None,
+        "--decryption-key",
+        "--decryption_key",
+        "-d",
+        help="Only used for compatibility tests of encrypted containers. "
+        "Path to the decryption key file for the encrypted container.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
 ):
     """
     Executes a compatibility test.
@@ -101,6 +114,7 @@ def run(
         offline=offline,
         skip_data_preparation_step=skip_data_preparation_step,
         use_local_model_image=use_local_model_image,
+        decryption_key=decryption_key,
     )
     config.ui.print("✅ Done!")
 

@@ -103,10 +103,19 @@ def prepare_cube(cube_uid: str):
 
 
 def get_cube(
-    uid: int, name: str, local_only: bool = False, use_local_model_image: bool = False
+    uid: int,
+    name: str,
+    local_only: bool = False,
+    use_local_model_image: bool = False,
+    decryption_key_file_path: os.PathLike = None,
 ) -> Cube:
     config.ui.text = f"Retrieving container '{name}'"
     cube = Cube.get(uid, local_only=local_only)
+
+    if decryption_key_file_path is not None:
+        with open(decryption_key_file_path, "rb") as f:
+            cube.decryption_key = f.read()
+
     if not use_local_model_image:
         cube.download_run_files()
     config.ui.print(f"> Container '{name}' download complete")

@@ -35,6 +35,7 @@ class Cube(Entity, DeployableSchema):
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
+    decryption_key: Optional[bytes] = Field(exclude=True)
 
     @staticmethod
     def get_type():
@@ -185,6 +186,15 @@ class Cube(Entity, DeployableSchema):
             )
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} image: {e}")
+
+    def set_decryption_key_from_file(self, decryption_key_file: os.PathLike):
+        """
+        Used for compatibility test of encrypted model containers.
+        Set the key here, so the runner object can just use it.
+        When Data owners run the container, they'll pull their encrypted Key from the MedPerf server
+        """
+        with open(decryption_key_file, "rb") as f:
+            self.decryption_key = f.read()
 
     def run(
         self,

@@ -5,9 +5,7 @@ import os
 from cryptography.fernet import Fernet, InvalidToken
 
 from .runner import Runner
-from .decryption_utils import (
-    load_private_key,
-)
+from .decryption_utils import load_private_key
 
 from medperf import config
 from medperf.comms.entity_resources import resources
@@ -31,6 +29,7 @@ class PrivateRunner(Runner):
     ):
         super().__init__(container_config_parser, container_files_base_path)
         self.container = container
+        self._decryption_key = container.decryption_key
         self._ca = None
 
         self._encrypted_image_path = (
@@ -94,6 +93,9 @@ class PrivateRunner(Runner):
         return self._decrypted_image_path
 
     def _load_symmetric_decryptor(self) -> Fernet:
+        if self._decryption_key is not None:
+            return Fernet(self._decryption_key)
+
         container_key_dir = get_container_key_dir_path(
             container_id=self.container.id, ca_name=self.ca.name
         )
@@ -109,10 +111,14 @@ class PrivateRunner(Runner):
             else:
                 msg = (
                     f"Container Key not found for Container ID {self.container.id}.\n"
-                    f"If you are the Model Owner responsible for this container, please "
-                    f"run the following command to create the association:\n"
+                    f"If attempting to execute a compatibility test run, please make "
+                    "sure to include the --decryption-key option in your compatibility "
+                    "test run command.\n"
+                    f"If attempting to associate with a benchmark AND you are the Model "
+                    "Owner responsible for this container, please run the following command "
+                    "to create the association:\n"
                     f"medperf container associate_with_ca --container-id {self.container.id} "
-                    f"--decryption-key <path to your decryption key file> "
+                    "--decryption-key <path to your decryption key file> "
                     "--ca-id <ID of your preferred CA here>"
                 )
                 raise MissingContainerKeyException(msg)
