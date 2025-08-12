@@ -48,9 +48,13 @@ class PrivateRunner(Runner):
                 self._ca = CA.from_container(self.container.id)
             except CommunicationRetrievalError:
                 error_msg = (
-                    f"No associated Certificate Authority (CA) was found for the Container {self.container.name} (UID: {self.container.id})\n"
-                    f"If you are the Model Owner responsible for this container, please run the following command to create the association:\n"
-                    f"medperf container associate_with_ca --container-id {self.container.id} --decryption-key <path to your decryption key file> --ca-id <ID of your preferred CA here>"
+                    f"No associated Certificate Authority (CA) was found "
+                    f"for the Container {self.container.name} (UID: {self.container.id})\n"
+                    f"If you are the Model Owner responsible for this container, "
+                    f"please run the following command to create the association:\n"
+                    f"medperf container associate_with_ca --container-id {self.container.id} "
+                    "--decryption-key <path to your decryption key file> "
+                    "--ca-id <ID of your preferred CA here>"
                 )
                 raise CommunicationRetrievalError(error_msg)
         return self._ca
@@ -105,8 +109,11 @@ class PrivateRunner(Runner):
             else:
                 msg = (
                     f"Container Key not found for Container ID {self.container.id}.\n"
-                    f"If you are the Model Owner responsible for this container, please run the following command to create the association:\n"
-                    f"medperf container associate_with_ca --container-id {self.container.id} --decryption-key <path to your decryption key file> --ca-id <ID of your preferred CA here>"
+                    f"If you are the Model Owner responsible for this container, please "
+                    f"run the following command to create the association:\n"
+                    f"medperf container associate_with_ca --container-id {self.container.id} "
+                    f"--decryption-key <path to your decryption key file> "
+                    "--ca-id <ID of your preferred CA here>"
                 )
                 raise MissingContainerKeyException(msg)
         else:

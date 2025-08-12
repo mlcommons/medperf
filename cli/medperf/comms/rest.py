@@ -437,7 +437,10 @@ class REST(Comms):
         url = (
             f"{self.server_url}/benchmarks/{benchmark_id}/models/{model_id}/cas/{ca_id}"
         )
-        error_msg = f"Could not retrieve certificates from Benchmark {benchmark_id}, CA {ca_id} associated with Model {model_id}"
+        error_msg = (
+            f"Could not retrieve certificates from Benchmark {benchmark_id}, "
+            "CA {ca_id} associated with Model {model_id}"
+        )
         return self.__get_list(url=url, filters=filters, error_msg=error_msg)
 
     def get_training_events(self, filters={}) -> List[dict]:

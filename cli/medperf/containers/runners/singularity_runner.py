@@ -1,6 +1,5 @@
 from medperf.comms.entity_resources import resources
 from medperf.exceptions import InvalidArgumentError, MedperfException
-from medperf.utils import remove_path
 from .utils import (
     run_command,
     check_allowed_run_args,

@@ -45,7 +45,8 @@ class SubmitCertificate:
         if not os.path.exists(certificate_file_path):
             raise InvalidArgumentError(
                 "No local certificate found for CA {ca.name} ({ca.id}). "
-                "Please run the 'medperf certificate get_client_certificate' command to obtain a certificate before running the upload command."
+                "Please run the 'medperf certificate get_client_certificate' "
+                "command to obtain a certificate before running the upload command."
             )
 
         with open(certificate_file_path, "r") as certificate_f:

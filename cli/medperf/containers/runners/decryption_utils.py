@@ -2,7 +2,6 @@ from __future__ import annotations
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import padding
 from dataclasses import dataclass
 import os
 from typing import TYPE_CHECKING
@@ -15,6 +14,7 @@ from medperf.account_management.account_management import get_medperf_user_data
 if TYPE_CHECKING:
     from medperf.entities.ca import CA
     from medperf.entities.cube import Cube
+    from cryptography.hazmat.primitives.asymmetric import padding
 
 
 @dataclass

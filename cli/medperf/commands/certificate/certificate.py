@@ -17,14 +17,16 @@ def get_client_certificate(
         None,
         "--training_exp_id",
         "-t",
-        help="UID of training exp which you intend to be a part of. Only one of training_exp_ip or container_id must be provided.",
+        help="UID of training exp which you intend to be a part of. "
+        "Only one of training_exp_ip or container_id must be provided.",
     ),
     container_id: int = typer.Option(
         None,
         "--container-id",
         "--container_id",
         "-c",
-        help="UID of the Private container you intend to use. Only one of training_exp_ip or container_id must be provided.",
+        help="UID of the Private container you intend to use. "
+        "Only one of training_exp_ip or container_id must be provided.",
     ),
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite cert and key if present"

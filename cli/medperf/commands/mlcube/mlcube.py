@@ -182,7 +182,9 @@ def submit(
         "--ca-id",
         "--ca_id",
         "-c",
-        help="Only used for encrypted container submissions. ID of the Certificate Authority (CA) used to authenticate authorized users to access the encrypted container.",
+        help="Only used for encrypted container submissions. "
+        "ID of the Certificate Authority (CA) used to authenticate "
+        "authorized users to access the encrypted container.",
     ),
 ):
     """Submits a new container to the platform.\n
@@ -231,7 +233,7 @@ def submit(
                 approved=True,
                 decryption_key_path=decryption_key,
             )
-        except:
+        except Exception:
             config.ui.print(
                 "An error happened during the Container to CA association.\n"
                 "Please run the 'medperf container associate_with_ca command' to attempt association again."

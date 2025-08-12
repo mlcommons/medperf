@@ -1,4 +1,4 @@
-from rest_framework.generics import RetrieveAPIView, CreateAPIView
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -56,7 +56,9 @@ class GetAndPostEncryptedKeyFromModelAndCA(RetrieveAPIView):
         except ModelCAEncryptedKey.DoesNotExist:
             return Response(
                 {
-                    "detail": f"The access Key to Container ID {model_id}, CA ID {ca_id} has not been submitted yet for your user({request.user.email})."
+                    "detail": f"The access Key to Container ID {model_id}, "
+                    "CA ID {ca_id} has not been submitted yet for "
+                    "your user({request.user.email})."
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -100,7 +102,9 @@ class GetEncryptedKeyFromModel(RetrieveAPIView):
         except ModelCAEncryptedKey.DoesNotExist:
             return Response(
                 {
-                    "detail": f"The access Key to Container ID {model_id} has not been submitted yet for your user({request.user.email})."
+                    "detail": f"The access Key to Container ID {model_id}, "
+                    "CA ID {ca_id} has not been submitted yet for "
+                    "your user({request.user.email})."
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )

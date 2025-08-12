@@ -1,5 +1,4 @@
 from rest_framework.permissions import BasePermission
-from training.models import TrainingExperiment
 from ca.models import CA
 from mlcube.models import MlCube
 

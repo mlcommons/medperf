@@ -2,7 +2,7 @@ from medperf.containers.parsers.parser import Parser
 from medperf.exceptions import InvalidContainerSpec
 
 
-class SimpleContainerParser(Parser):    
+class SimpleContainerParser(Parser):
     @property
     def container_type(self):
         return self.container_config["container_type"]
