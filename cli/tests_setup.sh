@@ -130,11 +130,13 @@ ADMIN="testadmin@example.com"
 DATAOWNER2="testdo2@example.com"
 AGGOWNER="testao@example.com"
 FLADMIN="testfladmin@example.com"
+PRIVATEMODELOWNER="testpo@example.com"
 
 # local MLCubes for local compatibility tests
 PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator"
 MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn"
 METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics"
+PRIVATE_MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn_encrypted"
 
 TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
 # create storage folders
