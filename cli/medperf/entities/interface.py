@@ -7,11 +7,14 @@ import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
 from typing import Type, TypeVar
+from pydantic import Field
 
 EntityType = TypeVar("EntityType", bound="Entity")
 
 
 class Entity(MedperfSchema, ABC):
+    is_local: bool = Field(default=False, exclude=True)
+
     @staticmethod
     def get_type() -> str:
         raise NotImplementedError()
@@ -164,7 +167,7 @@ class Entity(MedperfSchema, ABC):
         """
         logging.debug(f"Retrieving {cls.get_type()} {uid} locally")
         entity_dict = cls.__get_local_dict(uid)
-        entity = cls(**entity_dict)
+        entity = cls(**entity_dict, is_local=True)
         return entity
 
     @classmethod

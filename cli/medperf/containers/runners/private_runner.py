@@ -14,6 +14,7 @@ from medperf.exceptions import (
     CommunicationRetrievalError,
     MissingContainerKeyException,
     DecryptionError,
+    AuthenticationError
 )
 from medperf.utils import remove_path, get_container_key_dir_path
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
@@ -38,7 +39,7 @@ class PrivateRunner(Runner):
         self._decrypted_image_path = (
             None  # Set in download_encrypted_image_file; file created in decrypt
         )
-        self._is_model_owner = self._current_user_is_model_owner()
+        self._must_delete_encrypted_image = self._check_if_must_delete_encrypted_image()
 
     @property
     def ca(self):
@@ -105,7 +106,7 @@ class PrivateRunner(Runner):
             config.container_key_file,
         )
 
-        if self._is_model_owner:
+        if self._must_delete_encrypted_image:
             if os.path.exists(model_owner_key_path):
                 decrypted_key = self._load_model_owner_local_key(model_owner_key_path)
             else:
@@ -128,11 +129,24 @@ class PrivateRunner(Runner):
         fernet_obj = Fernet(decrypted_key)
         return fernet_obj
 
-    def _current_user_is_model_owner(self) -> bool:
-        current_user_id = get_medperf_user_data()["id"]
-        model_owner_id = self.container.owner
-        return current_user_id == model_owner_id
+    def _check_if_must_delete_encrypted_image(self) -> bool:
+        """
+        Keep encrypted image if current user is the model owner or if 
+        execution is local (ie they already have the decrypted model 
+        anyway). Delete encrypted image in all other scenarios, 
+        including if we cannot verify the user identity.
 
+        Decrypted image is always deleted after execution.
+        """
+        if self.container.is_local:
+            return False
+        else:
+            try:
+                current_user_id = get_medperf_user_data()["id"]
+                model_owner_id = self.container.owner
+                return current_user_id != model_owner_id
+            except AuthenticationError:
+                return True
     @staticmethod
     def _load_model_owner_local_key(model_owner_key_path: str) -> bytes:
         with open(model_owner_key_path, "rb") as f:
@@ -171,6 +185,6 @@ class PrivateRunner(Runner):
         should also have a specific method for cleanup (for example, docker needs to delete
         the image and container from the daemon)
         """
-        if not self._is_model_owner:
+        if self._must_delete_encrypted_image:
             self._safe_remove_file(self._encrypted_image_path)
         self._safe_remove_file(self._decrypted_image_path)
