@@ -439,7 +439,7 @@ class REST(Comms):
         )
         error_msg = (
             f"Could not retrieve certificates from Benchmark {benchmark_id}, "
-            "CA {ca_id} associated with Model {model_id}"
+            f"CA {ca_id} associated with Model {model_id}"
         )
         return self.__get_list(url=url, filters=filters, error_msg=error_msg)
 
