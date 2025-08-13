@@ -106,8 +106,19 @@ print_eval medperf dataset associate -d $DSET_UID -b 1 -y
 checkFailed "Data association step failed"
 
 echo "============================================="
+echo "Creating Model CA Association"
+echo "============================================="
+print_eval medperf profile activate testprivate
+checkFailed "Failed to activate profile testprivate"
+
+print_eval medperf container associate_with_ca --ca-id 1 --model-id $PMODEL_UID --decryption-key $PRIVATE_MODEL_LOCAL/key.bin -y
+checkFailed "Failed to Associate model With CA"
+
+echo "============================================="
 echo "Creating certificate and submitting to Server"
 echo "============================================="
+print_eval medperf profile activate testdata
+checkFailed "Failed to activate profile testdata"
 print_eval medperf certificate get_client_certificate -c $PMODEL_UID --overwrite
 checkFailed "Failed to obtain Data Owner Certificate"
 

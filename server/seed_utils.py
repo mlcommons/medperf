@@ -453,28 +453,28 @@ def create_private_model(api_server: Server, private_model_owner_token, benchmar
         "(by Benchmark Owner)",
     )
     
-    # Associate with CA 1 for Certificates
-    medperf_ca_id = 1 # Created directly in server via Migration
-    model_ca_association = api_server.request(
-        endpoint=(
-            "/mlcubes/"
-            + str(private_model_executor1_mlcube)
-            + "/ca/"
-            ),
-        method="POST",
-        token=private_model_owner_token,
-        data={
-            "associated_ca": medperf_ca_id,
-            "model_mlcube": private_model_executor1_mlcube,
-            "metadata": {}
-        },
-        out_field="id"
-    )
-    print(
-        "Model MlCube Id:",
-        private_model_executor1_mlcube,
-        "associated to CA Id:",
-        medperf_ca_id,
-        ". The Model <-> CA Association ID is:",
-        model_ca_association
-    )
+    # # Associate with CA 1 for Certificates
+    # medperf_ca_id = 1 # Created directly in server via Migration
+    # model_ca_association = api_server.request(
+    #     endpoint=(
+    #         "/mlcubes/"
+    #         + str(private_model_executor1_mlcube)
+    #         + "/ca/"
+    #         ),
+    #     method="POST",
+    #     token=private_model_owner_token,
+    #     data={
+    #         "associated_ca": medperf_ca_id,
+    #         "model_mlcube": private_model_executor1_mlcube,
+    #         "metadata": {}
+    #     },
+    #     out_field="id"
+    # )
+    # print(
+    #     "Model MlCube Id:",
+    #     private_model_executor1_mlcube,
+    #     "associated to CA Id:",
+    #     medperf_ca_id,
+    #     ". The Model <-> CA Association ID is:",
+    #     model_ca_association
+    # )
