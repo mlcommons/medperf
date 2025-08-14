@@ -167,6 +167,7 @@ echo "====================================="
 # Test offline compatibility test
 print_eval wget -P $MODEL_LOCAL/workspace/additional_files "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
 print_eval tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $MODEL_LOCAL/workspace/additional_files
+print_eval mkdir -p $PRIVATE_MODEL_LOCAL/workspace/additional_files
 print_eval tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $PRIVATE_MODEL_LOCAL/workspace/additional_files
 
 ## Change the server and logout just to make sure this command will work without connecting to a server
