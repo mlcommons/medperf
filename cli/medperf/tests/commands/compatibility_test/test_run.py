@@ -227,7 +227,7 @@ class TestPrepareCubes:
         # Assert
         get_spy.assert_has_calls(
             [
-                call(self.new_model_uid, "Model", local_only=offline, use_local_model_image=False, 
+                call(self.new_model_uid, "Model", local_only=offline, use_local_model_image=False,
                      decryption_key_file_path=decryption_key_file_path),
                 call(self.new_eval_uid, "Evaluator", local_only=offline),
             ]
