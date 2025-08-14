@@ -387,7 +387,7 @@ def create_private_model(api_server: Server, private_model_owner_token, benchmar
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "c36e83a0b7c81118365e60ba8d9d6586eab1372af5483b0120ae7b8b80f45dbe",
+            "image_hash": "c1684112ccc4e50e58e173d86a333ad93b6f95b71ffbd9634e1d2c51eaf55719",
             "image_tarball_url": "",
             "image_tarball_hash": "",
         },
