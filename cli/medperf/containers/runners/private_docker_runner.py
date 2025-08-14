@@ -22,14 +22,14 @@ class PrivateDockerRunner(PrivateRunner, DockerRunner):
         try:
             # Define this early just in case we get an error before this is properly
             # defined, so clean up can run without issues
-            image_digests_list = []
+            repo_tags_list = []
 
             decrypted_image_archive = self._decrypt_image()
 
-            image_digests_list = self.get_image_digests_from_archive(
+            repo_tags_list = self.get_repo_tags_from_archive(
                 decrypted_image_archive
             )
-            main_image_digest = image_digests_list[0]
+            main_image_name = repo_tags_list[0]
 
             self.load_image(decrypted_image_archive)
             remove_path(decrypted_image_archive)
@@ -43,30 +43,28 @@ class PrivateDockerRunner(PrivateRunner, DockerRunner):
                 medperf_env=medperf_env,
                 ports=ports,
                 disable_network=disable_network,
-                image=main_image_digest,
+                image=main_image_name,
             )
         finally:
-            self.clean_up(*image_digests_list)
+            self.clean_up(*repo_tags_list)
 
-    def get_image_digests_from_archive(self, image_archive: str) -> list[str]:
+    def get_repo_tags_from_archive(self, image_archive: str) -> list[str]:
         """
-        Ideally we should find only digest from a single entry in the archive's index, but this method
+        Ideally we should find only a single entry in the digest with a single repo tag, but this method
         should hopefully generalize for manifests with multiple entries and/or multiple RepoTag values
         """
-        index_file = "index.json"
-        manifests_key = "manifests"
-        digest_key = "digest"
+        manifest_file = "manifest.json"
+        repo_tags_key = 'RepoTags'
 
         with tarfile.open(image_archive, "r") as tar:
-            with tar.extractfile(index_file) as index_json_obj:
-                index = json.load(index_json_obj)
+            with tar.extractfile(manifest_file) as index_json_obj:
+                manifests_list = json.load(index_json_obj)
 
-        manifests_list = index[manifests_key]
-        digests_list = []
+        repo_tags_list = []
         for manifest in manifests_list:
-            digests_list.append(manifest[digest_key])
+            repo_tags_list.extend(manifest[repo_tags_key])
 
-        return digests_list
+        return repo_tags_list
 
     def load_image(self, decrypted_image_archive):
         docker_load_cmd = ["docker", "load", "-i", decrypted_image_archive]
