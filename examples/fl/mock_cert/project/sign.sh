@@ -24,7 +24,6 @@ CSR_CONF=$OUT/csr.conf
 CA_KEY=$OUT/ca/root.key
 CA_CERT=$OUT/ca/cert/root.crt
 
-cp $CA_CERT $OUT/ca.crt
 sed -i "/^commonName = /c\commonName = $MEDPERF_INPUT_CN" $CSR_CONF
 sed -i "/^DNS\.1 = /c\DNS.1 = $MEDPERF_INPUT_CN" $CSR_CONF
 
