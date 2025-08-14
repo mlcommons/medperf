@@ -131,9 +131,9 @@ class PrivateRunner(Runner):
 
     def _check_if_must_delete_encrypted_image(self) -> bool:
         """
-        Keep encrypted image if current user is the model owner or if 
-        execution is local (ie they already have the decrypted model 
-        anyway). Delete encrypted image in all other scenarios, 
+        Keep encrypted image if current user is the model owner or if
+        execution is local (ie they already have the decrypted model
+        anyway). Delete encrypted image in all other scenarios,
         including if we cannot verify the user identity.
 
         Decrypted image is always deleted after execution.
@@ -147,6 +147,7 @@ class PrivateRunner(Runner):
                 return current_user_id != model_owner_id
             except AuthenticationError:
                 return True
+
     @staticmethod
     def _load_model_owner_local_key(model_owner_key_path: str) -> bytes:
         with open(model_owner_key_path, "rb") as f:

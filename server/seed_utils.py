@@ -360,6 +360,7 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
         "(by Benchmark Owner)",
     )
 
+
 def create_private_model(api_server: Server, private_model_owner_token, benchmark_owner_token, benchmark):
     print("##########################MODEL OWNER - PRIVATE MODEL##########################")
     # Model Owner Interaction - Creating a Private Model
@@ -375,7 +376,7 @@ def create_private_model(api_server: Server, private_model_owner_token, benchmar
             "git_mlcube_url": (
                 "https://raw.githubusercontent.com/RodriguesRBruno/medperf/"
                 "d005d8405159e14dc34f04c22fcf24dd67e0aa6e/examples/"
-                "chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml"), 
+                "chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml"),
             "mlcube_hash": "5072a12d1eacdcc4489a026a266537f81bbf33e4adb191a43bdcb0ade09da5a6",
             "git_parameters_url": (
                 ASSETS_URL + "model_custom_cnn/workspace/parameters.yaml"
@@ -452,29 +453,3 @@ def create_private_model(api_server: Server, private_model_owner_token, benchmar
         model_executor1_in_benchmark_status,
         "(by Benchmark Owner)",
     )
-    
-    # # Associate with CA 1 for Certificates
-    # medperf_ca_id = 1 # Created directly in server via Migration
-    # model_ca_association = api_server.request(
-    #     endpoint=(
-    #         "/mlcubes/"
-    #         + str(private_model_executor1_mlcube)
-    #         + "/ca/"
-    #         ),
-    #     method="POST",
-    #     token=private_model_owner_token,
-    #     data={
-    #         "associated_ca": medperf_ca_id,
-    #         "model_mlcube": private_model_executor1_mlcube,
-    #         "metadata": {}
-    #     },
-    #     out_field="id"
-    # )
-    # print(
-    #     "Model MlCube Id:",
-    #     private_model_executor1_mlcube,
-    #     "associated to CA Id:",
-    #     medperf_ca_id,
-    #     ". The Model <-> CA Association ID is:",
-    #     model_ca_association
-    # )

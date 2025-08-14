@@ -48,6 +48,7 @@ def seed(args):
     private_model_owner_token = get_token("testpo@example.com")
     create_private_model(api_server, private_model_owner_token, benchmark_owner_token, benchmark)
 
+
 if __name__ == "__main__":
     default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
     default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
