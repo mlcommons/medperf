@@ -12,8 +12,8 @@ from typing import Optional
 
 class SubmitCertificate:
     @classmethod
-    def run(cls, name: str, ca_id: Optional[int] = None, 
-            model_id: Optional[int] = None, training_exp_id: Optional[int] = None, 
+    def run(cls, name: str, ca_id: Optional[int] = None,
+            model_id: Optional[int] = None, training_exp_id: Optional[int] = None,
             approved: bool = False):
         """Upload certificate to MedPerf server"""
         current_ui: UI = config.ui
@@ -36,7 +36,7 @@ class SubmitCertificate:
         current_ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
 
-    def __init__(self, name: str, ca_id: Optional[int] = None, 
+    def __init__(self, name: str, ca_id: Optional[int] = None,
                  model_id: Optional[int] = None, training_exp_id: Optional[int] = None):
         self.ui: UI = config.ui
 
