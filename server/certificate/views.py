@@ -2,6 +2,7 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Certificate
 from .serializers import CertificateSerializer
@@ -16,7 +17,17 @@ from user.permissions import IsOwnUser
 class CertificateList(GenericAPIView):
     serializer_class = CertificateSerializer
     queryset = ""
-    permission_classes = [IsAdmin]
+
+    def get_permissions(self):
+        """
+        Anyone can post, but only admins can view and edit.
+        Owners can get their own certificates via the CertificateDetail view
+        ModelOwners can get relevant certificates via the CertificatesFromBenchmark view
+        """
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        else:
+            return [IsAdmin()]
 
     @extend_schema(operation_id="certificates_retrieve_all")
     def get(self, request, format=None):
