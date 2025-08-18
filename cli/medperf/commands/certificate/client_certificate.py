@@ -1,28 +1,18 @@
-from medperf.entities.ca import CA
 from medperf.account_management import get_medperf_user_data
 from medperf.certificates import get_client_cert
 from medperf.exceptions import MedperfException
 from medperf.utils import get_pki_assets_path, remove_path
 import os
-from medperf.exceptions import InvalidArgumentError
+from medperf.commands.certificate.utils import get_ca_from_id_model_or_training_exp
 
 
 class GetUserCertificate:
     @staticmethod
     def run(
-        training_exp_id: int = None, container_id: int = None, overwrite: bool = False
+        training_exp_id: int = None, model_id: int = None, ca_id: int = None, overwrite: bool = False
     ):
         """get user cert"""
-
-        if training_exp_id:
-            ca = CA.from_experiment(training_exp_id)
-        elif container_id:
-            ca = CA.from_container(container_id)
-        else:
-            # This is validated in the CLI, but better keep a check here to be extra safe
-            raise InvalidArgumentError(
-                "Exactly one of training_exp_id or container_id must be provided!"
-            )
+        ca = get_ca_from_id_model_or_training_exp(ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id)
 
         email = get_medperf_user_data()["email"]
         output_path = get_pki_assets_path(email, ca.name)

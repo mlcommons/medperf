@@ -1,3 +1,4 @@
+from medperf.commands.certificate.utils import validate_exactly_one_input
 import typer
 
 import medperf.config as config
@@ -5,7 +6,7 @@ from medperf.decorators import clean_except
 from medperf.commands.certificate.client_certificate import GetUserCertificate
 from medperf.commands.certificate.server_certificate import GetServerCertificate
 from medperf.commands.certificate.submit import SubmitCertificate
-from medperf.exceptions import InvalidArgumentError
+
 
 app = typer.Typer()
 
@@ -13,33 +14,38 @@ app = typer.Typer()
 @app.command("get_client_certificate")
 @clean_except
 def get_client_certificate(
+    ca_id: int = typer.Option(
+        None,
+        "--ca_id",
+        "--ca-id",
+        "-c",
+        help="UID of the Certificate Authority (CA) from which a "
+        "Certificate will be obtained. "
+        "Exactly one ca_id, training_exp_id or model_id must be provided.",
+    ),
     training_exp_id: int = typer.Option(
         None,
         "--training_exp_id",
         "-t",
         help="UID of training exp which you intend to be a part of. "
-        "Only one of training_exp_ip or container_id must be provided.",
+        "Exactly one ca_id, training_exp_ip or model_id must be provided.",
     ),
-    container_id: int = typer.Option(
+    model_id: int = typer.Option(
         None,
-        "--container-id",
-        "--container_id",
+        "--model-id",
+        "--model_id",
         "-c",
         help="UID of the Private container you intend to use. "
-        "Only one of training_exp_ip or container_id must be provided.",
+        "Exactly one ca_id training_exp_ip or model_id must be provided.",
     ),
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite cert and key if present"
     ),
 ):
-    """Get a client certificate."""
-    if training_exp_id is not None and container_id is not None:
-        raise InvalidArgumentError(
-            "Only one of training_exp_id or container_id may be provided!"
-        )
+    validate_exactly_one_input(ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id)
 
     GetUserCertificate.run(
-        training_exp_id=training_exp_id, container_id=container_id, overwrite=overwrite
+        training_exp_id=training_exp_id, model_id=model_id, ca_id=ca_id, overwrite=overwrite
     )
     config.ui.print("✅ Done!")
 
@@ -67,11 +73,29 @@ def get_server_certificate(
 def submit(
     name: str = typer.Option(..., "--name", "-n", help="Name of the Certificate"),
     ca_id: int = typer.Option(
-        ...,
-        "--ca-id",
+        None,
         "--ca_id",
-        help="UID of the Certificate Authority (CA) that issued the certificate.\n"
-        "You can view the registered CAs with the command 'medperf ca ls'. ",
+        "--ca-id",
+        "-c",
+        help="UID of the Certificate Authority (CA) associated with the submitted "
+        "Exactly one ca_id, training_exp_id or model_id must be provided.",
+    ),
+    training_exp_id: int = typer.Option(
+        None,
+        "--training_exp_id",
+        "-t",
+        help="Training experiment UID associated with the Certificate to be submitted. "
+        "The relevant CA is automatically inferred from the Training Experiment UID."
+        "Exactly one ca_id, training_exp_ip or model_id must be provided.",
+    ),
+    model_id: int = typer.Option(
+        None,
+        "--model-id",
+        "--model_id",
+        "-c",
+        help="Private Model UID associated with the Certificate to be submitted. "
+        "The relevant CA is automatically inferred from the Model UID."
+        "Exactly one ca_id, training_exp_ip or model_id must be provided."
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
@@ -80,5 +104,6 @@ def submit(
     NOTE: After uploading a certificate, your e-mail will be publicly available to other users
     associated with the same Certificate Authority (CA).
     """
+    validate_exactly_one_input(ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id)
     SubmitCertificate.run(name=name, ca_id=ca_id, approved=approval)
     config.ui.print("✅ Done!")

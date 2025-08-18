@@ -1,4 +1,3 @@
-from medperf.entities.ca import CA
 from medperf.account_management import get_medperf_user_data
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import get_pki_assets_path, approval_prompt
@@ -7,14 +6,16 @@ from medperf import config
 from medperf.ui.interface import UI
 from medperf.entities.certificate import Certificate
 from medperf.certificates import trust
+from medperf.commands.certificate.utils import get_ca_from_id_model_or_training_exp
+from typing import Optional
 
 
 class SubmitCertificate:
     @classmethod
-    def run(cls, name: str, ca_id: int, approved: bool = False):
+    def run(cls, name: str, ca_id: Optional[int] = None, model_id: Optional[int] = None, training_exp_id: Optional[int] = None, approved: bool = False):
         """Upload certificate to MedPerf server"""
         current_ui: UI = config.ui
-        submission = cls(name, ca_id)
+        submission = cls(name, ca_id, model_id, training_exp_id)
 
         msg = "When submitting your Certificate, your e-mail will be visible to other users "
         msg += "that use the same Certificate Authority (CA) to issue certificates.\n"
@@ -33,10 +34,10 @@ class SubmitCertificate:
         current_ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
 
-    def __init__(self, name: str, ca_id: int):
+    def __init__(self, name: str, ca_id: Optional[int] = None, model_id: Optional[int] = None, training_exp_id: Optional[int] = None):
         self.ui: UI = config.ui
 
-        self.ca = CA.get(ca_id)
+        self.ca = get_ca_from_id_model_or_training_exp(ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id)
 
         email = get_medperf_user_data()["email"]
         pki_assets_path = get_pki_assets_path(email, self.ca.name)
@@ -44,9 +45,9 @@ class SubmitCertificate:
 
         if not os.path.exists(certificate_file_path):
             raise InvalidArgumentError(
-                "No local certificate found for CA {ca.name} ({ca.id}). "
+                f"No local certificate found for CA {self.ca.name} ({self.ca.id}). "
                 "Please run the 'medperf certificate get_client_certificate' "
-                "command to obtain a certificate before running the upload command."
+                "command to obtain a certificate before running the submit command."
             )
 
         with open(certificate_file_path, "r") as certificate_f:
