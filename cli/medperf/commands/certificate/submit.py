@@ -17,8 +17,8 @@ class SubmitCertificate:
         current_ui: UI = config.ui
         submission = cls(name, ca_id, model_id, training_exp_id)
 
-        msg = "When submitting your Certificate, your e-mail will be visible to other users "
-        msg += "that use the same Certificate Authority (CA) to issue certificates.\n"
+        msg = "When submitting your Certificate, your e-mail will be visible to the Model Owner(s) "
+        msg += "that use the same Certificate Authority (CA) to grant private model access.\n"
         msg += "Do you wish to proceed? [Y/n]"
 
         approved = approved or approval_prompt(msg)

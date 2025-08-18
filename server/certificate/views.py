@@ -5,16 +5,18 @@ from rest_framework import status
 
 from .models import Certificate
 from .serializers import CertificateSerializer
-from .permissions import IsModelApprovedInBenchmark
+from .permissions import IsModelApprovedInBenchmark, IsModelOwner
 from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
 from benchmarkdataset.models import BenchmarkDataset
 from dataset.models import Dataset
+from user.permissions import IsOwnUser
 
 
 class CertificateList(GenericAPIView):
     serializer_class = CertificateSerializer
     queryset = ""
+    permission_classes = [IsAdmin]
 
     @extend_schema(operation_id="certificates_retrieve_all")
     def get(self, request, format=None):
@@ -40,6 +42,7 @@ class CertificateList(GenericAPIView):
 class CertificateDetail(GenericAPIView):
     serializer_class = CertificateSerializer
     queryset = ""
+    permission_classes = [IsAdmin | IsOwnUser]
 
     def get_object(self, pk):
         try:
@@ -57,8 +60,7 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | IsModelApprovedInBenchmark]
-    # permission_classes = [IsAdmin | (IsModelApprovedInBenchmark & IsModelOwner)]
+    permission_classes = [IsAdmin | (IsModelApprovedInBenchmark & IsModelOwner)]
 
     def get(self, request, benchmark_id, model_id, ca_id, format=None):
         benchmark_dataset_associations = BenchmarkDataset.objects.filter(
