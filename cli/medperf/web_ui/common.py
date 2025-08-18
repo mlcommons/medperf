@@ -20,9 +20,10 @@ from medperf.web_ui.auth import (
     NotAuthenticatedException,
 )
 import uuid
-import time
 
 from medperf.account_management.account_management import read_user_account
+from medperf.web_ui.schemas import Notification, WebUITask
+
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
@@ -41,13 +42,9 @@ def initialize_state_task(request: Request, task_name: str) -> str:
     new_task_id = generate_uuid()
     config.ui.set_task_id(new_task_id)
     config.ui.set_request(request)
-    request.app.state.task = {
-        "id": new_task_id,
-        "name": task_name,
-        "running": True,
-        "logs": [],
-        "formData": form_data,
-    }
+    request.app.state.task = WebUITask(
+        id=new_task_id, name=task_name, running=True, formData=form_data
+    )
     request.app.state.task_running = True
 
     return new_task_id
@@ -55,17 +52,11 @@ def initialize_state_task(request: Request, task_name: str) -> str:
 
 def reset_state_task(request: Request):
     current_task = request.app.state.task
-    current_task["running"] = False
+    current_task.set_running(False)
     if len(request.app.state.old_tasks) == 10:
         request.app.state.old_tasks.pop(0)
     request.app.state.old_tasks.append(current_task)
-    request.app.state.task = {
-        "id": "",
-        "name": "",
-        "running": False,
-        "logs": [],
-        "formData": {},
-    }
+    request.app.state.task = WebUITask()
     request.app.state.task_running = False
 
 
@@ -74,16 +65,13 @@ def add_notification(
 ):
     if return_response["status"] == "failed":
         message += f": {return_response['error']}"
-    request.app.state.new_notifications.append(
-        {
-            "id": generate_uuid(),
-            "message": message,
-            "type": return_response["status"],
-            "read": False,
-            "timestamp": time.time(),
-            "url": url,
-        }
+    notification = Notification(
+        id=generate_uuid(),
+        message=message,
+        type=return_response["status"],
+        url=url,
     )
+    request.app.state.new_notifications.append(notification)
 
 
 def custom_exception_handler(request: Request, exc: Exception):
@@ -136,16 +124,30 @@ def is_logged_in():
     return read_user_account() is not None
 
 
+def process_notifications(request: Request):
+    if request.app.state.new_notifications:
+        request.app.state.notifications.extend(request.app.state.new_notifications)
+        request.app.state.new_notifications.clear()
+
+    unread_count = 0
+    if request.app.state.notifications:
+        unread_count = len([i for i in request.app.state.notifications if not i.read])
+
+    request.app.state.unread_count = unread_count
+
+
 def check_user_ui(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
     request.app.state.logged_in = is_logged_in()
+    process_notifications(request)
+
     if token == security_token:
         return True
-    else:
-        login_url = f"/security_check?redirect_url={request.url.path}"
-        raise NotAuthenticatedException(redirect_url=login_url)
+
+    login_url = f"/security_check?redirect_url={request.url.path}"
+    raise NotAuthenticatedException(redirect_url=login_url)
 
 
 def check_user_api(
@@ -163,5 +165,5 @@ def check_user_api(
             )
     if token == security_token:
         return True
-    else:
-        raise HTTPException(status_code=401, detail="Not authorized")
+
+    raise HTTPException(status_code=401, detail="Not authorized")

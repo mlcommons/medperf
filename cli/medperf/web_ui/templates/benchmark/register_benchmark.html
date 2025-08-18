@@ -8,7 +8,7 @@
 {% block title %}Create Benchmark{% endblock %}
 
 {% block content %}
-{% set benchmark_register_running = (task_running and request.app.state.task["name"] == "benchmark_registration") %}
+{% set benchmark_register_running = (task_running and request.app.state.task.name == "benchmark_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Benchmark</h1>
     <div class="text-center fs-5 mt-4">
@@ -177,7 +177,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/benchmarks/benchmark_register.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "benchmark_registration" %}
+{% if task_running and request.app.state.task.name == "benchmark_registration" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

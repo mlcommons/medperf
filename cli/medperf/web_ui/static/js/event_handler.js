@@ -10,51 +10,52 @@ function scrollToElement(selector){
     }, 1000);
 }
 
-// Recursively get events(logs, prompts, etc..)
-function getEvents(logPanel, stagesList, currentStageElement) {
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: "/events",
-            type: "GET",
-            dataType: "json",
-            success: function(response) {
-                if (response.task_id === window.runningTaskId){
-                    if (response.end){
-                        resolve(response);
-                        return;
-                    }
-                }
-                currentStageElement = handleEvents(response, logPanel, stagesList, currentStageElement);
-                if(!window.isPromptReceived)
-                    getEvents(logPanel, stagesList, currentStageElement).then(resolve).catch(reject);
-            },
-            error: function(xhr, status, error) {
-                console.log("Error getEvents");
-                console.log(xhr);
-                console.log(status);
-                console.log(error);
-                reject(error);
+function streamEvents(logPanel, stagesList, currentStageElement, streamOld) {
+    const url = streamOld === true ? `/events?stream_old=true` : `/events`; 
+    const eventSource = new EventSource(url);
+
+    eventSource.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        // Only process events from current task
+        if (data.task_id !== window.runningTaskId)
+            return;
+
+        currentStageElement = handleEvents(data, logPanel, stagesList, currentStageElement);
+        // If task ended, close the stream
+        if (data.end) {
+            eventSource.close();
+            if (typeof window.onPromptComplete === "function") {
+                window.onPromptComplete(data.response);
             }
-        });
-    });
+        }
+        if(window.isPromptReceived){
+            eventSource.close();
+        }
+    };
+
+    eventSource.onerror = function (err) {
+        console.error("EventSource failed:", err);
+        eventSource.close();
+    };
 }
 
-function processPreviousEvents(logPanel, stagesList, currentStageElement){
-    if(window.previousEvents){
-        window.previousEvents.forEach(event => {
-            currentStageElement = handleEvents(event, logPanel, stagesList, currentStageElement);
-        });
-    }
-    return currentStageElement;
+function cleanMsg(message){
+    return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
 }
 
 // This function handles Events
 function handleEvents(event, logPanel, stagesList, currentStageElement) {
-    if (event.task_id !== window.runningTaskId){
+    if(event.kind === "chunk"){
+        const lines = [];
+        for(const ev of event.events){
+            lines.push(cleanMsg(ev.message))
+        }
+        appendManyToLogPanel(lines, logPanel);
         return currentStageElement;
     }
     // Clean the message from ANSI escape sequences
-    var cleanMessage = event.message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+    var cleanMessage = cleanMsg(event.message);
     if(event.interactive){
         if (event.type === 'text'){
             if (currentStageElement)
@@ -152,10 +153,38 @@ function markStageAsComplete(stageElement) {
     }
 }
 
+function appendManyToLogPanel(messages, logPanel) {
+    if (!messages || !messages.length)
+        return;
+
+    // Appends chunk messages to the log panel
+    const frag = document.createDocumentFragment();
+    for (const m of messages) {
+        const node = document.createTextNode(m + "\n");
+        frag.appendChild(node);
+        logNodes.push(node);
+    }
+    logPanel.appendChild(frag);
+
+    const overflow = logNodes.length - window.maxLogMessages;
+    if (overflow > 0) {
+        for (let i = 0; i < overflow; i++) {
+            logPanel.removeChild(logNodes.shift());
+        }
+    }
+    // Scroll to the bottom of the log panel to show the latest logs
+    logPanel.scrollTop = logPanel.scrollHeight;
+}
 
 function appendToLogPanel(message, logPanel) {
     // Appends log messages to the log panel
-    logPanel.innerHTML += `${message}\n`;
+    const node = document.createTextNode(message + "\n");
+    logPanel.appendChild(node);
+    logNodes.push(node);
+
+    while (logNodes.length > window.maxLogMessages) {
+        logPanel.removeChild(logNodes.shift());
+    }
     // Scroll to the bottom of the log panel to show the latest logs
     logPanel.scrollTop = logPanel.scrollHeight;
 }

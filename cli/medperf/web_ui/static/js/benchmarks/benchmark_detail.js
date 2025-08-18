@@ -183,7 +183,7 @@ async function updateAssociationsPolicy(saveBtn){
     );
 
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 $(document).ready(() => {

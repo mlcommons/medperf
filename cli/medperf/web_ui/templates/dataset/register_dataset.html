@@ -8,7 +8,7 @@
 {% block title %}Register Dataset{% endblock %}
 
 {% block content %}
-{% set dataset_register_running = (task_running and request.app.state.task["name"] == "dataset_registration") %}
+{% set dataset_register_running = (task_running and request.app.state.task.name == "dataset_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Dataset</h1>
     <form class="my-5" id="dataset-register-form">
@@ -178,7 +178,7 @@
 <script src="{{ url_for('static', path='js/datasets/dataset_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "dataset_registration" %}
+{% if task_running and request.app.state.task.name == "dataset_registration" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

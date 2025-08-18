@@ -32,7 +32,7 @@ async function runContainerCompatibilityTest(runCompTestButton){
 
     showPanel(`Running Compatibility Test...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkCompTestFormValidity() {

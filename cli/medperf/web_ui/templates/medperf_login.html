@@ -5,7 +5,7 @@
 {% block title %}Medperf Login{% endblock %}
 
 {% block content %}
-{% set login_running = (task_running and request.app.state.task["name"] == "medperf_login") %}
+{% set login_running = (task_running and request.app.state.task.name == "medperf_login") %}
 <div class="container min-vh-100 justify-content-center align-items-center">
     <div class="row mt-5">
         {% if redirect %}
@@ -61,7 +61,7 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/medperf_auth.js') }}"></script>
-{% if task_running and request.app.state.task["name"] == "medperf_login"  %}
+{% if task_running and request.app.state.task.name == "medperf_login"  %}
 <script>
     $(document).ready(() => {
         resumeLogin(

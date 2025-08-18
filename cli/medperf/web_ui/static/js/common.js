@@ -169,11 +169,7 @@ function respondToPrompt(value){
         data: { is_approved: value },
     });
     window.isPromptReceived = false;
-    getEvents(logPanel, stagesList, currentStageElement).then((last_log) => {
-        if (typeof window.onPromptComplete === "function") {
-            window.onPromptComplete(last_log);
-        }
-    });
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function resumeRunningTask(buttonSelector, panelTitle, callback){
@@ -192,15 +188,8 @@ function resumeRunningTask(buttonSelector, panelTitle, callback){
         showPanel(panelTitle);
     }
 
-    currentStageElement = processPreviousEvents(logPanel, stagesList, currentStageElement);
-    window.onPromptComplete = (last_log) => {
-        callback(last_log.response);
-    };
-    if(!window.isPromptReceived){
-        getEvents(logPanel, stagesList, currentStageElement).then(last_log => {
-            callback(last_log.response);
-        });
-    }
+    window.onPromptComplete = callback;
+    streamEvents(logPanel, stagesList, currentStageElement, true);
 }
 
 function reloadPage(){
@@ -235,6 +224,8 @@ function logout(){
 
 let currentStageElement = null, logPanel, stagesList;
 window.isPromptReceived = false;
+window.onPromptComplete = null;
+const logNodes = [];
 
 $(document).ready(() => {
     applyDateFormatting();
@@ -242,7 +233,6 @@ $(document).ready(() => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     
-    window.onPromptComplete = null;
     window.notifications.forEach(notification => {
         addNotification(notification);
     });

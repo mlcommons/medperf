@@ -25,7 +25,7 @@ async function importDataset(importButton){
     );
 
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkImportFormValidity() {

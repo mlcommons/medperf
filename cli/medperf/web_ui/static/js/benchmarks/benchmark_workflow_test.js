@@ -33,7 +33,7 @@ async function benchmarkWorkflowTest(workflowTestButton){
 
     showPanel(`Running Workflow Test...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function showRegisterBenchmark(){

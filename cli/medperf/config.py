@@ -231,6 +231,7 @@ logs_backup_count = 100
 cleanup = True
 ui = "CLI"
 webui = "WEBUI"
+MAXLOGMESSAGES = 200  # Maximum number of messages that will appear in LogPanel in WebUI
 
 default_profile_name = "default"
 testauth_profile_name = "testauth"
