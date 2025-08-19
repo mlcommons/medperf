@@ -105,5 +105,5 @@ def submit(
     associated with the same Certificate Authority (CA).
     """
     validate_exactly_one_input(ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id)
-    SubmitCertificate.run(name=name, ca_id=ca_id, approved=approval)
+    SubmitCertificate.run(name=name, ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id, approved=approval)
     config.ui.print("✅ Done!")
