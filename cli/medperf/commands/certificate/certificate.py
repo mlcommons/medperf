@@ -34,7 +34,7 @@ def get_client_certificate(
         None,
         "--model-id",
         "--model_id",
-        "-c",
+        "-m",
         help="UID of the Private container you intend to use. "
         "Exactly one ca_id training_exp_ip or model_id must be provided.",
     ),
@@ -92,7 +92,7 @@ def submit(
         None,
         "--model-id",
         "--model_id",
-        "-c",
+        "-m",
         help="Private Model UID associated with the Certificate to be submitted. "
         "The relevant CA is automatically inferred from the Model UID."
         "Exactly one ca_id, training_exp_ip or model_id must be provided."
