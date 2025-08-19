@@ -119,10 +119,10 @@ echo "Creating certificate and submitting to Server"
 echo "============================================="
 print_eval medperf profile activate testdata
 checkFailed "Failed to activate profile testdata"
-print_eval medperf certificate get_client_certificate -c $PMODEL_UID --overwrite
+print_eval medperf certificate get_client_certificate -m $PMODEL_UID --overwrite
 checkFailed "Failed to obtain Data Owner Certificate"
 
-print_eval medperf certificate submit --name TestCert --ca-id 1 -y
+print_eval medperf certificate submit --name TestCert -m $PMODEL_UID -y
 checkFailed "Failed to submit Data Owner Certificate"
 
 echo "\n"
