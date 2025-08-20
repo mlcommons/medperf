@@ -5,9 +5,14 @@ from medperf.utils import get_pki_assets_path
 from medperf import config
 from typing import Optional
 from medperf.entities.ca import CA
+from medperf.certificates import trust
 from pydantic import root_validator, Field
 from typing import Any
 import base64
+import os
+from cryptography.x509 import UnsupportedGeneralNameType, load_pem_x509_certificate
+from cryptography.x509.verification import PolicyBuilder, Store, VerificationError
+from medperf.exceptions import InvalidCertificateError
 
 
 class Certificate(Entity):
@@ -122,3 +127,33 @@ class Certificate(Entity):
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }
+
+    def verify_with_ca(self, ca: CA, validate_ca: bool = True,
+                       intermediate_certificates: Optional[list[Certificate]] = None):
+        if validate_ca:
+            trust(ca)
+
+        if intermediate_certificates is None:
+            intermediate_certificates = []
+
+        intermediates = [load_pem_x509_certificate(cert.certificate_content)
+                         for cert in intermediate_certificates]
+
+        this_certificate = load_pem_x509_certificate(self.certificate_content)
+
+        ca_cert_path = os.path.join(ca.pki_assets, config.ca_certificate_file)
+        with open(ca_cert_path, 'rb') as ca_cert:
+            loaded_cert = load_pem_x509_certificate(ca_cert.read())
+            store = Store([loaded_cert])
+        builder = PolicyBuilder().store(store)
+        verifier = builder.build_client_verifier()
+
+        try:
+            verifier.verify(this_certificate, intermediates=intermediates)
+            return True
+        except (VerificationError, UnsupportedGeneralNameType) as e:
+            error_msg = (
+                f'Certificate could not be validated with '
+                f'CA {ca.name} (UID: {ca.id}). Details:\n{str(e)}'
+            )
+            raise InvalidCertificateError(error_msg)

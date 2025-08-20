@@ -56,3 +56,7 @@ class MissingPrivateKeyException(MedperfException):
 
 class DecryptionError(MedperfException):
     """Raised when failing to decrypt a private container"""
+
+
+class InvalidCertificateError(MedperfException):
+    """Raised when a Certificate fails to validate"""

@@ -5,7 +5,6 @@ import os
 from medperf import config
 from medperf.ui.interface import UI
 from medperf.entities.certificate import Certificate
-from medperf.certificates import trust
 from medperf.commands.certificate.utils import get_ca_from_id_model_or_training_exp
 from typing import Optional
 
@@ -31,7 +30,7 @@ class SubmitCertificate:
 
         with current_ui.interactive():
             current_ui.text = "Submitting Certificate to MedPerf"
-            submission.validate_certificate()
+            submission.verify_certificate()
             updated_certificate_body = submission.submit()
         current_ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
@@ -57,11 +56,11 @@ class SubmitCertificate:
             certificate_content = certificate_f.read()
 
         self.certificate = Certificate(
-            name=name, ca_id=ca_id, certificate_content=certificate_content
+            name=name, ca_id=self.ca.id, certificate_content=certificate_content
         )
 
-    def validate_certificate(self):
-        trust(self.ca)
+    def verify_certificate(self):
+        self.certificate.verify_with_ca(self.ca, validate_ca=True)
 
     def submit(self):
         updated_body = self.certificate.upload()

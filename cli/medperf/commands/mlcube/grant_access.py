@@ -7,7 +7,7 @@ from medperf import config
 from medperf.exceptions import MissingContainerKeyException
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from medperf.exceptions import CleanExit
+from medperf.exceptions import CleanExit, InvalidCertificateError
 from medperf.certificates import trust
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 
@@ -54,9 +54,14 @@ class GrantAccess:
             ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id
         )
 
+        config.ui.print('Verifying certificates match the given CA')
+        valid_certificates = cls.verify_certificates(ca=ca, certificates_list=certificates)
+        if not valid_certificates:
+            raise InvalidCertificateError('No valid certificates were found.')
+
         config.ui.print("Creating Encrypted Keys for Data Owners")
         encrypted_key_info_list = cls.generate_encrypted_keys_list(
-            certificates=certificates,
+            certificates=valid_certificates,
             container_key_bytes=container_key_bytes,
             key_name=name,
         )
@@ -121,3 +126,23 @@ class GrantAccess:
             key_info_list.append(key_obj)
 
         return key_info_list
+
+    @classmethod
+    def verify_certificates(cls, ca: CA, certificates_list: list[Certificate]) -> list[Certificate]:
+        error_certs = []
+        valid_certs = []
+
+        for certificate in certificates_list:
+            try:
+                certificate.verify_with_ca(ca, validate_ca=False)  # Validated in run method
+                valid_certs.append(certificate)
+            except InvalidCertificateError:
+                error_certs.append(certificate)
+
+        if error_certs:
+            error_cert_msg = 'The following certificates failed verification:\n'
+            for error_cert in error_certs:
+                error_cert_msg += f'{error_cert.name} (UID:{error_cert.name}, Owner: {error_cert.owner})\n'
+            config.ui.print(error_cert_msg)
+
+        return valid_certs
