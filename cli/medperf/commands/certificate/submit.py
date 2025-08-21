@@ -16,7 +16,6 @@ class SubmitCertificate:
             approved: bool = False):
         """Upload certificate to MedPerf server"""
         current_ui: UI = config.ui
-        submission = cls(name, ca_id, model_id, training_exp_id)
 
         msg = "When submitting your Certificate, your e-mail will be visible to the Model Owner(s) "
         msg += "that use the same Certificate Authority (CA) to grant private model access.\n"
@@ -27,6 +26,7 @@ class SubmitCertificate:
         if not approved:
             current_ui.print("Aggregator association operation cancelled.")
             return
+        submission = cls(name, ca_id, model_id, training_exp_id)
 
         with current_ui.interactive():
             current_ui.text = "Submitting Certificate to MedPerf"
@@ -58,6 +58,7 @@ class SubmitCertificate:
         self.certificate = Certificate(
             name=name, ca_id=self.ca.id, certificate_content=certificate_content
         )
+        config.tmp_paths.append(self.certificate.path)
 
     def verify_certificate(self):
         self.certificate.verify_with_ca(self.ca, validate_ca=True)
