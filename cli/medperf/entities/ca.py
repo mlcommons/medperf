@@ -59,7 +59,10 @@ class CA(Entity, MedperfSchema):
             "server_provisioner",
         }
         if keys != allowed_keys:
-            raise ValueError("config must contain two keys only: address and port")
+            raise ValueError(
+                "config must contain these exact 5 keys:\n"
+                "address, port, fingerprint, client_provisioner, server_provisioner"
+            )
         return v
 
     def __init__(self, *args, **kwargs):
