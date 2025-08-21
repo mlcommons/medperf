@@ -12,7 +12,7 @@ from medperf import config
 if TYPE_CHECKING:
     from medperf.comms.rest import REST
     from medperf.ui.interface import UI
-
+    from pyfakefs.fake_filesystem import FakeFilesystem
 
 PATCH_ASSOC = "medperf.commands.mlcube.associate.{}"
 ORIGINAL_KEY_NAME = 'key.bin'
@@ -35,14 +35,14 @@ def ca(mocker: MockerFixture):
 
 
 @pytest.fixture
-def decryption_key_path(mocker: MockerFixture, fs) -> Path:
+def decryption_key_path(mocker: MockerFixture, fs: FakeFilesystem) -> Path:
     path_to_key = Path('/path/to') / ORIGINAL_KEY_NAME
     fs.create_file(path_to_key, contents='not_a_real_key')
     return path_to_key
 
 
 @pytest.fixture
-def key_destination_path(fs) -> Path:
+def key_destination_path(fs: FakeFilesystem) -> Path:
     fake_destination_path = Path('/path/to/key/dest')
     fs.create_dir(fake_destination_path)
     return fake_destination_path
@@ -60,7 +60,7 @@ def test_run_associates_cube_with_comms(
     ui: UI,
     decryption_key_path: Path,
     key_destination_path: Path,
-    fs
+    fs: FakeFilesystem
 ):
     # Arrange
     spy = mocker.patch.object(comms, "associate_ca_model")
@@ -90,7 +90,7 @@ def test_fails_if_no_decryption_key_provided(
     comms: REST,
     ui: UI,
     key_destination_path: Path,
-    fs
+    fs: FakeFilesystem
 ):
     # Arrange
     spy = mocker.patch.object(comms, "associate_ca_model")
