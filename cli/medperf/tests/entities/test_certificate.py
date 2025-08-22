@@ -3,8 +3,16 @@ import base64
 import pytest
 from medperf.entities.certificate import Certificate
 from medperf.exceptions import MedperfException
+from medperf.tests.utils import generate_test_certificate
+from typing import TYPE_CHECKING
+from medperf.entities.ca import CA
+from pathlib import Path
+from medperf import config
+from medperf.exceptions import InvalidCertificateError
 
-PATCH_ASSOC = "medperf.entities.certificate.{}"
+if TYPE_CHECKING:
+    from pyfakefs.fake_filesystem import FakeFilesystem
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture
@@ -51,3 +59,48 @@ def test_raises_error_if_no_contents():
     with pytest.raises(MedperfException):
         Certificate(name='TestCert', id=1, owner=None, ca_id=1,
                     for_test=True)
+
+
+def test_verify_with_ca(mocker: MockerFixture, fs: FakeFilesystem):
+    # Arrange
+    ca_cert_info = generate_test_certificate()
+    client_cert_info = generate_test_certificate(ca_cert_info)
+    client_cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+                              for_test=True,
+                              certificate_content=client_cert_info.certificate_bytes)
+    ca = mocker.create_autospec(spec=CA)
+    ca.name = 'TestCA'
+    ca.id = 1
+    mock_pki_assets_dir = Path(f'/path/to/pki/assets/{ca.id}')
+    mock_ca_cert_file = mock_pki_assets_dir / config.ca_certificate_file
+    ca.pki_assets = mock_pki_assets_dir
+
+    fs.create_dir(mock_pki_assets_dir)
+    fs.create_file(mock_ca_cert_file, contents=ca_cert_info.certificate_bytes)
+
+    # Act & Assert
+    client_cert.verify_with_ca(ca=ca, validate_ca=False)
+
+
+def test_does_not_verify_with_wrong_ca(mocker: MockerFixture, fs: FakeFilesystem):
+    # Arrange
+    ca_cert_info = generate_test_certificate()
+    client_cert_info = generate_test_certificate(ca_cert_info)
+    irrelevant_ca_info = generate_test_certificate()
+
+    client_cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+                              for_test=True,
+                              certificate_content=client_cert_info.certificate_bytes)
+    ca = mocker.create_autospec(spec=CA)
+    ca.name = 'TestCA'
+    ca.id = 1
+    mock_pki_assets_dir = Path(f'/path/to/pki/assets/{ca.id}')
+    mock_ca_cert_file = mock_pki_assets_dir / config.ca_certificate_file
+    ca.pki_assets = mock_pki_assets_dir
+
+    fs.create_dir(mock_pki_assets_dir)
+    fs.create_file(mock_ca_cert_file, contents=irrelevant_ca_info.certificate_bytes)
+
+    # Act & Assert
+    with pytest.raises(InvalidCertificateError):
+        client_cert.verify_with_ca(ca=ca, validate_ca=False)
