@@ -12,7 +12,7 @@ from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.utils import get_container_key_dir_path
-from medperf.exceptions import MissingPrivateKeyException
+from medperf.exceptions import MissingPrivateKeyException, DecryptionError
 from medperf.utils import get_pki_assets_path
 
 
@@ -158,10 +158,13 @@ class EncryptedContainerKey(Entity):
 
     def decrypt_key(self, ca: CA, container: Cube) -> bytes:
         decryption_key = self._load_private_key(ca=ca, container=container)
-        decrypted_key = decryption_key.decrypt(
-            ciphertext=self.encrypted_key,
-            padding=self.padding,
-        )
+        try:
+            decrypted_key = decryption_key.decrypt(
+                ciphertext=self.encrypted_key,
+                padding=self.padding,
+            )
+        except ValueError:
+            raise DecryptionError(f'Could not decrypt keys to Container {container.name} (UID: {container.id})')
         return decrypted_key
 
     @staticmethod
