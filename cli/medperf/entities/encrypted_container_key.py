@@ -1,14 +1,25 @@
 from __future__ import annotations
-from medperf.entities.interface import Entity
-from medperf.account_management import get_medperf_user_data
-from medperf import config
-from typing import Optional
-from medperf.utils import get_container_key_dir_path
-from pydantic import Field, root_validator
-from typing import Any
+import os
 import base64
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+from typing import Any, TYPE_CHECKING, Optional
+from pydantic import Field, root_validator
+
+from medperf.entities.interface import Entity
+from medperf.account_management import get_medperf_user_data
+from medperf import config
+from medperf.utils import get_container_key_dir_path
+from medperf.exceptions import MissingPrivateKeyException
+from medperf.utils import get_pki_assets_path
+
+
+if TYPE_CHECKING:
+    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+    from medperf.entities.ca import CA
+    from medperf.entities.cube import Cube
 
 
 def _get_default_padding():
@@ -144,3 +155,41 @@ class EncryptedContainerKey(Entity):
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }
+
+    def decrypt_key(self, ca: CA, container: Cube) -> bytes:
+        decryption_key = self._load_private_key(ca=ca, container=container)
+        decrypted_key = decryption_key.decrypt(
+            ciphertext=self.encrypted_key,
+            padding=self.padding,
+        )
+        return decrypted_key
+
+    @staticmethod
+    def _load_private_key(ca: CA, container: Cube) -> RSAPrivateKey:
+        # TODO validate configs!
+        # Are we doing PEM Private Keys, with no password and default_backend as implemented?
+        # Are we going to support multiple configurations? If so, how?
+        # What about padding? We a default, support multiple? If supporting multiple, how to config?
+
+        user_email = get_medperf_user_data()["email"]
+        pki_assets_dir = get_pki_assets_path(common_name=user_email, ca_name=ca.name)
+        private_key_path = os.path.join(pki_assets_dir, config.private_key_file)
+
+        if not os.path.exists(private_key_path):
+            error_msg = (
+                f"No private key was found locally for the user email {user_email} and "
+                f"Certificate Authority (CA) {ca.name} (UID: {ca.id}), which enables "
+                f"access to the Model Container {container.name} (UID: {container.id}).\n"
+                f"Please run the following command to obtain a private key:\n"
+                f"medperf certificate get_client_certificate --container-id {container.id}"
+            )
+            raise MissingPrivateKeyException(error_msg)
+
+        with open(private_key_path, "rb") as private_key_file:
+            private_bytes = private_key_file.read()
+
+        private_key = serialization.load_pem_private_key(
+            data=private_bytes, backend=default_backend(), password=None
+        )
+
+        return private_key

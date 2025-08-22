@@ -1,12 +1,9 @@
 from __future__ import annotations
+import os
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Union
-import os
 from cryptography.fernet import Fernet, InvalidToken
-
 from .runner import Runner
-from .decryption_utils import load_private_key
-
 from medperf import config
 from medperf.comms.entity_resources import resources
 from medperf.entities.ca import CA
@@ -156,12 +153,7 @@ class PrivateRunner(Runner):
 
     def _load_data_owner_key(self) -> bytes:
         encrypted_key_obj = EncryptedContainerKey.get_from_model(self.container.id)
-        private_key = load_private_key(ca=self.ca, container=self.container)
-
-        decrypted_key = private_key.decrypt(
-            ciphertext=encrypted_key_obj.encrypted_key,
-            padding=encrypted_key_obj.padding,
-        )
+        decrypted_key = encrypted_key_obj.decrypt_key(ca=self.ca, container=self.container)
 
         return decrypted_key
 
