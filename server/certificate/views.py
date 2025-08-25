@@ -24,10 +24,8 @@ class CertificateList(GenericAPIView):
         Owners can get their own certificates via the CertificateDetail view
         ModelOwners can get relevant certificates via the CertificatesFromBenchmark view
         """
-        if self.request.method == 'POST':
-            return [IsAuthenticated()]
-        else:
-            return [IsAdmin()]
+        if self.request.method == "GET":
+            self.permission_classes = [IsAdmin]
 
     @extend_schema(operation_id="certificates_retrieve_all")
     def get(self, request, format=None):
