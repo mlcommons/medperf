@@ -2,7 +2,7 @@ from rest_framework.permissions import BasePermission
 from benchmarkmodel.models import BenchmarkModel
 from mlcube.models import MlCube
 from rest_framework.request import Request
-
+from rest_framework.permissions import IsAuthenticated
 
 class IsModelApprovedInBenchmark(BasePermission):
     def has_permission(self, request: Request, view):
@@ -33,3 +33,11 @@ class IsModelOwner(BasePermission):
         except BenchmarkModel.DoesNotExist:
             return False
         return model.owner.id == request.user.id
+
+
+class IsAuthenticatedAndIsPostRequest(IsAuthenticated):
+    def has_permission(self, request, view):
+        if request.method != "POST":
+            return False
+
+        return super().has_permission(request, view)

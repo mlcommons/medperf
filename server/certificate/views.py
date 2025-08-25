@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Certificate
 from .serializers import CertificateSerializer
-from .permissions import IsModelApprovedInBenchmark, IsModelOwner
+from .permissions import IsModelApprovedInBenchmark, IsModelOwner, IsAuthenticatedAndIsPostRequest
 from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
 from benchmarkdataset.models import BenchmarkDataset
@@ -17,15 +17,7 @@ from user.permissions import IsOwnUser
 class CertificateList(GenericAPIView):
     serializer_class = CertificateSerializer
     queryset = ""
-
-    def get_permissions(self):
-        """
-        Anyone can post, but only admins can view and edit.
-        Owners can get their own certificates via the CertificateDetail view
-        ModelOwners can get relevant certificates via the CertificatesFromBenchmark view
-        """
-        if self.request.method == "GET":
-            self.permission_classes = [IsAdmin]
+    permission_classes = [IsAdmin | IsAuthenticatedAndIsPostRequest]
 
     @extend_schema(operation_id="certificates_retrieve_all")
     def get(self, request, format=None):
