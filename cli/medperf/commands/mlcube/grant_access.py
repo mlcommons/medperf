@@ -53,6 +53,8 @@ class GrantAccess:
         certificates = Certificate.get_list_from_benchmark_model_ca(
             ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id
         )
+        if not certificates:
+            raise CleanExit('No Data Owners in need of keys were found.')
 
         config.ui.print('Verifying certificates match the given CA')
         valid_certificates = cls.verify_certificates(ca=ca, certificates_list=certificates)

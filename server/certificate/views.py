@@ -1,8 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from django.contrib.auth import get_user_model
 from .models import Certificate
 from .serializers import CertificateSerializer
 from .permissions import IsAuthenticatedAndIsPostRequest, IsAssociatedModelOwner
@@ -11,6 +13,15 @@ from drf_spectacular.utils import extend_schema
 from benchmarkdataset.models import BenchmarkDataset
 from dataset.models import Dataset
 from user.permissions import IsOwnUser
+from mlcube_ca_encrypted_key.models import ModelCAEncryptedKey
+from mlcube_ca_association.models import ContainerCA
+
+
+if TYPE_CHECKING:
+    from rest_framework.request import Request
+
+
+User = get_user_model()
 
 
 class CertificateList(GenericAPIView):
@@ -60,22 +71,41 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | IsAssociatedModelOwner]
+    permission_classes = [IsAdmin | IsAssociatedModelOwner | IsOwnUser]
 
-    def get(self, request, benchmark_id, model_id, ca_id, format=None):
+    def get(self, request: Request, benchmark_id: int,
+            model_id: int, ca_id:int, format=None):
+        ca_model_association = ContainerCA.get_by_model_id_and_ca_id(
+            model_id=model_id, ca_id=ca_id
+        )
+
+        already_registered_keys = ModelCAEncryptedKey.objects.filter(
+            owner=request.user.id, ca_association=ca_model_association
+        )
+
+        data_owners_that_already_have_keys = [key['data_owner_id'] for key in already_registered_keys.values()]
+
         benchmark_dataset_associations = BenchmarkDataset.objects.filter(
-            benchmark__id=benchmark_id
+            benchmark__id=benchmark_id, approval_status='APPROVED'
         ).prefetch_related("dataset")
 
-        dataset_ids = [
-            association.dataset.id for association in benchmark_dataset_associations
-        ]
-        datasets = Dataset.objects.filter(pk__in=dataset_ids)
-        dataset_owners = datasets.values_list("owner", flat=True)
+        dataset_ids = benchmark_dataset_associations.values_list('dataset')
+
+        datasets = Dataset.objects.exclude(
+            owner__in=data_owners_that_already_have_keys
+        ).filter(
+            pk__in=dataset_ids
+        )
+
+        data_owners_that_need_keys = [dataset['owner_id'] for dataset in datasets.values()]
+
+        print(f'{data_owners_that_need_keys=}')
 
         valid_certificates = Certificate.objects.filter(
-            ca_id__id=ca_id, owner__in=dataset_owners
+            ca_id__id=ca_id, owner__in=data_owners_that_need_keys
         )
+
         valid_certificates = self.paginate_queryset(valid_certificates)
         serializer = CertificateSerializer(valid_certificates, many=True)
+
         return self.get_paginated_response(serializer.data)
