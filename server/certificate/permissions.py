@@ -4,6 +4,7 @@ from mlcube.models import MlCube
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 
+
 class IsModelApprovedInBenchmark(BasePermission):
     def has_permission(self, request: Request, view):
         if request.method != "GET":
