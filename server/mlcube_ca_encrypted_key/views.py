@@ -103,8 +103,8 @@ class GetEncryptedKeyFromModel(RetrieveAPIView):
             return Response(
                 {
                     "detail": f"The access Key to Container ID {model_id}, "
-                    "CA ID {ca_id} has not been submitted yet for "
-                    "your user({request.user.email})."
+                    f"CA ID {ca_association.associated_ca.id} has not been submitted yet for "
+                    f"your user({request.user.email})."
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
