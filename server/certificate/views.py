@@ -5,7 +5,7 @@ from rest_framework import status
 
 from .models import Certificate
 from .serializers import CertificateSerializer
-from .permissions import IsModelApprovedInBenchmark, IsModelOwner, IsAuthenticatedAndIsPostRequest
+from .permissions import IsAuthenticatedAndIsPostRequest, IsAssociatedModelOwner
 from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
 from benchmarkdataset.models import BenchmarkDataset
@@ -60,7 +60,7 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | (IsModelApprovedInBenchmark & IsModelOwner)]
+    permission_classes = [IsAdmin | IsAssociatedModelOwner]
 
     def get(self, request, benchmark_id, model_id, ca_id, format=None):
         benchmark_dataset_associations = BenchmarkDataset.objects.filter(

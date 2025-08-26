@@ -1,12 +1,19 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from rest_framework.permissions import BasePermission
 from benchmarkmodel.models import BenchmarkModel
 from mlcube.models import MlCube
-from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
+from django.http import Http404
 
 
-class IsModelApprovedInBenchmark(BasePermission):
-    def has_permission(self, request: Request, view):
+if TYPE_CHECKING:
+    from rest_framework.request import Request
+    from rest_framework.generics import GenericAPIView
+
+
+class IsAssociatedModelOwner(BasePermission):
+    def has_permission(self, request: Request, view: GenericAPIView):
         if request.method != "GET":
             return False
 
@@ -14,30 +21,26 @@ class IsModelApprovedInBenchmark(BasePermission):
         model_id = view.kwargs.get("model_id")
 
         try:
-            benchmark_model_association = BenchmarkModel.objects.get(
-                model_mlcube__id=model_id, benchmark__id=benchmark_id
-            )
-        except BenchmarkModel.DoesNotExist:
-            return False
-        return benchmark_model_association.approval_status == "APPROVED"
-
-
-class IsModelOwner(BasePermission):
-    def has_permission(self, request: Request, view):
-        if request.method != "GET":
-            return False
-
-        model_id = view.kwargs.get("model_id")
-
-        try:
             model = MlCube.objects.get(pk=model_id)
-        except BenchmarkModel.DoesNotExist:
+        except MlCube.DoesNotExist:
+            raise Http404(f'Model container with ID {model_id} does not exist!')
+
+        is_model_owner = model.owner.id == request.user.id
+        benchmark_model_association = BenchmarkModel.objects.filter(
+            model_mlcube__id=model_id, benchmark__id=benchmark_id
+        ).order_by('-created_at').first()
+        if benchmark_model_association is None:
             return False
-        return model.owner.id == request.user.id
+
+        benchmark_model_association_approved = (
+            benchmark_model_association.approval_status == 'APPROVED'
+        )
+
+        return is_model_owner and benchmark_model_association_approved
 
 
 class IsAuthenticatedAndIsPostRequest(IsAuthenticated):
-    def has_permission(self, request, view):
+    def has_permission(self, request: Request, view: GenericAPIView):
         if request.method != "POST":
             return False
 
