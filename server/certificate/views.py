@@ -10,7 +10,6 @@ from .serializers import CertificateSerializer
 from .permissions import IsAuthenticatedAndIsPostRequest, IsAssociatedModelOwner
 from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
-from benchmarkdataset.models import BenchmarkDataset
 from dataset.models import Dataset
 from user.permissions import IsOwnUser
 from mlcube_ca_encrypted_key.models import ModelCAEncryptedKey
