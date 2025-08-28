@@ -14,7 +14,6 @@ from benchmarkdataset.models import BenchmarkDataset
 from dataset.models import Dataset
 from user.permissions import IsOwnUser
 from mlcube_ca_encrypted_key.models import ModelCAEncryptedKey
-from mlcube_ca_association.models import ContainerCA
 
 
 if TYPE_CHECKING:
@@ -75,37 +74,28 @@ class CertificatesFromBenchmark(GenericAPIView):
 
     def get(self, request: Request, benchmark_id: int,
             model_id: int, ca_id:int, format=None):
-        ca_model_association = ContainerCA.get_by_model_id_and_ca_id(
-            model_id=model_id, ca_id=ca_id
-        )
 
         already_registered_keys = ModelCAEncryptedKey.objects.filter(
-            owner=request.user.id, ca_association=ca_model_association
+            owner=request.user.id, ca_association__model_mlcube=model_id,
+            ca_association__associated_ca=ca_id
         )
 
-        data_owners_that_already_have_keys = [key['data_owner_id'] for key in already_registered_keys.values()]
+        data_owners_that_already_have_keys = already_registered_keys.values_list('data_owner', flat=True)
+        print(f'{data_owners_that_already_have_keys=}')
 
-        benchmark_dataset_associations = BenchmarkDataset.objects.filter(
-            benchmark__id=benchmark_id, approval_status='APPROVED'
-        ).prefetch_related("dataset")
-
-        dataset_ids = benchmark_dataset_associations.values_list('dataset')
-
-        datasets = Dataset.objects.exclude(
+        datasets_whose_owners_need_keys = Dataset.objects.exclude(
             owner__in=data_owners_that_already_have_keys
         ).filter(
-            pk__in=dataset_ids
+            benchmarkdataset__benchmark_id=benchmark_id,
+            benchmarkdataset__approval_status='APPROVED'
         )
 
-        data_owners_that_need_keys = [dataset['owner_id'] for dataset in datasets.values()]
+        data_owners_that_need_keys = datasets_whose_owners_need_keys.values_list('owner', flat=True)
 
-        print(f'{data_owners_that_need_keys=}')
-
-        valid_certificates = Certificate.objects.filter(
+        required_certificates = Certificate.objects.filter(
             ca_id__id=ca_id, owner__in=data_owners_that_need_keys
         )
 
-        valid_certificates = self.paginate_queryset(valid_certificates)
-        serializer = CertificateSerializer(valid_certificates, many=True)
-
+        required_certificates = self.paginate_queryset(required_certificates)
+        serializer = CertificateSerializer(required_certificates, many=True)
         return self.get_paginated_response(serializer.data)
