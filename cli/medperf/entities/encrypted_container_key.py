@@ -11,7 +11,6 @@ from pydantic import Field, root_validator
 from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
 from medperf import config
-from medperf.utils import get_container_key_dir_path
 from medperf.exceptions import MissingPrivateKeyException, DecryptionError
 from medperf.utils import get_pki_assets_path
 
@@ -35,12 +34,10 @@ class EncryptedContainerKey(Entity):
     Class representing an Encrypted Container Key uploaded to the MedPerf server
     """
 
-    model_ca_association: Optional[int]
-    data_owner: int  # ID of Data Owner who can decrypt the key
     encrypted_key: Optional[bytes] = Field(exclude=True)
     encrypted_key_base64: Optional[str]
-    container_id: Optional[int]
-    ca_name: Optional[str]
+    model_container: int
+    certificate: int
     padding: padding.AsymmetricPadding = Field(
         default_factory=_get_default_padding, exclude=True
     )
@@ -105,12 +102,7 @@ class EncryptedContainerKey(Entity):
 
     @property
     def path(self) -> str:
-        if self.container_id is not None and self.ca_name is not None:
-            return get_container_key_dir_path(
-                container_id=self.container_id, ca_name=self.ca_name
-            )
-        else:
-            return config.container_keys_dir
+        return config.container_keys_dir
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
@@ -129,13 +121,13 @@ class EncryptedContainerKey(Entity):
 
     @classmethod
     def upload_many(
-        cls, encrypted_container_key_list: list[EncryptedContainerKey], model_id, ca_id
+        cls, encrypted_container_key_list: list[EncryptedContainerKey]
     ) -> list[dict]:
         """Uploads many objects in a single operation on the server"""
         comms_fn = config.comms.upload_many_encrypted_keys
         list_as_dicts = [item.todict() for item in encrypted_container_key_list]
         updated_body = comms_fn(
-            model_id=model_id, ca_id=ca_id, key_dict_list=list_as_dicts
+            key_dict_list=list_as_dicts
         )
         return updated_body
 
@@ -149,9 +141,9 @@ class EncryptedContainerKey(Entity):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Data Owner": self.data_owner,
+            "Certificate ID": self.certificate,
+            "Model Containre ID": self.model_container,
             "Encrypted Key": self.encrypted_key,
-            "Model-CA Association ID": self.model_ca_association,
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }

@@ -1,30 +1,35 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from certificate.models import Certificate
+from mlcube.models import MlCube
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
 
 class ModelCAEncryptedKey(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.PROTECT, null=True)  # Model owner
+    owner = models.ForeignKey(User, on_delete=models.PROTECT)  # Model owner
     name = models.CharField(max_length=20)
-    ca_association = models.ForeignKey(
-        "mlcube_ca_association.ContainerCA",
-        on_delete=models.CASCADE,
-        null=False,
-    )
-    data_owner = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name="data_owner", null=True
-    )
+    certificate = models.ForeignKey(Certificate, on_delete=models.PROTECT)
+    model_container = models.ForeignKey(MlCube, on_delete=models.CASCADE)
     encrypted_key_base64 = models.TextField(null=False)
     metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.owner != self.model_container.owner:
+            raise ValidationError(
+                f"Owner of {self.__class__.__name__} instance must "
+                "match the owner of the provided model container!"
+            )
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = ["created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["ca_association", "data_owner"],
-                name="One_Key_Per_Owner_And_Association",
+                fields=["certificate", "model_container"],
+                name="One_Key_Per_Certificate_And_Model",
             )
         ]

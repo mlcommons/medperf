@@ -37,7 +37,7 @@ def mock_certificate() -> Certificate:
                             owner=None,
                             for_test=True,
                             certificate_content=b'some_content',
-                            ca_id=10)
+                            ca=10)
     return mock_cert
 
 

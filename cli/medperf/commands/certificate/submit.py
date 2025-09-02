@@ -56,7 +56,7 @@ class SubmitCertificate:
             certificate_content = certificate_f.read()
 
         self.certificate = Certificate(
-            name=name, ca_id=self.ca.id, certificate_content=certificate_content
+            name=name, ca=self.ca.id, certificate_content=certificate_content
         )
         config.tmp_paths.append(self.certificate.path)
 

@@ -15,10 +15,11 @@ urlpatterns = [
     path("<int:pk>/datasets/", views.MlCubeDatasetList.as_view()),
     path("<int:pk>/ca/", mlcube_ca_views.ContainerCAList.as_view()),
     path(
-        "<int:model_id>/ca/<int:ca_id>/keys/",
-        key_views.GetAndPostEncryptedKeyFromModelAndCA.as_view(),
+        "<int:model_id>/ca/<int:certificate_id>/keys/",
+        key_views.GetEncryptedKeyFromModelAndCA.as_view(),
     ),
     path("<int:model_id>/keys/", key_views.GetEncryptedKeyFromModel.as_view()),
+    path('keys/', key_views.PostMultipleEncryptedKeys.as_view())
     # path("<int:pk>/benchmarks/", bviews.ModelBenchmarksList.as_view()),
     # NOTE: when activating this endpoint later, check permissions and write tests
 ]

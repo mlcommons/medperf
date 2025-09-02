@@ -73,28 +73,26 @@ class CertificatesFromBenchmark(GenericAPIView):
 
     def get(self, request: Request, benchmark_id: int,
             model_id: int, ca_id:int, format=None):
-
         already_registered_keys = ModelCAEncryptedKey.objects.filter(
-            owner=request.user.id, ca_association__model_mlcube=model_id,
-            ca_association__associated_ca=ca_id
+            owner=request.user.id, model_container=model_id,
+            certificate__ca=ca_id
         )
 
-        data_owners_that_already_have_keys = already_registered_keys.values_list('data_owner', flat=True)
-        print(f'{data_owners_that_already_have_keys=}')
+        certificates_that_have_keys = already_registered_keys.values_list('certificate', flat=True)
 
-        datasets_whose_owners_need_keys = Dataset.objects.exclude(
-            owner__in=data_owners_that_already_have_keys
-        ).filter(
+        registered_datasets = Dataset.objects.filter(
             benchmarkdataset__benchmark_id=benchmark_id,
             benchmarkdataset__approval_status='APPROVED'
         )
+        benchmark_data_owners = registered_datasets.values_list('owner', flat=True)
 
-        data_owners_that_need_keys = datasets_whose_owners_need_keys.values_list('owner', flat=True)
-
-        required_certificates = Certificate.objects.filter(
-            ca_id__id=ca_id, owner__in=data_owners_that_need_keys
+        required_certificates = Certificate.objects.exclude(
+            pk__in=certificates_that_have_keys
+        ).filter(
+            ca_id__id=ca_id, owner__in=benchmark_data_owners
         )
 
         required_certificates = self.paginate_queryset(required_certificates)
         serializer = CertificateSerializer(required_certificates, many=True)
+
         return self.get_paginated_response(serializer.data)

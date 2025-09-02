@@ -26,20 +26,20 @@ def b64_content(bytes_content: bytes) -> str:
 
 
 def test_generates_b64_content_from_bytes_content(bytes_content: bytes, b64_content: str):
-    cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+    cert = Certificate(name='TestCert', id=1, owner=None, ca=1,
                        for_test=True, certificate_content=bytes_content)
 
     assert cert.certificate_content_base64 == b64_content
 
 
 def test_generates_bytes_content_from_b64_content(bytes_content: bytes, b64_content: str):
-    cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+    cert = Certificate(name='TestCert', id=1, owner=None, ca=1,
                        for_test=True, certificate_content_base64=b64_content)
     assert cert.certificate_content == bytes_content
 
 
 def test_accepts_both_bytes_and_b64_if_equal(bytes_content, b64_content):
-    cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+    cert = Certificate(name='TestCert', id=1, owner=None, ca=1,
                        for_test=True, certificate_content_base64=b64_content,
                        certificate_content=bytes_content)
     assert cert.certificate_content_base64 == b64_content
@@ -50,14 +50,14 @@ def test_accepts_both_bytes_and_b64_if_equal(bytes_content, b64_content):
 
 def test_raises_error_if_content_mismatch():
     with pytest.raises(MedperfException):
-        Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+        Certificate(name='TestCert', id=1, owner=None, ca=1,
                     for_test=True, certificate_content=b'some_content',
                     certificate_content_base64='content that does not match')
 
 
 def test_raises_error_if_no_contents():
     with pytest.raises(MedperfException):
-        Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+        Certificate(name='TestCert', id=1, owner=None, ca=1,
                     for_test=True)
 
 
@@ -65,7 +65,7 @@ def test_verify_with_ca(mocker: MockerFixture, fs: FakeFilesystem):
     # Arrange
     ca_cert_info = generate_test_certificate()
     client_cert_info = generate_test_certificate(ca_cert_info)
-    client_cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+    client_cert = Certificate(name='TestCert', id=1, owner=None, ca=1,
                               for_test=True,
                               certificate_content=client_cert_info.certificate_bytes)
     ca = mocker.create_autospec(spec=CA)
@@ -88,7 +88,7 @@ def test_does_not_verify_with_wrong_ca(mocker: MockerFixture, fs: FakeFilesystem
     client_cert_info = generate_test_certificate(ca_cert_info)
     irrelevant_ca_info = generate_test_certificate()
 
-    client_cert = Certificate(name='TestCert', id=1, owner=None, ca_id=1,
+    client_cert = Certificate(name='TestCert', id=1, owner=None, ca=1,
                               for_test=True,
                               certificate_content=client_cert_info.certificate_bytes)
     ca = mocker.create_autospec(spec=CA)

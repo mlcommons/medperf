@@ -713,10 +713,10 @@ class REST(Comms):
         return self.__post(url, json=key_dict, error_msg=error_msg)
 
     def upload_many_encrypted_keys(
-        self, model_id: int, ca_id: int, key_dict_list: list[dict]
+        self, key_dict_list: list[dict]
     ):
         """Uploads a list of Encrypted Keys in a single server request, based on a Model-CA association"""
-        url = f"{self.server_url}/mlcubes/{model_id}/ca/{ca_id}/keys/"
+        url = f"{self.server_url}/mlcubes/keys/"
         error_msg = "could not upload Encrypted Keys"
         return self.__post(url, json=key_dict_list, error_msg=error_msg)
 

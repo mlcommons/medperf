@@ -23,7 +23,7 @@ class Certificate(Entity):
 
     certificate_content_base64: Optional[str]
     certificate_content: Optional[bytes] = Field(exclude=True)
-    ca_id: int
+    ca: int
     ca_name: Optional[str]
 
     @root_validator(pre=False)
@@ -88,7 +88,7 @@ class Certificate(Entity):
     @property
     def path(self) -> str:
         if self.ca_name is None:
-            ca = CA.get(self.ca_id)
+            ca = CA.get(self.ca)
             self.ca_name = ca.name
         return get_pki_assets_path(common_name=self.user_email, ca_name=self.ca_name)
 
@@ -122,7 +122,7 @@ class Certificate(Entity):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "CA ID": self.ca_id,
+            "CA ID": self.ca,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,

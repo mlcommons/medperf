@@ -100,7 +100,7 @@ def mock_certificate_list() -> list[Certificate]:
                                 owner=i + 2,
                                 for_test=True,
                                 certificate_content=content,
-                                ca_id=10)
+                                ca=10)
         mock_cert_list.append(mock_cert)
     return mock_cert_list
 

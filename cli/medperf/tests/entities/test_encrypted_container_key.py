@@ -1,7 +1,6 @@
 from __future__ import annotations
 import base64
 import pytest
-from medperf.entities.certificate import Certificate
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 from medperf.exceptions import MedperfException, DecryptionError
 from typing import TYPE_CHECKING
@@ -71,9 +70,8 @@ def _arrange_for_decryption_tests(mocker: MockerFixture, fs: FakeFilesystem,
                                   private_key: rsa.RSAPrivateKey):
     # Arrange
     encrypted_key_obj = EncryptedContainerKey(name='TestCert', id=1, owner=None,
-                                              ca_id=1, for_test=True,
-                                              encrypted_key=encrypted_container_key,
-                                              data_owner=1,
+                                              for_test=True,encrypted_key=encrypted_container_key,
+                                              certificate=1, model_container=1,
                                               padding=padding_obj)
     ca = mocker.create_autospec(CA)
     ca.name = 'TestDecryptCA'
@@ -98,43 +96,43 @@ def _arrange_for_decryption_tests(mocker: MockerFixture, fs: FakeFilesystem,
 
 
 def test_generates_b64_key_from_bytes_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, ca_id=1,
+    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, certificate=1,
                                           for_test=True, encrypted_key=mock_bytes_key,
-                                          data_owner=1)
+                                          model_container=1)
 
     assert encrypted_key.encrypted_key_base64 == mock_b64_key
 
 
 def test_generates_bytes_key_from_b64_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, ca_id=1,
+    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, certificate=1,
                                           for_test=True, encrypted_key_base64=mock_b64_key,
-                                          data_owner=1)
+                                          model_container=1)
     assert encrypted_key.encrypted_key == mock_bytes_key
 
 
 def test_accepts_both_bytes_and_b64_if_equal(mock_bytes_key, mock_b64_key):
-    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, ca_id=1,
-                                          for_test=True, encrypted_key_base64=mock_b64_key,
+    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, for_test=True,
+                                          encrypted_key_base64=mock_b64_key,
                                           encrypted_key=mock_bytes_key,
-                                          data_owner=1)
+                                          certificate=1, model_container=1)
     assert encrypted_key.encrypted_key_base64 == mock_b64_key
     assert encrypted_key.encrypted_key == mock_bytes_key
     assert base64.b64encode(encrypted_key.encrypted_key).decode('utf-8') == encrypted_key.encrypted_key_base64
     assert base64.b64decode(encrypted_key.encrypted_key_base64.encode('utf-8')) == encrypted_key.encrypted_key
 
 
-def test_raises_error_if_key_mismatch():
+def test_raises_error_if_key_mismatch(mock_bytes_key):
     with pytest.raises(MedperfException):
-        Certificate(name='TestCert', id=1, owner=None, ca_id=1,
-                    for_test=True, encrypted_key=b'some_key',
-                    encrypted_key_base64='content that does not match',
-                    data_owner=1)
+        EncryptedContainerKey(name='TestCert', id=1, owner=None, for_test=True,
+                              encrypted_key_base64='unmatching key',
+                              encrypted_key=mock_bytes_key,
+                              certificate=1, model_container=1)
 
 
 def test_raises_error_if_no_keys():
     with pytest.raises(MedperfException):
-        Certificate(name='TestCert', id=1, owner=None, ca_id=1,
-                    for_test=True, data_owner=1)
+        EncryptedContainerKey(name='TestCert', id=1, owner=None, for_test=True,
+                              certificate=1, model_container=1)
 
 
 def test_decrypt(unencrypted_container_key: bytes, private_key: rsa.RSAPrivateKey,

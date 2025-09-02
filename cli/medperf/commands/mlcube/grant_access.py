@@ -66,13 +66,12 @@ class GrantAccess:
             certificates=valid_certificates,
             container_key_bytes=container_key_bytes,
             key_name=name,
+            model_id=model_id
         )
 
         config.ui.print("Uploading Encrypted Keys")
         EncryptedContainerKey.upload_many(
             encrypted_key_info_list,
-            model_id=model_id,
-            ca_id=ca_id,
         )
 
     @classmethod
@@ -108,7 +107,8 @@ class GrantAccess:
 
     @classmethod
     def generate_encrypted_keys_list(
-        cls, container_key_bytes: bytes, key_name: str, certificates: list[Certificate]
+        cls, container_key_bytes: bytes, key_name: str,
+        model_id: int, certificates: list[Certificate]
     ):
         padding_obj = padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -123,7 +123,8 @@ class GrantAccess:
                 padding=padding_obj,
             )
             key_obj = EncryptedContainerKey(
-                encrypted_key=encrypted_key, data_owner=certificate.owner, name=key_name
+                encrypted_key=encrypted_key, name=key_name,
+                certificate=certificate.id, model_container=model_id
             )
             key_info_list.append(key_obj)
 
