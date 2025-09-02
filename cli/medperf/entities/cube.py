@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional, Union
 from medperf.commands.association.utils import get_user_associations
-from pydantic import Field
+from pydantic import Field, validator
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -36,7 +36,12 @@ class Cube(Entity, DeployableSchema):
     metadata: dict = {}
     user_metadata: dict = {}
     decryption_key: Optional[bytes] = Field(exclude=True)
+    trusted_cas: list[int] = Field(default_factory=list)
 
+    @validator('trusted_cas')
+    def sort_values(cls, v):
+        return sorted(v)
+    
     @staticmethod
     def get_type():
         return "container"

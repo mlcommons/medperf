@@ -2,12 +2,14 @@ import os
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import remove_path
+from medperf.utils import remove_path, move_container_key_to_local_storage
+from pathlib import Path
+from medperf.entities.ca import CA
 
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict):
+    def run(cls, submit_info: dict, decryption_key: Path = None):
         """Submits a new cube to the medperf platform
 
         Args:
@@ -23,6 +25,14 @@ class SubmitCube:
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
+
+            if decryption_key is not None :
+                for trusted_ca_id in updated_cube_dict['trusted_cas']:
+                    ca = CA.get(trusted_ca_id) # TODO get these in bulk with a single request
+                    move_container_key_to_local_storage(cube_id=updated_cube_dict['id'],
+                                                        ca_name=ca.name,
+                                                        decryption_key_path=decryption_key)
+       
         return submission.cube.id
 
     def __init__(self, submit_info: dict):

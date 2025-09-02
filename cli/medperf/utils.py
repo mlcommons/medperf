@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
-
+from medperf import config
 
 def get_file_hash(path: str) -> str:
     """Calculates the sha256 hash for a given file.
@@ -564,3 +564,13 @@ def get_webui_properties():
     print()
     print("=" * 40)
     print(f"URL: http://{props['host']}:{props['port']}")
+
+
+def move_container_key_to_local_storage(cube_id: int, ca_name: str, decryption_key_path: Path):
+    config.ui.print("Moving Decryption key to MedPerf LOCAL storage")
+    container_keys_dir = get_container_key_dir_path(
+        container_id=cube_id, ca_name=ca_name
+    )
+    copied_key_path = os.path.join(container_keys_dir, config.container_key_file)
+    os.makedirs(container_keys_dir, exist_ok=True)
+    shutil.copy(decryption_key_path, copied_key_path)

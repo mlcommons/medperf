@@ -76,6 +76,7 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
                 "additional_files_tarball_url",
                 "git_mlcube_url",
                 "git_parameters_url",
+                "trusted_cas",
             ]
             for k, v in data.items():
                 if k not in editable_fields:

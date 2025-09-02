@@ -1,13 +1,10 @@
 from pathlib import Path
-import shutil
-import os
-
 from medperf import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.ca import CA
-from medperf.exceptions import CleanExit
-from medperf.utils import dict_pretty_print, approval_prompt, get_container_key_dir_path
+from medperf.exceptions import CleanExit, CommunicationError
+from medperf.utils import dict_pretty_print, approval_prompt, move_container_key_to_local_storage
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 
 
@@ -51,12 +48,12 @@ class AssociateCube:
             raise CleanExit("Model association operation cancelled")
 
 
-class AssociateCubeWithCA:
+class AssociateCubeWithCAs:
     @classmethod
     def run(
         cls,
         cube_uid: int,
-        ca_uid: int,
+        ca_uids: list[int],
         decryption_key_path: Path,
         approved: bool = False,
     ):
@@ -68,23 +65,29 @@ class AssociateCubeWithCA:
             approved (bool): Skip validation step. Defualts to False
         """
         comms = config.comms
-        ui = config.ui
         cube = Cube.get(cube_uid)
-        ca = CA.get(ca_uid)
-
+        ca_ids_as_str = ', '.join(str(ca_uid) for ca_uid in ca_uids)
         msg = "Please confirm that you would like to associate "
-        msg += f"the model '{cube.name}' with the Certificate Authority (CA) '{ca.name}' [Y/n]"
+        msg += f"the model '{cube.name}' (UID: {cube_uid}) with the Certificate Authorities (CAs) {ca_ids_as_str} [Y/n]"
         approved = approved or approval_prompt(msg)
-        if approved:
-            ui.print("Generating model CA association")
-            comms.associate_ca_model(cube_uid, ca_uid)
-        else:
-            raise CleanExit("Model association operation cancelled")
 
-        ui.print("Moving Decryption key to MedPerf LOCAL storage")
-        container_keys_dir = get_container_key_dir_path(
-            container_id=cube.id, ca_name=ca.name
-        )
-        copied_key_path = os.path.join(container_keys_dir, config.container_key_file)
-        os.makedirs(container_keys_dir, exist_ok=True)
-        shutil.copy(decryption_key_path, copied_key_path)
+        if not approved:
+            raise CleanExit("Model association operation cancelled")
+        
+
+        valid_cas = set(cube.trusted_cas)
+        for ca_uid in ca_uids: 
+            try:
+                # TODO add endpoint to do this as one query
+                ca = CA.get(ca_uid)
+                valid_cas.add(ca_uid)
+                move_container_key_to_local_storage(cube_id=cube_uid, ca_name=ca.name, decryption_key_path=decryption_key_path)
+            except CommunicationError:
+                pass
+        
+        updated_body = {
+            'trusted_cas': sorted(list(valid_cas))
+        }
+        comms.update_mlcube(mlcube_id=cube_uid, mlcube_updated_body=updated_body)
+       
+       

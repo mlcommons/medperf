@@ -1,5 +1,5 @@
 import typer
-from typing import Optional
+from typing import Optional, List
 from pathlib import Path
 
 import medperf.config as config
@@ -9,10 +9,11 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
-from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCA
+from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCAs
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.exceptions import InvalidArgumentError
+from medperf.utils import move_container_key_to_local_storage
 
 app = typer.Typer()
 
@@ -177,13 +178,15 @@ def submit(
         dir_okay=False,
         readable=True,
     ),
-    ca_id: int = typer.Option(
+    ca_ids: Optional[List[int]] = typer.Option(
         None,
+        "--ca-ids",
+        "--ca_ids",
         "--ca-id",
         "--ca_id",
         "-c",
         help="Only used for encrypted container submissions. "
-        "ID of the Certificate Authority (CA) used to authenticate "
+        "IDs of the Certificate Authorities (CA) used to authenticate "
         "authorized users to access the encrypted container.",
     ),
 ):
@@ -206,8 +209,13 @@ def submit(
     If both fields are provided, the association of the Model with the CA will be done automatically.
     If they are not provided, the association must be done later via the medperf container associate_with_ca command.
     """
-    if (decryption_key is not None and ca_id is None) or (
-        decryption_key is None and ca_id is not None
+    if ca_ids is None:
+        # Typer does this automatically with the type hint
+        # But I think being explicit helps making the code easier to understand :)
+        ca_ids = []
+
+    if (decryption_key is not None and not ca_ids) or (
+        decryption_key is None and ca_ids
     ):
         raise InvalidArgumentError(
             "Both a decryption key and a CA ID must be provided to submit a private container!"
@@ -223,22 +231,10 @@ def submit(
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
+        'trusted_cas': ca_ids
     }
-    cube_id = SubmitCube.run(mlcube_info)
-    if decryption_key is not None and ca_id is not None:
-        try:
-            AssociateCubeWithCA.run(
-                cube_uid=cube_id,
-                ca_uid=ca_id,
-                approved=True,
-                decryption_key_path=decryption_key,
-            )
-        except Exception:
-            config.ui.print(
-                "An error happened during the Container to CA association.\n"
-                "Please run the 'medperf container associate_with_ca command' to attempt association again."
-            )
-            raise
+    SubmitCube.run(mlcube_info, decryption_key=decryption_key)
+
     config.ui.print("✅ Done!")
 
 
@@ -262,7 +258,15 @@ def associate(
 @app.command("associate_with_ca")
 @clean_except
 def associate_with_ca(
-    ca_uid: int = typer.Option(..., "--ca-id", "--ca-id", "-c", help="Benchmark UID"),
+    ca_uids: List[int] = typer.Option(
+        ..., 
+        "--ca-ids", 
+        "--ca_ids", 
+        "--ca-id", 
+        "--ca_id", 
+        "-c", 
+        help="Benchmark UID"
+    ),
     model_uid: int = typer.Option(
         ..., "--model_id", "--model-id", "-m", help="Model UID"
     ),
@@ -280,10 +284,10 @@ def associate_with_ca(
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
-    """Associates a model to a Certificate Authority (CA)"""
-    AssociateCubeWithCA.run(
+    """Associates a model to the Certificate Authorities (CAs) whose IDs are provided."""
+    AssociateCubeWithCAs.run(
         cube_uid=model_uid,
-        ca_uid=ca_uid,
+        ca_uids=ca_uids,
         approved=approval,
         decryption_key_path=decryption_key,
     )

@@ -111,7 +111,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "corsheaders",
-    "mlcube_ca_association",
     "certificate",
     "mlcube_ca_encrypted_key",
 ]

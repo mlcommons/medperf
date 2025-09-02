@@ -629,6 +629,11 @@ class REST(Comms):
         error_msg = "could not upload mlcube"
         return self.__post(url, json=mlcube_body, error_msg=error_msg)
 
+    def update_mlcube(self, mlcube_id: int, mlcube_updated_body: int) -> dict:
+        url = f"{self.server_url}/mlcubes/{mlcube_id}/"
+        error_msg = "could not update mlcube"
+        return self.__put(url, json=mlcube_updated_body, error_msg=error_msg)
+    
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 

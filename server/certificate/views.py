@@ -7,7 +7,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Certificate
 from .serializers import CertificateSerializer
-from .permissions import IsAuthenticatedAndIsPostRequest, IsAssociatedModelOwner
+from .permissions import IsAuthenticatedAndIsPostRequest, IsAssociatedModelOwnerAndCAIsTrusted
 from user.permissions import IsAdmin
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
@@ -69,13 +69,13 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | IsAssociatedModelOwner | IsOwnUser]
+    permission_classes = [IsAdmin | IsAssociatedModelOwnerAndCAIsTrusted | IsOwnUser]
 
     def get(self, request: Request, benchmark_id: int,
             model_id: int, ca_id:int, format=None):
         already_registered_keys = ModelCAEncryptedKey.objects.filter(
             owner=request.user.id, model_container=model_id,
-            certificate__ca=ca_id
+            certificate__ca=ca_id, model_container__trusted_cas=ca_id
         )
 
         certificates_that_have_keys = already_registered_keys.values_list('certificate', flat=True)

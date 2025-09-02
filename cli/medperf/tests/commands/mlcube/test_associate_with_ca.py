@@ -1,11 +1,12 @@
 from __future__ import annotations
 from medperf.exceptions import CleanExit
 import pytest
+from unittest.mock import call
 from pytest_mock import MockerFixture
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from medperf.entities.cube import Cube
 from medperf.entities.ca import CA
-from medperf.commands.mlcube.associate import AssociateCubeWithCA
+from medperf.commands.mlcube.associate import AssociateCubeWithCAs
 from pathlib import Path
 from medperf import config
 
@@ -49,13 +50,13 @@ def key_destination_path(fs: FakeFilesystem) -> Path:
 
 
 @pytest.mark.parametrize("cube_uid", [2405, 4186])
-@pytest.mark.parametrize("ca_uid", [4416, 1522])
+@pytest.mark.parametrize("ca_uids", [[4416, 5518], [1522]])
 def test_run_associates_cube_with_comms(
     mocker: MockerFixture,
     cube: Cube,
     ca: CA,
     cube_uid: int,
-    ca_uid: int,
+    ca_uids: List[int],
     comms: REST,
     ui: UI,
     decryption_key_path: Path,
@@ -63,30 +64,33 @@ def test_run_associates_cube_with_comms(
     fs: FakeFilesystem
 ):
     # Arrange
-    spy = mocker.patch.object(comms, "associate_ca_model")
+    spy = mocker.patch.object(comms, "update_mlcube")
     mocker.patch.object(ui, "prompt", return_value="y")
-    spy_destination_key = mocker.patch(PATCH_ASSOC.format('get_container_key_dir_path'), return_value=key_destination_path)
+    spy_destination_key = mocker.patch('medperf.utils.get_container_key_dir_path', return_value=key_destination_path)
     key_file_dest_path = key_destination_path / config.container_key_file
     cube.id = cube_uid
-    ca.id = ca_uid
+    cube.trusted_cas = ca_uids
+    ca.id = ca_uids[0]
+    updated_body = {'trusted_cas': sorted(ca_uids)}
+    expected_calls = [call(ca_name=ca.name, container_id=cube_uid) for _ in ca_uids]
 
     # Act
-    AssociateCubeWithCA.run(cube_uid, ca_uid, decryption_key_path=decryption_key_path)
+    AssociateCubeWithCAs.run(cube_uid=cube_uid, ca_uids=ca_uids, decryption_key_path=decryption_key_path)
 
     # Assert
-    spy.assert_called_once_with(cube_uid, ca_uid)
-    spy_destination_key.assert_called_once_with(ca_name=ca.name, container_id=cube_uid)
+    spy.assert_called_once_with(mlcube_id=cube_uid, mlcube_updated_body=updated_body)
+    spy_destination_key.assert_has_calls(expected_calls)
     assert fs.exists(key_file_dest_path)
 
 
 @pytest.mark.parametrize("cube_uid", [2405, 4186])
-@pytest.mark.parametrize("ca_uid", [4416, 1522])
+@pytest.mark.parametrize("ca_uids", [[4416, 5518], [1522]])
 def test_fails_if_no_decryption_key_provided(
     mocker: MockerFixture,
     cube: Cube,
     ca: CA,
     cube_uid: int,
-    ca_uid: int,
+    ca_uids: int,
     comms: REST,
     ui: UI,
     key_destination_path: Path,
@@ -95,14 +99,15 @@ def test_fails_if_no_decryption_key_provided(
     # Arrange
     spy = mocker.patch.object(comms, "associate_ca_model")
     mocker.patch.object(ui, "prompt", return_value="y")
-    spy_destination_key = mocker.patch(PATCH_ASSOC.format('get_container_key_dir_path'), return_value=key_destination_path)
+    spy_destination_key = mocker.patch('medperf.utils.get_container_key_dir_path', return_value=key_destination_path)
     key_file_dest_path = key_destination_path / config.container_key_file
     cube.id = cube_uid
-    ca.id = ca_uid
+    cube.trusted_cas = ca_uids
+    ca.id = ca_uids[0]
 
     # Act
     with pytest.raises(TypeError):
-        AssociateCubeWithCA.run(cube_uid, ca_uid)
+        AssociateCubeWithCAs.run(cube_uid=cube_uid, ca_uids=ca_uids)
 
     # Assert
     spy.assert_not_called()
@@ -124,7 +129,7 @@ def test_stops_if_not_approved(
 
     # Act
     with pytest.raises(CleanExit):
-        AssociateCubeWithCA.run(1, 1, decryption_key_path=decryption_key_path)
+        AssociateCubeWithCAs.run(cube_uid=1, ca_uids=[1], decryption_key_path=decryption_key_path)
 
     # Assert
     spy.assert_called_once()
