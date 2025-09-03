@@ -41,7 +41,7 @@ class Cube(Entity, DeployableSchema):
     @validator('trusted_cas')
     def sort_values(cls, v):
         return sorted(v)
-    
+
     @staticmethod
     def get_type():
         return "container"

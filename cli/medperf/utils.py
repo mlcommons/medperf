@@ -22,7 +22,7 @@ from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
-from medperf import config
+
 
 def get_file_hash(path: str) -> str:
     """Calculates the sha256 hash for a given file.

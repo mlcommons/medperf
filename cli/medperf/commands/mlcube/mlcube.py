@@ -13,7 +13,6 @@ from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCA
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.exceptions import InvalidArgumentError
-from medperf.utils import move_container_key_to_local_storage
 
 app = typer.Typer()
 
@@ -259,12 +258,12 @@ def associate(
 @clean_except
 def associate_with_ca(
     ca_uids: List[int] = typer.Option(
-        ..., 
-        "--ca-ids", 
-        "--ca_ids", 
-        "--ca-id", 
-        "--ca_id", 
-        "-c", 
+        ...,
+        "--ca-ids",
+        "--ca_ids",
+        "--ca-id",
+        "--ca_id",
+        "-c",
         help="Benchmark UID"
     ),
     model_uid: int = typer.Option(

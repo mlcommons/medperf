@@ -26,13 +26,13 @@ class SubmitCube:
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
 
-            if decryption_key is not None :
+            if decryption_key is not None:
                 for trusted_ca_id in updated_cube_dict['trusted_cas']:
-                    ca = CA.get(trusted_ca_id) # TODO get these in bulk with a single request
+                    ca = CA.get(trusted_ca_id)  # TODO get these in bulk with a single request
                     move_container_key_to_local_storage(cube_id=updated_cube_dict['id'],
                                                         ca_name=ca.name,
                                                         decryption_key_path=decryption_key)
-       
+
         return submission.cube.id
 
     def __init__(self, submit_info: dict):

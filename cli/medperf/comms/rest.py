@@ -229,7 +229,6 @@ class REST(Comms):
         error_msg = "Could not retrieve Certificate Authority (CA) associated with this container and key."
         return self.__get(url, error_msg)
 
-
     def get_dataset(self, dset_uid: int) -> dict:
         """Retrieves a specific dataset
 
@@ -644,7 +643,7 @@ class REST(Comms):
         url = f"{self.server_url}/mlcubes/{mlcube_id}/"
         error_msg = "could not update mlcube"
         return self.__put(url, json=mlcube_updated_body, error_msg=error_msg)
-    
+
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 

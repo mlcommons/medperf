@@ -97,7 +97,7 @@ class PrivateRunner(Runner):
         if not self._must_delete_encrypted_image:
             # TODO maybe this can just be removed?
             container_key_dir = get_container_key_dir_path(
-            container_id=self.container.id, ca_name=self.ca.name
+                container_id=self.container.id, ca_name=self.ca.name
             )
 
             model_owner_key_path = os.path.join(

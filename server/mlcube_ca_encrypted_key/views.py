@@ -105,6 +105,7 @@ class PostMultipleEncryptedKeys(CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class GetCAFromEncryptedKey(RetrieveAPIView):
     serializer_class = CASerializer
 
@@ -116,6 +117,6 @@ class GetCAFromEncryptedKey(RetrieveAPIView):
             )
         except CA.DoesNotExist:
             raise Http404('No CA associated with this EncryptedKey and Model for the current user.')
-        
+
         ca = CASerializer(ca)
         return Response(ca.data)

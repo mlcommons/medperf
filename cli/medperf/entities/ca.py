@@ -101,7 +101,7 @@ class CA(Entity, MedperfSchema):
         ca = cls(**meta)
         ca.write()
         return ca
-    
+
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities

@@ -73,10 +73,9 @@ class AssociateCubeWithCAs:
 
         if not approved:
             raise CleanExit("Model association operation cancelled")
-        
 
         valid_cas = set(cube.trusted_cas)
-        for ca_uid in ca_uids: 
+        for ca_uid in ca_uids:
             try:
                 # TODO add endpoint to do this as one query
                 ca = CA.get(ca_uid)
@@ -84,10 +83,8 @@ class AssociateCubeWithCAs:
                 move_container_key_to_local_storage(cube_id=cube_uid, ca_name=ca.name, decryption_key_path=decryption_key_path)
             except CommunicationError:
                 pass
-        
+
         updated_body = {
             'trusted_cas': sorted(list(valid_cas))
         }
         comms.update_mlcube(mlcube_id=cube_uid, mlcube_updated_body=updated_body)
-       
-       
