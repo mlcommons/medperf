@@ -12,6 +12,7 @@ urlpatterns = [
     path("benchmarks/", bviews.BenchmarkModelList.as_view()),
     path("<int:pk>/benchmarks/<int:bid>/", bviews.ModelApproval.as_view()),
     path("<int:pk>/datasets/", views.MlCubeDatasetList.as_view()),
+    path("<int:model_id>/ca/", views.GetCAFromContainer.as_view()),
     path(
         "<int:model_id>/ca/<int:certificate_id>/keys/",
         key_views.GetEncryptedKeyFromModelAndCA.as_view(),

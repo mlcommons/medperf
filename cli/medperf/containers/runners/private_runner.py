@@ -94,16 +94,16 @@ class PrivateRunner(Runner):
         if self._decryption_key is not None:
             return Fernet(self._decryption_key)
 
-        container_key_dir = get_container_key_dir_path(
+        if not self._must_delete_encrypted_image:
+            # TODO maybe this can just be removed?
+            container_key_dir = get_container_key_dir_path(
             container_id=self.container.id, ca_name=self.ca.name
-        )
+            )
 
-        model_owner_key_path = os.path.join(
-            container_key_dir,
-            config.container_key_file,
-        )
-
-        if self._must_delete_encrypted_image:
+            model_owner_key_path = os.path.join(
+                container_key_dir,
+                config.container_key_file,
+            )
             if os.path.exists(model_owner_key_path):
                 decrypted_key = self._load_model_owner_local_key(model_owner_key_path)
             else:
@@ -153,7 +153,7 @@ class PrivateRunner(Runner):
 
     def _load_data_owner_key(self) -> bytes:
         encrypted_key_obj = EncryptedContainerKey.get_from_model(self.container.id)
-        decrypted_key = encrypted_key_obj.decrypt_key(ca=self.ca, container=self.container)
+        decrypted_key = encrypted_key_obj.decrypt_key(container=self.container)
 
         return decrypted_key
 

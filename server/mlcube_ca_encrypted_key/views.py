@@ -8,6 +8,9 @@ from user.permissions import IsAdmin, IsOwnUser
 from .permissions import IsDataOwnerForGet, IsModelOwnerForPost
 from rest_framework.request import Request
 from django.contrib.auth import get_user_model
+from ca.models import CA
+from ca.serializers import CASerializer
+from django.http import Http404
 
 User = get_user_model()
 
@@ -101,3 +104,18 @@ class PostMultipleEncryptedKeys(CreateAPIView):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GetCAFromEncryptedKey(RetrieveAPIView):
+    serializer_class = CASerializer
+
+    def get(self, request: Request, key_id: int, format=None):
+        try:
+            ca = CA.objects.get(
+                certificate__modelcaencryptedkey=key_id,
+                certificate__owner=request.user.id,
+            )
+        except CA.DoesNotExist:
+            raise Http404('No CA associated with this EncryptedKey and Model for the current user.')
+        
+        ca = CASerializer(ca)
+        return Response(ca.data)

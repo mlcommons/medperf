@@ -13,11 +13,10 @@ from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.exceptions import MissingPrivateKeyException, DecryptionError
 from medperf.utils import get_pki_assets_path
-
+from medperf.entities.ca import CA
 
 if TYPE_CHECKING:
     from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
-    from medperf.entities.ca import CA
     from medperf.entities.cube import Cube
 
 
@@ -41,6 +40,10 @@ class EncryptedContainerKey(Entity):
     padding: padding.AsymmetricPadding = Field(
         default_factory=_get_default_padding, exclude=True
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._ca = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -104,6 +107,12 @@ class EncryptedContainerKey(Entity):
     def path(self) -> str:
         return config.container_keys_dir
 
+    @property
+    def ca(self) -> CA:
+        if self._ca is None:
+            self._ca = CA.from_key(key_uid=self.id)
+        return self._ca
+
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
@@ -148,8 +157,8 @@ class EncryptedContainerKey(Entity):
             "Registered": self.is_registered,
         }
 
-    def decrypt_key(self, ca: CA, container: Cube) -> bytes:
-        decryption_key = self._load_private_key(ca=ca, container=container)
+    def decrypt_key(self, container: Cube) -> bytes:
+        decryption_key = self._load_private_key(container=container)
         try:
             decrypted_key = decryption_key.decrypt(
                 ciphertext=self.encrypted_key,
@@ -159,21 +168,20 @@ class EncryptedContainerKey(Entity):
             raise DecryptionError(f'Could not decrypt keys to Container {container.name} (UID: {container.id})')
         return decrypted_key
 
-    @staticmethod
-    def _load_private_key(ca: CA, container: Cube) -> RSAPrivateKey:
+    def _load_private_key(self, container: Cube) -> RSAPrivateKey:
         # TODO validate configs!
         # Are we doing PEM Private Keys, with no password and default_backend as implemented?
         # Are we going to support multiple configurations? If so, how?
         # What about padding? We a default, support multiple? If supporting multiple, how to config?
 
         user_email = get_medperf_user_data()["email"]
-        pki_assets_dir = get_pki_assets_path(common_name=user_email, ca_name=ca.name)
+        pki_assets_dir = get_pki_assets_path(common_name=user_email, ca_name=self.ca.name)
         private_key_path = os.path.join(pki_assets_dir, config.private_key_file)
 
         if not os.path.exists(private_key_path):
             error_msg = (
                 f"No private key was found locally for the user email {user_email} and "
-                f"Certificate Authority (CA) {ca.name} (UID: {ca.id}), which enables "
+                f"Certificate Authority (CA) {self.ca.name} (UID: {self.ca.id}), which enables "
                 f"access to the Model Container {container.name} (UID: {container.id}).\n"
                 f"Please run the following command to obtain a private key:\n"
                 f"medperf certificate get_client_certificate --container-id {container.id}"

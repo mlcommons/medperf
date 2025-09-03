@@ -6,4 +6,5 @@ app_name = "MLCube"
 urlpatterns = [
     path("", views.GetAllEncryptedKeys.as_view()),
     path("<int:pk>/", views.GetEncryptedKeyById.as_view()),
+    path("<int:key_id>/ca/", views.GetCAFromEncryptedKey.as_view())
 ]

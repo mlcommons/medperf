@@ -1,7 +1,8 @@
 from django.http import Http404
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema
 
 from .models import MlCube
@@ -9,6 +10,8 @@ from .serializers import MlCubeSerializer, MlCubeDetailSerializer
 from .permissions import IsAdmin, IsMlCubeOwner
 from dataset.serializers import DatasetFullSerializer
 from dataset.models import Dataset
+from ca.serializers import CASerializer
+from ca.models import CA
 
 
 class MlCubeList(GenericAPIView):
@@ -102,3 +105,19 @@ class MlCubeDatasetList(GenericAPIView):
         datasets = self.paginate_queryset(datasets)
         serializer = DatasetFullSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
+
+class GetCAFromContainer(RetrieveAPIView):
+    serializer_class = CASerializer
+
+    def get(self, request: Request, model_id: int, format=None):
+        # TODO currently picks the most recent one if multiple are available
+        # Should we return all of them? Use a different criteria?
+
+        ca = CA.objects.filter(
+            mlcube=model_id
+        ).order_by(
+            '-created_at'
+        ).first()
+        print(f'{ca=}')
+        ca = CASerializer(ca)
+        return Response(ca.data)

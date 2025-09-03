@@ -96,6 +96,13 @@ class CA(Entity, MedperfSchema):
         return ca
 
     @classmethod
+    def from_key(cls, key_uid: int) -> "CA":
+        meta = config.comms.get_key_ca(key_uid=key_uid)
+        ca = cls(**meta)
+        ca.write()
+        return ca
+    
+    @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
         """Applies filtering logic that must be done before retrieving remote entities
 

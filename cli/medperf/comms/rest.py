@@ -219,6 +219,17 @@ class REST(Comms):
         error_msg = "Could not retrieve Certificate Authority (CA) associated with this container."
         return self.__get(url, error_msg)
 
+    def get_encrypted_container_key(self, key_uid: int) -> dict:
+        url = f"{self.server_url}/keys/{key_uid}/"
+        error_msg = "Could not retrieve this Encrypted Container Key"
+        return self.__get(url, error_msg)
+
+    def get_key_ca(self, key_uid: int) -> dict:
+        url = f"{self.server_url}/keys/{key_uid}/ca/"
+        error_msg = "Could not retrieve Certificate Authority (CA) associated with this container and key."
+        return self.__get(url, error_msg)
+
+
     def get_dataset(self, dset_uid: int) -> dict:
         """Retrieves a specific dataset
 

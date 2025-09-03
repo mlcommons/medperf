@@ -39,6 +39,7 @@ urlpatterns = [
         path("training/", include("training.urls", namespace=API_VERSION), name="training"),
         path("aggregators/", include("aggregator.urls", namespace=API_VERSION), name="aggregator"),
         path("cas/", include("ca.urls", namespace=API_VERSION), name="ca"),
-        path('certificates/', include('certificate.urls', namespace=API_VERSION), name="certificate")
+        path('certificates/', include('certificate.urls', namespace=API_VERSION), name="certificate"),
+        path("keys/", include("mlcube_ca_encrypted_key.urls", namespace=API_VERSION), name='encrypted_keys')
     ])),
 ]
