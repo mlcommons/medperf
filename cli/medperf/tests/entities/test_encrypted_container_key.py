@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 PATCH_ASSOC = 'medperf.entities.encrypted_container_key.{}'
-
+TEST_KEY_ID = 42
 
 @pytest.fixture
 def mock_bytes_key() -> bytes:
@@ -69,17 +69,19 @@ def _arrange_for_decryption_tests(mocker: MockerFixture, fs: FakeFilesystem,
                                   padding_obj: padding.AsymmetricPadding,
                                   private_key: rsa.RSAPrivateKey):
     # Arrange
-    encrypted_key_obj = EncryptedContainerKey(name='TestCert', id=1, owner=None,
+    encrypted_key_obj = EncryptedContainerKey(name='TestCert', id=TEST_KEY_ID, owner=None,
                                               for_test=True,encrypted_key=encrypted_container_key,
                                               certificate=1, model_container=1,
                                               padding=padding_obj)
     ca = mocker.create_autospec(CA)
     ca.name = 'TestDecryptCA'
     ca.id = 1
+
     container = mocker.create_autospec(Cube)
     container.name = 'TestDecryptContainer'
     container.id = 1
 
+    mock_get_ca = mocker.patch.object(CA, 'from_key', return_value=ca)
     mock_pki_assets_path = Path(f'/path/to/pki/assets/{ca.id}')
     mock_get_user_data = mocker.patch(PATCH_ASSOC.format('get_medperf_user_data'),
                                       return_value={'email': 'testrun@test.com'})
@@ -92,11 +94,11 @@ def _arrange_for_decryption_tests(mocker: MockerFixture, fs: FakeFilesystem,
                                                   encryption_algorithm=serialization.NoEncryption())
     fs.create_dir(mock_pki_assets_path)
     fs.create_file(mock_private_key_path, contents=private_key_bytes)
-    return encrypted_key_obj, ca, container, mock_get_user_data, mock_get_pki_assets_path
+    return encrypted_key_obj, container, mock_get_ca, mock_get_user_data, mock_get_pki_assets_path
 
 
 def test_generates_b64_key_from_bytes_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, certificate=1,
+    encrypted_key = EncryptedContainerKey(name='TestCert', id=TEST_KEY_ID, owner=None, certificate=1,
                                           for_test=True, encrypted_key=mock_bytes_key,
                                           model_container=1)
 
@@ -104,14 +106,14 @@ def test_generates_b64_key_from_bytes_key(mock_bytes_key: bytes, mock_b64_key: s
 
 
 def test_generates_bytes_key_from_b64_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, certificate=1,
+    encrypted_key = EncryptedContainerKey(name='TestCert', id=TEST_KEY_ID, owner=None, certificate=1,
                                           for_test=True, encrypted_key_base64=mock_b64_key,
                                           model_container=1)
     assert encrypted_key.encrypted_key == mock_bytes_key
 
 
 def test_accepts_both_bytes_and_b64_if_equal(mock_bytes_key, mock_b64_key):
-    encrypted_key = EncryptedContainerKey(name='TestCert', id=1, owner=None, for_test=True,
+    encrypted_key = EncryptedContainerKey(name='TestCert', id=TEST_KEY_ID, owner=None, for_test=True,
                                           encrypted_key_base64=mock_b64_key,
                                           encrypted_key=mock_bytes_key,
                                           certificate=1, model_container=1)
@@ -123,7 +125,7 @@ def test_accepts_both_bytes_and_b64_if_equal(mock_bytes_key, mock_b64_key):
 
 def test_raises_error_if_key_mismatch(mock_bytes_key):
     with pytest.raises(MedperfException):
-        EncryptedContainerKey(name='TestCert', id=1, owner=None, for_test=True,
+        EncryptedContainerKey(name='TestCert', id=TEST_KEY_ID, owner=None, for_test=True,
                               encrypted_key_base64='unmatching key',
                               encrypted_key=mock_bytes_key,
                               certificate=1, model_container=1)
@@ -131,7 +133,7 @@ def test_raises_error_if_key_mismatch(mock_bytes_key):
 
 def test_raises_error_if_no_keys():
     with pytest.raises(MedperfException):
-        EncryptedContainerKey(name='TestCert', id=1, owner=None, for_test=True,
+        EncryptedContainerKey(name='TestCert', id=TEST_KEY_ID, owner=None, for_test=True,
                               certificate=1, model_container=1)
 
 
@@ -142,15 +144,16 @@ def test_decrypt(unencrypted_container_key: bytes, private_key: rsa.RSAPrivateKe
     args_tuple = _arrange_for_decryption_tests(mocker=mocker, fs=fs,
                                                encrypted_container_key=encrypted_container_key,
                                                padding_obj=padding_obj, private_key=private_key)
-    encrypted_key_obj, ca, container, mock_get_user_data, mock_get_pki_assets_path = args_tuple
+    encrypted_key_obj, container, mock_get_ca, mock_get_user_data, mock_get_pki_assets_path = args_tuple
 
     # Act
-    decrypted_container_key = encrypted_key_obj.decrypt_key(ca=ca, container=container)
+    decrypted_container_key = encrypted_key_obj.decrypt_key(container=container)
 
     # Assert
     assert decrypted_container_key != encrypted_container_key
     assert decrypted_container_key == unencrypted_container_key
     assert unencrypted_container_key != encrypted_container_key
+    mock_get_ca.assert_called_once
     mock_get_user_data.assert_called_once()
     mock_get_pki_assets_path.assert_called_once()
 
@@ -169,7 +172,7 @@ def test_decrypt_fails_wrong_key(padding_obj: padding.AsymmetricPadding, encrypt
 
     # Act
     with pytest.raises(DecryptionError):
-        encrypted_key_obj.decrypt_key(ca=ca, container=container)
+        encrypted_key_obj.decrypt_key(container=container)
 
     # Assert
     mock_get_user_data.assert_called_once()
