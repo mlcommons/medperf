@@ -58,7 +58,6 @@ class SubmitCertificate:
         self.certificate = Certificate(
             name=name, ca=self.ca.id, certificate_content=certificate_content
         )
-        config.tmp_paths.append(self.certificate.path)
 
     def verify_certificate(self):
         self.certificate.verify_with_ca(self.ca, validate_ca=True)

@@ -62,14 +62,6 @@ def mock_certificate_file(mock_pki_assets_path: str) -> str:
     return fake_cert
 
 
-def test_submit_prepares_tmp_path_for_cleanup(mock_ca: CA):
-    # Act
-    submission = SubmitCertificate(ca_id=mock_ca.id, name='TestSubmit')
-
-    # Assert
-    assert submission.certificate.path in config.tmp_paths
-
-
 @pytest.mark.parametrize('model_id, ca_id, training_exp_id',
                          [
                              (1, None, None),
