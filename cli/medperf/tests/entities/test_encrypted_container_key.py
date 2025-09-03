@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 PATCH_ASSOC = 'medperf.entities.encrypted_container_key.{}'
 TEST_KEY_ID = 42
 
+
 @pytest.fixture
 def mock_bytes_key() -> bytes:
     return b'some_key'
