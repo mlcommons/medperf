@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from typing import Any, TYPE_CHECKING, Optional
-from pydantic import Field, root_validator
+from pydantic import Field, root_validator, SecretBytes
 
 from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
@@ -157,13 +157,13 @@ class EncryptedContainerKey(Entity):
             "Registered": self.is_registered,
         }
 
-    def decrypt_key(self, container: Cube) -> bytes:
+    def decrypt_key(self, container: Cube) -> SecretBytes:
         decryption_key = self._load_private_key(container=container)
         try:
-            decrypted_key = decryption_key.decrypt(
+            decrypted_key = SecretBytes(decryption_key.decrypt(
                 ciphertext=self.encrypted_key,
                 padding=self.padding,
-            )
+            ))
         except ValueError:
             raise DecryptionError(f'Could not decrypt keys to Container {container.name} (UID: {container.id})')
         return decrypted_key

@@ -28,7 +28,7 @@ class CompatibilityTestExecution:
         offline: bool = False,
         skip_data_preparation_step: bool = False,
         use_local_model_image: bool = False,
-        decryption_key: Path = None,
+        decryption_key_path: Path = None,
     ) -> (str, dict):
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
@@ -86,7 +86,7 @@ class CompatibilityTestExecution:
             offline,
             skip_data_preparation_step,
             use_local_model_image,
-            decryption_key_file_path=decryption_key,
+            decryption_key_file_path=decryption_key_path,
         )
         test_exec.validate()
         test_exec.set_data_source()

@@ -1,19 +1,11 @@
 from __future__ import annotations
-import os
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Union
 from cryptography.fernet import Fernet, InvalidToken
 from .runner import Runner
-from medperf import config
 from medperf.comms.entity_resources import resources
-from medperf.entities.ca import CA
-from medperf.exceptions import (
-    CommunicationRetrievalError,
-    MissingContainerKeyException,
-    DecryptionError,
-    AuthenticationError
-)
-from medperf.utils import remove_path, get_container_key_dir_path
+from medperf.exceptions import DecryptionError, AuthenticationError
+from medperf.utils import remove_path
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 from medperf.account_management.account_management import get_medperf_user_data
 
@@ -27,8 +19,6 @@ class PrivateRunner(Runner):
     ):
         super().__init__(container_config_parser, container_files_base_path)
         self.container = container
-        self._decryption_key = container.decryption_key
-        self._ca = None
 
         self._encrypted_image_path = (
             None  # Set in download_encrypted_image_file; file deleted in decrypt_image
@@ -37,24 +27,6 @@ class PrivateRunner(Runner):
             None  # Set in download_encrypted_image_file; file created in decrypt
         )
         self._must_delete_encrypted_image = self._check_if_must_delete_encrypted_image()
-
-    @property
-    def ca(self):
-        if self._ca is None:
-            try:
-                self._ca = CA.from_container(self.container.id)
-            except CommunicationRetrievalError:
-                error_msg = (
-                    f"No associated Certificate Authority (CA) was found "
-                    f"for the Container {self.container.name} (UID: {self.container.id})\n"
-                    f"If you are the Model Owner responsible for this container, "
-                    f"please run the following command to create the association:\n"
-                    f"medperf container associate_with_ca --container-id {self.container.id} "
-                    "--decryption-key <path to your decryption key file> "
-                    "--ca-id <ID of your preferred CA here>"
-                )
-                raise CommunicationRetrievalError(error_msg)
-        return self._ca
 
     def download(
         self,
@@ -91,39 +63,9 @@ class PrivateRunner(Runner):
         return self._decrypted_image_path
 
     def _load_symmetric_decryptor(self) -> Fernet:
-        if self._decryption_key is not None:
-            return Fernet(self._decryption_key)
+        decrypted_key = self.container.decryption_key or self._load_data_owner_key()
 
-        if not self._must_delete_encrypted_image:
-            # TODO maybe this can just be removed?
-            container_key_dir = get_container_key_dir_path(
-                container_id=self.container.id, ca_name=self.ca.name
-            )
-
-            model_owner_key_path = os.path.join(
-                container_key_dir,
-                config.container_key_file,
-            )
-            if os.path.exists(model_owner_key_path):
-                decrypted_key = self._load_model_owner_local_key(model_owner_key_path)
-            else:
-                msg = (
-                    f"Container Key not found for Container ID {self.container.id}.\n"
-                    f"If attempting to execute a compatibility test run, please make "
-                    "sure to include the --decryption-key option in your compatibility "
-                    "test run command.\n"
-                    f"If attempting to associate with a benchmark AND you are the Model "
-                    "Owner responsible for this container, please run the following command "
-                    "to create the association:\n"
-                    f"medperf container associate_with_ca --container-id {self.container.id} "
-                    "--decryption-key <path to your decryption key file> "
-                    "--ca-id <ID of your preferred CA here>"
-                )
-                raise MissingContainerKeyException(msg)
-        else:
-            decrypted_key = self._load_data_owner_key()
-
-        fernet_obj = Fernet(decrypted_key)
+        fernet_obj = Fernet(decrypted_key.get_secret_value())
         return fernet_obj
 
     def _check_if_must_delete_encrypted_image(self) -> bool:

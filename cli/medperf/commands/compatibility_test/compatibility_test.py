@@ -114,7 +114,7 @@ def run(
         offline=offline,
         skip_data_preparation_step=skip_data_preparation_step,
         use_local_model_image=use_local_model_image,
-        decryption_key=decryption_key,
+        decryption_key_path=decryption_key,
     )
     config.ui.print("✅ Done!")
 

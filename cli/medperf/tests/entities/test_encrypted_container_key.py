@@ -148,7 +148,7 @@ def test_decrypt(unencrypted_container_key: bytes, private_key: rsa.RSAPrivateKe
     encrypted_key_obj, container, mock_get_ca, mock_get_user_data, mock_get_pki_assets_path = args_tuple
 
     # Act
-    decrypted_container_key = encrypted_key_obj.decrypt_key(container=container)
+    decrypted_container_key = encrypted_key_obj.decrypt_key(container=container).get_secret_value()
 
     # Assert
     assert decrypted_container_key != encrypted_container_key

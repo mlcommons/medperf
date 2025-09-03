@@ -6,6 +6,7 @@ from medperf.utils import (
     sanitize_path,
     remove_path,
     generate_tmp_uid,
+    load_model_owner_key
 )
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
@@ -113,8 +114,7 @@ def get_cube(
     cube = Cube.get(uid, local_only=local_only)
 
     if decryption_key_file_path is not None:
-        with open(decryption_key_file_path, "rb") as f:
-            cube.decryption_key = f.read()
+        cube.decryption_key = load_model_owner_key(decryption_key_file_path)
 
     if not use_local_model_image:
         cube.download_run_files()

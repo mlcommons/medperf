@@ -21,7 +21,8 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
+from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError, MissingContainerKeyException
+from pydantic import SecretBytes
 
 
 def get_file_hash(path: str) -> str:
@@ -574,3 +575,34 @@ def move_container_key_to_local_storage(cube_id: int, ca_name: str, decryption_k
     copied_key_path = os.path.join(container_keys_dir, config.container_key_file)
     os.makedirs(container_keys_dir, exist_ok=True)
     shutil.copy(decryption_key_path, copied_key_path)
+
+
+def get_model_owner_container_key_path(container_id, ca_name) -> Path:
+    container_key_dir = get_container_key_dir_path(
+        container_id=container_id, ca_name=ca_name
+    )
+
+    model_owner_key_path = Path(container_key_dir) / config.container_key_file
+
+    if not os.path.exists(model_owner_key_path):
+        msg = (
+            f"Container Key not found for Container ID {container_id}.\n"
+            f"If attempting to execute a compatibility test run, please make "
+            "sure to include the --decryption-key option in your compatibility "
+            "test run command.\n"
+            f"If attempting to associate with a benchmark AND you are the Model "
+            "Owner responsible for this container, please run the following command "
+            "to create the association:\n"
+            f"medperf container associate_with_ca --container-id {container_id} "
+            "--decryption-key <path to your decryption key file> "
+            "--ca-id <ID of your preferred CA here>"
+        )
+        raise MissingContainerKeyException(msg)
+    return model_owner_key_path
+
+
+def load_model_owner_key(key_path: os.PathLike) -> SecretBytes:
+    with open(key_path, "rb") as f:
+        model_owner_key = SecretBytes(f.read())
+
+    return model_owner_key
