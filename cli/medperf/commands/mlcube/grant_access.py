@@ -145,7 +145,7 @@ class GrantAccess:
         if error_certs:
             error_cert_msg = 'The following certificates failed verification:\n'
             for error_cert in error_certs:
-                error_cert_msg += f'{error_cert.name} (UID:{error_cert.name}, Owner: {error_cert.owner})\n'
+                error_cert_msg += f'{error_cert.name} (UID:{error_cert.id}, Owner: {error_cert.owner})\n'
             config.ui.print(error_cert_msg)
 
         return valid_certs
