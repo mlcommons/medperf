@@ -5,6 +5,7 @@ from medperf.entities.schemas import MedperfSchema
 from pydantic import validator
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
+from typing import List
 
 
 class CA(Entity, MedperfSchema):
@@ -101,6 +102,16 @@ class CA(Entity, MedperfSchema):
         ca = cls(**meta)
         ca.write()
         return ca
+
+    @classmethod
+    def get_many(cls, ca_uids: list[int]) -> List["CA"]:
+        meta = config.comms.get_many_cas(ca_uids=ca_uids)
+        cas = []
+        for ca_meta in meta['results']:
+            ca = cls(**ca_meta)
+            ca.write()
+            cas.append(ca)
+        return cas
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:

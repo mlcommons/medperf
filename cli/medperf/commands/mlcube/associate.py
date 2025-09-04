@@ -3,7 +3,7 @@ from medperf import config
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.ca import CA
-from medperf.exceptions import CleanExit, CommunicationError
+from medperf.exceptions import CleanExit
 from medperf.utils import (
     dict_pretty_print,
     approval_prompt,
@@ -39,6 +39,7 @@ class AssociateCube:
             model_owner_key_path = get_model_owner_container_key_path(container_id=cube_uid, ca_name=ca.name)
         else:
             model_owner_key_path = None
+
         _, results = CompatibilityTestExecution.run(
             benchmark=benchmark_uid, model=cube_uid, no_cache=no_cache, decryption_key_path=model_owner_key_path
         )
@@ -85,14 +86,10 @@ class AssociateCubeWithCAs:
             raise CleanExit("Model association operation cancelled")
 
         valid_cas = set(cube.trusted_cas)
-        for ca_uid in ca_uids:
-            try:
-                # TODO add endpoint to do this as one query
-                ca = CA.get(ca_uid)
-                valid_cas.add(ca_uid)
-                move_container_key_to_local_storage(cube_id=cube_uid, ca_name=ca.name, decryption_key_path=decryption_key_path)
-            except CommunicationError:
-                pass
+        ca_objects = CA.get_many(cube.trusted_cas)
+        for ca in ca_objects:
+            move_container_key_to_local_storage(cube_id=cube_uid, ca_name=ca.name, decryption_key_path=decryption_key_path)
+            valid_cas.add(ca.id)
 
         updated_body = {
             'trusted_cas': sorted(list(valid_cas))

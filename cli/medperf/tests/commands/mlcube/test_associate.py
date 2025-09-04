@@ -43,7 +43,7 @@ def test_run_associates_cube_with_comms(
     AssociateCube.run(cube_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(cube_uid, benchmark_uid, ANY, decryption_key_path=None)
+    spy.assert_called_once_with(cube_uid, benchmark_uid, ANY)
 
 
 @pytest.mark.parametrize("cube_uid", [3081, 1554])

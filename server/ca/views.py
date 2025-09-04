@@ -2,7 +2,7 @@ from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework.request import Request
 from .models import CA
 from .serializers import CASerializer
 from drf_spectacular.utils import extend_schema
@@ -13,11 +13,17 @@ class CAList(GenericAPIView):
     queryset = ""
 
     @extend_schema(operation_id="cas_retrieve_all")
-    def get(self, request, format=None):
+    def get(self, request: Request, format=None):
         """
         List all cas
         """
-        cas = CA.objects.all()
+        ids_list = request.GET.getlist('ids')
+        print(f'{ids_list=}')
+        print(f'{request.GET=}')
+        if ids_list:
+            cas = CA.objects.filter(pk__in=ids_list)
+        else:
+            cas = CA.objects.all()
         cas = self.paginate_queryset(cas)
         serializer = CASerializer(cas, many=True)
         return self.get_paginated_response(serializer.data)

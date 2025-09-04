@@ -131,9 +131,9 @@ class REST(Comms):
             return el_list[:num_elements]
         return el_list
 
-    def __get(self, url: str, error_msg: str) -> dict:
+    def __get(self, url: str, error_msg: str, **kwargs) -> dict:
         """self.__auth_get with error handling"""
-        res = self.__auth_get(url)
+        res = self.__auth_get(url, **kwargs)
         if res.status_code != 200:
             log_response_error(res)
             details = format_errors_dict(res.json())
@@ -293,6 +293,12 @@ class REST(Comms):
         url = f"{self.server_url}/cas/{ca_id}"
         error_msg = "Could not retrieve ca"
         return self.__get(url, error_msg)
+
+    def get_many_cas(self, ca_uids: List[int]) -> dict:
+        url = f"{self.server_url}/cas/"
+        params = {'ids': ca_uids}
+        error_msg = "Could not retrieve ca"
+        return self.__get(url, error_msg, params=params)
 
     def get_encrypted_key(self, key_id: int) -> dict:
         url = f"{self.server_url}/keys/{key_id}"
