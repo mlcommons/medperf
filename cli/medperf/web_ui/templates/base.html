@@ -30,6 +30,7 @@
     <script>
         window.notifications = {{ notifications | tojson }};
         window.maxLogMessages = Number("{{ request.app.state.MAXLOGMESSAGES }}");
+        window.evSource = null;
     </script>
     {% if task_running %}
     {# Save running task id a global variable #}
@@ -86,13 +87,7 @@
     <script src="{{ url_for('static', path='js/prism-yaml-1.23.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
-    <script>
-        $(document).ready(() => {
-            $("#logout-btn").on("click", (e) => {
-                showConfirmModal(e.currentTarget, logout, "logout?");
-            });
-        });
-    </script>
+    
     {% if task_running %}
     <script>
         getNotifications();

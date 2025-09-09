@@ -184,9 +184,21 @@
 
 {% if current_user_is_benchmark_owner %}
 
+{% set dataset_assoc_len = datasets_associations|length %}
+{% set models_assoc_len = models_associations|length %}
+{% set results_len = results|length %}
+
 <div id="datasets-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
-    <h4>Datasets Associations</h3>
-    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+    <h4>
+        Datasets Associations
+        <span class="fs-6 ms-2 badge rounded-pill badge-notification bg-secondary">
+            {{ dataset_assoc_len }}
+        </span>
+        {% if dataset_assoc_pending %}
+        <span class="ms-2 fst-italic fs-6 text-muted">You have pending associations</span>
+        {% endif %}
+    </h4>
+    <span class="text-muted lh-lg me-3 fs-5"><i class="fas fa-caret-down bmk-detail-toggle"></i></span>
 </div>
 <div id="datasets-associations" style="display: none;">
     {% for assoc in datasets_associations %}
@@ -194,8 +206,16 @@
     {% endfor %}
 </div>
 <div id="models-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
-    <h4>Models Associations</h3>
-    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+    <h4>
+        Models Associations
+        <span class="fs-6 ms-2 badge rounded-pill badge-notification bg-secondary">
+            {{ models_assoc_len }}
+        </span>
+        {% if model_assoc_pending %}
+        <span class="ms-2 fst-italic fs-6 text-muted">You have pending associations</span>
+        {% endif %}
+    </h4>
+    <span class="text-muted lh-lg me-3 fs-5"><i class="fas fa-caret-down bmk-detail-toggle"></i></span>
 </div>
 <div id="models-associations" style="display: none;">
     {% for assoc in models_associations %}
@@ -203,8 +223,13 @@
     {% endfor %}
 </div>
 <div id="benchmark-results-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
-    <h4>Results</h3>
-    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+    <h4>
+        Results
+        <span class="fs-6 ms-2 badge rounded-pill badge-notification bg-secondary">
+            {{ results_len }}
+        </span>
+    </h4>
+    <span class="text-muted lh-lg me-3 fs-5"><i class="fas fa-caret-down bmk-detail-toggle"></i></span>
 </div>
 <div id="benchmark-results" style="display: none;">
     {% for result in results %}

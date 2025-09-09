@@ -364,6 +364,14 @@ label[for="switch"] {
     cursor: pointer;
 }
 
+.bmk-detail-toggle {
+    transition: transform 0.3s ease;
+}
+
+.bmk-detail-toggle.rotated {
+    transform: rotate(180deg);
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);

@@ -1,3 +1,4 @@
+import time
 from fastapi import Form, APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from queue import Empty
@@ -51,8 +52,11 @@ def delete_notification(
 
 @router.get("/current_task", response_class=JSONResponse)
 def get_task_id(request: Request, current_user: bool = Depends(check_user_api)):
+    start_time = time.monotonic()
     while not config.ui.task_id:
-        pass
+        time.sleep(0.1)
+        if time.monotonic() - start_time >= 2:
+            break
     return {"task_id": config.ui.task_id}
 
 
@@ -93,9 +97,6 @@ def event_generator(request: Request, stream_old: bool):
             process_event(request, event)
             event_processed = True
             yield sse_frame_event(event)
-
-            if getattr(event, "end", False):
-                break
 
         except Empty:
             continue

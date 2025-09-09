@@ -47,6 +47,10 @@ function checkCompTestFormValidity() {
     runTestButton.prop("disabled", !isValid);
 }
 
+function showRegisterContainer(){
+    window.location.href = "/containers/register/ui";
+}
+
 $(document).ready(() => {
     $("#run-comp-test-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, runContainerCompatibilityTest, "run the compatibility test?");

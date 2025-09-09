@@ -48,7 +48,7 @@ function onApproveRejectAssociationError(xhr, status, error, actionName){
     console.error("Error:", xhr.responseText);
 }
 
-function approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn){
+async function approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn){
     addSpinner(approveRejectBtn);
     disableElements(".card button");
 
@@ -56,20 +56,17 @@ function approveRejectAssociation(actionName, benchmarkId, entityId, entityType,
     formData.append("benchmark_id", benchmarkId);
     formData.append(`${entityType}_id`, entityId);
 
-    $.ajax({
-        url: `/benchmarks/${actionName}`,
-        type: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        async: true,
-        success: function(response) {
+    ajaxRequest(
+        `/benchmarks/${actionName}`,
+        "POST",
+        formData,
+        function(response) {
             onApproveRejectAssociationSuccess(response, actionName);
         },
-        error: function(xhr, status, error){
-            onApproveRejectAssociationError(xhr, status, error, actionName);
-        }
-    });
+        "Error approving/rejecting associtation"
+    );
+
+    window.runningTaskId = await getTaskId();
 }
 
 function isValidEmail(email) {
@@ -89,6 +86,8 @@ function createEmailChip(email, input_element) {
 }
 
 function parseEmails(element){
+    if (!$(element).length || !$(element))
+        return;
     const jsonList = JSON.parse(element.attr("data-allowed-list"));
     const input_element = element.find("input");
     if(jsonList.length){
@@ -183,7 +182,6 @@ async function updateAssociationsPolicy(saveBtn){
     );
 
     window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 $(document).ready(() => {
@@ -193,14 +191,17 @@ $(document).ready(() => {
     
     $("#datasets-associations-title").on("click", () => {
         $("#datasets-associations").slideToggle(); // smooth animation
+        $("#datasets-associations-title").find("i").toggleClass("rotated");
     });
     
     $("#models-associations-title").on("click", () => {
         $("#models-associations").slideToggle(); // smooth animation
+        $("#models-associations-title").find("i").toggleClass("rotated");
     });
     
     $("#benchmark-results-title").on("click", () => {
         $("#benchmark-results").slideToggle(); // smooth animation
+        $("#benchmark-results-title").find("i").toggleClass("rotated");
     });
     
     $("#dataset-auto-approve-mode").on("change", (e) => {

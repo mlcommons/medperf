@@ -212,7 +212,7 @@ function onLogoutSuccess(response){
     }
 }
 
-function logout(){
+async function logout(){
     ajaxRequest(
         "/logout",
         "POST",
@@ -220,6 +220,7 @@ function logout(){
         onLogoutSuccess,
         "Error logging out:"
     )
+    window.runningTaskId = await getTaskId();
 }
 
 let currentStageElement = null, logPanel, stagesList;
@@ -270,6 +271,10 @@ $(document).ready(() => {
             $("#yaml-code").show();
             $("#hide-yaml").show();
         });
+    });
+
+    $("#logout-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, logout, "logout?");
     });
 
     $("form").on("submit", (e) => {

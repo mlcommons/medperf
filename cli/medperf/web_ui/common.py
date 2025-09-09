@@ -82,7 +82,7 @@ def custom_exception_handler(request: Request, exc: Exception):
     context = {"request": request, "exception": exc}
 
     if "You are not logged in" in str(exc):
-        return RedirectResponse("/medperf_login?redirect=true")
+        return RedirectResponse("/medperf_login?redirected=true")
 
     # Return a detailed error page
     return templates.TemplateResponse("error.html", context, status_code=500)
