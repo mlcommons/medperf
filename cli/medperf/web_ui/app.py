@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from medperf import config
 
 from medperf.decorators import clean_except
-from medperf.web_ui.common import custom_exception_handler
+from medperf.web_ui.common import custom_exception_handler, print_webui_props
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.containers.routes import router as containers_router
@@ -65,12 +65,9 @@ def startup_event():
         yaml.safe_dump(host_props, f)
 
     # print security token to CLI (avoid logging to file)
-    print("=" * 40)
-    print()
-    print("Use security token to view the web-UI:")
-    print(security_token)
-    print()
-    print("=" * 40)
+    host = host_props["host"]
+    port = host_props["port"]
+    print_webui_props(host, port, security_token)
 
     loglevel = config.loglevel.upper()
     logging.getLogger().setLevel(loglevel)

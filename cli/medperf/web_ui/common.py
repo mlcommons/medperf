@@ -33,6 +33,18 @@ logger = logging.getLogger(__name__)
 ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
 
 
+def print_webui_props(host, port, security_token):
+    print("=" * 40)
+    print()
+    print("Open your browser to:")
+    print(f"\033[1mhttp://{host}:{port}/security_check?token={security_token}\033[0m")
+    print()
+    print("Or use security token to view the web-UI:")
+    print("\033[1m" + security_token + "\033[0m")
+    print()
+    print("=" * 40)
+
+
 def generate_uuid():
     return str(uuid.uuid4())
 

@@ -553,10 +553,10 @@ def get_webui_properties():
         props = yaml.safe_load(f)
 
     # print security token to CLI (avoid logging to file)
-    print("=" * 40)
-    print()
-    print("Use security token to view the web-UI:")
-    print(props["security_token"])
-    print()
-    print("=" * 40)
-    print(f"URL: http://{props['host']}:{props['port']}")
+    host = props["host"]
+    port = props["port"]
+    security_token = props["security_token"]
+
+    from medperf.web_ui.common import print_webui_props
+
+    print_webui_props(host, port, security_token)
