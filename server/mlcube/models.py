@@ -30,7 +30,7 @@ class MlCube(models.Model):
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    trusted_cas = models.ManyToManyField(CA, null=True, blank=True)
+    trusted_cas = models.ManyToManyField(CA, blank=True)
 
     def __str__(self):
         return self.name
