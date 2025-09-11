@@ -21,7 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError, MissingContainerKeyException
+from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError, MissingContainerKeyException, MedperfException
 from pydantic import SecretBytes
 
 
@@ -526,7 +526,8 @@ def get_pki_assets_path(common_name: str, ca_name: str):
 
 
 def get_container_key_dir_path(container_id: Union[str, int], ca_name: str):
-    return os.path.join(config.container_keys_dir, str(container_id), ca_name)
+    validated_id = validate_uid(container_id)
+    return os.path.join(config.container_keys_dir, str(validated_id), ca_name)
 
 
 def get_participant_label(email, data_id):
@@ -606,3 +607,9 @@ def load_model_owner_key(key_path: os.PathLike) -> SecretBytes:
         model_owner_key = SecretBytes(f.read())
 
     return model_owner_key
+
+def validate_uid(some_uid: int):
+    try:
+        return int(some_uid)
+    except ValueError:
+        raise MedperfException(f'Invalid UID {some_uid}! All MedPerf UIDs must be integers.')
