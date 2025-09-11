@@ -608,6 +608,7 @@ def load_model_owner_key(key_path: os.PathLike) -> SecretBytes:
 
     return model_owner_key
 
+
 def validate_uid(some_uid: int):
     try:
         return int(some_uid)
