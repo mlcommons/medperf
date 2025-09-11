@@ -21,7 +21,7 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError, MissingContainerKeyException
+from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError, MissingContainerKeyException, MedperfException
 from pydantic import SecretBytes
 
 
@@ -584,6 +584,9 @@ def get_model_owner_container_key_path(container_id, ca_name) -> Path:
 
     model_owner_key_path = Path(container_key_dir) / config.container_key_file
 
+    if not is_child_of(child_path=model_owner_key_path, parent_path=config.config_storage):
+        raise MedperfException(f'Path {model_owner_key_path} for the model key is invalid!')
+
     if not os.path.exists(model_owner_key_path):
         msg = (
             f"Container Key not found for Container ID {container_id}.\n"
@@ -602,7 +605,16 @@ def get_model_owner_container_key_path(container_id, ca_name) -> Path:
 
 
 def load_model_owner_key(key_path: os.PathLike) -> SecretBytes:
+    if not is_child_of(child_path=key_path, parent_path=config.config_storage):
+        raise MedperfException(f'Path {key_path} for the model key is invalid!')
+
     with open(key_path, "rb") as f:
         model_owner_key = SecretBytes(f.read())
 
     return model_owner_key
+
+
+def is_child_of(child_path: os.PathLike, parent_path: os.PathLike) -> bool:
+    child_path_obj = Path(child_path).resolve()
+    parent_path_obj = Path(parent_path).resolve()
+    return parent_path_obj in child_path_obj.parents
