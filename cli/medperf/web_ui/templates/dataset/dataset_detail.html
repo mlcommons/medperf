@@ -10,7 +10,7 @@
 {% block detail_panel %}
 <div class="clearfix">
     <h1 class="my-4 float-start">{{ dataset.name }}</h1>
-    <form action="/datasets/export/ui" method="POST" id="redirect-export-form" class="{% if is_owner %} d-none {% endif %}">
+    <form action="/datasets/export/ui" method="POST" id="redirect-export-form" class="{% if not is_owner %} d-none {% endif %}">
         <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
         <input class="btn btn-dark float-end my-4" type="submit" name="submit" value="Export Dataset">
     </form>
@@ -40,10 +40,6 @@
                 <p class="card-text">
                     <strong>Location:</strong> 
                     {{ dataset.location }}
-                </p>
-                <p class="card-text">
-                    <strong>Input Data Hash:</strong> 
-                    {{ dataset.input_data_hash }}
                 </p>
                 <p class="card-text">
                     <strong>Generated UID:</strong> 
