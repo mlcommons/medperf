@@ -82,7 +82,7 @@ def login(
         request,
         message=notification_message,
         return_response=return_response,
-        url="/" if success else "/medperf_login",
+        url="" if success else "/medperf_login",
     )
     return return_response
 
