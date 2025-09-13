@@ -17,7 +17,7 @@
                 {% if entity.state == 'OPERATION' %} OPERATIONAL {% else %} {{ entity.state }} {% endif %}
             </span>
             <span class="badge {% if entity.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
-                {% if entity.is_valid %}Valid{% else %}Invalid{% endif %}
+                {% if entity.is_valid %}VALID{% else %}INVALID{% endif %}
             </span>
         </div>
         <div class="card mb-3">

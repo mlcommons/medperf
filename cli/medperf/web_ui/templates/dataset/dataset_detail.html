@@ -24,7 +24,7 @@
                 {% if dataset.state == 'OPERATION' %} OPERATIONAL {% else %} {{ dataset.state }} {% endif %}
             </span>
             <span class="badge {% if dataset.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
-                {% if dataset.is_valid %}Valid{% else %}Invalid{% endif %}
+                {% if dataset.is_valid %}VALID{% else %}INVALID{% endif %}
             </span>
         </div>
         <div class="card mb-3">
