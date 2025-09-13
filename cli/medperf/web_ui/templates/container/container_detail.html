@@ -59,8 +59,8 @@
                 {% else %}
                 <p class="card-text">
                     <strong>Image Tarball:</strong> 
-                    Not Available</p>
-                <p class="card-text text-muted small">N/A</p>
+                    Not Available
+                </p>
                 {% endif %}
                 {% if entity.additional_files_tarball_url %}
                 <p class="card-text">
@@ -74,8 +74,8 @@
                 {% else %}
                 <p class="card-text">
                     <strong>Additional Files:</strong> 
-                    Not Available</p>
-                <p class="card-text text-muted small">N/A</p>
+                    Not Available
+                </p>
                 {% endif %}
             </div>
         </div>
@@ -83,6 +83,7 @@
             <div class="card-body d-flex justify-content-between flex-wrap">
                 <div class="w-50">
                     <p class="card-text">
+                        <strong>Owner:</strong> 
                         <i class="fas fa-user"></i> 
                         <span class="text-muted small">{{ entity.owner }}</span>
                     </p>
