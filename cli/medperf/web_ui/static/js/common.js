@@ -265,8 +265,8 @@ $(document).ready(() => {
             $("#loading-indicator").hide();
             $("#yaml-code").show();
             $("#hide-yaml").show();
-        }).fail(function() {
-            $("#yaml-code").text("Failed to load content");
+        }).fail(function(e) {
+            $("#yaml-code").text(e.responseJSON.detail);
             $("#loading-indicator").hide();
             $("#yaml-code").show();
             $("#hide-yaml").show();
