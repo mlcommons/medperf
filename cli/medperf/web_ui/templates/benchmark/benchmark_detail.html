@@ -27,9 +27,6 @@
             <span class="badge {% if entity.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
                 {% if entity.state == 'OPERATION' %} OPERATIONAL {% else %} {{ entity.state }} {% endif %}
             </span>
-            <span class="badge {% if entity.approval_status == 'APPROVED' %}badge-approval-approved{% elif entity.approval_status == 'PENDING' %}badge-approval-pending{% else %}badge-approval-rejected{% endif %}">
-                {{ entity.approval_status }}
-            </span>
             <span class="badge {% if entity.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
                 {% if entity.is_valid %}VALID{% else %}INVALID{% endif %}
             </span>
