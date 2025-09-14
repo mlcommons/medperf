@@ -22,6 +22,7 @@ from medperf.web_ui.common import (
     templates,
     sort_associations_display,
     check_user_ui,
+    get_container_type,
 )
 
 from medperf.commands.association.approval import Approval
@@ -143,8 +144,33 @@ def create_benchmark_ui(
     current_user: bool = Depends(check_user_ui),
 ):
 
+    my_user_id = get_medperf_user_data()["id"]
+    filters = {"owner": my_user_id}
+
+    my_containers = Cube.all(
+        filters=filters,
+    )
+
+    containers = []
+
+    for container in my_containers:
+        container_obj = {
+            "id": container.id,
+            "name": container.name,
+            "type": get_container_type(container),
+        }
+        containers.append(container_obj)
+    data_prep_containers = [i for i in containers if i["type"] == "data-prep-container"]
+    reference_containers = [i for i in containers if i["type"] == "reference-container"]
+    metrics_containers = [i for i in containers if i["type"] == "metrics-container"]
     return templates.TemplateResponse(
-        "benchmark/register_benchmark.html", {"request": request}
+        "benchmark/register_benchmark.html",
+        {
+            "request": request,
+            "data_prep_containers": data_prep_containers,
+            "reference_containers": reference_containers,
+            "metrics_containers": metrics_containers,
+        },
     )
 
 

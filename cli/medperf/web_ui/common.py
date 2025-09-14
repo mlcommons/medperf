@@ -9,6 +9,7 @@ from importlib import resources
 
 from fastapi.requests import Request
 from medperf import config
+from medperf.entities.cube import Cube
 from starlette.responses import RedirectResponse
 from pydantic.datetime_parse import parse_datetime
 
@@ -24,6 +25,7 @@ import uuid
 from medperf.account_management.account_management import read_user_account
 from medperf.web_ui.schemas import Notification, WebUITask
 
+import yaml
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
@@ -31,6 +33,20 @@ templates = Jinja2Templates(directory=templates_folder_path)
 logger = logging.getLogger(__name__)
 
 ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
+
+
+def get_container_type(container: Cube):
+    with open(container.cube_path, "r") as f:
+        yaml_data = yaml.safe_load(f.read())
+    container_tasks = yaml_data.get("tasks", []).keys()
+    if "prepare" in container_tasks and "sanity_check" in container_tasks:
+        return "data-prep-container"
+    elif "infer" in container_tasks:
+        return "reference-container"
+    elif "evaluate" in container_tasks:
+        return "metrics-container"
+    else:
+        return "unknown-container"
 
 
 def print_webui_props(host, port, security_token):
