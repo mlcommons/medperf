@@ -285,9 +285,6 @@ medperf benchmark submit \
 
 The MedPerf client will first automatically run a compatibility test between the containers using the demo dataset. If the test is successful, the benchmark will be submitted along with the compatibility test results.
 
-!!! note
-    The benchmark will stay inactive until the MedPerf server admin approves your submission.
-
 That's it! You can check your benchmark's server UID by running:
 
 ```bash
