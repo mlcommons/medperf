@@ -2,7 +2,7 @@
 function onMedperfLoginSuccess(response){
     if(response.status === "success"){
         showReloadModal("Successfully Logged In");
-        timer(3, "/");
+        timer(1, "/");
     }
     else{
         showErrorModal("Login Failed", response);

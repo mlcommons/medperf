@@ -205,7 +205,7 @@ function getEntities(switchElement){
 function onLogoutSuccess(response){
     if(response.status === "success"){
         showReloadModal("Successfully Logged Out");
-        timer(3, url="/medperf_login");
+        timer(1, url="/medperf_login");
     }
     else{
         showErrorModal("Logout Failed", response);
