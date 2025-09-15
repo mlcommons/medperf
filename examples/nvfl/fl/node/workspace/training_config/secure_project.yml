@@ -1,0 +1,41 @@
+api_version: 3
+name: secure_project
+description: NVIDIA FLARE sample project yaml file for chestxray example
+
+participants:
+  - name: 192.168.1.223
+    type: server
+    org: ExampleOrg
+    fed_learn_port: 8102
+    admin_port: 8103
+  - name: col1-example-com
+    type: client
+    org: ExampleOrg
+  - name: col2-example-com
+    type: client
+    org: ExampleOrg
+  - name: testmo@example.com
+    type: admin
+    org: ExampleOrg
+    role: project_admin
+
+# The same methods in all builders are called in their order defined in builders section
+builders:
+  - path: nvflare.lighter.impl.workspace.WorkspaceBuilder
+    args:
+      template_file: master_template.yml
+  - path: nvflare.lighter.impl.template.TemplateBuilder
+  - path: nvflare.lighter.impl.static_file.StaticFileBuilder
+    args:
+      config_folder: config
+      overseer_agent:
+        path: nvflare.ha.dummy_overseer_agent.DummyOverseerAgent
+        # if overseer_exists is true, args here are ignored.  Provisioning
+        #   tool will fill role, name and other local parameters automatically.
+        # if overseer_exists is false, args in this section will be used.
+        overseer_exists: false
+        args:
+          sp_end_point: hasan-HP-ZBook-15-G3:8102:8103
+
+  - path: nvflare.lighter.impl.cert.CertBuilder
+  - path: nvflare.lighter.impl.signature.SignatureBuilder

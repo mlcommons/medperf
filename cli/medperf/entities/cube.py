@@ -226,6 +226,12 @@ class Cube(Entity, DeployableSchema):
     def is_metadata_specified(self):
         return self.parser.is_metadata_specified()
 
+    def is_fl_workspace_specified(self):
+        return self.parser.is_fl_workspace_specified()
+
+    def has_task(self, task_name):
+        return self.parser.has_task(task_name)
+
     @classmethod
     def get_benchmarks_associations(cls, mlcube_uid: int) -> List[dict]:
         """Retrieves the list of benchmarks model is associated with

@@ -1,5 +1,6 @@
 from medperf import config
 from medperf.account_management.account_management import get_medperf_user_data
+from medperf.exceptions import InvalidArgumentError
 from medperf.entities.ca import CA
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
@@ -46,6 +47,8 @@ class UpdatePlan:
 
     def prepare_admin_cube(self):
         self.cube = self.__get_cube(self.training_exp.fl_admin_mlcube, "FL Admin")
+        if not self.cube.has_task("update_plan"):
+            raise InvalidArgumentError("This container doesn't support updating plans")
 
     def __get_cube(self, uid: int, name: str) -> Cube:
         self.ui.text = (

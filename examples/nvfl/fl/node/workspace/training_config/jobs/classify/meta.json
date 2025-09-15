@@ -1,0 +1,9 @@
+{
+    "name": "classify_alpha1.0",
+    "deploy_map": {
+        "classify": [
+            "@ALL"
+        ]
+    },
+    "min_clients": 2
+}

@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from django.utils import timezone
-from .models import TrainingExperiment
+from .models import TrainingExperiment, DatasetTrainingKit, AggregatorTrainingKit
+from django.contrib.auth import get_user_model
+from django.db import transaction
+
+User = get_user_model()
 
 
 class WriteTrainingExperimentSerializer(serializers.ModelSerializer):
@@ -96,3 +100,34 @@ class ReadTrainingExperimentSerializer(serializers.ModelSerializer):
                             "User cannot update non editable fields in Operation mode"
                         )
         return data
+
+
+class DatasetTrainingKitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DatasetTrainingKit
+        fields = "__all__"
+        read_only_fields = ["experiment"]
+
+
+class DatasetTrainingKitListSerializer(serializers.ListSerializer):
+    child = DatasetTrainingKitSerializer()
+
+    def create(self, validated_data):
+        objects = []
+        for entry in validated_data:
+            objects.append(
+                DatasetTrainingKit(
+                    email=entry["email"],
+                    kit=entry["kit"],
+                    experiment=self.context["experiment"],
+                )
+            )
+        with transaction.atomic():
+            return DatasetTrainingKit.objects.bulk_create(objects)
+
+
+class AggregatorTrainingKitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AggregatorTrainingKit
+        fields = "__all__"
+        read_only_fields = ["experiment"]

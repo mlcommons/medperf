@@ -1,6 +1,8 @@
 import os
+from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.event import TrainingEvent
+from medperf.entities.cube import Cube
 from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.exceptions import CleanExit, InvalidArgumentError
 from medperf import config
@@ -17,6 +19,7 @@ class CloseEvent:
         submission.prepare()
         submission.validate()
         submission.read_report()
+        submission.stop_federation()
         submission.submit()
         submission.write()
 
@@ -39,6 +42,29 @@ class CloseEvent:
     def read_report(self):
         with open(self.report_path) as f:
             self.report = yaml.safe_load(f)
+
+    def stop_federation(self):
+        admin_mlcube_id = self.training_exp.fl_admin_mlcube
+        admin_mlcube = Cube.get(admin_mlcube_id)
+        if not admin_mlcube.has_task("stop_federation"):
+            return
+
+        fl_workspace = self.training_exp.get_admin_kit_path()
+
+        mounts = {
+            "fl_workspace": fl_workspace,
+            "output_weights": self.event.out_weights,
+        }
+        env = {
+            "MEDPERF_PARTICIPANT_LABEL": get_medperf_user_data()["email"],
+        }
+
+        admin_mlcube.run(
+            task="stop_federation",
+            mounts=mounts,
+            env=env,
+            disable_network=False,
+        )
 
     def submit(self):
         self.event.report = self.report

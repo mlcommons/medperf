@@ -80,3 +80,16 @@ class SimpleContainerParser(Parser):
             )
         except KeyError:
             return False
+
+    def is_fl_workspace_specified(self):
+        # TODO: this is used for both server and client. Make it separate
+        try:
+            return (
+                "fl_workspace"
+                in self.container_config["tasks"]["train"]["output_volumes"]
+            )
+        except KeyError:
+            return False
+
+    def has_task(self, task_name: str):
+        return task_name in self.container_config["tasks"]

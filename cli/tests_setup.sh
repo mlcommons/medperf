@@ -97,6 +97,8 @@ DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 PREP_MLCUBE="$ASSETS_URL/prep-sep/container_config.yaml"
 PREP_PARAMS="$ASSETS_URL/prep-sep/workspace/parameters.yaml"
 PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
+NV_PREP_TRAINING_MLCUBE="https://raw.githubusercontent.com/mlcommons/medperf/9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/data_preparator/container_config.yaml"
+NV_PREP_TRAINING_PARAMS="https://raw.githubusercontent.com/mlcommons/medperf/9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/data_preparator/workspace/parameters.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
@@ -122,6 +124,10 @@ TRAIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/19c80d88deaad27b
 TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
 FLADMIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/bc431ffe6c3b761b28674816e6f26511e8b27042/examples/fl/fl_admin/mlcube/mlcube.yaml"
 
+# NV FL cubes
+NV_TRAIN_MLCUBE="https://storage.googleapis.com/medperf-storage/nvflare_training/node_container_config4.yaml"
+NV_FLADMIN_MLCUBE="https://storage.googleapis.com/medperf-storage/nvflare_training/admin_container_config3.yaml"
+
 # test users credentials
 MODELOWNER="testmo@example.com"
 DATAOWNER="testdo@example.com"
@@ -137,6 +143,8 @@ MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/
 METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics"
 
 TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
+NV_TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/nvfl/fl/node/workspace/training_config"
+
 # create storage folders
 mkdir -p "$TEST_ROOT"
 mkdir -p "$MEDPERF_STORAGE"

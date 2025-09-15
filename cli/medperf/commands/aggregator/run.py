@@ -1,12 +1,17 @@
+import base64
 import os
 from medperf import config
 from medperf.entities.ca import CA
 from medperf.entities.event import TrainingEvent
-from medperf.exceptions import InvalidArgumentError, MedperfException
+from medperf.exceptions import (
+    CommunicationRetrievalError,
+    InvalidArgumentError,
+    MedperfException,
+)
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.aggregator import Aggregator
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path, remove_path
+from medperf.utils import generate_tmp_path, get_pki_assets_path, remove_path, untar
 from medperf.certificates import trust
 
 
@@ -31,8 +36,8 @@ class StartAggregator:
         execution.prepare_participants_list()
         execution.prepare_plan()
         execution.prepare_pki_assets()
-        with config.ui.interactive():
-            execution.run_experiment()
+        # with config.ui.interactive():
+        execution.run_experiment()
 
     def __init__(self, training_exp_id, publish_on, overwrite) -> None:
         self.training_exp_id = training_exp_id
@@ -90,7 +95,25 @@ class StartAggregator:
         self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.name)
         self.ca = ca
 
+    def __get_training_kit(self):
+        tmp_folder = generate_tmp_path()
+        tmp_file = generate_tmp_path()
+        try:
+            kit_info = config.comms.get_aggregator_training_kit(self.training_exp_id)
+        except CommunicationRetrievalError:
+
+            return tmp_folder
+        kit_binary = kit_info["kit"]
+        with open(tmp_file, "wb") as f:
+            f.write(base64.b64decode(kit_binary))
+        os.makedirs(tmp_folder, exist_ok=True)
+        untar(tmp_file, extract_to=tmp_folder)
+        return tmp_folder
+
     def run_experiment(self):
+        fl_workspace = self.__get_training_kit()
+        if fl_workspace is None and self.cube.is_fl_workspace_specified():
+            raise InvalidArgumentError("Could not get training kit")
         mounts = {
             "node_cert_folder": self.aggregator_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
@@ -99,13 +122,16 @@ class StartAggregator:
             "output_logs": self.event.agg_out_logs,
             "output_weights": self.event.out_weights,
             "report_path": self.event.report_path,
+            "fl_workspace": fl_workspace,
         }
 
         self.ui.text = "Running Aggregator"
-        port = self.aggregator.port
+        ports = self.aggregator.port
+        if isinstance(ports, int):
+            ports = [ports]
         self.cube.run(
             task="start_aggregator",
             mounts=mounts,
-            ports=[f"{self.publish_on}:{port}:{port}"],
+            ports=[f"{self.publish_on}:{port}:{port}" for port in ports],
             disable_network=False,
         )

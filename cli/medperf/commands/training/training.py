@@ -9,6 +9,8 @@ from medperf.commands.training.submit import SubmitTrainingExp
 from medperf.commands.training.set_plan import SetPlan
 from medperf.commands.training.start_event import StartEvent
 from medperf.commands.training.close_event import CloseEvent
+from medperf.commands.training.submit_job import SubmitJob
+
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.training.get_experiment_status import GetExperimentStatus
@@ -88,6 +90,18 @@ def start_event(
     config.ui.print("✅ Done!")
 
 
+@app.command("submit_job")
+@clean_except
+def submit_job(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
+    )
+):
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
+    SubmitJob.run(training_exp_id)
+    config.ui.print("✅ Done!")
+
+
 @app.command("get_experiment_status")
 @clean_except
 def get_experiment_status(
@@ -125,10 +139,11 @@ def close_event(
     training_exp_id: int = typer.Option(
         ..., "--training_exp_id", "-t", help="UID of the desired benchmark"
     ),
+    report_file: str = typer.Option(None, "--report_file", "-r", help="Report file"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    CloseEvent.run(training_exp_id, approval=approval)
+    CloseEvent.run(training_exp_id, report_file, approval=approval)
     config.ui.print("✅ Done!")
 
 

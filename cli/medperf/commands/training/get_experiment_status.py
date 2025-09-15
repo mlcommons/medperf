@@ -66,13 +66,17 @@ class GetExperimentStatus:
         return cube
 
     def get_experiment_status(self):
-        env = {"MEDPERF_ADMIN_PARTICIPANT_CN": self.user_email}
+        env = {
+            "MEDPERF_ADMIN_PARTICIPANT_CN": self.user_email,
+            "MEDPERF_PARTICIPANT_LABEL": self.user_email,
+        }
         mounts = {
             "node_cert_folder": self.admin_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
             "output_status_file": self.status_output,
             "temp_dir": self.temp_dir,
+            "fl_workspace": self.training_exp.get_admin_kit_path(),
         }
 
         self.ui.text = "Getting training experiment status"

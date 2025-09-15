@@ -1,0 +1,1 @@
+docker build -t mlcommons/medperf-nv-admin:1.0.0 -f Dockerfile .

@@ -11,5 +11,7 @@ urlpatterns = [
     path("<int:pk>/ca/", views.TrainingCA.as_view()),
     path("<int:pk>/event/", views.GetTrainingEvent.as_view()),
     path("<int:pk>/participants_info/", views.ParticipantsInfo.as_view()),
+    path("<int:pk>/training_kit/", views.GetTrainingKit.as_view()),
+    path("<int:pk>/aggregator_kit/", views.GetAggregatorKit.as_view()),
     path("events/", include("trainingevent.urls", namespace=app_name), name="event"),
 ]

@@ -29,3 +29,11 @@ class Parser(ABC):
     @abstractmethod
     def is_metadata_specified(self):
         pass
+
+    @abstractmethod
+    def is_fl_workspace_specified(self):
+        pass
+
+    @abstractmethod
+    def has_task(self, task_name: str):
+        pass

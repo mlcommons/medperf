@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from medperf.entities.aggregator import Aggregator
 import typer
 
@@ -21,7 +21,7 @@ def submit(
     address: str = typer.Option(
         ..., "--address", "-a", help="Address/domain of the aggregator"
     ),
-    port: int = typer.Option(
+    port: List[int] = typer.Option(
         ..., "--port", "-p", help="The port which the aggregator will use"
     ),
     aggregation_mlcube: int = typer.Option(

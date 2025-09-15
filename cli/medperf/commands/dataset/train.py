@@ -1,3 +1,4 @@
+import base64
 import os
 from medperf import config
 from medperf.account_management.account_management import get_medperf_user_data
@@ -5,6 +6,7 @@ from medperf.entities.ca import CA
 from medperf.entities.event import TrainingEvent
 from medperf.exceptions import (
     CleanExit,
+    CommunicationRetrievalError,
     ExecutionError,
     InvalidArgumentError,
     MedperfException,
@@ -15,9 +17,11 @@ from medperf.entities.cube import Cube
 from medperf.utils import (
     approval_prompt,
     dict_pretty_print,
+    generate_tmp_path,
     get_pki_assets_path,
     get_participant_label,
     remove_path,
+    untar,
 )
 from medperf.certificates import trust
 
@@ -52,15 +56,15 @@ class TrainingExecution:
             execution.prepare_plan()
             execution.prepare_pki_assets()
             execution.confirm_run()
-            with config.ui.interactive():
-                execution.prepare_training_cube()
-                try:
-                    execution.run_experiment()
+            # with config.ui.interactive():
+            execution.prepare_training_cube()
+            try:
+                execution.run_experiment()
+                break
+            except ExecutionError as e:
+                print(str(e))
+                if not restart_on_failure:
                     break
-                except ExecutionError as e:
-                    print(str(e))
-                    if not restart_on_failure:
-                        break
 
     def __init__(
         self, training_exp_id: int, data_uid: int, overwrite: bool, approved: bool
@@ -147,9 +151,26 @@ class TrainingExecution:
         self.ui.print(f"> Container '{name}' download complete")
         return cube
 
+    def __get_training_kit(self):
+        tmp_folder = generate_tmp_path()
+        tmp_file = generate_tmp_path()
+        try:
+            kit_info = config.comms.get_client_training_kit(self.training_exp_id)
+        except CommunicationRetrievalError:
+            return tmp_folder
+        kit_binary = kit_info["kit"]
+        with open(tmp_file, "wb") as f:
+            f.write(base64.b64decode(kit_binary))
+        os.makedirs(tmp_folder, exist_ok=True)
+        untar(tmp_file, extract_to=tmp_folder)
+        return tmp_folder
+
     def run_experiment(self):
         participant_label = get_participant_label(self.user_email, self.dataset.id)
         env = {"MEDPERF_PARTICIPANT_LABEL": participant_label}
+        fl_workspace = self.__get_training_kit()
+        if fl_workspace is None and self.cube.is_fl_workspace_specified():
+            raise InvalidArgumentError("Could not get training kit")
         mounts = {
             "data_path": self.dataset.data_path,
             "labels_path": self.dataset.labels_path,
@@ -157,6 +178,7 @@ class TrainingExecution:
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
             "output_logs": self.out_logs,
+            "fl_workspace": fl_workspace,
         }
 
         self.ui.text = "Running Training"

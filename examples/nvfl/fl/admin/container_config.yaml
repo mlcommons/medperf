@@ -1,0 +1,34 @@
+container_type: DockerImage
+image: mlcommons/medperf-nv-admin:1.0.0
+tasks:
+  start_federation:
+    run_args:
+      command: bash /project/entrypoint_submit.sh
+    input_volumes:
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file
+    output_volumes:
+      fl_workspace:
+        mount_path: /mlcommons/volumes/fl_workspace
+        type: directory
+  get_experiment_status:
+    run_args:
+      command: bash /project/entrypoint_get_status.sh
+    output_volumes:
+      fl_workspace:
+        mount_path: /mlcommons/volumes/fl_workspace
+        type: directory
+      output_status_file:
+        mount_path: /mlcommons/volumes/status/status.yaml
+        type: file
+  stop_federation:
+    run_args:
+      command: bash /project/entrypoint_stop.sh
+    output_volumes:
+      fl_workspace:
+        mount_path: /mlcommons/volumes/fl_workspace
+        type: directory
+      output_weights:
+        mount_path: /mlcommons/volumes/output_weights
+        type: directory

@@ -16,10 +16,13 @@ from drf_spectacular.utils import extend_schema
 from django.db.models import OuterRef, Subquery
 from django.contrib.auth import get_user_model
 from dataset.models import Dataset
-from .models import TrainingExperiment
+from .models import TrainingExperiment, DatasetTrainingKit, AggregatorTrainingKit
 from .serializers import (
     WriteTrainingExperimentSerializer,
     ReadTrainingExperimentSerializer,
+    DatasetTrainingKitSerializer,
+    AggregatorTrainingKitSerializer,
+    DatasetTrainingKitListSerializer,
 )
 from .permissions import (
     IsAdmin,
@@ -240,3 +243,85 @@ class ParticipantsInfo(GenericAPIView):
         datasets_with_users = self.paginate_queryset(datasets_with_users)
         serializer = DatasetWithOwnerInfoSerializer(datasets_with_users, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class GetTrainingKit(GenericAPIView):
+    serializer_class = DatasetTrainingKitSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingExperiment.objects.get(pk=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdmin | IsExpOwner]
+        return super(self.__class__, self).get_permissions()
+
+    def post(self, request, pk, format=None):
+        """
+        Create a new DatasetTrainingKit
+        """
+        training_exp = self.get_object(pk)
+        serializer = DatasetTrainingKitListSerializer(
+            data=request.data, context={"experiment": training_exp}
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve datasets associated with a training experiment instance.
+        """
+        training_kit = DatasetTrainingKit.objects.filter(
+            email=request.user.email, experiment__id=pk
+        ).last()
+        if training_kit is None:
+            raise Http404
+
+        serializer = DatasetTrainingKitSerializer(training_kit)
+        return Response(serializer.data)
+
+
+class GetAggregatorKit(GenericAPIView):
+    serializer_class = AggregatorTrainingKitSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingExperiment.objects.get(pk=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdmin | IsExpOwner]
+        return super(self.__class__, self).get_permissions()
+
+    def post(self, request, pk, format=None):
+        """
+        Create a new AggregatorTrainingKit
+        """
+        training_exp = self.get_object(pk)
+        serializer = AggregatorTrainingKitSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(experiment=training_exp)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve datasets associated with a training experiment instance.
+        """
+        aggregator_kit = AggregatorTrainingKit.objects.filter(
+            aggregator__owner__id=request.user.id, experiment__id=pk
+        ).last()
+        if aggregator_kit is None:
+            raise Http404
+
+        serializer = AggregatorTrainingKitSerializer(aggregator_kit)
+        return Response(serializer.data)

@@ -1,0 +1,44 @@
+container_type: DockerImage
+image: mlcommons/medperf-nv-node:1.0.0
+tasks:
+  train:
+    run_args:
+      command: bash /project/entrypoint.sh
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+      labels_path:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+    output_volumes:
+      fl_workspace:
+        mount_path: /mlcommons/volumes/fl_workspace
+        type: directory
+  start_aggregator:
+    run_args:
+      command: bash /project/entrypoint.sh
+    output_volumes:
+      fl_workspace:
+        mount_path: /mlcommons/volumes/fl_workspace
+        type: directory
+  generate_plan:
+    run_args:
+      command: bash /project/generate_plan.sh
+    input_volumes:
+      training_config_path:
+        mount_path: /mlcommons/volumes/training_config
+        type: directory
+      aggregator_config_path:
+        mount_path: /mlcommons/volumes/aggregator_config
+        type: file
+    output_volumes:
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file
+      kits_path:
+        mount_path: /mlcommons/volumes/kits
+        type: directory
+      kits_metadata:
+        mount_path: /mlcommons/volumes/kits_meta/metadata.yaml
+        type: file

@@ -66,6 +66,18 @@ class MLCubeParser(Parser):
         except KeyError:
             return False
 
+    def is_fl_workspace_specified(self):
+        try:
+            return (
+                "fl_workspace"
+                in self.container_config["tasks"]["train"]["parameters"]["inputs"]
+            )
+        except KeyError:
+            return False
+
+    def has_task(self, task_name: str):
+        return task_name in self.container_config["tasks"]
+
 
 def _parse_task(container_config: dict, task: str, medperf_mounts: dict):
     workspace_path = container_config.get("workspace_path")

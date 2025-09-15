@@ -1,4 +1,5 @@
 import os
+import shutil
 from medperf.commands.association.utils import get_experiment_associations
 import yaml
 from typing import List, Optional
@@ -8,6 +9,7 @@ import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
 from medperf.account_management import get_medperf_user_data
+from medperf.utils import generate_tmp_path
 
 
 class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
@@ -63,6 +65,14 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
 
         self.plan_path = os.path.join(self.path, config.training_exp_plan_filename)
         self.status_path = os.path.join(self.path, config.training_exp_status_filename)
+        self.admin_kit = os.path.join(
+            config.training_kits, str(self.identifier), "admin"
+        )
+
+    def get_admin_kit_path(self):
+        tmp_folder = generate_tmp_path()
+        shutil.copytree(self.admin_kit, tmp_folder)
+        return tmp_folder
 
     @property
     def local_id(self):

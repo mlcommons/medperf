@@ -76,3 +76,15 @@ class TrainingExperiment(models.Model):
 
     class Meta:
         ordering = ["modified_at"]
+
+
+class DatasetTrainingKit(models.Model):
+    experiment = models.ForeignKey(TrainingExperiment, on_delete=models.PROTECT)
+    email = models.CharField(max_length=200)
+    kit = models.TextField()
+
+
+class AggregatorTrainingKit(models.Model):
+    experiment = models.ForeignKey(TrainingExperiment, on_delete=models.PROTECT)
+    aggregator = models.ForeignKey("aggregator.Aggregator", on_delete=models.PROTECT)
+    kit = models.TextField()

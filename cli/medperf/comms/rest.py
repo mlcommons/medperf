@@ -933,3 +933,39 @@ class REST(Comms):
         url = f"{self.server_url}/benchmarks/{benchmark_id}/participants_info/"
         error_msg = "Could not get benchmark participants info"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def upload_clients_kits(self, training_exp_id, kit_dicts: list) -> int:
+        """Uploads a new benchmark to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/training_kit/"
+        error_msg = "could not upload client kits"
+        return self.__post(url, json=kit_dicts, error_msg=error_msg)
+
+    def upload_aggregator_kit(self, training_exp_id, kit_dict: dict) -> int:
+        """Uploads a new benchmark to the server.
+
+        Args:
+            benchmark_dict (dict): benchmark_data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/training/{training_exp_id}/aggregator_kit/"
+        error_msg = "could not upload aggregator kit"
+        return self.__post(url, json=kit_dict, error_msg=error_msg)
+
+    def get_client_training_kit(self, training_exp_id: int) -> dict:
+        url = f"{self.server_url}/training/{training_exp_id}/training_kit/"
+        error_msg = "Could not retrieve training kit"
+        return self.__get(url, error_msg)
+
+    def get_aggregator_training_kit(self, training_exp_id: int) -> dict:
+        url = f"{self.server_url}/training/{training_exp_id}/aggregator_kit/"
+        error_msg = "Could not retrieve aggregator kit"
+        return self.__get(url, error_msg)

@@ -1,0 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+
+typer==0.9.0
+tensorboard
+scikit-learn==1.7.2
