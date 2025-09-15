@@ -39,6 +39,7 @@
                     {% if dataset_register_running %}
                     value="{{ task_formData.get('name', '') }}"
                     {% endif %}
+                    maxlength="128"
                 >
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -57,6 +58,7 @@
                     class="form-control"
                     placeholder="{{ placeholders.register_dataset_description }}"
                     {% if task_running %} disabled {% endif %}
+                    maxlength="256"
                 >{% if dataset_register_running %} {{ task_formData.get('description', '') }} {% endif %}</textarea>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -79,6 +81,7 @@
                     {% if dataset_register_running %}
                     value="{{ task_formData.get('location', '') }}"
                     {% endif %}
+                    maxlength="128"
                 >
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
