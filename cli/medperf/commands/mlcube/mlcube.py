@@ -398,14 +398,15 @@ def auto_give_access(
         '--interval',
         min=5,
         max=60,
-        help='Time in MINUTES to check for updates. Minimum 5 minutes, maximum 60 minutes (an hour). Defaults to 5 minutes if not provided.'
+        help='Time in MINUTES to check for updates. Minimum 5 minutes, maximum 60 minutes '
+        '(an hour). Defaults to 5 minutes if not provided.'
     )
 ):
     """
     This command will run the 'give_access' command every 5 minutes indefinetely.
     TO STOP THIS COMMAND, PLEASE USE THE CONTROL+C COMMAND IN THE TERMINAL THAT IS RUNNING THIS
-    OR, ALTERNATIVELY, SIMPLY CLOSE THE TERMINAL. The time interval for checking for new 
-    data wners may be customized by using the -i flag.
+    OR, ALTERNATIVELY, SIMPLY CLOSE THE TERMINAL. The time interval for checking for new data
+    owners may be customized by using the -i flag.
     Allows all currently registered Data Owners in a given benchmark to access
     a Private Container registered to the same benchmark, using the provided
     Certificate Authority (CA) for authentication.
