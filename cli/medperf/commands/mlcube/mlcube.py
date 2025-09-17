@@ -1,6 +1,7 @@
 import typer
 from typing import Optional, List
 from pathlib import Path
+import time
 
 import medperf.config as config
 from medperf.decorators import clean_except
@@ -12,7 +13,7 @@ from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCAs
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import InvalidArgumentError, InvalidCertificateError, CleanExit
 
 app = typer.Typer()
 
@@ -363,3 +364,67 @@ def give_access(
         ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id, approved=approval
     )
     config.ui.print("✅ Done!")
+
+
+@app.command('auto_give_access')
+@clean_except
+def auto_give_access(
+    ca_id: int = typer.Option(
+        ...,
+        "-c",
+        "--ca-id",
+        "--ca_id",
+        help="Certificate Authority (CA) UID. This CA will provide the allowed Data Owners to get keys to the model.",
+    ),
+    model_id: int = typer.Option(
+        ...,
+        "-m",
+        "--model-id",
+        "--model_id",
+        help="Private Model Container for which access will be granted.",
+    ),
+    benchmark_id: int = typer.Option(
+        ...,
+        "-b",
+        "--benchmark-id",
+        "--benchmark_id",
+        help="Benchmark UID where the Private Container is associated. "
+        "All data owners registered to this benchmark and authorized to "
+        "the Certificate Authority (CA) will be granted access to the container.",
+    ),
+    interval: int = typer.Option(
+        5,
+        '-i',
+        '--interval',
+        min=5,
+        max=60,
+        help='Time in MINUTES to check for updates. Minimum 5 minutes, maximum 60 minutes (an hour). Defaults to 5 minutes if not provided.'
+    )
+):
+    """
+    This command will run the 'give_access' command every 5 minutes indefinetely.
+    TO STOP THIS COMMAND, PLEASE USE THE CONTROL+C COMMAND IN THE TERMINAL THAT IS RUNNING THIS
+    OR, ALTERNATIVELY, SIMPLY CLOSE THE TERMINAL. The time interval for checking for new 
+    data wners may be customized by using the -i flag.
+    Allows all currently registered Data Owners in a given benchmark to access
+    a Private Container registered to the same benchmark, using the provided
+    Certificate Authority (CA) for authentication.
+    The Private Container must have already been associated with both the CA and the
+    benchmark for this to take effect.
+    """
+    interval_in_seconds = interval * 60
+    try:
+        while True:
+
+            try:
+                GrantAccess.run(
+                    ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id, approved=True
+                )
+            except (CleanExit, InvalidCertificateError) as e:
+                config.ui.print(str(e))
+            finally:
+                config.ui.print(f'Will check again in {interval} minutes...')
+                time.sleep(interval_in_seconds)
+    except KeyboardInterrupt:
+        config.ui.print("✅ Stopping at request of the user.")
+        raise
