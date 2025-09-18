@@ -66,7 +66,7 @@ def generate_uuid():
 
 
 def initialize_state_task(request: Request, task_name: str) -> str:
-    form_data = dict(anyio.run(lambda: request.form()))
+    form_data = dict(anyio.from_thread.run(lambda: request.form()))
     new_task_id = generate_uuid()
     config.ui.set_task_id(new_task_id)
     config.ui.set_request(request)

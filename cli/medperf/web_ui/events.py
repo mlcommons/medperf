@@ -87,7 +87,7 @@ def event_generator(request: Request, stream_old: bool):
     while True:
         event_processed = False
         event = None
-        if anyio.run(request.is_disconnected):
+        if anyio.from_thread.run(request.is_disconnected):
             break
         try:
             event = config.ui.get_event(timeout=1.0)
