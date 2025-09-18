@@ -7,6 +7,13 @@ To run this tutorial, you need a machine with the following requirements:
 - Internet access.
 - Web browser (to connect to codespaces)
 
+## Running in cloud via Github Codespaces
+
+As the most easy way to play with the tutorials you can launch a preinstalled [Codespace](https://github.com/features/codespaces) cloud environment for MedPerf by clicking this link:
+
+<!-- [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=416800365&devcontainer_path=.devcontainer%2Fwebui%2Fdevcontainer.json) -->
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=webui-doc&repo=895759437&devcontainer_path=.devcontainer%2Fwebui%2Fdevcontainer.json)
+
 ## Run Medperf WebUI Local Server
 
 In your codespaces terminal, run the following command to start the local webUI:
@@ -15,17 +22,17 @@ In your codespaces terminal, run the following command to start the local webUI:
 medperf_webui
 ```
 
-## Inference Setup with MedPerf (Benchmark Owner)
+## Defining the Benchmark
 
-### Implement a Valid Workflow
+### Defining the benchmark Components
 
 The implementation of a valid workflow is accomplished by implementing three Containers:
 
-- Data Preparator Container: This Container prepares raw data into MedPerf-compatible datasets for AI model execution.
+- **Data Preparator Container:** This Container prepares raw data into MedPerf-compatible datasets for AI model execution.
 
-- Reference Model Container: Provides an example AI model compatible with the data preparation Container.
+- **Reference Model Container:** Provides an example AI model compatible with the data preparation Container.
 
-- Metrics Container: Evaluates model performance using outputs from the reference model Container.
+- **Metrics Container:** Evaluates model performance using outputs from the reference model Container.
 
 ### Develop a Demo Dataset
 

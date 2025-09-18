@@ -11,4 +11,4 @@ cd server
 cp .env.local.local-auth.sqlite .env
 
 echo "Medperf is ready for local usage"
-cd ../medperf_tutorial
+cd ..
