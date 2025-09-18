@@ -33,10 +33,6 @@ class WebUI(CLI):
         self.b_lock = threading.Lock()
         self.b_stop_event = threading.Event()
 
-        # worker for age-flushing
-        t = threading.Thread(target=self.flush_by_age_worker, daemon=True)
-        t.start()
-
     def is_chunkable(self, event: Event) -> bool:
         """Return True if the event should be combined into a print chunk.
 
@@ -122,6 +118,14 @@ class WebUI(CLI):
             with self.b_lock:
                 self.flush_buffer_by_age()
             time.sleep(0.2)
+
+    def start_buffering(self):
+        """Start the age-flush worker"""
+        self.b_stop_event.clear()
+
+        # worker for age-flushing
+        age_worker = threading.Thread(target=self.flush_by_age_worker, daemon=True)
+        age_worker.start()
 
     def stop_buffering(self):
         """Signal the age-flush worker to stop, then flush any remaining buffered events."""
@@ -326,6 +330,11 @@ class WebUI(CLI):
         )
         self.unset_task_id()
         self.unset_request()
+
+    def start_task(self, task_id: str, request):
+        self.set_task_id(task_id)
+        self.set_request(request)
+        self.start_buffering()
 
     def set_task_id(self, task_id):
         self.task_id = task_id
