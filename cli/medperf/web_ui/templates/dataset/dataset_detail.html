@@ -176,16 +176,20 @@
                     <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown-btn" id="dropdown-div">
                         {% if available_benchmarks %}
                         {% for benchmark in available_benchmarks %}
-                        <li class="dropdown-item">
-                            <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
-                            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
-                            <button
-                                type="button"
-                                class="btn btn-primary request-association-btn"
-                                data-benchmark-id="{{ benchmark.id }}"
-                                data-dataset-id="{{ dataset.id }}"
-                                {% if task_running %} disabled {% endif %}
-                            >Request Association</button>
+                        <li class="dropdown-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
+                            </div>
+                            <div>
+                                <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
+                                <button
+                                    type="button"
+                                    class="btn btn-primary request-association-btn"
+                                    data-benchmark-id="{{ benchmark.id }}"
+                                    data-dataset-id="{{ dataset.id }}"
+                                    {% if task_running %} disabled {% endif %}
+                                >Request Association</button>
+                            </div>
                         </li>
                         {% endfor %}
                         {% else %}
