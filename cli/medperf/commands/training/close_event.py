@@ -40,8 +40,11 @@ class CloseEvent:
             raise InvalidArgumentError(f"Report {self.report_path} does not exist.")
 
     def read_report(self):
-        with open(self.report_path) as f:
-            self.report = yaml.safe_load(f)
+        if self.report_path is None:
+            self.report = {}
+        else:
+            with open(self.report_path) as f:
+                self.report = yaml.safe_load(f)
 
     def stop_federation(self):
         admin_mlcube_id = self.training_exp.fl_admin_mlcube
