@@ -24,6 +24,6 @@ def relative_url_for(context, name, **path_params) -> str:
 templates.env.globals["url_for"] = relative_url_for
 EOF
 
-sed -i 's#str(Path.home())#/workspaces/medperf/medperf_tutorial#g' /workspaces/medperf/cli/medperf/web_ui/api/routes.py
+sed -i 's#str(Path.home())#"/workspaces/medperf/medperf_tutorial"#g' /workspaces/medperf/cli/medperf/web_ui/api/routes.py
 
 cd ..
