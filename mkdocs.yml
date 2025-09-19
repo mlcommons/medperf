@@ -18,6 +18,7 @@ nav:
   - Bechmark Committee: getting_started/benchmark_owner_demo.md
   - Model Owners: getting_started/model_owner_demo.md
   - Data Owners: getting_started/data_owner_demo.md
+  - Full Tutorial (WebUI): getting_started/webui_full_tutorial.md
 - ADVANCED CONCEPTS:
   - Containers:
     - MedPerf-compatible Containers: containers/containers.md
