@@ -15,8 +15,8 @@ class TrainingExperiment(models.Model):
         ("OPERATION", "OPERATION"),
     )
 
-    name = models.CharField(max_length=20, unique=True)
-    description = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=128, unique=True)
+    description = models.CharField(max_length=256, blank=True)
     docs_url = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     demo_dataset_tarball_url = models.CharField(max_length=256)

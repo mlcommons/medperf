@@ -7,7 +7,7 @@
             <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a>
         </h5>
         <h6 class="card-subtitle mb-2">ID: {{benchmark.id}}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">{% if benchmark.state == 'OPERATION' %} OPERATIONAL {% else %} {{ benchmark.state }} {% endif %}</h6>
         <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ benchmark.is_valid }}</h6>
         <p class="card-text">
             <strong>Description:</strong> 

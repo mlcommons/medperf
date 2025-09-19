@@ -14,10 +14,10 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title mb-0">Details</h5>
             <span class="badge {% if entity.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
-                {{ entity.state }}
+                {% if entity.state == 'OPERATION' %} OPERATIONAL {% else %} {{ entity.state }} {% endif %}
             </span>
             <span class="badge {% if entity.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
-                {% if entity.is_valid %}Valid{% else %}Invalid{% endif %}
+                {% if entity.is_valid %}VALID{% else %}INVALID{% endif %}
             </span>
         </div>
         <div class="card mb-3">
@@ -36,7 +36,6 @@
                         class="text-primary yaml-link">{{ entity.git_mlcube_url }}
                     </a>
                 </p>
-                <p class="card-text text-muted small">{{ entity.mlcube_hash }}</p>
                 <p class="card-text">
                     <strong>Parameters:</strong> 
                     <a
@@ -48,7 +47,6 @@
                         {{ entity.git_parameters_url }}
                     </a>
                 </p>
-                <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>
                 {% if entity.image_tarball_url %}
                 <p class="card-text">
                     <strong>Image Tarball:</strong> 
@@ -58,12 +56,11 @@
                         target="_blank">Click to Download the File
                     </a>
                 </p>
-                <p class="card-text text-muted small">{{ entity.image_tarball_hash }}</p>
                 {% else %}
                 <p class="card-text">
                     <strong>Image Tarball:</strong> 
-                    Not Available</p>
-                <p class="card-text text-muted small">N/A</p>
+                    Not Available
+                </p>
                 {% endif %}
                 {% if entity.additional_files_tarball_url %}
                 <p class="card-text">
@@ -74,12 +71,11 @@
                         target="_blank">Click to Download the File
                     </a>
                 </p>
-                <p class="card-text text-muted small">{{ entity.additional_files_tarball_hash }}</p>
                 {% else %}
                 <p class="card-text">
                     <strong>Additional Files:</strong> 
-                    Not Available</p>
-                <p class="card-text text-muted small">N/A</p>
+                    Not Available
+                </p>
                 {% endif %}
             </div>
         </div>
@@ -87,10 +83,7 @@
             <div class="card-body d-flex justify-content-between flex-wrap">
                 <div class="w-50">
                     <p class="card-text">
-                        <strong>Image Hash:</strong> 
-                        <span class="text-muted small">{{ entity.image_hash }}</span>
-                    </p>
-                    <p class="card-text">
+                        <strong>Owner:</strong> 
                         <i class="fas fa-user"></i> 
                         <span class="text-muted small">{{ entity.owner }}</span>
                     </p>
@@ -130,16 +123,20 @@
                     {% endfor %}
                     <ul class="dropdown-menu benchmarks-dropdown" aria-labelledby="associate-dropdown-btn" id="dropdown-div">
                     {% for benchmark in available_benchmarks %}
-                    <li class="dropdown-item">
-                        <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
-                        <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
-                        <button
-                            type="button"
-                            class="btn btn-primary request-association-btn"
-                            data-benchmark-id="{{ benchmark.id }}"
-                            data-container-id="{{ entity.id }}"
-                            {% if task_running %} disabled {% endif %}
-                        >Request Association</button>
+                    <li class="dropdown-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ benchmark.id }} - {{ benchmark.name }}</strong>
+                        </div>
+                        <div>
+                            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="btn btn-secondary ms-3">View Benchmark</a>
+                            <button
+                                type="button"
+                                class="btn btn-primary request-association-btn"
+                                data-benchmark-id="{{ benchmark.id }}"
+                                data-container-id="{{ entity.id }}"
+                                {% if task_running %} disabled {% endif %}
+                            >Request Association</button>
+                        </div>
                     </li>
                     {% endfor %}
                     {% if not available_benchmarks %}
@@ -177,7 +174,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/containers/container_detail.js') }}"></script>
-{% if task_running and request.app.state.task["name"] == "container_association" and task_formData.get("container_id", "") == entity.id|string %}
+{% if task_running and request.app.state.task.name == "container_association" and task_formData.get("container_id", "") == entity.id|string %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

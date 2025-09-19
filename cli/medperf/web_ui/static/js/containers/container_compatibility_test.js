@@ -32,7 +32,7 @@ async function runContainerCompatibilityTest(runCompTestButton){
 
     showPanel(`Running Compatibility Test...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkCompTestFormValidity() {
@@ -45,6 +45,10 @@ function checkCompTestFormValidity() {
     );
 
     runTestButton.prop("disabled", !isValid);
+}
+
+function showRegisterContainer(){
+    window.location.href = "/containers/register/ui";
 }
 
 $(document).ready(() => {

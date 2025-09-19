@@ -9,6 +9,7 @@ from importlib import resources
 
 from fastapi.requests import Request
 from medperf import config
+from medperf.entities.cube import Cube
 from starlette.responses import RedirectResponse
 from pydantic.datetime_parse import parse_datetime
 
@@ -20,9 +21,11 @@ from medperf.web_ui.auth import (
     NotAuthenticatedException,
 )
 import uuid
-import time
 
 from medperf.account_management.account_management import read_user_account
+from medperf.web_ui.schemas import Notification, WebUITask
+
+import yaml
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
@@ -32,22 +35,43 @@ logger = logging.getLogger(__name__)
 ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
 
 
+def get_container_type(container: Cube):
+    with open(container.cube_path, "r") as f:
+        yaml_data = yaml.safe_load(f.read())
+    container_tasks = yaml_data.get("tasks", []).keys()
+    if "prepare" in container_tasks and "sanity_check" in container_tasks:
+        return "data-prep-container"
+    elif "infer" in container_tasks:
+        return "reference-container"
+    elif "evaluate" in container_tasks:
+        return "metrics-container"
+    else:
+        return "unknown-container"
+
+
+def print_webui_props(host, port, security_token):
+    print("=" * 40)
+    print()
+    print("Open your browser to:")
+    print(f"\033[1mhttp://{host}:{port}/security_check?token={security_token}\033[0m")
+    print()
+    print("Or use security token to view the web-UI:")
+    print("\033[1m" + security_token + "\033[0m")
+    print()
+    print("=" * 40)
+
+
 def generate_uuid():
     return str(uuid.uuid4())
 
 
 def initialize_state_task(request: Request, task_name: str) -> str:
-    form_data = dict(anyio.run(lambda: request.form()))
+    form_data = dict(anyio.from_thread.run(lambda: request.form()))
     new_task_id = generate_uuid()
-    config.ui.set_task_id(new_task_id)
-    config.ui.set_request(request)
-    request.app.state.task = {
-        "id": new_task_id,
-        "name": task_name,
-        "running": True,
-        "logs": [],
-        "formData": form_data,
-    }
+    config.ui.start_task(new_task_id, request)
+    request.app.state.task = WebUITask(
+        id=new_task_id, name=task_name, running=True, formData=form_data
+    )
     request.app.state.task_running = True
 
     return new_task_id
@@ -55,17 +79,11 @@ def initialize_state_task(request: Request, task_name: str) -> str:
 
 def reset_state_task(request: Request):
     current_task = request.app.state.task
-    current_task["running"] = False
+    current_task.set_running(False)
     if len(request.app.state.old_tasks) == 10:
         request.app.state.old_tasks.pop(0)
     request.app.state.old_tasks.append(current_task)
-    request.app.state.task = {
-        "id": "",
-        "name": "",
-        "running": False,
-        "logs": [],
-        "formData": {},
-    }
+    request.app.state.task = WebUITask()
     request.app.state.task_running = False
 
 
@@ -74,16 +92,13 @@ def add_notification(
 ):
     if return_response["status"] == "failed":
         message += f": {return_response['error']}"
-    request.app.state.new_notifications.append(
-        {
-            "id": generate_uuid(),
-            "message": message,
-            "type": return_response["status"],
-            "read": False,
-            "timestamp": time.time(),
-            "url": url,
-        }
+    notification = Notification(
+        id=generate_uuid(),
+        message=message,
+        type=return_response["status"],
+        url=url,
     )
+    request.app.state.new_notifications.append(notification)
 
 
 def custom_exception_handler(request: Request, exc: Exception):
@@ -94,7 +109,7 @@ def custom_exception_handler(request: Request, exc: Exception):
     context = {"request": request, "exception": exc}
 
     if "You are not logged in" in str(exc):
-        return RedirectResponse("/medperf_login?redirect=true")
+        return RedirectResponse("/medperf_login?redirected=true")
 
     # Return a detailed error page
     return templates.TemplateResponse("error.html", context, status_code=500)
@@ -136,16 +151,30 @@ def is_logged_in():
     return read_user_account() is not None
 
 
+def process_notifications(request: Request):
+    if request.app.state.new_notifications:
+        request.app.state.notifications.extend(request.app.state.new_notifications)
+        request.app.state.new_notifications.clear()
+
+    unread_count = 0
+    if request.app.state.notifications:
+        unread_count = len([i for i in request.app.state.notifications if not i.read])
+
+    request.app.state.unread_count = unread_count
+
+
 def check_user_ui(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
     request.app.state.logged_in = is_logged_in()
+    process_notifications(request)
+
     if token == security_token:
         return True
-    else:
-        login_url = f"/security_check?redirect_url={request.url.path}"
-        raise NotAuthenticatedException(redirect_url=login_url)
+
+    login_url = f"/security_check?redirect_url={request.url.path}"
+    raise NotAuthenticatedException(redirect_url=login_url)
 
 
 def check_user_api(
@@ -163,5 +192,5 @@ def check_user_api(
             )
     if token == security_token:
         return True
-    else:
-        raise HTTPException(status_code=401, detail="Not authorized")
+
+    raise HTTPException(status_code=401, detail="Not authorized")

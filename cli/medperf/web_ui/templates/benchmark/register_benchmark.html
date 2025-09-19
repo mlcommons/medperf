@@ -8,7 +8,7 @@
 {% block title %}Create Benchmark{% endblock %}
 
 {% block content %}
-{% set benchmark_register_running = (task_running and request.app.state.task["name"] == "benchmark_registration") %}
+{% set benchmark_register_running = (task_running and request.app.state.task.name == "benchmark_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Benchmark</h1>
     <div class="text-center fs-5 mt-4">
@@ -29,6 +29,7 @@
                     {% if benchmark_register_running %}
                     value="{{ task_formData.get('name', '') }}"
                     {% endif %}
+                    maxlength="128"
                 >
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -47,6 +48,7 @@
                     class="form-control"
                     placeholder="{{ placeholders.register_benchmark_description }}"
                     {% if task_running %} disabled {% endif %}
+                    maxlength="256"
                 >{% if benchmark_register_running %} {{ task_formData.get('description', '') }} {% endif %}</textarea>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -89,6 +91,25 @@
             </div>
         </div>
         <div class="form-group my-5">
+            <label class="form-label h4" for="data-preparation-container">Data Preparation Container</label>
+            <select name="data_preparation_container" id="data-preparation-container" class="form-control" {% if task_running %} disabled {% endif %}>
+                <option value="" disabled selected>Select a Container</option>
+                {% if data_prep_containers | length > 0 %}
+                {% for container in data_prep_containers %}
+                <option
+                    value="{{ container['id'] }}"
+                    {% if benchmark_register_running %}
+                    {% if task_formData.get("data_preparation_container") == benchmark['id']|string %} selected {% endif %}
+                    {% endif %}
+                >{{ container.name }}</option>
+                {% endfor %}
+                {% else %}
+                <option value="" disabled>No Data Preparation Containers available</option>
+                {% endif %}
+            </select>
+        </div>
+        {#
+        <div class="form-group my-5">
             <label for="data-preparation-container" class="form-label h4">Data Preparation Container ID</label>
             <div class="input-group">
                 <input
@@ -110,6 +131,26 @@
                 ></i>
             </div>
         </div>
+        #}
+        <div class="form-group my-5">
+            <label class="form-label h4" for="reference-model-container">Reference Model Container</label>
+            <select name="reference_model_container" id="reference-model-container" class="form-control" {% if task_running %} disabled {% endif %}>
+                <option value="" disabled selected>Select a Container</option>
+                {% if reference_containers | length > 0 %}
+                {% for container in reference_containers %}
+                <option
+                    value="{{ container['id'] }}"
+                    {% if benchmark_register_running %}
+                    {% if task_formData.get("reference_model_container") == benchmark['id']|string %} selected {% endif %}
+                    {% endif %}
+                >{{ container.name }}</option>
+                {% endfor %}
+                {% else %}
+                <option value="" disabled>No Reference Model Containers available</option>
+                {% endif %}
+            </select>
+        </div>
+        {#
         <div class="form-group my-5">
             <label for="reference-model-container" class="form-label h4">Reference Model ID</label>
             <div class="input-group">
@@ -132,6 +173,26 @@
                 ></i>
             </div>
         </div>
+        #}
+        <div class="form-group my-5">
+            <label class="form-label h4" for="evaluator-container">Metrics Container</label>
+            <select name="evaluator_container" id="evaluator-container" class="form-control" {% if task_running %} disabled {% endif %}>
+                <option value="" disabled selected>Select a Container</option>
+                {% if metrics_containers | length > 0 %}
+                {% for container in metrics_containers %}
+                <option
+                    value="{{ container['id'] }}"
+                    {% if benchmark_register_running %}
+                    {% if task_formData.get("evaluator_container") == benchmark['id']|string %} selected {% endif %}
+                    {% endif %}
+                >{{ container.name }}</option>
+                {% endfor %}
+                {% else %}
+                <option value="" disabled>No Metrics Containers available</option>
+                {% endif %}
+            </select>
+        </div>
+        {#
         <div class="form-group my-5">
             <label for="evaluator-container" class="form-label h4">Metrics Container ID</label>
             <div class="input-group">
@@ -154,6 +215,7 @@
                 ></i>
             </div>
         </div>
+        #}
         <div class="text-center mt-4">
             <button
                 id="register-benchmark-btn"
@@ -177,7 +239,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/benchmarks/benchmark_register.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "benchmark_registration" %}
+{% if task_running and request.app.state.task.name == "benchmark_registration" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

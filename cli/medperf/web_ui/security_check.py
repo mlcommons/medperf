@@ -1,11 +1,27 @@
-from fastapi import Request, Form, APIRouter, status, Security
+from fastapi import Query, Request, Form, APIRouter, status, Security
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from medperf.web_ui.auth import security_token, AUTH_COOKIE_NAME
-from medperf.web_ui.common import templates, api_key_cookie
+from medperf.web_ui.common import print_webui_props, templates, api_key_cookie
 from urllib.parse import urlparse
 
 router = APIRouter()
+
+
+def redirect_with_auth_cookie(security_token, sanitized_redirect_url):
+    response = RedirectResponse(
+        url=sanitized_redirect_url, status_code=status.HTTP_302_FOUND
+    )
+
+    response.set_cookie(
+        key=AUTH_COOKIE_NAME,
+        value=security_token,
+        secure=True,
+        httponly=True,
+        samesite="strict",
+        max_age=60 * 60 * 24 * 365,  # 1 year
+    )
+    return response
 
 
 def sanitize_redirect_url(url: str, fallback: str = "/") -> bool:
@@ -20,28 +36,32 @@ def sanitize_redirect_url(url: str, fallback: str = "/") -> bool:
 # security check page GET endpoint
 @router.get("/security_check", response_class=HTMLResponse)
 def security_check_form(
-    request: Request, redirect_url: str = "/", token: str = Security(api_key_cookie)
+    request: Request,
+    query_token: str = Query(default=None, alias="token"),
+    redirect_url: str = "/",
+    token: str = Security(api_key_cookie),
 ):
+    sanitized_redirect_url = sanitize_redirect_url(redirect_url)
     # Check if user is already authenticated
     if token == security_token:
         # User is already authenticated, redirect to original URL
-        sanitized_redirect_url = sanitize_redirect_url(redirect_url)
         return RedirectResponse(
             url=sanitized_redirect_url, status_code=status.HTTP_302_FOUND
         )
 
-    else:
-        # User is not authenticated, show security check form
-        # print security token to CLI (avoid logging to file)
-        print("=" * 40)
-        print()
-        print("Use security token to view the web-UI:")
-        print(security_token)
-        print()
-        print("=" * 40)
-        return templates.TemplateResponse(
-            "security_check.html", {"request": request, "redirect_url": redirect_url}
-        )
+    if query_token == security_token:
+        return redirect_with_auth_cookie(security_token, sanitized_redirect_url)
+
+    # User is not authenticated, show security check form
+    # print security token to CLI (avoid logging to file)
+    host = request.app.state.host_props["host"]
+    port = request.app.state.host_props["port"]
+
+    print_webui_props(host, port, security_token)
+
+    return templates.TemplateResponse(
+        "security_check.html", {"request": request, "redirect_url": redirect_url}
+    )
 
 
 # security check page POST endpoint
@@ -53,25 +73,13 @@ def access_web_ui(
 ):
     sanitized_redirect_url = sanitize_redirect_url(redirect_url)
     if token == security_token:
-        response = RedirectResponse(
-            url=sanitized_redirect_url, status_code=status.HTTP_302_FOUND
-        )
+        return redirect_with_auth_cookie(security_token, sanitized_redirect_url)
 
-        response.set_cookie(
-            key=AUTH_COOKIE_NAME,
-            value=security_token,
-            secure=True,
-            httponly=True,
-            samesite="strict",
-            max_age=60 * 60 * 24 * 365,  # 1 year
-        )
-        return response
-    else:
-        return templates.TemplateResponse(
-            "security_check.html",
-            {
-                "request": request,
-                "redirect_url": sanitized_redirect_url,
-                "error": "Invalid token",
-            },
-        )
+    return templates.TemplateResponse(
+        "security_check.html",
+        {
+            "request": request,
+            "redirect_url": sanitized_redirect_url,
+            "error": "Invalid token",
+        },
+    )

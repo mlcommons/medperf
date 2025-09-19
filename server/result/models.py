@@ -11,7 +11,7 @@ class ModelResult(models.Model):
         ("REJECTED", "REJECTED"),
     )
 
-    name = models.CharField(max_length=20, blank=True)
+    name = models.CharField(max_length=128, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     benchmark = models.ForeignKey("benchmark.Benchmark", on_delete=models.CASCADE)
     model = models.ForeignKey("mlcube.MlCube", on_delete=models.PROTECT)

@@ -24,12 +24,12 @@ router = APIRouter()
 @router.get("/medperf_login", response_class=HTMLResponse)
 def login_form(
     request: Request,
-    redirect: str = "false",
+    redirected: str = "false",
     current_user: bool = Depends(check_user_ui),
 ):
-    redirect = redirect.lower() == "true"
+    redirected = redirected.lower() == "true"
     return templates.TemplateResponse(
-        "medperf_login.html", {"request": request, "redirect": redirect}
+        "medperf_login.html", {"request": request, "redirected": redirected}
     )
 
 
@@ -82,19 +82,35 @@ def login(
         request,
         message=notification_message,
         return_response=return_response,
-        url="/" if success else "/medperf_login",
+        url="" if success else "/medperf_login",
     )
     return return_response
 
 
 @router.post("/logout", response_class=JSONResponse)
 def logout(
+    request: Request,
     current_user: bool = Depends(check_user_api),
 ):
+    initialize_state_task(request, task_name="medperf_logout")
+    return_response = {"status": "", "error": ""}
+
     try:
         config.auth.logout()
         templates.env.globals["logged_in"] = False
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Successfully Logged Out"
     except Exception as e:
+        return_response["status"] = "failed"
+        return_response["error"] = str(e)
+        notification_message = "Error Logging Out"
         logger.exception(e)
-        return {"status": "failed", "error": "Logout failed. Check logs."}
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        return_response=return_response,
+    )
+    return return_response

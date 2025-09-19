@@ -1,9 +1,11 @@
 
 function activateProfile(activateProfileBtn) {
+    addSpinner(activateProfileBtn);
+
     const formData = new FormData($("#profiles-form")[0]);
     
     disableElements("#profiles-form select, #profiles-form button");
-
+    disableElements("#edit-config-form input, #edit-config-form button");
     ajaxRequest(
         "/profiles/activate",
         "POST",
@@ -40,6 +42,7 @@ function viewProfile(viewProfileBtn){
                 $("#view-profile-modal").modal("show");
                 
                 enableElements("#profiles-form select, #profiles-form button");
+                checkProfileMatch();
             }
             else {
                 showErrorModal("Failed to Get Profile Details", response);
@@ -86,8 +89,10 @@ function checkProfileMatch() {
 
     if (selectedProfile === window.activeProfile) {
         $('#edit-config-container').show();
+        $('#activate-profile-btn').prop('disabled', true);
     } else {
         $('#edit-config-container').hide();
+        $('#activate-profile-btn').prop('disabled', false);
     }
 }
 
