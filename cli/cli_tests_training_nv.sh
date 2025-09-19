@@ -251,27 +251,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Activate modelowner profile"
-echo "====================================="
-print_eval medperf profile activate testmodel
-checkFailed "testmodel profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Submit training job"
-echo "====================================="
-print_eval medperf training submit_job -t $TRAINING_UID
-checkFailed "job submission failed"
-
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Activate dataowner profile"
 echo "====================================="
 print_eval medperf profile activate testdata1
@@ -434,6 +413,17 @@ echo "Activate modelowner profile"
 echo "====================================="
 print_eval medperf profile activate testmodel
 checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit training job"
+echo "====================================="
+print_eval medperf training submit_job -t $TRAINING_UID
+checkFailed "job submission failed"
+
 ##########################################################
 
 echo "\n"

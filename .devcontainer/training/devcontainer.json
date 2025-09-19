@@ -1,0 +1,15 @@
+{
+  	"image": "docker.io/mlcommons/medperf-codespaces:latest",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "moby": false
+        }
+    },
+    "hostRequirements": {
+		"memory": "8gb",
+		"storage": "32gb",
+        "cpus": 4
+	},
+	"postStartCommand": "bash /workspaces/medperf/tutorials_scripts/codespaces/training/env_start.sh",
+	"postAttachCommand": "bash /workspaces/medperf/tutorials_scripts/codespaces/training/run_server_detached.sh"
+}
