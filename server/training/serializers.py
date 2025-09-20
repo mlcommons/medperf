@@ -3,6 +3,7 @@ from django.utils import timezone
 from .models import TrainingExperiment, DatasetTrainingKit, AggregatorTrainingKit
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.conf import settings
 
 User = get_user_model()
 
@@ -33,7 +34,8 @@ class WriteTrainingExperimentSerializer(serializers.ModelSerializer):
                     "User cannot mark an experiment as operational"
                     " if its containers are not operational"
                 )
-
+        if owner.email in settings.AUTO_APPROVE_EXPERIMENTS_FROM:
+            data["approval_status"] = "APPROVED"
         return data
 
 
