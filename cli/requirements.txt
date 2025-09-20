@@ -26,3 +26,4 @@ cookiecutter==2.1.1
 uvicorn==0.30.1
 fastapi==0.111.1
 fastapi-login==1.10.2
+click==8.1.8
