@@ -10,6 +10,4 @@ bash tutorials_scripts/setup_training_tutorial.sh
 
 cd server
 cp .env.local.local-auth.sqlite .env
-medperf auth login -e testmo@example.com
-echo "Medperf is ready for local usage"
 cd ..
