@@ -28,7 +28,7 @@ mv uncol2 col2
 echo "testdo@example.com: testdo@example.com" >>./cols_list.yaml
 echo "testdo2@example.com: testdo2@example.com" >>./cols_list.yaml
 
-cp ../tutorial_scripts/collab_shortcut.sh collab_shortcut.sh
+cp ../tutorials_scripts/collab_shortcut.sh collab_shortcut.sh
 
 # Copy the training config to be used
 cp -r ../examples/nvfl/fl/node/workspace/training_config training_config
