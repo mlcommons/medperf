@@ -25,7 +25,9 @@ rm $filename2
 mv uncol1 col1
 mv uncol2 col2
 
-echo "participants: [testdo@example.com, testdo2@example.com]" >>./cols_list.yaml
+echo "testdo@example.com: testdo@example.com" >>./cols_list.yaml
+echo "testdo2@example.com: testdo2@example.com" >>./cols_list.yaml
+
 cp ../tutorial_scripts/collab_shortcut.sh collab_shortcut.sh
 
 # Copy the training config to be used

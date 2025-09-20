@@ -2,8 +2,8 @@ medperf auth logout
 medperf auth login -e testdo2@example.com
 
 medperf dataset submit --data_prep 2 \
-  --data_path medperf_tutorial/col2 \
-  --labels_path medperf_tutorial/col2 \
+  --data_path medperf_tutorial/col2/data \
+  --labels_path medperf_tutorial/col2/labels \
   --name col1data \
   --description "some data" \
   --location mymachine -y
