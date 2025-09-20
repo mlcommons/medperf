@@ -36,7 +36,7 @@ class CloseEvent:
     def validate(self):
         if self.event.finished:
             raise InvalidArgumentError("This experiment has already finished")
-        if not os.path.exists(self.report_path):
+        if self.report_path and not os.path.exists(self.report_path):
             raise InvalidArgumentError(f"Report {self.report_path} does not exist.")
 
     def read_report(self):
