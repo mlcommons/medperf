@@ -100,6 +100,8 @@ def logout(
         templates.env.globals["logged_in"] = False
         return_response["status"] = "success"
         notification_message = "Successfully Logged Out"
+        request.app.state.notifications.clear()
+        request.app.state.new_notifications.clear()
     except Exception as e:
         return_response["status"] = "failed"
         return_response["error"] = str(e)
