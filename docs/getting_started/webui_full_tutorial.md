@@ -73,6 +73,16 @@ All these four components are already ready to be used for this tutorial. Below,
 
 ### Register the three Containers
 
+In this section you will learn how to register the benchmark containers. When registering a container in MedPerf, you will be registering only metadata about the container. Other than providing a name to the container, you will be registering the following information for each container:
+
+- A pointer to the container configuration file: This file describes how the container will be run. It includes a pointer to the docker image for docker-based containers, a pointer for the singularity image for singularity-based containers, and a list of volume mounts for the container. The MedPerf client, during runtime, will read the config file to pull the container image, and to also know what volumes to mount to the container.
+
+- A pointer to the container parameters file: This file is optional; it is only required if you build your container in a way such that it expects a mounted parameters file. This is usually helpful in cases where you don't want to hardcode application-specific parameters inside the container. Most of the tutorial containers will have a parameters file.
+
+- A pointer to the container "additional files" compressed file: Similar to the parameters file, this file is optional; it is only required if you build your container in a way such that it expects a mounted folder for some additional files such as model weights. This is usually helpful in cases where you don't want to hardcode application-specific assets, like model weights, inside the container. The model containers in this tutorial will expect an additional files folder.
+
+Now, let's register the benchmark containers.
+
 #### Data Preparator Container
 
 Navigate to the `Containers` tab at the top, and click on the `Register a new container` button.
