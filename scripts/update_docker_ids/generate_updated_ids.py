@@ -1,37 +1,27 @@
 from medperf.entities.cube import Cube
 from medperf.init import initialize
-import aiohttp
-import asyncio
 import yaml
-import time
 import docker
 import pandas as pd
 from docker.errors import APIError
+import requests
 
 initialize()
 UID_KEY = 'UID'
 
-async def get_container_info(session: aiohttp.ClientSession, container: Cube):
+def get_container_info(req_session: requests.Session, container: Cube):
 
     container_config_url = container.git_mlcube_url
     container_uid = container.id
     
     if container_config_url.startswith('synapse'):
-        container_info = {}
+        container_info = {} # TODO implement synapse
     else:
-        async with session.get(container_config_url) as response:
-            actual_response = await response.text()
-            container_info = yaml.safe_load(actual_response)
+        with req_session.get(container_config_url) as response:
+            container_info = yaml.safe_load(response.content)
     container_info[UID_KEY] = container_uid
     return container_info
 
-async def get_all_container_infos(container_list: list[dict]):
-    async with aiohttp.ClientSession() as session:
-        tasks = [get_container_info(session=session, container=container)
-                               for container in container_list]
-        container_info_list  = await asyncio.gather(*tasks)
-    
-    return container_info_list
 
 def get_docker_image_info(docker_client: docker.client.DockerClient, container_dict: dict,
                           container_id: int, current_try: int = 1):
@@ -47,19 +37,17 @@ def get_docker_image_info(docker_client: docker.client.DockerClient, container_d
         return get_docker_image_info(docker_client=docker_client, container_dict=container_dict,
                                      current_try=current_try+1, container_id=container_id)
 
-
-async def get_container_yamls():
+def get_container_yamls():
 
     containers =  Cube.all()
-    containers = sorted(containers, key=lambda x: x.id)
-    yaml_dict_list = await get_all_container_infos(container_list=containers)  # TODO run all after testing
-    id_to_yaml = {yaml_content[UID_KEY]: yaml_content for yaml_content in yaml_dict_list}
+    containers: list[Cube] = sorted(containers, key=lambda x: x.id)
     docker_client = docker.client.from_env()
 
+    request_session = requests.session()
     update_dict_list = []
     for container in containers:
         print(f'Analyzing Container {container.id}...')
-        this_container_yaml = id_to_yaml[container.id]
+        this_container_yaml = get_container_info(req_session=request_session, container=container)
 
         if 'docker' in this_container_yaml:
             new_hash = get_docker_image_info(docker_client=docker_client, container_dict=this_container_yaml,
@@ -78,12 +66,8 @@ async def get_container_yamls():
 
     update_df = pd.DataFrame(update_dict_list)
     update_df.to_csv('update_containers.csv') 
-    return yaml_dict_list
+    return update_df
 
-def generate_updated_ids():
-    container_yaml_files = asyncio.run(get_container_yamls())
-    return container_yaml_files
+
 if __name__ == '__main__':
-    start = time.perf_counter()
-    res = generate_updated_ids()
-    end = time.perf_counter()
+    res = get_container_yamls()
