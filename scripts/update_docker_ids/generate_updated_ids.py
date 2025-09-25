@@ -1,73 +1,50 @@
-from medperf.entities.cube import Cube
 from medperf.init import initialize
-import yaml
-import docker
-import pandas as pd
-from docker.errors import APIError
-import requests
-
+from docker_id_utils import get_container_yamls
+import typer
+from pathlib import Path
 initialize()
-UID_KEY = 'UID'
 
-def get_container_info(req_session: requests.Session, container: Cube):
+app = typer.Typer()
 
-    container_config_url = container.git_mlcube_url
-    container_uid = container.id
-    
-    if container_config_url.startswith('synapse'):
-        container_info = {} # TODO implement synapse
-    else:
-        with req_session.get(container_config_url) as response:
-            container_info = yaml.safe_load(response.content)
-    container_info[UID_KEY] = container_uid
-    return container_info
-
-
-def get_docker_image_info(docker_client: docker.client.DockerClient, container_dict: dict,
-                          container_id: int, current_try: int = 1):
-    MAX_TRIES = 5
-    try:
-        image_info = docker_client.images.get_registry_data(container_dict['docker']['image'])
-        new_hash = image_info.id
-        return new_hash
-    except APIError:
-        if current_try > MAX_TRIES:
-            raise
-        print(f'An error happened when attempting to get registry data from Container {container_id}. Will try again {MAX_TRIES-current_try} times...')
-        return get_docker_image_info(docker_client=docker_client, container_dict=container_dict,
-                                     current_try=current_try+1, container_id=container_id)
-
-def get_container_yamls():
-
-    containers =  Cube.all()
-    containers: list[Cube] = sorted(containers, key=lambda x: x.id)
-    docker_client = docker.client.from_env()
-
-    request_session = requests.session()
-    update_dict_list = []
-    for container in containers:
-        print(f'Analyzing Container {container.id}...')
-        this_container_yaml = get_container_info(req_session=request_session, container=container)
-
-        if 'docker' in this_container_yaml:
-            new_hash = get_docker_image_info(docker_client=docker_client, container_dict=this_container_yaml,
-                                             container_id=container.id)
-            new_metadata = {'id': container.image_hash}
-        else:
-            new_hash = new_metadata = None
-
-        update_dict = {
-            'uid': container.id,
-            'old_hash': container.image_hash,
-            'new_hash': new_hash,
-            'new_metadata': new_metadata
-        }
-        update_dict_list.append(update_dict)
-
-    update_df = pd.DataFrame(update_dict_list)
-    update_df.to_csv('update_containers.csv') 
-    return update_df
+@app.command()
+def main(
+    include_public_links: bool = typer.Option(
+        False,
+        '-p',
+        '--public-link',
+        '--public_link',
+        help="Include containers where the container-config file is a public link, such as a GitHub file."
+        "At least one of 'include_public_links' and/or 'include_synapse' must be set to True."
+    ),
+    include_synapse: bool = typer.Option(
+        False,
+        '-s',
+        '--synapse',
+        help="Include containers where the container-config file is a Synapse link. "
+        "Please run the 'medperf synapse login' command to authenticate with Synapse "
+        "before running this command with this option."
+        "At least one of 'include_public_links' and/or 'include_synapse' must be set to True."
+    ),
+    output_public_file: Path = typer.Option(
+        Path('public.csv'),
+        '--output-public-file',
+        '--output_public_file',
+        help="Output path for the CSV file with updated Container IDs for the containers with Public linke."
+        "Defaults to 'public.csv' in the current directory if not set."
+    ),
+    output_synapse_file: Path = typer.Option(
+        Path('synapse.csv'),
+        '--output-synapse-file',
+        '--output_synapse_file',
+        help="Output path for the CSV file with updated Container IDs for the containers with Synapse links."
+        "Defaults to 'synapse.csv' in the current directory if not set."
+    ),
+):
+    get_container_yamls(include_public_links=include_public_links,
+                        include_synapse_links=include_synapse,
+                        output_public_path=output_public_file,
+                        output_synapse_path=output_synapse_file)
 
 
 if __name__ == '__main__':
-    res = get_container_yamls()
+    app()
