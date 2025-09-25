@@ -100,6 +100,10 @@ def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os
         if this_container_yaml is not None:
             new_hash = get_docker_hash(docker_client=docker_client, container_dict=this_container_yaml,
                                                 container_id=container.id)
+            id_value = container.image_hash
+            if not id_value.startswith('sha256:'):
+                id_value = f'sha256:{id_value}'
+
             new_metadata = {'id': container.image_hash}
         else:
             new_hash = new_metadata = None
