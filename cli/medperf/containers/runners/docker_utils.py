@@ -6,14 +6,13 @@ import shlex
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
-    command = ["docker", "inspect", "--format", "{{.Id}}", docker_image]
+    command = ["docker", "inspect", "--format", "{{.Descriptor.digest}}", docker_image]
     image_id = run_command(command, timeout=timeout)
     image_id = image_id.strip()
-    # docker_client = docker.APIClient()
-    # image_info = docker_client.inspect_image(docker_image)
+
     if image_id.startswith("sha256:"):
-        image_id = image_id[len("sha256:") :]  # noqa
         return image_id
+    
     raise InvalidContainerSpec("Invalid inspect output:", image_id)
 
 
