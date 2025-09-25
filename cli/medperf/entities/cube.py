@@ -175,7 +175,7 @@ class Cube(Entity, DeployableSchema):
 
         alternative_image_hash = None
         if self.metadata is not None:
-            alternative_image_hash = self.metadata.get("digest", None)
+            alternative_image_hash = self.metadata.get("id", None)
         try:
             self.image_hash = self.runner.download(
                 expected_image_hash=self.image_hash,
