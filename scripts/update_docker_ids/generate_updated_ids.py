@@ -39,7 +39,10 @@ def main(
         help="Output path for the CSV file with updated Container IDs for the containers with Synapse links."
         "Defaults to 'synapse.csv' in the current directory if not set."
     ),
-):
+):  
+    if not include_public_links and not include_synapse:
+        raise ValueError("At least one of the '-p' and/or '-s' flags must be set!")
+    
     get_container_yamls(include_public_links=include_public_links,
                         include_synapse_links=include_synapse,
                         output_public_path=output_public_file,

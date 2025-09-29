@@ -63,13 +63,6 @@ def get_docker_hash(docker_client: docker.client.DockerClient, container_dict: d
 
 def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os.PathLike, 
                         include_public_links: bool = True, include_synapse_links: bool = False):
-
-    print(f'Getting basic information on all containers in the MedPerf server...')
-    containers =  Cube.all()
-    containers: list[Cube] = sorted(containers, key=lambda x: x.id)
-    
-    docker_client = docker.client.from_env()
-
     if include_public_links:
         request_session = requests.session()
     else: 
@@ -87,6 +80,12 @@ def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os
             raise ValueError(msg)
     else:
         synapse_client = None
+
+    print(f'Getting basic information on all containers in the MedPerf server...')
+    containers =  Cube.all()
+    containers: list[Cube] = sorted(containers, key=lambda x: x.id)
+    
+    docker_client = docker.client.from_env()
 
     new_hashes_dict = {
         Platforms.public: [],
@@ -119,7 +118,7 @@ def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os
     if include_public_links:
         print(f'Saving new hashes for Public Containers to file {output_public_path}...')
         public_df = pd.DataFrame(new_hashes_dict[Platforms.public])
-        public_df.to_csv(output_public_path)
+        public_df.to_csv(output_public_path, index=False)
 
     if include_synapse_links:
         print(f'Saving new hashes for Synapse Containers to file {output_synapse_path}...')
