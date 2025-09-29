@@ -1,5 +1,5 @@
 from medperf.init import initialize
-from docker_id_utils import get_container_yamls
+from container_hashes_utils import get_container_yamls
 import typer
 from pathlib import Path
 initialize()
