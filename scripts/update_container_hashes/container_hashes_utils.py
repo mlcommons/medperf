@@ -8,6 +8,7 @@ import os
 import synapseclient
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 from enum import Enum, auto
+import json
 
 UID_KEY = 'UID'
 
@@ -111,7 +112,7 @@ def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os
             'uid': container.id,
             'old_hash': container.image_hash,
             'new_hash': new_hash,
-            'new_metadata': new_metadata
+            'new_metadata': json.dumps(new_metadata)
         }
         new_hashes_dict[platform].append(update_dict)
 
@@ -123,4 +124,4 @@ def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os
     if include_synapse_links:
         print(f'Saving new hashes for Synapse Containers to file {output_synapse_path}...')
         synapse_df = pd.DataFrame(new_hashes_dict[Platforms.synapse])
-        synapse_df.to_csv(output_synapse_path)
+        synapse_df.to_csv(output_synapse_path, index=False)
