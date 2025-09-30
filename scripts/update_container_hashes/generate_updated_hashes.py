@@ -1,52 +1,36 @@
-from medperf.init import initialize
-from container_hashes_utils import get_container_yamls
+from container_hashes_utils import get_container_hashes
 import typer
 from pathlib import Path
-initialize()
+
 
 app = typer.Typer()
 
+
 @app.command()
 def main(
-    include_public_links: bool = typer.Option(
-        False,
-        '-p',
-        '--public-link',
-        '--public_link',
-        help="Include containers where the container-config file is a public link, such as a GitHub file."
-        "At least one of 'include_public_links' and/or 'include_synapse' must be set to True."
+    input_json: Path = typer.Option(
+        ...,
+        '-i',
+        '--input',
+        help="Input JSON file generated from the sibling script 'get_containr_info_from_medperf.py'."
     ),
-    include_synapse: bool = typer.Option(
+    output_csv: Path = typer.Option(
+        Path('new_hashes.csv'),
+        '-o',
+        '--output',
+        help="Output path for the CSV file with updated Container IDs for the containers."
+        "Defaults to 'new_hashes.csv' in the current directory if not set."
+    ),
+    exclude_synapse: bool = typer.Option(
         False,
         '-s',
-        '--synapse',
-        help="Include containers where the container-config file is a Synapse link. "
-        "Please run the 'medperf synapse login' command to authenticate with Synapse "
-        "before running this command with this option."
-        "At least one of 'include_public_links' and/or 'include_synapse' must be set to True."
-    ),
-    output_public_file: Path = typer.Option(
-        Path('public.csv'),
-        '--output-public-file',
-        '--output_public_file',
-        help="Output path for the CSV file with updated Container IDs for the containers with Public linke."
-        "Defaults to 'public.csv' in the current directory if not set."
-    ),
-    output_synapse_file: Path = typer.Option(
-        Path('synapse.csv'),
-        '--output-synapse-file',
-        '--output_synapse_file',
-        help="Output path for the CSV file with updated Container IDs for the containers with Synapse links."
-        "Defaults to 'synapse.csv' in the current directory if not set."
-    ),
-):  
-    if not include_public_links and not include_synapse:
-        raise ValueError("At least one of the '-p' and/or '-s' flags must be set!")
-    
-    get_container_yamls(include_public_links=include_public_links,
-                        include_synapse_links=include_synapse,
-                        output_public_path=output_public_file,
-                        output_synapse_path=output_synapse_file)
+        '--exclude-synapse',
+        '--exclude_synapse',
+        help='Set option to ignore Containers hosted in the Synapse platform.'
+    )
+):
+    get_container_hashes(input_json=input_json, exclude_synapse=exclude_synapse,
+                         output_csv=output_csv)
 
 
 if __name__ == '__main__':
