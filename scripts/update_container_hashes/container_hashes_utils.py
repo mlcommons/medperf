@@ -22,6 +22,7 @@ def get_container_info(req_session: requests.Session, container: Cube, synapse_c
     if container.git_mlcube_url.startswith(synapse_prefix):
         platform = Platforms.synapse
         if synapse_client is None:
+            print(f'Skipping Container {container.id}. It is a Synapse container.')
             container_info = None
 
         else:
@@ -38,6 +39,7 @@ def get_container_info(req_session: requests.Session, container: Cube, synapse_c
         platform = Platforms.public
         if req_session is None:
             container_info = None
+            print(f'Skipping Container {container.id}. It is a Public container.')
         with req_session.get(container.git_mlcube_url) as response:
             container_info = yaml.safe_load(response.content)
 
