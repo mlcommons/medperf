@@ -104,7 +104,12 @@ def get_container_yamls(output_public_path: os.PathLike, output_synapse_path: os
             if not id_value.startswith('sha256:'):
                 id_value = f'sha256:{id_value}'
 
-            new_metadata = {'id': container.image_hash}
+            if 'id' in container.metadata.keys():
+                # Already updated, do not change
+                new_metadata = container.metadata
+            else:
+                # Old format, update
+                new_metadata = {'id': id_value}
         else:
             new_hash = new_metadata = None
 
