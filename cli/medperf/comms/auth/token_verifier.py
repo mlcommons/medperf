@@ -3,15 +3,19 @@ The library is designed to cache public keys in memory. Since our client is ephe
 wrapped the library's `JwksFetcher` to cache keys in the filesystem storage, and wrapped the
 library's signature verifier to use this new `JwksFetcher`"""
 
+import logging
 from typing import Any
 from medperf import config
 import os
 import json
+from json import JSONDecodeError
 from auth0.authentication.token_verifier import (
     TokenVerifier,
     JwksFetcher,
     AsymmetricSignatureVerifier,
 )
+
+from medperf.exceptions import CommunicationAuthenticationError
 
 
 class JwksFetcherWithDiskCache(JwksFetcher):
@@ -53,4 +57,8 @@ def verify_token(token):
         issuer=config.auth_idtoken_issuer,
         audience=config.auth_client_id,
     )
-    return token_verifier.verify(token)
+    try:
+        return token_verifier.verify(token)
+    except JSONDecodeError as e:
+        logging.error(e, exc_info=True)
+        raise CommunicationAuthenticationError("There was an issue verifying the token. Please try again")
