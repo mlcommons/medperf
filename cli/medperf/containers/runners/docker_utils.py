@@ -3,17 +3,41 @@ import os
 from medperf.exceptions import InvalidContainerSpec, MedperfException
 from .utils import run_command
 import shlex
+from typing import Optional
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
-    command = ["docker", "inspect", "--format", "{{.Descriptor.digest}}", docker_image]
+    command = ["docker", "images", docker_image, '--digests', '--format', "{{.Digest}}"]
     image_id = run_command(command, timeout=timeout)
     image_id = image_id.strip()
 
     if image_id.startswith("sha256:"):
         return image_id
+
+    raise InvalidContainerSpec("Invalid docker images output:", image_id)
+
+def extract_docker_image_name_without_tag(image_name_with_tag: str) -> str:
+    try:
+        image_name = image_name_with_tag.rsplit(':', maxsplit=1)[0]
+        return image_name
+    except ValueError:
+        # If something unexpected happens, use name as is
+        return image_name_with_tag
     
-    raise InvalidContainerSpec("Invalid inspect output:", image_id)
+
+def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[str] = None):
+
+    if image_hash is None:
+        # If no hash (for example, when first uploading a container) use the name with tag as is
+        return image_name_with_tag
+
+    image_name = extract_docker_image_name_without_tag(image_name_with_tag)
+    
+    if image_name == image_name_with_tag:
+        return image_name
+
+    image_name_with_hash = f'{image_name}@{image_hash}'
+    return image_name_with_hash
 
 
 def volumes_to_cli_args(input_volumes: list, output_volumes: list):
