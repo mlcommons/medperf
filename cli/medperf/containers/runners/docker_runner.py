@@ -27,8 +27,8 @@ class DockerRunner(Runner):
         docker_image = self.parser.get_setup_args()
 
         unique_docker_image_name = generate_unique_image_name(image_name_with_tag=docker_image,
-                                                            image_hash=expected_image_hash)
-        
+                                                              image_hash=expected_image_hash)
+
         command = ["docker", "pull", unique_docker_image_name]
         run_command(command, timeout=download_timeout)
         computed_image_hash = get_docker_image_hash(unique_docker_image_name, get_hash_timeout)
