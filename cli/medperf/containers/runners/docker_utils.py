@@ -10,11 +10,13 @@ import json
 def get_docker_image_hash(docker_image, timeout: int = None):
     command = ["docker", "inspect", docker_image, '--format', '"{{json .RepoDigests}}"']
     image_ids_str = run_command(command, timeout=timeout)
-    image_ids_str = image_ids_str.strip()
+    image_ids_str = image_ids_str.strip().strip('"\'')
     image_ids_list = json.loads(image_ids_str)
 
+    only_image_name = extract_docker_image_name(image_name_with_tag_and_hash=docker_image)
+
     for image_id in image_ids_list:
-        hash_prefix = f'{docker_image}@'
+        hash_prefix = f'{only_image_name}@'
         if image_id.startswith(hash_prefix):
             image_hash = image_id.removeprefix(hash_prefix)
             if image_hash.startswith("sha256:"):
@@ -23,13 +25,21 @@ def get_docker_image_hash(docker_image, timeout: int = None):
     raise InvalidContainerSpec("Invalid docker images output:", image_id)
 
 
-def extract_docker_image_name_without_tag(image_name_with_tag: str) -> str:
+def extract_docker_image_name(image_name_with_tag_and_hash: str) -> str:
+    hash_separator = "@"
+    tag_separator = ":"
+
+    if hash_separator in image_name_with_tag_and_hash:
+        image_name_with_tag = image_name_with_tag_and_hash.rsplit(hash_separator, maxsplit=1)[0]
+    else:
+        image_name_with_tag = image_name_with_tag_and_hash
+
     try:
-        image_name = image_name_with_tag.rsplit(':', maxsplit=1)[0]
+        image_name = image_name_with_tag.rsplit(tag_separator, maxsplit=1)[0]
         return image_name
     except ValueError:
         # If something unexpected happens, use name as is
-        return image_name_with_tag
+        return image_name_with_tag_and_hash
 
 
 def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[str] = None):
@@ -38,7 +48,7 @@ def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[st
         # If no hash (for example, when first uploading a container) use the name with tag as is
         return image_name_with_tag
 
-    image_name = extract_docker_image_name_without_tag(image_name_with_tag)
+    image_name = extract_docker_image_name(image_name_with_tag)
 
     if image_name == image_name_with_tag:
         return image_name
