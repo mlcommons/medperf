@@ -4,17 +4,24 @@ from medperf.exceptions import InvalidContainerSpec, MedperfException
 from .utils import run_command
 import shlex
 from typing import Optional
+import json
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
-    command = ["docker", "images", docker_image, '--digests', '--format', "{{.Digest}}"]
-    image_id = run_command(command, timeout=timeout)
-    image_id = image_id.strip()
+    command = ["docker", "inspect", docker_image, '--format', '"{{json .RepoDigests}}"']
+    image_ids_str = run_command(command, timeout=timeout)
+    image_ids_str = image_ids_str.strip()
+    image_ids_list = json.loads(image_ids_str)
 
-    if image_id.startswith("sha256:"):
-        return image_id
+    for image_id in image_ids_list:
+        hash_prefix = f'{docker_image}@'
+        if image_id.startswith(hash_prefix):
+            image_hash = image_id.removeprefix(hash_prefix)
+            if image_hash.startswith("sha256:"):
+                return image_hash
 
     raise InvalidContainerSpec("Invalid docker images output:", image_id)
+
 
 def extract_docker_image_name_without_tag(image_name_with_tag: str) -> str:
     try:
@@ -23,7 +30,7 @@ def extract_docker_image_name_without_tag(image_name_with_tag: str) -> str:
     except ValueError:
         # If something unexpected happens, use name as is
         return image_name_with_tag
-    
+
 
 def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[str] = None):
 
@@ -32,7 +39,7 @@ def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[st
         return image_name_with_tag
 
     image_name = extract_docker_image_name_without_tag(image_name_with_tag)
-    
+
     if image_name == image_name_with_tag:
         return image_name
 
