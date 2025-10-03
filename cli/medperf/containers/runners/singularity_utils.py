@@ -35,7 +35,7 @@ def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
 
     if response.status_code != 200:
         raise CommunicationError(f"Failed to get manifest: {response.status_code}")
-    
+
     try:
         hash_ = response.headers['docker-content-digest']
     except KeyError:
