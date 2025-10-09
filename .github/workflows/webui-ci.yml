@@ -22,6 +22,7 @@ jobs:
         pip install -e cli/
         pip install -r cli/test-requirements.txt
         pip install -r server/requirements.txt
+        pip install -r server/test-requirements.txt
 
     - name: Set server environment vars
       working-directory: ./server
@@ -48,5 +49,5 @@ jobs:
       run: medperf_webui & sleep 6
 
     - name: Run webUI tutorial E2E tests with pytest
-      working-directory: .
-      run: pytest cli/medperf/web_ui/tests/e2e/
+      working-directory: ./cli/medperf/web_ui/tests/e2e/
+      run: pytest
