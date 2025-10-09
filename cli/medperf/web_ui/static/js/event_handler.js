@@ -5,7 +5,7 @@ function create_p(msg){
 }
 
 function scrollToElement(selector){
-    $("html, body").animate({
+    $("html, body").stop(true).animate({
         scrollTop: $(selector).offset().top
     }, 1000);
 }
