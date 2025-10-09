@@ -36,9 +36,9 @@ jobs:
       working-directory: ./server
       run: sh setup-dev-server.sh & sleep 6
 
-    - name: Seed database with tutorial data
+    - name: Reset and seed database with tutorial data
       working-directory: ./server
-      run: python seed.py --demo tutorial
+      run: sh reset_db.sh && python seed.py --demo tutorial
 
     - name: Set up tutorial files
       working-directory: .
