@@ -280,4 +280,8 @@ $(document).ready(() => {
     $("form").on("submit", (e) => {
         e.preventDefault();
     });
+
+    $("#logout-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, logout, "logout?");
+    });
 });
