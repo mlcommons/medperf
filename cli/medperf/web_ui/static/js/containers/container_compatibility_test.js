@@ -1,7 +1,7 @@
 function onContainerCompatibilityTestSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        $("next-modal-title").html("Container Compatibility Test Successful");
+        $("#next-modal-title").html("Model Compatibility Test Successful");
         const nextModal = new bootstrap.Modal('#next-modal', {
             keyboard: false,
             backdrop: "static"
