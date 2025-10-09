@@ -8,17 +8,17 @@
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
-            <a class="btn btn-primary my-4" href="/datasets/register/ui">
+            <a class="btn btn-primary my-4" href="/datasets/register/ui" data-testid="reg-dset-btn">
                 Register a New Dataset
             </a>
-            <a class="btn btn-dark my-4 mx-3" href="/datasets/import/ui">
+            <a class="btn btn-dark my-4 mx-3" href="/datasets/import/ui" data-testid="import-dset-btn">
                 Import Dataset
             </a>
         </div>
     </div>
     <div class="row mt-5">
         <div class="col-12">
-            <h1 class="mt-4 text-center">Datasets</h1>
+            <h1 class="mt-4 text-center" data-testid="page-header">Datasets</h1>
             <div class="form-check form-switch d-flex flex-column align-items-center">
                 <input
                     class="form-check-input fs-5"
@@ -35,7 +35,7 @@
         </div>
     </div>
 </div>
-<div class="container mt-5">
+<div class="container mt-5" data-testid="cards-container">
     <!-- Dataset Cards -->
     <div class="row">
         {% if datasets %}
@@ -44,25 +44,25 @@
             <div class="card {% if not dataset.is_valid %}invalid-card{% endif %}">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <a href="/datasets/ui/display/{{ dataset.id }}" class="text-primary">
+                        <a href="/datasets/ui/display/{{ dataset.id }}" class="text-primary" data-testid="dset-name">
                             {{ dataset.name }}
                         </a>
                     </h5>
-                    <h6 class="card-subtitle mb-2">ID: {{dataset.id}}</h6>
-                    <h6 class="card-subtitle mb-2 text-muted">
+                    <h6 class="card-subtitle mb-2" data-testid="dset-id">ID: {{dataset.id}}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="dset-state">
                         {% if dataset.state == 'OPERATION' %} OPERATIONAL {% else %} {{ dataset.state }} {% endif %}
                     </h6>
-                    <h6 class="card-subtitle mb-2 text-muted">
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="dset-is-valid">
                         Is valid: {{ dataset.is_valid }}
                     </h6>
-                    <p class="card-text">
+                    <p class="card-text" data-testid="dset-description">
                         <strong>Description:</strong> 
                         {{ dataset.description }}
                     </p>
-                    <p class="card-text">
+                    <p class="card-text" data-testid="dset-created-at">
                         <small class="text-muted" data-date="{{ dataset.created_at }}"></small>
                     </p>
-                    <p class="card-text">
+                    <p class="card-text" data-testid="dset-location">
                         <small class="text-muted">Location: {{ dataset.location }}</small>
                     </p>
                 </div>
@@ -70,7 +70,7 @@
         </div>
         {% endfor %}
         {% else %}
-        <h3 class="col-12 text-center mt-5">
+        <h3 class="col-12 text-center mt-5" data-testid="no-dsets-msg">
             No datasets yet
         </h3>
         {% endif %}

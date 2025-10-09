@@ -8,14 +8,14 @@
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
-            <a class="btn btn-primary my-4" href="/containers/register/ui">
+            <a class="btn btn-primary my-4" href="/containers/register/ui" data-testid="reg-cont-btn">
                 Register a New Container
             </a>
         </div>
     </div>
     <div class="row mt-5">
         <div class="col-12">
-            <h1 class="mt-4 text-center">Containers</h1>
+            <h1 class="mt-4 text-center" data-testid="page-header">Containers</h1>
             <div class="form-check form-switch d-flex flex-column align-items-center">
                 <input
                     class="form-check-input fs-5"
@@ -32,20 +32,25 @@
         </div>
     </div>
 </div>
-<div class="container mt-5">
+<div class="container mt-5" data-testid="cards-container">
     <div class="row">
         {% if containers %}
         {% for container in containers %}
         <div class="col-md-4 mb-4">
-            <div class="{% if container.is_valid %}card{% else %}invalid-card{% endif %}">
+            <div class="card {% if not container.is_valid %}invalid-card{% endif %}">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <a href="/containers/ui/display/{{ container.id }}" class="text-primary">{{ container.name }}</a>
+                        <a
+                            href="/containers/ui/display/{{ container.id }}"
+                            class="text-primary"
+                            data-testid="cont-name">
+                        {{ container.name }}
+                        </a>
                     </h5>
-                    <h6 class="card-subtitle mb-2">ID: {{container.id}}</h6>
-                    <h6 class="card-subtitle mb-2 text-muted">{% if container.state == 'OPERATION' %} OPERATIONAL {% else %} {{ container.state }} {% endif %}</h6>
-                    <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ container.is_valid }}</h6>
-                    <p class="card-text">
+                    <h6 class="card-subtitle mb-2" data-testid="cont-id">ID: {{container.id}}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="cont-state">{% if container.state == 'OPERATION' %} OPERATIONAL {% else %} {{ container.state }} {% endif %}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="cont-is-valid">Is valid: {{ container.is_valid }}</h6>
+                    <p class="card-text" data-testid="cont-created-at">
                         <small class="text-muted" data-date="{{ container.created_at }}"></small>
                     </p>
                 </div>
@@ -53,7 +58,7 @@
         </div>
         {% endfor %}
         {% else %}
-        <h3 class="col-12 text-center mt-5">
+        <h3 class="col-12 text-center mt-5" data-testid="no-conts-msg">
             No containers yet
         </h3>
         {% endif %}
