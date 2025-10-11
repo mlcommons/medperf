@@ -4,6 +4,7 @@ import time
 from medperf.web_ui.tests import config as tests_config
 from medperf.web_ui.tests.pages.base_page import BasePage
 from medperf.web_ui.tests.pages.security_page import SecurityPage
+from medperf.web_ui.tests.pages.settings_page import SettingsPage
 from medperf.web_ui.tests.pages.login_page import LoginPage
 
 from medperf.web_ui.tests.pages.benchmark.workflow_test_page import WorkflowTestPage
@@ -48,7 +49,42 @@ def test_security_page_url(driver, sec_token):
     assert "/security_check" not in page.current_url
 
 
-@pytest.mark.dependency(name="logout_if_logged_in", depends=["security_test_url"])
+@pytest.mark.dependency(name="activate_profile", depends=["security_test_url"])
+def test_activate_local_profiile(driver):
+    page = SettingsPage(driver)
+    page.open(BASE_URL.format("/profiles"))
+
+    current_profile = page.get_text(page.CURRENT_PROFILE)
+    if current_profile == tests_config.LOCAL_PROFILE:
+        return
+
+    assert page.find(page.ACTIVATE).is_enabled() is False
+
+    confirm_modal = page.find(page.CONFIRM_MODAL)
+    popup_modal = page.find(page.POPUP_MODAL)
+    error_modal = page.find(page.ERROR_MODAL)
+
+    assert confirm_modal.is_displayed() is False
+    assert popup_modal.is_displayed() is False
+    assert error_modal.is_displayed() is False
+
+    page.activate_profile(profile_name=tests_config.LOCAL_PROFILE)
+
+    page.wait_for_visibility_element(confirm_modal)
+    page.confirm_run_task()
+
+    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert popup_modal.is_displayed() is True
+    assert page.get_text(page.POPUP_TITLE) == "Profile Activated Successfully"
+
+    page.wait_for_staleness_element(popup_modal)
+
+    assert page.get_text(page.CURRENT_PROFILE) == tests_config.LOCAL_PROFILE
+
+
+@pytest.mark.dependency(name="logout_if_logged_in", depends=["activate_profile"])
 def test_logout_if_logged_in(driver):
     page = BasePage(driver)
     page.open(BASE_URL.format("/benchmarks/ui"))

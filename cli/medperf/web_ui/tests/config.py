@@ -2,6 +2,8 @@ HOST = "127.0.0.1"
 WEBUI_PORT = 8100
 SERVER_PORT = 8000
 
+LOCAL_PROFILE = "Local"
+
 BASE_URL = f"http://{HOST}:{WEBUI_PORT}" + "{}"
 
 BMK_OWNER_EMAIL = "testbo@example.com"
