@@ -76,7 +76,7 @@ class Cube(Entity, DeployableSchema):
     @property
     def parser(self):
         if self._parser is None:
-            self._parser = load_parser(self.container_config)
+            self._parser = load_parser(self.container_config, self.path)
         return self._parser
 
     @property
