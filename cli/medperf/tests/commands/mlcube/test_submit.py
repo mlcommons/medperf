@@ -14,6 +14,7 @@ def cube(mocker):
     mocker.patch(PATCH_MLCUBE.format("Cube.download_run_files"))
     mocker.patch(PATCH_MLCUBE.format("Cube.upload"))
     mocker.patch(PATCH_MLCUBE.format("Cube.write"))
+    mocker.patch(PATCH_MLCUBE.format("load_yaml_content"), return_value=TestCube().todict())
     return TestCube()
 
 
@@ -40,7 +41,7 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
     spy_write = mocker.patch(PATCH_MLCUBE.format("SubmitCube.write"))
 
     # Act
-    SubmitCube.run(cube.todict())
+    SubmitCube.run(cube.todict(), container_config_file='/dummy/file')
 
     # Assert
     spy_download.assert_called_once()

@@ -16,7 +16,7 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Any
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
@@ -560,3 +560,10 @@ def get_webui_properties():
     print()
     print("=" * 40)
     print(f"URL: http://{props['host']}:{props['port']}")
+
+
+def load_yaml_content(yaml_filepath: os.PathLike) -> Dict[str, Any]:
+    with open(yaml_filepath, 'r') as f:
+        content = yaml.safe_load(f)
+
+    return content

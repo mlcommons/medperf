@@ -1,7 +1,6 @@
-from medperf.exceptions import MedperfException, InvalidContainerSpec
+from medperf.exceptions import InvalidContainerSpec
 from .parser import Parser
 import os
-import yaml
 from .mlcube import MLCubeParser
 from .simple_container import SimpleContainerParser
 
@@ -14,24 +13,17 @@ def _is_mlcube_yaml_file(container_config: dict):
     )
 
 
-def load_parser(container_config_path: str) -> Parser:
-    if not os.path.exists(container_config_path):
-        # Internal error
-        raise MedperfException(f"{container_config_path} hasn't been downloaded yet.")
-
-    with open(container_config_path) as f:
-        container_config = yaml.safe_load(f)
-
+def load_parser(container_config: dict) -> Parser:
     if container_config is None:
         raise InvalidContainerSpec(
-            f"Empty container config file: {container_config_path}"
+            f"Empty container config file: {container_config}"
         )
 
     if _is_mlcube_yaml_file(container_config):
         # add workspace_path to the container configuration dict
         # this is necessary given how mlcube used to parse the file
         workspace_path = os.path.join(
-            os.path.dirname(container_config_path), "workspace"
+            os.path.dirname(container_config), "workspace"
         )
         container_config["workspace_path"] = workspace_path
         parser = MLCubeParser(
@@ -42,7 +34,7 @@ def load_parser(container_config_path: str) -> Parser:
 
     if "container_type" not in container_config:
         raise InvalidContainerSpec(
-            "Container config file should contain a 'container_type' field."
+            f"Container config file should contain a 'container_type' field.\n{container_config}"
         )
 
     container_type = container_config["container_type"]

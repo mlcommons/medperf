@@ -16,12 +16,21 @@ import io
 import environ
 import google.auth
 from google.cloud import secretmanager
+import requests
+import yaml
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 env = environ.Env()
 env_file = os.path.join(BASE_DIR, ".env")
+
+
+def _load_container_config(remote_container_config_file_url: str):
+    response = requests.get(remote_container_config_file_url)
+    container_config = yaml.safe_load(response.text)
+    return container_config
+
 
 if os.path.isfile(env_file):
     # Use a local secret file, if provided
@@ -64,7 +73,7 @@ CA_NAME = env("CA_NAME")
 CA_CONFIG = env.json("CA_CONFIG")
 CA_MLCUBE_NAME = env("CA_MLCUBE_NAME")
 CA_MLCUBE_URL = env("CA_MLCUBE_URL")
-CA_MLCUBE_HASH = env("CA_MLCUBE_HASH")
+CA_CONTAINER_CONFIG = _load_container_config(CA_MLCUBE_URL)
 CA_MLCUBE_IMAGE_HASH = env("CA_MLCUBE_IMAGE_HASH")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])

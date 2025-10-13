@@ -68,7 +68,7 @@ class TestGetFiles:
         self.run_files_paths = [self.add_path]
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
-    def test_get_cube_retrieves_files(self, setup):
+    def test_get_cube_retrieves_files(self, fs, setup):
         # Act
         Cube.get(self.id)
 

@@ -4,18 +4,19 @@ import pytest
 import medperf.commands.compatibility_test.utils as utils
 import os
 import medperf.config as config
-
+from pytest_mock import MockerFixture
+from medperf.tests.mocks.cube import TestCube
 
 PATCH_UTILS = "medperf.commands.compatibility_test.utils.{}"
 
 
 class TestPrepareCube:
     @pytest.fixture(autouse=True)
-    def setup(self, fs):
+    def setup(self, mocker: MockerFixture, fs):
         cube_path = "/path/to/cube"
         cube_path_config = os.path.join(cube_path, config.cube_filename)
         fs.create_file(cube_path_config, contents="cube mlcube.yaml contents")
-
+        mocker.patch(PATCH_UTILS.format('load_yaml_content'), return_value=TestCube().todict())
         self.cube_path = cube_path
         self.cube_path_config = cube_path_config
 

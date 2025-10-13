@@ -101,22 +101,14 @@ def generate_cubefile_fn(fs, path, filename):
 
 
 def setup_cube_comms_downloads(mocker, fs):
-    cube_path = ""
-    cube_file = config.cube_filename
-    params_path = config.workspace_path
-    params_file = config.params_filename
     add_path = config.additional_path
     add_file = config.tarball_filename
     img_path = config.image_path
     img_file = "img.tar.gz"
 
-    get_cube_fn = generate_cubefile_fn(fs, cube_path, cube_file)
-    get_params_fn = generate_cubefile_fn(fs, params_path, params_file)
     get_add_fn = generate_cubefile_fn(fs, add_path, add_file)
     get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
 
-    mocker.patch(PATCH_RESOURCES.format("get_cube"), side_effect=get_cube_fn)
-    mocker.patch(PATCH_RESOURCES.format("get_cube_params"), side_effect=get_params_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_additional"), side_effect=get_add_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_image"), side_effect=get_img_fn)
 

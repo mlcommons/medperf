@@ -1,11 +1,11 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
 from medperf.utils import (
-    get_file_hash,
     get_folders_hash,
     sanitize_path,
     remove_path,
     generate_tmp_uid,
+    load_yaml_content
 )
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
@@ -46,6 +46,7 @@ def download_demo_data(dset_url, dset_hash):
 
 def prepare_local_cube(container_config_path):
     path = os.path.dirname(container_config_path)
+    container_config = load_yaml_content(container_config_path)
     temp_uid = "local_" + generate_tmp_uid()
     cubes_folder = config.cubes_folder
     dst = os.path.join(cubes_folder, temp_uid)
@@ -54,13 +55,10 @@ def prepare_local_cube(container_config_path):
     config.tmp_paths.append(dst)
     cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
     if not os.path.exists(cube_metadata_file):
-        mlcube_yaml_hash = get_file_hash(container_config_path)
         temp_metadata = {
             "id": None,
             "name": temp_uid,
-            "git_mlcube_url": "mock_url",
-            "mlcube_hash": mlcube_yaml_hash,
-            "parameters_hash": "",
+            "container_config": container_config,
             "image_tarball_hash": "",
             "additional_files_tarball_hash": "",
             "for_test": True,

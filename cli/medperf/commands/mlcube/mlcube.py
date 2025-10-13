@@ -128,23 +128,17 @@ def create(
 @clean_except
 def submit(
     name: str = typer.Option(..., "--name", "-n", help="Name of the container"),
-    mlcube_file: str = typer.Option(
+    container_config_file: str = typer.Option(
         ...,
         "--container-config-file",
         "-m",
-        help="Identifier to download the container config file. See the description above",
-    ),
-    mlcube_hash: str = typer.Option(
-        "", "--container-config-hash", help="hash of container config file"
+        help="Local container config file. Its contents will be uploaded to the MedPerf server.",
     ),
     parameters_file: str = typer.Option(
         "",
         "--parameters-file",
         "-p",
-        help="Identifier to download the parameters file. See the description above",
-    ),
-    parameters_hash: str = typer.Option(
-        "", "--parameters-hash", help="hash of parameters file"
+        help="Local parameters file. Its contents will be uploaded to the MedPerf server.",
     ),
     additional_file: str = typer.Option(
         "",
@@ -164,8 +158,6 @@ def submit(
 ):
     """Submits a new container to the platform.\n
     The following assets:\n
-        - container config file\n
-        - parameters_file\n
         - additional_file\n
         - image_file\n
     are expected to be given in the following format: <source_prefix:resource_identifier>
@@ -178,16 +170,13 @@ def submit(
     """
     mlcube_info = {
         "name": name,
-        "git_mlcube_url": mlcube_file,
-        "git_mlcube_hash": mlcube_hash,
-        "git_parameters_url": parameters_file,
-        "parameters_hash": parameters_hash,
         "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(mlcube_info)
+    SubmitCube.run(mlcube_info, container_config_file=container_config_file,
+                   parameters_file=parameters_file)
     config.ui.print("✅ Done!")
 
 

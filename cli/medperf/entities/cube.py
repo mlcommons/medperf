@@ -12,6 +12,7 @@ from medperf.account_management import get_medperf_user_data
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
 from medperf.utils import generate_tmp_path
+import yaml
 
 
 class Cube(Entity, DeployableSchema):
@@ -24,17 +25,15 @@ class Cube(Entity, DeployableSchema):
     with standard metadata and a consistent file-system level interface.
     """
 
-    git_mlcube_url: str
-    mlcube_hash: Optional[str]
-    git_parameters_url: Optional[str]
-    parameters_hash: Optional[str]
+    container_config: dict
+    parameters_config: dict = Field(default_factory=dict)
     image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
     image_hash: Optional[str]
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
-    metadata: dict = {}
-    user_metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
+    user_metadata: dict = Field(default_factory=dict)
 
     @staticmethod
     def get_type():
@@ -65,8 +64,6 @@ class Cube(Entity, DeployableSchema):
         super().__init__(*args, **kwargs)
 
         self.cube_path = os.path.join(self.path, config.cube_filename)
-        self.params_path = None
-        self.additiona_files_folder_path = None
         self.params_path = os.path.join(
             self.path, config.workspace_path, config.params_filename
         )
@@ -79,7 +76,7 @@ class Cube(Entity, DeployableSchema):
     @property
     def parser(self):
         if self._parser is None:
-            self._parser = load_parser(self.cube_path)
+            self._parser = load_parser(self.container_config)
         return self._parser
 
     @property
@@ -133,19 +130,18 @@ class Cube(Entity, DeployableSchema):
         return cube
 
     def download_mlcube(self):
-        url = self.git_mlcube_url
-        path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
-        self.cube_path = path
-        self.mlcube_hash = file_hash
+        os.makedirs(self.path, exist_ok=True)
+        with open(self.cube_path, 'w') as f:
+            yaml.safe_dump(self.container_config, f)
 
     def download_parameters(self):
-        url = self.git_parameters_url
-        if url:
-            path, file_hash = resources.get_cube_params(
-                url, self.path, self.parameters_hash
-            )
-            self.params_path = path
-            self.parameters_hash = file_hash
+        if not self.parameters_config:
+            return
+
+        parameter_dir = os.path.normpath(os.path.join(self.params_path, '..'))
+        os.makedirs(parameter_dir, exist_ok=True)
+        with open(self.params_path, 'w') as f:
+            yaml.safe_dump(self.parameters_config, f)
 
     def download_additional(self):
         url = self.additional_files_tarball_url
@@ -191,11 +187,20 @@ class Cube(Entity, DeployableSchema):
         task: str,
         output_logs: str = None,
         timeout: int = None,
-        mounts: dict = {},
-        env: dict = {},
-        ports: list = [],
+        mounts: dict = None,
+        env: dict = None,
+        ports: list = None,
         disable_network: bool = True,
     ):
+        if mounts is None:
+            mounts = {}
+
+        if env is None:
+            env = {}
+
+        if ports is None:
+            ports = []
+
         os.makedirs(self.additiona_files_folder_path, exist_ok=True)
         extra_mounts = {
             "parameters_file": self.params_path,
@@ -253,7 +258,7 @@ class Cube(Entity, DeployableSchema):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Config File": self.git_mlcube_url,
+            "Config File": self.path,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,
