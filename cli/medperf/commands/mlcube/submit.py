@@ -8,8 +8,7 @@ from typing import Optional
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict, container_config_file: os.PathLike,
-            parameters_file: Optional[os.PathLike] = None):
+    def run(cls, submit_info: dict):
         """Submits a new cube to the medperf platform
 
         Args:
@@ -17,14 +16,6 @@ class SubmitCube:
         """
         ui = config.ui
 
-        container_config = load_yaml_content(container_config_file)
-        submit_info['container_config'] = container_config
-
-        if parameters_file is not None:
-            parameters_config = load_yaml_content(parameters_file)
-        else:
-            parameters_config = {}
-        submit_info['parameters_config'] = parameters_config
 
         submission = cls(submit_info)
 
