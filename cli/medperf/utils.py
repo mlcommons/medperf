@@ -566,4 +566,7 @@ def load_yaml_content(yaml_filepath: os.PathLike) -> Dict[str, Any]:
     with open(yaml_filepath, 'r') as f:
         content = yaml.safe_load(f)
 
+    if content is None:
+        content = {}
+        
     return content
