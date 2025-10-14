@@ -143,7 +143,7 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
         new_hashes_list.append(update_dict)
 
     new_hashes_df = pd.DataFrame(new_hashes_list)
-    new_hashes_df.to_json(output_csv, index=False)
+    new_hashes_df.to_json(output_csv, index=False, indent=4)
 
 
 def get_container_jsons(output_file: os.PathLike,include_public_links: bool = True,
