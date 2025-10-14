@@ -2,27 +2,31 @@ from docker.errors import APIError
 import pandas as pd
 import requests
 import yaml
-from medperf.entities.cube import Cube
+from migration_cube import MigrationCube
+from typing import Optional
+import hashlib
 import docker
 import os
 import synapseclient
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 import json
 
+
 UID_KEY = 'UID'
 SYNAPSE_PREFIX = 'synapse:'
 
 
-def get_container_info(req_session: requests.Session, container: Cube, synapse_client: synapseclient.Synapse):
-    is_synapse = container['config_file'].startswith(SYNAPSE_PREFIX)
+def get_container_info(req_session: requests.Session, synapse_client: synapseclient.Synapse,
+                       download_link: str, container_id: str, expected_hash: Optional[str] = None):
+    is_synapse = download_link.startswith(SYNAPSE_PREFIX)
 
     if is_synapse:
         if synapse_client is None:
-            print(f'Skipping Container {container["uid"]}. It is a Synapse container.')
+            print(f'Skipping Container {container_id}. It is a Synapse container.')
             container_info = None
 
         else:
-            synapse_id = container['config_file'].removeprefix(SYNAPSE_PREFIX)
+            synapse_id = download_link.removeprefix(SYNAPSE_PREFIX)
             synapse_tmp_file = synapse_client.get(synapse_id)
             with open(synapse_tmp_file.path, 'r') as f:
                 container_info = yaml.safe_load(f.read())
@@ -32,8 +36,12 @@ def get_container_info(req_session: requests.Session, container: Cube, synapse_c
                 print(f'Failed to delete local Synapse file {synapse_tmp_file.path}. '
                       'Program will proceed without deleting it.')
     else:
-        with req_session.get(container['config_file']) as response:
-            container_info = yaml.safe_load(response.content)
+        content = req_session.get(download_link).content
+        content_hash = hashlib.sha256(content).hexdigest()
+        if expected_hash is not None and content_hash != expected_hash:
+            raise ValueError(f'Hash mismatch when downloading {download_link} from Container ID {container_id}!\n'
+                             f'Expected hash: {expected_hash}, found hash: {content_hash}')
+        container_info = yaml.safe_load(content)
 
     return container_info
 
@@ -84,9 +92,24 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
         print(f'Analyzing Container {container_id}...')
         this_container_yaml = get_container_info(req_session=request_session,
                                                  synapse_client=synapse_client,
-                                                 container=container_info)
+                                                 download_link=container_info['config_file'],
+                                                 container_id=container_id,
+                                                 expected_hash=container_info['mlcube_hash'])
 
         if this_container_yaml is not None:
+            parameters_link = container_info.get('parameters_file')
+
+            if parameters_link is not None:
+                parameters_config = get_container_info(
+                    req_session=request_session,
+                    synapse_client=synapse_client,
+                    download_link=parameters_link,
+                    container_id=container_id,
+                    expected_hash=container_info['parameters_hash']
+                )
+            else:
+                parameters_config = {}
+
             new_hash = get_docker_hash(docker_client=docker_client, container_dict=this_container_yaml,
                                        container_id=container_id)
             id_value = container_info['old_image_hash']
@@ -100,13 +123,15 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
                 # Old format, update
                 new_metadata = {'id': id_value}
         else:
-            new_hash = new_metadata = None
+            new_hash = new_metadata = parameters_config = None
 
         update_dict = {
             'uid': container_id,
             'old_hash': container_info['old_image_hash'],
             'new_hash': new_hash,
-            'new_metadata': json.dumps(new_metadata)
+            'new_metadata': json.dumps(new_metadata),
+            'container_config': json.dumps(this_container_yaml),
+            'parameters_config': json.dumps(parameters_config)
         }
         new_hashes_list.append(update_dict)
 
@@ -116,8 +141,8 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
 
 def get_container_jsons(output_file: os.PathLike,include_public_links: bool = True,
                         include_synapse_links: bool = False):
-    containers = Cube.all()
-    containers: list[Cube] = sorted(containers, key=lambda x: x.id)
+    containers = MigrationCube.all()
+    containers: list[MigrationCube] = sorted(containers, key=lambda x: x.id)
 
     all_containers = {}
     for container in containers:
@@ -131,8 +156,10 @@ def get_container_jsons(output_file: os.PathLike,include_public_links: bool = Tr
         container_info = {
             'uid': container.id,
             'name': container.name,
-            'mlcube_hash': container.mlcube_hash,
             'config_file': container.git_mlcube_url,
+            'mlcube_hash': container.mlcube_hash,
+            'parameters_file': container.git_parameters_url,
+            'parameters_hash': container.parameters_hash,
             'old_image_hash': container.image_hash,
             'old_metadata': container.metadata
         }
