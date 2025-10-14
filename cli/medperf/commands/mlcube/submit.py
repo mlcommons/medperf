@@ -2,8 +2,7 @@ import os
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import remove_path, load_yaml_content
-from typing import Optional
+from medperf.utils import remove_path
 
 
 class SubmitCube:
@@ -15,7 +14,6 @@ class SubmitCube:
             submit_info (dict): Dictionary containing the cube information.
         """
         ui = config.ui
-
 
         submission = cls(submit_info)
 

@@ -568,5 +568,5 @@ def load_yaml_content(yaml_filepath: os.PathLike) -> Dict[str, Any]:
 
     if content is None:
         content = {}
-        
+
     return content
