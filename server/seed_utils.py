@@ -14,6 +14,7 @@ ASSETS_URL = (
     "9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/"
 )
 
+
 def _load_asset_content(file_relative_url: str):
     asset_url = f'{ASSETS_URL}/{file_relative_url}'
 
