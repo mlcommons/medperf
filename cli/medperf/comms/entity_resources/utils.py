@@ -97,6 +97,9 @@ def download_resource(
 
 
 def load_yaml_content(resource_path: str) -> Dict[str, Any]:
+    if not resource_path:
+        return {}
+    
     source_class, resource_id = __parse_resource(resource_path)
     source_instance = source_class()
 
@@ -108,3 +111,7 @@ def load_yaml_content(resource_path: str) -> Dict[str, Any]:
         yaml_dict = {}
 
     return yaml_dict
+
+
+if __name__ == '__main__':
+    __parse_resource('https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml')
