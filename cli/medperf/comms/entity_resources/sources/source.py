@@ -24,3 +24,7 @@ class BaseSource(ABC):
             by `validate_resource`
             output_path (str): The path to download the resource to
         """
+
+    @abstractmethod
+    def read_content(self, resource_identifier: str) -> bytes:
+        """Reads contents of the resource, without saving it to disk."""

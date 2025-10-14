@@ -68,3 +68,15 @@ class SynapseSource(BaseSource):
                 "There was a problem retrieving a file from Synapse"
             )
         shutil.move(resource_path, output_path)
+
+    def read_content(self, resource_identifier) -> bytes:
+        """Unfortunately, synapse forces us into saving to disk. :()"""
+        try:
+            resource_file = self.client.get(resource_identifier)
+        except (SynapseHTTPError, SynapseUnmetAccessRestrictions) as e:
+            raise CommunicationRetrievalError(str(e))
+
+        with open(resource_file.path, 'rb') as f:
+            content = f.read()
+
+        return content

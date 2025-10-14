@@ -10,7 +10,7 @@ from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.run_test import run_mlcube
-from medperf.utils import load_yaml_content
+from medperf.comms.entity_resources.utils import load_yaml_content
 
 app = typer.Typer()
 
@@ -26,7 +26,7 @@ def run_test(
         None, "--parameters_file_path", help="path to container parameters file"
     ),
     additional_files_path: str = typer.Option(
-        None, "--additional_files_path", help="path to ciontainer additional files"
+        None, "--additional_files_path", help="path to container additional files"
     ),
     output_logs: str = typer.Option(
         None, "--output_logs", "-o", help="where to store stdout"
@@ -133,13 +133,17 @@ def submit(
         ...,
         "--container-config-file",
         "-m",
-        help="Local container config file. Its contents will be uploaded to the MedPerf server.",
+        help="Container Config file. Preferably a local file in your computer. "
+        "May optionally be a remote file. See the description above. " 
+        "Its contents will be uploaded to the MedPerf server."
     ),
     parameters_file: str = typer.Option(
         "",
         "--parameters-file",
         "-p",
-        help="Local parameters file. Its contents will be uploaded to the MedPerf server.",
+        help="Local parameters file. Preferably a local file in your computer. "
+        "May optionally be a remote file. See the description above. " 
+        "Its contents will be uploaded to the MedPerf server."
     ),
     additional_file: str = typer.Option(
         "",
@@ -159,8 +163,8 @@ def submit(
 ):
     """Submits a new container to the platform.\n
     The following assets:\n
-        - additional_file\n
-        - image_file\n
+        - additional-file\n
+        - image-file\n
     are expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
@@ -168,6 +172,14 @@ def submit(
     2. An asset hosted on the Synapse platform: "synapse:<synapse ID>"\n\n
 
     If a URL is given without a source prefix, it will be treated as a direct download link.
+
+    The following assets:\n
+        - container-config-file\n
+        - parameters-file\n
+
+    are expected to be paths to local files in your local file system (that is, files in your computer).
+    Optionally, these may instead be download links. In this case, they should follow the conventions
+    described above for additional-file and image-file.
     """
     container_config = load_yaml_content(container_config_file)
     parameters_config = load_yaml_content(parameters_file)
