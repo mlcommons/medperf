@@ -93,9 +93,17 @@ DSET_B_URL="${ASSETS_URL}/assets/datasets/dataset_b.tar.gz"
 DSET_C_URL="${ASSETS_URL}/assets/datasets/dataset_c.tar.gz"
 DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
 
-# prep cubes
-PREP_MLCUBE="$ASSETS_URL/prep-sep/container_config.yaml"
-PREP_PARAMS="$ASSETS_URL/prep-sep/workspace/parameters.yaml"
+# local prep cubes - to test submitting cubes with local files
+PREP_DIRECTORY="$DIRECTORY/prep-sep"
+echo "downloading files to $PREP_DIRECTORY"
+PREP_MLCUBE_URL="$ASSETS_URL/prep-sep/container_config.yaml"
+PREP_PARAMS_URL="$ASSETS_URL/prep-sep/workspace/parameters.yaml"
+print_eval wget -P $PREP_DIRECTORY $PREP_MLCUBE_URL
+print_eval wget -P "$PREP_DIRECTORY/workspace" $PREP_PARAMS_URL
+PREP_MLCUBE="$PREP_DIRECTORY/container_config.yaml"
+PREP_PARAMS="$PREP_DIRECTORY/workspace/parameters.yaml"
+
+# Training Prep Cube
 PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
 
 # model cubes
