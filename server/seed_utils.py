@@ -19,6 +19,10 @@ ASSETS_DIR = REPO_ROOT_DIR / 'examples' / 'chestxray_tutorial'
 
 def _load_asset_content(filename: os.PathLike):
     asset_path = ASSETS_DIR / filename
+    print('--------------------------------------------')
+    print(f'{__file__=}')
+    print(f'{os.getcwd()=}')
+    print('--------------------------------------------')
     with open(asset_path, 'r') as f:
         content = yaml.safe_load(f)
 
