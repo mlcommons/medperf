@@ -13,28 +13,22 @@ ASSETS_URL = (
     "https://raw.githubusercontent.com/mlcommons/medperf/"
     "9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/"
 )
-REPO_ROOT_DIR = Path(__file__).parent.parent
-ASSETS_DIR = REPO_ROOT_DIR / 'examples' / 'chestxray_tutorial'
 
+def _load_asset_content(file_relative_url: str):
+    asset_url = f'{ASSETS_URL}/{file_relative_url}'
 
-def _load_asset_content(filename: os.PathLike):
-    asset_path = ASSETS_DIR / filename
-    print('--------------------------------------------')
-    print(f'{__file__=}')
-    print(f'{os.getcwd()=}')
-    print('--------------------------------------------')
-    with open(asset_path, 'r') as f:
-        content = yaml.safe_load(f)
+    response = requests.get(asset_url)
+    content = yaml.safe_load(response.content)
 
     return content
 
 
-def load_container_config(dirname: os.PathLike):
-    return _load_asset_content(Path(dirname) / 'container_config.yaml')
+def load_container_config(dirname: str):
+    return _load_asset_content(f'{dirname}/container_config.yaml')
 
 
-def load_parameters_config(dirname: os.PathLike):
-    return _load_asset_content(Path(dirname) / 'workspace' / 'parameters.yaml')
+def load_parameters_config(dirname: str):
+    return _load_asset_content(f'{dirname}/workspace/parameters.yaml')
 
 
 class Server:
