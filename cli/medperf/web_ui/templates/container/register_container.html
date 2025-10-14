@@ -40,12 +40,12 @@
             </div>
         </div>
         <div class="form-group my-5">
-            <label for="container-file" class="form-label h4">Container manifest file URL</label>
+            <label for="container-file" class="form-label h4">Container Config File</label>
             <div class="input-group">
                 <input
                     name="container_file"
                     class="form-control"
-                    type="text"
+                    type="file"
                     id="container-file"
                     placeholder="{{ placeholders.register_container_manifest_file }}"
                     {% if task_running %} disabled {% endif %}
@@ -67,7 +67,7 @@
                 <input
                     name="parameters_file"
                     class="form-control"
-                    type="text"
+                    type="file"
                     id="parameters-file"
                     placeholder="{{ placeholders.register_container_parameters_file }}"
                     {% if task_running %} disabled {% endif %}

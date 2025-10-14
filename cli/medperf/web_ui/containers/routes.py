@@ -1,6 +1,7 @@
 import logging
+import yaml
 
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request
 
@@ -113,19 +114,27 @@ def compatibilty_test_ui(
 def register_container(
     request: Request,
     name: str = Form(...),
-    container_file: str = Form(...),
-    parameters_file: str = Form(""),
+    container_file: UploadFile = File(...),
+    parameters_file: UploadFile = None,
     additional_file: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_registration")
+
+    container_config_bytes = container_file.file.read()
+    parameters_config_bytes = parameters_file.file.read()
+
+    container_config = yaml.safe_load(container_config_bytes)
+    if parameters_config_bytes:
+        parameters_config = yaml.safe_load(parameters_config_bytes)
+    else:
+        parameters_config = {}
+
     return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
         "name": name,
-        "git_mlcube_url": container_file,
-        "git_mlcube_hash": "",
-        "git_parameters_url": parameters_file,
-        "parameters_hash": "",
+        "container_config": container_config,
+        "parameters_config": parameters_config,
         "image_tarball_url": "",
         "image_tarball_hash": "",
         "additional_files_tarball_url": additional_file,

@@ -29,23 +29,23 @@
                 <p class="card-text">
                     <strong>Container Manifest:</strong> 
                     <a
-                        href="{{ entity.git_mlcube_url }}"
+                        href="{{ entity.container_config }}"
                         data-id="{{ entity.id }}"
-                        data-field="git_mlcube_url"
+                        data-field="container_config"
                         data-entity="container"
-                        class="text-primary yaml-link">{{ entity.git_mlcube_url }}
+                        class="text-primary yaml-link">{{ entity.container_config }}
                     </a>
                 </p>
                 <p class="card-text text-muted small">{{ entity.mlcube_hash }}</p>
                 <p class="card-text">
                     <strong>Parameters:</strong> 
                     <a
-                        href="{{ entity.git_parameters_url }}"
+                        href="{{ entity.parameters_config }}"
                         data-id="{{ entity.id }}"
-                        data-field="git_parameters_url"
+                        data-field="parameters_config"
                         data-entity="container"
                         class="text-primary yaml-link">
-                        {{ entity.git_parameters_url }}
+                        {{ entity.parameters_config }}
                     </a>
                 </p>
                 <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>

@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
-
+from medperf.init import initialize
 from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler
 from medperf.web_ui.datasets import router as datasets_router
@@ -51,6 +51,7 @@ def startup_event():
     # Showing logs/prompts
     # Checking if a CLI function is running
     # Notify user about a finished or a running task / pending prompt-confirmation
+    initialize(for_webui=True)
     web_app.state.task = {
         "id": "",
         "name": "",
