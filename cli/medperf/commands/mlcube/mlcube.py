@@ -134,7 +134,7 @@ def submit(
         "--container-config-file",
         "-m",
         help="Container Config file. Preferably a local file in your computer. "
-        "May optionally be a remote file. See the description above. " 
+        "May optionally be a remote file. See the description above. "
         "Its contents will be uploaded to the MedPerf server."
     ),
     parameters_file: str = typer.Option(
@@ -142,7 +142,7 @@ def submit(
         "--parameters-file",
         "-p",
         help="Local parameters file. Preferably a local file in your computer. "
-        "May optionally be a remote file. See the description above. " 
+        "May optionally be a remote file. See the description above. "
         "Its contents will be uploaded to the MedPerf server."
     ),
     additional_file: str = typer.Option(
