@@ -28,25 +28,25 @@
                 </p>
                 <p class="card-text">
                     <strong>Container Manifest:</strong> 
-                    <a
-                        href="{{ entity.container_config }}"
+                    <span
                         data-id="{{ entity.id }}"
                         data-field="container_config"
                         data-entity="container"
-                        class="text-primary yaml-link">{{ entity.container_config }}
-                    </a>
+                        style="cursor: pointer; color: blue; text-decoration: underline;"
+                        class="text-primary yaml-link">Click to display Container Configuration
+                    </span>
                 </p>
                 <p class="card-text text-muted small">{{ entity.mlcube_hash }}</p>
                 <p class="card-text">
                     <strong>Parameters:</strong> 
-                    <a
-                        href="{{ entity.parameters_config }}"
+                    <span
                         data-id="{{ entity.id }}"
                         data-field="parameters_config"
                         data-entity="container"
+                        style="cursor: pointer; color: blue; text-decoration: underline;"
                         class="text-primary yaml-link">
-                        {{ entity.parameters_config }}
-                    </a>
+                        Click to display Parameters File
+                    </span>
                 </p>
                 <p class="card-text text-muted small">{{ entity.parameters_hash }}</p>
                 {% if entity.image_tarball_url %}
