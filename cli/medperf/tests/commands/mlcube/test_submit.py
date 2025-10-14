@@ -41,7 +41,7 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
     spy_write = mocker.patch(PATCH_MLCUBE.format("SubmitCube.write"))
 
     # Act
-    SubmitCube.run(cube.todict(), container_config_file='/dummy/file')
+    SubmitCube.run(cube.todict())
 
     # Assert
     spy_download.assert_called_once()
