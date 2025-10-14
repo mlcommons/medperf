@@ -14,7 +14,7 @@ def cube(mocker):
     mocker.patch(PATCH_MLCUBE.format("Cube.download_run_files"))
     mocker.patch(PATCH_MLCUBE.format("Cube.upload"))
     mocker.patch(PATCH_MLCUBE.format("Cube.write"))
-    mocker.patch(PATCH_MLCUBE.format("load_yaml_content"), return_value=TestCube().todict())
+
     return TestCube()
 
 
