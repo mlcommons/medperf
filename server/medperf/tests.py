@@ -180,19 +180,19 @@ class MedPerfTest(TestCase):
 
         # create mlcubes
         self.set_credentials(prep_mlcube_owner)
-        prep = self.mock_mlcube(name="prep", mlcube_hash="prep", state="OPERATION")
+        prep = self.mock_mlcube(name="prep", container_config={"prep": "prep"}, state="OPERATION")
         prep.update(prep_mlcube_kwargs)
         prep = self.create_mlcube(prep).data
 
         self.set_credentials(ref_mlcube_owner)
         ref_model = self.mock_mlcube(
-            name="ref_model", mlcube_hash="ref_model", state="OPERATION"
+            name="ref_model", container_config={"ref_model": "ref_model"}, state="OPERATION"
         )
         ref_model.update(ref_mlcube_kwargs)
         ref_model = self.create_mlcube(ref_model).data
 
         self.set_credentials(eval_mlcube_owner)
-        eval = self.mock_mlcube(name="eval", mlcube_hash="eval", state="OPERATION")
+        eval = self.mock_mlcube(name="eval", container_config={"eval": "eval"}, state="OPERATION")
         eval.update(eval_mlcube_kwargs)
         eval = self.create_mlcube(eval).data
 

@@ -85,9 +85,8 @@ class MlCubePutTest(MlCubeTest):
 
         newtestmlcube = {
             "name": "newtestmlcube",
-            "git_mlcube_url": "newstring",
-            "mlcube_hash": "newstring",
-            "git_parameters_url": "newstring",
+            "container_config": {"newstring": "newstring"},
+            "parameters_config": {"newstring": "newstring"},
             "parameters_hash": "newstring",
             "image_tarball_url": "new",
             "image_tarball_hash": "new",
@@ -117,8 +116,8 @@ class MlCubePutTest(MlCubeTest):
 
         newtestmlcube = {
             "additional_files_tarball_url": "newurl",
-            "git_mlcube_url": "newurl",
-            "git_parameters_url": "newurl",
+            "container_config": {"newkey": "newval"},
+            "parameters_config": {"newkey": "newval"},
             "is_valid": False,
             "user_metadata": {"newkey": "newval"},
         }
@@ -164,8 +163,6 @@ class MlCubePutTest(MlCubeTest):
 
         newtestmlcube = {
             "name": "newtestmlcube",
-            "mlcube_hash": "newstring",
-            "parameters_hash": "newstring",
             "image_hash": "newhash",
             "additional_files_tarball_hash": "newstring",
             "state": "DEVELOPMENT",
@@ -232,8 +229,8 @@ class MlCubePutTest(MlCubeTest):
         [
             ("image_hash",),
             ("additional_files_tarball_hash",),
-            ("mlcube_hash",),
-            ("parameters_hash",),
+            ("container_config",),
+            (("parameters_config",)),
         ]
     )
     def test_put_respects_rules_of_duplicate_mlcubes_with_image_hash(self, field):
@@ -260,8 +257,8 @@ class MlCubePutTest(MlCubeTest):
         [
             ("image_tarball_hash",),
             ("additional_files_tarball_hash",),
-            ("mlcube_hash",),
-            ("parameters_hash",),
+            ("container_config",),
+            (("parameters_config",)),
         ]
     )
     def test_put_respects_rules_of_duplicate_mlcubes_with_image_tarball_hash(
@@ -298,7 +295,7 @@ class MlCubePutTest(MlCubeTest):
         testmlcube = self.create_mlcube(testmlcube).data
 
         newtestmlcube = self.mock_mlcube(
-            state="DEVELOPMENT", name="newname", mlcube_hash="newhash"
+            state="DEVELOPMENT", name="newname", container_config={"newhash": "newhash"}
         )
         newtestmlcube = self.create_mlcube(newtestmlcube).data
 
@@ -351,23 +348,6 @@ class MlCubePutTest(MlCubeTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @parameterized.expand([("DEVELOPMENT",), ("OPERATION",)])
-    def test_put_doesnot_allow_adding_parameters_url_without_hash(self, state):
-        # Arrange
-        testmlcube = self.mock_mlcube(
-            state=state, git_parameters_url="", parameters_hash=""
-        )
-        testmlcube = self.create_mlcube(testmlcube).data
-
-        put_body = {"git_parameters_url": "url"}
-        url = self.url.format(testmlcube["id"])
-
-        # Act
-        response = self.client.put(url, put_body, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @parameterized.expand([("DEVELOPMENT",), ("OPERATION",)])
     def test_put_doesnot_allow_adding_additional_files_url_without_hash(self, state):
         # Arrange
         testmlcube = self.mock_mlcube(
@@ -397,21 +377,6 @@ class MlCubePutTest(MlCubeTest):
         testmlcube = self.create_mlcube(testmlcube).data
 
         put_body = {"image_hash": "", "image_tarball_url": "url"}
-        url = self.url.format(testmlcube["id"])
-
-        # Act
-        response = self.client.put(url, put_body, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @parameterized.expand([("DEVELOPMENT",), ("OPERATION",)])
-    def test_put_doesnot_allow_clearing_parameters_hash_without_url(self, state):
-        # Arrange
-        testmlcube = self.mock_mlcube(state=state)
-        testmlcube = self.create_mlcube(testmlcube).data
-
-        put_body = {"parameters_hash": ""}
         url = self.url.format(testmlcube["id"])
 
         # Act
@@ -530,9 +495,8 @@ class PermissionTest(MlCubeTest):
 
         newtestmlcube = {
             "name": "newtestmlcube",
-            "git_mlcube_url": "newstring",
-            "mlcube_hash": "newstring",
-            "git_parameters_url": "newstring",
+            "container_config": {"newstring": "newstring"},
+            "parameters_config": {"newstring": "newstring"},
             "parameters_hash": "newstring",
             "image_tarball_url": "new",
             "image_tarball_hash": "new",
