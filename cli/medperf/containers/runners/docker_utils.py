@@ -8,21 +8,16 @@ import json
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
-    command = ["docker", "inspect", docker_image, '--format', '"{{json .RepoDigests}}"']
-    image_ids_str = run_command(command, timeout=timeout)
-    image_ids_str = image_ids_str.strip().strip('"\'')
-    image_ids_list = json.loads(image_ids_str)
+    command = ["docker", "buildx", "imagetools", "inspect", docker_image, '--format', '"{{json .Manifest}}"']
+    image_manifest_str = run_command(command, timeout=timeout)
+    image_manifest_str = image_manifest_str.strip().strip('"\'')
+    image_manifest_dict = json.loads(image_manifest_str)
 
-    only_image_name = extract_docker_image_name(image_name_with_tag_and_hash=docker_image)
+    image_hash = image_manifest_dict.get('digest', '')
+    if not image_hash.startswith("sha256:"):
+        raise InvalidContainerSpec("Invalid 'docker buildx imagetools inspect' output:", image_manifest_dict)
 
-    for image_id in image_ids_list:
-        hash_prefix = f'{only_image_name}@'
-        if image_id.startswith(hash_prefix):
-            image_hash = image_id.removeprefix(hash_prefix)
-            if image_hash.startswith("sha256:"):
-                return image_hash
-
-    raise InvalidContainerSpec("Invalid docker images output:", image_id)
+    return image_hash
 
 
 def extract_docker_image_name(image_name_with_tag_and_hash: str) -> str:
