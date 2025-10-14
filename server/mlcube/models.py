@@ -12,7 +12,7 @@ class MlCube(models.Model):
 
     name = models.CharField(max_length=20, unique=True)
     container_config = models.JSONField()
-    parameters_config = models.JSONField(default={})
+    parameters_config = models.JSONField(default=dict)
     image_tarball_url = models.CharField(max_length=256, blank=True)
     image_tarball_hash = models.CharField(max_length=100, blank=True)
     image_hash = models.CharField(max_length=100, blank=True)
