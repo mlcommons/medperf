@@ -17,7 +17,7 @@ SYNAPSE_PREFIX = 'synapse:'
 
 
 def get_container_info(req_session: requests.Session, synapse_client: synapseclient.Synapse,
-                       download_link: str, container_id: str, expected_hash: Optional[str] = None):
+                       download_link: str, container_id: str, expected_hash: str):
     is_synapse = download_link.startswith(SYNAPSE_PREFIX)
 
     if is_synapse:
@@ -29,7 +29,8 @@ def get_container_info(req_session: requests.Session, synapse_client: synapsecli
             synapse_id = download_link.removeprefix(SYNAPSE_PREFIX)
             synapse_tmp_file = synapse_client.get(synapse_id)
             with open(synapse_tmp_file.path, 'r') as f:
-                container_info = yaml.safe_load(f.read())
+                content = f.read()
+
             try:
                 os.remove(synapse_tmp_file)
             except OSError:
@@ -37,13 +38,17 @@ def get_container_info(req_session: requests.Session, synapse_client: synapsecli
                       'Program will proceed without deleting it.')
     else:
         content = req_session.get(download_link).content
-        content_hash = hashlib.sha256(content).hexdigest()
-        if expected_hash is not None and content_hash != expected_hash:
-            raise ValueError(f'Hash mismatch when downloading {download_link} from Container ID {container_id}!\n'
-                             f'Expected hash: {expected_hash}, found hash: {content_hash}')
-        container_info = yaml.safe_load(content)
 
-    return container_info
+    content_hash = hashlib.sha256(content).hexdigest()
+    hashes_matched = content_hash == expected_hash
+    if not hashes_matched:
+        print(f'Hash mismatch when downloading assets from Container ID {container_id}!\n'
+              f'Asset Link: {download_link}\n'
+              f'Expected hash: {expected_hash}, found hash: {content_hash}.\n'
+              f'Continuing despite the mismatch...')
+    container_info = yaml.safe_load(content)
+
+    return container_info, hashes_matched
 
 
 def get_docker_hash(docker_client: docker.client.DockerClient, container_dict: dict,
@@ -90,7 +95,7 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
     new_hashes_list = []
     for container_id, container_info in container_id_to_container.items():
         print(f'Analyzing Container {container_id}...')
-        this_container_yaml = get_container_info(req_session=request_session,
+        this_container_yaml, yaml_hash_matched = get_container_info(req_session=request_session,
                                                  synapse_client=synapse_client,
                                                  download_link=container_info['config_file'],
                                                  container_id=container_id,
@@ -100,7 +105,7 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
             parameters_link = container_info.get('parameters_file')
 
             if parameters_link is not None:
-                parameters_config = get_container_info(
+                parameters_config, parameters_hash_matched = get_container_info(
                     req_session=request_session,
                     synapse_client=synapse_client,
                     download_link=parameters_link,
@@ -123,20 +128,22 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
                 # Old format, update
                 new_metadata = {'id': id_value}
         else:
-            new_hash = new_metadata = parameters_config = None
+            new_hash = new_metadata = parameters_config = parameters_hash_matched = None
 
         update_dict = {
             'uid': container_id,
             'old_hash': container_info['old_image_hash'],
             'new_hash': new_hash,
-            'new_metadata': json.dumps(new_metadata),
-            'container_config': json.dumps(this_container_yaml),
-            'parameters_config': json.dumps(parameters_config)
+            'new_metadata': new_metadata,
+            'container_config': this_container_yaml,
+            'container_config_hashes_matched': yaml_hash_matched,
+            'parameters_config': parameters_config,
+            'parameters_hash_matched': parameters_hash_matched
         }
         new_hashes_list.append(update_dict)
 
     new_hashes_df = pd.DataFrame(new_hashes_list)
-    new_hashes_df.to_csv(output_csv, index=False)
+    new_hashes_df.to_json(output_csv, index=False)
 
 
 def get_container_jsons(output_file: os.PathLike,include_public_links: bool = True,
