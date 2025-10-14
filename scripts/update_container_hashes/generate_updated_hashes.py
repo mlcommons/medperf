@@ -6,6 +6,7 @@ from pathlib import Path
 app = typer.Typer()
 DEFAULT_OUTPUT_NAME = 'updated_containers.json'
 
+
 @app.command()
 def main(
     input_json: Path = typer.Option(

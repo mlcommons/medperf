@@ -3,7 +3,6 @@ import pandas as pd
 import requests
 import yaml
 from migration_cube import MigrationCube
-from typing import Optional
 import hashlib
 import docker
 import os
@@ -96,10 +95,10 @@ def get_container_hashes(input_json: os.PathLike, output_csv: os.PathLike, exclu
     for container_id, container_info in container_id_to_container.items():
         print(f'Analyzing Container {container_id}...')
         this_container_yaml, yaml_hash_matched = get_container_info(req_session=request_session,
-                                                 synapse_client=synapse_client,
-                                                 download_link=container_info['config_file'],
-                                                 container_id=container_id,
-                                                 expected_hash=container_info['mlcube_hash'])
+                                                                    synapse_client=synapse_client,
+                                                                    download_link=container_info['config_file'],
+                                                                    container_id=container_id,
+                                                                    expected_hash=container_info['mlcube_hash'])
 
         if this_container_yaml is not None:
             parameters_link = container_info.get('parameters_file')
