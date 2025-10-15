@@ -187,7 +187,7 @@ def submit(
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(mlcube_info, container_config=container_config_file, 
+    SubmitCube.run(mlcube_info, container_config=container_config_file,
                    parameters_config=parameters_file)
     config.ui.print("✅ Done!")
 

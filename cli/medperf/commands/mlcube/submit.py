@@ -16,8 +16,8 @@ class SubmitCube:
         """
         ui = config.ui
 
-        cls.add_yaml_info_to_submit_info(yaml_path=container_config, 
-                                         submit_info=submit_info, 
+        cls.add_yaml_info_to_submit_info(yaml_path=container_config,
+                                         submit_info=submit_info,
                                          key='container_config')
         if parameters_config is not None:
             cls.add_yaml_info_to_submit_info(yaml_path=parameters_config,
