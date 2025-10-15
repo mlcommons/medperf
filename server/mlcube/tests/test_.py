@@ -140,7 +140,6 @@ class MlCubePostTest(MlCubeTest):
             "is_valid": True,
             "metadata": {},
             "user_metadata": {},
-            "parameters_config": {},
             "image_tarball_url": "",
             "additional_files_tarball_url": "",
         }
@@ -152,7 +151,6 @@ class MlCubePostTest(MlCubeTest):
         # in order to allow empty urls
         testmlcube.update(
             {
-                "parameters_hash": "",
                 "image_tarball_hash": "",
                 "additional_files_tarball_hash": "",
             }
