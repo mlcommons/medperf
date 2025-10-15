@@ -310,8 +310,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
     log_filter = _MLCubeOutputFilter(proc.pid)
 
     while not break_:
-        if not proc.isalive():
-            break_ = True
         try:
             line = proc.readline()
         except TIMEOUT:
@@ -321,8 +319,10 @@ def combine_proc_sp_text(proc: spawn) -> str:
         line = line.decode("utf-8", "ignore")
 
         if not line:
-            continue
-
+            if proc.isalive():
+                continue
+            else:
+                break_ = True
         # Always log each line just in case the final proc_out
         # wasn't logged for some reason
         logging.debug(line)
