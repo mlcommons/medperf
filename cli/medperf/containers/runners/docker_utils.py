@@ -11,11 +11,8 @@ def get_docker_image_hash(docker_image, timeout: int = None):
     command = ["docker", "buildx", "imagetools", "inspect", docker_image, '--format', '"{{json .Manifest}}"']
     image_manifest_str = run_command(command, timeout=timeout)
     image_manifest_str = image_manifest_str.strip().strip('"\'')
-    try:
-        image_manifest_dict = json.loads(image_manifest_str)
-    except json.JSONDecodeError:
-        print(f'image_manifest_str=\n{image_manifest_str}\n')
-        raise
+    image_manifest_dict = json.loads(image_manifest_str)
+
     image_hash = image_manifest_dict.get('digest', '')
     if not image_hash.startswith("sha256:"):
         raise InvalidContainerSpec("Invalid 'docker buildx imagetools inspect' output:", image_manifest_dict)
