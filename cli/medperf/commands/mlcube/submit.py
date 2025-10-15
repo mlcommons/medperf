@@ -19,7 +19,7 @@ class SubmitCube:
         cls.add_yaml_info_to_submit_info(yaml_path=container_config,
                                          submit_info=submit_info,
                                          key='container_config')
-        if parameters_config is not None:
+        if parameters_config:
             cls.add_yaml_info_to_submit_info(yaml_path=parameters_config,
                                              submit_info=submit_info,
                                              key='parameters_config')
