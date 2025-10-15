@@ -26,7 +26,7 @@ class Cube(Entity, DeployableSchema):
     """
 
     container_config: dict
-    parameters_config: dict = Field(default_factory=dict)
+    parameters_config: Optional[dict]
     image_tarball_url: Optional[str]
     image_tarball_hash: Optional[str]
     image_hash: Optional[str]
@@ -135,7 +135,7 @@ class Cube(Entity, DeployableSchema):
             yaml.safe_dump(self.container_config, f)
 
     def download_parameters(self):
-        if not self.parameters_config:
+        if self.parameters_config is None:
             return
 
         parameter_dir = os.path.normpath(os.path.join(self.params_path, '..'))

@@ -1,13 +1,14 @@
 import os
-
+from typing import Optional
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.utils import remove_path
+from medperf.comms.entity_resources.utils import load_yaml_content
 
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict):
+    def run(cls, submit_info: dict, container_config: str, parameters_config: Optional[str] = None):
         """Submits a new cube to the medperf platform
 
         Args:
@@ -15,6 +16,13 @@ class SubmitCube:
         """
         ui = config.ui
 
+        cls.add_yaml_info_to_submit_info(yaml_path=container_config, 
+                                         submit_info=submit_info, 
+                                         key='container_config')
+        if parameters_config is not None:
+            cls.add_yaml_info_to_submit_info(yaml_path=parameters_config,
+                                             submit_info=submit_info,
+                                             key='parameters_config')
         submission = cls(submit_info)
 
         with ui.interactive():
@@ -25,6 +33,12 @@ class SubmitCube:
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
         return submission.cube.id
+
+    @staticmethod
+    def add_yaml_info_to_submit_info(yaml_path: str, submit_info: dict, key: str):
+        """Note: modifies submit_info!"""
+        yaml_content = load_yaml_content(yaml_path)
+        submit_info[key] = yaml_content
 
     def __init__(self, submit_info: dict):
         self.comms = config.comms

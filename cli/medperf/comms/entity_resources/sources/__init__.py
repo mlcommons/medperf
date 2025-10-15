@@ -1,8 +1,8 @@
 from .direct import DirectLinkSource
 from .synapse import SynapseSource
-from .local import LocalSource
+from .localfile import LocalFileSource
 from .source import BaseSource
 
-supported_sources = [DirectLinkSource, SynapseSource, LocalSource]
+supported_sources = [DirectLinkSource, SynapseSource, LocalFileSource]
 
 __all__ = ["supported_sources", BaseSource]

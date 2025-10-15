@@ -97,9 +97,6 @@ def download_resource(
 
 
 def load_yaml_content(resource_path: str) -> Dict[str, Any]:
-    if not resource_path:
-        return {}
-    
     source_class, resource_id = __parse_resource(resource_path)
     source_instance = source_class()
 

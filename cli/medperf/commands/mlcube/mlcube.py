@@ -10,7 +10,6 @@ from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.run_test import run_mlcube
-from medperf.comms.entity_resources.utils import load_yaml_content
 
 app = typer.Typer()
 
@@ -181,18 +180,15 @@ def submit(
     Optionally, these may instead be download links. In this case, they should follow the conventions
     described above for additional-file and image-file.
     """
-    container_config = load_yaml_content(container_config_file)
-    parameters_config = load_yaml_content(parameters_file)
     mlcube_info = {
         "name": name,
-        "container_config": container_config,
-        "parameters_config": parameters_config,
         "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(mlcube_info)
+    SubmitCube.run(mlcube_info, container_config=container_config_file, 
+                   parameters_config=parameters_file)
     config.ui.print("✅ Done!")
 
 

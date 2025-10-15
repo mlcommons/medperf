@@ -3,12 +3,13 @@ import os
 import shutil
 
 
-class LocalSource(BaseSource):
+class LocalFileSource(BaseSource):
 
     @classmethod
     def validate_resource(cls, value: str):
         value_exists = os.path.exists(value)
         value_is_file = os.path.isfile(value)
+
         if value_exists and value_is_file:
             return value
 
