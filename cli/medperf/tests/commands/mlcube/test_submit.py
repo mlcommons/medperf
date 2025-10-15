@@ -1,9 +1,15 @@
+from __future__ import annotations
 import os
 import pytest
 
 import medperf.config as config
 from medperf.tests.mocks.cube import TestCube
 from medperf.commands.mlcube.submit import SubmitCube
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pyfakefs.fake_filesystem import FakeFilesystem
+
 
 PATCH_MLCUBE = "medperf.commands.mlcube.submit.{}"
 
@@ -14,7 +20,6 @@ def cube(mocker):
     mocker.patch(PATCH_MLCUBE.format("Cube.download_run_files"))
     mocker.patch(PATCH_MLCUBE.format("Cube.upload"))
     mocker.patch(PATCH_MLCUBE.format("Cube.write"))
-
     return TestCube()
 
 
@@ -29,9 +34,12 @@ def test_submit_prepares_tmp_path_for_cleanup():
     assert submission.cube.path in config.tmp_paths
 
 
-def test_run_runs_expected_flow(mocker, comms, ui, cube):
+def test_run_runs_expected_flow(mocker, comms, ui, fs: FakeFilesystem, cube):
     # Arrange
     mock_body = cube.todict()
+    fake_config_file = '/path/to/container_config.yaml'
+    fs.create_file(fake_config_file, contents='key: value\n')
+
     # Arrange
     spy_download = mocker.patch(PATCH_MLCUBE.format("SubmitCube.download"))
     spy_cube_upload = mocker.patch(
@@ -41,7 +49,7 @@ def test_run_runs_expected_flow(mocker, comms, ui, cube):
     spy_write = mocker.patch(PATCH_MLCUBE.format("SubmitCube.write"))
 
     # Act
-    SubmitCube.run(cube.todict())
+    SubmitCube.run(cube.todict(), container_config=fake_config_file)
 
     # Assert
     spy_download.assert_called_once()
