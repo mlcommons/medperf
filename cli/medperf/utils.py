@@ -21,8 +21,16 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError, MissingContainerKeyException, MedperfException
+from medperf.exceptions import (
+    CleanExit,
+    ExecutionError,
+    InvalidArgumentError,
+    MissingContainerKeyException,
+    MedperfException,
+)
 from pydantic import SecretBytes
+from medperf.entities.certificate import Certificate
+from pydantic.datetime_parse import parse_datetime
 
 
 def get_file_hash(path: str) -> str:
@@ -49,7 +57,7 @@ def get_file_hash(path: str) -> str:
     return sha_val
 
 
-def remove_path(path):
+def remove_path(path, sensitive=False):
     """Cleans up a clutter object. In case of failure, it is moved to `.trash`"""
 
     # NOTE: We assume medperf will always have permissions to unlink
@@ -72,14 +80,19 @@ def remove_path(path):
             shutil.rmtree(path)
     except OSError as e:
         logging.error(f"Could not remove {path}: {str(e)}")
-        move_to_trash(path)
+        move_to_trash(path, sensitive=sensitive)
 
 
-def move_to_trash(path):
+def move_to_trash(path, sensitive=False):
     trash_folder = config.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
     os.makedirs(unique_path)
     shutil.move(path, unique_path)
+    if sensitive:
+        msg = "WARNING: Failed to premanently delete a sensitive file!"
+        msg += " Delete the sensitive file manually as soon as possible!"
+        msg += f" The file is located at {unique_path}"
+        config.ui.print_warning(msg)
 
 
 def cleanup():
@@ -525,11 +538,6 @@ def get_pki_assets_path(common_name: str, ca_name: str):
     return os.path.join(config.pki_assets, cn_encoded, ca_name)
 
 
-def get_container_key_dir_path(container_id: Union[str, int], ca_name: str):
-    validated_id = validate_uid(container_id)
-    return os.path.join(config.container_keys_dir, str(validated_id), ca_name)
-
-
 def get_participant_label(email, data_id):
     # return f"d{data_id}"
     return f"{email}"
@@ -568,7 +576,14 @@ def get_webui_properties():
     print(f"URL: http://{props['host']}:{props['port']}")
 
 
-def move_container_key_to_local_storage(cube_id: int, ca_name: str, decryption_key_path: Path):
+def get_container_key_dir_path(container_id: Union[str, int]):
+    """Gets the path to decrypted container keys"""
+    return os.path.join(config.container_keys_dir, str(container_id))
+
+
+def move_container_key_to_local_storage(
+    cube_id: int, ca_name: str, decryption_key_path: Path
+):
     config.ui.print("Moving Decryption key to MedPerf LOCAL storage")
     container_keys_dir = get_container_key_dir_path(
         container_id=cube_id, ca_name=ca_name
@@ -600,17 +615,3 @@ def get_model_owner_container_key_path(container_id, ca_name) -> Path:
         )
         raise MissingContainerKeyException(msg)
     return model_owner_key_path
-
-
-def load_model_owner_key(key_path: os.PathLike) -> SecretBytes:
-    with open(key_path, "rb") as f:
-        model_owner_key = SecretBytes(f.read())
-
-    return model_owner_key
-
-
-def validate_uid(some_uid: int):
-    try:
-        return int(some_uid)
-    except ValueError:
-        raise MedperfException(f'Invalid UID {some_uid}! All MedPerf UIDs must be integers.')

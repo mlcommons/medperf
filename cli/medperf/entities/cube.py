@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional, Union
 from medperf.commands.association.utils import get_user_associations
-from pydantic import Field, validator, SecretBytes
+from pydantic import Field
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -11,7 +11,8 @@ from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
-from medperf.utils import generate_tmp_path
+from medperf.utils import generate_tmp_path, remove_path
+from medperf.entities.encrypted_container_key import EncryptedContainerKey
 
 
 class Cube(Entity, DeployableSchema):
@@ -35,12 +36,6 @@ class Cube(Entity, DeployableSchema):
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = {}
     user_metadata: dict = {}
-    decryption_key: Optional[SecretBytes] = Field(exclude=True)
-    trusted_cas: list[int] = Field(default_factory=list)
-
-    @validator('trusted_cas')
-    def sort_values(cls, v):
-        return sorted(v)
 
     @staticmethod
     def get_type():
@@ -215,16 +210,41 @@ class Cube(Entity, DeployableSchema):
         tmp_folder = generate_tmp_path()
         os.makedirs(tmp_folder, exist_ok=True)
 
-        self.runner.run(
-            task,
-            tmp_folder,
-            output_logs,
-            timeout,
-            medperf_mounts={**mounts, **extra_mounts},
-            medperf_env={**env, **extra_env},
-            ports=ports,
-            disable_network=disable_network,
-        )
+        decryption_key_file = None
+        destroy_key = True
+        try:
+            # setup decryption key if container is encrypted
+            if self.runner.parser.is_container_encrypted():
+                decryption_key_file, destroy_key = self.get_user_decryption_key()
+
+            # run
+            self.runner.run(
+                task,
+                tmp_folder,
+                output_logs,
+                timeout,
+                medperf_mounts={**mounts, **extra_mounts},
+                medperf_env={**env, **extra_env},
+                ports=ports,
+                disable_network=disable_network,
+                container_decryption_key_file=decryption_key_file,
+            )
+        finally:
+            if decryption_key_file and destroy_key:
+                remove_path(decryption_key_file, sensitive=True)
+
+    def get_user_decryption_key(self):
+        user_id = get_medperf_user_data()["id"]
+        if self.owner == user_id:
+            key_file = get_container_key(self.id)
+            destroy_key = False
+        else:
+            key = EncryptedContainerKey.get_user_key_for_model(self.id)
+            key_file = key.decrypt()
+            del key
+            destroy_key = True
+
+        return key_file, destroy_key
 
     def is_report_specified(self):
         return self.parser.is_report_specified()

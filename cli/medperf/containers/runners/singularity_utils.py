@@ -92,8 +92,12 @@ def volumes_to_cli_args(input_volumes: dict, output_volumes: dict):
 def craft_singularity_run_command(run_args: dict, executable: str):
     command = [executable, "run", "-eC"]
 
+    # The following option is not relevant to singularity.
+    # No container persists after running singualrity
+    run_args.pop("remove_container")
+
     # By default, current user is used.
-    _ = run_args.pop("user", None)
+    run_args.pop("user")
 
     input_volumes = run_args.pop("input_volumes", [])
     output_volumes = run_args.pop("output_volumes", [])
@@ -140,21 +144,32 @@ def craft_singularity_run_command(run_args: dict, executable: str):
 
 
 def convert_docker_image_to_sif(
-    sif_image_folder: str,
-    sif_image_file: str,
-    singularity_executable: str,
     docker_image: str,
+    output_sif: str,
+    singularity_executable: str,
     protocol: str = "docker",
     timeout: int = None,
 ):
+    if os.path.exists(output_sif):
+        return
+    sif_image_folder = os.path.dirname(output_sif)
     remove_path(sif_image_folder)
     os.makedirs(sif_image_folder, exist_ok=True)
 
     command = [
         singularity_executable,
         "build",
-        sif_image_file,
+        output_sif,
         f"{protocol}://{docker_image}",
     ]
     run_command(command, timeout=timeout)
-    return sif_image_file
+
+
+def cleanup_singularity_cache(singularity_executable):
+    command = [
+        singularity_executable,
+        "cache",
+        "clean",
+        "--force",
+    ]
+    run_command(command)

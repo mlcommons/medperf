@@ -1,12 +1,7 @@
 from abc import ABC, abstractmethod
-from medperf.containers.parsers.parser import Parser
 
 
 class Runner(ABC):
-    def __init__(self, container_config_parser: Parser, container_files_base_path: str):
-        self.parser = container_config_parser
-        self.container_files_base_path = container_files_base_path
-
     @abstractmethod
     def download(
         self,
@@ -28,6 +23,6 @@ class Runner(ABC):
         medperf_env: dict[str, str] = {},
         ports: list = [],
         disable_network: bool = True,
-        image: str = None,
+        container_decryption_key_file: str = None,
     ):
         pass

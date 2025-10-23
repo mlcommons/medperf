@@ -7,12 +7,11 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Certificate
 from .serializers import CertificateSerializer
-from .permissions import IsAuthenticatedAndIsPostRequest, IsAssociatedModelOwnerAndCAIsTrusted
-from user.permissions import IsAdmin
+from .permissions import IsAssociatedModelOwner, IsCertificateOwner, IsAdmin
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
-from user.permissions import IsOwnUser
-from mlcube_ca_encrypted_key.models import ModelCAEncryptedKey
+from benchmark.models import Benchmark
+from django.db.models import OuterRef, Subquery
 
 
 if TYPE_CHECKING:
@@ -25,7 +24,11 @@ User = get_user_model()
 class CertificateList(GenericAPIView):
     serializer_class = CertificateSerializer
     queryset = ""
-    permission_classes = [IsAdmin | IsAuthenticatedAndIsPostRequest]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            self.permission_classes = [IsAdmin]
+        return super(self.__class__, self).get_permissions()
 
     @extend_schema(operation_id="certificates_retrieve_all")
     def get(self, request, format=None):
@@ -51,7 +54,7 @@ class CertificateList(GenericAPIView):
 class CertificateDetail(GenericAPIView):
     serializer_class = CertificateSerializer
     queryset = ""
-    permission_classes = [IsAdmin | IsOwnUser]
+    permission_classes = [IsAdmin | IsCertificateOwner]
 
     def get_object(self, pk):
         try:
@@ -69,30 +72,33 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | IsAssociatedModelOwnerAndCAIsTrusted | IsOwnUser]
+    permission_classes = [IsAdmin | IsAssociatedModelOwner]
 
-    def get(self, request: Request, benchmark_id: int,
-            model_id: int, ca_id:int, format=None):
-        already_registered_keys = ModelCAEncryptedKey.objects.filter(
-            owner=request.user.id, model_container=model_id,
-            certificate__ca=ca_id, model_container__trusted_cas=ca_id
+    def get_object(self, pk):
+        try:
+            return Benchmark.objects.get(pk=pk)
+        except Benchmark.DoesNotExist:
+            raise Http404
+
+    def get(self, request: Request, pk: int, format=None):
+        # benchmark -> latest approved dataset associations -> datasets -> owners -> certificates
+        benchmark = self.get_object(pk)
+
+        latest_datasets_assocs_status = (
+            benchmark.benchmarkdataset_set.all()
+            .filter(dataset__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
         )
-
-        certificates_that_have_keys = already_registered_keys.values_list('certificate', flat=True)
-
-        registered_datasets = Dataset.objects.filter(
-            benchmarkdataset__benchmark_id=benchmark_id,
-            benchmarkdataset__approval_status='APPROVED'
+        datasets = (
+            Dataset.objects.all()
+            .annotate(assoc_status=Subquery(latest_datasets_assocs_status))
+            .filter(assoc_status="APPROVED")
         )
-        benchmark_data_owners = registered_datasets.values_list('owner', flat=True)
+        owners_ids = datasets.values_list("owner", flat=True).distinct()
+        certificates = Certificate.objects.filter(owner__id__in=owners_ids)
 
-        required_certificates = Certificate.objects.exclude(
-            pk__in=certificates_that_have_keys
-        ).filter(
-            ca_id__id=ca_id, owner__in=benchmark_data_owners
-        )
-
-        required_certificates = self.paginate_queryset(required_certificates)
-        serializer = CertificateSerializer(required_certificates, many=True)
+        certificates = self.paginate_queryset(certificates)
+        serializer = CertificateSerializer(certificates, many=True)
 
         return self.get_paginated_response(serializer.data)

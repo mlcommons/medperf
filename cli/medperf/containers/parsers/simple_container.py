@@ -1,11 +1,13 @@
 from medperf.containers.parsers.parser import Parser
 from medperf.exceptions import InvalidContainerSpec
+from medperf.enums import ContainerTypes
 
 
 class SimpleContainerParser(Parser):
-    @property
-    def container_type(self):
-        return self.container_config["container_type"]
+    def __init__(self, container_config: dict, allowed_runners: list):
+        self.container_config = container_config
+        self.allowed_runners = allowed_runners
+        self.container_type = container_config["container_type"]
 
     def check_schema(self) -> str:
         if "image" not in self.container_config:
@@ -79,3 +81,30 @@ class SimpleContainerParser(Parser):
             )
         except KeyError:
             return False
+
+    def is_container_encrypted(self):
+        encrypted_types = [
+            ContainerTypes.ENCRYPTED_DOCKER_ARCHIVE.value,
+            ContainerTypes.ENCRYPTED_SINGULARITY_FILE.value,
+        ]
+        return self.container_type in encrypted_types
+
+    def is_docker_archive(self):
+        file_types = [
+            ContainerTypes.ENCRYPTED_DOCKER_ARCHIVE.value,
+            ContainerTypes.DOCKER_ARCHIVE.value,
+        ]
+        return self.container_type in file_types
+
+    def is_singularity_file(self):
+        file_types = [
+            ContainerTypes.ENCRYPTED_SINGULARITY_FILE.value,
+            ContainerTypes.SINGULARITY_FILE.value,
+        ]
+        return self.container_type in file_types
+
+    def is_docker_image(self):
+        file_types = [
+            ContainerTypes.DOCKER_IMAGE.value,
+        ]
+        return self.container_type in file_types

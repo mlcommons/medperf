@@ -13,7 +13,7 @@ from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCAs
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
-from medperf.exceptions import InvalidArgumentError, InvalidCertificateError, CleanExit
+from medperf.exceptions import InvalidCertificateError, CleanExit
 
 app = typer.Typer()
 
@@ -165,29 +165,13 @@ def submit(
         "--operational",
         help="Submit the container as OPERATIONAL",
     ),
-    decryption_key: Path = typer.Option(
+    decryption_key: Optional[str] = typer.Option(
         None,
         "--decryption-key",
         "--decryption_key",
         "-d",
-        help="Only used for encrypted container submissions. "
-        "Path to the decryption key file for the encrypted container."
-        "The key will be moved to MedPerf's LOCAL storage in your system and will NOT be uploaded to any server! ",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    ca_ids: Optional[List[int]] = typer.Option(
-        None,
-        "--ca-ids",
-        "--ca_ids",
-        "--ca-id",
-        "--ca_id",
-        "-c",
-        help="Only used for encrypted container submissions. "
-        "IDs of the Certificate Authorities (CA) used to authenticate "
-        "authorized users to access the encrypted container.",
+        help="Path to the decryption key file for the encrypted container. The key "
+        "will stay local. This should only be provided for encrypted container submissions.",
     ),
 ):
     """Submits a new container to the platform.\n
@@ -204,23 +188,9 @@ def submit(
 
     If a URL is given without a source prefix, it will be treated as a direct download link.
 
-    For private Model containers, the decryption key and trusted Certificate Authority (CA) ID may be optionally provided.
-    THESE FIELDS ARE NOT TO BE USED WITH PUBLIC MODEL CONTAINERS!
-    If both fields are provided, the association of the Model with the CA will be done automatically.
-    If they are not provided, the association must be done later via the medperf container associate_with_ca command.
+    For private (encrypted) containers, the decryption key
+    should be provided. Otherwise, the model will not work on the data owners' side.
     """
-    if ca_ids is None:
-        # Typer does this automatically with the type hint
-        # But I think being explicit helps making the code easier to understand :)
-        ca_ids = []
-
-    if (decryption_key is not None and not ca_ids) or (
-        decryption_key is None and ca_ids
-    ):
-        raise InvalidArgumentError(
-            "Both a decryption key and a CA ID must be provided to submit a private container!"
-        )
-
     mlcube_info = {
         "name": name,
         "git_mlcube_url": mlcube_file,
@@ -231,10 +201,8 @@ def submit(
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
-        'trusted_cas': ca_ids
     }
     SubmitCube.run(mlcube_info, decryption_key=decryption_key)
-
     config.ui.print("✅ Done!")
 
 
@@ -252,45 +220,6 @@ def associate(
 ):
     """Associates a model to a benchmark"""
     AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
-    config.ui.print("✅ Done!")
-
-
-@app.command("associate_with_ca")
-@clean_except
-def associate_with_ca(
-    ca_uids: List[int] = typer.Option(
-        ...,
-        "--ca-ids",
-        "--ca_ids",
-        "--ca-id",
-        "--ca_id",
-        "-c",
-        help="Benchmark UID"
-    ),
-    model_uid: int = typer.Option(
-        ..., "--model_id", "--model-id", "-m", help="Model UID"
-    ),
-    decryption_key: Path = typer.Option(
-        ...,
-        "--decryption-key",
-        "--decryption_key",
-        "-d",
-        help="Path to the decryption key file for the encrypted container."
-        "The key will be moved to MedPerf's LOCAL storage in your system and will NOT be uploaded to any server! ",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-):
-    """Associates a model to the Certificate Authorities (CAs) whose IDs are provided."""
-    AssociateCubeWithCAs.run(
-        cube_uid=model_uid,
-        ca_uids=ca_uids,
-        approved=approval,
-        decryption_key_path=decryption_key,
-    )
     config.ui.print("✅ Done!")
 
 
@@ -366,7 +295,7 @@ def give_access(
     config.ui.print("✅ Done!")
 
 
-@app.command('auto_give_access')
+@app.command("auto_give_access")
 @clean_except
 def auto_give_access(
     ca_id: int = typer.Option(
@@ -394,13 +323,13 @@ def auto_give_access(
     ),
     interval: int = typer.Option(
         5,
-        '-i',
-        '--interval',
+        "-i",
+        "--interval",
         min=5,
         max=60,
-        help='Time in MINUTES to check for updates. Minimum 5 minutes, maximum 60 minutes '
-        '(an hour). Defaults to 5 minutes if not provided.'
-    )
+        help="Time in MINUTES to check for updates. Minimum 5 minutes, maximum 60 minutes "
+        "(an hour). Defaults to 5 minutes if not provided.",
+    ),
 ):
     """
     This command will run the 'give_access' command every 5 minutes indefinetely.
@@ -419,12 +348,15 @@ def auto_give_access(
 
             try:
                 GrantAccess.run(
-                    ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id, approved=True
+                    ca_id=ca_id,
+                    benchmark_id=benchmark_id,
+                    model_id=model_id,
+                    approved=True,
                 )
             except (CleanExit, InvalidCertificateError) as e:
                 config.ui.print(str(e))
             finally:
-                config.ui.print(f'Will check again in {interval} minutes...')
+                config.ui.print(f"Will check again in {interval} minutes...")
                 time.sleep(interval_in_seconds)
     except KeyboardInterrupt:
         config.ui.print("✅ Stopping at request of the user.")

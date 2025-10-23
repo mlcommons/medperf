@@ -1,18 +1,14 @@
 from __future__ import annotations
+from medperf.entities.cube import Cube
 from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
-from medperf.utils import get_pki_assets_path
 from medperf import config
-from typing import Optional
 from medperf.entities.ca import CA
-from medperf.certificates import trust
-from pydantic import root_validator, Field
-from typing import Any
+from medperf.exceptions import MedperfException
+from medperf.utils import generate_tmp_path
+from pydantic import validator
 import base64
-import os
-from cryptography.x509 import UnsupportedGeneralNameType, load_pem_x509_certificate
-from cryptography.x509.verification import PolicyBuilder, Store, VerificationError
-from medperf.exceptions import InvalidCertificateError
+from pydantic.datetime_parse import parse_datetime
 
 
 class Certificate(Entity):
@@ -21,41 +17,16 @@ class Certificate(Entity):
     Currently only supports Client Certificates (ie common name is a email)
     """
 
-    certificate_content_base64: Optional[str]
-    certificate_content: Optional[bytes] = Field(exclude=True)
+    certificate_content_base64: str
     ca: int
-    ca_name: Optional[str]
 
-    @root_validator(pre=False)
-    def validate_certificate_content(cls, values: dict[str, Any]):
-        """
-        If only one of certificate_content_base64 or certificate_content is provided,
-        generate the other one via base64 encoding/decoding.
-        If both are provided, verify they match. If not, raise a ValueError.
-        If neither is provided, raise a ValueError.
-        """
-        content_base64 = values.get("certificate_content_base64")
-        content: bytes = values.get("certificate_content")
-        if content_base64 is None and content is None:
+    @validator("owner", pre=True, always=True)
+    def check_required_owner(cls, v, *, values, **kwargs):
+        if v is None:
             raise ValueError(
-                "One of certificate_content_base64 or certificate_content must be provided!"
+                "Internal error: The owner field is required for Certificate Entities "
             )
-
-        elif content is not None:
-            converted_content = base64.b64encode(content).decode("utf-8")
-            if content_base64 is None:
-                values["certificate_content_base64"] = converted_content
-
-            elif converted_content != content_base64:
-                raise ValueError(
-                    "The values provided for certificate_content and certificate_content_base64 do not match!"
-                )
-
-        elif content_base64 is not None:
-            converted_base64 = base64.b64decode(content_base64)
-            values["certificate_content"] = converted_base64
-
-        return values
+        return v
 
     @staticmethod
     def get_type():
@@ -63,7 +34,7 @@ class Certificate(Entity):
 
     @staticmethod
     def get_storage_path():
-        return config.pki_assets
+        return config.certificates_folder
 
     @staticmethod
     def get_comms_retriever():
@@ -79,21 +50,17 @@ class Certificate(Entity):
 
     @property
     def local_id(self):
-        return config.certificate_file
+        return self.name
 
-    @property
-    def user_email(self) -> str:
-        return get_medperf_user_data()["email"]
-
-    @property
-    def path(self) -> str:
-        if self.ca_name is None:
-            ca = CA.get(self.ca)
-            self.ca_name = ca.name
-        return get_pki_assets_path(common_name=self.user_email, ca_name=self.ca_name)
+    def prepare_certificate_file(self):
+        cert_file = generate_tmp_path()
+        certificate_content_bytes = base64.b64decode(self.certificate_content_base64)
+        with open(cert_file, "wb") as f:
+            f.write(certificate_content_bytes)
+        return cert_file
 
     @classmethod
-    def get_list_from_benchmark_model_ca(
+    def get_list_from_benchmark_model_ca(  # TODO
         cls, benchmark_id: int, model_id: int, ca_id: int
     ) -> list[Certificate]:
         cert_data_list = config.comms.get_certificates_from_benchmark_model_ca(
@@ -102,6 +69,20 @@ class Certificate(Entity):
 
         cert_obj_list = [cls(**cert_data) for cert_data in cert_data_list]
         return cert_obj_list
+
+    @classmethod
+    def get_user_latest_certificate(cls):
+        user_id = get_medperf_user_data()["id"]
+        user_certificates = Certificate.all(filters={"owner": user_id})
+        user_certificates = [
+            cert
+            for cert in user_certificates
+            if cert.ca == config.certificate_authority_id and cert.is_valid
+        ]
+        user_certificates.sort(key=lambda cert: parse_datetime(cert.created_at))
+        if len(user_certificates) == 0:
+            raise MedperfException("No user certificates has been found")
+        return user_certificates[-1]
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
@@ -123,37 +104,16 @@ class Certificate(Entity):
             "UID": self.identifier,
             "Name": self.name,
             "CA ID": self.ca,
-            "State": self.state,
             "Created At": self.created_at,
-            "Registered": self.is_registered,
+            "Is Valid": self.is_valid,
         }
 
-    def verify_with_ca(self, ca: CA, validate_ca: bool = True,
-                       intermediate_certificates: Optional[list[Certificate]] = None):
-        if validate_ca:
-            trust(ca)
-
-        if intermediate_certificates is None:
-            intermediate_certificates = []
-
-        intermediates = [load_pem_x509_certificate(cert.certificate_content)
-                         for cert in intermediate_certificates]
-
-        this_certificate = load_pem_x509_certificate(self.certificate_content)
-
-        ca_cert_path = os.path.join(ca.pki_assets, config.ca_certificate_file)
-        with open(ca_cert_path, 'rb') as ca_cert:
-            loaded_cert = load_pem_x509_certificate(ca_cert.read())
-            store = Store([loaded_cert])
-        builder = PolicyBuilder().store(store)
-        verifier = builder.build_client_verifier()
-
-        try:
-            verifier.verify(this_certificate, intermediates=intermediates)
-            return True
-        except (VerificationError, UnsupportedGeneralNameType) as e:
-            error_msg = (
-                f'Certificate could not be validated with '
-                f'CA {ca.name} (UID: {ca.id}). Details:\n{str(e)}'
-            )
-            raise InvalidCertificateError(error_msg)
+    def verify(self):  # TODO
+        ca = CA.get(self.ca)
+        ca_container = Cube.get(ca.ca_mlcube)
+        cert_file = self.prepare_certificate_file()
+        mounts = {"cert_file": cert_file}  # TODO
+        env = {}  # TODO
+        ca_container.run(
+            task="verify_cert", mounts=mounts, env=env, disable_network=False
+        )

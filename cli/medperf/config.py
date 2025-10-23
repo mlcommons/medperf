@@ -46,6 +46,14 @@ refresh_token_storage_id = "medperf_refresh_token"
 
 local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 
+# Certificate Authority
+certificate_authority_id = 1
+certificate_authority_fingerprint = (
+    "2134ad46f56c61c4342eed48067c6a57bd59125bce033ca09389654b9f4446c1"
+)
+dev_certificate_authority_id = 1
+dev_certificate_authority_fingerprint = "fingerprint"
+
 # Storage config
 config_storage = Path.home().resolve() / ".medperf_config"
 logs_storage = Path.home().resolve() / ".medperf_logs"
@@ -64,6 +72,7 @@ images_folder = ".images"
 trash_folder = ".trash"
 tmp_folder = ".tmp"
 demo_datasets_folder = "demo"
+decrypted_files_folder = ".decrypted_files"
 
 benchmarks_folder = "benchmarks"
 cubes_folder = "cubes"
@@ -76,10 +85,15 @@ training_folder = "training"
 aggregators_folder = "aggregators"
 cas_folder = "cas"
 training_events_folder = "training_events"
+certificates_folder = "certificates"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
 storage = {
+    "decrypted_files_folder": {
+        "base": default_base_storage,
+        "name": decrypted_files_folder,
+    },
     "images_folder": {
         "base": default_base_storage,
         "name": images_folder,
@@ -140,9 +154,14 @@ storage = {
         "base": default_base_storage,
         "name": training_events_folder,
     },
+    "certificates_folder": {
+        "base": default_base_storage,
+        "name": certificates_folder,
+    },
 }
 
 root_folders = [
+    "decrypted_files_folder",
     "images_folder",
     "trash_folder",
     "tmp_folder",
@@ -160,6 +179,7 @@ server_folders = [
     "aggregators_folder",
     "cas_folder",
     "training_events_folder",
+    "certificates_folder",
 ]
 
 # MedPerf filenames conventions
@@ -171,7 +191,7 @@ agg_file = "agg-info.yaml"
 ca_file = "ca-info.yaml"
 training_event_file = "event.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
-certificate_metadata_filename = "certificate.yaml"
+certificate_metadata_filename = "certificate-info.yaml"
 encrypted_container_key_metadata_filename = "encrypted_container_key_meta.yaml"
 log_file = "medperf.log"
 webui_log_file = "medperf_webui.log"
@@ -279,6 +299,8 @@ configurable_parameters = [
     "auth_idtoken_issuer",
     "auth_client_id",
     "auth_audience",
+    "certificate_authority_id",
+    "certificate_authority_fingerprint",
 ]
 
 templates = {

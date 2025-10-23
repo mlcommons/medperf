@@ -12,7 +12,7 @@ urlpatterns = [
     path("<int:pk>/results/", views.BenchmarkResultList.as_view()),
     path("<int:pk>/participants_info/", views.ParticipantsInfo.as_view()),
     path(
-        "<int:benchmark_id>/models/<int:model_id>/cas/<int:ca_id>",
+        "<int:pk>/datasets_certificates",
         certificate_views.CertificatesFromBenchmark.as_view(),
     ),
 ]

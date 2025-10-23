@@ -1,50 +1,61 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 from rest_framework.permissions import BasePermission
 from benchmarkmodel.models import BenchmarkModel
-from mlcube.models import MlCube
-from rest_framework.permissions import IsAuthenticated
-from django.http import Http404
+from .models import Certificate
+from django.db.models import OuterRef, Subquery
 
 
-if TYPE_CHECKING:
-    from rest_framework.request import Request
-    from rest_framework.generics import GenericAPIView
+class IsAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_superuser
 
 
-class IsAssociatedModelOwnerAndCAIsTrusted(BasePermission):
-    def has_permission(self, request: Request, view: GenericAPIView):
-        if request.method != "GET":
-            return False
-
-        ca_id = view.kwargs.get('ca_id')
-        benchmark_id = view.kwargs.get("benchmark_id")
-        model_id = view.kwargs.get("model_id")
-
+class IsCertificateOwner(BasePermission):
+    def get_object(self, pk):
         try:
-            model = MlCube.objects.get(pk=model_id)
-        except MlCube.DoesNotExist:
-            raise Http404(f'Model container with ID {model_id} does not exist!')
+            return Certificate.objects.get(pk=pk)
+        except Certificate.DoesNotExist:
+            return None
 
-        is_model_owner = model.owner.id == request.user.id
-        benchmark_model_association = BenchmarkModel.objects.filter(
-            model_mlcube__id=model_id, benchmark__id=benchmark_id
-        ).order_by('-created_at').first()
-        if benchmark_model_association is None:
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk", None)
+        if not pk:
+            return False
+        certificate = self.get_object(pk)
+        if not certificate:
+            return False
+        if certificate.owner.id == request.user.id:
+            return True
+        else:
             return False
 
-        benchmark_model_association_approved = (
-            benchmark_model_association.approval_status == 'APPROVED'
+
+# TODO: check effciency / database costs
+class IsAssociatedModelOwner(BasePermission):
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk", None)
+        if not pk:
+            return False
+
+        if not request.user.is_authenticated:
+            # This check is to prevent internal server error
+            # since user.mlcube_set is used below
+            return False
+
+        latest_models_assocs_status = (
+            BenchmarkModel.objects.all()
+            .filter(benchmark__id=pk, model__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
         )
 
-        trusted_ca_ids = model.trusted_cas.values_list('pk', flat=True)
-        ca_is_trusted = ca_id in trusted_ca_ids
-        return is_model_owner and benchmark_model_association_approved and ca_is_trusted
+        user_associated_models = (
+            request.user.mlcube_set.all()
+            .annotate(assoc_status=Subquery(latest_models_assocs_status))
+            .filter(assoc_status="APPROVED")
+        )
 
-
-class IsAuthenticatedAndIsPostRequest(IsAuthenticated):
-    def has_permission(self, request: Request, view: GenericAPIView):
-        if request.method != "POST":
+        if user_associated_models.exists():
+            return True
+        else:
             return False
-
-        return super().has_permission(request, view)

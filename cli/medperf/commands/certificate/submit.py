@@ -1,46 +1,36 @@
+import base64
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.ca import CA
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import get_pki_assets_path, approval_prompt
 import os
 from medperf import config
 from medperf.ui.interface import UI
 from medperf.entities.certificate import Certificate
-from medperf.commands.certificate.utils import get_ca_from_id_model_or_training_exp
 from typing import Optional
 
 
 class SubmitCertificate:
     @classmethod
-    def run(cls, name: str, ca_id: Optional[int] = None,
-            model_id: Optional[int] = None, training_exp_id: Optional[int] = None,
-            approved: bool = False):
+    def run(cls, name: str, ca_id: Optional[int] = None, approved: bool = False):
         """Upload certificate to MedPerf server"""
-        current_ui: UI = config.ui
+        ui: UI = config.ui
+        submission = cls(name, ca_id, approved)
 
-        msg = "When submitting your Certificate, your e-mail will be visible to the Model Owner(s) "
-        msg += "that use the same Certificate Authority (CA) to grant private model access.\n"
-        msg += "Do you wish to proceed? [Y/n]"
-
-        approved = approved or approval_prompt(msg)
-
-        if not approved:
-            current_ui.print("Aggregator association operation cancelled.")
-            return
-        submission = cls(name, ca_id, model_id, training_exp_id)
-
-        with current_ui.interactive():
-            current_ui.text = "Submitting Certificate to MedPerf"
+        submission.prepare()
+        with ui.interactive():
+            ui.text = "Submitting Certificate to MedPerf"
             submission.verify_certificate()
             updated_certificate_body = submission.submit()
-        current_ui.print("Certificate uploaded")
+        ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
 
-    def __init__(self, name: str, ca_id: Optional[int] = None,
-                 model_id: Optional[int] = None, training_exp_id: Optional[int] = None):
-        self.ui: UI = config.ui
+    def __init__(self, name: str, ca_id: Optional[int] = None, approved: bool = False):
+        self.name = name
+        self.ca_id = ca_id
+        self.approved = approved
 
-        self.ca = get_ca_from_id_model_or_training_exp(ca_id=ca_id, model_id=model_id, training_exp_id=training_exp_id)
-
+    def __prepare_cert_object(self):
         email = get_medperf_user_data()["email"]
         pki_assets_path = get_pki_assets_path(email, self.ca.name)
         certificate_file_path = os.path.join(pki_assets_path, config.certificate_file)
@@ -52,17 +42,33 @@ class SubmitCertificate:
                 "command to obtain a certificate before running the submit command."
             )
 
-        with open(certificate_file_path, "r") as certificate_f:
-            certificate_content = certificate_f.read()
-
+        with open(certificate_file_path, "rb") as f:
+            certificate_content = f.read()
+        cert_content_base64 = base64.b64encode(certificate_content).decode("utf-8")
         self.certificate = Certificate(
-            name=name, ca=self.ca.id, certificate_content=certificate_content
+            name=self.name,
+            ca=self.ca.id,
+            certificate_content_base64=cert_content_base64,
         )
 
+    def prepare(self):
+        self.ca_id = self.ca_id or config.certificate_authority_id
+        self.ca = CA.get(self.ca_id)
+        self.__prepare_cert_object()
+
     def verify_certificate(self):
-        self.certificate.verify_with_ca(self.ca, validate_ca=True)
+        self.certificate.verify()
 
     def submit(self):
+        msg = "When submitting your Certificate, your e-mail will be visible to the Model Owner(s) "
+        msg += "that belong to benchmarks your datasets are part of.\n"
+        msg += "Do you wish to proceed? [Y/n]"
+
+        approved = approved or approval_prompt(msg)
+
+        if not approved:
+            config.ui.print("Certificate submission cancelled.")
+            return
         updated_body = self.certificate.upload()
         return updated_body
 

@@ -76,7 +76,7 @@ def test_run_runs_expected_flow(mocker: MockerFixture,
     spy_upload = mocker.patch.object(Certificate, 'upload', return_value=mock_certificate.todict())
     spy_write = mocker.patch.object(Certificate, 'write')
     spy_verify_with_ca = mocker.patch.object(Certificate, 'verify_with_ca')
-    spy_get_ca = mocker.patch(PATCH_ASSOC.format('get_ca_from_id_model_or_training_exp'),
+    spy_get_ca = mocker.patch(PATCH_ASSOC.format('resolve_ca'),
                               return_value=mock_ca)
     args_dict = {'ca_id': ca_id, 'model_id': model_id, 'training_exp_id': training_exp_id}
     # Act
@@ -133,7 +133,7 @@ def test_cancels_with_negative_prompt_answer(mocker: MockerFixture,
     spy_upload = mocker.patch.object(Certificate, 'upload', return_value=mock_certificate.todict())
     spy_write = mocker.patch.object(Certificate, 'write')
     spy_verify_with_ca = mocker.patch.object(Certificate, 'verify_with_ca')
-    spy_get_ca = mocker.patch(PATCH_ASSOC.format('get_ca_from_id_model_or_training_exp'),
+    spy_get_ca = mocker.patch(PATCH_ASSOC.format('resolve_ca'),
                               return_value=mock_ca)
     spy_prompt = mocker.patch(PATCH_ASSOC.format('approval_prompt'), return_value=False)
     args_dict = {'ca_id': ca_id, 'model_id': model_id, 'training_exp_id': training_exp_id}

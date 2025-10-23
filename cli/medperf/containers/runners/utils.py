@@ -33,6 +33,7 @@ def check_allowed_run_args(run_args):
 
 def add_medperf_run_args(run_args):
     run_args["user"] = f"{os.getuid()}:{os.getgid()}"
+    run_args["remove_container"] = True
 
 
 def add_user_defined_run_args(run_args):
@@ -121,36 +122,3 @@ def check_docker_image_hash(
                 f"Hash mismatch. Expected {expected_image_hash} or"
                 f" {alternative_image_hash}, found {computed_image_hash}."
             )
-
-
-def delete_docker_containers_and_image(image_id):
-    """
-    Deletes all containers (including running!) based of `image_name`, then deletes said image
-    """
-
-    list_containers_from_image_sub_cmd = [
-        "docker",
-        "ps",
-        "-a",
-        "--filter",
-        f"ancestor={image_id}",
-        "-q",
-    ]
-    command_output = run_command(list_containers_from_image_sub_cmd)
-    command_as_list = command_output.split("\n")
-
-    spawned_containers = [
-        command.strip() for command in command_as_list if command.strip()
-    ]
-
-    for spawned_container in spawned_containers:
-        delete_container_cmd = [
-            "docker",
-            "rm",
-            "-f",
-            spawned_container,
-        ]
-        run_command(delete_container_cmd)
-
-    delete_image_cmd = ["docker", "rmi", "-f", image_id]
-    run_command(delete_image_cmd)

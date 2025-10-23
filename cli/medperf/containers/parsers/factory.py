@@ -7,12 +7,13 @@ from .simple_container import SimpleContainerParser
 from medperf.enums import ContainerTypes
 
 DOCKER_TYPES = [
-    ContainerTypes.docker_image.value,
-    ContainerTypes.encrypted_docker_image.value,
+    ContainerTypes.DOCKER_IMAGE.value,
+    ContainerTypes.DOCKER_ARCHIVE.value,
+    ContainerTypes.ENCRYPTED_DOCKER_ARCHIVE.value,
 ]
 SINGULARITY_TYPES = [
-    ContainerTypes.singularity_file.value,
-    ContainerTypes.encrypted_singularity_file.value,
+    ContainerTypes.SINGULARITY_FILE.value,
+    ContainerTypes.ENCRYPTED_SINGULARITY_FILE.value,
 ]
 
 

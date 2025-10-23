@@ -6,12 +6,17 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from typing import Any, TYPE_CHECKING, Optional
+from medperf.entities.certificate import Certificate
 from pydantic import Field, root_validator, SecretBytes
 
 from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
 from medperf import config
-from medperf.exceptions import MissingPrivateKeyException, DecryptionError
+from medperf.exceptions import (
+    MedperfException,
+    MissingPrivateKeyException,
+    DecryptionError,
+)
 from medperf.utils import get_pki_assets_path
 from medperf.entities.ca import CA
 
@@ -20,33 +25,18 @@ if TYPE_CHECKING:
     from medperf.entities.cube import Cube
 
 
-def _get_default_padding():
-    return padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None,
-    )
-
-
 class EncryptedContainerKey(Entity):
     """
     Class representing an Encrypted Container Key uploaded to the MedPerf server
     """
 
-    encrypted_key: Optional[bytes] = Field(exclude=True)
-    encrypted_key_base64: Optional[str]
+    encrypted_key_base64: str
     model_container: int
     certificate: int
-    padding: padding.AsymmetricPadding = Field(
-        default_factory=_get_default_padding, exclude=True
-    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._ca = None
-
-    class Config:
-        arbitrary_types_allowed = True
 
     @root_validator(pre=False)
     def validate_encrypted_key(cls, values: dict[str, Any]):
@@ -135,16 +125,43 @@ class EncryptedContainerKey(Entity):
         """Uploads many objects in a single operation on the server"""
         comms_fn = config.comms.upload_many_encrypted_keys
         list_as_dicts = [item.todict() for item in encrypted_container_key_list]
-        updated_body = comms_fn(
-            key_dict_list=list_as_dicts
-        )
+        updated_body = comms_fn(key_dict_list=list_as_dicts)
         return updated_body
 
     @classmethod
-    def get_from_model(cls, model_id: int) -> EncryptedContainerKey:
-        comms_fn = config.comms.get_encrypted_key_from_model_id
-        key_body = comms_fn(model_id=model_id)
-        return cls(**key_body)
+    def get_user_key_for_model(cls, model_id: int) -> EncryptedContainerKey:
+        user_id = get_medperf_user_data()["id"]
+        user_keys = cls.all(filters={"owner": user_id})
+        user_cert = Certificate.get_user_latest_certificate()
+
+        # filter by model id and cert id
+        model_keys = [
+            key
+            for key in user_keys
+            if key.model_container == model_id and key.certificate == user_cert.id
+        ]
+        del user_keys
+
+        # load certs
+        for key in model_keys:
+            key.certificate_object = Certificate.get(key.certificate)
+
+        # filter by current configured ca
+        relevant_keys = [
+            key
+            for key in model_keys
+            if key.certificate_object.ca == config.certificate_authority_id
+        ]
+        del model_keys
+
+        if len(relevant_keys) == 0:
+            raise MedperfException(
+                "No key was found for the current user to access the model"
+            )
+
+        key = relevant_keys[-1]
+        del relevant_keys
+        return key
 
     def display_dict(self):
         return {
@@ -160,12 +177,16 @@ class EncryptedContainerKey(Entity):
     def decrypt_key(self, container: Cube) -> SecretBytes:
         decryption_key = self._load_private_key(container=container)
         try:
-            decrypted_key = SecretBytes(decryption_key.decrypt(
-                ciphertext=self.encrypted_key,
-                padding=self.padding,
-            ))
+            decrypted_key = SecretBytes(
+                decryption_key.decrypt(
+                    ciphertext=self.encrypted_key,
+                    padding=self.padding,
+                )
+            )
         except ValueError:
-            raise DecryptionError(f'Could not decrypt keys to Container {container.name} (UID: {container.id})')
+            raise DecryptionError(
+                f"Could not decrypt keys to Container {container.name} (UID: {container.id})"
+            )
         return decrypted_key
 
     def _load_private_key(self, container: Cube) -> RSAPrivateKey:
@@ -175,7 +196,9 @@ class EncryptedContainerKey(Entity):
         # What about padding? We a default, support multiple? If supporting multiple, how to config?
 
         user_email = get_medperf_user_data()["email"]
-        pki_assets_dir = get_pki_assets_path(common_name=user_email, ca_name=self.ca.name)
+        pki_assets_dir = get_pki_assets_path(
+            common_name=user_email, ca_name=self.ca.name
+        )
         private_key_path = os.path.join(pki_assets_dir, config.private_key_file)
 
         if not os.path.exists(private_key_path):

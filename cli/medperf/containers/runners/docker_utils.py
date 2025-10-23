@@ -3,6 +3,8 @@ import os
 from medperf.exceptions import InvalidContainerSpec, MedperfException
 from .utils import run_command
 import shlex
+import tarfile
+import json
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
@@ -50,6 +52,9 @@ def volumes_to_cli_args(input_volumes: list, output_volumes: list):
 
 def craft_docker_run_command(run_args: dict):  # noqa: C901
     command = ["docker", "run"]
+    remove_container = run_args.pop("remove_container", False)
+    if remove_container:
+        command.append("--rm")
     user = run_args.pop("user", None)
     if user is not None:
         command.append("-u")
@@ -107,3 +112,32 @@ def craft_docker_run_command(run_args: dict):  # noqa: C901
         extra_command = shlex.split(extra_command)
     command.extend(extra_command)
     return command
+
+
+def get_repo_tags_from_archive(image_archive: str) -> list[str]:
+    """
+    Ideally we should find only a single entry in the digest with a single repo tag, but this method
+    should hopefully generalize for manifests with multiple entries and/or multiple RepoTag values
+    """
+    manifest_file = "manifest.json"
+    repo_tags_key = "RepoTags"
+
+    with tarfile.open(image_archive, "r") as tar:
+        with tar.extractfile(manifest_file) as index_json_obj:
+            manifests_list = json.load(index_json_obj)
+
+    repo_tags_list = []
+    for manifest in manifests_list:
+        repo_tags_list.extend(manifest[repo_tags_key])
+
+    return repo_tags_list
+
+
+def load_image(image_archive_path):
+    docker_load_cmd = ["docker", "load", "-i", image_archive_path]
+    run_command(docker_load_cmd)
+
+
+def delete_images(images):
+    delete_image_cmd = ["docker", "rmi", "-f"] + images
+    run_command(delete_image_cmd)

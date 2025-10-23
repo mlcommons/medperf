@@ -107,18 +107,10 @@ class MlCubeDatasetList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
-class GetCAFromContainer(RetrieveAPIView):
+class ContainerCaList(RetrieveAPIView):
     serializer_class = CASerializer
 
     def get(self, request: Request, model_id: int, format=None):
-        # TODO currently picks the most recent one if multiple are available
-        # Should we return all of them? Use a different criteria?
-
-        ca = CA.objects.filter(
-            mlcube=model_id
-        ).order_by(
-            '-created_at'
-        ).first()
-        print(f'{ca=}')
-        ca = CASerializer(ca)
-        return Response(ca.data)
+        cas = CA.objects.filter(mlcube__id=model_id)
+        cas = CASerializer(cas, many=True)
+        return Response(cas.data)

@@ -21,8 +21,9 @@ class AutoApprovalMode(Enum):
 
 
 class ContainerTypes(Enum):
-    mlcube = "mlcube"
-    singularity_file = "SingularityFile"
-    docker_image = "DockerImage"
-    encrypted_docker_image = "EncryptedDockerImage"
-    encrypted_singularity_file = "EncryptedSingularityFile"
+    MLCUBE = "mlcube"
+    SINGULARITY_FILE = "SingularityFile"
+    DOCKER_IMAGE = "DockerImage"
+    DOCKER_ARCHIVE = "DockerArchive"
+    ENCRYPTED_DOCKER_ARCHIVE = "EncryptedDockerArchive"
+    ENCRYPTED_SINGULARITY_FILE = "EncryptedSingularityFile"
