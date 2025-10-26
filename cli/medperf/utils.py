@@ -530,12 +530,12 @@ class spawn_and_kill:
         return False
 
 
-def get_pki_assets_path(common_name: str, ca_name: str):
+def get_pki_assets_path(common_name: str, ca_id: int):
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
     cn_encoded = cn_encoded.rstrip("=")
-    return os.path.join(config.pki_assets, cn_encoded, ca_name)
+    return os.path.join(config.pki_assets, cn_encoded, str(ca_id))
 
 
 def get_participant_label(email, data_id):
@@ -574,6 +574,10 @@ def get_webui_properties():
     print()
     print("=" * 40)
     print(f"URL: http://{props['host']}:{props['port']}")
+
+
+def get_container_local_key(container_id: int):
+    pass
 
 
 def get_container_key_dir_path(container_id: Union[str, int]):

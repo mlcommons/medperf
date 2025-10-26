@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Certificate
-from .serializers import CertificateSerializer
+from .serializers import CertificateSerializer, CertificateDetailSerializer
 from .permissions import IsAssociatedModelOwner, IsCertificateOwner, IsAdmin
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
@@ -52,7 +52,7 @@ class CertificateList(GenericAPIView):
 
 
 class CertificateDetail(GenericAPIView):
-    serializer_class = CertificateSerializer
+    serializer_class = CertificateDetailSerializer
     queryset = ""
     permission_classes = [IsAdmin | IsCertificateOwner]
 
@@ -67,8 +67,21 @@ class CertificateDetail(GenericAPIView):
         Retrieve an ca instance.
         """
         certificate = self.get_object(pk)
-        serializer = CertificateSerializer(certificate)
+        serializer = CertificateDetailSerializer(certificate)
         return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        """
+        Update a certificate
+        """
+        certificate = self.get_object(pk)
+        serializer = CertificateDetailSerializer(
+            certificate, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CertificatesFromBenchmark(GenericAPIView):

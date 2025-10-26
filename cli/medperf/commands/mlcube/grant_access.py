@@ -54,19 +54,21 @@ class GrantAccess:
             ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id
         )
         if not certificates:
-            raise CleanExit('No Data Owners in need of keys were found.')
+            raise CleanExit("No Data Owners in need of keys were found.")
 
-        config.ui.print('Verifying certificates match the given CA')
-        valid_certificates = cls.verify_certificates(ca=ca, certificates_list=certificates)
+        config.ui.print("Verifying certificates match the given CA")
+        valid_certificates = cls.verify_certificates(
+            ca=ca, certificates_list=certificates
+        )
         if not valid_certificates:
-            raise InvalidCertificateError('No valid certificates were found.')
+            raise InvalidCertificateError("No valid certificates were found.")
 
         config.ui.print("Creating Encrypted Keys for Data Owners")
         encrypted_key_info_list = cls.generate_encrypted_keys_list(
             certificates=valid_certificates,
             container_key_bytes=container_key_bytes,
             key_name=name,
-            model_id=model_id
+            model_id=model_id,
         )
 
         config.ui.print("Uploading Encrypted Keys")
@@ -107,8 +109,11 @@ class GrantAccess:
 
     @classmethod
     def generate_encrypted_keys_list(
-        cls, container_key_bytes: bytes, key_name: str,
-        model_id: int, certificates: list[Certificate]
+        cls,
+        container_key_bytes: bytes,
+        key_name: str,
+        model_id: int,
+        certificates: list[Certificate],
     ):
         padding_obj = padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -123,29 +128,35 @@ class GrantAccess:
                 padding=padding_obj,
             )
             key_obj = EncryptedContainerKey(
-                encrypted_key=encrypted_key, name=key_name,
-                certificate=certificate.id, model_container=model_id
+                encrypted_key=encrypted_key,
+                name=key_name,
+                certificate=certificate.id,
+                container=model_id,
             )
             key_info_list.append(key_obj)
 
         return key_info_list
 
     @classmethod
-    def verify_certificates(cls, ca: CA, certificates_list: list[Certificate]) -> list[Certificate]:
+    def verify_certificates(
+        cls, ca: CA, certificates_list: list[Certificate]
+    ) -> list[Certificate]:
         error_certs = []
         valid_certs = []
 
         for certificate in certificates_list:
             try:
-                certificate.verify_with_ca(ca, validate_ca=False)  # Validated in run method
+                certificate.verify_with_ca(
+                    ca, validate_ca=False
+                )  # Validated in run method
                 valid_certs.append(certificate)
             except InvalidCertificateError:
                 error_certs.append(certificate)
 
         if error_certs:
-            error_cert_msg = 'The following certificates failed verification:\n'
+            error_cert_msg = "The following certificates failed verification:\n"
             for error_cert in error_certs:
-                error_cert_msg += f'{error_cert.name} (UID:{error_cert.id}, Owner: {error_cert.owner})\n'
+                error_cert_msg += f"{error_cert.name} (UID:{error_cert.id}, Owner: {error_cert.owner})\n"
             config.ui.print(error_cert_msg)
 
         return valid_certs

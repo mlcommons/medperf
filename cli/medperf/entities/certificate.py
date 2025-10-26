@@ -8,7 +8,6 @@ from medperf.exceptions import MedperfException
 from medperf.utils import generate_tmp_path
 from pydantic import validator
 import base64
-from pydantic.datetime_parse import parse_datetime
 
 
 class Certificate(Entity):
@@ -71,7 +70,7 @@ class Certificate(Entity):
         return cert_obj_list
 
     @classmethod
-    def get_user_latest_certificate(cls):
+    def get_user_certificate(cls):
         user_id = get_medperf_user_data()["id"]
         user_certificates = Certificate.all(filters={"owner": user_id})
         user_certificates = [
@@ -79,10 +78,14 @@ class Certificate(Entity):
             for cert in user_certificates
             if cert.ca == config.certificate_authority_id and cert.is_valid
         ]
-        user_certificates.sort(key=lambda cert: parse_datetime(cert.created_at))
         if len(user_certificates) == 0:
-            raise MedperfException("No user certificates has been found")
-        return user_certificates[-1]
+            return
+
+        if len(user_certificates) > 1:
+            raise MedperfException(
+                "Internal Error: Multiple certificates has been found"
+            )
+        return user_certificates[0]
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:

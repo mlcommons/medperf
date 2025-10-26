@@ -9,17 +9,17 @@ import os
 
 class GetServerCertificate:
     @staticmethod
-    def run(aggregator_id: int, ca_id: int = None, overwrite: bool = False):
+    def run(aggregator_id: int, overwrite: bool = False):
         """get server cert"""
-        ca_id = ca_id or config.certificate_authority_id
+        ca_id = config.certificate_authority_id
         ca = CA.get(ca_id)
         aggregator = Aggregator.get(aggregator_id)
         address = aggregator.address
-        output_path = get_pki_assets_path(address, ca.name)
+        output_path = get_pki_assets_path(address, ca.id)
         if os.path.exists(output_path):
             if not overwrite:
                 raise MedperfException(
                     "Cert and key already present. Rerun the command with --overwrite"
                 )
-            remove_path(output_path)
+            remove_path(output_path, sensitive=True)
         get_server_cert(ca, address, output_path)

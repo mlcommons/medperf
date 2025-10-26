@@ -87,7 +87,7 @@ class StartAggregator:
         ca = CA.from_experiment(self.training_exp_id)
         trust(ca)
         agg_address = self.aggregator.address
-        self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.name)
+        self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.id)
         self.ca = ca
 
     def run_experiment(self):

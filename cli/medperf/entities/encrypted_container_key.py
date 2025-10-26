@@ -19,6 +19,7 @@ from medperf.exceptions import (
 )
 from medperf.utils import get_pki_assets_path
 from medperf.entities.ca import CA
+from medperf.commands.certificate.utils import current_user_certificate_status
 
 if TYPE_CHECKING:
     from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
@@ -31,7 +32,7 @@ class EncryptedContainerKey(Entity):
     """
 
     encrypted_key_base64: str
-    model_container: int
+    container: int
     certificate: int
 
     def __init__(self, *args, **kwargs):
@@ -130,37 +131,15 @@ class EncryptedContainerKey(Entity):
 
     @classmethod
     def get_user_key_for_model(cls, model_id: int) -> EncryptedContainerKey:
-        user_id = get_medperf_user_data()["id"]
-        user_keys = cls.all(filters={"owner": user_id})
-        user_cert = Certificate.get_user_latest_certificate()
+        # Get user cert
+        user_cert_info = current_user_certificate_status()
+        if not user_cert_info["no_action_required"]:
+            raise MedperfException("You don't have a valid certificate")
+        user_cert = user_cert_info["user_cert_object"]
 
-        # filter by model id and cert id
-        model_keys = [
-            key
-            for key in user_keys
-            if key.model_container == model_id and key.certificate == user_cert.id
-        ]
-        del user_keys
+        # Get model key
+        key = config.comms.get_key_for_cert_and_model(model_id, user_cert.id)
 
-        # load certs
-        for key in model_keys:
-            key.certificate_object = Certificate.get(key.certificate)
-
-        # filter by current configured ca
-        relevant_keys = [
-            key
-            for key in model_keys
-            if key.certificate_object.ca == config.certificate_authority_id
-        ]
-        del model_keys
-
-        if len(relevant_keys) == 0:
-            raise MedperfException(
-                "No key was found for the current user to access the model"
-            )
-
-        key = relevant_keys[-1]
-        del relevant_keys
         return key
 
     def display_dict(self):
@@ -168,7 +147,7 @@ class EncryptedContainerKey(Entity):
             "UID": self.identifier,
             "Name": self.name,
             "Certificate ID": self.certificate,
-            "Model Containre ID": self.model_container,
+            "Container ID": self.container,
             "Encrypted Key": self.encrypted_key,
             "Created At": self.created_at,
             "Registered": self.is_registered,
@@ -196,9 +175,7 @@ class EncryptedContainerKey(Entity):
         # What about padding? We a default, support multiple? If supporting multiple, how to config?
 
         user_email = get_medperf_user_data()["email"]
-        pki_assets_dir = get_pki_assets_path(
-            common_name=user_email, ca_name=self.ca.name
-        )
+        pki_assets_dir = get_pki_assets_path(common_name=user_email, ca_name=self.ca.id)
         private_key_path = os.path.join(pki_assets_dir, config.private_key_file)
 
         if not os.path.exists(private_key_path):

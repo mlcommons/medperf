@@ -49,8 +49,9 @@ class GetEncryptedKeyFromModelAndCA(RetrieveAPIView):
         """
         try:
             key = ModelCAEncryptedKey.objects.get(
-                certificate__owner=request.user, model_container=model_id,
-                certificate__ca=ca_id
+                certificate__owner=request.user,
+                container=model_id,
+                certificate__ca=ca_id,
             )
         except ModelCAEncryptedKey.DoesNotExist:
             return Response(
@@ -78,8 +79,7 @@ class GetEncryptedKeyFromModel(RetrieveAPIView):
 
         try:
             key = ModelCAEncryptedKey.objects.get(
-                certificate__owner=request.user,
-                model_container=model_id
+                certificate__owner=request.user, container=model_id
             )
         except ModelCAEncryptedKey.DoesNotExist:
             return Response(
@@ -116,7 +116,9 @@ class GetCAFromEncryptedKey(RetrieveAPIView):
                 certificate__owner=request.user.id,
             )
         except CA.DoesNotExist:
-            raise Http404('No CA associated with this EncryptedKey and Model for the current user.')
+            raise Http404(
+                "No CA associated with this EncryptedKey and Model for the current user."
+            )
 
         ca = CASerializer(ca)
         return Response(ca.data)

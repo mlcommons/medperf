@@ -5,6 +5,8 @@ from medperf.decorators import clean_except
 from medperf.commands.certificate.client_certificate import GetUserCertificate
 from medperf.commands.certificate.server_certificate import GetServerCertificate
 from medperf.commands.certificate.submit import SubmitCertificate
+from medperf.commands.certificate.delete_client_certificate import DeleteCertificate
+from medperf.commands.certificate.check_client_certificate import CheckUserCertificate
 
 app = typer.Typer()
 
@@ -12,21 +14,12 @@ app = typer.Typer()
 @app.command("get_client_certificate")
 @clean_except
 def get_client_certificate(
-    ca_id: int = typer.Option(
-        None,
-        "--ca_id",
-        "--ca-id",
-        "-c",
-        help="UID of the Certificate Authority (CA) from which a "
-        "Certificate will be obtained. "
-        "If not provided, the default configured ca will be used.",
-    ),
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite cert and key if present"
-    ),
+    )
 ):
 
-    GetUserCertificate.run(ca_id, overwrite=overwrite)
+    GetUserCertificate.run(overwrite=overwrite)
     config.ui.print("✅ Done!")
 
 
@@ -39,21 +32,12 @@ def get_server_certificate(
         "-a",
         help="UID of the aggregator you wish to get a certificate for.",
     ),
-    ca_id: int = typer.Option(
-        None,
-        "--ca_id",
-        "--ca-id",
-        "-c",
-        help="UID of the Certificate Authority (CA) from which a "
-        "Certificate will be obtained. "
-        "If not provided, the default configured ca will be used.",
-    ),
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite cert and key if present"
     ),
 ):
     """Get a server certificate."""
-    GetServerCertificate.run(aggregator_id, ca_id, overwrite)
+    GetServerCertificate.run(aggregator_id, overwrite)
     config.ui.print("✅ Done!")
 
 
@@ -61,15 +45,6 @@ def get_server_certificate(
 @clean_except
 def submit_client_certificate(
     name: str = typer.Option(..., "--name", "-n", help="Name of the Certificate"),
-    ca_id: int = typer.Option(
-        None,
-        "--ca_id",
-        "--ca-id",
-        "-c",
-        help="UID of the Certificate Authority (CA) from which a "
-        "Certificate will be obtained. "
-        "If not provided, the default configured ca will be used.",
-    ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """
@@ -77,5 +52,27 @@ def submit_client_certificate(
     If you are a data owner associated with a benchmark, note that after uploading a certificate,
     your e-mail will be publicly available to model owners associated with the benchmark
     """
-    SubmitCertificate.run(name=name, ca_id=ca_id, approved=approval)
+    SubmitCertificate.run(name=name, approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("delete_client_certificate")
+@clean_except
+def delete_client_certificate(
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """
+    Invalidate a client certificate.
+    """
+    DeleteCertificate.run(approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("check_client_certificate")
+@clean_except
+def check_client_certificate():
+    """
+    Check if the user already has a certificate (local or uploaded).
+    """
+    CheckUserCertificate.run()
     config.ui.print("✅ Done!")

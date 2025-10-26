@@ -9,17 +9,17 @@ import os
 
 class GetUserCertificate:
     @staticmethod
-    def run(ca_id: int = None, overwrite: bool = False):
+    def run(overwrite: bool = False):
         """get user cert"""
-        ca_id = ca_id or config.certificate_authority_id
+        ca_id = config.certificate_authority_id
         ca = CA.get(ca_id)
 
         email = get_medperf_user_data()["email"]
-        output_path = get_pki_assets_path(email, ca.name)
+        output_path = get_pki_assets_path(email, ca.id)
         if os.path.exists(output_path):
             if not overwrite:
                 raise MedperfException(
                     "Cert and key already present. Rerun the command with --overwrite"
                 )
-            remove_path(output_path)
+            remove_path(output_path, sensitive=True)
         get_client_cert(ca, email, output_path)

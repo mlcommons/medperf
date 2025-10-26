@@ -11,7 +11,7 @@ from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
-from medperf.utils import generate_tmp_path, remove_path
+from medperf.utils import generate_tmp_path, remove_path, get_container_local_key
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 
 
@@ -236,7 +236,7 @@ class Cube(Entity, DeployableSchema):
     def get_user_decryption_key(self):
         user_id = get_medperf_user_data()["id"]
         if self.owner == user_id:
-            key_file = get_container_key(self.id)
+            key_file = get_container_local_key(self.id)
             destroy_key = False
         else:
             key = EncryptedContainerKey.get_user_key_for_model(self.id)

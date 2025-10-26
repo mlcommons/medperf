@@ -41,7 +41,7 @@ class UpdatePlan:
     def prepare_pki_assets(self):
         ca = CA.from_experiment(self.training_exp_id)
         trust(ca)
-        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.name)
+        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 
     def prepare_admin_cube(self):
