@@ -18,7 +18,6 @@ urlpatterns = [
         key_views.GetEncryptedKeyFromModelAndCA.as_view(),
     ),
     path("<int:model_id>/keys/", key_views.GetEncryptedKeyFromModel.as_view()),
-    path("keys/", key_views.PostMultipleEncryptedKeys.as_view()),
     # path("<int:pk>/benchmarks/", bviews.ModelBenchmarksList.as_view()),
     # NOTE: when activating this endpoint later, check permissions and write tests
 ]
