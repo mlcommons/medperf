@@ -109,7 +109,9 @@ class CertificatesFromBenchmark(GenericAPIView):
             .filter(assoc_status="APPROVED")
         )
         owners_ids = datasets.values_list("owner", flat=True).distinct()
-        certificates = Certificate.objects.filter(owner__id__in=owners_ids)
+        certificates = Certificate.objects.filter(
+            owner__id__in=owners_ids, is_valid=True
+        )
 
         certificates = self.paginate_queryset(certificates)
         serializer = CertificateSerializer(certificates, many=True)

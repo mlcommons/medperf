@@ -112,7 +112,7 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "corsheaders",
     "certificate",
-    "mlcube_ca_encrypted_key",
+    "mlcube_key",
 ]
 
 MIDDLEWARE = [
