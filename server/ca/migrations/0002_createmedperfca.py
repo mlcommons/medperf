@@ -37,6 +37,9 @@ class Migration(migrations.Migration):
     dependencies = [
         ("ca", "0001_initial"),
         ("user", "0001_createsuperuser"),
-        ("mlcube", "0003_alter_mlcube_unique_together_mlcube_container_config_and_more"),
+        (
+            "mlcube",
+            "0003_alter_mlcube_unique_together_mlcube_container_config_and_more",
+        ),
     ]
     operations = [migrations.RunPython(createmedperfca)]

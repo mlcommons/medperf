@@ -105,7 +105,11 @@ class Preprocessor:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--img_path", "--img-path", type=str, required=True, help="Location of images",
+        "--img_path",
+        "--img-path",
+        type=str,
+        required=True,
+        help="Location of images",
     )
     parser.add_argument(
         "--csv_path",

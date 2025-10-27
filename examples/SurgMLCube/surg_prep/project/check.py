@@ -23,13 +23,13 @@ class SanityChecks:
             csv files have incorrect structure.
 
         Args:
-            data_path (str): The path to the folder of the prepared data, generated 
+            data_path (str): The path to the folder of the prepared data, generated
                              by the preparation step of the MLCube.
             params_file (str): Configuration file for the data-preparation step.
 
         methods:
             run(): executing the sanity checks.
-        
+
         """
         with open(params_file, "r") as f:
             self.params = yaml.full_load(f)
@@ -138,5 +138,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    sanity_checker = SanityChecks(args.data_path, args.params_file,)
+    sanity_checker = SanityChecks(
+        args.data_path,
+        args.params_file,
+    )
     sanity_checker.run()

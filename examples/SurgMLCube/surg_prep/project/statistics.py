@@ -18,21 +18,21 @@ class Statistics:
                 total: <total number of frames>
                 mean: <mean number of frames across videos>
                 stddev: <Standard deviation of the number of frames across videos>
-                per_video: 
+                per_video:
                     <video name>: <Number of frames of the video>
                     <video name>: <Number of frames of the video>
                     ...
         '
 
         Args:
-            data_path (str): The path to the folder of the prepared data, generated 
+            data_path (str): The path to the folder of the prepared data, generated
                              by the preparation step of the MLCube.
             params_file (str): Configuration file for the data-preparation step.
             out_path (str): Output file to store the statistics.
 
         methods:
             run(): executing the statistics calculation task.
-        
+
         """
         with open(params_file, "r") as f:
             self.params = yaml.full_load(f)

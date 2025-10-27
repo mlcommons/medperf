@@ -17,7 +17,6 @@ class Inference:
         mstcn_weights_path,
         output_path,
     ):
-
         """Class wrapper for executing model inference.
 
         Args:
@@ -46,7 +45,7 @@ class Inference:
             feature_extraction_weights_path (str): feature extraction model weights location
             mstcn_weights_path (str): multi-stage temporal convolutional network weights location
             output_path (str): location to store predictions
-        
+
         """
 
         # TODO: generalize this
@@ -181,7 +180,7 @@ class Inference:
                 writer.writerow([frame_path, label, pred])
 
     def run(self):
-        """ Runs inference on each video and stores the predicitons."""
+        """Runs inference on each video and stores the predicitons."""
 
         num_vids = len(self.datasets)
         for i in range(num_vids):
@@ -202,7 +201,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--data_path", "--data-path", type=str, required=True, help="Location of data",
+        "--data_path",
+        "--data-path",
+        type=str,
+        required=True,
+        help="Location of data",
     )
 
     parser.add_argument(

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('result', '0001_initial'),
+        ("result", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='modelresult',
-            name='is_valid',
+            model_name="modelresult",
+            name="is_valid",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='modelresult',
-            name='user_metadata',
+            model_name="modelresult",
+            name="user_metadata",
             field=models.JSONField(default=dict),
         ),
     ]

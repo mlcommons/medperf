@@ -59,6 +59,8 @@ def prepare_dataset(
     os.makedirs(output_labels_path, exist_ok=True)
 
     if task == "segmentation-radiotherapy":
-        copy_radiotherapy_data(data_path, labels_path, parameters, output_path, output_labels_path)
+        copy_radiotherapy_data(
+            data_path, labels_path, parameters, output_path, output_labels_path
+        )
     else:
         copy_pathology_data(data_path, labels_path, output_path, output_labels_path)

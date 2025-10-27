@@ -18,7 +18,10 @@ from torchxrayvision.models import model_urls
 
 class ResNet(nn.Module):
     def __init__(
-        self, weights=None, apply_sigmoid=False, weights_filename_local=None,
+        self,
+        weights=None,
+        apply_sigmoid=False,
+        weights_filename_local=None,
     ):
         super(ResNet, self).__init__()
 
@@ -133,8 +136,8 @@ def fix_resolution(x, resolution, model):
 
 def op_norm(outputs, op_threshs):
     """normalize outputs according to operating points for a given model.
-    Args: 
-        outputs: outputs of self.classifier(). torch.Size(batch_size, num_tasks) 
+    Args:
+        outputs: outputs of self.classifier(). torch.Size(batch_size, num_tasks)
         op_threshs_arr: torch.Size(batch_size, num_tasks) with self.op_threshs expanded.
     Returns:
         outputs_new: normalized outputs, torch.Size(batch_size, num_tasks)

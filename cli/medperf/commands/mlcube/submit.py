@@ -8,7 +8,12 @@ from medperf.comms.entity_resources.utils import load_yaml_content
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict, container_config: str, parameters_config: Optional[str] = None):
+    def run(
+        cls,
+        submit_info: dict,
+        container_config: str,
+        parameters_config: Optional[str] = None,
+    ):
         """Submits a new cube to the medperf platform
 
         Args:
@@ -16,13 +21,15 @@ class SubmitCube:
         """
         ui = config.ui
 
-        cls.add_yaml_info_to_submit_info(yaml_path=container_config,
-                                         submit_info=submit_info,
-                                         key='container_config')
+        cls.add_yaml_info_to_submit_info(
+            yaml_path=container_config, submit_info=submit_info, key="container_config"
+        )
         if parameters_config:
-            cls.add_yaml_info_to_submit_info(yaml_path=parameters_config,
-                                             submit_info=submit_info,
-                                             key='parameters_config')
+            cls.add_yaml_info_to_submit_info(
+                yaml_path=parameters_config,
+                submit_info=submit_info,
+                key="parameters_config",
+            )
         submission = cls(submit_info)
 
         with ui.interactive():

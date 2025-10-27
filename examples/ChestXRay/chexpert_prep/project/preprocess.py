@@ -98,7 +98,11 @@ class Preprocessor:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--img_path", "--img-path", type=str, required=True, help="Location of images",
+        "--img_path",
+        "--img-path",
+        type=str,
+        required=True,
+        help="Location of images",
     )
     parser.add_argument(
         "--csv_path",
@@ -125,6 +129,9 @@ if __name__ == "__main__":
     for arg in vars(args):
         setattr(args, arg, getattr(args, arg).replace("'", ""))
     preprocessor = Preprocessor(
-        args.img_path, args.csv_path, args.params_file, args.output_path,
+        args.img_path,
+        args.csv_path,
+        args.params_file,
+        args.output_path,
     )
     preprocessor.run()

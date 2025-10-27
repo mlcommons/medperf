@@ -76,7 +76,7 @@ class SynapseSource(BaseSource):
         except (SynapseHTTPError, SynapseUnmetAccessRestrictions) as e:
             raise CommunicationRetrievalError(str(e))
 
-        with open(resource_file.path, 'rb') as f:
+        with open(resource_file.path, "rb") as f:
             content = f.read()
 
         return content

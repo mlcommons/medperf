@@ -27,7 +27,7 @@ class DataPreparation:
                 assign_labels_to_videos()
                 process_videos()
                 process_labels()
-        
+
         """
         with open(params_file, "r") as f:
             self.params = yaml.full_load(f)
@@ -83,7 +83,7 @@ class DataPreparation:
                             "fps": <video_fps>
                             }
                 }
-        
+
         Warns:
             if multiple video files of the same name but different extenstions were encountered,
             if multiple labels files of the same name but different extenstions were encountered,
@@ -164,14 +164,14 @@ class DataPreparation:
 
     def process_videos(self):
         """
-        Extracts frames from each video using ffmpeg according to 
+        Extracts frames from each video using ffmpeg according to
         the FPS and the frame size specified in the configuration file.
-        
+
         Warns:
             If the output path already contains files or folders,
             If a video has already been extracted (skips, even if it was partially extracted).
 
-        
+
         Note: videos with more than 10^6 frames will cause current ffmpeg command to overwrite extra frames.
         """
 
@@ -226,7 +226,7 @@ class DataPreparation:
             If any video frame has a missing label,
             If any extra label exists with no corresponding video frame,
             If the parsing functions raise warnings.
-        
+
 
         """
         csv_out_path = os.path.join(self.output_path, "data_csv")

@@ -23,7 +23,7 @@ class LocalMemorySource(BaseSource):
         """
         Copies memory value to the given location
         """
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(resource_identifier.read())
 
     def read_content(self, resource_identifier: IN_MEMORY_TYPES) -> bytes:

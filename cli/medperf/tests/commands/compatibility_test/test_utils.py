@@ -16,7 +16,9 @@ class TestPrepareCube:
         cube_path = "/path/to/cube"
         cube_path_config = os.path.join(cube_path, config.cube_filename)
         fs.create_file(cube_path_config, contents="cube mlcube.yaml contents")
-        mocker.patch(PATCH_UTILS.format('load_yaml_content'), return_value=TestCube().todict())
+        mocker.patch(
+            PATCH_UTILS.format("load_yaml_content"), return_value=TestCube().todict()
+        )
         self.cube_path = cube_path
         self.cube_path_config = cube_path_config
 

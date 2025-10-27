@@ -8,14 +8,24 @@ import json
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
-    command = ["docker", "buildx", "imagetools", "inspect", docker_image, '--format', '"{{json .Manifest}}"']
+    command = [
+        "docker",
+        "buildx",
+        "imagetools",
+        "inspect",
+        docker_image,
+        "--format",
+        '"{{json .Manifest}}"',
+    ]
     image_manifest_str = run_command(command, timeout=timeout)
-    image_manifest_str = image_manifest_str.strip().strip('"\'')
+    image_manifest_str = image_manifest_str.strip().strip("\"'")
     image_manifest_dict = json.loads(image_manifest_str)
 
-    image_hash = image_manifest_dict.get('digest', '')
+    image_hash = image_manifest_dict.get("digest", "")
     if not image_hash.startswith("sha256:"):
-        raise InvalidContainerSpec("Invalid 'docker buildx imagetools inspect' output:", image_manifest_dict)
+        raise InvalidContainerSpec(
+            "Invalid 'docker buildx imagetools inspect' output:", image_manifest_dict
+        )
 
     return image_hash
 
@@ -25,7 +35,9 @@ def extract_docker_image_name(image_name_with_tag_and_hash: str) -> str:
     tag_separator = ":"
 
     if hash_separator in image_name_with_tag_and_hash:
-        image_name_with_tag = image_name_with_tag_and_hash.rsplit(hash_separator, maxsplit=1)[0]
+        image_name_with_tag = image_name_with_tag_and_hash.rsplit(
+            hash_separator, maxsplit=1
+        )[0]
     else:
         image_name_with_tag = image_name_with_tag_and_hash
 
@@ -37,7 +49,9 @@ def extract_docker_image_name(image_name_with_tag_and_hash: str) -> str:
         return image_name_with_tag_and_hash
 
 
-def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[str] = None):
+def generate_unique_image_name(
+    image_name_with_tag: str, image_hash: Optional[str] = None
+):
 
     if image_hash is None:
         # If no hash (for example, when first uploading a container) use the name with tag as is
@@ -48,7 +62,7 @@ def generate_unique_image_name(image_name_with_tag: str, image_hash: Optional[st
     if image_name == image_name_with_tag:
         return image_name
 
-    image_name_with_hash = f'{image_name}@{image_hash}'
+    image_name_with_hash = f"{image_name}@{image_hash}"
     return image_name_with_hash
 
 

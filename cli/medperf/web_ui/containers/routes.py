@@ -131,9 +131,11 @@ def register_container(
     }
     container_id = None
     try:
-        container_id = SubmitCube.run(container_info,
-                                      container_config=container_file.file,
-                                      parameters_config=parameters_file.file)
+        container_id = SubmitCube.run(
+            container_info,
+            container_config=container_file.file,
+            parameters_config=parameters_file.file,
+        )
         return_response["status"] = "success"
         return_response["container_id"] = container_id
         notification_message = "Container successfully registered"

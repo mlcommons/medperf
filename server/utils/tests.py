@@ -33,9 +33,18 @@ class BenchmarksTest(MedPerfTest):
             user,
             user,
             user,
-            prep_mlcube_kwargs={"name": f"{user}prep", "container_config": {f"{user}prep": f"{user}prep"}},
-            ref_mlcube_kwargs={"name": f"{user}ref", "container_config": {f"{user}ref": f"{user}ref"}},
-            eval_mlcube_kwargs={"name": f"{user}eval", "container_config": {f"{user}eval": f"{user}eval"}},
+            prep_mlcube_kwargs={
+                "name": f"{user}prep",
+                "container_config": {f"{user}prep": f"{user}prep"},
+            },
+            ref_mlcube_kwargs={
+                "name": f"{user}ref",
+                "container_config": {f"{user}ref": f"{user}ref"},
+            },
+            eval_mlcube_kwargs={
+                "name": f"{user}eval",
+                "container_config": {f"{user}eval": f"{user}eval"},
+            },
             name=f"{user}name",
         )
         return benchmark
@@ -73,7 +82,9 @@ class BenchmarksTest(MedPerfTest):
 class DatasetsTest(MedPerfTest):
     def __create_asset(self, user):
         self.set_credentials(user)
-        prep = self.mock_mlcube(name=f"{user}name", container_config={f"{user}hash": f"{user}hash"})
+        prep = self.mock_mlcube(
+            name=f"{user}name", container_config={f"{user}hash": f"{user}hash"}
+        )
         prep = self.create_mlcube(prep).data
         dataset = self.mock_dataset(prep["id"], generated_uid=f"{user}genid")
         dataset = self.create_dataset(dataset).data
@@ -112,7 +123,9 @@ class DatasetsTest(MedPerfTest):
 class MlCubesTest(MedPerfTest):
     def __create_asset(self, user):
         self.set_credentials(user)
-        mlcube = self.mock_mlcube(name=f"{user}name", container_config={f"{user}hash": f"{user}hash"})
+        mlcube = self.mock_mlcube(
+            name=f"{user}name", container_config={f"{user}hash": f"{user}hash"}
+        )
         mlcube = self.create_mlcube(mlcube).data
         return mlcube
 
@@ -212,9 +225,18 @@ class BenchmarkDatasetTest(MedPerfTest):
             user,
             user,
             user,
-            prep_mlcube_kwargs={"name": f"{user}prep", "container_config": {f"{user}prep": f"{user}prep"}},
-            ref_mlcube_kwargs={"name": f"{user}ref", "container_config": {f"{user}ref": f"{user}ref"}},
-            eval_mlcube_kwargs={"name": f"{user}eval", "container_config": {f"{user}eval": f"{user}eval"}},
+            prep_mlcube_kwargs={
+                "name": f"{user}prep",
+                "container_config": {f"{user}prep": f"{user}prep"},
+            },
+            ref_mlcube_kwargs={
+                "name": f"{user}ref",
+                "container_config": {f"{user}ref": f"{user}ref"},
+            },
+            eval_mlcube_kwargs={
+                "name": f"{user}eval",
+                "container_config": {f"{user}eval": f"{user}eval"},
+            },
             name=f"{user}name",
         )
         self.set_credentials(user)
@@ -265,14 +287,25 @@ class BenchmarkMlCubeTest(MedPerfTest):
             user,
             user,
             user,
-            prep_mlcube_kwargs={"name": f"{user}prep", "container_config": {f"{user}prep": f"{user}prep"}},
-            ref_mlcube_kwargs={"name": f"{user}ref", "container_config": {f"{user}ref": f"{user}ref"}},
-            eval_mlcube_kwargs={"name": f"{user}eval", "container_config": {f"{user}eval": f"{user}eval"}},
+            prep_mlcube_kwargs={
+                "name": f"{user}prep",
+                "container_config": {f"{user}prep": f"{user}prep"},
+            },
+            ref_mlcube_kwargs={
+                "name": f"{user}ref",
+                "container_config": {f"{user}ref": f"{user}ref"},
+            },
+            eval_mlcube_kwargs={
+                "name": f"{user}eval",
+                "container_config": {f"{user}eval": f"{user}eval"},
+            },
             name=f"{user}name",
         )
         self.set_credentials(user)
         mlcube = self.mock_mlcube(
-            name=f"{user}name", container_config={f"{user}hash": f"{user}hash"}, state="OPERATION"
+            name=f"{user}name",
+            container_config={f"{user}hash": f"{user}hash"},
+            state="OPERATION",
         )
         mlcube = self.create_mlcube(mlcube).data
 

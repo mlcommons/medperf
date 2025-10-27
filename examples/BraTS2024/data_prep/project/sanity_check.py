@@ -33,9 +33,7 @@ def check_subject_validity_for_segmentation(labels_path, subject_dir, parameters
 def check_subject_validity_for_pathology(labels_path, data_path):
     # data
     if not all(file.endswith("png") for file in os.listdir(data_path)):
-        raise ValueError(
-            f"{os.path.basename(data_path)} should only contain PNG files"
-        )
+        raise ValueError(f"{os.path.basename(data_path)} should only contain PNG files")
 
     # labels
     assert len(os.listdir(labels_path)) == 1, "invalid number of labels file"

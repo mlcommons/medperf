@@ -37,8 +37,8 @@ def test_submit_prepares_tmp_path_for_cleanup():
 def test_run_runs_expected_flow(mocker, comms, ui, fs: FakeFilesystem, cube):
     # Arrange
     mock_body = cube.todict()
-    fake_config_file = '/path/to/container_config.yaml'
-    fs.create_file(fake_config_file, contents='key: value\n')
+    fake_config_file = "/path/to/container_config.yaml"
+    fs.create_file(fake_config_file, contents="key: value\n")
 
     # Arrange
     spy_download = mocker.patch(PATCH_MLCUBE.format("SubmitCube.download"))

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('benchmark', '0001_initial'),
+        ("benchmark", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='benchmark',
-            name='demo_dataset_tarball_url',
+            model_name="benchmark",
+            name="demo_dataset_tarball_url",
             field=models.CharField(max_length=256),
         ),
     ]

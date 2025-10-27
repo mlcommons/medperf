@@ -26,7 +26,6 @@ class EvaluateTask(object):
         splitted_cmd = cmd.split()
 
         subprocess.run(splitted_cmd, cwd=".", check=True)
-        
 
 
 @app.command("evaluate")

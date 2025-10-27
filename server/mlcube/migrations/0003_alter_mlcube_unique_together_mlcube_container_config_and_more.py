@@ -6,43 +6,51 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mlcube', '0002_alter_mlcube_unique_together'),
+        ("mlcube", "0002_alter_mlcube_unique_together"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='mlcube',
+            name="mlcube",
             unique_together=set(),
         ),
         migrations.AddField(
-            model_name='mlcube',
-            name='container_config',
+            model_name="mlcube",
+            name="container_config",
             field=models.JSONField(default=dict),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='mlcube',
-            name='parameters_config',
+            model_name="mlcube",
+            name="parameters_config",
             field=models.JSONField(blank=True, null=True),
         ),
         migrations.AlterUniqueTogether(
-            name='mlcube',
-            unique_together={('image_tarball_hash', 'image_hash', 'additional_files_tarball_hash', 'container_config', 'parameters_config')},
+            name="mlcube",
+            unique_together={
+                (
+                    "image_tarball_hash",
+                    "image_hash",
+                    "additional_files_tarball_hash",
+                    "container_config",
+                    "parameters_config",
+                )
+            },
         ),
         migrations.RemoveField(
-            model_name='mlcube',
-            name='git_mlcube_url',
+            model_name="mlcube",
+            name="git_mlcube_url",
         ),
         migrations.RemoveField(
-            model_name='mlcube',
-            name='git_parameters_url',
+            model_name="mlcube",
+            name="git_parameters_url",
         ),
         migrations.RemoveField(
-            model_name='mlcube',
-            name='mlcube_hash',
+            model_name="mlcube",
+            name="mlcube_hash",
         ),
         migrations.RemoveField(
-            model_name='mlcube',
-            name='parameters_hash',
+            model_name="mlcube",
+            name="parameters_hash",
         ),
     ]

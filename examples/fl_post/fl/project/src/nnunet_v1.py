@@ -1,8 +1,4 @@
-
-
-
-
-# The following was copied and modified from the source: 
+# The following was copied and modified from the source:
 # https://github.com/kaapana/kaapana/blob/26d71920d53c3110e2494cbb2ddb0cbb996b880a/data-processing/base-images/base-nnunet/files/patched/run_training.py#L213
 
 
@@ -42,46 +38,48 @@ from nnunet.utilities.task_name_id_conversion import convert_id_to_task_name
 # We will be syncing training across many nodes who independently preprocess data
 # In order to do this we will need to sync the training plans (defining the model architecture etc.)
 # NNUnet does this by overwriting the plans file which includes a unique alternative plans identifier other than the default one
-plans_param = 'nnUNetPlans_pretrained_POSTOPP'
-#from nnunet.paths import default_plans_identifier
+plans_param = "nnUNetPlans_pretrained_POSTOPP"
+# from nnunet.paths import default_plans_identifier
+
 
 def seed_everything(seed=1234):
     random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
 
-def train_nnunet(actual_max_num_epochs, 
-                 fl_round,
-                 val_epoch=True,
-                 train_epoch=True,
-                 train_cutoff=np.inf,
-                 val_cutoff=np.inf,
-                 network='3d_fullres', 
-                 network_trainer='nnUNetTrainerV2', 
-                 task='Task543_FakePostOpp_More', 
-                 fold='0', 
-                 continue_training=True,
-                 c=False, 
-                 p=plans_param, 
-                 use_compressed_data=False, 
-                 deterministic=False, 
-                 npz=False, 
-                 find_lr=False, 
-                 valbest=False, 
-                 fp32=False, 
-                 val_folder='validation_raw', 
-                 disable_saving=False, 
-                 disable_postprocessing_on_folds=True, 
-                 val_disable_overwrite=True, 
-                 disable_next_stage_pred=False, 
-                 pretrained_weights=None):
-
+def train_nnunet(
+    actual_max_num_epochs,
+    fl_round,
+    val_epoch=True,
+    train_epoch=True,
+    train_cutoff=np.inf,
+    val_cutoff=np.inf,
+    network="3d_fullres",
+    network_trainer="nnUNetTrainerV2",
+    task="Task543_FakePostOpp_More",
+    fold="0",
+    continue_training=True,
+    c=False,
+    p=plans_param,
+    use_compressed_data=False,
+    deterministic=False,
+    npz=False,
+    find_lr=False,
+    valbest=False,
+    fp32=False,
+    val_folder="validation_raw",
+    disable_saving=False,
+    disable_postprocessing_on_folds=True,
+    val_disable_overwrite=True,
+    disable_next_stage_pred=False,
+    pretrained_weights=None,
+):
     """
-    actual_max_num_epochs (int): Provides the number of epochs intended to be trained over the course of the whole federation (for lr scheduling) 
+    actual_max_num_epochs (int): Provides the number of epochs intended to be trained over the course of the whole federation (for lr scheduling)
     (this needs to be held constant outside of individual calls to this function so that the lr is consistetly scheduled)
     fl_round (int): Federated round, equal to the epoch used for the model (in lr scheduling)
     val_epoch (bool) : Will validation be performed
@@ -123,9 +121,9 @@ def train_nnunet(actual_max_num_epochs,
         "file, for example model_final_checkpoint.model). Will only be used when actually training. "
         "Optional. Beta. Use with caution."
     disable_next_stage_pred: If True, do not predict next stage
-    """  
+    """
 
-    class Arguments():
+    class Arguments:
         def __init__(self, **kwargs):
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -213,7 +211,6 @@ def train_nnunet(actual_max_num_epochs,
         deterministic=deterministic,
         fp16=run_mixed_precision,
     )
-    
 
     trainer.initialize(True)
 
@@ -237,10 +234,8 @@ def train_nnunet(actual_max_num_epochs,
             # new training without pretraine weights, do nothing
             pass
 
-    # we want latest checkoint only (not best or any intermediate) 
-    trainer.save_final_checkpoint = (
-        True  # whether or not to save the final checkpoint
-    )
+    # we want latest checkoint only (not best or any intermediate)
+    trainer.save_final_checkpoint = True  # whether or not to save the final checkpoint
     trainer.save_best_checkpoint = (
         False  # whether or not to save the best checkpoint according to
     )
@@ -258,37 +253,41 @@ def train_nnunet(actual_max_num_epochs,
 
     # STAYing WITH NNUNET CONVENTION OF 50 AND 250 VAL AND TRAIN BATCHES RESPECTIVELY
     # Note: This convention makes sense in combination with a train_completion_dampener of 0.0
-    num_val_batches_per_epoch = 50 
-    num_train_batches_per_epoch = 250 
+    num_val_batches_per_epoch = 50
+    num_train_batches_per_epoch = 250
 
     # the nnunet trainer attributes have a different naming convention than I am using
     trainer.num_batches_per_epoch = num_train_batches_per_epoch
     trainer.num_val_batches_per_epoch = num_val_batches_per_epoch
-            
-    batches_applied_train, \
-            batches_applied_val, \
-            this_ave_train_loss, \
-            this_ave_val_loss, \
-            this_val_eval_metrics, \
-            this_val_eval_metrics_C1, \
-            this_val_eval_metrics_C2, \
-            this_val_eval_metrics_C3, \
-            this_val_eval_metrics_C4 = trainer.run_training(train_cutoff=train_cutoff, 
-                                                    val_cutoff=val_cutoff, 
-                                                    val_epoch=val_epoch,
-                                                    train_epoch=train_epoch)
+
+    (
+        batches_applied_train,
+        batches_applied_val,
+        this_ave_train_loss,
+        this_ave_val_loss,
+        this_val_eval_metrics,
+        this_val_eval_metrics_C1,
+        this_val_eval_metrics_C2,
+        this_val_eval_metrics_C3,
+        this_val_eval_metrics_C4,
+    ) = trainer.run_training(
+        train_cutoff=train_cutoff,
+        val_cutoff=val_cutoff,
+        val_epoch=val_epoch,
+        train_epoch=train_epoch,
+    )
 
     train_completed = batches_applied_train / float(num_train_batches_per_epoch)
     val_completed = batches_applied_val / float(num_val_batches_per_epoch)
-    
-    return train_completed, \
-                val_completed, \
-                this_ave_train_loss, \
-                this_ave_val_loss, \
-                this_val_eval_metrics, \
-                this_val_eval_metrics_C1, \
-                this_val_eval_metrics_C2, \
-                this_val_eval_metrics_C3, \
-                this_val_eval_metrics_C4
 
-        
+    return (
+        train_completed,
+        val_completed,
+        this_ave_train_loss,
+        this_ave_val_loss,
+        this_val_eval_metrics,
+        this_val_eval_metrics_C1,
+        this_val_eval_metrics_C2,
+        this_val_eval_metrics_C3,
+        this_val_eval_metrics_C4,
+    )

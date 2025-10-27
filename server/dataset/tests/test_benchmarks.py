@@ -201,7 +201,9 @@ class SerializersDatasetBenchmarksPostTest(DatasetBenchmarksTest):
             self.bmk_owner,
         )
         prep = self.mock_mlcube(
-            name="someprep", container_config={"someprep": "someprep"}, state="OPERATION"
+            name="someprep",
+            container_config={"someprep": "someprep"},
+            state="OPERATION",
         )
         prep = self.create_mlcube(prep).data
         dataset = self.mock_dataset(
