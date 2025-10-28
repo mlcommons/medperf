@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from data_preparation_workflow.models import DataPrepWorkflow
 
 User = get_user_model()
 
@@ -21,6 +22,11 @@ class Dataset(models.Model):
         "mlcube.MlCube",
         on_delete=models.PROTECT,
         related_name="benchmark_preprocessor_mlcube",
+        null=True,
+        default=None,
+    )
+    data_preparation_workflow = models.ForeignKey(
+        DataPrepWorkflow, on_delete=models.PROTECT, null=True, default=None
     )
     is_valid = models.BooleanField(default=True)
     submitted_as_prepared = models.BooleanField()

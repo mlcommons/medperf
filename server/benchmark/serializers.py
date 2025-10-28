@@ -4,6 +4,21 @@ from django.conf import settings
 from .models import Benchmark
 
 
+def validate_exactly_one_preparation(data: dict):
+    no_data_prep_provided = (
+        data.get("data_preparation_mlcube") is None
+        and data.get("data_preparation_workflow") is None
+    )
+    multiple_data_prep_provided = (
+        data.get("data_preparation_mlcube") is not None
+        and data.get("data_preparation_workflow") is not None
+    )
+    if no_data_prep_provided or multiple_data_prep_provided:
+        raise serializers.ValidationError(
+            "Exactly one of 'data_preparation_mlcube' or 'data_preparation_workflow' must be provided to register a Benchmark"
+        )
+
+
 class BenchmarkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Benchmark
@@ -20,6 +35,7 @@ class BenchmarkSerializer(serializers.ModelSerializer):
                 "User can own at most one pending benchmark"
             )
 
+        validate_exactly_one_preparation(data)
         if "state" in data and data["state"] == "OPERATION":
             dev_mlcubes = [
                 data["data_preparation_mlcube"].state == "DEVELOPMENT",
@@ -99,6 +115,7 @@ class BenchmarkApprovalSerializer(serializers.ModelSerializer):
                         raise serializers.ValidationError(
                             "User cannot update non editable fields in Operation mode"
                         )
+        validate_exactly_one_preparation(data)
         return data
 
 
