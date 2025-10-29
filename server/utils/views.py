@@ -33,6 +33,10 @@ from trainingevent.serializers import EventDetailSerializer
 from ca.serializers import CASerializer
 from trainingevent.models import TrainingEvent
 from ca.models import CA
+from certificate.models import Certificate
+from certificate.serializers import CertificateDetailSerializer
+from mlcube_key.models import MlCubeKey
+from mlcube_key.serializers import EncryptedKeyDetailSerializer
 
 
 class User(GenericAPIView):
@@ -205,6 +209,50 @@ class ModelResultList(GenericAPIView):
         results = self.get_object(request.user.id)
         results = self.paginate_queryset(results)
         serializer = ModelResultSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CertificateList(GenericAPIView):
+    serializer_class = CertificateDetailSerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "ca")
+
+    def get_object(self, pk):
+        try:
+            return Certificate.objects.filter(owner__id=pk)
+        except Certificate.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all certs associated with the current user
+        """
+        certs = self.get_object(request.user.id)
+        certs = self.filter_queryset(certs)
+        certs = self.paginate_queryset(certs)
+        serializer = CertificateDetailSerializer(certs, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class MlCubeKeyList(GenericAPIView):
+    serializer_class = EncryptedKeyDetailSerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "certificate", "container")
+
+    def get_object(self, pk):
+        try:
+            return MlCubeKey.objects.filter(owner__id=pk)
+        except MlCubeKey.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all keys associated with the current user
+        """
+        keys = self.get_object(request.user.id)
+        keys = self.filter_queryset(keys)
+        keys = self.paginate_queryset(keys)
+        serializer = EncryptedKeyDetailSerializer(keys, many=True)
         return self.get_paginated_response(serializer.data)
 
 

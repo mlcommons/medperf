@@ -1,24 +1,7 @@
 from typing import Optional
-from medperf.exceptions import InvalidContainerSpec, ExecutionError, MedperfException
-from medperf.utils import spawn_and_kill, combine_proc_sp_text
+from medperf.exceptions import InvalidContainerSpec, MedperfException
 from medperf import config
-import shlex
 import os
-
-
-def run_command(cmd, timeout=None, output_logs=None):
-    with spawn_and_kill(shlex.join(cmd), timeout=timeout) as proc_wrapper:
-        proc = proc_wrapper.proc
-        proc_out = combine_proc_sp_text(proc)
-
-    if output_logs is not None:
-        with open(output_logs, "w") as f:
-            f.write(proc_out)
-
-    if proc.exitstatus != 0:
-        raise ExecutionError("There was an error while executing the container")
-
-    return proc_out
 
 
 def check_allowed_run_args(run_args):

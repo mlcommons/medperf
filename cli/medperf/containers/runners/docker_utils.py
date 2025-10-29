@@ -1,7 +1,7 @@
 import os
 
 from medperf.exceptions import InvalidContainerSpec, MedperfException
-from .utils import run_command
+from medperf.utils import run_command
 import shlex
 import tarfile
 import json

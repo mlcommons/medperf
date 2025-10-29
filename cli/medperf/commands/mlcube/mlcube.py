@@ -1,8 +1,6 @@
 import typer
-from typing import Optional, List
-from pathlib import Path
 import time
-
+from typing import Optional
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
@@ -10,7 +8,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
-from medperf.commands.mlcube.associate import AssociateCube, AssociateCubeWithCAs
+from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.exceptions import InvalidCertificateError, CleanExit
@@ -53,7 +51,7 @@ def run_test(
         False, "--download", help="whether to pull docker image"
     ),
 ):
-    """Runs a container for testing only"""
+    """Runs a container for testing only (developers)"""
     mounts = dict([p.split("=") for p in mounts.strip().strip(",").split(",") if p])
     env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
     ports = [p for p in ports.split(",") if p]
@@ -257,13 +255,6 @@ def view(
 @app.command("give_access")
 @clean_except
 def give_access(
-    ca_id: int = typer.Option(
-        ...,
-        "-c",
-        "--ca-id",
-        "--ca_id",
-        help="Certificate Authority (CA) UID. This CA will provide the allowed Data Owners to get keys to the model.",
-    ),
     model_id: int = typer.Option(
         ...,
         "-m",
@@ -284,14 +275,11 @@ def give_access(
 ):
     """
     Allows all currently registered Data Owners in a given benchmark to access
-    a Private Container registered to the same benchmark, using the provided
-    Certificate Authority (CA) for authentication.
-    The Private Container must have already been associated with both the CA and the
+    a Private Container registered to the same benchmark.
+    The Private Container must have already been associated with the
     benchmark for this to take effect.
     """
-    GrantAccess.run(
-        ca_id=ca_id, benchmark_id=benchmark_id, model_id=model_id, approved=approval
-    )
+    GrantAccess.run(benchmark_id=benchmark_id, model_id=model_id, approved=approval)
     config.ui.print("✅ Done!")
 
 

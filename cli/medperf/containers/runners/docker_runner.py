@@ -1,7 +1,6 @@
 from medperf.comms.entity_resources import resources
 from medperf.exceptions import MedperfException
 from .utils import (
-    run_command,
     check_allowed_run_args,
     add_medperf_run_args,
     add_user_defined_run_args,
@@ -19,14 +18,16 @@ from .docker_utils import (
     load_image,
     delete_images,
 )
-from .encryption_utils import decrypt_gpg_file, create_secure_folder
-from medperf.utils import remove_path
+from medperf.encryption import decrypt_gpg_file, check_gpg
+from medperf.utils import remove_path, run_command, create_secure_tmp_folder
 
 
 class DockerRunner(Runner):
     def __init__(self, container_config_parser):
         self.parser = container_config_parser
         self.image: str = None
+        if self.parser.is_container_encrypted():
+            check_gpg()
 
     def download(
         self,
@@ -154,7 +155,7 @@ class DockerRunner(Runner):
                 "Internal error: Container should be automatically deleted after run"
             )
 
-        decrypted_archive_path = create_secure_folder()
+        decrypted_archive_path = create_secure_tmp_folder()
         repo_tags_list = []
         try:
             # decrypt archive

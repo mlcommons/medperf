@@ -131,9 +131,9 @@ class REST(Comms):
             return el_list[:num_elements]
         return el_list
 
-    def __get(self, url: str, error_msg: str, **kwargs) -> dict:
+    def __get(self, url: str, error_msg: str) -> dict:
         """self.__auth_get with error handling"""
-        res = self.__auth_get(url, **kwargs)
+        res = self.__auth_get(url)
         if res.status_code != 200:
             log_response_error(res)
             details = format_errors_dict(res.json())
@@ -206,29 +206,6 @@ class REST(Comms):
         error_msg = "Could not retrieve mlcube"
         return self.__get(url, error_msg)
 
-    def get_container_ca(self, cube_uid: int) -> dict:
-        """Retrieves the cube's ca object from the server
-
-        Args:
-            cube_uid (int): uid for the model
-
-        Returns:
-            dict: ca specification
-        """
-        url = f"{self.server_url}/mlcubes/{cube_uid}/ca/"
-        error_msg = "Could not retrieve Certificate Authority (CA) associated with this container."
-        return self.__get(url, error_msg)
-
-    def get_encrypted_container_key(self, key_uid: int) -> dict:
-        url = f"{self.server_url}/keys/{key_uid}/"
-        error_msg = "Could not retrieve this Encrypted Container Key"
-        return self.__get(url, error_msg)
-
-    def get_key_ca(self, key_uid: int) -> dict:
-        url = f"{self.server_url}/keys/{key_uid}/ca/"
-        error_msg = "Could not retrieve Certificate Authority (CA) associated with this container and key."
-        return self.__get(url, error_msg)
-
     def get_dataset(self, dset_uid: int) -> dict:
         """Retrieves a specific dataset
 
@@ -294,15 +271,14 @@ class REST(Comms):
         error_msg = "Could not retrieve ca"
         return self.__get(url, error_msg)
 
-    def get_many_cas(self, ca_uids: List[int]) -> dict:
-        url = f"{self.server_url}/cas/"
-        params = {'ids': ca_uids}
-        error_msg = "Could not retrieve ca"
-        return self.__get(url, error_msg, params=params)
-
     def get_encrypted_key(self, key_id: int) -> dict:
         url = f"{self.server_url}/keys/{key_id}"
         error_msg = "Could not retrieve Encrypted Key"
+        return self.__get(url, error_msg)
+
+    def get_certificate(self, certificate_id: int) -> dict:
+        url = f"{self.server_url}/certificates/{certificate_id}"
+        error_msg = "Could not retrieve Certificate"
         return self.__get(url, error_msg)
 
     def get_training_event(self, event_id: int) -> dict:
@@ -356,11 +332,6 @@ class REST(Comms):
         """
         url = f"{self.server_url}/training/{training_exp_id}/ca/"
         error_msg = "Could not retrieve training experiment ca"
-        return self.__get(url, error_msg)
-
-    def get_encrypted_key_from_model_id(self, model_id: int) -> dict:
-        url = f"{self.server_url}/mlcubes/{model_id}/keys/"
-        error_msg = "Could not retrieve the encrypted key"
         return self.__get(url, error_msg)
 
     # get list
@@ -433,31 +404,6 @@ class REST(Comms):
         url = f"{self.server_url}/cas/"
         error_msg = "Could not retrieve cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
-
-    def get_certificates(self, filters={}) -> List[dict]:
-        """Retrieves all certificatess
-
-        Returns:
-            List[dict]: List of certificates
-        """
-        url = f"{self.server_url}/certificates/"
-        error_msg = "Could not retrieve certificates"
-        return self.__get_list(url, filters=filters, error_msg=error_msg)
-
-    def get_certificates_from_benchmark_model_ca(
-        self, benchmark_id: int, ca_id: int, model_id: int, filters=None
-    ) -> List[dict]:
-        """Retrieves certificates of Data Owners associated with a given benchmark"""
-        if filters is None:
-            filters = {}
-        url = (
-            f"{self.server_url}/benchmarks/{benchmark_id}/models/{model_id}/cas/{ca_id}"
-        )
-        error_msg = (
-            f"Could not retrieve certificates from Benchmark {benchmark_id}, "
-            f"CA {ca_id} associated with Model {model_id}"
-        )
-        return self.__get_list(url=url, filters=filters, error_msg=error_msg)
 
     def get_training_events(self, filters={}) -> List[dict]:
         """Retrieves all training events
@@ -540,19 +486,19 @@ class REST(Comms):
         error_msg = "Could not retrieve user cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_keys(self, filters=None) -> dict:
-        if filters is None:
-            filters = {}
+    def get_user_keys(self, filters=dict()) -> dict:
+        filters.update({"is_valid": True})
         url = f"{self.server_url}/me/keys/"
         error_msg = "Could not retrieve Encrypted Keys"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_certificates(self, filters={}) -> dict:
-        """Retrieves all certificates registered by the user
+    def get_user_certificates(self, filters=dict()) -> dict:
+        """Retrieves all certificates owned by the user
 
         Returns:
             dict: dictionary with the contents of each result registration query
         """
+        filters.update({"is_valid": True})
         url = f"{self.server_url}/me/certificates/"
         error_msg = "Could not retrieve user certificates"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
@@ -645,11 +591,6 @@ class REST(Comms):
         error_msg = "could not upload mlcube"
         return self.__post(url, json=mlcube_body, error_msg=error_msg)
 
-    def update_mlcube(self, mlcube_id: int, mlcube_updated_body: int) -> dict:
-        url = f"{self.server_url}/mlcubes/{mlcube_id}/"
-        error_msg = "could not update mlcube"
-        return self.__put(url, json=mlcube_updated_body, error_msg=error_msg)
-
     def upload_dataset(self, reg_dict: dict) -> int:
         """Uploads registration data to the server, under the sha name of the file.
 
@@ -733,11 +674,9 @@ class REST(Comms):
         error_msg = "could not upload Encrypted Key"
         return self.__post(url, json=key_dict, error_msg=error_msg)
 
-    def upload_many_encrypted_keys(
-        self, key_dict_list: list[dict]
-    ):
-        """Uploads a list of Encrypted Keys in a single server request, based on a Model-CA association"""
-        url = f"{self.server_url}/mlcubes/keys/"
+    def upload_many_encrypted_keys(self, key_dict_list: list[dict]):
+        """Uploads a list of Encrypted Keys"""
+        url = f"{self.server_url}/keys/bulk/"
         error_msg = "could not upload Encrypted Keys"
         return self.__post(url, json=key_dict_list, error_msg=error_msg)
 
@@ -808,24 +747,6 @@ class REST(Comms):
         error_msg = "Could not associate mlcube to benchmark"
         return self.__post(url, json=data, error_msg=error_msg)
 
-    def associate_ca_model(self, cube_uid: int, ca_uid: int, metadata: dict = None):
-        """Create an MLCube-CA association
-
-        Args:
-            cube_uid (int): MLCube UID
-            ca_uid (int): CA UID
-            metadata (dict, optional): Additional metadata. Defaults to {}.
-        """
-        metadata = metadata or {}
-        url = f"{self.server_url}/mlcubes/{cube_uid}/ca/"
-        data = {
-            "model_mlcube": cube_uid,
-            "associated_ca": ca_uid,
-            "metadata": metadata,
-        }
-        error_msg = "Could not associate mlcube to ca"
-        return self.__post(url, json=data, error_msg=error_msg)
-
     def associate_training_dataset(self, data_uid: int, training_exp_id: int):
         """Create a Dataset experiment association
 
@@ -857,22 +778,6 @@ class REST(Comms):
             "approval_status": Status.PENDING.value,
         }
         error_msg = "Could not associate aggregator to training_exp"
-        return self.__post(url, json=data, error_msg=error_msg)
-
-    def associate_container_ca(self, ca_id: int, container_id: int):
-        """Create a ca experiment association
-
-        Args:
-            ca_id (int): Registered ca UID
-            containr_id (int): Container (MLCube) UID
-        """
-        url = f"{self.server_url}/cas/mlcube/"
-        data = {
-            "ca": ca_id,
-            "mlcube": container_id,
-            "approval_status": Status.PENDING.value,
-        }
-        error_msg = "Could not associate ca to container"
         return self.__post(url, json=data, error_msg=error_msg)
 
     def associate_training_ca(self, ca_id: int, training_exp_id: int):
@@ -995,6 +900,16 @@ class REST(Comms):
         error_msg = "Could not update benchmark"
         return self.__put(url, json=data, error_msg=error_msg)
 
+    def update_certificate(self, certificate_id: int, data: dict):
+        url = f"{self.server_url}/certificates/{certificate_id}/"
+        error_msg = "Could not update certificate"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_container_key(self, key_id: int, data: dict):
+        url = f"{self.server_url}/keys/{key_id}/"
+        error_msg = "Could not update container key"
+        return self.__put(url, json=data, error_msg=error_msg)
+
     # misc
     def get_benchmark_executions(self, benchmark_id: int, filters={}) -> dict:
         """Retrieves all executions for a given benchmark
@@ -1079,3 +994,12 @@ class REST(Comms):
         url = f"{self.server_url}/benchmarks/{benchmark_id}/participants_info/"
         error_msg = "Could not get benchmark participants info"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_benchmark_datasets_certificates(
+        self, benchmark_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves certificates of Data Owners associated with a given benchmark"""
+        filters.update({"is_valid": True})
+        url = f"{self.server_url}/benchmarks/{benchmark_id}/datasets_certificates"
+        error_msg = f"Could not retrieve certificates from Benchmark {benchmark_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)

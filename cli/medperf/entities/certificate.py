@@ -59,11 +59,11 @@ class Certificate(Entity):
         return cert_file
 
     @classmethod
-    def get_list_from_benchmark_model_ca(  # TODO
-        cls, benchmark_id: int, model_id: int, ca_id: int
+    def get_benchmark_datasets_certificates(
+        cls, benchmark_id: int
     ) -> list[Certificate]:
-        cert_data_list = config.comms.get_certificates_from_benchmark_model_ca(
-            benchmark_id=benchmark_id, model_id=model_id, ca_id=ca_id
+        cert_data_list = config.comms.get_benchmark_datasets_certificates(
+            benchmark_id=benchmark_id, filters={"is_valid": True}
         )
 
         cert_obj_list = [cls(**cert_data) for cert_data in cert_data_list]

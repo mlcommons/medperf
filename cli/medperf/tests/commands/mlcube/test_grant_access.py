@@ -127,7 +127,7 @@ def test_grant_access_flow(mocker: MockerFixture, mock_ca: CA, mock_container_ke
 
     mocker.patch.object(CA, 'get', return_value=mock_ca)
     mocker.patch(PATCH_ASSOC.format('trust'))
-    spy_get_list = mocker.patch.object(Certificate, 'get_list_from_benchmark_model_ca',
+    spy_get_list = mocker.patch.object(Certificate, 'get_benchmark_datasets_certificates',
                                        return_value=mock_certificate_list)
     spy_verify = mocker.patch.object(Certificate, 'verify_with_ca')
     spy_generate_encrypted_keys_list = mocker.patch.object(

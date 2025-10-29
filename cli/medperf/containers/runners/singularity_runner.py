@@ -1,8 +1,7 @@
 from medperf.comms.entity_resources import resources
 from medperf.exceptions import InvalidArgumentError, MedperfException
-from medperf.utils import remove_path
+from medperf.utils import remove_path, run_command, create_secure_tmp_folder
 from .utils import (
-    run_command,
     check_allowed_run_args,
     add_medperf_run_args,
     add_user_defined_run_args,
@@ -18,7 +17,7 @@ from .singularity_utils import (
     craft_singularity_run_command,
     convert_docker_image_to_sif,
 )
-from .encryption_utils import decrypt_gpg_file, create_secure_folder
+from medperf.encryption import decrypt_gpg_file, check_gpg
 
 import os
 from medperf import config
@@ -37,6 +36,8 @@ class SingularityRunner(Runner):
         self.version = version
         self.image_file_path: str = None
         self.image_file_hash: str = None
+        if self.parser.is_container_encrypted():
+            check_gpg()
 
     def _supports_nvccli(self):
         # TODO: later perhaps also check if nvidia-container-cli is installed
@@ -216,7 +217,7 @@ class SingularityRunner(Runner):
                 "Container is encrypted but decryption key is not provided"
             )
 
-        decrypted_sif_file = create_secure_folder()
+        decrypted_sif_file = create_secure_tmp_folder()
         try:
             # decrypt file
             decrypt_gpg_file(
@@ -243,7 +244,7 @@ class SingularityRunner(Runner):
             self.container_files_base_path, config.image_path
         )
         sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
-        decrypted_archive_file = create_secure_folder()
+        decrypted_archive_file = create_secure_tmp_folder()
         try:
             # decrypt file
             decrypt_gpg_file(

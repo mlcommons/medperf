@@ -75,3 +75,14 @@ def check_matching_certificates(user_cert_object, local_cert_folder):
     remote_certificate_content = base64.b64decode(remote_certificate_content)
 
     return local_certificate_content == remote_certificate_content
+
+
+def load_user_private_key():
+    email = get_medperf_user_data()["email"]
+    local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+    private_key_file = os.path.join(local_cert_folder, config.private_key_file)
+    if not os.path.exists(private_key_file):
+        return
+    with open(private_key_file, "rb") as f:
+        content_bytes = f.read()
+    return content_bytes

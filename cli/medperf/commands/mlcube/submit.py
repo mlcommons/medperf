@@ -1,11 +1,10 @@
 import os
+import shutil
 
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.exceptions import InvalidArgumentError
-from medperf.utils import remove_path, move_container_key_to_local_storage
-from pathlib import Path
-from medperf.entities.ca import CA
+from medperf.utils import remove_path, get_decryption_key_path
 
 
 class SubmitCube:
@@ -19,7 +18,6 @@ class SubmitCube:
         ui = config.ui
         submission = cls(submit_info, decryption_key)
         submission.validate()
-        submission.move_decryption_key()
         with ui.interactive():
             ui.text = "Validating Container can be downloaded"
             submission.download()
@@ -27,6 +25,7 @@ class SubmitCube:
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
+            submission.store_decryption_key()
         return submission.cube.id
 
     def __init__(self, submit_info: dict, decryption_key: str = None):
@@ -37,18 +36,14 @@ class SubmitCube:
         config.tmp_paths.append(self.cube.path)
 
     def validate(self):
-        pass
+        if self.cube.is_encrypted() and not self.decryption_key:
+            raise InvalidArgumentError(
+                "Container seems to be encrypted, but no decryption key is provided"
+            )
 
-    def move_decryption_key(self):
-        if self.decryption_key is None:
-            return
-        trusted_cas = updated_cube_dict["trusted_cas"]
-        cas_list = CA.get_many(trusted_cas)
-        for ca in cas_list:
-            move_container_key_to_local_storage(
-                cube_id=updated_cube_dict["id"],
-                ca_name=ca.name,
-                decryption_key_path=self.decryption_key,
+        if not self.cube.is_encrypted() and self.decryption_key:
+            raise InvalidArgumentError(
+                "Container is not encrypted, but a decryption key is provided"
             )
 
     def download(self):
@@ -72,3 +67,12 @@ class SubmitCube:
     def write(self, updated_cube_dict):
         self.cube = Cube(**updated_cube_dict)
         self.cube.write()
+
+    def store_decryption_key(self):
+        if self.decryption_key is None:
+            return
+
+        target_path = get_decryption_key_path(self.cube.id)
+        target_folder = os.path.dirname(target_path)
+        os.makedirs(target_folder, exist_ok=True)
+        shutil.copy(self.decryption_key, target_path)

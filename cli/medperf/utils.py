@@ -16,21 +16,13 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from typing import List, Union
+from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import (
-    CleanExit,
-    ExecutionError,
-    InvalidArgumentError,
-    MissingContainerKeyException,
-    MedperfException,
-)
-from pydantic import SecretBytes
-from medperf.entities.certificate import Certificate
-from pydantic.datetime_parse import parse_datetime
+from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
+import shlex
 
 
 def get_file_hash(path: str) -> str:
@@ -530,6 +522,21 @@ class spawn_and_kill:
         return False
 
 
+def run_command(cmd, timeout=None, output_logs=None):
+    with spawn_and_kill(shlex.join(cmd), timeout=timeout) as proc_wrapper:
+        proc = proc_wrapper.proc
+        proc_out = combine_proc_sp_text(proc)
+
+    if output_logs is not None:
+        with open(output_logs, "w") as f:
+            f.write(proc_out)
+
+    if proc.exitstatus != 0:
+        raise ExecutionError("There was an error while executing the container")
+
+    return proc_out
+
+
 def get_pki_assets_path(common_name: str, ca_id: int):
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
@@ -576,46 +583,23 @@ def get_webui_properties():
     print(f"URL: http://{props['host']}:{props['port']}")
 
 
-def get_container_local_key(container_id: int):
-    pass
-
-
-def get_container_key_dir_path(container_id: Union[str, int]):
-    """Gets the path to decrypted container keys"""
-    return os.path.join(config.container_keys_dir, str(container_id))
-
-
-def move_container_key_to_local_storage(
-    cube_id: int, ca_name: str, decryption_key_path: Path
-):
-    config.ui.print("Moving Decryption key to MedPerf LOCAL storage")
-    container_keys_dir = get_container_key_dir_path(
-        container_id=cube_id, ca_name=ca_name
-    )
-    copied_key_path = os.path.join(container_keys_dir, config.container_key_file)
-    os.makedirs(container_keys_dir, exist_ok=True)
-    shutil.copy(decryption_key_path, copied_key_path)
-
-
-def get_model_owner_container_key_path(container_id, ca_name) -> Path:
-    container_key_dir = get_container_key_dir_path(
-        container_id=container_id, ca_name=ca_name
+def get_decryption_key_path(container_id):
+    return os.path.join(
+        config.container_keys_dir, str(container_id), config.container_key_file
     )
 
-    model_owner_key_path = Path(container_key_dir) / config.container_key_file
 
-    if not os.path.exists(model_owner_key_path):
-        msg = (
-            f"Container Key not found for Container ID {container_id}.\n"
-            f"If attempting to execute a compatibility test run, please make "
-            "sure to include the --decryption-key option in your compatibility "
-            "test run command.\n"
-            f"If attempting to associate with a benchmark AND you are the Model "
-            "Owner responsible for this container, please run the following command "
-            "to create the association:\n"
-            f"medperf container associate_with_ca --container-id {container_id} "
-            "--decryption-key <path to your decryption key file> "
-            "--ca-id <ID of your preferred CA here>"
-        )
-        raise MissingContainerKeyException(msg)
-    return model_owner_key_path
+def create_secure_tmp_folder():
+    folder_name = generate_tmp_uid()
+    folder_path = os.path.join(config.decrypted_files_folder, folder_name)
+    os.makedirs(folder_path, mode=0o700)
+    return folder_path
+
+
+def secure_write_to_file(file_path, content, exec_permission=False):
+    permission_mode = 0o700 if exec_permission else 0o600
+    with open(file_path, "wb") as f:
+        pass
+    os.chmod(file_path, permission_mode)
+    with open(file_path, "ab") as f:
+        f.write(content)
