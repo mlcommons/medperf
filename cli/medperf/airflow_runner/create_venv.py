@@ -4,11 +4,13 @@ import os
 import shutil
 from pathlib import Path
 from medperf.exceptions import MedperfException
-from medperf.utils import spawn_and_kill, combine_proc_sp_text
+from medperf.utils import spawn_and_kill
 import shlex
+import logging
+from pexpect import EOF
 
 
-def create_airflow_venv_if_not_exists(force_creation=False):
+def create_airflow_venv_if_not_exists(force_creation=False, timeout: int = 5 * 60):
     if os.path.exists(config.airflow_venv_dir) and not force_creation:
         return
 
@@ -32,15 +34,17 @@ def create_airflow_venv_if_not_exists(force_creation=False):
         )
 
     command = [python_executable, "-m", "pip", "install", "-r", requirements_file]
-    with spawn_and_kill(shlex.join(command), timeout=None) as spawn_wrapper:
-        combine_proc_sp_text(spawn_wrapper.proc)
+    config.ui.print(
+        "Installing additional requirements for Airflow Execution. "
+        "This may take a few minutes. "
+        "This step will not be run in future Airflow executions."
+    )
+    with spawn_and_kill(shlex.join(command), timeout=timeout) as spawn_wrapper:
+        spawn_wrapper.proc.expect(EOF)
 
     if spawn_wrapper.proc.exitstatus != 0:
         shutil.rmtree(config.airflow_venv_dir)
         error_msg = f"Failed to install dependencies to the Airflow environment located at {config.airflow_venv_dir}.\n"
         error_msg += "The virtual environment has been deleted."
+        logging.debug(spawn_wrapper.proc.before)
         raise MedperfException(error_msg)
-
-
-if __name__ == "__main__":
-    create_airflow_venv_if_not_exists(force_creation=True)

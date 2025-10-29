@@ -14,7 +14,6 @@ from .yaml_partial_parser import YamlPartialParser
 from .utils import DagRunState
 from .create_venv import create_airflow_venv_if_not_exists
 from typing import List, Union, TYPE_CHECKING
-import sys
 import configparser
 import secrets
 from pydantic import SecretStr
@@ -28,7 +27,6 @@ from medperf import config
 
 if TYPE_CHECKING:
     from .components.airflow_component import AirflowComponentRunner
-logger = logging.getLogger(__name__)
 
 
 class AirflowSystemRunner:
@@ -84,7 +82,7 @@ class AirflowSystemRunner:
         ]
 
     def _initial_setup(self):
-        logger.debug("Creating initial Airflow configuration")
+        logging.debug("Creating initial Airflow configuration")
         a = subprocess.run(
             [self._python_exec, "-m", "airflow", "config", "list"],
             capture_output=True,
@@ -104,16 +102,16 @@ class AirflowSystemRunner:
         config["database"].update({"sql_alchemy_conn": self.db.connection_string})
         config["scheduler"].update({"enable_health_check": "true"})
 
-        logger.debug(f"Saving Airflow configuration to {self.airflow_config_file}")
+        logging.debug(f"Saving Airflow configuration to {self.airflow_config_file}")
         with open(self.airflow_config_file, "w") as f:
             config.write(f)
 
     def init_airflow(self, force_venv_creation: bool = False):
-        logger.info("Starting Airflow components")
         create_airflow_venv_if_not_exists(force_creation=force_venv_creation)
         os.makedirs(os.path.join(self.airflow_home, "logs"), exist_ok=True)
         self._initialize_components()
 
+        config.ui.print("Starting Airflow components")
         asyncio.run(self.db.start())
         if not os.path.exists(self.airflow_config_file):
             self._initial_setup()
@@ -122,7 +120,7 @@ class AirflowSystemRunner:
         self._create_admin_user()
         self._create_pools()
         asyncio.run(self._start_non_db_components())
-        logger.info("Airflow components successfully started")
+        config.ui.print("Airflow components successfully started")
 
     @property
     def _run_env(self):
@@ -157,7 +155,7 @@ class AirflowSystemRunner:
         self.triggerer = AirflowTriggerer(**common_args)
 
     def _start_airflow_db(self):
-        logger.debug("Migrating Airflow DB")
+        logging.debug("Migrating Airflow DB")
         init_db_logs = os.path.join(self.airflow_home, "logs", "init_db.log")
         with open(init_db_logs, "a") as f:
             db_migrate = subprocess.run(
@@ -274,11 +272,9 @@ class AirflowSystemRunner:
             "If this process must be stopped prematurely, please use the Ctrl+C command!"
         )
 
-        httpx_logger = logging.getLogger("httpx")
-        httpx_logger.setLevel(logging.WARN)
         wait_interval = 10  # seconds
         for line in msg:
-            logger.info(line)
+            config.ui.print(line)
         api_url = f"{self._complete_link}/api/v2"
         with AirflowAPIClient(
             username=self.user, password=self._password, api_url=api_url
@@ -298,14 +294,14 @@ class AirflowSystemRunner:
                         break
 
             except KeyboardInterrupt:
-                logger.info("Interrupting Airflow Execution. Please wait...")
+                config.ui.print("Interrupting Airflow Execution. Please wait...")
                 raise
 
             finally:
                 summarizer_task.cancel()
                 summarizer.summarize(airflow_client)
 
-        logger.info(
+        config.ui.print(
             "Pipeline Execution finished. Please press Enter to close Airflow..."
         )
         input()
@@ -337,25 +333,25 @@ class AirflowSystemRunner:
         return last_summarizer_run["state"] == DagRunState.SUCCESS
 
     def _stop_airflow(self):
-        logger.debug("Stopping Airflow execution")
+        logging.debug("Stopping Airflow execution")
         for component in self._airflow_components:
             if component is not None and component.process:
-                logger.debug(f"Stopping component {component.component_name}")
+                logging.debug(f"Stopping component {component.component_name}")
                 component.terminate()
 
     def _kill_airflow(self):
-        logger.debug("Forcefully terminating Airflow execution")
+        logging.debug("Forcefully terminating Airflow execution")
         for component in self._airflow_components:
             if component is not None:
-                logger.debug(f"Killing component {component.component_name}")
+                logging.debug(f"Killing component {component.component_name}")
                 component.kill()
 
     def __enter__(self):
-        logger.debug("Entering Airflow context manager")
+        logging.debug("Entering Airflow context manager")
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        logger.debug("Exiting Airflow context manager")
+        logging.debug("Exiting Airflow context manager")
         if exc_type is None:
             self._stop_airflow()
 

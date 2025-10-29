@@ -6,8 +6,6 @@ import asyncio
 import async_timeout
 import logging
 
-logger = logging.getLogger(__name__)
-
 
 class ComponentRunner(ABC):
 
@@ -53,9 +51,9 @@ class ComponentRunner(ABC):
             self.process = subprocess.Popen(command, env=env, stdout=f, stderr=f)
 
     async def start(self):
-        logger.debug(self.starting_message)
+        logging.debug(self.starting_message)
         await self.start_logic()
-        logger.debug(self.finished_message)
+        logging.debug(self.finished_message)
 
     @abstractmethod
     async def start_logic(self):
