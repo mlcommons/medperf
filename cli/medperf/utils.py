@@ -21,7 +21,15 @@ from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
+from medperf.exceptions import (
+    CleanExit,
+    ExecutionError,
+    InvalidArgumentError,
+    MedperfException,
+)
+import subprocess
+import venv
+import shlex
 from pydantic import TypeAdapter
 
 
@@ -576,3 +584,59 @@ def parse_datetime(datetime_obj: Union[str, int, datetime]):
             "Current implementation of parse_datetime only supports strings, ints and datetimes!\n"
             f"Object sent was of type {type(datetime_obj)}\n{datetime_obj=}"
         )
+
+
+def run_command(cmd, timeout=None, output_logs=None):
+    with spawn_and_kill(shlex.join(cmd), timeout=timeout) as proc_wrapper:
+        proc = proc_wrapper.proc
+        proc_out = combine_proc_sp_text(proc)
+
+    if output_logs is not None:
+        with open(output_logs, "w") as f:
+            f.write(proc_out)
+
+    if proc.exitstatus != 0:
+        raise ExecutionError("There was an error while executing the container")
+
+    return proc_out
+
+
+def create_airflow_venv_if_not_exists(force_creation=False):
+    if os.path.exists(config.airflow_venv_dir) and not force_creation:
+        return
+
+    requirements_file = str(
+        Path(__file__).parent.resolve() / config.airflow_requirements_file
+    )
+    if not os.path.exists(requirements_file):
+        raise MedperfException(
+            f"Could not find the {config.airflow_requirements_file}! Please verify your MedPerf installation."
+        )
+    # TODO add Windows executable if we eventually support windows
+    python_executable = os.path.join(config.airflow_venv_dir, "bin", "python")
+
+    venv.create(env_dir=config.airflow_venv_dir, clear=True, with_pip=True)
+    if not os.path.exists(python_executable):
+        shutil.rmtree(config.airflow_venv_dir)
+        raise MedperfException(
+            "Failed to find the Python executable for Airflow environment "
+            f"in directory {config.airflow_venv_dir}. "
+            "The virtual environment has been deleted."
+        )
+
+    install_dependencies_process = subprocess.run(
+        [python_executable, "-m", "pip", "install", "-r", requirements_file],
+        capture_output=True,
+        text=True,
+    )
+
+    if install_dependencies_process.returncode != 0:
+        shutil.rmtree(config.airflow_venv_dir)
+        error_msg = f"Failed to install dependencies to the Airflow environment located at {config.airflow_venv_dir}.\n"
+        error_msg += "The virtual environment has been deleted. Error details:\n"
+        if install_dependencies_process.stderr:
+            error_msg += f"Stderr: {install_dependencies_process.stderr}"
+        if install_dependencies_process.stdout:
+            error_msg += f"Stdout: {install_dependencies_process.stdout}"
+
+        raise MedperfException(error_msg)

@@ -49,6 +49,7 @@ local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
 # Storage config
 config_storage = Path.home().resolve() / ".medperf_config"
 logs_storage = Path.home().resolve() / ".medperf_logs"
+airflow_venv_dir = str(config_storage / ".airflow_venv")
 config_path = getenv("MEDPERF_CONFIG_PATH", str(config_storage / "config.yaml"))
 auth_jwks_file = str(config_storage / ".jwks")
 creds_folder = str(config_storage / ".tokens")
@@ -198,6 +199,7 @@ partial_flag = ".partial"
 executed_flag = ".executed"
 results_filename = "results.yaml"
 local_metrics_outputs = "local_outputs"
+airflow_requirements_file = "airflow_requirements.txt"
 
 # MLCube assets conventions
 cube_filename = "container_config.yaml"
