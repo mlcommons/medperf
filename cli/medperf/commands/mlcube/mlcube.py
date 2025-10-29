@@ -11,6 +11,9 @@ from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
+from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
+from medperf.commands.mlcube.delete_keys import DeleteKeys
+from medperf.commands.mlcube.check_access import CheckAccess
 from medperf.exceptions import InvalidCertificateError, CleanExit
 
 app = typer.Typer()
@@ -286,13 +289,6 @@ def give_access(
 @app.command("auto_give_access")
 @clean_except
 def auto_give_access(
-    ca_id: int = typer.Option(
-        ...,
-        "-c",
-        "--ca-id",
-        "--ca_id",
-        help="Certificate Authority (CA) UID. This CA will provide the allowed Data Owners to get keys to the model.",
-    ),
     model_id: int = typer.Option(
         ...,
         "-m",
@@ -336,10 +332,7 @@ def auto_give_access(
 
             try:
                 GrantAccess.run(
-                    ca_id=ca_id,
-                    benchmark_id=benchmark_id,
-                    model_id=model_id,
-                    approved=True,
+                    benchmark_id=benchmark_id, model_id=model_id, approved=True
                 )
             except (CleanExit, InvalidCertificateError) as e:
                 config.ui.print(str(e))
@@ -349,3 +342,59 @@ def auto_give_access(
     except KeyboardInterrupt:
         config.ui.print("✅ Stopping at request of the user.")
         raise
+
+
+@app.command("revoke_user_access")
+@clean_except
+def revoke_revoke_user_accessaccess(
+    key_id: int = typer.Option(
+        ...,
+        "-k",
+        "--key-id",
+        "--key_id",
+        help="Key ID to delete.",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """
+    Revokes access to the model for a user by deleting the user's key.
+    """
+    RevokeUserAccess.run(key_id, approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("delete_keys")
+@clean_except
+def delete_keys(
+    model_id: int = typer.Option(
+        ...,
+        "-m",
+        "--model-id",
+        "--model_id",
+        help="Model ID to delete all its keys.",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """
+    Revokes access to the model by deleting all its encrypted keys on the server.
+    """
+    DeleteKeys.run(model_id, approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("check_access")
+@clean_except
+def check_access(
+    model_id: int = typer.Option(
+        ...,
+        "-m",
+        "--model-id",
+        "--model_id",
+        help="Model ID to check if you have access to.",
+    )
+):
+    """
+    Check if you have access to a model.
+    """
+    CheckAccess.run(model_id)
+    config.ui.print("✅ Done!")

@@ -25,14 +25,14 @@ class EncryptedKeyDetailSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         keys = list(data.keys())
-        # Only `is_valid` is allowed to be edited
-        if len(keys) != 1 or keys[0] != "is_valid":
+        # Only `is_valid` and `encrypted_key_base64` are allowed to be edited
+        if set(keys) != {"is_valid", "encrypted_key_base64"}:
             raise serializers.ValidationError(
-                "User can only invalidate a container key"
+                "User can only invalidate a container key and overwrite its value"
             )
         # `is_valid` is only allowed to become False
         if data["is_valid"]:
             raise serializers.ValidationError(
-                "User can only invalidate a container key"
+                "User can only invalidate a container key and overwrite its value"
             )
         return data

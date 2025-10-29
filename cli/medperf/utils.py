@@ -603,3 +603,9 @@ def secure_write_to_file(file_path, content, exec_permission=False):
     os.chmod(file_path, permission_mode)
     with open(file_path, "ab") as f:
         f.write(content)
+
+
+def generate_container_key_redaction_record(encrypted_key_base64: str):
+    sha = hashlib.sha256()
+    sha.update(base64.b64decode(encrypted_key_base64))
+    return sha.hexdigest()

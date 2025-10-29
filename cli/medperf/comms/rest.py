@@ -271,7 +271,7 @@ class REST(Comms):
         error_msg = "Could not retrieve ca"
         return self.__get(url, error_msg)
 
-    def get_encrypted_key(self, key_id: int) -> dict:
+    def get_container_key(self, key_id: int) -> dict:
         url = f"{self.server_url}/keys/{key_id}"
         error_msg = "Could not retrieve Encrypted Key"
         return self.__get(url, error_msg)
@@ -908,6 +908,11 @@ class REST(Comms):
     def update_container_key(self, key_id: int, data: dict):
         url = f"{self.server_url}/keys/{key_id}/"
         error_msg = "Could not update container key"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_many_container_keys(self, data: dict):
+        url = f"{self.server_url}/keys/bulk/"
+        error_msg = "Could not update container keys"
         return self.__put(url, json=data, error_msg=error_msg)
 
     # misc

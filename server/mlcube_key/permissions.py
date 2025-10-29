@@ -32,7 +32,7 @@ class IsContainersOwner(BasePermission):
     def get_containers_objects(self, pks):
         return MlCube.objects.filter(id__in=pks)
 
-    def has_permission(self, request, view):
+    def has_permission(self, request, view):  # TODO
         pks = request.data.get("container", None)
         if not pks:
             return False

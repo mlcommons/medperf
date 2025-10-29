@@ -1,4 +1,4 @@
-from rest_framework.generics import RetrieveAPIView, CreateAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -12,7 +12,7 @@ from django.http import Http404
 User = get_user_model()
 
 
-class GetEncryptedKeyById(RetrieveAPIView):
+class GetEncryptedKeyById(GenericAPIView):
     serializer_class = EncryptedKeyDetailSerializer
     queryset = ""
     permission_classes = [IsAdmin | IsKeyOwner]
@@ -42,7 +42,7 @@ class GetEncryptedKeyById(RetrieveAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetAllEncryptedKeys(RetrieveAPIView):
+class GetAllEncryptedKeys(GenericAPIView):
     serializer_class = EncryptedKeySerializer
     queryset = ""
 
@@ -70,7 +70,7 @@ class GetAllEncryptedKeys(RetrieveAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PostMultipleEncryptedKeys(CreateAPIView):
+class MultipleEncryptedKeys(GenericAPIView):
     permission_classes = [IsAdmin | IsContainersOwner]
 
     def post(self, request: Request, format=None):
@@ -81,4 +81,18 @@ class PostMultipleEncryptedKeys(CreateAPIView):
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(
+        self, request: Request, format=None
+    ):  # TODO: partial success and error messages?
+        """
+        update many encrypted key objects.
+        """
+        serializer = EncryptedKeyDetailSerializer(
+            data=request.data, many=True, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

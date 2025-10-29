@@ -9,6 +9,7 @@ from medperf.commands.certificate.utils import (
 )
 from medperf.encryption import AsymmetricEncryption
 from medperf.utils import get_decryption_key_path, secure_write_to_file
+from typing import List
 
 
 class EncryptedContainerKey(MedperfSchema):
@@ -19,6 +20,21 @@ class EncryptedContainerKey(MedperfSchema):
     encrypted_key_base64: str
     container: int
     certificate: int
+
+    @classmethod
+    def get(cls, key_id: int) -> EncryptedContainerKey:
+        """Uploads many objects in a single operation on the server"""
+        comms_fn = config.comms.get_container_key
+        entity = comms_fn(key_id)
+        return EncryptedContainerKey(**entity)
+
+    @classmethod
+    def get_user_keys(cls) -> List[EncryptedContainerKey]:
+        """Uploads many objects in a single operation on the server"""
+        comms_fn = config.comms.get_user_keys
+        entities = comms_fn()
+
+        return [EncryptedContainerKey(**entity) for entity in entities]
 
     @classmethod
     def upload_many(
