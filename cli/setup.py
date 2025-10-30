@@ -11,6 +11,15 @@ with open("requirements.txt", "r") as f:
         if req and not req.startswith("--"):
             requires.append(req)
 
+with open("airflow_requirements.txt", "r") as f:
+    airflow_requires = [line.strip() for line in f]
+
+with open("synapse_requirements.txt", "r") as f:
+    synapse_requires = [line.strip() for line in f]
+
+extras_require = {"airflow": airflow_requires, "synapse": synapse_requires}
+
+
 # TODO: doesn't work right now because medperf wheel is not building properly
 package_data = ["medperf/web_ui/templates/*", "medperf/web_ui/static/*"]
 
@@ -23,7 +32,8 @@ setup(
     license="Apache 2.0",
     packages=["medperf"],
     install_requires=requires,
-    python_requires=">=3.6",
+    extras_require=extras_require,
+    python_requires=">=3.9",
     entry_points="""
         [console_scripts]
         medperf=medperf.__main__:app
