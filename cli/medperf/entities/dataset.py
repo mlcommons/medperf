@@ -27,7 +27,7 @@ class Dataset(Entity, DeployableSchema):
     input_data_hash: str
     generated_uid: str
     data_preparation_mlcube: Union[int, str]
-    split_seed: Optional[int]
+    split_seed: Optional[int] = None
     generated_metadata: dict = Field(..., alias="metadata")
     user_metadata: dict = {}
     report: dict = {}

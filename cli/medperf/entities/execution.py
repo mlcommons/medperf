@@ -30,7 +30,7 @@ class Execution(Entity, ApprovableSchema):
     model_report: dict = {}
     evaluation_report: dict = {}
     finalized: bool = False
-    finalized_at: Optional[datetime]
+    finalized_at: Optional[datetime] = None
 
     @staticmethod
     def get_type():

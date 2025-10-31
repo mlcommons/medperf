@@ -10,12 +10,12 @@ from medperf.utils import format_errors_dict
 
 class MedperfSchema(BaseModel):
     for_test: bool = False
-    id: Optional[int]
+    id: Optional[int] = None
     name: str = Field(..., max_length=64)
-    owner: Optional[int]
+    owner: Optional[int] = None
     is_valid: bool = True
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
+    created_at: Optional[datetime] = None
+    modified_at: Optional[datetime] = None
 
     def __init__(self, *args, **kwargs):
         """Override the ValidationError procedure so we can
@@ -93,7 +93,7 @@ class DeployableSchema(BaseModel):
 
 
 class ApprovableSchema(BaseModel):
-    approved_at: Optional[datetime]
+    approved_at: Optional[datetime] = None
     approval_status: Status = None
 
     @validator("approval_status", pre=True, always=True)

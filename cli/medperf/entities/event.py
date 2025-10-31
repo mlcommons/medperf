@@ -26,8 +26,8 @@ class TrainingEvent(Entity, MedperfSchema):
     training_exp: int
     participants: dict
     finished: bool = False
-    finished_at: Optional[datetime]
-    report: Optional[dict]
+    finished_at: Optional[datetime] = None
+    report: Optional[dict] = None
 
     @staticmethod
     def get_type():

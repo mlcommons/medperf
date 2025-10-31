@@ -22,13 +22,13 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     """
 
     description: Optional[str] = Field(None, max_length=20)
-    docs_url: Optional[HttpUrl]
+    docs_url: Optional[HttpUrl] = None
     demo_dataset_tarball_url: str
-    demo_dataset_tarball_hash: Optional[str]
-    demo_dataset_generated_uid: Optional[str]
+    demo_dataset_tarball_hash: Optional[str] = None
+    demo_dataset_generated_uid: Optional[str] = None
     data_preparation_mlcube: int
     fl_mlcube: int
-    fl_admin_mlcube: Optional[int]
+    fl_admin_mlcube: Optional[int] = None
     plan: dict = {}
     metadata: dict = {}
     user_metadata: dict = {}
