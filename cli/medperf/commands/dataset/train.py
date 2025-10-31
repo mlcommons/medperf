@@ -118,7 +118,7 @@ class TrainingExecution:
         self.training_exp.prepare_plan()
 
     def prepare_pki_assets(self):
-        ca = CA.from_experiment(self.training_exp_id)
+        ca = CA.get(config.certificate_authority_id)
         ca.verify()
         self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca

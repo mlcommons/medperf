@@ -83,13 +83,6 @@ class CA(Entity, MedperfSchema):
     def local_id(self):
         return self.name
 
-    @classmethod
-    def from_experiment(cls, training_exp_uid: int) -> "CA":
-        meta = config.comms.get_experiment_ca(training_exp_uid)
-        ca = cls(**meta)
-        ca.write()
-        return ca
-
     def verify(self):
         """Verifies the CA cert fingerprint and writes it to the MedPerf storage."""
         if self.config["fingerprint"] != config.certificate_authority_fingerprint:

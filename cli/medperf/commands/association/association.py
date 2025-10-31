@@ -18,7 +18,6 @@ def list(
     dataset: bool = typer.Option(False, "-d", help="list dataset associations"),
     mlcube: bool = typer.Option(False, "-m", help="list models associations"),
     aggregator: bool = typer.Option(False, "-a", help="list aggregator associations"),
-    ca: bool = typer.Option(False, "-c", help="list ca associations"),
     approval_status: str = typer.Option(
         None, "--approval-status", help="Approval status"
     ),
@@ -30,13 +29,7 @@ def list(
             Defaults to displaying all user associations.
     """
     ListAssociations.run(
-        approval_status,
-        benchmark,
-        training_exp,
-        dataset,
-        mlcube,
-        aggregator,
-        ca,
+        approval_status, benchmark, training_exp, dataset, mlcube, aggregator
     )
 
 
@@ -52,7 +45,6 @@ def approve(
     aggregator_uid: int = typer.Option(
         None, "--aggregator", "-a", help="Aggregator UID"
     ),
-    ca_uid: int = typer.Option(None, "--ca", "-c", help="CA UID"),
 ):
     """Approves an association between a benchmark and a dataset or model container
 
@@ -68,7 +60,6 @@ def approve(
         dataset_uid,
         model_uid,
         aggregator_uid,
-        ca_uid,
     )
     config.ui.print("✅ Done!")
 
@@ -85,7 +76,6 @@ def reject(
     aggregator_uid: int = typer.Option(
         None, "--aggregator", "-a", help="Aggregator UID"
     ),
-    ca_uid: int = typer.Option(None, "--ca", "-c", help="CA UID"),
 ):
     """Rejects an association between a benchmark and a dataset or model container
 
@@ -101,7 +91,6 @@ def reject(
         dataset_uid,
         model_uid,
         aggregator_uid,
-        ca_uid,
     )
     config.ui.print("✅ Done!")
 

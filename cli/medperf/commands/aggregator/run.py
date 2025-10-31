@@ -83,7 +83,7 @@ class StartAggregator:
         self.training_exp.prepare_plan()
 
     def prepare_pki_assets(self):
-        ca = CA.from_experiment(self.training_exp_id)
+        ca = CA.get(config.certificate_authority_id)
         ca.verify()
         agg_address = self.aggregator.address
         self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.id)

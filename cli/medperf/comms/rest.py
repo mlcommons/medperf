@@ -321,19 +321,6 @@ class REST(Comms):
         error_msg = "Could not retrieve training experiment aggregator"
         return self.__get(url, error_msg)
 
-    def get_experiment_ca(self, training_exp_id: int) -> dict:
-        """Retrieves the training experiment's ca object from the server
-
-        Args:
-            training_exp_id (int): uid for the training experiment
-
-        Returns:
-            dict: ca specification
-        """
-        url = f"{self.server_url}/training/{training_exp_id}/ca/"
-        error_msg = "Could not retrieve training experiment ca"
-        return self.__get(url, error_msg)
-
     # get list
     def get_benchmarks(self, filters={}) -> List[dict]:
         """Retrieves all benchmarks in the platform.
@@ -554,16 +541,6 @@ class REST(Comms):
         error_msg = "Could not retrieve user aggregators training associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_training_cas_associations(self, filters={}) -> List[dict]:
-        """Get all ca associations related to the current user
-
-        Returns:
-            List[dict]: List containing all associations information
-        """
-        url = f"{self.server_url}/me/cas/training_associations/"
-        error_msg = "Could not retrieve user cas training associations"
-        return self.__get_list(url, filters=filters, error_msg=error_msg)
-
     # upload
     def upload_benchmark(self, benchmark_dict: dict) -> int:
         """Uploads a new benchmark to the server.
@@ -780,22 +757,6 @@ class REST(Comms):
         error_msg = "Could not associate aggregator to training_exp"
         return self.__post(url, json=data, error_msg=error_msg)
 
-    def associate_training_ca(self, ca_id: int, training_exp_id: int):
-        """Create a ca experiment association
-
-        Args:
-            ca_id (int): Registered ca UID
-            training_exp_id (int): training experiment UID
-        """
-        url = f"{self.server_url}/cas/training/"
-        data = {
-            "ca": ca_id,
-            "training_exp": training_exp_id,
-            "approval_status": Status.PENDING.value,
-        }
-        error_msg = "Could not associate ca to training_exp"
-        return self.__post(url, json=data, error_msg=error_msg)
-
     # updates associations
     def update_benchmark_dataset_association(
         self, benchmark_uid: int, dataset_uid: int, data: str
@@ -860,22 +821,6 @@ class REST(Comms):
         error_msg = (
             "Could not approve association: dataset"
             f"{dataset_uid}, training_exp {training_exp_id}"
-        )
-        self.__put(url, json=data, error_msg=error_msg)
-
-    def update_training_ca_association(
-        self, training_exp_id: int, ca_uid: int, data: dict
-    ):
-        """Approves a training ca association
-
-        Args:
-            dataset_uid (int): Dataset UID
-            benchmark_uid (int): Benchmark UID
-            status (str): Approval status to set for the association
-        """
-        url = f"{self.server_url}/cas/{ca_uid}/training/{training_exp_id}/"
-        error_msg = (
-            f"Could not update association: ca{ca_uid}, training_exp {training_exp_id}"
         )
         self.__put(url, json=data, error_msg=error_msg)
 
