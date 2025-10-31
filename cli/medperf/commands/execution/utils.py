@@ -1,4 +1,4 @@
-from pydantic.datetime_parse import parse_datetime
+from medperf.utils import parse_datetime
 from medperf.entities.execution import Execution
 from typing import List
 

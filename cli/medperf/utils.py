@@ -22,6 +22,7 @@ from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
+from pydantic import TypeAdapter
 
 
 def get_file_hash(path: str) -> str:
@@ -560,3 +561,8 @@ def get_webui_properties():
     print()
     print("=" * 40)
     print(f"URL: http://{props['host']}:{props['port']}")
+
+
+# Pydantic v2 way of implementing old parse_datetime functionality.
+# See https://github.com/pydantic/pydantic/discussions/6204#discussioncomment-6266717
+parse_datetime = TypeAdapter(datetime).validate_json
