@@ -10,7 +10,7 @@ from importlib import resources
 from fastapi.requests import Request
 from medperf import config
 from starlette.responses import RedirectResponse
-from pydantic.datetime_parse import parse_datetime
+from medperf.utils import parse_datetime
 
 from medperf.enums import Status
 from medperf.web_ui.auth import (
