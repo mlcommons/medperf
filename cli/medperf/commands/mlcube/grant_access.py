@@ -6,6 +6,7 @@ from medperf import config
 from medperf.exceptions import CleanExit, InvalidCertificateError
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 from medperf.encryption import AsymmetricEncryption
+from medperf.certificates import verify_certificate_authority, verify_certificate
 
 
 class GrantAccess:
@@ -52,7 +53,7 @@ class GrantAccess:
     def verify_certificate_authority(self):
         config.ui.print("Verifying Certificate Authority")
         ca = CA.get(uid=config.certificate_authority_id)
-        ca.verify()
+        verify_certificate_authority(ca)
 
     def prepare_certificates_list(self):
         config.ui.print("Getting Data Owner Certificates")
@@ -81,7 +82,9 @@ class GrantAccess:
         for certificate in self.certificates:
             expected_email = self.cert_user_info[certificate.id]["email"]
             try:
-                certificate.verify(expected_cn=expected_email, verify_ca=False)
+                verify_certificate(
+                    certificate, expected_cn=expected_email, verify_ca=False
+                )
                 valid_certs.append(certificate)
             except InvalidCertificateError:
                 error_certs.append(certificate)

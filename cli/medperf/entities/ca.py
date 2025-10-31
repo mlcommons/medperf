@@ -1,9 +1,7 @@
 import json
 import os
-from medperf.entities.cube import Cube
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema
-from medperf.exceptions import MedperfException
 from pydantic import validator
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
@@ -82,21 +80,6 @@ class CA(Entity, MedperfSchema):
     @property
     def local_id(self):
         return self.name
-
-    def verify(self):
-        """Verifies the CA cert fingerprint and writes it to the MedPerf storage."""
-        if self.config["fingerprint"] != config.certificate_authority_fingerprint:
-            raise MedperfException(
-                "Certificate authority fingerprint doesn't match the configured one"
-            )
-        self.prepare_config()
-        mounts = {
-            "ca_config": self.config_path,
-            "pki_assets": self.pki_assets,
-        }
-        mlcube = Cube.get(self.ca_mlcube)
-        mlcube.download_run_files()
-        mlcube.run(task="trust", mounts=mounts, disable_network=False)
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:

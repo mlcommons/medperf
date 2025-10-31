@@ -19,6 +19,7 @@ from medperf.utils import (
     get_participant_label,
     remove_path,
 )
+from medperf.certificates import verify_certificate_authority
 
 
 class TrainingExecution:
@@ -119,7 +120,7 @@ class TrainingExecution:
 
     def prepare_pki_assets(self):
         ca = CA.get(config.certificate_authority_id)
-        ca.verify()
+        verify_certificate_authority(ca)
         self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 

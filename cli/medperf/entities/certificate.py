@@ -1,10 +1,8 @@
 from __future__ import annotations
 import os
-from medperf.entities.cube import Cube
 from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
 from medperf import config
-from medperf.entities.ca import CA
 from medperf.exceptions import MedperfException
 from medperf.utils import generate_tmp_path
 from pydantic import validator
@@ -121,16 +119,3 @@ class Certificate(Entity):
             "Created At": self.created_at,
             "Is Valid": self.is_valid,
         }
-
-    def verify(self, expected_cn: str, verify_ca: bool = True):
-        ca = CA.get(self.ca)
-        if verify_ca:
-            ca.verify()
-        ca.prepare_config()
-        ca_container = Cube.get(ca.ca_mlcube)
-        cert_folder = self.prepare_certificate_file()
-        mounts = {"pki_assets": cert_folder, "ca_config": ca.config_path}
-        env = {"MEDPERF_INPUT_CN": expected_cn}
-        ca_container.run(
-            task="verify_cert", mounts=mounts, env=env, disable_network=False
-        )

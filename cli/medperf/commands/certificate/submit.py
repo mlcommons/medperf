@@ -6,6 +6,7 @@ import os
 from medperf import config
 from medperf.ui.interface import UI
 from medperf.entities.certificate import Certificate
+from medperf.certificates import verify_certificate
 
 
 class SubmitCertificate:
@@ -18,7 +19,7 @@ class SubmitCertificate:
         submission.prepare()
         with ui.interactive():
             ui.text = "Submitting Certificate to MedPerf"
-            submission.verify_certificate()
+            submission.verify_user_certificate()
             updated_certificate_body = submission.submit()
         ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
@@ -52,9 +53,9 @@ class SubmitCertificate:
             certificate_content_base64=cert_content_base64,
         )
 
-    def verify_certificate(self):
+    def verify_user_certificate(self):
         email = get_medperf_user_data()["email"]
-        self.certificate.verify(expected_cn=email)
+        verify_certificate(self.certificate, expected_cn=email)
 
     def submit(self):
         msg = "When submitting your Certificate, your e-mail will be visible to the Model Owner(s) "
