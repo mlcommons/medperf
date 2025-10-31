@@ -49,6 +49,11 @@ else
     exit 1
 fi
 
+if [ -z "$CA_FINGERPRINT" ]; then
+    echo "Empty fingerprint."
+    exit 1
+fi
+
 cert_path=$pki_assets/crt.crt
 key_path=$pki_assets/key.key
 
@@ -67,12 +72,21 @@ if [ -e $key_path ]; then
     exit 1
 fi
 
-if [ -n "$CA_FINGERPRINT" ]; then
-    # trust the CA.
-    step ca bootstrap --ca-url $CA_ADDRESS:$CA_PORT \
+# First, try to bootstrap the root cert using step-ca. This will also verify the fingerprint.
+step ca bootstrap --ca-url $CA_ADDRESS:$CA_PORT \
         --fingerprint $CA_FINGERPRINT
+if [ "$?" -eq "0" ]; then
     ROOT=$STEPPATH/certs/root_ca.crt
 else
+    # if the above fails, it could be that the CA is reachable via https using system trusted certs.
+    mkdir -p /tmp/root_ca
+    /bin/sh /mlcube_project/trust.sh --ca_config $ca_config --pki_assets /tmp/root_ca
+    if [ "$?" -ne "0" ]; then
+        echo "Failed to verify the root certificate"
+        # cleanup
+        rm -rf $STEPPATH
+        exit 1
+    fi
     ROOT=/etc/ssl/certs/ca-certificates.crt
 fi
 

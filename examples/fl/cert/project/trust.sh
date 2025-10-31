@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # Read arguments
+# --ca_config: config file of the CA containing address, port, and root cert fingerprint
+# --pki_assets: output path to store the CA root cert
+
 while [ "${1:-}" != "" ]; do
     case "$1" in
     "--ca_config"*)
@@ -46,7 +49,7 @@ fi
 
 rm -rf $ROOT_CERT_PATH
 
-# First, try to download the root cert using step. This will also verify the fingerprint.
+# First, try to download the root cert using step-ca. This will also verify the fingerprint.
 step ca root $ROOT_CERT_PATH --ca-url $CA_ADDRESS:$CA_PORT \
     --fingerprint $CA_FINGERPRINT
 
@@ -56,7 +59,7 @@ if [ "$?" -eq "0" ]; then
     exit 0
 fi
 
-# if the above fails, it could be that the CA is behind a proxy.
+# if the above fails, it could be that the CA is reachable via https using system trusted certs.
 # Try to fetch the root cert using curl then verify the fingerprint.
 
 curl -o $ROOT_CERT_PATH $CA_ADDRESS:$CA_PORT/roots.pem

@@ -35,21 +35,33 @@ export STEPPATH=$pki_assets/.step
 
 CERT_PATH=$pki_assets/crt.crt
 
+if [ ! -f "$CERT_PATH" ]; then
+    echo "Certificate file doesn't exist"
+fi
+
 mkdir -p /tmp/root_ca
+
+# verify the ca first
 /bin/sh /mlcube_project/trust.sh --ca_config $ca_config --pki_assets /tmp/root_ca
-
-ROOT_CERT=/tmp/root_ca/root_ca.crt
-
-step certificate verify $CERT_PATH --roots $ROOT_CERT
 
 EXITSTATUS="$?"
 if [ $EXITSTATUS -ne "0" ]; then
-    echo "Failed to get the root certificate"
+    echo "Failed to get or verify the root certificate"
     # cleanup
     rm -rf $STEPPATH
     exit 1
 fi
 
+ROOT_CERT=/tmp/root_ca/root_ca.crt
+step certificate verify $CERT_PATH --roots $ROOT_CERT
+
+EXITSTATUS="$?"
+if [ $EXITSTATUS -ne "0" ]; then
+    echo "Certificate verification failed."
+    # cleanup
+    rm -rf $STEPPATH
+    exit 1
+fi
 
 CN=$(step certificate inspect --short --format json "$CERT_PATH" | jq -r '.subject.cn')
 
