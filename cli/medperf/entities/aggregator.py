@@ -1,5 +1,5 @@
 import os
-from pydantic import validator
+from pydantic import validator, Field
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema
@@ -24,7 +24,7 @@ class Aggregator(Entity, MedperfSchema):
     - results
     """
 
-    metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
     config: dict
     aggregation_mlcube: int
 

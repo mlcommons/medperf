@@ -29,8 +29,8 @@ class Dataset(Entity, DeployableSchema):
     data_preparation_mlcube: Union[int, str]
     split_seed: Optional[int] = None
     generated_metadata: dict = Field(..., alias="metadata")
-    user_metadata: dict = {}
-    report: dict = {}
+    user_metadata: dict = Field(default_factory=dict)
+    report: dict = Field(default_factory=dict)
     submitted_as_prepared: bool
 
     @staticmethod

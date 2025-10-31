@@ -11,6 +11,7 @@ from .utils import (
 from .runner import Runner
 import logging
 from .docker_utils import craft_docker_run_command, get_docker_image_hash
+from pydantic import Field
 
 
 class DockerRunner(Runner):

@@ -30,8 +30,8 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     data_preparation_mlcube: int
     reference_model_mlcube: int
     data_evaluator_mlcube: int
-    metadata: dict = {}
-    user_metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
+    user_metadata: dict = Field(default_factory=dict)
     is_active: bool = True
     dataset_auto_approval_allow_list: list[str] = []
     dataset_auto_approval_mode: str = "NEVER"

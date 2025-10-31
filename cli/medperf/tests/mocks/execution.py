@@ -1,5 +1,6 @@
 from typing import Optional
 from medperf.entities.execution import Execution
+from pydantic import Field
 
 
 class TestExecution(Execution):
@@ -8,7 +9,7 @@ class TestExecution(Execution):
     benchmark: int = 1
     model: int = 1
     dataset: int = 1
-    results: dict = {}
+    results: dict = Field(default_factory=dict)
 
     def upload(self):
         # self.id = 1

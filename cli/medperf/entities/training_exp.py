@@ -29,9 +29,9 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     data_preparation_mlcube: int
     fl_mlcube: int
     fl_admin_mlcube: Optional[int] = None
-    plan: dict = {}
-    metadata: dict = {}
-    user_metadata: dict = {}
+    plan: dict = Field(default_factory=dict)
+    metadata: dict = Field(default_factory=dict)
+    user_metadata: dict = Field(default_factory=dict)
 
     @staticmethod
     def get_type():

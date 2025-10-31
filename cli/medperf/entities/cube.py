@@ -33,8 +33,8 @@ class Cube(Entity, DeployableSchema):
     image_hash: Optional[str] = None
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
-    metadata: dict = {}
-    user_metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
+    user_metadata: dict = Field(default_factory=dict)
 
     @staticmethod
     def get_type():

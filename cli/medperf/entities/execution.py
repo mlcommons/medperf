@@ -5,7 +5,7 @@ import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 from typing import Optional
 from datetime import datetime
-
+from pydantic import Field
 from medperf.utils import remove_path
 import yaml
 
@@ -24,11 +24,11 @@ class Execution(Entity, ApprovableSchema):
     benchmark: int
     model: int
     dataset: int
-    results: dict = {}
-    metadata: dict = {}
-    user_metadata: dict = {}
-    model_report: dict = {}
-    evaluation_report: dict = {}
+    results: dict = Field(default_factory=dict)
+    metadata: dict = Field(default_factory=dict)
+    user_metadata: dict = Field(default_factory=dict)
+    model_report: dict = Field(default_factory=dict)
+    evaluation_report: dict = Field(default_factory=dict)
     finalized: bool = False
     finalized_at: Optional[datetime] = None
 

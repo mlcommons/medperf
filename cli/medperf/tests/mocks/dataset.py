@@ -1,6 +1,7 @@
 from typing import Optional, Union
 from medperf.enums import Status
 from medperf.entities.dataset import Dataset
+from pydantic import Field
 
 
 class TestDataset(Dataset):
@@ -10,7 +11,7 @@ class TestDataset(Dataset):
     data_preparation_mlcube: Union[int, str] = 1
     input_data_hash: str = "input_data_hash"
     generated_uid: str = "generated_uid"
-    generated_metadata: dict = {}
+    generated_metadata: dict = Field(default_factory=dict)
     status: Status = Status.APPROVED.value
     state: str = "OPERATION"
     submitted_as_prepared: bool = False

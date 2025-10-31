@@ -2,7 +2,7 @@ import json
 import os
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema
-from pydantic import validator
+from pydantic import validator, Field
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 
@@ -22,7 +22,7 @@ class CA(Entity, MedperfSchema):
     - results
     """
 
-    metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
     client_mlcube: int
     server_mlcube: int
     ca_mlcube: int
