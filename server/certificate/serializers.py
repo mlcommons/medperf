@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Certificate
+from user.serializers import UserSerializer
 
 
 class CertificateSerializer(serializers.ModelSerializer):
@@ -7,6 +8,17 @@ class CertificateSerializer(serializers.ModelSerializer):
         model = Certificate
         fields = "__all__"
         read_only_fields = ["owner"]
+
+
+class CertificateWithOwnerInfoSerializer(serializers.ModelSerializer):
+    """This is needed when getting certificates and their owners
+    with one API call."""
+
+    owner = UserSerializer()
+
+    class Meta:
+        model = Certificate
+        fields = "__all__"
 
 
 class CertificateDetailSerializer(serializers.ModelSerializer):

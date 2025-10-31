@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 from medperf.entities.cube import Cube
 from medperf.entities.interface import Entity
 from medperf.account_management import get_medperf_user_data
@@ -8,6 +9,7 @@ from medperf.exceptions import MedperfException
 from medperf.utils import generate_tmp_path
 from pydantic import validator
 import base64
+from typing import List, Tuple
 
 
 class Certificate(Entity):
@@ -52,22 +54,31 @@ class Certificate(Entity):
         return self.name
 
     def prepare_certificate_file(self):
-        cert_file = generate_tmp_path()
+        cert_folder = generate_tmp_path()
+        os.makedirs(cert_folder, exist_ok=True)
+        cert_file = os.path.join(cert_folder, config.certificate_file)
         certificate_content_bytes = base64.b64decode(self.certificate_content_base64)
         with open(cert_file, "wb") as f:
             f.write(certificate_content_bytes)
-        return cert_file
+        return cert_folder
 
     @classmethod
     def get_benchmark_datasets_certificates(
         cls, benchmark_id: int
-    ) -> list[Certificate]:
+    ) -> Tuple[List[Certificate], dict[int, dict]]:
+        # this api returns owners as dicts.
         cert_data_list = config.comms.get_benchmark_datasets_certificates(
             benchmark_id=benchmark_id, filters={"is_valid": True}
         )
 
+        # Transfer user info to another dict
+        users_mapping = dict()
+        for cert_data in cert_data_list:
+            users_mapping[cert_data["id"]] = cert_data["owner"]
+            cert_data["owner"] = cert_data["owner"]["id"]
+
         cert_obj_list = [cls(**cert_data) for cert_data in cert_data_list]
-        return cert_obj_list
+        return cert_obj_list, users_mapping
 
     @classmethod
     def get_user_certificate(cls):
@@ -111,12 +122,15 @@ class Certificate(Entity):
             "Is Valid": self.is_valid,
         }
 
-    def verify(self):  # TODO
+    def verify(self, expected_cn: str, verify_ca: bool = True):
         ca = CA.get(self.ca)
+        if verify_ca:
+            ca.verify()
+        ca.prepare_config()
         ca_container = Cube.get(ca.ca_mlcube)
-        cert_file = self.prepare_certificate_file()
-        mounts = {"cert_file": cert_file}  # TODO
-        env = {}  # TODO
+        cert_folder = self.prepare_certificate_file()
+        mounts = {"pki_assets": cert_folder, "ca_config": ca.config_path}
+        env = {"MEDPERF_INPUT_CN": expected_cn}
         ca_container.run(
             task="verify_cert", mounts=mounts, env=env, disable_network=False
         )

@@ -4,7 +4,6 @@ from medperf.entities.ca import CA
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
 from medperf.utils import get_pki_assets_path, generate_tmp_path
-from medperf.certificates import trust
 
 
 class UpdatePlan:
@@ -40,7 +39,7 @@ class UpdatePlan:
 
     def prepare_pki_assets(self):
         ca = CA.from_experiment(self.training_exp_id)
-        trust(ca)
+        ca.verify()
         self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 

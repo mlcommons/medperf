@@ -6,7 +6,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Certificate
-from .serializers import CertificateSerializer, CertificateDetailSerializer
+from .serializers import (
+    CertificateSerializer,
+    CertificateDetailSerializer,
+    CertificateWithOwnerInfoSerializer,
+)
 from .permissions import IsAssociatedModelOwner, IsCertificateOwner, IsAdmin
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
@@ -114,6 +118,6 @@ class CertificatesFromBenchmark(GenericAPIView):
         )
 
         certificates = self.paginate_queryset(certificates)
-        serializer = CertificateSerializer(certificates, many=True)
+        serializer = CertificateWithOwnerInfoSerializer(certificates, many=True)
 
         return self.get_paginated_response(serializer.data)

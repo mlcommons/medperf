@@ -9,7 +9,6 @@ from medperf.utils import (
     dict_pretty_print,
     remove_path,
 )
-from medperf.certificates import trust
 import yaml
 import os
 
@@ -49,7 +48,7 @@ class GetExperimentStatus:
 
     def prepare_pki_assets(self):
         ca = CA.from_experiment(self.training_exp_id)
-        trust(ca)
+        ca.verify()
         self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 

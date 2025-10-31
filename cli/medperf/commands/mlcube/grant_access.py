@@ -4,7 +4,6 @@ from medperf.entities.ca import CA
 from medperf.utils import approval_prompt, get_decryption_key_path
 from medperf import config
 from medperf.exceptions import CleanExit, InvalidCertificateError
-from medperf.certificates import trust
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 from medperf.encryption import AsymmetricEncryption
 
@@ -53,28 +52,36 @@ class GrantAccess:
     def verify_certificate_authority(self):
         config.ui.print("Verifying Certificate Authority")
         ca = CA.get(uid=config.certificate_authority_id)
-        trust(ca)
+        ca.verify()
 
     def prepare_certificates_list(self):
         config.ui.print("Getting Data Owner Certificates")
-        certificates = Certificate.get_benchmark_datasets_certificates(
+        certificates, cert_user_info = Certificate.get_benchmark_datasets_certificates(
             self.benchmark_id
         )
         existing_keys = EncryptedContainerKey.get_user_keys()
         certificates_with_keys = [key["certificate"] for key in existing_keys]
-        certificates_need_keys = set(certificates).difference(certificates_with_keys)
+
+        certificates_need_keys: list[Certificate] = list()
+
+        for cert in certificates:
+            if cert.id not in certificates_with_keys:
+                certificates_need_keys.append(cert)
+
         if not certificates_need_keys:
             raise CleanExit("No users in need of keys were found.")
 
         self.certificates = certificates_need_keys
+        self.cert_user_info = cert_user_info
 
     def verify_certificates(self):
         error_certs = []
         valid_certs = []
 
         for certificate in self.certificates:
+            expected_email = self.cert_user_info[certificate.id]["email"]
             try:
-                certificate.verify()
+                certificate.verify(expected_cn=expected_email, verify_ca=False)
                 valid_certs.append(certificate)
             except InvalidCertificateError:
                 error_certs.append(certificate)

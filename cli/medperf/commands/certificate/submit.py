@@ -53,7 +53,8 @@ class SubmitCertificate:
         )
 
     def verify_certificate(self):
-        self.certificate.verify()
+        email = get_medperf_user_data()["email"]
+        self.certificate.verify(expected_cn=email)
 
     def submit(self):
         msg = "When submitting your Certificate, your e-mail will be visible to the Model Owner(s) "

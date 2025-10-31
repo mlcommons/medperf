@@ -1,2 +1,0 @@
-typer==0.16.0
-cryptography==45.0.6

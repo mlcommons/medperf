@@ -255,7 +255,7 @@ def view(
     EntityView.run(entity_id, Cube, format, unregistered, mine, output)
 
 
-@app.command("give_access")
+@app.command("give_access")  # TODO: also require a list of allowed emails
 @clean_except
 def give_access(
     model_id: int = typer.Option(
