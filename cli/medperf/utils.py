@@ -563,16 +563,16 @@ def get_webui_properties():
     print(f"URL: http://{props['host']}:{props['port']}")
 
 
-def parse_datetime(datetime_obj: Union[dict, str, int]):
+def parse_datetime(datetime_obj: Union[str, int, datetime]):
     # Pydantic v2 way of implementing old parse_datetime functionality.
     # Adapted from https://github.com/pydantic/pydantic/discussions/6204#discussioncomment-6266717
 
-    if isinstance(datetime_obj, (str, int)):
+    if isinstance(datetime_obj, datetime):
+        return datetime_obj
+    elif isinstance(datetime_obj, (str, int)):
         return TypeAdapter(datetime).validate_strings(str(datetime_obj))
-    elif isinstance(datetime_obj, dict):
-        return TypeAdapter(datetime).validate_json(datetime_obj)
     else:
         raise ValueError(
-            "Current implementation of parse_datetime only supports strings, ints and JSON objects!\n"
+            "Current implementation of parse_datetime only supports strings, ints and datetimes!\n"
             f"Object sent was of type {type(datetime_obj)}\n{datetime_obj=}"
         )
