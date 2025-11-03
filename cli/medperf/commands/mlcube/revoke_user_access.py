@@ -4,7 +4,7 @@ from medperf.exceptions import CleanExit
 from medperf.entities.encrypted_container_key import EncryptedContainerKey
 
 
-class GrantAccess:
+class RevokeUserAccess:
     @classmethod
     def run(cls, key_id, approved=False):
         grantaccess = cls(key_id, approved)
