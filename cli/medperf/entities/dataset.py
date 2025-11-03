@@ -1,7 +1,7 @@
 import os
 from medperf.commands.association.utils import get_user_associations
 import yaml
-from pydantic import Field, validator
+from pydantic import Field, validator, ConfigDict
 from typing import Optional, Union, List
 
 from medperf.utils import remove_path
@@ -32,6 +32,8 @@ class Dataset(Entity, DeployableSchema):
     user_metadata: dict = Field(default_factory=dict)
     report: dict = Field(default_factory=dict)
     submitted_as_prepared: bool
+
+    model_config = ConfigDict(validate_by_name=True)
 
     @staticmethod
     def get_type():
